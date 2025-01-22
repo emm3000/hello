@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.emm.hello.ui.theme.HelloTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
