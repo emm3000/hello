@@ -77,4 +77,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.date_today }} - APK(s) release
-          path: app/build/outputs/apk/release/
+          path: app/build/outputs/apk/debug/
