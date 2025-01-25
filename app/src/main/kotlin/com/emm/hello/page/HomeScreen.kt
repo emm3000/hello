@@ -1,12 +1,21 @@
 package com.emm.hello.page
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,10 +31,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.emm.data.WordEntity
 import com.emm.hello.ui.theme.HelloTheme
+import java.util.UUID
 
 @Composable
 fun HomeScreen(
+    words: List<WordEntity>,
+    onSave: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -60,8 +73,57 @@ fun HomeScreen(
             label = {
                 Text("English Word")
             },
+            trailingIcon = {
+                LeadingIcon {
+                    onSave(word)
+                    word = ""
+                }
+            }
         )
 
+        Spacer(Modifier.height(14.dp))
+
+        LazyColumn(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(10.dp),
+        ) {
+            items(words, key = WordEntity::id) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = it.id.replace("-", "").take(4),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = it.word,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun LeadingIcon(onSave: () -> Unit) {
+    IconButton(
+        onClick = { onSave() }
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Add,
+            contentDescription = null,
+        )
     }
 }
 
@@ -69,8 +131,18 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     HelloTheme {
+        val items = remember {
+            (1..50).map {
+                WordEntity(
+                    id = it.toString(),
+                    word = UUID.randomUUID().toString().take(4)
+                )
+            }
+        }
         HomeScreen(
-            modifier = Modifier
+            words = items,
+            onSave = {},
+            modifier = Modifier,
         )
     }
 }
