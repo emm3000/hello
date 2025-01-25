@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
     alias(libs.plugins.google.crashlytics)
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -84,4 +85,5 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 }

@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import com.emm.hello.ui.theme.HelloTheme
 
 @Composable
-fun HomeScreen(
+fun InitScreen(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -61,6 +61,6 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     HelloTheme {
-        HomeScreen(onClick = {})
+        InitScreen(onClick = {})
     }
 }
