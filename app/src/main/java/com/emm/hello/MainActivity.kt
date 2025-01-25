@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("H E L L O")
+                        Text("H E L L O ZZZ")
                     }
                 }
             }
