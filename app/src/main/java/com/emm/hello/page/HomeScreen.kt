@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.dropUnlessResumed
 import com.emm.hello.ui.theme.HelloTheme
 
 @Composable
@@ -43,7 +44,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(30.dp))
         FilledTonalButton(
-            onClick = onClick,
+            onClick = dropUnlessResumed { onClick() },
             modifier = Modifier.fillMaxWidth(0.5f)
         ) {
             Text(
