@@ -1,11 +1,11 @@
 package com.emm.hello
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.emm.hello.page.HomeScreen
 import com.emm.hello.page.InitScreen
 import com.emm.hello.route.Home
 import com.emm.hello.route.Init
@@ -28,7 +28,7 @@ fun Root(modifier: Modifier = Modifier) {
             )
         }
         composable<Home> {
-            Text("Home Screen")
+            HomeScreen()
         }
     }
 }
