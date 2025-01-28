@@ -12,9 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-class HomeViewModel(
-    private val wordDao: WordDao,
-) : ViewModel() {
+class HomeViewModel(private val wordDao: WordDao) : ViewModel() {
 
     val wordListFlow: StateFlow<List<WordEntity>> = wordDao.all()
         .stateIn(
