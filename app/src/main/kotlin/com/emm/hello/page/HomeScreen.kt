@@ -84,9 +84,10 @@ fun HomeScreen(
         Spacer(Modifier.height(14.dp))
 
         LazyColumn(
-            modifier = Modifier,
+            modifier = Modifier
+                .padding(top = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(10.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp),
         ) {
             items(words, key = WordEntity::id) {
                 Row(
