@@ -18,4 +18,7 @@ interface WordDao {
 
     @Delete
     suspend fun delete(word: WordEntity)
+
+    @Query("SELECT * FROM word WHERE id = :wordId")
+    suspend fun selectBy(wordId: String): WordEntity?
 }

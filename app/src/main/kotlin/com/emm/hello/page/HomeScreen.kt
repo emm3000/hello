@@ -1,6 +1,7 @@
 package com.emm.hello.page
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +47,7 @@ import java.util.UUID
 @Composable
 fun HomeScreen(
     words: List<WordEntity>,
+    navigateToDetail: (String) -> Unit,
     onSave: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -113,7 +115,8 @@ fun HomeScreen(
         ) {
             items(words, key = WordEntity::id) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .clickable { navigateToDetail(it.id) },
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -168,6 +171,7 @@ private fun HomeScreenPreview() {
         }
         HomeScreen(
             words = items,
+            navigateToDetail = {},
             onSave = {},
             modifier = Modifier,
         )

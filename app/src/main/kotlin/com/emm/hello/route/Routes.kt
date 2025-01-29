@@ -7,3 +7,6 @@ object Init
 
 @Serializable
 object Home
+
+@Serializable
+data class Detail(val wordId: String)
