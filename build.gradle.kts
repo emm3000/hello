@@ -7,4 +7,5 @@ plugins {
     alias(libs.plugins.google.crashlytics) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.ksp) apply false
+    id("androidx.room") version libs.versions.roomRuntime apply false
 }

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    id("androidx.room")
 }
 
 android {
@@ -28,6 +29,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
