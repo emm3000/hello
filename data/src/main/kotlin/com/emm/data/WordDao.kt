@@ -13,6 +13,9 @@ interface WordDao {
     @Query("SELECT * FROM word")
     fun all(): Flow<List<WordEntity>>
 
+    @Query("SELECT * FROM word WHERE word LIKE '%' || :name || '%'")
+    fun searchBy(name: String): Flow<List<WordEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(word: WordEntity)
 

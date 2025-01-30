@@ -10,3 +10,6 @@ object Home
 
 @Serializable
 data class Detail(val wordId: String)
+
+@Serializable
+object AddWord

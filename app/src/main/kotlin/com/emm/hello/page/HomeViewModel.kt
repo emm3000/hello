@@ -1,33 +1,40 @@
+@file:OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+
 package com.emm.hello.page
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.data.WordDao
 import com.emm.data.WordEntity
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.UUID
 
 class HomeViewModel(private val wordDao: WordDao) : ViewModel() {
 
-    val wordListFlow: StateFlow<List<WordEntity>> = wordDao.all()
+    var searchState by mutableStateOf("")
+        private set
+
+    val words: StateFlow<List<WordEntity>> = snapshotFlow { searchState }
+        .debounce(250L)
+        .distinctUntilChanged()
+        .flatMapLatest(wordDao::searchBy)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = emptyList()
         )
 
-    fun insert(word: String) = viewModelScope.launch {
-        val wordEntity = WordEntity(
-            id = UUID.randomUUID().toString(),
-            word = word,
-        )
-        withContext(Dispatchers.IO) {
-            wordDao.insert(wordEntity)
-        }
+    fun updateSearch(value: String) {
+        searchState = value
     }
 }

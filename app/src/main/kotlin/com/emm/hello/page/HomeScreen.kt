@@ -3,6 +3,7 @@ package com.emm.hello.page
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,25 +12,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -47,101 +54,147 @@ import java.util.UUID
 @Composable
 fun HomeScreen(
     words: List<WordEntity>,
+    wordSearch: String,
+    onWordSearchUpdate: (String) -> Unit,
     navigateToDetail: (String) -> Unit,
-    onSave: (String) -> Unit,
+    navigateToAddWord: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
-    Column(
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp)
-            .padding(top = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
-
-        Text(
-            modifier = Modifier,
-            text = "Learning",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 30.sp,
-            fontFamily = FontFamily.SansSerif,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        var word: String by remember { mutableStateOf("") }
-
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = word,
-            singleLine = true,
-            onValueChange = {
-                word = it
-            },
-            label = {
-                Text("English Word")
-            },
-            trailingIcon = {
-                LeadingIcon {
-                    onSave(word)
-                    word = ""
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Unspecified,
-                autoCorrectEnabled = false,
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onSave(word)
-                    word = ""
-                }
-            )
-        )
-
-        Spacer(Modifier.height(14.dp))
-
-        LazyColumn(
-            modifier = Modifier
-                .padding(top = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp),
+        Column(
+            modifier = modifier
+                .padding(horizontal = 20.dp)
+                .padding(top = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            items(words, key = WordEntity::id) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .clickable { navigateToDetail(it.id) },
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = it.id.replace("-", "").take(4),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.SansSerif,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        modifier = Modifier
-                            .width(200.dp),
-                        text = it.word,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.SansSerif,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.End,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
+
+            Text(
+                modifier = Modifier,
+                text = "Learning",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 30.sp,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = wordSearch,
+                singleLine = true,
+                onValueChange = {
+                    onWordSearchUpdate(it)
+                },
+                label = {
+                    Text("Search Word")
+                },
+                trailingIcon = {
+                    LeadingIcon {
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Unspecified,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search,
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }
+                )
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .padding(top = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(start = 5.dp, end = 5.dp, bottom = 100.dp),
+            ) {
+                items(words, key = WordEntity::id) { wordEntity ->
+                    WordItem(
+                        keyboardController = keyboardController,
+                        focusManager = focusManager,
+                        navigateToDetail = navigateToDetail,
+                        wordEntity = wordEntity,
                     )
                 }
             }
-        }
 
+        }
+        FloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(25.dp),
+            onClick = {
+                keyboardController?.hide()
+                focusManager.clearFocus()
+                navigateToAddWord()
+            },
+            elevation = FloatingActionButtonDefaults.elevation(
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp,
+                focusedElevation = 0.dp,
+                hoveredElevation = 0.dp
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WordItem(
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager,
+    navigateToDetail: (String) -> Unit,
+    wordEntity: WordEntity
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .clickable {
+                keyboardController?.hide()
+                focusManager.clearFocus()
+                navigateToDetail(wordEntity.id)
+            }
+            .padding(13.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier,
+            text = wordEntity.word,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            fontFamily = FontFamily.SansSerif,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.End,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground,
+        )
     }
 }
 
@@ -151,7 +204,7 @@ private fun LeadingIcon(onSave: () -> Unit) {
         onClick = { onSave() }
     ) {
         Icon(
-            imageVector = Icons.Filled.Add,
+            imageVector = Icons.Filled.Search,
             contentDescription = null,
         )
     }
@@ -171,8 +224,10 @@ private fun HomeScreenPreview() {
         }
         HomeScreen(
             words = items,
+            onWordSearchUpdate = {},
+            wordSearch = "",
             navigateToDetail = {},
-            onSave = {},
+            navigateToAddWord = {},
             modifier = Modifier,
         )
     }
