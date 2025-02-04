@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.emm.data.WordDao
 import com.emm.data.WordEntity
 import com.emm.hello.features.addword.AddWordDialog
 import com.emm.hello.features.backup.BackupScreen
@@ -35,9 +34,7 @@ import com.emm.hello.core.Main
 import com.emm.hello.features.addword.domain.Word
 import com.emm.hello.features.addword.domain.WordRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.time.LocalDateTime
@@ -79,21 +76,28 @@ fun Root(modifier: Modifier = Modifier) {
 
         composable<Detail> {
             val detail: Detail = it.toRoute<Detail>()
-            val wordDao: WordDao = koinInject()
+            val repository: WordRepository = koinInject()
+            val coroutineScope = rememberCoroutineScope()
 
             val (word, setWord) = remember {
-                mutableStateOf<WordEntity?>(null)
+                mutableStateOf<Word?>(null)
             }
 
             LaunchedEffect(Unit) {
-                withContext(Dispatchers.IO) {
-                    val wordEntity: WordEntity = wordDao.selectBy(detail.wordId) ?: return@withContext
-                    setWord(wordEntity)
-                }
+                val wordEntity: Word = repository.selectBy(detail.wordId) ?: return@LaunchedEffect
+                setWord(wordEntity)
             }
 
             if (word != null) {
-                DetailScreen(word)
+                DetailScreen(
+                    wordName = word.word,
+                    updateWord = { newWordName ->
+                        coroutineScope.launch {
+                            val newWord = word.copy(word = newWordName)
+                            repository.upsert(newWord)
+                        }
+                    }
+                )
             }
         }
 

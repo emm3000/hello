@@ -9,4 +9,6 @@ interface WordRepository {
     suspend fun upsert(word: Word)
 
     suspend fun deleteBy(wordId: String)
+
+    suspend fun selectBy(wordId: String): Word?
 }
