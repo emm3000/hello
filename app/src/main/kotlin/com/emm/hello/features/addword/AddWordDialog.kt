@@ -74,6 +74,16 @@ fun AddWordDialog(
         ) {
             TextButton(
                 onClick = {
+                    onDismiss()
+                }
+            ) {
+                Text(
+                    text = "Cancelar",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            TextButton(
+                onClick = {
                     keyboardController?.hide()
                     onAddWord(word)
                 }
@@ -81,16 +91,6 @@ fun AddWordDialog(
                 Text(
                     text = "Agregar",
                     color = MaterialTheme.colorScheme.primary
-                )
-            }
-            TextButton(
-                onClick = {
-                    onDismiss()
-                }
-            ) {
-                Text(
-                    text = "Cancelar",
-                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
