@@ -1,4 +1,4 @@
-package com.emm.hello.page
+package com.emm.hello.features.init
 
 import androidx.lifecycle.ViewModel
 

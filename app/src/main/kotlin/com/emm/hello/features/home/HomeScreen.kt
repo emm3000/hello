@@ -1,4 +1,4 @@
-package com.emm.hello.page
+package com.emm.hello.features.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.data.WordEntity
-import com.emm.hello.ui.theme.HelloTheme
+import com.emm.hello.core.theme.HelloTheme
 import java.util.UUID
 
 @Composable

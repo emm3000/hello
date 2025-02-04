@@ -1,6 +1,6 @@
 @file:OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 
-package com.emm.hello.page
+package com.emm.hello.features.home
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

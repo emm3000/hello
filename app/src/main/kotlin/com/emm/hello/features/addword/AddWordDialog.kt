@@ -1,4 +1,4 @@
-package com.emm.hello.page
+package com.emm.hello.features.addword
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.emm.hello.ui.theme.HelloTheme
+import com.emm.hello.core.theme.HelloTheme
 
 @Composable
 fun AddWordDialog(
@@ -33,7 +33,7 @@ fun AddWordDialog(
 
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.85f)
             .clip(RoundedCornerShape(10))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(20.dp),

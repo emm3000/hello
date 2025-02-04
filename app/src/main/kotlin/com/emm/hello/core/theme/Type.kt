@@ -1,4 +1,4 @@
-package com.emm.hello.ui.theme
+package com.emm.hello.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

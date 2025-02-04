@@ -2,7 +2,6 @@ package com.emm.hello
 
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,33 +10,34 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.data.WordDao
 import com.emm.data.WordEntity
-import com.emm.hello.page.AddWordDialog
-import com.emm.hello.page.BackupScreen
-import com.emm.hello.page.DetailScreen
-import com.emm.hello.page.HomeScreen
-import com.emm.hello.page.HomeViewModel
-import com.emm.hello.page.InitScreen
-import com.emm.hello.page.JustFiles
-import com.emm.hello.route.AddWord
-import com.emm.hello.route.Backup
-import com.emm.hello.route.Detail
-import com.emm.hello.route.Home
-import com.emm.hello.route.Init
+import com.emm.hello.features.addword.AddWordDialog
+import com.emm.hello.features.backup.BackupScreen
+import com.emm.hello.features.detail.DetailScreen
+import com.emm.hello.features.home.HomeScreen
+import com.emm.hello.features.home.HomeViewModel
+import com.emm.hello.features.init.InitScreen
+import com.emm.hello.features.backup.JustFiles
+import com.emm.hello.core.AddWord
+import com.emm.hello.core.Backup
+import com.emm.hello.core.Detail
+import com.emm.hello.core.Home
+import com.emm.hello.core.Init
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -95,7 +95,11 @@ fun Root(modifier: Modifier = Modifier) {
             }
         }
 
-        composable<AddWord> {
+        dialog<AddWord>(
+            dialogProperties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
             val wordDao: WordDao = koinInject()
             val coroutineScope = rememberCoroutineScope()
 

@@ -1,4 +1,4 @@
-package com.emm.hello.ui.theme
+package com.emm.hello.core.theme
 
 import androidx.compose.ui.graphics.Color
 

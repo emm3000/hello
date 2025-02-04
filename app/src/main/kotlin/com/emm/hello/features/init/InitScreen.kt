@@ -1,4 +1,4 @@
-package com.emm.hello.page
+package com.emm.hello.features.init
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
-import com.emm.hello.ui.theme.HelloTheme
+import com.emm.hello.core.theme.HelloTheme
 
 @Composable
 fun InitScreen(

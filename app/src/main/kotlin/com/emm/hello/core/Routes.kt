@@ -1,4 +1,4 @@
-package com.emm.hello.route
+package com.emm.hello.core
 
 import kotlinx.serialization.Serializable
 
