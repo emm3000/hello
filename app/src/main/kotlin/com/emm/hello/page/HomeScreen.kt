@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -57,6 +58,7 @@ fun HomeScreen(
     wordSearch: String,
     onWordSearchUpdate: (String) -> Unit,
     navigateToDetail: (String) -> Unit,
+    navigateToBackup: () -> Unit,
     navigateToAddWord: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -70,20 +72,36 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .padding(horizontal = 20.dp)
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            Text(
-                modifier = Modifier,
-                text = "Learning",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 30.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Bold,
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    modifier = Modifier,
+                    text = "Learning",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 30.sp,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Bold,
+                )
+                IconButton(
+                    onClick = navigateToBackup
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            }
 
             Spacer(Modifier.height(10.dp))
 
@@ -218,7 +236,8 @@ private fun HomeScreenPreview() {
             (1..50).map {
                 WordEntity(
                     id = it.toString(),
-                    word = UUID.randomUUID().toString().take(4).repeat(6)
+                    word = UUID.randomUUID().toString().take(4).repeat(6),
+                    date = ""
                 )
             }
         }
@@ -227,6 +246,7 @@ private fun HomeScreenPreview() {
             onWordSearchUpdate = {},
             wordSearch = "",
             navigateToDetail = {},
+            navigateToBackup = {},
             navigateToAddWord = {},
             modifier = Modifier,
         )

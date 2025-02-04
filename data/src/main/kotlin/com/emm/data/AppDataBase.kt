@@ -18,8 +18,10 @@ abstract class AppDatabase : RoomDatabase() {
         fun create(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context,
-                AppDatabase::class.java, "database-name"
-            ).build()
+                AppDatabase::class.java, "database-name_1"
+            )
+                .fallbackToDestructiveMigration()
+                .build()
         }
     }
 }

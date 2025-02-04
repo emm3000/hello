@@ -48,7 +48,8 @@ private fun DetailScreenPreview() {
         DetailScreen(
             wordEntity = WordEntity(
                 id = UUID.randomUUID().toString(),
-                word = "random word"
+                word = "random word",
+                date = ""
             )
         )
     }

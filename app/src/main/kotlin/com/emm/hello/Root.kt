@@ -1,5 +1,9 @@
 package com.emm.hello
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,11 +20,14 @@ import androidx.navigation.toRoute
 import com.emm.data.WordDao
 import com.emm.data.WordEntity
 import com.emm.hello.page.AddWordDialog
+import com.emm.hello.page.BackupScreen
 import com.emm.hello.page.DetailScreen
 import com.emm.hello.page.HomeScreen
 import com.emm.hello.page.HomeViewModel
 import com.emm.hello.page.InitScreen
+import com.emm.hello.page.JustFiles
 import com.emm.hello.route.AddWord
+import com.emm.hello.route.Backup
 import com.emm.hello.route.Detail
 import com.emm.hello.route.Home
 import com.emm.hello.route.Init
@@ -30,6 +37,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Composable
@@ -60,6 +70,7 @@ fun Root(modifier: Modifier = Modifier) {
                 onWordSearchUpdate = vm::updateSearch,
                 navigateToDetail = { navController.navigate(Detail(it)) },
                 navigateToAddWord = { navController.navigate(AddWord) },
+                navigateToBackup = { navController.navigate(Backup) },
                 modifier = Modifier,
             )
         }
@@ -96,9 +107,59 @@ fun Root(modifier: Modifier = Modifier) {
                         wordDao = wordDao,
                         navController = navController,
                     )
-
                 },
                 onDismiss = { navController.popBackStack() }
+            )
+        }
+
+        composable<Backup> {
+            val justFiles: JustFiles = koinInject()
+            val scope = rememberCoroutineScope()
+            val ga = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+
+            }
+
+            LaunchedEffect(Unit) {
+                ga.launch(arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                ))
+            }
+
+            BackupScreen(
+                internalOnSave = {
+                    scope.launch {
+                        justFiles.saveInternal()
+                    }
+                },
+                internalOnUpdate = {
+                    scope.launch {
+                        justFiles.saveInternal()
+                    }
+                },
+                internalOnDelete = {
+                    justFiles.deleteInternal()
+                },
+                externalOnSave = {
+                    scope.launch {
+                        justFiles.saveExternal()
+                    }
+                },
+                externalOnUpdate = {
+                    scope.launch {
+                        justFiles.saveExternal()
+                    }
+                },
+                externalOnDelete = {
+                    justFiles.deleteExternal()
+                },
+                sharedOnSave = {
+                    scope.launch {
+                        justFiles.saveJsonToDownloads()
+                    }
+                },
+                sharedOnUpdate = {},
+                sharedOnDelete = {},
             )
         }
     }
@@ -110,9 +171,13 @@ private fun addWord(
     wordDao: WordDao,
     navController: NavHostController
 ) {
+    val now = LocalDateTime.now()
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
+    val formattedDate = now.format(formatter)
     val wordEntity = WordEntity(
         id = UUID.randomUUID().toString(),
         word = word,
+        date = formattedDate,
     )
     coroutineScope.launch {
         withContext(Dispatchers.IO) {

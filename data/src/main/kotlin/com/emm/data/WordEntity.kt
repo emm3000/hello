@@ -7,4 +7,5 @@ import androidx.room.PrimaryKey
 data class WordEntity(
     @PrimaryKey val id: String,
     val word: String,
+    val date: String,
 )

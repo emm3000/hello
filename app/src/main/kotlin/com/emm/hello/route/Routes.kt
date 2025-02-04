@@ -13,3 +13,6 @@ data class Detail(val wordId: String)
 
 @Serializable
 object AddWord
+
+@Serializable
+object Backup
