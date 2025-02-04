@@ -12,9 +12,10 @@ val homeModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::MainViewModel)
 
+    factory { DataModeler(get()) }
     factory {
         JustFiles(
-            dataModeler = DataModeler(get()),
+            dataModeler = get(),
             context = androidApplication()
         )
     }

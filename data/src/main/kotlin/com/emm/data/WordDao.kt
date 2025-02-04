@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,6 +19,9 @@ interface WordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(word: WordEntity)
+
+    @Upsert
+    suspend fun upsert(words: List<WordEntity>)
 
     @Delete
     suspend fun delete(word: WordEntity)

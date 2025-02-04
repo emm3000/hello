@@ -1,6 +1,7 @@
 package com.emm.hello
 
 import android.Manifest
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -19,20 +20,20 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.data.WordEntity
-import com.emm.hello.features.addword.AddWordDialog
-import com.emm.hello.features.backup.BackupScreen
-import com.emm.hello.features.detail.DetailScreen
-import com.emm.hello.features.main.MainScreen
-import com.emm.hello.features.main.MainViewModel
-import com.emm.hello.features.home.HomeScreen
-import com.emm.hello.features.backup.JustFiles
 import com.emm.hello.core.AddWord
 import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
 import com.emm.hello.core.Main
+import com.emm.hello.features.addword.AddWordDialog
 import com.emm.hello.features.addword.domain.Word
 import com.emm.hello.features.addword.domain.WordRepository
+import com.emm.hello.features.backup.BackupScreen
+import com.emm.hello.features.backup.domain.LocalStorageRepository
+import com.emm.hello.features.detail.DetailScreen
+import com.emm.hello.features.home.HomeScreen
+import com.emm.hello.features.main.MainScreen
+import com.emm.hello.features.main.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -126,14 +127,22 @@ fun Root(modifier: Modifier = Modifier) {
         }
 
         composable<Backup> {
-            val justFiles: JustFiles = koinInject()
+            val repository: LocalStorageRepository = koinInject()
             val scope = rememberCoroutineScope()
-            val ga = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            val permissionsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
             }
 
+            val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
+                val uri: Uri = it ?: return@rememberLauncherForActivityResult
+                scope.launch {
+                    repository.read(uri)
+                    navController.popBackStack()
+                }
+            }
+
             LaunchedEffect(Unit) {
-                ga.launch(
+                permissionsLauncher.launch(
                     arrayOf(
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -142,39 +151,15 @@ fun Root(modifier: Modifier = Modifier) {
             }
 
             BackupScreen(
-                internalOnSave = {
+                exportAsJson = {
                     scope.launch {
-                        justFiles.saveInternal()
+                        repository.save()
+                        navController.popBackStack()
                     }
                 },
-                internalOnUpdate = {
-                    scope.launch {
-                        justFiles.saveInternal()
-                    }
+                populateDb = {
+                    fileLauncher.launch(arrayOf("*/*"))
                 },
-                internalOnDelete = {
-                    justFiles.deleteInternal()
-                },
-                externalOnSave = {
-                    scope.launch {
-                        justFiles.saveExternal()
-                    }
-                },
-                externalOnUpdate = {
-                    scope.launch {
-                        justFiles.saveExternal()
-                    }
-                },
-                externalOnDelete = {
-                    justFiles.deleteExternal()
-                },
-                sharedOnSave = {
-                    scope.launch {
-                        justFiles.saveJsonToDownloads()
-                    }
-                },
-                sharedOnUpdate = {},
-                sharedOnDelete = {},
             )
         }
     }
