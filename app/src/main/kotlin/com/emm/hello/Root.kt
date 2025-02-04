@@ -32,6 +32,8 @@ import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
 import com.emm.hello.core.Main
+import com.emm.hello.features.addword.domain.Word
+import com.emm.hello.features.addword.domain.WordRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -100,15 +102,15 @@ fun Root(modifier: Modifier = Modifier) {
                 usePlatformDefaultWidth = false
             )
         ) {
-            val wordDao: WordDao = koinInject()
+            val repository: WordRepository = koinInject()
             val coroutineScope = rememberCoroutineScope()
 
             AddWordDialog(
                 onAddWord = { word ->
                     addWord(
                         coroutineScope = coroutineScope,
-                        word = word,
-                        wordDao = wordDao,
+                        wordName = word,
+                        repository = repository,
                         navController = navController,
                     )
                 },
@@ -124,10 +126,12 @@ fun Root(modifier: Modifier = Modifier) {
             }
 
             LaunchedEffect(Unit) {
-                ga.launch(arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                ))
+                ga.launch(
+                    arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    )
+                )
             }
 
             BackupScreen(
@@ -171,22 +175,20 @@ fun Root(modifier: Modifier = Modifier) {
 
 private fun addWord(
     coroutineScope: CoroutineScope,
-    word: String,
-    wordDao: WordDao,
+    wordName: String,
+    repository: WordRepository,
     navController: NavHostController
 ) {
-    val now = LocalDateTime.now()
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
+    val now: LocalDateTime = LocalDateTime.now()
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
     val formattedDate = now.format(formatter)
-    val wordEntity = WordEntity(
+    val word = Word(
         id = UUID.randomUUID().toString(),
-        word = word,
-        date = formattedDate,
+        word = wordName,
+        createdAt = formattedDate,
     )
     coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            wordDao.insert(wordEntity)
-        }
+        repository.upsert(word)
         navController.popBackStack()
     }
 }

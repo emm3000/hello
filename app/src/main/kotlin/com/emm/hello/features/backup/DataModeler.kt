@@ -16,7 +16,7 @@ class DataModeler(private val wordDao: WordDao) {
 
     suspend fun model(): String {
         val wordEntities: List<WordEntity> = wordDao.all().firstOrNull().orEmpty()
-        val wordJsons: List<WordJson> = wordEntities.map { WordJson(it.id, it.word, it.date) }
+        val wordJsons: List<WordJson> = wordEntities.map { WordJson(it.id, it.word, it.createdAt) }
         return json.encodeToString(wordJsons)
     }
 }

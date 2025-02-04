@@ -237,7 +237,7 @@ private fun MainScreenPreview() {
                 WordEntity(
                     id = it.toString(),
                     word = UUID.randomUUID().toString().take(4).repeat(6),
-                    date = ""
+                    createdAt = ""
                 )
             }
         }

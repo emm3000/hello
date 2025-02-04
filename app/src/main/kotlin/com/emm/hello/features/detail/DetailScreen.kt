@@ -49,7 +49,7 @@ private fun DetailScreenPreview() {
             wordEntity = WordEntity(
                 id = UUID.randomUUID().toString(),
                 word = "random word",
-                date = ""
+                createdAt = ""
             )
         )
     }
