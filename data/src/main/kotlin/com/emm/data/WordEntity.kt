@@ -8,4 +8,5 @@ data class WordEntity(
     @PrimaryKey val id: String,
     val word: String,
     val createdAt: String,
+    val updatedAt: String,
 )

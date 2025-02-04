@@ -93,7 +93,10 @@ fun Root(modifier: Modifier = Modifier) {
                     wordName = word.word,
                     updateWord = { newWordName ->
                         coroutineScope.launch {
-                            val newWord = word.copy(word = newWordName)
+                            val now: LocalDateTime = LocalDateTime.now()
+                            val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
+                            val formattedDate = now.format(formatter)
+                            val newWord = word.copy(word = newWordName, updatedAt = formattedDate)
                             repository.upsert(newWord)
                         }
                     }
@@ -190,6 +193,7 @@ private fun addWord(
         id = UUID.randomUUID().toString(),
         word = wordName,
         createdAt = formattedDate,
+        updatedAt = formattedDate,
     )
     coroutineScope.launch {
         repository.upsert(word)
