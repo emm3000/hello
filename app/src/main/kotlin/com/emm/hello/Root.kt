@@ -23,15 +23,15 @@ import com.emm.data.WordEntity
 import com.emm.hello.features.addword.AddWordDialog
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.detail.DetailScreen
+import com.emm.hello.features.main.MainScreen
+import com.emm.hello.features.main.MainViewModel
 import com.emm.hello.features.home.HomeScreen
-import com.emm.hello.features.home.HomeViewModel
-import com.emm.hello.features.init.InitScreen
 import com.emm.hello.features.backup.JustFiles
 import com.emm.hello.core.AddWord
 import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
-import com.emm.hello.core.Init
+import com.emm.hello.core.Main
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,22 +49,22 @@ fun Root(modifier: Modifier = Modifier) {
 
     NavHost(
         navController = navController,
-        startDestination = Init,
+        startDestination = Home,
         modifier = modifier,
     ) {
 
-        composable<Init> {
-            InitScreen(
-                onClick = { navController.navigate(Home) },
+        composable<Home> {
+            HomeScreen(
+                onClick = { navController.navigate(Main) },
                 modifier = Modifier,
             )
         }
-        composable<Home> {
-            val vm: HomeViewModel = koinViewModel()
+        composable<Main> {
+            val vm: MainViewModel = koinViewModel()
 
             val words: List<WordEntity> by vm.words.collectAsStateWithLifecycle()
 
-            HomeScreen(
+            MainScreen(
                 words = words,
                 wordSearch = vm.searchState,
                 onWordSearchUpdate = vm::updateSearch,

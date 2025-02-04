@@ -3,10 +3,10 @@ package com.emm.hello.core
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Init
+object Home
 
 @Serializable
-object Home
+object Main
 
 @Serializable
 data class Detail(val wordId: String)
