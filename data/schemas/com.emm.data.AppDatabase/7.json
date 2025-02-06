@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 6,
-    "identityHash": "405db3ec2f2ae5147de0486ade763e64",
+    "version": 7,
+    "identityHash": "a73e595c499b07a527b35c459b430383",
     "entities": [
       {
         "tableName": "word",
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "word_content",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `wordFromScrap` TEXT NOT NULL, `pos` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`id`) REFERENCES `word`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `wordFromScrap` TEXT NOT NULL, `pos` TEXT NOT NULL, `wordId` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`wordId`) REFERENCES `word`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -69,6 +69,12 @@
             "columnName": "pos",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "wordId",
+            "columnName": "wordId",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -84,7 +90,7 @@
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
             "columns": [
-              "id"
+              "wordId"
             ],
             "referencedColumns": [
               "id"
@@ -152,7 +158,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '405db3ec2f2ae5147de0486ade763e64')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a73e595c499b07a527b35c459b430383')"
     ]
   }
 }

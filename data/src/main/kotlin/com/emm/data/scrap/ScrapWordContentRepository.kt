@@ -19,13 +19,13 @@ class ScrapWordContentRepository(
 
     override suspend fun createThenSave(word: Word) {
         val wordContent: WordContentHolder = oxfordScrapper.scrap(word)
-        save(wordContent)
+        save(wordContent, word)
         updateIfWordHasContent(word)
     }
 
     private suspend fun updateIfWordHasContent(word: Word) {
         val selectBy: WordEntity = wordDao.selectBy(word.id) ?: return
-        wordDao.insert(selectBy.copy(hasContent = true))
+        wordDao.update(selectBy.copy(hasContent = true))
     }
 
     override suspend fun fetchContent(word: String): WordContent? = withContext(Dispatchers.IO) {
@@ -35,10 +35,10 @@ class ScrapWordContentRepository(
     }
 
     private fun mapToWordContent(wordContentWithExamples: WordContentWithExamples) = WordContent(
-        wordId = wordContentWithExamples.wordContent.wordId,
-        word = wordContentWithExamples.wordContent.wordFromScrap,
-        pos = wordContentWithExamples.wordContent.pos,
-        examples = wordContentWithExamples.examples.map(::mapToExample)
+        wordId = wordContentWithExamples.wordContentEntity.id,
+        word = wordContentWithExamples.wordContentEntity.wordFromScrap,
+        pos = wordContentWithExamples.wordContentEntity.pos,
+        examples = wordContentWithExamples.exampleEntities.map(::mapToExample)
     )
 
     private fun mapToExample(exampleEntity: ExampleEntity) = Example(
@@ -47,18 +47,18 @@ class ScrapWordContentRepository(
         sentences = exampleEntity.sentences.split("|").filter(String::isNotBlank)
     )
 
-    private suspend fun save(content: WordContentHolder) {
-        val contentEntityId: String = UUID.randomUUID().toString()
+    private suspend fun save(content: WordContentHolder, word: Word) {
+        val g = UUID.randomUUID().toString()
         val wordContentEntity = WordContentEntity(
-            id = contentEntityId,
+            id = g,
+            wordId = word.id,
             wordFromScrap = content.wordFromScrap,
             pos = content.pos,
-            wordId = content.wordId
         )
         wordContentDao.insert(wordContentEntity)
 
         val exampleEntities: List<ExampleEntity> = content.examples.map { example ->
-            mapToEntity(example, contentEntityId)
+            mapToEntity(example, g)
         }
         exampleDao.upsert(exampleEntities)
     }

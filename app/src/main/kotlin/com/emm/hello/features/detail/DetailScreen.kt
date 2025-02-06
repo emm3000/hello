@@ -26,7 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,9 +68,41 @@ fun DetailScreen(
     state: DetailUiState,
     wordName: String,
     updateWord: (String) -> Unit,
+    deleteWord: () -> Unit,
     generateContent: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val (showDialog, setShowDialog) = remember {
+        mutableStateOf(false)
+    }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { setShowDialog(false) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        setShowDialog(false)
+                        deleteWord()
+                    }
+                ) {
+                    Text(text = "Aceptar", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        setShowDialog(false)
+                    }
+                ) {
+                    Text(text = "Cancelar", color = MaterialTheme.colorScheme.tertiary)
+                }
+            },
+            title = { Text(text = "Estas seguro de eliminar") },
+            text = { Text(text = "Estas seguro de eliminar") },
+            icon = { Icon(Icons.Outlined.Delete, contentDescription = "Example Icon") },
+        )
+    }
 
     Column(
         modifier = modifier
@@ -118,15 +153,19 @@ fun DetailScreen(
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
 
-            ),
+                ),
             trailingIcon = {
                 if (isEditable) {
                     EditableIconsButtons(setWordField, updateWord, wordField, setIsEditable)
                 } else {
-                    NonEditableIconButton(setIsEditable)
+                    NonEditableIconButton(setIsEditable, onDelete = { setShowDialog(true) })
                 }
             },
         )
+
+        if (state.errorMessage != null) {
+            Text(state.errorMessage, color = MaterialTheme.colorScheme.onBackground)
+        }
 
         if (state.currentWord?.hasContent == false) {
 
@@ -309,15 +348,25 @@ private fun EditableIconsButtons(
 @Composable
 private fun NonEditableIconButton(
     setIsEditable: (Boolean) -> Unit,
+    onDelete: () -> Unit,
 ) {
-    IconButton(onClick = {
-        setIsEditable(true)
-    }) {
-        Icon(
-            imageVector = Icons.Outlined.Edit,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onBackground,
-        )
+    Row {
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+        IconButton(onClick = {
+            setIsEditable(true)
+        }) {
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+        }
     }
 }
 
@@ -346,7 +395,7 @@ private fun DetailScreenPreview() {
                                 "random title d ASLCK AS KNCASL CNals kcas lm",
                                 "random title 3"
                             )
-                        ),Example(
+                        ), Example(
                             number = "1",
                             title = "random title",
                             sentences = listOf()
@@ -356,6 +405,7 @@ private fun DetailScreenPreview() {
             ),
             wordName = "random word",
             generateContent = {},
+            deleteWord = {},
             updateWord = { }
         )
     }

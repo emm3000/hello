@@ -20,7 +20,6 @@ class OxfordScrapper {
         val pos: String = doc.select("span.pos").text().trim()
         val exampleList: List<ExampleHolder> = extractExamples(doc)
         return@withContext WordContentHolder(
-            wordId = word.id,
             wordFromScrap = title,
             pos = pos,
             examples = exampleList,

@@ -7,4 +7,6 @@ data class DetailUiState(
     val currentWord: Word? = null,
     val contentWord: WordContent? = null,
     val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isDeleteSuccess: Boolean = false,
 )

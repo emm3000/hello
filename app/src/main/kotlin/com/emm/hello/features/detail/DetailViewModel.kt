@@ -31,10 +31,23 @@ class DetailViewModel(
     }
 
     fun contentCreator(word: Word) = viewModelScope.launch {
-        state = state.copy(isLoading = true)
-        wordContentCreator.create(word)
-        val wordContent: WordContent = wordContentFetcher.fetch(wordId = word.id) ?: return@launch
-        val wordDetail: Word = wordRepository.selectBy(wordId = word.id) ?: return@launch
-        state = state.copy(contentWord = wordContent, isLoading = false, currentWord = wordDetail)
+        try {
+            state = state.copy(isLoading = true)
+            wordContentCreator.create(word)
+            val wordContent: WordContent = wordContentFetcher.fetch(wordId = word.id) ?: return@launch
+            val wordDetail: Word = wordRepository.selectBy(wordId = word.id) ?: return@launch
+            state = state.copy(
+                isLoading = false,
+                contentWord = wordContent,
+                currentWord = wordDetail,
+            )
+        } catch (e: Exception) {
+            state = state.copy(isLoading = true, errorMessage = e.message.orEmpty())
+        }
+    }
+
+    fun delete(wordId: String) = viewModelScope.launch {
+        wordRepository.deleteBy(wordId)
+        state = state.copy(isDeleteSuccess = true)
     }
 }

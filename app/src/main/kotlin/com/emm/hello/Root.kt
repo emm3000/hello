@@ -29,6 +29,7 @@ import com.emm.hello.features.addword.AddWordDialog
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.detail.DetailScreen
+import com.emm.hello.features.detail.DetailUiState
 import com.emm.hello.features.detail.DetailViewModel
 import com.emm.hello.features.home.HomeScreen
 import com.emm.hello.features.main.MainScreen
@@ -77,22 +78,29 @@ fun Root(modifier: Modifier = Modifier) {
         composable<Detail> {
             val detail: Detail = it.toRoute<Detail>()
             val repository: WordRepository = koinInject()
-            val coroutineScope = rememberCoroutineScope()
+            val coroutineScope: CoroutineScope = rememberCoroutineScope()
             val vm: DetailViewModel = koinViewModel()
+            val state: DetailUiState = vm.state
 
             LaunchedEffect(Unit) {
                 vm.detail(detail.wordId)
             }
 
-            val state = vm.state
+            LaunchedEffect(state.isDeleteSuccess) {
+                if (state.isDeleteSuccess) {
+                    navController.popBackStack()
+                }
+            }
+
             if (state.currentWord != null) {
                 DetailScreen(
                     state = state,
                     wordName = state.currentWord.word,
                     generateContent = {
-                        coroutineScope.launch {
-                            vm.contentCreator(state.currentWord)
-                        }
+                        vm.contentCreator(state.currentWord)
+                    },
+                    deleteWord = {
+                        vm.delete(state.currentWord.id)
                     },
                     updateWord = { newWordName ->
                         coroutineScope.launch {

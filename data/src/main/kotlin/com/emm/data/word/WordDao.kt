@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
@@ -17,8 +18,11 @@ interface WordDao {
     @Query("SELECT * FROM word WHERE word LIKE '%' || :name || '%'")
     fun searchBy(name: String): Flow<List<WordEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(word: WordEntity)
+
+    @Update
+    suspend fun update(word: WordEntity)
 
     @Upsert
     suspend fun upsert(words: List<WordEntity>)
