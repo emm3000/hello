@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity("word_content")
 data class WordContentEntity(
     @PrimaryKey val id: String,
-    val word: String,
+    val wordFromScrap: String,
     val pos: String,
     val wordId: String,
 )

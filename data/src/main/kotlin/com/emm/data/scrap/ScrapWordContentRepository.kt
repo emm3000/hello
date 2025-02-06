@@ -15,7 +15,7 @@ class ScrapWordContentRepository(
 ) : WordContentRepository {
 
     override suspend fun createThenSave(word: Word) {
-        val wordContent: WordContent = oxfordScrapper.scrap(word)
+        val wordContent: WordContentHolder = oxfordScrapper.scrap(word)
         save(wordContent)
     }
 
@@ -27,7 +27,7 @@ class ScrapWordContentRepository(
 
     private fun mapToWordContent(wordContentWithExamples: WordContentWithExamples) = WordContent(
         wordId = wordContentWithExamples.wordContent.wordId,
-        word = wordContentWithExamples.wordContent.word,
+        word = wordContentWithExamples.wordContent.wordFromScrap,
         pos = wordContentWithExamples.wordContent.pos,
         examples = wordContentWithExamples.examples.map(::mapToExample)
     )
@@ -38,11 +38,11 @@ class ScrapWordContentRepository(
         sentences = exampleEntity.sentences.split("|")
     )
 
-    private suspend fun save(content: WordContent) {
+    private suspend fun save(content: WordContentHolder) {
         val contentEntityId: String = UUID.randomUUID().toString()
         val wordContentEntity = WordContentEntity(
             id = contentEntityId,
-            word = content.word,
+            wordFromScrap = content.wordFromScrap,
             pos = content.pos,
             wordId = content.wordId
         )
@@ -54,11 +54,14 @@ class ScrapWordContentRepository(
         exampleDao.upsert(exampleEntities)
     }
 
-    private fun mapToEntity(example: Example, contentEntityId: String) = ExampleEntity(
-        id = UUID.randomUUID().toString(),
-        number = example.number,
-        title = example.title,
-        sentences = example.sentences.joinToString { "|" },
-        contentId = contentEntityId,
-    )
+    private fun mapToEntity(example: ExampleHolder, contentEntityId: String): ExampleEntity {
+        val sentences: String = example.sentences.joinToString(separator = "|")
+        return ExampleEntity(
+            id = UUID.randomUUID().toString(),
+            number = example.number,
+            title = example.title,
+            sentences = sentences,
+            contentId = contentEntityId,
+        )
+    }
 }

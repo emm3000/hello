@@ -17,7 +17,7 @@ import com.emm.data.word.WordEntity
         WordContentEntity::class,
         ExampleEntity::class
     ],
-    version = 4,
+    version = 5,
 )
 abstract class AppDatabase : RoomDatabase() {
 

@@ -7,8 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
@@ -20,17 +18,18 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.data.word.WordEntity
+import com.emm.domain.Word
+import com.emm.domain.WordRepository
 import com.emm.hello.core.AddWord
 import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
 import com.emm.hello.core.Main
 import com.emm.hello.features.addword.AddWordDialog
-import com.emm.domain.Word
-import com.emm.domain.WordRepository
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.detail.DetailScreen
+import com.emm.hello.features.detail.DetailViewModel
 import com.emm.hello.features.home.HomeScreen
 import com.emm.hello.features.main.MainScreen
 import com.emm.hello.features.main.MainViewModel
@@ -79,25 +78,28 @@ fun Root(modifier: Modifier = Modifier) {
             val detail: Detail = it.toRoute<Detail>()
             val repository: WordRepository = koinInject()
             val coroutineScope = rememberCoroutineScope()
-
-            val (word, setWord) = remember {
-                mutableStateOf<Word?>(null)
-            }
+            val vm: DetailViewModel = koinViewModel()
 
             LaunchedEffect(Unit) {
-                val wordEntity: Word = repository.selectBy(detail.wordId) ?: return@LaunchedEffect
-                setWord(wordEntity)
+                vm.detail(detail.wordId)
             }
 
-            if (word != null) {
+            val state = vm.state
+            if (state.currentWord != null) {
                 DetailScreen(
-                    wordName = word.word,
+                    state = state,
+                    wordName = state.currentWord.word,
+                    generateContent = {
+                        coroutineScope.launch {
+                            vm.contentCreator(state.currentWord)
+                        }
+                    },
                     updateWord = { newWordName ->
                         coroutineScope.launch {
                             val now: LocalDateTime = LocalDateTime.now()
                             val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
                             val formattedDate = now.format(formatter)
-                            val newWord = word.copy(word = newWordName, updatedAt = formattedDate)
+                            val newWord: Word = state.currentWord.copy(word = newWordName, updatedAt = formattedDate)
                             repository.upsert(newWord)
                         }
                     }
