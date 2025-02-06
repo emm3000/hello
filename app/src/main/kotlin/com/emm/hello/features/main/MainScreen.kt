@@ -2,6 +2,7 @@ package com.emm.hello.features.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -204,7 +205,7 @@ private fun WordItem(
                 focusManager.clearFocus()
                 navigateToDetail(wordEntity.id)
             }
-            .padding(13.dp),
+            .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -220,6 +221,23 @@ private fun WordItem(
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
+        if (wordEntity.hasContent) {
+            Text(
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .clip(RoundedCornerShape(20))
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(20)
+                    )
+                    .padding(horizontal = 5.dp)
+                ,
+                text = "content",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            )
+        }
         Icon(
             modifier = Modifier.padding(start = 10.dp),
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,

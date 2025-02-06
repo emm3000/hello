@@ -48,14 +48,14 @@ class OxfordScrapper {
         )
     }
 
-    private fun extractSentences(elements: Elements): MutableList<String> {
+    private fun extractSentences(elements: Elements): List<String> {
         val sentences = mutableListOf<String>()
         elements.forEach { li ->
             val second = li.select("span.x").text().trim()
             val first = li.select("span.cf").text().trim()
             sentences.add("$first $second".trim())
         }
-        return sentences
+        return sentences.filter(String::isNotBlank)
     }
 
     private fun buildUrl(word: String): String = BASE.plus(word)

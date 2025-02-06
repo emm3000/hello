@@ -46,7 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -102,9 +104,20 @@ fun DetailScreen(
             value = wordField,
             onValueChange = setWordField,
             enabled = isEditable,
+            textStyle = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onBackground,
-                disabledBorderColor = MaterialTheme.colorScheme.onBackground
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                disabledBorderColor = Color.Transparent,
+                errorBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+
             ),
             trailingIcon = {
                 if (isEditable) {
@@ -204,7 +217,7 @@ fun DetailScreen(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(Modifier.height(10.dp))
+                            if (it.sentences.isNotEmpty()) Spacer(Modifier.height(10.dp))
                             it.sentences.forEach {
                                 Row(
                                     modifier = Modifier
@@ -317,7 +330,7 @@ private fun DetailScreenPreview() {
                 currentWord = Word(
                     id = "non",
                     word = "consectetur",
-                    hasContent = false,
+                    hasContent = true,
                     createdAt = "adipisci",
                     updatedAt = "nibh"
                 ),
@@ -333,6 +346,10 @@ private fun DetailScreenPreview() {
                                 "random title d ASLCK AS KNCASL CNals kcas lm",
                                 "random title 3"
                             )
+                        ),Example(
+                            number = "1",
+                            title = "random title",
+                            sentences = listOf()
                         )
                     )
                 )

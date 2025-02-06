@@ -44,7 +44,7 @@ class ScrapWordContentRepository(
     private fun mapToExample(exampleEntity: ExampleEntity) = Example(
         number = exampleEntity.number,
         title = exampleEntity.title,
-        sentences = exampleEntity.sentences.split("|")
+        sentences = exampleEntity.sentences.split("|").filter(String::isNotBlank)
     )
 
     private suspend fun save(content: WordContentHolder) {
