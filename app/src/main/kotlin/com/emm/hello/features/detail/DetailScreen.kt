@@ -159,7 +159,7 @@ fun DetailScreen(
                         ),
                         border = BorderStroke(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.8f)
                         )
                     ) {
                         Column(
@@ -169,7 +169,7 @@ fun DetailScreen(
                         ) {
                             Text(
                                 text = "${it.number}. ${it.title}",
-                                fontSize = 20.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(Modifier.height(10.dp))
@@ -186,9 +186,9 @@ fun DetailScreen(
                                     )
                                     Text(
                                         text = it,
-                                        fontSize = 17.sp,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Light,
-                                        color = LocalContentColor.current.copy(alpha = 0.5f)
+                                        color = LocalContentColor.current.copy(alpha = 0.7f)
                                     )
                                 }
                             }
