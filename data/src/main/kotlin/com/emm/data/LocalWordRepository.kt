@@ -1,7 +1,7 @@
-package com.emm.hello.features.addword.domain
+package com.emm.data
 
-import com.emm.data.WordDao
-import com.emm.data.WordEntity
+import com.emm.domain.Word
+import com.emm.domain.WordRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn

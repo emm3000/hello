@@ -26,8 +26,8 @@ import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
 import com.emm.hello.core.Main
 import com.emm.hello.features.addword.AddWordDialog
-import com.emm.hello.features.addword.domain.Word
-import com.emm.hello.features.addword.domain.WordRepository
+import com.emm.domain.Word
+import com.emm.domain.WordRepository
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.detail.DetailScreen

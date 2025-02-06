@@ -1,4 +1,4 @@
-package com.emm.hello.features.addword.domain
+package com.emm.domain
 
 data class Word(
     val id: String,
