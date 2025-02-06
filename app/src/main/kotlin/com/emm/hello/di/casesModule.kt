@@ -16,6 +16,7 @@ val casesModule = module {
             oxfordScrapper = OxfordScrapper(),
             wordContentDao = get(),
             exampleDao = get(),
+            wordDao = get()
         )
     } bind WordContentRepository::class
     factoryOf(::WordContentFetcher)

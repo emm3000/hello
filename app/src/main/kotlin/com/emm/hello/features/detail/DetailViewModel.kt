@@ -26,7 +26,6 @@ class DetailViewModel(
         val wordContent: WordContent? = wordContentFetcher.fetch(wordId = wordId)
         state = state.copy(
             currentWord = wordDetail,
-            hasContent = wordContent != null,
             contentWord = wordContent,
         )
     }
@@ -35,6 +34,7 @@ class DetailViewModel(
         state = state.copy(isLoading = true)
         wordContentCreator.create(word)
         val wordContent: WordContent = wordContentFetcher.fetch(wordId = word.id) ?: return@launch
-        state = state.copy(contentWord = wordContent, isLoading = false, hasContent = true)
+        val wordDetail: Word = wordRepository.selectBy(wordId = word.id) ?: return@launch
+        state = state.copy(contentWord = wordContent, isLoading = false, currentWord = wordDetail)
     }
 }

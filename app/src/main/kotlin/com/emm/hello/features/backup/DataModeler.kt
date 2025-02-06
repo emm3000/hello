@@ -26,6 +26,7 @@ class DataModeler(private val wordDao: WordDao) {
             WordEntity(
                 id = it.id,
                 word = it.word,
+                hasContent = false,
                 createdAt = it.createdAt,
                 updatedAt = it.updatedAt,
             )

@@ -53,6 +53,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.emm.domain.Example
+import com.emm.domain.Word
+import com.emm.domain.WordContent
 import com.emm.hello.core.theme.HelloTheme
 
 @Composable
@@ -112,7 +115,7 @@ fun DetailScreen(
             },
         )
 
-        if (state.hasContent.not()) {
+        if (state.currentWord?.hasContent == false) {
 
             Column(
                 modifier = Modifier
@@ -311,21 +314,28 @@ private fun DetailScreenPreview() {
     HelloTheme {
         DetailScreen(
             state = DetailUiState(
-//                contentWord = WordContent(
-//                    wordId = "",
-//                    word = "gaa",
-//                    pos = "gaaa x2",
-//                    examples = listOf(
-//                        Example(
-//                            number = "1",
-//                            title = "random title",
-//                            sentences = listOf(
-//                                "random title d ASLCK AS KNCASL CNals kcas lm",
-//                                "random title 3"
-//                            )
-//                        )
-//                    )
-//                )
+                currentWord = Word(
+                    id = "non",
+                    word = "consectetur",
+                    hasContent = false,
+                    createdAt = "adipisci",
+                    updatedAt = "nibh"
+                ),
+                contentWord = WordContent(
+                    wordId = "",
+                    word = "gaa",
+                    pos = "gaaa x2",
+                    examples = listOf(
+                        Example(
+                            number = "1",
+                            title = "random title",
+                            sentences = listOf(
+                                "random title d ASLCK AS KNCASL CNals kcas lm",
+                                "random title 3"
+                            )
+                        )
+                    )
+                )
             ),
             wordName = "random word",
             generateContent = {},

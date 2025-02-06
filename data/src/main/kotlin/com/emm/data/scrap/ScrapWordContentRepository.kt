@@ -1,5 +1,7 @@
 package com.emm.data.scrap
 
+import com.emm.data.word.WordDao
+import com.emm.data.word.WordEntity
 import com.emm.domain.Example
 import com.emm.domain.Word
 import com.emm.domain.WordContent
@@ -12,11 +14,18 @@ class ScrapWordContentRepository(
     private val oxfordScrapper: OxfordScrapper,
     private val wordContentDao: WordContentDao,
     private val exampleDao: ExampleDao,
+    private val wordDao: WordDao,
 ) : WordContentRepository {
 
     override suspend fun createThenSave(word: Word) {
         val wordContent: WordContentHolder = oxfordScrapper.scrap(word)
         save(wordContent)
+        updateIfWordHasContent(word)
+    }
+
+    private suspend fun updateIfWordHasContent(word: Word) {
+        val selectBy: WordEntity = wordDao.selectBy(word.id) ?: return
+        wordDao.insert(selectBy.copy(hasContent = true))
     }
 
     override suspend fun fetchContent(word: String): WordContent? = withContext(Dispatchers.IO) {

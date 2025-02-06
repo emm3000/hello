@@ -179,6 +179,7 @@ private fun addWord(
     val word = Word(
         id = UUID.randomUUID().toString(),
         word = wordName,
+        hasContent = false,
         createdAt = formattedDate,
         updatedAt = formattedDate,
     )
