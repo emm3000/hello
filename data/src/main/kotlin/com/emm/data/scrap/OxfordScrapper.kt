@@ -16,8 +16,8 @@ class OxfordScrapper {
     suspend fun scrap(word: Word): WordContentHolder = withContext(Dispatchers.IO) {
         val baseUrl = buildUrl(word.word)
         val doc: Document = connection.newRequest(baseUrl).get()
-        val title: String = doc.select("h1.headword").text()
-        val pos: String = doc.select("span.pos").text()
+        val title: String = doc.select("h1.headword").text().trim()
+        val pos: String = doc.select("span.pos").text().trim()
         val exampleList: List<ExampleHolder> = extractExamples(doc)
         return@withContext WordContentHolder(
             wordId = word.id,
@@ -36,8 +36,8 @@ class OxfordScrapper {
 
     private fun buildExample(element: Element): ExampleHolder {
         val number: String = element.attr("sensenum")
-        val title: String = element.select("span.cf").text()
-        val titleSecond: String = element.select("span.def").text()
+        val title: String = element.select("span.cf").text().trim()
+        val titleSecond: String = element.select("span.def").text().trim()
         val children: Elements = element.select("ul.examples").first()?.children() ?: Elements()
         val mutableMap = extractSentences(children)
         val sentences = mutableMap.filter { it.isNotBlank() }
@@ -51,9 +51,9 @@ class OxfordScrapper {
     private fun extractSentences(elements: Elements): MutableList<String> {
         val sentences = mutableListOf<String>()
         elements.forEach { li ->
-            val second = li.select("span.x").text()
-            val first = li.select("span.cf").text()
-            sentences.add("$first $second")
+            val second = li.select("span.x").text().trim()
+            val first = li.select("span.cf").text().trim()
+            sentences.add("$first $second".trim())
         }
         return sentences
     }
