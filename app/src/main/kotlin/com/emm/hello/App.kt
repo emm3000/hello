@@ -1,6 +1,7 @@
 package com.emm.hello
 
 import android.app.Application
+import com.emm.hello.di.casesModule
 import com.emm.hello.di.dataModule
 import com.emm.hello.di.homeModule
 import com.emm.hello.di.repositoryModule
@@ -15,7 +16,7 @@ class App: Application() {
         startKoin {
             androidLogger()
             androidContext(this@App)
-            modules(homeModule, dataModule, repositoryModule)
+            modules(homeModule, dataModule, repositoryModule, casesModule)
         }
     }
 }
