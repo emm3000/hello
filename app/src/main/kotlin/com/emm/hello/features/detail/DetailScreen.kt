@@ -1,16 +1,24 @@
 package com.emm.hello.features.detail
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,19 +27,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -41,11 +49,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.emm.domain.Example
-import com.emm.domain.WordContent
 import com.emm.hello.core.theme.HelloTheme
 
 @Composable
@@ -106,22 +113,44 @@ fun DetailScreen(
         )
 
         if (state.hasContent.not()) {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state.hasContent.not() && state.isLoading.not(),
-                onClick = generateContent
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "Generate content",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .padding(bottom = 15.dp),
+                    text = "Content not found, can you generate content?",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 24.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.ExtraBold
                 )
-                Spacer(Modifier.width(10.dp))
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(30.dp),
-                        color = LocalContentColor.current
-                    )
+
+                Box(
+                    modifier = Modifier
+                        .padding(bottom = 150.dp)
+                        .height(70.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (state.isLoading) {
+                        LettersLoading()
+                    } else {
+                        OutlinedButton(
+                            onClick = generateContent,
+                            shape = RoundedCornerShape(20)
+                        ) {
+                            Text(
+                                text = "Generate content",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -201,6 +230,37 @@ fun DetailScreen(
 }
 
 @Composable
+private fun LettersLoading() {
+    val letters = "Loading...".toList()
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        letters.forEachIndexed { index, letter ->
+            val animatedOffset by rememberInfiniteTransition().animateFloat(
+                initialValue = 0f,
+                targetValue = -8f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse,
+                    initialStartOffset = StartOffset(index * 100)
+                )
+            )
+
+            Text(
+                text = letter.toString(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .offset(y = animatedOffset.dp)
+                    .padding(2.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
 private fun EditableIconsButtons(
     setWordField: (TextFieldValue) -> Unit,
     updateWord: (String) -> Unit,
@@ -251,21 +311,21 @@ private fun DetailScreenPreview() {
     HelloTheme {
         DetailScreen(
             state = DetailUiState(
-                contentWord = WordContent(
-                    wordId = "",
-                    word = "gaa",
-                    pos = "gaaa x2",
-                    examples = listOf(
-                        Example(
-                            number = "1",
-                            title = "random title",
-                            sentences = listOf(
-                                "random title d ASLCK AS KNCASL CNals kcas lm",
-                                "random title 3"
-                            )
-                        )
-                    )
-                )
+//                contentWord = WordContent(
+//                    wordId = "",
+//                    word = "gaa",
+//                    pos = "gaaa x2",
+//                    examples = listOf(
+//                        Example(
+//                            number = "1",
+//                            title = "random title",
+//                            sentences = listOf(
+//                                "random title d ASLCK AS KNCASL CNals kcas lm",
+//                                "random title 3"
+//                            )
+//                        )
+//                    )
+//                )
             ),
             wordName = "random word",
             generateContent = {},
