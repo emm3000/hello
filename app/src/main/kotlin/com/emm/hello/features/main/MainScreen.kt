@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,23 +17,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,6 +62,7 @@ import com.emm.data.word.WordEntity
 import com.emm.hello.core.theme.HelloTheme
 import java.util.UUID
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen(
     words: List<WordEntity>,
@@ -80,89 +89,85 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            val showSearchBar = remember {
+            val switchVisualization = remember {
                 mutableStateOf(false)
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = "Learning",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 30.sp,
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                )
-                IconButton(onClick = navigateToBackup) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                    )
+
+            MainToolbar(
+                navigateToBackup = navigateToBackup,
+                wordSearch = wordSearch,
+                switchVisualization = { switchVisualization.value = switchVisualization.value.not() },
+                onWordSearchUpdate = onWordSearchUpdate,
+                keyboardController = keyboardController,
+                focusManager = focusManager
+            )
+
+            if (switchVisualization.value) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(top = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(start = 5.dp, end = 5.dp, bottom = 100.dp),
+                ) {
+                    items(words, key = WordEntity::id) { wordEntity ->
+                        WordItem(
+                            keyboardController = keyboardController,
+                            focusManager = focusManager,
+                            navigateToDetail = navigateToDetail,
+                            wordEntity = wordEntity,
+                        )
+                    }
                 }
+            } else {
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(top = 10.dp, bottom = 100.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
 
-
-                IconButton(onClick = {
-                    showSearchBar.value = !showSearchBar.value
-                }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground,
-                    )
-                }
-            }
-
-            AnimatedVisibility(showSearchBar.value) {
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = wordSearch,
-                    singleLine = true,
-                    onValueChange = {
-                        onWordSearchUpdate(it)
-                    },
-                    label = {
-                        Text("Search Word")
-                    },
-                    trailingIcon = {
-                        LeadingIcon {
+                    words.forEach { wordEntity ->
+                        key(wordEntity.id) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20))
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (wordEntity.hasContent) {
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                        } else MaterialTheme.colorScheme.inverseOnSurface,
+                                        shape = RoundedCornerShape(20)
+                                    )
+                                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                                    .clickable {
+                                        keyboardController?.hide()
+                                        focusManager.clearFocus()
+                                        navigateToDetail(wordEntity.id)
+                                    }
+                                    .padding(vertical = 5.dp, horizontal = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    modifier = Modifier,
+                                    text = wordEntity.word,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 17.sp,
+                                    fontFamily = FontFamily.SansSerif,
+                                    color = if (wordEntity.hasContent) {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                    } else LocalContentColor.current,
+                                    textAlign = TextAlign.Start,
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1,
+                                )
+                            }
                         }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Unspecified,
-                        autoCorrectEnabled = false,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Search,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onSearch = {
-                            keyboardController?.hide()
-                            focusManager.clearFocus()
-                        }
-                    )
-                )
-            }
-
-            LazyColumn(
-                modifier = Modifier
-                    .padding(top = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(start = 5.dp, end = 5.dp, bottom = 100.dp),
-            ) {
-                items(words, key = WordEntity::id) { wordEntity ->
-                    WordItem(
-                        keyboardController = keyboardController,
-                        focusManager = focusManager,
-                        navigateToDetail = navigateToDetail,
-                        wordEntity = wordEntity,
-                    )
+                    }
                 }
             }
-
         }
         FloatingActionButton(
             modifier = Modifier
@@ -185,6 +190,89 @@ fun MainScreen(
                 contentDescription = null,
             )
         }
+    }
+}
+
+@Composable
+private fun ColumnScope.MainToolbar(
+    navigateToBackup: () -> Unit,
+    switchVisualization: () -> Unit,
+    wordSearch: String,
+    onWordSearchUpdate: (String) -> Unit,
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager
+) {
+    val showSearchBar = remember {
+        mutableStateOf(false)
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = "Learning",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 30.sp,
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Bold,
+        )
+        IconButton(onClick = switchVisualization) {
+            Icon(
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+        IconButton(onClick = navigateToBackup) {
+            Icon(
+                imageVector = Icons.Rounded.Build,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+
+        IconButton(onClick = {
+            showSearchBar.value = !showSearchBar.value
+        }) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+    }
+
+    AnimatedVisibility(showSearchBar.value) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = wordSearch,
+            singleLine = true,
+            onValueChange = {
+                onWordSearchUpdate(it)
+            },
+            label = {
+                Text("Search Word")
+            },
+            trailingIcon = {
+                LeadingIcon {
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Unspecified,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search,
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                }
+            )
+        )
     }
 }
 
@@ -231,8 +319,7 @@ private fun WordItem(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                         shape = RoundedCornerShape(20)
                     )
-                    .padding(horizontal = 5.dp)
-                ,
+                    .padding(horizontal = 5.dp),
                 text = "content",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
@@ -249,9 +336,7 @@ private fun WordItem(
 
 @Composable
 private fun LeadingIcon(onSave: () -> Unit) {
-    IconButton(
-        onClick = { onSave() }
-    ) {
+    IconButton(onClick = { onSave() }) {
         Icon(
             imageVector = Icons.Filled.Search,
             contentDescription = null,
@@ -267,7 +352,7 @@ private fun MainScreenPreview() {
             (1..50).map {
                 WordEntity(
                     id = it.toString(),
-                    word = UUID.randomUUID().toString().take(4).repeat(10),
+                    word = UUID.randomUUID().toString().take(4),
                     hasContent = true,
                     createdAt = 0L
                 )
