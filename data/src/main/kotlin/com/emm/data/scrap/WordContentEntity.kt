@@ -1,12 +1,13 @@
-package com.emm.data
+package com.emm.data.scrap
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity("word")
-data class WordEntity(
+@Entity("word_content")
+data class WordContentEntity(
     @PrimaryKey val id: String,
     val word: String,
+    val pos: String,
     val createdAt: String,
     val updatedAt: String,
 )

@@ -1,6 +1,6 @@
 package com.emm.hello.di
 
-import com.emm.data.LocalWordRepository
+import com.emm.data.word.LocalWordRepository
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.backup.domain.SharedLocalStorageRepository
 import org.koin.core.module.dsl.factoryOf

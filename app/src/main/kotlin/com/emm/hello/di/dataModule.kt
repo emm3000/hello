@@ -1,7 +1,7 @@
 package com.emm.hello.di
 
 import com.emm.data.AppDatabase
-import com.emm.data.WordDao
+import com.emm.data.word.WordDao
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 

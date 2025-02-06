@@ -1,7 +1,7 @@
 package com.emm.hello.features.backup
 
-import com.emm.data.WordDao
-import com.emm.data.WordEntity
+import com.emm.data.word.WordDao
+import com.emm.data.word.WordEntity
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 

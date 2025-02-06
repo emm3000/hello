@@ -49,7 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.emm.data.WordEntity
+import com.emm.data.word.WordEntity
 import com.emm.hello.core.theme.HelloTheme
 import java.util.UUID
 

@@ -19,7 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.emm.data.WordEntity
+import com.emm.data.word.WordEntity
 import com.emm.hello.core.AddWord
 import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail

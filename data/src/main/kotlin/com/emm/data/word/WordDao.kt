@@ -1,4 +1,4 @@
-package com.emm.data
+package com.emm.data.word
 
 import androidx.room.Dao
 import androidx.room.Delete

@@ -1,4 +1,4 @@
-package com.emm.data
+package com.emm.data.word
 
 import com.emm.domain.Word
 import com.emm.domain.WordRepository
