@@ -2,10 +2,11 @@ package com.emm.data.scrap
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName ="word_example",
+    tableName = "word_example",
     foreignKeys = [
         ForeignKey(
             entity = WordContentEntity::class,
@@ -15,6 +16,7 @@ import androidx.room.PrimaryKey
             onUpdate = ForeignKey.CASCADE
         )
     ],
+    indices = [Index(value = ["contentId"])]
 )
 data class ExampleEntity(
     @PrimaryKey val id: String,
