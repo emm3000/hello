@@ -38,8 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.Instant
 import java.util.UUID
 
 @Composable
@@ -104,10 +103,7 @@ fun Root(modifier: Modifier = Modifier) {
                     },
                     updateWord = { newWordName ->
                         coroutineScope.launch {
-                            val now: LocalDateTime = LocalDateTime.now()
-                            val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
-                            val formattedDate = now.format(formatter)
-                            val newWord: Word = state.currentWord.copy(word = newWordName, updatedAt = formattedDate)
+                            val newWord: Word = state.currentWord.copy(word = newWordName)
                             repository.upsert(newWord)
                         }
                     }
@@ -181,15 +177,12 @@ private fun addWord(
     repository: WordRepository,
     navController: NavHostController
 ) {
-    val now: LocalDateTime = LocalDateTime.now()
-    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
-    val formattedDate = now.format(formatter)
+    val toEpochMilli = Instant.now().toEpochMilli()
     val word = Word(
         id = UUID.randomUUID().toString(),
         word = wordName,
         hasContent = false,
-        createdAt = formattedDate,
-        updatedAt = formattedDate,
+        createdAt = toEpochMilli,
     )
     coroutineScope.launch {
         repository.upsert(word)

@@ -20,7 +20,6 @@ class LocalWordRepository(private val wordDao: WordDao) : WordRepository {
             word = wordEntity.word,
             hasContent = wordEntity.hasContent,
             createdAt = wordEntity.createdAt,
-            updatedAt = wordEntity.updatedAt,
         )
     }
 
@@ -30,7 +29,6 @@ class LocalWordRepository(private val wordDao: WordDao) : WordRepository {
             word = word.word,
             hasContent = word.hasContent,
             createdAt = word.createdAt,
-            updatedAt = word.updatedAt
         )
         wordDao.insert(wordEntity)
     }
@@ -47,7 +45,6 @@ class LocalWordRepository(private val wordDao: WordDao) : WordRepository {
             word = wordEntity.word,
             hasContent = wordEntity.hasContent,
             createdAt = wordEntity.createdAt,
-            updatedAt = wordEntity.updatedAt,
         )
     }
 }

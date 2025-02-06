@@ -16,7 +16,7 @@ class DataModeler(private val wordDao: WordDao) {
 
     suspend fun model(): String {
         val wordEntities: List<WordEntity> = wordDao.all().firstOrNull().orEmpty()
-        val wordJsons: List<WordJson> = wordEntities.map { WordJson(it.id, it.word, it.createdAt, it.updatedAt) }
+        val wordJsons: List<WordJson> = wordEntities.map { WordJson(it.id, it.word, it.createdAt) }
         return json.encodeToString(wordJsons)
     }
 
@@ -28,7 +28,6 @@ class DataModeler(private val wordDao: WordDao) {
                 word = it.word,
                 hasContent = false,
                 createdAt = it.createdAt,
-                updatedAt = it.updatedAt,
             )
         }
         wordDao.upsert(wordEntities)

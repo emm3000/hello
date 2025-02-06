@@ -6,6 +6,5 @@ import kotlinx.serialization.Serializable
 data class WordJson(
     val id: String,
     val word: String,
-    val createdAt: String,
-    val updatedAt: String,
+    val createdAt: Long,
 )

@@ -8,6 +8,5 @@ data class WordEntity(
     @PrimaryKey val id: String,
     val word: String,
     val hasContent: Boolean,
-    val createdAt: String,
-    val updatedAt: String,
+    val createdAt: Long,
 )

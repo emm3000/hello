@@ -380,8 +380,7 @@ private fun DetailScreenPreview() {
                     id = "non",
                     word = "consectetur",
                     hasContent = true,
-                    createdAt = "adipisci",
-                    updatedAt = "nibh"
+                    createdAt = 0L
                 ),
                 contentWord = WordContent(
                     wordId = "",
