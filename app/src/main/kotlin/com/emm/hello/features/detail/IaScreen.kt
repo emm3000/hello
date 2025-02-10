@@ -30,7 +30,6 @@ fun IaScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
         if (state.iaContentWord != null) {
@@ -46,9 +45,16 @@ fun IaScreen(
 
 @Composable
 fun IaScreen(contentWord: WordContent) {
-    Text(
-        text = contentWord.pos,
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = contentWord.pos,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
 }
 
 @PreviewLightDark
