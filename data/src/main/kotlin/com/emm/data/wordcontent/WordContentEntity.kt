@@ -17,7 +17,7 @@ import com.emm.data.word.WordEntity
             onUpdate = ForeignKey.CASCADE,
         )
     ],
-    indices = [Index(value = ["wordId"], unique = true)]
+    indices = [Index(value = ["wordId"])]
 )
 data class WordContentEntity(
     @PrimaryKey val id: String,

@@ -35,19 +35,23 @@ import com.emm.hello.core.theme.HelloTheme
 @Composable
 fun DictionaryScreen(
     state: DetailUiState,
-    generateContent: () -> Unit,
+    generateContent: (SourceType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
         if (state.scrapContentWord != null) {
             DictionaryScreen(state.scrapContentWord)
         } else {
-            NoContent(state.isLoading, generateContent)
+            NoContent(
+                showLoading = state.isLoading,
+                generateContent = { generateContent(SourceType.SCRAPPING) }
+            )
         }
     }
 }

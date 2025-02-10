@@ -61,8 +61,8 @@ fun DetailScreen(
     wordName: String,
     updateWord: (String) -> Unit,
     deleteWord: () -> Unit,
-    generateContent: () -> Unit,
-    modifier: Modifier = Modifier
+    generateContent: (SourceType) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
 
     val (showDialog, setShowDialog) = remember {
@@ -208,14 +208,10 @@ fun DetailScreen(
                     generateContent = generateContent,
                 )
 
-                1 -> Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Working")
-                }
+                1 -> IaScreen(
+                    state = state,
+                    generateContent = generateContent
+                )
             }
 
         }
