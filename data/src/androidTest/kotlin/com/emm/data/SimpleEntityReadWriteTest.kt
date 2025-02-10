@@ -4,12 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.emm.data.scrap.ExampleDao
-import com.emm.data.scrap.ExampleEntity
-import com.emm.data.scrap.WordContentDao
-import com.emm.data.scrap.WordContentEntity
+import com.emm.data.wordcontent.ExampleDao
+import com.emm.data.wordcontent.ExampleEntity
+import com.emm.data.wordcontent.WordContentDao
+import com.emm.data.wordcontent.WordContentEntity
 import com.emm.data.word.WordDao
 import com.emm.data.word.WordEntity
+import com.emm.domain.SourceType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -52,8 +53,7 @@ class SimpleEntityReadWriteTest {
             id = wordId,
             word = "iusto",
             hasContent = false,
-            createdAt = "possim",
-            updatedAt = "cras"
+            createdAt = 0L,
         ).also { wordDao.insert(it) }
         val first: List<WordEntity> = wordDao.all().first()
 
@@ -61,6 +61,7 @@ class SimpleEntityReadWriteTest {
         WordContentEntity(
             id = wordContentId,
             wordFromScrap = "sociosqu",
+            sourceType = SourceType.IA.name,
             pos = "conubia",
             wordId = wordId
         ).also { wordContentDao.insert(it) }

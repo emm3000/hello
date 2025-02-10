@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.domain.Example
+import com.emm.domain.SourceType
 import com.emm.domain.Word
 import com.emm.domain.WordContent
 import com.emm.hello.core.theme.HelloTheme
@@ -148,9 +149,10 @@ private fun DictionaryScreenPreview() {
                         createdAt = 0L
                     ),
                     contentWord = WordContent(
-                        wordId = "",
+                        wordContentId = "",
                         word = "gaa",
                         pos = "gaaa x2",
+                        sourceType = SourceType.SCRAPPING,
                         examples = listOf(
                             Example(
                                 number = "1",

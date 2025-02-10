@@ -2,7 +2,11 @@ package com.emm.domain
 
 interface WordContentRepository {
 
-    suspend fun createThenSave(word: Word)
+    suspend fun createScrappingContent(word: Word): WordContent
 
-    suspend fun fetchContent(word: String): WordContent?
+    suspend fun createIAContent(word: Word): WordContent
+
+    suspend fun saveContent(wordContent: WordContent, wordId: String)
+
+    suspend fun fetchContentBy(wordId: String): WordContent?
 }

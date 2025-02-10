@@ -18,6 +18,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.data.word.WordEntity
+import com.emm.domain.SourceType
 import com.emm.domain.Word
 import com.emm.domain.WordRepository
 import com.emm.hello.core.AddWord
@@ -96,7 +97,7 @@ fun Root(modifier: Modifier = Modifier) {
                     state = state,
                     wordName = state.currentWord.word,
                     generateContent = {
-                        vm.contentCreator(state.currentWord)
+                        vm.contentCreator(state.currentWord, sourceType = SourceType.SCRAPPING)
                     },
                     deleteWord = {
                         vm.delete(state.currentWord.id)

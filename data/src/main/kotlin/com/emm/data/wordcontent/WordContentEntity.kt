@@ -1,4 +1,4 @@
-package com.emm.data.scrap
+package com.emm.data.wordcontent
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -23,5 +23,6 @@ data class WordContentEntity(
     @PrimaryKey val id: String,
     val wordFromScrap: String,
     val pos: String,
+    val sourceType: String,
     val wordId: String,
 )

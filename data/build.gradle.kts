@@ -1,9 +1,16 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     id("androidx.room")
 }
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.emm.data"
@@ -20,6 +27,10 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            resValue("string", "xmm", keystoreProperties["xmm"] as String)
+        }
+        debug {
+            resValue("string", "xmm", keystoreProperties["xmm"] as String)
         }
     }
     compileOptions {
@@ -52,4 +63,5 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     implementation(libs.jsoup)
+    api(libs.generativeai)
 }

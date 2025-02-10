@@ -11,4 +11,6 @@ interface WordRepository {
     suspend fun deleteBy(wordId: String)
 
     suspend fun selectBy(wordId: String): Word?
+
+    suspend fun updateHasContent(word: Word, hasContent: Boolean)
 }

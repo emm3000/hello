@@ -47,4 +47,9 @@ class LocalWordRepository(private val wordDao: WordDao) : WordRepository {
             createdAt = wordEntity.createdAt,
         )
     }
+
+    override suspend fun updateHasContent(word: Word, hasContent: Boolean) = withContext(Dispatchers.IO) {
+        val selectBy: WordEntity = wordDao.selectBy(word.id) ?: return@withContext
+        wordDao.update(selectBy.copy(hasContent = hasContent))
+    }
 }

@@ -1,4 +1,4 @@
-package com.emm.data.scrap
+package com.emm.data.wordcontent
 
 import androidx.room.Embedded
 import androidx.room.Relation

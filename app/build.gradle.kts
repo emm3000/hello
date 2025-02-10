@@ -38,16 +38,11 @@ android {
     }
 
     buildTypes {
-
-        debug {
-            resValue("string", "xmm", keystoreProperties["xmm"] as String)
-        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs["config"]
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue("string", "xmm", keystoreProperties["xmm"] as String)
         }
     }
 
@@ -94,6 +89,4 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
-
-    implementation(libs.generativeai)
 }

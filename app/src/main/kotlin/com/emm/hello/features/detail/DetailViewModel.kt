@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.emm.domain.SourceType
 import com.emm.domain.Word
 import com.emm.domain.WordContent
 import com.emm.domain.WordContentCreator
@@ -30,10 +31,10 @@ class DetailViewModel(
         )
     }
 
-    fun contentCreator(word: Word) = viewModelScope.launch {
+    fun contentCreator(word: Word, sourceType: SourceType) = viewModelScope.launch {
         try {
             state = state.copy(isLoading = true)
-            wordContentCreator.create(word)
+            wordContentCreator.create(word, sourceType)
             val wordContent: WordContent = wordContentFetcher.fetch(wordId = word.id) ?: return@launch
             val wordDetail: Word = wordRepository.selectBy(wordId = word.id) ?: return@launch
             state = state.copy(
@@ -42,7 +43,10 @@ class DetailViewModel(
                 currentWord = wordDetail,
             )
         } catch (e: Exception) {
-            state = state.copy(isLoading = true, errorMessage = e.message.orEmpty())
+            state = state.copy(
+                isLoading = true,
+                errorMessage = e.message.orEmpty(),
+            )
         }
     }
 

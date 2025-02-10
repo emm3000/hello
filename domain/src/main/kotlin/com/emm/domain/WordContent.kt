@@ -1,8 +1,9 @@
 package com.emm.domain
 
 data class WordContent(
-    val wordId: String,
+    val wordContentId: String,
     val word: String,
     val pos: String,
+    val sourceType: SourceType,
     val examples: List<Example>,
 )

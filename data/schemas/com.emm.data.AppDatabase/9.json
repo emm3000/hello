@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "c5081f443b34d9a3164ccdde861e53e8",
+    "identityHash": "1f36ee21a5005e55037854ca897fa4c2",
     "entities": [
       {
         "tableName": "word",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "word_content",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `wordFromScrap` TEXT NOT NULL, `pos` TEXT NOT NULL, `wordId` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`wordId`) REFERENCES `word`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `wordFromScrap` TEXT NOT NULL, `pos` TEXT NOT NULL, `sourceType` TEXT NOT NULL, `wordId` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`wordId`) REFERENCES `word`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -61,6 +61,12 @@
           {
             "fieldPath": "pos",
             "columnName": "pos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceType",
+            "columnName": "sourceType",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -172,7 +178,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c5081f443b34d9a3164ccdde861e53e8')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f36ee21a5005e55037854ca897fa4c2')"
     ]
   }
 }

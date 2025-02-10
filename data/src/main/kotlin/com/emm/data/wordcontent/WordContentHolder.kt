@@ -1,4 +1,4 @@
-package com.emm.data.scrap
+package com.emm.data.wordcontent
 
 data class WordContentHolder(
     val wordFromScrap: String,
