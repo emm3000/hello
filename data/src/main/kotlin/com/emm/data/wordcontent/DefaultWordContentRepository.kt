@@ -39,13 +39,13 @@ class DefaultWordContentRepository(
         wordContentDao.insert(wordContentEntity)
 
         val exampleEntities: List<ExampleEntity> = wordContent.examples.map { example ->
-            mapToEntity(example, wordContent.wordContentId)
+            mapToExampleEntities(example, wordContent.wordContentId)
         }
         exampleDao.upsert(exampleEntities)
     }
 
-    override suspend fun fetchContentBy(wordId: String): WordContent? = withContext(Dispatchers.IO) {
-        val wordContentWithExamples: WordContentWithExamples = wordContentDao.fetchContentWord(wordId) ?: return@withContext null
-        mapToWordContent(wordContentWithExamples)
+    override suspend fun fetchContentBy(wordId: String): List<WordContent> = withContext(Dispatchers.IO) {
+        val wordContentWithExamples: List<WordContentWithExamples> = wordContentDao.fetchContentWord(wordId)
+        mapToWordContents(wordContentWithExamples)
     }
 }

@@ -290,7 +290,7 @@ private fun DetailScreenPreview() {
                     hasContent = true,
                     createdAt = 0L
                 ),
-                contentWord = WordContent(
+                scrapContentWord = WordContent(
                     wordContentId = "",
                     word = "gaa",
                     pos = "gaaa x2",

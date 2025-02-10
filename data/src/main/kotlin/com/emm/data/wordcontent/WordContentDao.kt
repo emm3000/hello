@@ -17,5 +17,5 @@ interface WordContentDao {
 
     @Transaction
     @Query("SELECT * from word_content WHERE wordId = :wordId")
-    suspend fun fetchContentWord(wordId: String): WordContentWithExamples?
+    suspend fun fetchContentWord(wordId: String): List<WordContentWithExamples>
 }

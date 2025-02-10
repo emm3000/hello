@@ -44,8 +44,8 @@ fun DictionaryScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
-        if (state.contentWord != null) {
-            DictionaryScreen(state.contentWord)
+        if (state.scrapContentWord != null) {
+            DictionaryScreen(state.scrapContentWord)
         } else {
             NoContent(state.isLoading, generateContent)
         }
@@ -148,7 +148,7 @@ private fun DictionaryScreenPreview() {
                         hasContent = true,
                         createdAt = 0L
                     ),
-                    contentWord = WordContent(
+                    scrapContentWord = WordContent(
                         wordContentId = "",
                         word = "gaa",
                         pos = "gaaa x2",

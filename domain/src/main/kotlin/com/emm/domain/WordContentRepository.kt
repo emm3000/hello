@@ -8,5 +8,5 @@ interface WordContentRepository {
 
     suspend fun saveContent(wordContent: WordContent, wordId: String)
 
-    suspend fun fetchContentBy(wordId: String): WordContent?
+    suspend fun fetchContentBy(wordId: String): List<WordContent>
 }

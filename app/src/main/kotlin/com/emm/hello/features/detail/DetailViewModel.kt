@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.SourceType
 import com.emm.domain.Word
-import com.emm.domain.WordContent
 import com.emm.domain.WordContentCreator
 import com.emm.domain.WordContentFetcher
 import com.emm.domain.WordRepository
@@ -24,10 +23,11 @@ class DetailViewModel(
 
     fun detail(wordId: String) = viewModelScope.launch {
         val wordDetail: Word = wordRepository.selectBy(wordId) ?: return@launch
-        val wordContent: WordContent? = wordContentFetcher.fetch(wordId = wordId)
+        val wordContent: WordContentFetcher.HolderOfWordContent = wordContentFetcher.fetch(wordId = wordId)
         state = state.copy(
             currentWord = wordDetail,
-            contentWord = wordContent,
+            iaContentWord = wordContent.iaContent,
+            scrapContentWord = wordContent.scrapContent,
         )
     }
 
@@ -35,11 +35,12 @@ class DetailViewModel(
         try {
             state = state.copy(isLoading = true)
             wordContentCreator.create(word, sourceType)
-            val wordContent: WordContent = wordContentFetcher.fetch(wordId = word.id) ?: return@launch
+            val wordContent: WordContentFetcher.HolderOfWordContent = wordContentFetcher.fetch(wordId = word.id)
             val wordDetail: Word = wordRepository.selectBy(wordId = word.id) ?: return@launch
             state = state.copy(
                 isLoading = false,
-                contentWord = wordContent,
+                scrapContentWord = wordContent.scrapContent,
+                iaContentWord = wordContent.iaContent,
                 currentWord = wordDetail,
             )
         } catch (e: Exception) {
