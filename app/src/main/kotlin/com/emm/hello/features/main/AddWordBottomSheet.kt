@@ -16,11 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,12 +30,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWordBottomSheet(
-    sheetState: SheetState,
     showDialog: MutableState<Boolean>,
     wordCreate: (String) -> Unit,
 ) {
@@ -46,26 +41,16 @@ fun AddWordBottomSheet(
         modifier = Modifier.imePadding(),
         onDismissRequest = { showDialog.value = false },
         dragHandle = null,
-        sheetState = sheetState,
     ) {
-        ModalBottomContent(sheetState, wordCreate)
+        ModalBottomContent(wordCreate)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModalBottomContent(
-    sheetState: SheetState,
     wordCreate: (String) -> Unit = {}
 ) {
     val request = remember { FocusRequester() }
-
-    if (sheetState.isVisible) {
-        LaunchedEffect(Unit) {
-            delay(200L)
-            request.requestFocus()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -123,11 +108,10 @@ private fun ModalBottomContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 private fun BottomSheetPreview() {
     HelloTheme {
-        ModalBottomContent(rememberModalBottomSheetState()) {}
+        ModalBottomContent {}
     }
 }
