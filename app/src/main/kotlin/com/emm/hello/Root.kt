@@ -79,8 +79,8 @@ fun Root(modifier: Modifier = Modifier) {
                 words = words,
                 wordSearch = vm.searchState,
                 onWordSearchUpdate = vm::updateSearch,
+                wordCreate = vm::createWord,
                 navigateToDetail = { navController.navigate(Detail(it)) },
-                navigateToAddWord = { navController.navigate(AddWord) },
                 navigateToBackup = { navController.navigate(Backup) },
                 modifier = Modifier,
             )
