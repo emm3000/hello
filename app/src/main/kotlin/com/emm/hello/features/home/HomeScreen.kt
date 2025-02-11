@@ -49,7 +49,7 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(0.5f)
         ) {
             Text(
-                text = "Dictionary",
+                text = "Words",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.SansSerif,
@@ -57,10 +57,11 @@ fun HomeScreen(
         }
         FilledTonalButton(
             onClick = dropUnlessResumed { goToAnki() },
-            modifier = Modifier.fillMaxWidth(0.5f)
+            modifier = Modifier.fillMaxWidth(0.5f),
+            enabled = false,
         ) {
             Text(
-                text = "Anki",
+                text = "Anki (Working)",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.SansSerif,

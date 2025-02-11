@@ -5,7 +5,9 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.emm.data.word.WordEntity
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "word_content",
     foreignKeys = [

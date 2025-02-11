@@ -16,7 +16,7 @@ val homeModule = module {
     viewModelOf(::DetailViewModel)
     viewModelOf(::AnkiViewModel)
 
-    factory { DataModeler(get()) }
+    factory { DataModeler(get(), get(), get()) }
     factory {
         JustFiles(
             dataModeler = get(),

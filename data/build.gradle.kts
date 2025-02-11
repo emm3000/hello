@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     id("androidx.room")
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -64,4 +65,5 @@ dependencies {
 
     implementation(libs.jsoup)
     api(libs.generativeai)
+    implementation(libs.kotlinx.serialization.json)
 }

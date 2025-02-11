@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 
 @Dao
 interface WordContentDao {
@@ -14,6 +15,9 @@ interface WordContentDao {
 
     @Query("SELECT * from word_content")
     suspend fun select(): List<WordContentEntity>
+
+    @Upsert
+    suspend fun upsert(words: List<WordContentEntity>)
 
     @Transaction
     @Query("SELECT * from word_content WHERE wordId = :wordId")

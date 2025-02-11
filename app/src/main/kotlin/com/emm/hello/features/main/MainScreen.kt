@@ -90,7 +90,7 @@ fun MainScreen(
         ) {
 
             val switchVisualization = remember {
-                mutableStateOf(false)
+                mutableStateOf(true)
             }
 
             MainToolbar(
