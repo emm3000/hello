@@ -1,8 +1,8 @@
 package com.emm.data.wordcontent
 
-import com.emm.domain.Example
-import com.emm.domain.SourceType
-import com.emm.domain.WordContent
+import com.emm.domain.word.Example
+import com.emm.domain.word.SourceType
+import com.emm.domain.word.WordContent
 import java.util.UUID
 
 fun mapToExampleEntities(example: Example, contentEntityId: String): ExampleEntity {

@@ -7,8 +7,7 @@ import kotlinx.coroutines.withContext
 
 class GeminiService(private val generativeModel: GenerativeModel) {
 
-    suspend fun process(word: String): String = withContext(Dispatchers.IO) {
-        val prompt = "Eres un profesor experto de inglés dame que significa y cuando usar esta palabra o frase \"${word}\""
+    suspend fun process(prompt: String): String = withContext(Dispatchers.IO) {
         val generateContent: GenerateContentResponse = generativeModel.generateContent(prompt)
         generateContent.text.orEmpty()
     }

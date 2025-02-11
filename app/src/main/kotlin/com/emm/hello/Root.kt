@@ -18,8 +18,8 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.data.word.WordEntity
-import com.emm.domain.Word
-import com.emm.domain.WordRepository
+import com.emm.domain.word.Word
+import com.emm.domain.word.WordRepository
 import com.emm.hello.core.AddWord
 import com.emm.hello.core.Anki
 import com.emm.hello.core.Backup
@@ -28,6 +28,7 @@ import com.emm.hello.core.Home
 import com.emm.hello.core.Main
 import com.emm.hello.features.addword.AddWordDialog
 import com.emm.hello.features.anki.AnkiScreen
+import com.emm.hello.features.anki.AnkiViewModel
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.detail.DetailScreen
@@ -62,7 +63,11 @@ fun Root(modifier: Modifier = Modifier) {
             )
         }
         composable<Anki> {
-            AnkiScreen()
+            val vm: AnkiViewModel = koinViewModel()
+
+            AnkiScreen(
+                onGenerate = vm::create
+            )
         }
         composable<Main> {
             val vm: MainViewModel = koinViewModel()

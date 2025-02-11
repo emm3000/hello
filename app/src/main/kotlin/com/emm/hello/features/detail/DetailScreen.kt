@@ -49,10 +49,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.emm.domain.Example
-import com.emm.domain.SourceType
-import com.emm.domain.Word
-import com.emm.domain.WordContent
+import com.emm.domain.word.Example
+import com.emm.domain.word.SourceType
+import com.emm.domain.word.Word
+import com.emm.domain.word.WordContent
 import com.emm.hello.core.theme.HelloTheme
 
 @Composable

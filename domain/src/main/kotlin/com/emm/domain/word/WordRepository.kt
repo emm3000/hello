@@ -1,4 +1,4 @@
-package com.emm.domain
+package com.emm.domain.word
 
 import kotlinx.coroutines.flow.Flow
 

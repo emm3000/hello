@@ -1,7 +1,7 @@
 package com.emm.data.word
 
-import com.emm.domain.Word
-import com.emm.domain.WordRepository
+import com.emm.domain.word.Word
+import com.emm.domain.word.WordRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn

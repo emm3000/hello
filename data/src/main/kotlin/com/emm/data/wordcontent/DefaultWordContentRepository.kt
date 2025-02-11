@@ -1,9 +1,9 @@
 package com.emm.data.wordcontent
 
-import com.emm.domain.SourceType
-import com.emm.domain.Word
-import com.emm.domain.WordContent
-import com.emm.domain.WordContentRepository
+import com.emm.domain.word.SourceType
+import com.emm.domain.word.Word
+import com.emm.domain.word.WordContent
+import com.emm.domain.word.WordContentRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -18,7 +18,8 @@ class DefaultWordContentRepository(
     override suspend fun createScrappingContent(word: Word): WordContent = oxfordScrapper.scrap(word)
 
     override suspend fun createIAContent(word: Word): WordContent {
-        val process = geminiService.process(word.word)
+        val dictionaryPrompt = PromptFactory.dictionaryPrompt(word.word)
+        val process = geminiService.process(dictionaryPrompt)
         return WordContent(
             wordContentId = UUID.randomUUID().toString(),
             word = word.word,

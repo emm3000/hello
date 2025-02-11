@@ -1,4 +1,4 @@
-package com.emm.domain
+package com.emm.domain.word
 
 data class Word(
     val id: String,

@@ -1,7 +1,7 @@
 package com.emm.hello.features.detail
 
-import com.emm.domain.Word
-import com.emm.domain.WordContent
+import com.emm.domain.word.Word
+import com.emm.domain.word.WordContent
 
 data class DetailUiState(
     val currentWord: Word? = null,

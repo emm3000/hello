@@ -1,5 +1,6 @@
 package com.emm.hello.di
 
+import com.emm.hello.features.anki.AnkiViewModel
 import com.emm.hello.features.backup.DataModeler
 import com.emm.hello.features.home.HomeViewModel
 import com.emm.hello.features.backup.JustFiles
@@ -13,6 +14,7 @@ val homeModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::MainViewModel)
     viewModelOf(::DetailViewModel)
+    viewModelOf(::AnkiViewModel)
 
     factory { DataModeler(get()) }
     factory {

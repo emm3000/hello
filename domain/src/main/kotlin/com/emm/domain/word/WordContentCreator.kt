@@ -1,4 +1,4 @@
-package com.emm.domain
+package com.emm.domain.word
 
 class WordContentCreator(
     private val wordContentRepository: WordContentRepository,

@@ -10,7 +10,7 @@ import com.emm.data.wordcontent.WordContentDao
 import com.emm.data.wordcontent.WordContentEntity
 import com.emm.data.word.WordDao
 import com.emm.data.word.WordEntity
-import com.emm.domain.SourceType
+import com.emm.domain.word.SourceType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
