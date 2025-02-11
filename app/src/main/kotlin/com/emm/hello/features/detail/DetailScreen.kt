@@ -31,11 +31,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +54,7 @@ import com.emm.domain.word.SourceType
 import com.emm.domain.word.Word
 import com.emm.domain.word.WordContent
 import com.emm.hello.core.theme.HelloTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun DetailScreen(
@@ -156,26 +157,20 @@ fun DetailScreen(
             },
         )
 
-        val pagerState: PagerState = rememberPagerState(0) { 3 }
-        var tabIndex by remember { mutableIntStateOf(0) }
         val titles: List<String> = listOf("Dictionary", "Gemini", "Anki")
+        val pagerState: PagerState = rememberPagerState { titles.size }
+        val rememberCoroutineScope = rememberCoroutineScope()
+        val currentIndex by remember { derivedStateOf { pagerState.currentPage } }
 
-        LaunchedEffect(tabIndex) {
-            pagerState.animateScrollToPage(tabIndex)
-        }
-
-        LaunchedEffect(pagerState.currentPage) {
-            tabIndex = pagerState.currentPage
-        }
         TabRow(
-            selectedTabIndex = tabIndex,
+            selectedTabIndex = currentIndex,
             modifier = Modifier
-                .fillMaxWidth(0.7f)
+                .fillMaxWidth(0.8f)
                 .clip(RoundedCornerShape(25)),
             indicator = {
-                if (tabIndex < it.size) {
+                if (currentIndex < it.size) {
                     TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(it[tabIndex]),
+                        modifier = Modifier.tabIndicatorOffset(it[currentIndex]),
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
@@ -184,9 +179,9 @@ fun DetailScreen(
             titles.forEachIndexed { index, s ->
                 Tab(
                     modifier = Modifier.height(40.dp),
-                    selected = tabIndex == index,
+                    selected = currentIndex == index,
                     onClick = {
-                        tabIndex = index
+                        rememberCoroutineScope.launch { pagerState.animateScrollToPage(index) }
                     }
                 ) {
                     Text(
