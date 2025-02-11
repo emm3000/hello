@@ -66,7 +66,8 @@ fun Root(modifier: Modifier = Modifier) {
             val vm: AnkiViewModel = koinViewModel()
 
             AnkiScreen(
-                onGenerate = vm::create
+                state = vm.state,
+                onGenerate = vm::create,
             )
         }
         composable<Main> {

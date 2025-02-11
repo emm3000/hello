@@ -6,7 +6,7 @@ import com.emm.domain.anki.Anki
 import com.emm.domain.anki.AnkiRepository
 import java.util.UUID
 
-class DefaultAnkiRepository(private val geminiService: GeminiService): AnkiRepository {
+class DefaultAnkiRepository(private val geminiService: GeminiService) : AnkiRepository {
 
     override suspend fun createCard(input: String): Anki {
         val ankiPrompt: String = PromptFactory.ankiPrompt(input)

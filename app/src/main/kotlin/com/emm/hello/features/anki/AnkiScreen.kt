@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import com.emm.hello.core.theme.HelloTheme
 
 @Composable
 fun AnkiScreen(
+    state: AnkiUiState,
     onGenerate: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -77,6 +79,14 @@ fun AnkiScreen(
                 }
             }
         )
+
+        if (state.isLoading) {
+            CircularProgressIndicator()
+        }
+
+        if (state.anki != null) {
+            Text(state.anki.plainText)
+        }
     }
 }
 
@@ -85,7 +95,7 @@ fun AnkiScreen(
 private fun AnkiScreenPreview() {
     HelloTheme {
         Surface {
-            AnkiScreen({})
+            AnkiScreen(AnkiUiState(), {})
         }
     }
 }
