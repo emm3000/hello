@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +43,7 @@ fun AddWordBottomSheet(
     wordCreate: (String) -> Unit,
 ) {
     ModalBottomSheet(
-        modifier = Modifier,
+        modifier = Modifier.imePadding(),
         onDismissRequest = { showDialog.value = false },
         dragHandle = null,
         sheetState = sheetState,
@@ -60,6 +62,7 @@ private fun ModalBottomContent(
 
     if (sheetState.isVisible) {
         LaunchedEffect(Unit) {
+            delay(200L)
             request.requestFocus()
         }
     }
@@ -106,7 +109,9 @@ private fun ModalBottomContent(
             )
 
             OutlinedIconButton(
-                onClick = { wordCreate(inputText.value) },
+                onClick = {
+                    wordCreate(inputText.value)
+                },
                 enabled = inputText.value.isNotBlank()
             ) {
                 Icon(
