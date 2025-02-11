@@ -42,6 +42,7 @@ class DetailViewModel(
                 isLoading = false,
                 scrapContentWord = wordContent.scrapContent,
                 iaContentWord = wordContent.iaContent,
+                ankiContentWord = wordContent.iaAnkiContent,
                 currentWord = wordDetail,
             )
         } catch (e: Exception) {
