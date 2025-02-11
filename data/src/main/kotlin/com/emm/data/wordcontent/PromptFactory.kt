@@ -10,7 +10,7 @@ object PromptFactory {
 
     fun ankiPrompt(input: String): String {
         return """
-            Soy un profesor de inglés experto en crear tarjetas Anki efectivas. Tu tarea es generar el contenido de una flashcard para la palabra "get". La tarjeta debe tener la siguiente estructura:
+            Soy un profesor de inglés experto en crear tarjetas Anki efectivas. Tu tarea es generar el contenido de una flashcard para la palabra o frase "$input". La tarjeta debe tener la siguiente estructura:
 
 
 
