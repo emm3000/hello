@@ -23,7 +23,8 @@ import com.emm.hello.core.theme.HelloTheme
 
 @Composable
 fun HomeScreen(
-    onClick: () -> Unit,
+    goToDictionary: () -> Unit,
+    goToAnki: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -44,11 +45,22 @@ fun HomeScreen(
 
         Spacer(Modifier.height(30.dp))
         FilledTonalButton(
-            onClick = dropUnlessResumed { onClick() },
+            onClick = dropUnlessResumed { goToDictionary() },
             modifier = Modifier.fillMaxWidth(0.5f)
         ) {
             Text(
-                text = "Ingresar",
+                text = "Dictionary",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
+            )
+        }
+        FilledTonalButton(
+            onClick = dropUnlessResumed { goToAnki() },
+            modifier = Modifier.fillMaxWidth(0.5f)
+        ) {
+            Text(
+                text = "Anki",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.SansSerif,
@@ -61,6 +73,6 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     HelloTheme {
-        HomeScreen(onClick = {})
+        HomeScreen(goToDictionary = {}, goToAnki = {})
     }
 }

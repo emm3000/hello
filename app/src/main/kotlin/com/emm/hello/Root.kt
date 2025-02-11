@@ -21,11 +21,13 @@ import com.emm.data.word.WordEntity
 import com.emm.domain.Word
 import com.emm.domain.WordRepository
 import com.emm.hello.core.AddWord
+import com.emm.hello.core.Anki
 import com.emm.hello.core.Backup
 import com.emm.hello.core.Detail
 import com.emm.hello.core.Home
 import com.emm.hello.core.Main
 import com.emm.hello.features.addword.AddWordDialog
+import com.emm.hello.features.anki.AnkiScreen
 import com.emm.hello.features.backup.BackupScreen
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.detail.DetailScreen
@@ -54,9 +56,13 @@ fun Root(modifier: Modifier = Modifier) {
 
         composable<Home> {
             HomeScreen(
-                onClick = { navController.navigate(Main) },
+                goToDictionary = { navController.navigate(Main) },
+                goToAnki = { navController.navigate(Anki) },
                 modifier = Modifier,
             )
+        }
+        composable<Anki> {
+            AnkiScreen()
         }
         composable<Main> {
             val vm: MainViewModel = koinViewModel()

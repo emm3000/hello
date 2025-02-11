@@ -9,6 +9,9 @@ object Home
 object Main
 
 @Serializable
+object Anki
+
+@Serializable
 data class Detail(val wordId: String)
 
 @Serializable
