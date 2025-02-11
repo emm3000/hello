@@ -156,9 +156,9 @@ fun DetailScreen(
             },
         )
 
-        val pagerState: PagerState = rememberPagerState(0) { 2 }
+        val pagerState: PagerState = rememberPagerState(0) { 3 }
         var tabIndex by remember { mutableIntStateOf(0) }
-        val titles: List<String> = listOf("Dictionary", "Gemini")
+        val titles: List<String> = listOf("Dictionary", "Gemini", "Anki")
 
         LaunchedEffect(tabIndex) {
             pagerState.animateScrollToPage(tabIndex)
@@ -209,6 +209,11 @@ fun DetailScreen(
                 )
 
                 1 -> IaScreen(
+                    state = state,
+                    generateContent = generateContent
+                )
+
+                2 -> AnkiScreen(
                     state = state,
                     generateContent = generateContent
                 )

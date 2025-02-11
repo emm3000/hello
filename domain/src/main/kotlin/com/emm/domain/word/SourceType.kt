@@ -1,5 +1,5 @@
 package com.emm.domain.word
 
 enum class SourceType {
-    SCRAPPING, IA
+    SCRAPPING, IA, IA_ANKI
 }

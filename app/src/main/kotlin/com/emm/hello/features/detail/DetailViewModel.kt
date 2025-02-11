@@ -28,6 +28,7 @@ class DetailViewModel(
             currentWord = wordDetail,
             iaContentWord = wordContent.iaContent,
             scrapContentWord = wordContent.scrapContent,
+            ankiContentWord = wordContent.iaAnkiContent,
         )
     }
 
