@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,12 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
+import com.emm.hello.R
 
 @Composable
 fun ColumnScope.MainToolbar(
@@ -66,7 +67,7 @@ fun ColumnScope.MainToolbar(
         }
         IconButton(onClick = navigateToBackup) {
             Icon(
-                imageVector = Icons.Rounded.Build,
+                painter = painterResource(R.drawable.outline_save_24),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onBackground,
             )

@@ -73,7 +73,6 @@ fun MainScreen(
                 keyboardController = keyboardController,
                 focusManager = focusManager
             )
-
             if (switchVisualization.value) {
                 WordsInColumn(words, keyboardController, focusManager, navigateToDetail)
             } else {
