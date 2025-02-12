@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.util.UUID
 
 class MainViewModel(
     private val wordDao: WordDao,
@@ -47,11 +45,9 @@ class MainViewModel(
     }
 
     fun createWord(word: String) = viewModelScope.launch {
-        val newWord = Word(
-            id = UUID.randomUUID().toString(),
+        val newWord = Word.create(
             word = word,
             hasContent = false,
-            createdAt = Instant.now().toEpochMilli(),
         )
         wordRepository.upsert(newWord)
     }

@@ -6,7 +6,13 @@ import com.emm.data.wordcontent.ExampleDao
 import com.emm.data.wordcontent.ExampleEntity
 import com.emm.data.wordcontent.WordContentDao
 import com.emm.data.wordcontent.WordContentEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 
 class DataModeler(
@@ -24,8 +30,8 @@ class DataModeler(
 
     suspend fun model(): String {
         val wordEntities: List<WordEntity> = wordDao.all().firstOrNull().orEmpty()
-        val wordContentEntities: List<WordContentEntity> = wordContentDao.select()
-        val exampleEntities: List<ExampleEntity> = exampleDao.select()
+        val wordContentEntities: List<WordContentEntity> = wordContentDao.select().firstOrNull().orEmpty()
+        val exampleEntities: List<ExampleEntity> = exampleDao.select().firstOrNull().orEmpty()
         val wordJsons = WordJson(
             wordEntities = wordEntities,
             wordContentEntities = wordContentEntities,
@@ -40,4 +46,19 @@ class DataModeler(
         wordContentDao.upsert(wordJsons.wordContentEntities)
         exampleDao.upsert(wordJsons.exampleEntities)
     }
+
+    @OptIn(FlowPreview::class)
+    fun observeAll(): Flow<String> = combine(
+        wordDao.all(),
+        wordContentDao.select(),
+        exampleDao.select(),
+    ) { first, second, third ->
+        """
+            wordChange: ${first.size} 
+            contentChange: ${second.size} 
+            exampleChange: ${third.size}
+        """.trimIndent()
+    }
+        .debounce(10_000L)
+        .flowOn(Dispatchers.IO)
 }

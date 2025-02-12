@@ -12,6 +12,7 @@ import com.emm.data.word.WordDao
 import com.emm.data.word.WordEntity
 import com.emm.domain.word.SourceType
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -74,8 +75,8 @@ class SimpleEntityReadWriteTest {
             contentId = wordContentId
         ).also { exampleDao.insert(it) }
 
-        val first1: List<WordContentEntity> = wordContentDao.select()
-        val select = exampleDao.select()
+        val first1: List<WordContentEntity> = wordContentDao.select().firstOrNull() ?: emptyList()
+        val select = exampleDao.select().firstOrNull() ?: emptyList()
         assert(first.isNotEmpty())
         assert(select.isNotEmpty())
         assert(first1.isNotEmpty())

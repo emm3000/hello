@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordContentDao {
@@ -14,7 +15,7 @@ interface WordContentDao {
     suspend fun insert(wordContent: WordContentEntity)
 
     @Query("SELECT * from word_content")
-    suspend fun select(): List<WordContentEntity>
+    fun select(): Flow<List<WordContentEntity>>
 
     @Upsert
     suspend fun upsert(words: List<WordContentEntity>)
