@@ -15,6 +15,16 @@ class DataStore(context: Context) {
     val isFirstLaunch: Boolean
         get() = preferences.getBoolean(FIRST_TIME, true)
 
+    var uri: String?
+        get() {
+            val value: String? = preferences.getString(URI_FOR_FILE, "")
+            if (value.isNullOrBlank()) throw IllegalStateException()
+            return value
+        }
+        set(value) {
+            editor.putString(URI_FOR_FILE, value).apply()
+        }
+
     fun setFirstLaunchCompleted() {
         editor.putBoolean(FIRST_TIME, false).apply()
     }
@@ -22,5 +32,6 @@ class DataStore(context: Context) {
     companion object {
 
         private const val FIRST_TIME = "FIRST_TIME"
+        private const val URI_FOR_FILE = "URI_FOR_FILE"
     }
 }

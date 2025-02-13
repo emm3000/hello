@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.emm.hello.features.DataStore
 import com.emm.hello.features.backup.DIRECTORY
 import com.emm.hello.features.backup.DataModeler
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +17,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -26,13 +25,21 @@ class SharedLocalStorageRepository(
     private val context: Context,
 ) : LocalStorageRepository {
 
+    private val dataStore: DataStore by lazy {
+        DataStore(context)
+    }
+
     override suspend fun save() = withContext(Dispatchers.IO) {
         val fileName = "random.json.gz"
         val jsonToSave: String = dataModeler.model()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentResolver: ContentResolver = context.contentResolver
 
-            val existingUri = findFileInDownloads()
+            val existingUri: Uri? = try {
+                Uri.parse(dataStore.uri)
+            } catch (_: Exception) {
+                findFileInDownloads()
+            }
 
             val uri = existingUri ?: run {
                 val contentValues = ContentValues().apply {
@@ -96,13 +103,6 @@ class SharedLocalStorageRepository(
             }
         }
         return null
-    }
-
-    private fun fileName(): String {
-        val now: LocalDateTime = LocalDateTime.now()
-        val ofPattern: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
-        val format: String = now.format(ofPattern)
-        return "backup_$format.json.gzip"
     }
 
     override suspend fun read(uri: Uri) = withContext(Dispatchers.IO) {

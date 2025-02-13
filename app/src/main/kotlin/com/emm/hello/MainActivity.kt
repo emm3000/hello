@@ -1,15 +1,12 @@
 package com.emm.hello
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.features.DataStore
 import com.emm.hello.features.backup.DataModeler
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import kotlinx.coroutines.flow.collectLatest
@@ -30,21 +28,17 @@ class MainActivity : ComponentActivity() {
 
     private val dataModeler: DataModeler by inject()
     private val localStorageRepository: LocalStorageRepository by inject()
-
-    private val launcherForExternalPermissionSettings = registerForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        callback = ::checkBackupPermissions,
-    )
+    private val dataStore: DataStore by lazy { DataStore(applicationContext) }
 
     private val launcherForLegacyExternalPermissions: ActivityResultLauncher<Array<String>> = registerForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         callback = ::isAllTrue
     )
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun checkBackupPermissions(result: ActivityResult) {
-        checkPermissionForBackup()
-    }
+    private val launcherForExternalFile = registerForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        callback = ::onFilePicked,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,14 +53,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun checkPermissionForBackup() {
-        if (hasPermissions()) {
-            readBackupThenActivateConstantBackup()
+    private fun checkPermissionForBackup() = isAtLeastApi30(
+        truly = ::isFirstTimeOpeningTheApp,
+        falsely = ::callLegacyPermissions
+    )
+
+    private fun onFilePicked(uri: Uri?) = lifecycleScope.launch {
+        uri ?: return@launch run { readBackupThenActivateConstantBackup() }
+        dataStore.uri = uri.toString()
+        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        contentResolver.takePersistableUriPermission(uri, takeFlags)
+        localStorageRepository.read(uri)
+        readBackupThenActivateConstantBackup()
+    }
+
+    private fun isFirstTimeOpeningTheApp() {
+        if (dataStore.isFirstLaunch) {
+            dataStore.setFirstLaunchCompleted()
+            launcherForExternalFile.launch(arrayOf("*/*"))
         } else {
-            isSdk30OrNewer(
-                truly = ::requestManageAllFilesAccess,
-                falsely = ::callLegacyPermissions
-            )
+            readBackupThenActivateConstantBackup()
         }
     }
 
@@ -78,20 +84,17 @@ class MainActivity : ComponentActivity() {
         launcherForLegacyExternalPermissions.launch(permissionsArray)
     }
 
-    @SuppressLint("InlinedApi")
-    private fun requestManageAllFilesAccess() {
-        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-        intent.data = Uri.parse("package:${packageName}")
-        launcherForExternalPermissionSettings.launch(intent)
-    }
-
-    private fun isAllTrue(conditions: Map<String, Boolean>) {
+    private fun isAllTrue(conditions: Map<String, Boolean>) = lifecycleScope.launch {
         val allTrue = conditions.values.all { it }
-        if (allTrue) readBackupThenActivateConstantBackup() else checkPermissionForBackup()
+        if (allTrue) {
+            localStorageRepository.readPower()
+            readBackupThenActivateConstantBackup()
+        } else {
+            checkPermissionForBackup()
+        }
     }
 
     private fun readBackupThenActivateConstantBackup() = lifecycleScope.launch {
-        localStorageRepository.readPower()
         repeatOnLifecycle(Lifecycle.State.STARTED) {
             dataModeler.observeAll().collectLatest { localStorageRepository.save() }
         }
