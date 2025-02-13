@@ -46,7 +46,7 @@ class MainViewModel(
 
     fun createWord(word: String) = viewModelScope.launch {
         val newWord = Word.create(
-            word = word,
+            word = word.trim(),
             hasContent = false,
         )
         wordRepository.upsert(newWord)

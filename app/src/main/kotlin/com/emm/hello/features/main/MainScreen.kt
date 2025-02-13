@@ -44,7 +44,6 @@ fun MainScreen(
 
     if (showDialog.value) {
         AddWordBottomSheet(showDialog) {
-            showDialog.value = false
             wordCreate(it)
         }
     }

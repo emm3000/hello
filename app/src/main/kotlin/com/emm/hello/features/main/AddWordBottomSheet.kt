@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Publish
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedIconButton
@@ -40,15 +42,15 @@ fun AddWordBottomSheet(
     ModalBottomSheet(
         modifier = Modifier.imePadding(),
         onDismissRequest = { showDialog.value = false },
-        dragHandle = null,
     ) {
-        ModalBottomContent(wordCreate)
+        ModalBottomContent(wordCreate, showDialog)
     }
 }
 
 @Composable
 private fun ModalBottomContent(
-    wordCreate: (String) -> Unit = {}
+    wordCreate: (String) -> Unit = {},
+    showDialog: MutableState<Boolean>
 ) {
     val request = remember { FocusRequester() }
 
@@ -58,11 +60,22 @@ private fun ModalBottomContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = "Add word",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleLarge,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Add word",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            IconButton(
+                onClick = { showDialog.value = false }
+            ) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = null)
+            }
+        }
 
         val inputText = remember {
             mutableStateOf("")
@@ -85,7 +98,9 @@ private fun ModalBottomContent(
                     .weight(1f),
                 singleLine = true,
                 keyboardActions = KeyboardActions {
+                    if (inputText.value.isBlank()) return@KeyboardActions
                     wordCreate(inputText.value)
+                    inputText.value = ""
                 },
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Done,
@@ -96,6 +111,7 @@ private fun ModalBottomContent(
             OutlinedIconButton(
                 onClick = {
                     wordCreate(inputText.value)
+                    inputText.value = ""
                 },
                 enabled = inputText.value.isNotBlank()
             ) {
@@ -112,6 +128,6 @@ private fun ModalBottomContent(
 @Composable
 private fun BottomSheetPreview() {
     HelloTheme {
-        ModalBottomContent {}
+        ModalBottomContent({}, remember { mutableStateOf(false) })
     }
 }

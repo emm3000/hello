@@ -11,6 +11,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
@@ -49,9 +50,9 @@ class DataModeler(
 
     @OptIn(FlowPreview::class)
     fun observeAll(): Flow<String> = combine(
-        wordDao.all(),
-        wordContentDao.select(),
-        exampleDao.select(),
+        wordDao.all().distinctUntilChanged(),
+        wordContentDao.select().distinctUntilChanged(),
+        exampleDao.select().distinctUntilChanged(),
     ) { first, second, third ->
         """
             wordChange: ${first.size} 
