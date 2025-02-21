@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isAllTrue(conditions: Map<String, Boolean>) = lifecycleScope.launch {
-        val allTrue = conditions.values.all { it }
+        val allTrue: Boolean = conditions.values.all { it }
         if (allTrue) {
             localStorageRepository.readPower()
             readBackupThenActivateConstantBackup()
