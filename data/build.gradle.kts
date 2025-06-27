@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // Sqldelight
-    implementation(libs.android.driver)
+    api(libs.android.driver)
     implementation(libs.coroutines.extensions)
 }
 

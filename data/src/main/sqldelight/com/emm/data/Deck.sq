@@ -4,3 +4,9 @@ CREATE TABLE Deck (
     description TEXT,             -- Explicación opcional
     createdAt INTEGER NOT NULL   -- Timestamp (Unix epoch millis)
 );
+
+all:
+SELECT * FROM Deck;
+
+insert:
+INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?);
