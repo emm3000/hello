@@ -1,5 +1,11 @@
 package com.emm.hello.newfeatures.deck
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,11 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,14 +31,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Flashcard
 import com.emm.hello.core.theme.HelloTheme
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +113,10 @@ fun DeckDetailHeader(progress: Float, onReview: () -> Unit) {
 fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onCardClick(card.id) }
+        onClick = { onCardClick(card.id) },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        )
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -116,14 +127,23 @@ fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
                 Text(card.examples.firstOrNull()?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
             }
             Row {
-                IconButton(onClick = { /* TODO: Editar */ }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar")
-                }
-                IconButton(onClick = { /* TODO: Borrar */ }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Borrar")
-                }
-                IconButton(onClick = { /* TODO: Info */ }) {
-                    Icon(Icons.Default.Info, contentDescription = "Información")
+                val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
+
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = Random.nextInt(500, 3000), easing = LinearOutSlowInEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "rotationAnimation"
+                )
+                IconButton(onClick = {  }) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        modifier = Modifier.rotate(rotation),
+                        contentDescription = "Editar"
+                    )
                 }
             }
         }
