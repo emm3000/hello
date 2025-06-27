@@ -135,7 +135,7 @@ fun DeckItem(deck: Deck) {
 fun QuoteOfTheDayCard() {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("🧠 Frase del día", style = MaterialTheme.typography.titleMedium)
+            Text("🧠 Frase del día jeje jaja", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "\"El aprendizaje es un tesoro que seguirá a su dueño a todas partes.\" - Proverbio chino",
