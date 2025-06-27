@@ -2,13 +2,18 @@ package com.emm.data.flashcard
 
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.GenerateContentResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class GeminiService(private val generativeModel: GenerativeModel) {
 
-    suspend fun process(prompt: String): String = withContext(Dispatchers.IO) {
+    suspend fun process(prompt: String): String {
         val generateContent: GenerateContentResponse = generativeModel.generateContent(prompt)
-        generateContent.text.orEmpty()
+        val response: String = generateContent.text.orEmpty()
+        return cleanResponse(response)
     }
+
+    private fun cleanResponse(response: String): String = response
+        .removePrefix("```json")
+        .removePrefix("```")
+        .removeSuffix("```")
+        .trim()
 }

@@ -4,7 +4,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface FlashcardRepository {
 
-    suspend fun create(word: String, deckId: String): String
+    suspend fun create(input: CreateFlashcardInput): String
+
+    suspend fun upsertExamples(examples: List<Example>, flashcardId: String)
+
+    suspend fun generateFlashcard(word: String): FlashcardGenerated
 
     fun fetchAll(): Flow<List<Flashcard>>
+
+    suspend fun fetchById(id: String): Flashcard
 }

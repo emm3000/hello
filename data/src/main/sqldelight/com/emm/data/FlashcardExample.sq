@@ -1,0 +1,10 @@
+CREATE TABLE FlashcardExample (
+    id TEXT PRIMARY KEY,
+    flashcardId TEXT REFERENCES Flashcard(id) ON DELETE SET NULL,
+    text TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    type TEXT NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?);

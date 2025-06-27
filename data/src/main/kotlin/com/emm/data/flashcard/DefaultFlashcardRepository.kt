@@ -2,61 +2,73 @@ package com.emm.data.flashcard
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import com.emm.data.FlashcardExampleQueries
 import com.emm.data.FlashcardQueries
+import com.emm.data.FlashcardWithExamples
 import com.emm.data.HelloDb
-import com.emm.data.flashcard.dto.FlashcardDto
-import com.emm.data.flashcard.dto.ResponseError
+import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.time.Instant
 import java.util.UUID
 
 typealias FlashcardEntity = com.emm.data.Flashcard
 
 class DefaultFlashcardRepository(
-    db: HelloDb,
+    private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
 ) : FlashcardRepository {
 
     private val dao: FlashcardQueries = db.flashcardQueries
 
-    override suspend fun create(word: String, deckId: String) = withContext(Dispatchers.IO) {
-        val buildPrompt: String = Prompt.buildPrompt(word)
-        val geminiResponse: String = geminiService.process(buildPrompt)
-            .removePrefix("```json")
-            .removePrefix("```")
-            .removeSuffix("```")
-            .trim()
-        val root: JsonObject = json.parseToJsonElement(geminiResponse).jsonObject
-        val isSuccess: Boolean = root["success"]?.jsonPrimitive?.booleanOrNull == true
+    private val exampleDao: FlashcardExampleQueries = db.flashcardExampleQueries
 
-        if (isSuccess) {
-            val data: FlashcardDto = json.decodeFromString<FlashcardDto>(root["data"]?.jsonObject.toString())
-            dao.create(
+    override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
+        val cardId: String = UUID.randomUUID().toString()
+        dao.create(
+            id = cardId,
+            deckId = input.deckId,
+            word = input.word,
+            meaning = input.meaning,
+            translation = input.translation,
+            phonetic = input.phonetic,
+            createdAt = Instant.now().toEpochMilli(),
+        )
+        return@withContext cardId
+    }
+
+    override suspend fun upsertExamples(
+        examples: List<Example>,
+        flashcardId: String,
+    ) = withContext(Dispatchers.IO) {
+        db.transaction { populate(examples, flashcardId) }
+    }
+
+    private fun populate(examples: List<Example>, flashcardId: String) {
+        examples.forEach {
+            exampleDao.insert(
                 id = UUID.randomUUID().toString(),
-                deckId = deckId,
-                word = data.word,
-                meaning = data.meaning,
-                translation = data.translation,
-                example = data.example,
-                phonetic = data.phonetic,
-                createdAt = Instant.now().toEpochMilli(),
+                flashcardId = flashcardId,
+                text = it.text,
+                translation = it.translation,
+                type = it.type,
             )
-            root["data"]?.jsonObject.toString()
-        } else {
-            val data: ResponseError = json.decodeFromString<ResponseError>(root["error"]?.jsonObject.toString())
-            throw IllegalArgumentException("${data.message} -> ${data.input}")
         }
+    }
+
+    override suspend fun generateFlashcard(word: String): FlashcardGenerated = withContext(Dispatchers.IO) {
+        val prompt: String = Prompt.buildPrompt(word)
+        val response: String = geminiService.process(prompt)
+        val flashcardGenerated: FlashcardGenerated = FlashcardResponseParses.parse(response, json)
+        return@withContext flashcardGenerated
     }
 
     override fun fetchAll(): Flow<List<Flashcard>> = dao
@@ -64,4 +76,29 @@ class DefaultFlashcardRepository(
         .asFlow()
         .mapToList(Dispatchers.IO)
         .map(List<FlashcardEntity>::toDomain)
+
+    override suspend fun fetchById(id: String): Flashcard = withContext(Dispatchers.IO) {
+        val flashcardEntities: List<FlashcardWithExamples> = dao
+            .flashcardWithExamples(id)
+            .executeAsList()
+
+        val first: FlashcardWithExamples = flashcardEntities.firstOrNull() ?: throw Exception("Flashcard not found")
+
+        val examples: List<Example> = flashcardEntities.map {
+            Example(
+                exampleId = it.exampleId,
+                text = it.exampleText,
+                translation = it.exampleTranslation,
+                type = it.exampleType,
+            )
+        }
+        Flashcard(
+            id = first.id,
+            word = first.word,
+            meaning = first.meaning,
+            translation = first.translation.orEmpty(),
+            phonetic = first.phonetic.orEmpty(),
+            examples = examples,
+        )
+    }
 }

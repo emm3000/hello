@@ -7,7 +7,7 @@ fun FlashcardEntity.toDomain() = Flashcard(
     word = word,
     meaning = meaning,
     translation = translation.orEmpty(),
-    example = example.orEmpty(),
+    examples = emptyList(),
     phonetic = phonetic.orEmpty(),
 )
 

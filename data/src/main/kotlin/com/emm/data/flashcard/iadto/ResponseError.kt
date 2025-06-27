@@ -1,4 +1,4 @@
-package com.emm.data.flashcard.dto
+package com.emm.data.flashcard.iadto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -1,10 +1,10 @@
 package com.emm.domain.flashcard
 
-data class Flashcard(
-    val id: String,
+data class FlashcardGenerated(
     val word: String,
-    val meaning: String,
     val translation: String,
+    val phonetics: String,
+    val meaning: String,
+    val language: String,
     val examples: List<Example>,
-    val phonetic: String,
 )

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckFetcher
+import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardCreator
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -18,8 +19,7 @@ data class NewCardUiState(
     val deckSelected: Deck? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val success: Boolean = false,
-    val result: String? = null,
+    val result: Flashcard? = null,
 )
 
 sealed interface NewCardAction {
@@ -68,7 +68,7 @@ class NewCardViewModel(
                 word = state.word,
                 deckId = deckId,
             )
-            state = state.copy(word = "", success = true, result = createFlashcard, isLoading = false)
+            state = state.copy(word = "", result = createFlashcard, isLoading = false)
         } catch (e: Exception) {
             state = state.copy(error = e.message, isLoading = false)
         }

@@ -5,7 +5,6 @@ CREATE TABLE Flashcard (
     word TEXT NOT NULL,                 -- Palabra clave ("compelling")
     meaning TEXT NOT NULL,              -- Explicación en inglés ("convincing")
     translation TEXT,                   -- Traducción en español ("convincente")
-    example TEXT,                       -- Frase ejemplo
 
     phonetic TEXT,                      -- Pronunciación /kəmˈpelɪŋ/
     audioPath TEXT,                    -- Ruta local (opcional)
@@ -19,8 +18,19 @@ CREATE TABLE Flashcard (
 );
 
 create:
-INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, example, phonetic, createdAt, isGenerated)
-VALUES (?, ?, ?, ?, ?, ?,?, ?,1);
+INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, isGenerated)
+VALUES (?, ?, ?, ?, ?, ?, ?,1);
 
 all:
 SELECT * FROM Flashcard;
+
+flashcardWithExamples:
+SELECT
+    f.*,
+    e.id AS exampleId,
+    e.text AS exampleText,
+    e.translation AS exampleTranslation,
+    e.type AS exampleType
+FROM Flashcard f
+INNER JOIN FlashcardExample e ON f.id = e.flashcardId
+WHERE f.id = :flashcardId;
