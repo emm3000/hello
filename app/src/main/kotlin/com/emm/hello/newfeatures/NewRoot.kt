@@ -16,7 +16,7 @@ fun NewRoot() {
     ) {
 
         composable<NewRoutes.Dashboard> {
-
+            StudyScreen()
         }
     }
 
