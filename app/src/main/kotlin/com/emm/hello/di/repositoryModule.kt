@@ -5,8 +5,8 @@ import com.emm.data.R
 import com.emm.data.deprecated.anki.DefaultAnkiRepository
 import com.emm.data.deprecated.word.LocalWordRepository
 import com.emm.data.deprecated.wordcontent.DefaultWordContentRepository
-import com.emm.data.deprecated.wordcontent.GeminiService
 import com.emm.data.deprecated.wordcontent.OxfordScrapper
+import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deprecated.anki.AnkiRepository
 import com.emm.domain.deprecated.word.WordContentRepository
 import com.emm.domain.deprecated.word.WordRepository
@@ -22,21 +22,22 @@ import org.koin.dsl.module
 val repositoryModule = module {
     singleOf(::LocalWordRepository) bind WordRepository::class
     factoryOf(::SharedLocalStorageRepository) bind LocalStorageRepository::class
+    single {
+        GeminiService(
+            generativeModel = provideGenerativeModel(androidApplication())
+        )
+    }
     factory {
         DefaultWordContentRepository(
             oxfordScrapper = OxfordScrapper(),
-            geminiService = GeminiService(
-                generativeModel = provideGenerativeModel(androidApplication())
-            ),
+            geminiService = get(),
             wordContentDao = get(),
             exampleDao = get(),
         )
     } bind WordContentRepository::class
     factory {
         DefaultAnkiRepository(
-            geminiService = GeminiService(
-                generativeModel = provideGenerativeModel(androidApplication())
-            )
+            get()
         )
     } bind AnkiRepository::class
 }

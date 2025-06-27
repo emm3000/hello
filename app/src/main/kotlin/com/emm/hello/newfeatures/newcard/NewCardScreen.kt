@@ -1,7 +1,6 @@
-package com.emm.hello.newfeatures
+package com.emm.hello.newfeatures.newcard
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,25 +32,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.domain.deck.Deck
 import com.emm.hello.core.theme.HelloTheme
-
-data class CardData(
-    val word: String = "",
-    val meaning: String = "",
-    val translation: String = "",
-    val example: String = "",
-    val phonetic: String = ""
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewCardScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}) {
-    var userInput by remember { mutableStateOf("") }
-    var cardData by remember { mutableStateOf(CardData()) }
-    var isGenerating by remember { mutableStateOf(false) }
-    var showPreview by remember { mutableStateOf(false) }
-    val decks = listOf("Inglés B2", "Phrasal Verbs", "Ciencia")
-    var selectedDeck by remember { mutableStateOf(decks.first()) }
+fun NewCardScreen(
+    modifier: Modifier = Modifier,
+    state: NewCardUiState = NewCardUiState(),
+    onAction: (NewCardAction) -> Unit = {},
+    onNavigateBack: () -> Unit = {},
+) {
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -77,8 +67,8 @@ fun NewCardScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}
             item {
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = userInput,
-                    onValueChange = { userInput = it },
+                    value = state.word,
+                    onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Palabra o frase en inglés") },
                     singleLine = true
@@ -86,12 +76,10 @@ fun NewCardScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}
             }
 
             item {
-                Button(onClick = { 
-                    isGenerating = true 
-                    showPreview = true
-                    // TODO: Simular llamada a IA y actualizar cardData
+                Button(onClick = {
+                    onAction(NewCardAction.OnGenerateClicked)
                 }) {
-                    if (isGenerating) {
+                    if (state.isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                     } else {
                         Text("🤖 Generar con IA")
@@ -99,25 +87,30 @@ fun NewCardScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}
                 }
             }
 
-            if (showPreview) {
-                item { CardPreview(cardData = cardData, onDataChange = { cardData = it }) }
+            if (state.success) {
+                item { CardPreview(state.result.orEmpty()) }
             }
-            
-            item { DeckSelector(decks = decks, selected = selectedDeck, onSelected = { selectedDeck = it }) }
+
+            if (state.error != null) {
+                item { CardPreview(state.error) }
+            }
 
             item {
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = { /* TODO */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("🏷 Etiquetas (ej: gramática, verbo)") }
+                DeckSelector(
+                    decks = state.decks,
+                    selected = state.deckSelected,
+                    onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
                 )
             }
 
             item {
                 Button(
-                    onClick = { /* TODO: Guardar tarjeta */ },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    onClick = {
+                        onAction(NewCardAction.OnSaveClicked)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
                 ) {
                     Text("💾 Guardar Tarjeta")
                 }
@@ -127,21 +120,16 @@ fun NewCardScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}
 }
 
 @Composable
-fun CardPreview(cardData: CardData, onDataChange: (CardData) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = cardData.word, onValueChange = { onDataChange(cardData.copy(word = it)) }, label = { Text("Word") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cardData.meaning, onValueChange = { onDataChange(cardData.copy(meaning = it)) }, label = { Text("Meaning") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cardData.translation, onValueChange = { onDataChange(cardData.copy(translation = it)) }, label = { Text("Translation") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cardData.example, onValueChange = { onDataChange(cardData.copy(example = it)) }, label = { Text("Example") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cardData.phonetic, onValueChange = { onDataChange(cardData.copy(phonetic = it)) }, label = { Text("Phonetic") }, modifier = Modifier.fillMaxWidth())
-        }
-    }
+fun CardPreview(orEmpty: String) {
+
+    Text(
+        text = orEmpty,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeckSelector(decks: List<String>, selected: String, onSelected: (String) -> Unit) {
+fun DeckSelector(decks: List<Deck>, selected: Deck?, onSelected: (Deck) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
@@ -150,12 +138,14 @@ fun DeckSelector(decks: List<String>, selected: String, onSelected: (String) -> 
         modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = selected,
-            onValueChange = {}, 
+            value = selected?.name.orEmpty(),
+            onValueChange = {},
             readOnly = true,
             label = { Text("📂 Mazo") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -163,8 +153,8 @@ fun DeckSelector(decks: List<String>, selected: String, onSelected: (String) -> 
         ) {
             decks.forEach { deck ->
                 DropdownMenuItem(
-                    text = { Text(deck) },
-                    onClick = { 
+                    text = { Text(deck.name) },
+                    onClick = {
                         onSelected(deck)
                         expanded = false
                     }

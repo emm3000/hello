@@ -1,5 +1,6 @@
 package com.emm.data.deprecated.wordcontent
 
+import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deprecated.word.SourceType
 import com.emm.domain.deprecated.word.Word
 import com.emm.domain.deprecated.word.WordContent

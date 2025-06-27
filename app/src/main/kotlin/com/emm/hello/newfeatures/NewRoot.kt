@@ -15,6 +15,8 @@ import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.newcard.NewCardScreen
+import com.emm.hello.newfeatures.newcard.NewCardViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -53,9 +55,13 @@ fun NewRoot() {
             StudyScreen { navController.popBackStack() }
         }
         composable<NewRoutes.NewCard> {
-            NewCardScreen {
-                navController.popBackStack()
-            }
+            val vm: NewCardViewModel = koinViewModel()
+
+            NewCardScreen(
+                onNavigateBack = { navController.popBackStack() },
+                state = vm.state,
+                onAction = vm::onAction,
+            )
         }
         composable<NewRoutes.NewDeck> {
             val vm: NewDeckViewModel = koinViewModel()

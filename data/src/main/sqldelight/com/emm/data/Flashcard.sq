@@ -17,3 +17,10 @@ CREATE TABLE Flashcard (
 
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
 );
+
+create:
+INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, example, phonetic, createdAt, isGenerated)
+VALUES (?, ?, ?, ?, ?, ?,?, ?,1);
+
+all:
+SELECT * FROM Flashcard;

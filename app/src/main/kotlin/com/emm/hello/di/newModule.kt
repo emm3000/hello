@@ -6,12 +6,18 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
+import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.flashcard.FlashcardCreator
+import com.emm.domain.flashcard.FlashcardFetcher
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.newcard.NewCardViewModel
+import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
@@ -30,19 +36,30 @@ val newModule = module {
 
 fun Module.repository() {
 
+    single {
+        Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+        }
+    }
+
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
+    factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
 }
 
 fun Module.useCases() {
 
     factoryOf(::DeckCreator)
     factoryOf(::DeckFetcher)
+    factoryOf(::FlashcardCreator)
+    factoryOf(::FlashcardFetcher)
 }
 
 fun Module.viewModels() {
 
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
+    viewModelOf(::NewCardViewModel)
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {
