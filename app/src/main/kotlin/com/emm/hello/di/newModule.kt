@@ -10,9 +10,11 @@ import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
 import com.emm.hello.BuildConfig
+import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -38,6 +40,7 @@ fun Module.useCases() {
 
 fun Module.viewModels() {
 
+    viewModelOf(::NewDeckViewModel)
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {

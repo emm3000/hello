@@ -8,6 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
+import com.emm.hello.newfeatures.deck.NewDeckScreen
+import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun NewRoot() {
@@ -30,6 +33,9 @@ fun NewRoot() {
                 },
                 onStartReview = {
                     navController.navigate(NewRoutes.Study)
+                },
+                onCreateDeck = {
+                    navController.navigate(NewRoutes.NewDeck)
                 }
             )
         }
@@ -40,6 +46,14 @@ fun NewRoot() {
             NewCardScreen {
                 navController.popBackStack()
             }
+        }
+        composable<NewRoutes.NewDeck> {
+            val vm: NewDeckViewModel = koinViewModel()
+            NewDeckScreen(
+                onNavigateBack = { navController.popBackStack() },
+                state = vm.state,
+                onAction = vm::onAction,
+            )
         }
         composable<NewRoutes.DeckDetail> {
             DeckDetailScreen(

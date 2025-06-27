@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -22,11 +23,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
@@ -40,6 +43,7 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: () -> Unit = {},
     onStartReview: () -> Unit = {},
+    onCreateDeck: () -> Unit = {},
 ) {
     val decks = listOf(
         Deck("Vocabulario de Inglés", 15, 100),
@@ -80,9 +84,11 @@ fun DashboardScreen(
             }
 
             item {
-                DecksSection(decks = decks) {
-                    onDeckDetail()
-                }
+                DecksSection(
+                    decks = decks,
+                    onDeckClick = onDeckDetail,
+                    onCreateDeck = onCreateDeck
+                )
             }
 
             item {
@@ -118,12 +124,35 @@ fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
 }
 
 @Composable
-fun DecksSection(decks: List<Deck>, onClick: () -> Unit) {
+fun DecksSection(
+    decks: List<Deck>,
+    onDeckClick: () -> Unit,
+    onCreateDeck: () -> Unit = {}
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("📚 Mis Mazos", style = MaterialTheme.typography.titleLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("📚 Mis Mazos", style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = onCreateDeck) {
+                Text(
+                    text = "Crear deck",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "create",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
         decks.forEach { deck ->
             DeckItem(deck = deck) {
-                onClick()
+                onDeckClick()
             }
         }
     }

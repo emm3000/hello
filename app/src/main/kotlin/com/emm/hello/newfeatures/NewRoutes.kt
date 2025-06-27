@@ -14,6 +14,9 @@ object NewRoutes {
     object NewCard
 
     @Serializable
+    object NewDeck
+
+    @Serializable
     object Decks
 
     @Serializable
