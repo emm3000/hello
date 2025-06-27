@@ -1,8 +1,8 @@
 package com.emm.data.deprecated.wordcontent
 
-import com.emm.domain.word.Example
-import com.emm.domain.word.SourceType
-import com.emm.domain.word.WordContent
+import com.emm.domain.deprecated.word.Example
+import com.emm.domain.deprecated.word.SourceType
+import com.emm.domain.deprecated.word.WordContent
 import java.util.UUID
 
 fun mapToExampleEntities(example: Example, contentEntityId: String): ExampleEntity {

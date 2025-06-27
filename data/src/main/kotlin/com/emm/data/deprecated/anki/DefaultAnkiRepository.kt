@@ -2,10 +2,10 @@ package com.emm.data.deprecated.anki
 
 import com.emm.data.deprecated.wordcontent.GeminiService
 import com.emm.data.deprecated.wordcontent.PromptFactory
-import com.emm.domain.anki.AnkiRepository
-import com.emm.domain.word.SourceType
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordContent
+import com.emm.domain.deprecated.anki.AnkiRepository
+import com.emm.domain.deprecated.word.SourceType
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordContent
 import java.util.UUID
 
 class DefaultAnkiRepository(private val geminiService: GeminiService) : AnkiRepository {

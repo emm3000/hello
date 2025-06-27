@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.anki.AnkiCreator
-import com.emm.domain.word.WordContent
+import com.emm.domain.deprecated.anki.AnkiCreator
+import com.emm.domain.deprecated.word.WordContent
 import kotlinx.coroutines.launch
 
 class AnkiViewModel(private val ankiCreator: AnkiCreator) : ViewModel() {

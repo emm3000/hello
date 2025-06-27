@@ -13,9 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.emm.domain.word.SourceType
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordContent
+import com.emm.domain.deprecated.word.SourceType
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordContent
 import com.emm.hello.core.theme.HelloTheme
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package com.emm.domain.anki
+package com.emm.domain.deprecated.anki
 
 data class Anki(
     val id: String,

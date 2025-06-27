@@ -1,7 +1,7 @@
 package com.emm.data.deprecated.word
 
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordRepository
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn

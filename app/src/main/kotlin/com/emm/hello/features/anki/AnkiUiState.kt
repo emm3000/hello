@@ -1,6 +1,6 @@
 package com.emm.hello.features.anki
 
-import com.emm.domain.word.WordContent
+import com.emm.domain.deprecated.word.WordContent
 
 data class AnkiUiState(
     val anki: WordContent? = null,

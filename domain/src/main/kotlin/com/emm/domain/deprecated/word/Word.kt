@@ -1,4 +1,4 @@
-package com.emm.domain.word
+package com.emm.domain.deprecated.word
 
 import java.time.Instant
 import java.util.UUID

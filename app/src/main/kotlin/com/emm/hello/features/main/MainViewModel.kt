@@ -10,8 +10,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.data.deprecated.word.WordDao
 import com.emm.data.deprecated.word.WordEntity
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordRepository
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.SharingStarted

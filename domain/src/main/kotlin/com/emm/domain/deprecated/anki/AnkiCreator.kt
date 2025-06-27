@@ -1,8 +1,8 @@
-package com.emm.domain.anki
+package com.emm.domain.deprecated.anki
 
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordContent
-import com.emm.domain.word.WordRepository
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordContent
+import com.emm.domain.deprecated.word.WordRepository
 import java.time.Instant
 import java.util.UUID
 

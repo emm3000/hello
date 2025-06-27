@@ -1,6 +1,6 @@
-package com.emm.domain.word
+package com.emm.domain.deprecated.word
 
-import com.emm.domain.anki.AnkiRepository
+import com.emm.domain.deprecated.anki.AnkiRepository
 
 class WordContentCreator(
     private val wordContentRepository: WordContentRepository,

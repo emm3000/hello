@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.word.SourceType
-import com.emm.domain.word.Word
-import com.emm.domain.word.WordContentCreator
-import com.emm.domain.word.WordContentFetcher
-import com.emm.domain.word.WordRepository
+import com.emm.domain.deprecated.word.SourceType
+import com.emm.domain.deprecated.word.Word
+import com.emm.domain.deprecated.word.WordContentCreator
+import com.emm.domain.deprecated.word.WordContentFetcher
+import com.emm.domain.deprecated.word.WordRepository
 import kotlinx.coroutines.launch
 
 class DetailViewModel(

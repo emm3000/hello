@@ -1,4 +1,4 @@
-package com.emm.domain.word
+package com.emm.domain.deprecated.word
 
 data class WordContent(
     val wordContentId: String,

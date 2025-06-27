@@ -7,9 +7,9 @@ import com.emm.data.deprecated.word.LocalWordRepository
 import com.emm.data.deprecated.wordcontent.DefaultWordContentRepository
 import com.emm.data.deprecated.wordcontent.GeminiService
 import com.emm.data.deprecated.wordcontent.OxfordScrapper
-import com.emm.domain.anki.AnkiRepository
-import com.emm.domain.word.WordContentRepository
-import com.emm.domain.word.WordRepository
+import com.emm.domain.deprecated.anki.AnkiRepository
+import com.emm.domain.deprecated.word.WordContentRepository
+import com.emm.domain.deprecated.word.WordRepository
 import com.emm.hello.features.backup.domain.LocalStorageRepository
 import com.emm.hello.features.backup.domain.SharedLocalStorageRepository
 import com.google.ai.client.generativeai.GenerativeModel

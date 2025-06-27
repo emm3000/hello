@@ -11,7 +11,7 @@ import com.emm.data.deprecated.wordcontent.ExampleDao
 import com.emm.data.deprecated.wordcontent.ExampleEntity
 import com.emm.data.deprecated.wordcontent.WordContentDao
 import com.emm.data.deprecated.wordcontent.WordContentEntity
-import com.emm.domain.word.SourceType
+import com.emm.domain.deprecated.word.SourceType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
