@@ -11,6 +11,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.domain.deck.Deck
+import com.emm.hello.newfeatures.card.FlashcardDetailScreen
+import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
+import com.emm.hello.newfeatures.card.NewCardScreen
+import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardScreen
 import com.emm.hello.newfeatures.dashboard.DashboardUiState
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
@@ -18,8 +22,6 @@ import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
-import com.emm.hello.newfeatures.newcard.NewCardScreen
-import com.emm.hello.newfeatures.newcard.NewCardViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -93,7 +95,15 @@ fun NewRoot() {
             )
         }
         composable<NewRoutes.CardDetail> {
-            CardDetailScreen { navController.popBackStack() }
+            val cardDetail: NewRoutes.CardDetail = it.toRoute<NewRoutes.CardDetail>()
+            val vm: FlashcardDetailViewModel = koinViewModel(
+                parameters = { parametersOf(cardDetail.cardId) }
+            )
+
+            val state by vm.state.collectAsStateWithLifecycle()
+            FlashcardDetailScreen(
+                flashcard = state,
+            ) { navController.popBackStack() }
         }
     }
 }

@@ -13,12 +13,14 @@ import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DecksWithCardsProvider
 import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
+import com.emm.domain.flashcard.FlashcardFinder
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.hello.BuildConfig
+import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
+import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
-import com.emm.hello.newfeatures.newcard.NewCardViewModel
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -57,6 +59,7 @@ fun Module.useCases() {
     factoryOf(::FlashcardCreator)
     factoryOf(::FlashcardFetcher)
     factoryOf(::DecksWithCardsProvider)
+    factoryOf(::FlashcardFinder)
 }
 
 fun Module.viewModels() {
@@ -68,6 +71,12 @@ fun Module.viewModels() {
         DeckDetailViewModel(
             deckId = it.get(),
             decksWithCardsProvider = get(),
+        )
+    }
+    viewModel {
+        FlashcardDetailViewModel(
+            flashcardId = it.get(),
+            flashcardFinder = get(),
         )
     }
 }

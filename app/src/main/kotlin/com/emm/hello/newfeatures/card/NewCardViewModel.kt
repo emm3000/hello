@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.newcard
+package com.emm.hello.newfeatures.card
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

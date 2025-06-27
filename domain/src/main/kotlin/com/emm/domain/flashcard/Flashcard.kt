@@ -7,4 +7,18 @@ data class Flashcard(
     val translation: String,
     val examples: List<Example>,
     val phonetic: String,
-)
+) {
+
+    companion object {
+
+        val Empty: Flashcard
+            get() = Flashcard(
+                id = "",
+                word = "",
+                meaning = "",
+                translation = "",
+                examples = emptyList(),
+                phonetic = "",
+            )
+    }
+}
