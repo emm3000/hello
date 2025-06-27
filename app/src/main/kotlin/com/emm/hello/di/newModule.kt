@@ -7,6 +7,7 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
+import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
@@ -15,6 +16,9 @@ import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardFinder
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.quote.QuoteGenerator
+import com.emm.domain.quote.QuoteLastFetcher
+import com.emm.domain.quote.QuoteRepository
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardViewModel
@@ -50,6 +54,7 @@ fun Module.repository() {
 
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
     factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
+    factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
 }
 
 fun Module.useCases() {
@@ -60,6 +65,8 @@ fun Module.useCases() {
     factoryOf(::FlashcardFetcher)
     factoryOf(::DecksWithCardsProvider)
     factoryOf(::FlashcardFinder)
+    factoryOf(::QuoteGenerator)
+    factoryOf(::QuoteLastFetcher)
 }
 
 fun Module.viewModels() {

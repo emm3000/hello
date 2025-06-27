@@ -1,0 +1,26 @@
+CREATE TABLE Quote (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    phrase TEXT NOT NULL,
+    description TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    example TEXT NOT NULL,
+    context TEXT NOT NULL,
+    pronunciation TEXT NOT NULL,
+    formality TEXT NOT NULL,
+    tags TEXT NOT NULL,
+    category TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+all:
+SELECT * FROM Quote ORDER BY createdAt DESC;
+
+lastInsertedQuote:
+SELECT *
+FROM Quote
+ORDER BY createdAt DESC
+LIMIT 1;

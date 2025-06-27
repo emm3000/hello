@@ -1,0 +1,57 @@
+package com.emm.data.quote
+
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import com.emm.data.HelloDb
+import com.emm.data.QuotesQueries
+import com.emm.data.flashcard.GeminiService
+import com.emm.data.flashcard.Prompt
+import com.emm.domain.quote.Quote
+import com.emm.domain.quote.QuoteRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import java.time.Instant
+import java.util.UUID
+
+typealias QuoteEntity = com.emm.data.Quote
+
+class DefaultQuoteRepository(
+    db: HelloDb,
+    private val geminiApi: GeminiService,
+    private val json: Json,
+) : QuoteRepository {
+
+    private val dao: QuotesQueries = db.quotesQueries
+
+    override suspend fun generate() = withContext(Dispatchers.IO) {
+        val quotePrompt: String = Prompt.quotePrompt()
+        val process: String = geminiApi.process(quotePrompt)
+        val quote: QuoteResponse = parseQuoteResponse(process, json) ?: return@withContext
+        dao.insert(
+            id = UUID.randomUUID().toString(),
+            title = quote.title,
+            phrase = quote.phrase,
+            description = quote.description,
+            translation = quote.translation,
+            example = quote.example,
+            context = quote.context,
+            pronunciation = quote.pronunciation,
+            formality = quote.formality,
+            tags = quote.tags.joinToString("|"),
+            category = quote.category,
+            createdAt = Instant.now().toEpochMilli(),
+        )
+        Unit
+    }
+
+    override fun lastQuote(): Flow<List<Quote>> = dao
+        .lastInsertedQuote()
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map(::toDomain)
+
+    private fun toDomain(quotes: List<QuoteEntity>): List<Quote> = quotes.map(QuoteEntity::toDomain)
+}

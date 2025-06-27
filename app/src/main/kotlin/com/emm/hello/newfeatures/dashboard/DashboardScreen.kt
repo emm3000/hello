@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
@@ -30,10 +31,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +56,7 @@ fun DashboardScreen(
             TopAppBar(
                 title = { Text("Hola, Edgardo 👋") },
                 actions = {
-                    IconButton(onClick = { /* TODO: Navegar a configuración */ }) {
+                    IconButton(onClick = {  }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
                 },
@@ -73,15 +76,18 @@ fun DashboardScreen(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                QuoteOfTheDayCard()
-            }
 
-            item {
-                ReviewCard(cardsToReview = 42) {
-                    onStartReview()
+            if (state.quote != null) {
+                item {
+                    QuoteOfTheDayCard(state.quote)
                 }
             }
+
+//            item {
+//                ReviewCard(cardsToReview = 42) {
+//                    onStartReview()
+//                }
+//            }
 
             item {
                 DecksSection(onCreateDeck = onCreateDeck)
@@ -174,19 +180,53 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
 }
 
 @Composable
-fun QuoteOfTheDayCard() {
+fun QuoteOfTheDayCard(quote: Quote) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("🧠 Frase del día jeje jaja", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "\"El aprendizaje es un tesoro que seguirá a su dueño a todas partes.\" - Proverbio chino",
-                style = MaterialTheme.typography.bodyMedium
+                text = "🧠 ${quote.title}",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = quote.phrase,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = quote.description,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = quote.translation,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
