@@ -15,6 +15,7 @@ fun DeckEntity.toDomain() = Deck(
     name = name,
     description = description.orEmpty(),
     createdAt = createdAt.toLocalDateTime(),
+    cards = emptyList(),
 )
 
 fun List<DeckEntity>.toDomain() = map(DeckEntity::toDomain)

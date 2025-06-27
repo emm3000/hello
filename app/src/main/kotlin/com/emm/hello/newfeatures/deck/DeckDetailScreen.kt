@@ -32,26 +32,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.domain.flashcard.Flashcard
 import com.emm.hello.core.theme.HelloTheme
-
-// Data class para los detalles de una tarjeta en el mazo
-data class CardDetail(val id: String, val word: String, val example: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
     modifier: Modifier = Modifier,
     deckName: String = "Vocabulario de Inglés",
+    cards: List<Flashcard> = emptyList(),
     deckProgress: Float = 0.15f,
     onNavigateBack: () -> Unit = {},
     onReview: () -> Unit = {},
     onCardClick: (String) -> Unit = {}
 ) {
-    val cards = listOf(
-        CardDetail("1", "Perseverance", "Her perseverance was rewarded when she finally achieved her goal."),
-        CardDetail("2", "Ephemeral", "The beauty of the cherry blossoms is ephemeral."),
-        CardDetail("3", "Ubiquitous", "Smartphones have become ubiquitous in modern society.")
-    )
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -77,7 +71,7 @@ fun DeckDetailScreen(
                 }
             }
 
-            items(cards) { card ->
+            items(cards, key = Flashcard::id) { card ->
                 DeckCardItem(card = card) {
                     onCardClick(card.id)
                 }
@@ -108,7 +102,7 @@ fun DeckDetailHeader(progress: Float, onReview: () -> Unit) {
 }
 
 @Composable
-fun DeckCardItem(card: CardDetail, onCardClick: (String) -> Unit = {}) {
+fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = { onCardClick(card.id) }
@@ -119,7 +113,7 @@ fun DeckCardItem(card: CardDetail, onCardClick: (String) -> Unit = {}) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(card.word, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(card.example, style = MaterialTheme.typography.bodyMedium)
+                Text(card.examples.firstOrNull()?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
             }
             Row {
                 IconButton(onClick = { /* TODO: Editar */ }) {

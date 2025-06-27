@@ -8,5 +8,8 @@ CREATE TABLE Deck (
 all:
 SELECT * FROM Deck;
 
+findById:
+SELECT * FROM Deck WHERE id = ?;
+
 insert:
 INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?);

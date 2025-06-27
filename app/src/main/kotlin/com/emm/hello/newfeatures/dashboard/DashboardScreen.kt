@@ -42,7 +42,7 @@ fun DashboardScreen(
     modifier: Modifier = Modifier,
     state: DashboardUiState = DashboardUiState(),
     newCard: () -> Unit = {},
-    onDeckDetail: () -> Unit = {},
+    onDeckDetail: (String) -> Unit = {},
     onStartReview: () -> Unit = {},
     onCreateDeck: () -> Unit = {},
 ) {
@@ -86,8 +86,8 @@ fun DashboardScreen(
             items(state.decks) {
                 DeckItem(
                     deck = it,
-                    onClick = {
-                        onDeckDetail()
+                    onDeckClick = { deckId ->
+                        onDeckDetail(deckId)
                     }
                 )
             }
@@ -152,10 +152,10 @@ fun DecksSection(
 }
 
 @Composable
-fun DeckItem(deck: Deck, onClick: () -> Unit) {
+fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
+        onClick = { onDeckClick(deck.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )

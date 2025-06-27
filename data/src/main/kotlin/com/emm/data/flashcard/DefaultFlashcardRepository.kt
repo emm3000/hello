@@ -77,6 +77,12 @@ class DefaultFlashcardRepository(
         .mapToList(Dispatchers.IO)
         .map(List<FlashcardEntity>::toDomain)
 
+    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = dao
+        .selectByDeck(deckId)
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map(List<FlashcardEntity>::toDomain)
+
     override suspend fun fetchById(id: String): Flashcard = withContext(Dispatchers.IO) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
             .flashcardWithExamples(id)

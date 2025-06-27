@@ -2,6 +2,7 @@ package com.emm.data.deck
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
 import com.emm.data.HelloDb
 import com.emm.domain.deck.CreateDeckInput
@@ -26,6 +27,14 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
             description = deck.description,
             createdAt = Instant.now().toEpochMilli(),
         )
+    }
+
+    override fun findById(deckId: String): Flow<Deck> {
+        return dq
+            .findById(deckId)
+            .asFlow()
+            .mapToOne(Dispatchers.IO)
+            .map(DeckEntity::toDomain)
     }
 
     override fun fetchAll(): Flow<List<Deck>> = dq

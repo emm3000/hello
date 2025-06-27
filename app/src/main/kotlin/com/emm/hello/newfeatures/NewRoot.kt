@@ -9,15 +9,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.emm.domain.deck.Deck
 import com.emm.hello.newfeatures.dashboard.DashboardScreen
 import com.emm.hello.newfeatures.dashboard.DashboardUiState
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
+import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.newcard.NewCardScreen
 import com.emm.hello.newfeatures.newcard.NewCardViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun NewRoot() {
@@ -41,7 +45,7 @@ fun NewRoot() {
                     navController.navigate(NewRoutes.NewCard)
                 },
                 onDeckDetail = {
-                    navController.navigate(NewRoutes.DeckDetail("random"))
+                    navController.navigate(NewRoutes.DeckDetail(it))
                 },
                 onStartReview = {
                     navController.navigate(NewRoutes.Study)
@@ -72,9 +76,17 @@ fun NewRoot() {
             )
         }
         composable<NewRoutes.DeckDetail> {
+            val deckDetail: NewRoutes.DeckDetail = it.toRoute<NewRoutes.DeckDetail>()
+            val vm: DeckDetailViewModel = koinViewModel(
+                parameters = { parametersOf(deckDetail.deckId) }
+            )
+
+            val state: Deck by vm.decks.collectAsStateWithLifecycle()
+
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onReview = { navController.navigate(NewRoutes.Study) },
+                cards = state.cards,
                 onCardClick = {
                     navController.navigate(NewRoutes.CardDetail(it))
                 }

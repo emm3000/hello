@@ -10,17 +10,20 @@ import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.DecksWithCardsProvider
 import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
+import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.newcard.NewCardViewModel
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -53,6 +56,7 @@ fun Module.useCases() {
     factoryOf(::DeckFetcher)
     factoryOf(::FlashcardCreator)
     factoryOf(::FlashcardFetcher)
+    factoryOf(::DecksWithCardsProvider)
 }
 
 fun Module.viewModels() {
@@ -60,6 +64,12 @@ fun Module.viewModels() {
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::NewCardViewModel)
+    viewModel {
+        DeckDetailViewModel(
+            deckId = it.get(),
+            decksWithCardsProvider = get(),
+        )
+    }
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {

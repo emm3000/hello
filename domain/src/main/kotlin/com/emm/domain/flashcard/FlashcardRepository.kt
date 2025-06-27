@@ -12,5 +12,7 @@ interface FlashcardRepository {
 
     fun fetchAll(): Flow<List<Flashcard>>
 
+    fun fetchByDeckId(deckId: String): Flow<List<Flashcard>>
+
     suspend fun fetchById(id: String): Flashcard
 }

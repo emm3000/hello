@@ -24,6 +24,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?,1);
 all:
 SELECT * FROM Flashcard;
 
+selectByDeck:
+SELECT * FROM Flashcard WHERE deckId = ?;
+
 flashcardWithExamples:
 SELECT
     f.*,
