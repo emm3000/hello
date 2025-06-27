@@ -64,7 +64,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    implementation(libs.jsoup)
     api(libs.generativeai)
     implementation(libs.kotlinx.serialization.json)
 
