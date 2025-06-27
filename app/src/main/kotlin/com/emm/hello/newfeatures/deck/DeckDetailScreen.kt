@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures
+package com.emm.hello.newfeatures.deck
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -36,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// Data class para los detalles de la tarjeta
 data class CardData(
     val word: String = "",
     val meaning: String = "",
