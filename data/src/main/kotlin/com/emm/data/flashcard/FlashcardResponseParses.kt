@@ -31,6 +31,8 @@ object FlashcardResponseParses {
                 val data: ResponseError = json.decodeFromString<ResponseError>(errorJson)
                 throw IllegalArgumentException(data.message)
             }
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException(e)
         } catch (_: Exception) {
             throw IllegalArgumentException("Invalid response")
         }
