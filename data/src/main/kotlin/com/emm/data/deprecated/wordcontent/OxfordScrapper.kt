@@ -1,4 +1,4 @@
-package com.emm.data.wordcontent
+package com.emm.data.deprecated.wordcontent
 
 import com.emm.domain.word.Example
 import com.emm.domain.word.SourceType

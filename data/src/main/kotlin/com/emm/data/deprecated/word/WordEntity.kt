@@ -1,4 +1,4 @@
-package com.emm.data.word
+package com.emm.data.deprecated.word
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

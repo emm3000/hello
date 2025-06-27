@@ -1,6 +1,6 @@
 @file:Suppress("SpellCheckingInspection")
 
-package com.emm.data.wordcontent
+package com.emm.data.deprecated.wordcontent
 
 object PromptFactory {
 

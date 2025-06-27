@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.emm.data.word.WordEntity
+import com.emm.data.deprecated.word.WordEntity
 import com.emm.hello.core.theme.HelloTheme
 import java.util.UUID
 

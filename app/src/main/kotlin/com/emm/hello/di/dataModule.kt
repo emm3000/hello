@@ -1,9 +1,9 @@
 package com.emm.hello.di
 
-import com.emm.data.AppDatabase
-import com.emm.data.wordcontent.ExampleDao
-import com.emm.data.wordcontent.WordContentDao
-import com.emm.data.word.WordDao
+import com.emm.data.deprecated.AppDatabase
+import com.emm.data.deprecated.word.WordDao
+import com.emm.data.deprecated.wordcontent.ExampleDao
+import com.emm.data.deprecated.wordcontent.WordContentDao
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 

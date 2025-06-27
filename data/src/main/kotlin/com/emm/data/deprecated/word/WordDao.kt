@@ -1,4 +1,4 @@
-package com.emm.data.word
+package com.emm.data.deprecated.word
 
 import androidx.room.Dao
 import androidx.room.Delete

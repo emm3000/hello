@@ -1,4 +1,4 @@
-package com.emm.data.word
+package com.emm.data.deprecated.word
 
 import com.emm.domain.word.Word
 import com.emm.domain.word.WordRepository

@@ -1,4 +1,4 @@
-package com.emm.data.wordcontent
+package com.emm.data.deprecated.wordcontent
 
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.GenerateContentResponse

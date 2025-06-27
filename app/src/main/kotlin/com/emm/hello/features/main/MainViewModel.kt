@@ -8,8 +8,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.data.word.WordDao
-import com.emm.data.word.WordEntity
+import com.emm.data.deprecated.word.WordDao
+import com.emm.data.deprecated.word.WordEntity
 import com.emm.domain.word.Word
 import com.emm.domain.word.WordRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi

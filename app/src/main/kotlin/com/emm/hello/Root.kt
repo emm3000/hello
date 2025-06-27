@@ -17,7 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.emm.data.word.WordEntity
+import com.emm.data.deprecated.word.WordEntity
 import com.emm.domain.word.Word
 import com.emm.domain.word.WordRepository
 import com.emm.hello.core.AddWord

@@ -1,15 +1,15 @@
-package com.emm.data
+package com.emm.data.deprecated
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.emm.data.wordcontent.ExampleDao
-import com.emm.data.wordcontent.ExampleEntity
-import com.emm.data.wordcontent.WordContentDao
-import com.emm.data.wordcontent.WordContentEntity
-import com.emm.data.word.WordDao
-import com.emm.data.word.WordEntity
+import com.emm.data.deprecated.word.WordDao
+import com.emm.data.deprecated.word.WordEntity
+import com.emm.data.deprecated.wordcontent.ExampleDao
+import com.emm.data.deprecated.wordcontent.ExampleEntity
+import com.emm.data.deprecated.wordcontent.WordContentDao
+import com.emm.data.deprecated.wordcontent.WordContentEntity
 
 @Database(
     entities = [

@@ -1,7 +1,7 @@
-package com.emm.data.anki
+package com.emm.data.deprecated.anki
 
-import com.emm.data.wordcontent.GeminiService
-import com.emm.data.wordcontent.PromptFactory
+import com.emm.data.deprecated.wordcontent.GeminiService
+import com.emm.data.deprecated.wordcontent.PromptFactory
 import com.emm.domain.anki.AnkiRepository
 import com.emm.domain.word.SourceType
 import com.emm.domain.word.Word

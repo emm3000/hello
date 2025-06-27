@@ -1,10 +1,10 @@
-package com.emm.data.wordcontent
+package com.emm.data.deprecated.wordcontent
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.emm.data.word.WordEntity
+import com.emm.data.deprecated.word.WordEntity
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -2,11 +2,11 @@ package com.emm.hello.di
 
 import android.content.Context
 import com.emm.data.R
-import com.emm.data.anki.DefaultAnkiRepository
-import com.emm.data.word.LocalWordRepository
-import com.emm.data.wordcontent.DefaultWordContentRepository
-import com.emm.data.wordcontent.GeminiService
-import com.emm.data.wordcontent.OxfordScrapper
+import com.emm.data.deprecated.anki.DefaultAnkiRepository
+import com.emm.data.deprecated.word.LocalWordRepository
+import com.emm.data.deprecated.wordcontent.DefaultWordContentRepository
+import com.emm.data.deprecated.wordcontent.GeminiService
+import com.emm.data.deprecated.wordcontent.OxfordScrapper
 import com.emm.domain.anki.AnkiRepository
 import com.emm.domain.word.WordContentRepository
 import com.emm.domain.word.WordRepository

@@ -1,4 +1,4 @@
-package com.emm.data.wordcontent
+package com.emm.data.deprecated.wordcontent
 
 import androidx.room.Embedded
 import androidx.room.Relation
