@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures
+package com.emm.hello.newfeatures.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
@@ -32,24 +33,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.domain.deck.Deck
 import com.emm.hello.core.theme.HelloTheme
-
-data class Deck(val name: String, val completed: Int, val total: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
+    state: DashboardUiState = DashboardUiState(),
     newCard: () -> Unit = {},
     onDeckDetail: () -> Unit = {},
     onStartReview: () -> Unit = {},
     onCreateDeck: () -> Unit = {},
 ) {
-    val decks = listOf(
-        Deck("Vocabulario de Inglés", 15, 100),
-        Deck("Conceptos de Kotlin", 50, 80),
-        Deck("Historia del Arte", 75, 150)
-    )
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -84,10 +80,15 @@ fun DashboardScreen(
             }
 
             item {
-                DecksSection(
-                    decks = decks,
-                    onDeckClick = onDeckDetail,
-                    onCreateDeck = onCreateDeck
+                DecksSection(onCreateDeck = onCreateDeck)
+            }
+
+            items(state.decks) {
+                DeckItem(
+                    deck = it,
+                    onClick = {
+                        onDeckDetail()
+                    }
                 )
             }
 
@@ -125,8 +126,6 @@ fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
 
 @Composable
 fun DecksSection(
-    decks: List<Deck>,
-    onDeckClick: () -> Unit,
     onCreateDeck: () -> Unit = {}
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -149,12 +148,6 @@ fun DecksSection(
                 )
             }
         }
-
-        decks.forEach { deck ->
-            DeckItem(deck = deck) {
-                onDeckClick()
-            }
-        }
     }
 }
 
@@ -175,7 +168,7 @@ fun DeckItem(deck: Deck, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(deck.name, style = MaterialTheme.typography.bodyLarge)
-            Text("${deck.completed}/${deck.total}", style = MaterialTheme.typography.bodyMedium)
+            Text("deck.completed}/deck.total", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
