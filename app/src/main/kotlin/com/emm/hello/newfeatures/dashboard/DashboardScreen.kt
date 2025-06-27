@@ -74,6 +74,10 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                QuoteOfTheDayCard()
+            }
+
+            item {
                 ReviewCard(cardsToReview = 42) {
                     onStartReview()
                 }
@@ -83,17 +87,13 @@ fun DashboardScreen(
                 DecksSection(onCreateDeck = onCreateDeck)
             }
 
-            items(state.decks) {
+            items(state.decks, key = Deck::id) {
                 DeckItem(
                     deck = it,
                     onDeckClick = { deckId ->
                         onDeckDetail(deckId)
                     }
                 )
-            }
-
-            item {
-                QuoteOfTheDayCard()
             }
         }
     }
@@ -117,7 +117,7 @@ fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
                 text = "🔔 Tienes $cardsToReview tarjetas por repasar hoy",
                 style = MaterialTheme.typography.titleMedium
             )
-            Button(onClick = onStartReview) {
+            Button(onClick = onStartReview, modifier = Modifier.fillMaxWidth()) {
                 Text("Empezar repaso")
             }
         }
