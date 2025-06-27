@@ -40,10 +40,12 @@ data class CardDetail(val id: String, val word: String, val example: String)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
-    modifier: Modifier = Modifier, 
+    modifier: Modifier = Modifier,
     deckName: String = "Vocabulario de Inglés",
     deckProgress: Float = 0.15f,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onReview: () -> Unit = {},
+    onCardClick: (String) -> Unit = {}
 ) {
     val cards = listOf(
         CardDetail("1", "Perseverance", "Her perseverance was rewarded when she finally achieved her goal."),
@@ -70,19 +72,25 @@ fun DeckDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                DeckDetailHeader(progress = deckProgress)
+                DeckDetailHeader(progress = deckProgress) {
+                    onReview()
+                }
             }
-            
+
             items(cards) { card ->
-                DeckCardItem(card = card)
+                DeckCardItem(card = card) {
+                    onCardClick(card.id)
+                }
             }
         }
     }
 }
 
 @Composable
-fun DeckDetailHeader(progress: Float) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+fun DeckDetailHeader(progress: Float, onReview: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp)) {
         LinearProgressIndicator(
             progress = progress,
             modifier = Modifier
@@ -91,7 +99,7 @@ fun DeckDetailHeader(progress: Float) {
                 .clip(MaterialTheme.shapes.small)
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { /* TODO: Empezar repaso del mazo */ }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onReview, modifier = Modifier.fillMaxWidth()) {
             Text("Empezar repaso de este mazo")
         }
         Spacer(Modifier.height(16.dp))
@@ -100,8 +108,11 @@ fun DeckDetailHeader(progress: Float) {
 }
 
 @Composable
-fun DeckCardItem(card: CardDetail) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun DeckCardItem(card: CardDetail, onCardClick: (String) -> Unit = {}) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onCardClick(card.id) }
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically

@@ -35,7 +35,12 @@ data class Deck(val name: String, val completed: Int, val total: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(modifier: Modifier = Modifier) {
+fun DashboardScreen(
+    modifier: Modifier = Modifier,
+    newCard: () -> Unit = {},
+    onDeckDetail: () -> Unit = {},
+    onStartReview: () -> Unit = {},
+) {
     val decks = listOf(
         Deck("Vocabulario de Inglés", 15, 100),
         Deck("Conceptos de Kotlin", 50, 80),
@@ -58,7 +63,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Abrir pantalla de nueva tarjeta */ }) {
+            FloatingActionButton(onClick = { newCard() }) {
                 Icon(Icons.Default.Add, contentDescription = "Nueva tarjeta")
             }
         }
@@ -69,11 +74,15 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                ReviewCard(cardsToReview = 42)
+                ReviewCard(cardsToReview = 42) {
+                    onStartReview()
+                }
             }
 
             item {
-                DecksSection(decks = decks)
+                DecksSection(decks = decks) {
+                    onDeckDetail()
+                }
             }
 
             item {
@@ -84,7 +93,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ReviewCard(cardsToReview: Int) {
+fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -98,7 +107,7 @@ fun ReviewCard(cardsToReview: Int) {
                 text = "🔔 Tienes $cardsToReview tarjetas por repasar hoy",
                 style = MaterialTheme.typography.titleMedium
             )
-            Button(onClick = { /* TODO: Iniciar repaso */ }) {
+            Button(onClick = onStartReview) {
                 Text("Empezar repaso")
             }
         }
@@ -106,18 +115,23 @@ fun ReviewCard(cardsToReview: Int) {
 }
 
 @Composable
-fun DecksSection(decks: List<Deck>) {
+fun DecksSection(decks: List<Deck>, onClick: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("📚 Mis Mazos", style = MaterialTheme.typography.titleLarge)
         decks.forEach { deck ->
-            DeckItem(deck = deck)
+            DeckItem(deck = deck) {
+                onClick()
+            }
         }
     }
 }
 
 @Composable
-fun DeckItem(deck: Deck) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun DeckItem(deck: Deck, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
