@@ -1,0 +1,19 @@
+CREATE TABLE Flashcard (
+    id TEXT NOT NULL PRIMARY KEY,       -- UUID
+    deckId TEXT NOT NULL,              -- FK → Decks.id
+
+    word TEXT NOT NULL,                 -- Palabra clave ("compelling")
+    meaning TEXT NOT NULL,              -- Explicación en inglés ("convincing")
+    translation TEXT,                   -- Traducción en español ("convincente")
+    example TEXT,                       -- Frase ejemplo
+
+    phonetic TEXT,                      -- Pronunciación /kəmˈpelɪŋ/
+    audioPath TEXT,                    -- Ruta local (opcional)
+    imagePath TEXT,                    -- Ruta a imagen local (opcional)
+
+    note TEXT,                          -- Nota personal del usuario
+    createdAt INTEGER NOT NULL,        -- Fecha de creación
+    isGenerated INTEGER NOT NULL DEFAULT 0, -- 1 si fue generada por IA
+
+    FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
+);

@@ -1,0 +1,12 @@
+CREATE TABLE FlashcardReview (
+    flashcard_id TEXT NOT NULL PRIMARY KEY,  -- Igual a Flashcards.id (1:1)
+
+    lastReviewedAt INTEGER,  -- Último repaso (timestamp)
+    nextReviewAt INTEGER,    -- Cuándo debe aparecer de nuevo
+    easeFactor REAL NOT NULL DEFAULT 2.5, -- Dificultad (SM-2)
+    interval INTEGER NOT NULL DEFAULT 0,   -- Días hasta el próximo repaso
+    repetitions INTEGER NOT NULL DEFAULT 0, -- Veces seguidas correctas
+    lapses INTEGER NOT NULL DEFAULT 0,       -- Fallos
+
+    FOREIGN KEY (flashcard_id) REFERENCES Flashcard(id) ON DELETE CASCADE
+);

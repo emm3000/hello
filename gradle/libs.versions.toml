@@ -23,6 +23,7 @@ roomRuntime = "2.7.2"
 kspVersion = "2.1.21-2.0.1"
 jetbrainsKotlinJvm = "2.2.0"
 coreKtxVersion = "1.6.1"
+androidDriver = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -57,6 +58,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
+android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "androidDriver" }
+coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "androidDriver" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

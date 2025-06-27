@@ -6,7 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     id("androidx.room")
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("plugin.serialization") version libs.versions.kotlin
+    id("app.cash.sqldelight") version libs.versions.androidDriver
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -66,4 +67,18 @@ dependencies {
     implementation(libs.jsoup)
     api(libs.generativeai)
     implementation(libs.kotlinx.serialization.json)
+
+    // Sqldelight
+    implementation(libs.android.driver)
+    implementation(libs.coroutines.extensions)
+}
+
+sqldelight {
+    databases {
+        create("HelloDb") {
+            packageName.set("com.emm.data")
+            schemaOutputDirectory = file("src/main/sqldelight/databases")
+            verifyMigrations = true
+        }
+    }
 }
