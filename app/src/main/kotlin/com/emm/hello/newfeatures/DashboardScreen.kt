@@ -96,7 +96,10 @@ fun DashboardScreen(
 fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -130,7 +133,10 @@ fun DecksSection(decks: List<Deck>, onClick: () -> Unit) {
 fun DeckItem(deck: Deck, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Row(
             modifier = Modifier
@@ -147,7 +153,12 @@ fun DeckItem(deck: Deck, onClick: () -> Unit) {
 
 @Composable
 fun QuoteOfTheDayCard() {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("🧠 Frase del día jeje jaja", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
