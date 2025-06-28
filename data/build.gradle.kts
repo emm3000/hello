@@ -23,6 +23,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "BASE_URL", "\"${keystoreProperties["BASE_URL"]}\"")
     }
 
     buildTypes {
@@ -41,6 +42,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
@@ -70,6 +74,15 @@ dependencies {
     // Sqldelight
     api(libs.android.driver)
     implementation(libs.coroutines.extensions)
+
+    debugImplementation(libs.library)
+    releaseImplementation(libs.library.no.op)
+
+    // retrofit
+    api(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
 }
 
 sqldelight {

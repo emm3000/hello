@@ -8,6 +8,9 @@ import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.quote.DefaultQuoteRepository
+import com.emm.data.remote.DefaultBackupRepository
+import com.emm.domain.backup.BackupExecutor
+import com.emm.domain.backup.BackupRepository
 import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
@@ -55,6 +58,7 @@ fun Module.repository() {
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
     factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
+    factoryOf(::DefaultBackupRepository) bind BackupRepository::class
 }
 
 fun Module.useCases() {
@@ -67,6 +71,7 @@ fun Module.useCases() {
     factoryOf(::FlashcardFinder)
     factoryOf(::QuoteGenerator)
     factoryOf(::QuoteLastFetcher)
+    factoryOf(::BackupExecutor)
 }
 
 fun Module.viewModels() {

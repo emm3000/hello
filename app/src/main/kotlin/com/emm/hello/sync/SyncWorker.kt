@@ -1,3 +1,5 @@
+@file:Suppress("ConstPropertyName")
+
 package com.emm.hello.sync
 
 import android.app.NotificationChannel
@@ -44,7 +46,11 @@ class SyncWorker(
         }
     }
 
-    override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo()
+    override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo(
+        channelName = SyncWorker,
+        notificationId = SYNC_NOTIFICATION_ID,
+        channelId = SYNC_NOTIFICATION_CHANNEL_ID,
+    )
 
     fun showTestNotification(lastQuote: Quote) {
         val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -68,6 +74,11 @@ class SyncWorker(
     }
 
     companion object {
+
+        const val SyncWorker: String = "SyncWorker"
+
+        private const val SYNC_NOTIFICATION_ID = 0
+        private const val SYNC_NOTIFICATION_CHANNEL_ID = "SyncNotificationChannel"
 
         fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

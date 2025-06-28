@@ -8,3 +8,6 @@ CREATE TABLE FlashcardExample (
 
 insert:
 INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?);
+
+all:
+SELECT * FROM FlashcardExample;

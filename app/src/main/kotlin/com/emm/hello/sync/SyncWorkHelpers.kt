@@ -15,20 +15,18 @@ val SyncConstraints
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
 
-fun Context.syncForegroundInfo() = ForegroundInfo(
-    SYNC_NOTIFICATION_ID,
-    syncWorkNotification(),
+fun Context.syncForegroundInfo(channelName: String, notificationId: Int, channelId: String) = ForegroundInfo(
+    notificationId,
+    syncWorkNotification(channelName, channelId),
 )
-private const val SYNC_NOTIFICATION_ID = 0
-private const val SYNC_NOTIFICATION_CHANNEL_ID = "SyncNotificationChannel"
 
-private fun Context.syncWorkNotification(): Notification {
+private fun Context.syncWorkNotification(channelName: String, channelId: String): Notification {
     val channel = NotificationChannel(
-        SYNC_NOTIFICATION_CHANNEL_ID,
-        "frases jajaj",
-        NotificationManager.IMPORTANCE_DEFAULT,
+        /* id = */ channelId,
+        /* name = */ channelName,
+        /* importance = */ NotificationManager.IMPORTANCE_DEFAULT,
     ).apply {
-        description = "getString(R.string.sync_work_notification_channel_description)"
+        description = "Notificación para sincronización"
     }
     val notificationManager: NotificationManager? = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
 
@@ -36,7 +34,7 @@ private fun Context.syncWorkNotification(): Notification {
 
     return NotificationCompat.Builder(
         this,
-        SYNC_NOTIFICATION_CHANNEL_ID,
+        channelId,
     )
         .setSmallIcon(R.drawable.outline_save_24)
         .setContentTitle("Estamos sincronizando")
