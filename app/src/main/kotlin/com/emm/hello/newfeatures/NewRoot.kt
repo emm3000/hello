@@ -1,10 +1,18 @@
 package com.emm.hello.newfeatures
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -41,20 +49,29 @@ fun NewRoot() {
 
             val state: DashboardUiState by vm.state.collectAsStateWithLifecycle()
 
+            val ctx = LocalContext.current
+
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+                onResult = {}
+            )
+
+            LaunchedEffect(Unit) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val checkSelfPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS)
+                    val hasPermission: Boolean = checkSelfPermission == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission.not()) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+            }
+
             DashboardScreen(
                 state = state,
-                newCard = {
-                    navController.navigate(NewRoutes.NewCard)
-                },
-                onDeckDetail = {
-                    navController.navigate(NewRoutes.DeckDetail(it))
-                },
-                onStartReview = {
-                    navController.navigate(NewRoutes.Study)
-                },
-                onCreateDeck = {
-                    navController.navigate(NewRoutes.NewDeck)
-                }
+                newCard = { navController.navigate(NewRoutes.NewCard) },
+                onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
+                onStartReview = { navController.navigate(NewRoutes.Study) },
+                onCreateDeck = { navController.navigate(NewRoutes.NewDeck) },
             )
         }
         composable<NewRoutes.Study> {
@@ -89,8 +106,8 @@ fun NewRoot() {
                 onNavigateBack = { navController.popBackStack() },
                 onReview = { navController.navigate(NewRoutes.Study) },
                 cards = state.cards,
-                onCardClick = {
-                    navController.navigate(NewRoutes.CardDetail(it))
+                onCardClick = { cardId ->
+                    navController.navigate(NewRoutes.CardDetail(cardId))
                 }
             )
         }
