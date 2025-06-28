@@ -24,6 +24,7 @@ kspVersion = "2.1.21-2.0.1"
 jetbrainsKotlinJvm = "2.2.0"
 coreKtxVersion = "1.6.1"
 androidDriver = "2.1.0"
+workRuntimeKtx = "2.10.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +61,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "androidDriver" }
 coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "androidDriver" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

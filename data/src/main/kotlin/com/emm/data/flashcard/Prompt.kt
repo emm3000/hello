@@ -1,5 +1,8 @@
 package com.emm.data.flashcard
 
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+
 object Prompt {
 
     fun buildPrompt(wordOrPhrase: String): String {
@@ -55,20 +58,28 @@ object Prompt {
     }
 
     fun quotePrompt(): String {
-        val fullPrompt = """
-            Act as an English language assistant specialized in real-world software development communication.
+        val now = LocalDateTime.now()
+        val seed: String = now.truncatedTo(ChronoUnit.HOURS).toString() + "_${(0..1000).random()}"
 
-            Generate a JSON object that contains a phrase commonly used by developers in real-life scenarios (e.g. meetings, code reviews, version control, debugging, planning, etc.).
+        val fullPrompt = """
+            Seed for generation: $seed
             
-            The phrase should meet the following criteria:
-            - It must be commonly used in day-to-day communication among software developers or technical teams.
-            - It should reflect a realistic and practical situation, such as:
+            Act as an English language assistant specialized in real-world software development communication.
+            
+            Your task is to generate a JSON object that contains a phrase commonly used by developers in real-world work settings (e.g., team meetings, code reviews, version control discussions, debugging sessions, or task coordination).
+
+            The phrase should follow these quality guidelines:
+            
+            - ✅ It must be **naturally spoken or written** by software engineers during real interactions.
+            - ✅ It must be **long enough** to sound realistic (at least 7–10 words), not too short or generic.
+            - ✅ It should reflect a **specific and meaningful situation**, such as:
               - Asking for help or clarification
-              - Giving feedback during a code review
-              - Coordinating tasks during stand-up or planning meetings
-              - Referring to Git actions (e.g. push, pull, merge)
-              - Discussing bugs or fixes
-            - It should sound natural, as it would appear in spoken or written communication (e.g., in Slack, GitHub comments, or meetings).
+              - Explaining a technical decision
+              - Giving or receiving feedback
+              - Describing a bug, a merge conflict, or a code smell
+              - Planning or estimating tasks
+            - ✅ It should vary in structure and vocabulary from previously common phrases.
+            - ⚠️ Avoid repeating simple or generic phrases like "Can you review this?" or "Let's fix this bug."
             
             Return the result in this JSON format:
             
