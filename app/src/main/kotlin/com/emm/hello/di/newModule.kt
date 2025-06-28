@@ -31,6 +31,7 @@ import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -72,6 +73,7 @@ fun Module.repository() {
             Settings.Secure.ANDROID_ID
         )
     }
+    factoryOf(::WorkManagerSyncManager)
 }
 
 fun Module.useCases() {

@@ -1,6 +1,10 @@
 package com.emm.data.remote
 
 import android.content.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.time.LocalDateTime
@@ -11,6 +15,11 @@ class DataStore(
 ) {
 
     private val editor: SharedPreferences.Editor by lazy { sharedPreferences.edit() }
+
+    val lastUpdatedDate: Flow<String> = sharedPreferences.observeString(
+        key = DATE_KEY,
+        defaultValue = LocalDateTime.now().toString(),
+    ).distinctUntilChanged()
 
     var checksum: String
         get() = sharedPreferences.getString(LAST_CHECKSUM, null).orEmpty()
@@ -45,5 +54,21 @@ class DataStore(
         const val SUCCESS_KEY = "SUCCESS_KEY"
         const val DATE_KEY = "DATE_KEY"
         const val LAST_CHECKSUM = "LAST_CHECKSUM"
+    }
+}
+
+fun SharedPreferences.observeString(key: String, defaultValue: String): Flow<String> = callbackFlow {
+    trySend(getString(key, defaultValue) ?: defaultValue)
+
+    val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, changedKey ->
+        if (changedKey == key) {
+            trySend(sharedPreferences.getString(key, defaultValue) ?: defaultValue)
+        }
+    }
+
+    registerOnSharedPreferenceChangeListener(listener)
+
+    awaitClose {
+        unregisterOnSharedPreferenceChangeListener(listener)
     }
 }

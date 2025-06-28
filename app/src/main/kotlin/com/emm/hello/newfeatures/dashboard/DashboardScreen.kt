@@ -1,5 +1,11 @@
 package com.emm.hello.newfeatures.dashboard
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -29,8 +36,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +66,26 @@ fun DashboardScreen(
             TopAppBar(
                 title = { Text("Hola, Edgardo 👋") },
                 actions = {
+                    if (state.isSyncing) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
+
+                        val rotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = Random.nextInt(500, 3000), easing = LinearOutSlowInEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "rotationAnimation"
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            modifier = Modifier.rotate(rotation),
+                            contentDescription = "Editar"
+                        )
+                    } else if (state.lastUpdatedDate != null) {
+                        Text(text = state.lastUpdatedDate)
+                    }
                     IconButton(onClick = {  }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
