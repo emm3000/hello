@@ -30,6 +30,7 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
                 networkModule,
             )
         }
+        registerActivityLifecycleCallbacks(this)
         Sync.initialize(this)
     }
 
