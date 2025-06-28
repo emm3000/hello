@@ -66,7 +66,7 @@ fun DashboardScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Hola, Edgardo 👋",
+                        "Hola, Edgardo 😎",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                     )
