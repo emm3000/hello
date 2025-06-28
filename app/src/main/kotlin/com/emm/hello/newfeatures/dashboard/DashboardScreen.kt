@@ -1,6 +1,6 @@
 package com.emm.hello.newfeatures.dashboard
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +79,7 @@ fun DashboardScreen(
                             initialValue = 0f,
                             targetValue = 360f,
                             animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = Random.nextInt(500, 3000), easing = LinearOutSlowInEasing),
+                                animation = tween(durationMillis = 3000, easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
                             ),
                             label = "rotationAnimation"

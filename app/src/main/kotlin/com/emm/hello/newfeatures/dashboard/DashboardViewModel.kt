@@ -35,11 +35,7 @@ class DashboardViewModel(
         deckFetcher.fetch(),
         quoteFetcher.fetch(),
         workManagerSyncManager.isSyncing,
-        dataStore.lastUpdatedDate.map {
-            val parse = LocalDateTime.parse(it)
-            val formatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.getDefault())
-            parse.format(formatter)
-        },
+        dataStore.lastUpdatedDate.map(::formatString),
     ) { decks: List<Deck>, quote: List<Quote>, isSyncing, lastUpdatedDate ->
         DashboardUiState(
             decks = decks,
@@ -53,4 +49,10 @@ class DashboardViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = DashboardUiState(),
         )
+
+    private fun formatString(dateTimeString: String): String {
+        val parse = LocalDateTime.parse(dateTimeString)
+        val formatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.getDefault())
+        return parse.format(formatter)
+    }
 }
