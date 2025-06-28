@@ -29,5 +29,6 @@ class App : Application() {
             )
         }
         Sync.backupInitialize(this)
+        Sync.initialize(this)
     }
 }

@@ -1,6 +1,7 @@
 package com.emm.hello.sync
 
 import android.content.Context
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 
@@ -10,17 +11,17 @@ object Sync {
 
         WorkManager.getInstance(context).apply {
 
-//            enqueueUniquePeriodicWork(
-//                SYNC_WORK_NAME,
-//                ExistingPeriodicWorkPolicy.KEEP,
-//                SyncWorker.startUpSyncWorkPeriodic(),
-//            )
-
-            enqueueUniqueWork(
+            enqueueUniquePeriodicWork(
                 SYNC_WORK_NAME,
-                ExistingWorkPolicy.KEEP,
-                SyncWorker.startUpSyncWork(),
+                ExistingPeriodicWorkPolicy.KEEP,
+                SyncWorker.startUpSyncWorkPeriodic(),
             )
+
+//            enqueueUniqueWork(
+//                SYNC_WORK_NAME,
+//                ExistingWorkPolicy.KEEP,
+//                SyncWorker.startUpSyncWork(),
+//            )
         }
     }
 
