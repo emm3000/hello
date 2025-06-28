@@ -12,14 +12,14 @@ fun String.toSha256(): String {
     return bytes.joinToString("") { "%02x".format(it) }
 }
 
-fun deckToDto(deck: Deck) = DeckDto(
+fun deckToDto(deck: Deck) = DeckUpsertRequest(
     deckId = deck.id,
     name = deck.name,
     description = deck.description.orEmpty(),
     createdAt = deck.createdAt
 )
 
-fun flashcardToDto(flashcard: Flashcard) = CardDto(
+fun flashcardToDto(flashcard: Flashcard) = CardUpsertRequest(
     id = flashcard.id,
     word = flashcard.word,
     meaning = flashcard.meaning,
@@ -33,7 +33,7 @@ fun flashcardToDto(flashcard: Flashcard) = CardDto(
     deckId = flashcard.deckId,
 )
 
-fun exampleToDto(example: FlashcardExample) = ExampleDto(
+fun exampleToDto(example: FlashcardExample) = ExampleUpsertRequest(
     id = example.id,
     text = example.text,
     translation = example.translation,
@@ -41,7 +41,7 @@ fun exampleToDto(example: FlashcardExample) = ExampleDto(
     flashcardId = example.flashcardId.orEmpty()
 )
 
-fun quoteToDto(quote: Quote) = QuoteDto(
+fun quoteToDto(quote: Quote) = QuoteUpsertRequest(
     id = quote.id,
     title = quote.title,
     phrase = quote.phrase,

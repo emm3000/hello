@@ -3,24 +3,23 @@ package com.emm.data.remote
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class HelloDto(
-    val androidId: String,
-    val decks: List<DeckDto>,
-    val flashcards: List<CardDto>,
-    val flashcardExamples: List<ExampleDto>,
-    val quotes: List<QuoteDto>,
+data class FetchSyncResponse(
+    val decks: List<DeckResponse>,
+    val flashcards: List<CardResponse>,
+    val flashcardExamples: List<ExampleResponse>,
+    val quotes: List<QuoteResponse>,
 )
 
 @Serializable
-data class DeckDto(
-    val deckId: String,
+data class DeckResponse(
+    val id: String,
     val name: String,
     val description: String,
     val createdAt: Long,
 )
 
 @Serializable
-data class CardDto(
+data class CardResponse(
     val id: String,
     val word: String,
     val meaning: String,
@@ -35,7 +34,7 @@ data class CardDto(
 )
 
 @Serializable
-data class ExampleDto(
+data class ExampleResponse(
     val id: String,
     val text: String,
     val translation: String,
@@ -44,7 +43,7 @@ data class ExampleDto(
 )
 
 @Serializable
-data class QuoteDto(
+data class QuoteResponse(
     val id: String,
     val title: String,
     val phrase: String,
@@ -55,5 +54,6 @@ data class QuoteDto(
     val pronunciation: String,
     val formality: String,
     val tags: String,
+    val category: String?,
     val createdAt: Long,
 )
