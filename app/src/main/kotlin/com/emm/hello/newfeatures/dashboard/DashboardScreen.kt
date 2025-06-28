@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
@@ -64,7 +65,13 @@ fun DashboardScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Hola, Edgardo 👋") },
+                title = {
+                    Text(
+                        "Hola, Edgardo 👋",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 actions = {
                     if (state.isSyncing) {
                         val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
@@ -84,9 +91,9 @@ fun DashboardScreen(
                             contentDescription = "Editar"
                         )
                     } else if (state.lastUpdatedDate != null) {
-                        Text(text = state.lastUpdatedDate)
+                        Text(text = state.lastUpdatedDate, fontSize = 14.sp)
                     }
-                    IconButton(onClick = {  }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
                 },
