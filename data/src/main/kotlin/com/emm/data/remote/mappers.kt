@@ -1,8 +1,5 @@
 package com.emm.data.remote
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.provider.Settings
 import com.emm.data.Deck
 import com.emm.data.Flashcard
 import com.emm.data.FlashcardExample
@@ -13,14 +10,6 @@ fun String.toSha256(): String {
     val bytes = MessageDigest.getInstance("SHA-256")
         .digest(this.toByteArray())
     return bytes.joinToString("") { "%02x".format(it) }
-}
-
-@SuppressLint("HardwareIds")
-fun androidId(context: Context): String {
-    return Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ANDROID_ID
-    )
 }
 
 fun deckToDto(deck: Deck) = DeckDto(

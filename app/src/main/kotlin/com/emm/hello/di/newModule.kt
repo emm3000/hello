@@ -1,6 +1,8 @@
 package com.emm.hello.di
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.provider.Settings
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -8,6 +10,7 @@ import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.quote.DefaultQuoteRepository
+import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
 import com.emm.domain.backup.BackupExecutor
 import com.emm.domain.backup.BackupRepository
@@ -29,6 +32,7 @@ import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import kotlinx.serialization.json.Json
+import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
@@ -46,6 +50,7 @@ val newModule = module {
     viewModels()
 }
 
+@SuppressLint("HardwareIds")
 fun Module.repository() {
 
     single {
@@ -59,6 +64,14 @@ fun Module.repository() {
     factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
+
+    factoryOf(::DataStore)
+    single {
+        Settings.Secure.getString(
+            androidApplication().contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+    }
 }
 
 fun Module.useCases() {
