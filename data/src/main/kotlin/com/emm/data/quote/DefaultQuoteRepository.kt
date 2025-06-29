@@ -53,5 +53,11 @@ class DefaultQuoteRepository(
         .mapToList(Dispatchers.IO)
         .map(::toDomain)
 
+    override fun allQuotes(): Flow<List<Quote>> = dao
+        .all()
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map(::toDomain)
+
     private fun toDomain(quotes: List<QuoteEntity>): List<Quote> = quotes.map(QuoteEntity::toDomain)
 }

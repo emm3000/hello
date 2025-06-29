@@ -64,6 +64,7 @@ fun DashboardScreen(
     onDeckDetail: (String) -> Unit = {},
     onStartReview: () -> Unit = {},
     onCreateDeck: () -> Unit = {},
+    onNavigateToQuotes: () -> Unit = {},
 ) {
 
     Scaffold(
@@ -121,7 +122,10 @@ fun DashboardScreen(
 
             if (state.quote != null) {
                 item {
-                    QuoteOfTheDayCard(state.quote)
+                    QuoteOfTheDayCard(
+                        quote = state.quote,
+                        onNavigateToQuotes = onNavigateToQuotes
+                    )
                 }
             }
 
@@ -222,7 +226,7 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
 }
 
 @Composable
-fun QuoteOfTheDayCard(quote: Quote) {
+fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -292,6 +296,17 @@ fun QuoteOfTheDayCard(quote: Quote) {
                         color = MaterialTheme.colorScheme.primary
                     )
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onNavigateToQuotes) {
+                        Text("Ver todas")
+                    }
+                }
             }
         }
     }

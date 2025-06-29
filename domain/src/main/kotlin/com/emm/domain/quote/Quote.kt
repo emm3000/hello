@@ -1,6 +1,7 @@
 package com.emm.domain.quote
 
 data class Quote(
+    val id: String,
     val title: String,
     val phrase: String,
     val description: String,

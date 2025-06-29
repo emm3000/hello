@@ -20,6 +20,9 @@ object NewRoutes {
     object Decks
 
     @Serializable
+    object Quotes
+
+    @Serializable
     data class DeckDetail(val deckId: String)
 
     @Serializable

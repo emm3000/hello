@@ -19,6 +19,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.domain.deck.Deck
+import com.emm.domain.quote.Quote
+import com.emm.domain.quote.QuoteRepository
 import com.emm.hello.newfeatures.card.FlashcardDetailScreen
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardScreen
@@ -26,11 +28,13 @@ import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardScreen
 import com.emm.hello.newfeatures.dashboard.DashboardUiState
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
+import com.emm.hello.newfeatures.dashboard.QuotesScreen
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @Composable
@@ -72,7 +76,15 @@ fun NewRoot() {
                 onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
                 onStartReview = { navController.navigate(NewRoutes.Study) },
                 onCreateDeck = { navController.navigate(NewRoutes.NewDeck) },
+                onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) }
             )
+        }
+        composable<NewRoutes.Quotes> {
+            val quotesRepository: QuoteRepository = koinInject()
+
+            val quotes: List<Quote> by quotesRepository.allQuotes().collectAsStateWithLifecycle(emptyList())
+
+            QuotesScreen(quotes)
         }
         composable<NewRoutes.Study> {
             StudyScreen { navController.popBackStack() }

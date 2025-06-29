@@ -7,4 +7,6 @@ interface QuoteRepository {
     suspend fun generate()
 
     fun lastQuote(): Flow<List<Quote>>
+
+    fun allQuotes(): Flow<List<Quote>>
 }

@@ -20,6 +20,7 @@ fun parseQuoteResponse(content: String, json: Json): QuoteResponse? {
 }
 
 fun QuoteEntity.toDomain() = Quote(
+    id = id,
     title = title,
     phrase = phrase,
     description = description,
@@ -29,5 +30,5 @@ fun QuoteEntity.toDomain() = Quote(
     pronunciation = pronunciation,
     formality = formality,
     tags = tags.split("|").map(String::trim),
-    category = category
+    category = category,
 )
