@@ -4,8 +4,12 @@ package com.emm.hello.sync
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequest
@@ -17,6 +21,7 @@ import androidx.work.WorkerParameters
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteGenerator
 import com.emm.domain.quote.QuoteLastFetcher
+import com.emm.hello.MainActivity
 import com.emm.hello.R
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +61,18 @@ class SyncWorker(
         val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "quote_channel"
 
+        val deepLinkIntent = Intent(
+            /* action = */ Intent.ACTION_VIEW,
+            /* uri = */ "gema://quotes".toUri(),
+            /* packageContext = */ appContext,
+            /* cls = */ MainActivity::class.java
+        )
+
+        val pendingIntent: PendingIntent? = TaskStackBuilder.create(appContext).run {
+            addNextIntentWithParentStack(deepLinkIntent)
+            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
         val channel = NotificationChannel(
             channelId,
             "Frases del día",
@@ -67,7 +84,9 @@ class SyncWorker(
             .setSmallIcon(R.drawable.outline_save_24)
             .setContentTitle(lastQuote.title)
             .setContentText(lastQuote.phrase)
+            .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
             .build()
 
         notificationManager.notify(1001, notification)
@@ -86,7 +105,7 @@ class SyncWorker(
             .build()
 
         fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-            1, TimeUnit.HOURS
+            35, TimeUnit.MINUTES
         )
             .setConstraints(SyncConstraints)
             .build()

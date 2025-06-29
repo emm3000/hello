@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
@@ -79,7 +80,11 @@ fun NewRoot() {
                 onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) }
             )
         }
-        composable<NewRoutes.Quotes> {
+        composable<NewRoutes.Quotes>(
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "gema://quotes" }
+            )
+        ) {
             val quotesRepository: QuoteRepository = koinInject()
 
             val quotes: List<Quote> by quotesRepository.allQuotes().collectAsStateWithLifecycle(emptyList())
