@@ -25,12 +25,12 @@ object Sync {
         }
     }
 
-    fun backupInitialize(context: Context) {
+    fun backupInitialize(context: Context, force: Boolean = false) {
         WorkManager.getInstance(context).apply {
             enqueueUniqueWork(
                 BACKUP_SYNC_WORK_NAME,
                 ExistingWorkPolicy.KEEP,
-                BackupSyncWorker.startUpSyncWork(),
+                BackupSyncWorker.startUpSyncWork(force),
             )
         }
     }

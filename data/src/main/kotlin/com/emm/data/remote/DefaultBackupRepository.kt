@@ -33,11 +33,11 @@ class DefaultBackupRepository(
     private val examplesDao: FlashcardExampleQueries = db.flashcardExampleQueries
     private val quotesDao: QuotesQueries = db.quotesQueries
 
-    override suspend fun execute() = withContext(Dispatchers.IO) {
+    override suspend fun execute(force: Boolean) = withContext(Dispatchers.IO) {
         try {
             val (decks, flashcards, examples, quotes) = fetchAllDataInParallel()
 
-            if (isEmpty(decks, flashcards, examples)) {
+            if (isEmpty(decks, flashcards, examples) || force) {
                 populate()
                 return@withContext Result.success(Unit)
             }

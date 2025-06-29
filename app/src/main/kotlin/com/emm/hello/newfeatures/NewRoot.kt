@@ -1,8 +1,10 @@
 package com.emm.hello.newfeatures
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -34,6 +36,7 @@ import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.sync.Sync
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -71,13 +74,20 @@ fun NewRoot() {
                 }
             }
 
+            val applicationContext: Context? = LocalActivity.current?.applicationContext
+
             DashboardScreen(
                 state = state,
                 newCard = { navController.navigate(NewRoutes.NewCard) },
                 onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
                 onStartReview = { navController.navigate(NewRoutes.Study) },
                 onCreateDeck = { navController.navigate(NewRoutes.NewDeck) },
-                onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) }
+                onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) },
+                onForcePopulate = {
+                    applicationContext?.let {
+                        Sync.backupInitialize(it, true)
+                    }
+                }
             )
         }
         composable<NewRoutes.Quotes>(

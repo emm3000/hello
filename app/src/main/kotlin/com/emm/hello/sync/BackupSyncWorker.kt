@@ -4,6 +4,7 @@ package com.emm.hello.sync
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
@@ -27,8 +28,10 @@ class BackupSyncWorker(
 
     val backupExecutor: BackupExecutor by inject<BackupExecutor>()
 
+    private val force: Boolean = workerParameters.inputData.getBoolean("force", false)
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        backupExecutor.execute()
+        backupExecutor.execute(force)
             .fold(
                 onSuccess = {
                     Result.success()
@@ -56,9 +59,14 @@ class BackupSyncWorker(
         private const val SYNC_NOTIFICATION_ID = 1
         private const val SYNC_NOTIFICATION_CHANNEL_ID = "BackupSyncNotificationChannel"
 
-        fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<BackupSyncWorker>()
+        fun startUpSyncWork(force: Boolean): OneTimeWorkRequest = OneTimeWorkRequestBuilder<BackupSyncWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(SyncConstraints)
+            .setInputData(
+                Data.Builder()
+                    .putBoolean("force", force)
+                    .build()
+            )
             .build()
 
         fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<BackupSyncWorker>(

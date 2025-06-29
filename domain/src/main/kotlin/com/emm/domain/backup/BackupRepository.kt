@@ -2,5 +2,5 @@ package com.emm.domain.backup
 
 interface BackupRepository {
 
-    suspend fun execute(): Result<Unit>
+    suspend fun execute(force: Boolean): Result<Unit>
 }
