@@ -46,7 +46,7 @@ class DefaultBackupRepository(
                 decks = decks.map(::deckToDto),
                 flashcards = flashcards.map(::flashcardToDto),
                 flashcardExamples = examples.map(::exampleToDto),
-                quotes = quotes.map(::quoteToDto)
+                quotes = quotes.map(::quoteToDto),
             )
 
             val currentChecksum: String = json.encodeToString(syncRequest).toSha256()

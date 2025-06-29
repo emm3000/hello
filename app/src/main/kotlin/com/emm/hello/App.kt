@@ -35,7 +35,9 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        Sync.backupInitialize(this)
+        if (activity is MainActivity) {
+            Sync.backupInitialize(this)
+        }
     }
 
     override fun onActivityStarted(activity: Activity) {
