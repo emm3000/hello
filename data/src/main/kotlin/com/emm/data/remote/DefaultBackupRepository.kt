@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.internal.toLongOrDefault
 import retrofit2.HttpException
+import java.net.SocketTimeoutException
 import java.time.Instant
 
 class DefaultBackupRepository(
@@ -63,6 +64,8 @@ class DefaultBackupRepository(
             dataStore.saveSuccess(json.encodeToString(response))
 
             return@withContext Result.success(Unit)
+        } catch (e: SocketTimeoutException) {
+            return@withContext Result.failure(e)
         } catch (e: HttpException) {
             dataStore.saveError(e)
             return@withContext Result.failure(e)

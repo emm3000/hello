@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 class BackupSyncWorker(
@@ -34,6 +35,9 @@ class BackupSyncWorker(
                 },
                 onFailure = {
                     FirebaseCrashlytics.getInstance().recordException(it)
+                    if (it is SocketTimeoutException) {
+                        return@withContext Result.retry()
+                    }
                     Result.failure()
                 }
             )
