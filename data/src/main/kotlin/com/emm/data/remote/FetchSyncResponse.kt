@@ -15,7 +15,7 @@ data class DeckResponse(
     val id: String,
     val name: String,
     val description: String,
-    val createdAt: Long,
+    val createdAt: String,
 )
 
 @Serializable
@@ -28,7 +28,7 @@ data class CardResponse(
     val audioPath: String,
     val imagePath: String,
     val note: String,
-    val createdAt: Long,
+    val createdAt: String,
     val isGenerated: Int,
     val deckId: String,
 )
@@ -55,5 +55,5 @@ data class QuoteResponse(
     val formality: String,
     val tags: String,
     val category: String?,
-    val createdAt: Long,
+    val createdAt: String,
 )

@@ -16,7 +16,7 @@ data class DeckUpsertRequest(
     val deckId: String,
     val name: String,
     val description: String,
-    val createdAt: Long,
+    val createdAt: String,
 )
 
 @Serializable
@@ -29,7 +29,7 @@ data class CardUpsertRequest(
     val audioPath: String,
     val imagePath: String,
     val note: String,
-    val createdAt: Long,
+    val createdAt: String,
     val isGenerated: Int,
     val deckId: String,
 )
@@ -55,5 +55,5 @@ data class QuoteUpsertRequest(
     val pronunciation: String,
     val formality: String,
     val tags: String,
-    val createdAt: Long,
+    val createdAt: String,
 )

@@ -15,7 +15,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import okhttp3.internal.toLongOrDefault
 import retrofit2.HttpException
+import java.time.Instant
 
 class DefaultBackupRepository(
     db: HelloDb,
@@ -34,7 +36,7 @@ class DefaultBackupRepository(
         try {
             val (decks, flashcards, examples, quotes) = fetchAllDataInParallel()
 
-            if (isEmpty(decks, flashcards, examples, quotes)) {
+            if (isEmpty(decks, flashcards, examples)) {
                 populate()
                 return@withContext Result.success(Unit)
             }
@@ -73,7 +75,6 @@ class DefaultBackupRepository(
         decks: List<Deck>,
         flashcards: List<Flashcard>,
         examples: List<FlashcardExample>,
-        quotes: List<Quote>,
     ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty()
 
     private suspend fun fetchAllDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<Quote>> = coroutineScope {
@@ -92,7 +93,7 @@ class DefaultBackupRepository(
                 id = it.id,
                 name = it.name,
                 description = it.description,
-                createdAt = it.createdAt
+                createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
             )
         }
 
@@ -104,7 +105,7 @@ class DefaultBackupRepository(
                 meaning = it.meaning,
                 translation = it.translation,
                 phonetic = it.phonetic,
-                createdAt = it.createdAt,
+                createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
             )
         }
 
@@ -131,7 +132,7 @@ class DefaultBackupRepository(
                 formality = it.formality,
                 tags = it.tags,
                 category = it.category.orEmpty(),
-                createdAt = it.createdAt,
+                createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
             )
         }
     }
