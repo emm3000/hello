@@ -96,19 +96,6 @@ fun NewCardScreen(
                 )
             }
 
-            if (state.result != null) {
-                item { CardPreview(state.result) }
-            }
-
-            if (state.error != null) {
-                item {
-                    Text(
-                        text = state.error,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
             item {
                 Button(
                     onClick = {
@@ -125,6 +112,20 @@ fun NewCardScreen(
                     }
                 }
             }
+
+            if (state.result != null) {
+                item { CardPreview(state.result) }
+            }
+
+            if (state.error != null) {
+                item {
+                    Text(
+                        text = state.error,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
         }
     }
 }
