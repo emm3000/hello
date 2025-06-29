@@ -220,7 +220,7 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(deck.name, style = MaterialTheme.typography.bodyLarge)
-            Text("deck.completed}/deck.total", style = MaterialTheme.typography.bodyMedium)
+            Text("${deck.cards.size} cards", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
