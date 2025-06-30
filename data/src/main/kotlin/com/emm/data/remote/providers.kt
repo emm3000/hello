@@ -32,12 +32,9 @@ fun provideOkHttp(context: Context): OkHttpClient {
         .build()
 }
 
-fun provideRetrofit(client: OkHttpClient): Retrofit {
+fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit {
     val contentType = "application/json".toMediaType()
-    val json = Json {
-        ignoreUnknownKeys = true
-        prettyPrint = true
-    }
+
     return Retrofit.Builder()
         .client(client)
         .baseUrl(BuildConfig.BASE_URL)

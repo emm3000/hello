@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 val networkModule = module {
 
     single<OkHttpClient> { provideOkHttp(androidApplication()) }
-    single<Retrofit> { provideRetrofit(get()) }
+    single<Retrofit> { provideRetrofit(get(), get()) }
     single<BackupApi> { provideApi(get()) }
     single<SharedPreferences> { provideSharedPreferences(androidApplication()) }
 }
