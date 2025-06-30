@@ -43,5 +43,5 @@ SELECT
     e.translation AS exampleTranslation,
     e.type AS exampleType
 FROM Flashcard f
-INNER JOIN FlashcardExample e ON f.id = e.flashcardId
+LEFT JOIN FlashcardExample e ON f.id = e.flashcardId
 WHERE f.id = :flashcardId;

@@ -96,13 +96,16 @@ class DefaultFlashcardRepository(
 
         val first: FlashcardWithExamples = flashcardEntities.firstOrNull() ?: throw Exception("Flashcard not found")
 
-        val examples: List<Example> = flashcardEntities.map {
-            Example(
-                exampleId = it.exampleId,
-                text = it.exampleText,
-                translation = it.exampleTranslation,
-                type = it.exampleType,
-            )
+        val examples: List<Example> = flashcardEntities.mapNotNull {
+            if (it.exampleId != null && it.exampleText != null && it.exampleTranslation != null && it.exampleType != null) {
+                return@mapNotNull Example(
+                    exampleId = it.exampleId,
+                    text = it.exampleText,
+                    translation = it.exampleTranslation,
+                    type = it.exampleType,
+                )
+            }
+            null
         }
         Flashcard(
             id = first.id,
