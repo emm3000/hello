@@ -88,7 +88,7 @@ fun DeckListItem(deck: DeckInfo, onClick: () -> Unit) {
             }
             Spacer(Modifier.height(8.dp))
             LinearProgressIndicator(
-                progress = deck.completion,
+                progress = { deck.completion },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)

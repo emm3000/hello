@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -61,7 +61,7 @@ fun StudyScreen(modifier: Modifier = Modifier, onExit: () -> Unit = {}) {
                 title = { Text("Sesión de Repaso") },
                 navigationIcon = {
                     IconButton(onClick = onExit) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Salir de la sesión")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Salir de la sesión")
                     }
                 }
             )
@@ -140,10 +140,10 @@ fun Flashcard(
                     )
                     Spacer(Modifier.height(16.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { /* TODO: Pronunciar texto */ }) {
-                            Icon(Icons.Default.VolumeUp, contentDescription = "Pronunciación")
+                        IconButton(onClick = {  }) {
+                            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
                         }
-                        TextButton(onClick = { /* TODO: Añadir nota */ }) {
+                        TextButton(onClick = {  }) {
                             Text("📝 Añadir nota")
                         }
                     }

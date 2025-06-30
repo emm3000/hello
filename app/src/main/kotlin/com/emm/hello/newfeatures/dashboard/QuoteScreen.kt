@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
@@ -107,7 +107,7 @@ fun QuoteItem(quote: Quote) {
             }
 
             if (expanded) {
-                Divider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                 QuoteDetailRow(icon = Icons.Default.Translate, title = "Translation", content = quote.translation)
                 QuoteDetailRow(icon = Icons.Default.Info, title = "Description", content = quote.description)
                 QuoteDetailRow(icon = Icons.Default.School, title = "Example", content = quote.example)
