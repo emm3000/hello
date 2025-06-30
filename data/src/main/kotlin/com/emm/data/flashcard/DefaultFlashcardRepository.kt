@@ -6,6 +6,7 @@ import com.emm.data.FlashcardExampleQueries
 import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
 import com.emm.data.HelloDb
+import com.emm.data.SyncStatus
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -41,6 +42,8 @@ class DefaultFlashcardRepository(
             translation = input.translation,
             phonetic = input.phonetic,
             createdAt = Instant.now().toEpochMilli(),
+            updatedAt = Instant.now().toEpochMilli(),
+            syncStatus = SyncStatus.Pending.name,
         )
         return@withContext cardId
     }
@@ -60,6 +63,9 @@ class DefaultFlashcardRepository(
                 text = it.text,
                 translation = it.translation,
                 type = it.type,
+                createdAt = Instant.now().toEpochMilli(),
+                updatedAt = Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
             )
         }
     }

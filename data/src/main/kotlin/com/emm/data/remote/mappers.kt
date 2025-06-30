@@ -16,7 +16,8 @@ fun deckToDto(deck: Deck) = DeckUpsertRequest(
     deckId = deck.id,
     name = deck.name,
     description = deck.description.orEmpty(),
-    createdAt = deck.createdAt.toString()
+    createdAt = deck.createdAt.toString(),
+    updatedAt = deck.updatedAt.toString(),
 )
 
 fun flashcardToDto(flashcard: Flashcard) = CardUpsertRequest(
@@ -29,6 +30,7 @@ fun flashcardToDto(flashcard: Flashcard) = CardUpsertRequest(
     imagePath = flashcard.imagePath.orEmpty(),
     note = flashcard.note.orEmpty(),
     createdAt = flashcard.createdAt.toString(),
+    updatedAt = flashcard.updatedAt.toString(),
     isGenerated = flashcard.isGenerated.toInt(),
     deckId = flashcard.deckId,
 )
@@ -38,7 +40,9 @@ fun exampleToDto(example: FlashcardExample) = ExampleUpsertRequest(
     text = example.text,
     translation = example.translation,
     type = example.type,
-    flashcardId = example.flashcardId.orEmpty()
+    flashcardId = example.flashcardId.orEmpty(),
+    createdAt = example.createdAt.toString(),
+    updatedAt = example.updatedAt.toString(),
 )
 
 fun quoteToDto(quote: Quote) = QuoteUpsertRequest(
@@ -53,4 +57,5 @@ fun quoteToDto(quote: Quote) = QuoteUpsertRequest(
     formality = quote.formality,
     tags = quote.tags,
     createdAt = quote.createdAt.toString(),
+    updatedAt = quote.updatedAt.toString(),
 )

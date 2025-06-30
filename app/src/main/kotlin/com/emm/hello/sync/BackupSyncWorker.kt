@@ -28,7 +28,7 @@ class BackupSyncWorker(
 
     val backupExecutor: BackupExecutor by inject<BackupExecutor>()
 
-    private val force: Boolean = workerParameters.inputData.getBoolean("force", false)
+    private val force: Boolean = inputData.getBoolean("force", false)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         backupExecutor.execute(force)

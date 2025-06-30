@@ -2,14 +2,22 @@ CREATE TABLE Deck (
     id TEXT NOT NULL PRIMARY KEY, -- UUID
     name TEXT NOT NULL,           -- Ej: "Frases de viaje", "Nivel A1"
     description TEXT,             -- Explicación opcional
-    createdAt INTEGER NOT NULL   -- Timestamp (Unix epoch millis)
+    createdAt INTEGER NOT NULL,   -- Timestamp (Unix epoch millis)
+    updatedAt INTEGER NOT NULL,   -- Timestamp (Unix epoch millis)
+    syncStatus TEXT NOT NULL
 );
 
 all:
 SELECT * FROM Deck;
 
+pending:
+SELECT * FROM Deck WHERE syncStatus = 'Pending';
+
+markAsSynced:
+UPDATE Deck SET syncStatus = 'Synced' WHERE id IN ?;
+
 findById:
 SELECT * FROM Deck WHERE id = ?;
 
 insert:
-INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?);
+INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?, ?, ?);

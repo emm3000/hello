@@ -10,14 +10,22 @@ CREATE TABLE Quote (
     formality TEXT NOT NULL,
     tags TEXT NOT NULL,
     category TEXT NOT NULL,
-    createdAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL
 );
 
 insert:
-INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 all:
 SELECT * FROM Quote ORDER BY createdAt DESC;
+
+pending:
+SELECT * FROM Quote WHERE syncStatus = 'Pending';
+
+markAsSynced:
+UPDATE Quote SET syncStatus = 'Synced' WHERE id IN ?;
 
 lastInsertedQuote:
 SELECT *

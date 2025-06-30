@@ -3,11 +3,20 @@ CREATE TABLE FlashcardExample (
     flashcardId TEXT REFERENCES Flashcard(id) ON DELETE SET NULL,
     text TEXT NOT NULL,
     translation TEXT NOT NULL,
-    type TEXT NOT NULL
+    type TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL
 );
 
 insert:
-INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+pending:
+SELECT * FROM FlashcardExample WHERE syncStatus = 'Pending';
+
+markAsSynced:
+UPDATE FlashcardExample SET syncStatus = 'Synced' WHERE id IN ?;
 
 all:
 SELECT * FROM FlashcardExample;

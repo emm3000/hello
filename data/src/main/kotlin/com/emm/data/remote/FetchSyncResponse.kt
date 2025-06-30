@@ -16,6 +16,7 @@ data class DeckResponse(
     val name: String,
     val description: String,
     val createdAt: String,
+    val updatedAt: String?,
 )
 
 @Serializable
@@ -29,6 +30,7 @@ data class CardResponse(
     val imagePath: String,
     val note: String,
     val createdAt: String,
+    val updatedAt: String?,
     val isGenerated: Int,
     val deckId: String,
 )
@@ -40,6 +42,8 @@ data class ExampleResponse(
     val translation: String,
     val type: String,
     val flashcardId: String,
+    val createdAt: String?,
+    val updatedAt: String?,
 )
 
 @Serializable
@@ -56,4 +60,5 @@ data class QuoteResponse(
     val tags: String,
     val category: String?,
     val createdAt: String,
+    val updatedAt: String?,
 )

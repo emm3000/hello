@@ -25,10 +25,10 @@ fun provideOkHttp(context: Context): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor(ChuckerInterceptor(context))
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
-        .callTimeout(25, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .callTimeout(60, TimeUnit.SECONDS)
         .build()
 }
 

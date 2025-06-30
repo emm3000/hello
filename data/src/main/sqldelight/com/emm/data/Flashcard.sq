@@ -12,17 +12,25 @@ CREATE TABLE Flashcard (
 
     note TEXT,                          -- Nota personal del usuario
     createdAt INTEGER NOT NULL,        -- Fecha de creación
+    updatedAt INTEGER NOT NULL,
     isGenerated INTEGER NOT NULL DEFAULT 0, -- 1 si fue generada por IA
+    syncStatus TEXT NOT NULL,
 
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
 );
 
 create:
-INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, isGenerated)
-VALUES (?, ?, ?, ?, ?, ?, ?,1);
+INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, updatedAt, isGenerated, syncStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?,?, 1, ?);
 
 all:
 SELECT * FROM Flashcard;
+
+pending:
+SELECT * FROM Flashcard WHERE syncStatus = 'Pending';
+
+markAsSynced:
+UPDATE Flashcard SET syncStatus = 'Synced' WHERE id IN ?;
 
 selectByDeck:
 SELECT * FROM Flashcard WHERE deckId = ?;

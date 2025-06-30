@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
 import com.emm.data.HelloDb
+import com.emm.data.SyncStatus
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -26,6 +27,8 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
             name = deck.name,
             description = deck.description,
             createdAt = Instant.now().toEpochMilli(),
+            updatedAt = Instant.now().toEpochMilli(),
+            syncStatus = SyncStatus.Pending.name,
         )
     }
 

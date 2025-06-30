@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
 import com.emm.data.QuotesQueries
+import com.emm.data.SyncStatus
 import com.emm.data.flashcard.GeminiService
 import com.emm.data.flashcard.Prompt
 import com.emm.domain.quote.Quote
@@ -43,6 +44,8 @@ class DefaultQuoteRepository(
             tags = quote.tags.joinToString("|"),
             category = quote.category,
             createdAt = Instant.now().toEpochMilli(),
+            updatedAt = Instant.now().toEpochMilli(),
+            syncStatus = SyncStatus.Pending.name,
         )
         Unit
     }

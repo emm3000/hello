@@ -9,6 +9,7 @@ import com.emm.data.FlashcardQueries
 import com.emm.data.HelloDb
 import com.emm.data.Quote
 import com.emm.data.QuotesQueries
+import com.emm.data.SyncStatus
 import com.emm.domain.backup.BackupRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -35,31 +36,32 @@ class DefaultBackupRepository(
 
     override suspend fun execute(force: Boolean) = withContext(Dispatchers.IO) {
         try {
-            val (decks, flashcards, examples, quotes) = fetchAllDataInParallel()
+            val (
+                decks: List<Deck>,
+                flashcards: List<Flashcard>,
+                examples: List<FlashcardExample>,
+            ) = fetchAllDataInParallel()
 
             if (isEmpty(decks, flashcards, examples) || force) {
                 populate()
                 return@withContext Result.success(Unit)
             }
 
+            val (pendingDecks, pendingFlashCards, pendingExamples: List<FlashcardExample>, pendingQuotes: List<Quote>) = fetchPendingSyncDataInParallel()
+
             val syncRequest = SyncRequest(
                 androidId = androidId,
-                decks = decks.map(::deckToDto),
-                flashcards = flashcards.map(::flashcardToDto),
-                flashcardExamples = examples.map(::exampleToDto),
-                quotes = quotes.map(::quoteToDto),
+                decks = pendingDecks.map(::deckToDto),
+                flashcards = pendingFlashCards.map(::flashcardToDto),
+                flashcardExamples = pendingExamples.map(::exampleToDto),
+                quotes = pendingQuotes.map(::quoteToDto),
             )
 
-            val currentChecksum: String = json.encodeToString(syncRequest).toSha256()
-            val lastChecksum = dataStore.checksum
-
-            if (currentChecksum == lastChecksum) {
-                return@withContext Result.success(Unit)
-            }
-
-            dataStore.checksum = currentChecksum
-
             val response = backupService.createBackup(syncRequest)
+            decksDao.markAsSynced(pendingDecks.map(Deck::id))
+            cardsDao.markAsSynced(pendingFlashCards.map(Flashcard::id))
+            examplesDao.markAsSynced(pendingExamples.map(FlashcardExample::id))
+            quotesDao.markAsSynced(pendingQuotes.map(Quote::id))
             dataStore.markDate()
             dataStore.saveSuccess(json.encodeToString(response))
 
@@ -80,13 +82,21 @@ class DefaultBackupRepository(
         examples: List<FlashcardExample>,
     ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty()
 
-    private suspend fun fetchAllDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<Quote>> = coroutineScope {
+    private suspend fun fetchAllDataInParallel(): Triple<List<Deck>, List<Flashcard>, List<FlashcardExample>> = coroutineScope {
         val decks = async { decksDao.all().executeAsList() }
         val flashcards = async { cardsDao.all().executeAsList() }
         val examples = async { examplesDao.all().executeAsList() }
-        val quotes = async { quotesDao.all().executeAsList() }
-        Quad(decks.await(), flashcards.await(), examples.await(), quotes.await())
+        Triple(decks.await(), flashcards.await(), examples.await())
     }
+
+    private suspend fun fetchPendingSyncDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<Quote>> =
+        coroutineScope {
+            val decks = async { decksDao.pending().executeAsList() }
+            val flashcards = async { cardsDao.pending().executeAsList() }
+            val examples = async { examplesDao.pending().executeAsList() }
+            val quotes = async { quotesDao.pending().executeAsList() }
+            Quad(decks.await(), flashcards.await(), examples.await(), quotes.await())
+        }
 
     suspend fun populate() {
         val syncResponse: FetchSyncResponse = backupService.fetchSync(androidId)
@@ -97,6 +107,8 @@ class DefaultBackupRepository(
                 name = it.name,
                 description = it.description,
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
+                updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
             )
         }
 
@@ -109,6 +121,8 @@ class DefaultBackupRepository(
                 translation = it.translation,
                 phonetic = it.phonetic,
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
+                updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
             )
         }
 
@@ -119,6 +133,9 @@ class DefaultBackupRepository(
                 text = it.text,
                 translation = it.translation,
                 type = it.type,
+                createdAt = it.createdAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
             )
         }
 
@@ -136,6 +153,8 @@ class DefaultBackupRepository(
                 tags = it.tags,
                 category = it.category.orEmpty(),
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
+                updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
             )
         }
     }
