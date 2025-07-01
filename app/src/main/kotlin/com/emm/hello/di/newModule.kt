@@ -19,6 +19,7 @@ import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DecksWithCardsProvider
+import com.emm.domain.flashcard.FlashcardAndReviewFetcher
 import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardFinder
@@ -93,6 +94,7 @@ fun Module.useCases() {
     factoryOf(::QuoteLastFetcher)
     factoryOf(::BackupExecutor)
     factoryOf(::FlashcardReviewUpdater)
+    factoryOf(::FlashcardAndReviewFetcher)
 }
 
 fun Module.viewModels() {
@@ -111,6 +113,7 @@ fun Module.viewModels() {
         DeckDetailViewModel(
             deckId = it.get(),
             decksWithCardsProvider = get(),
+            flashcardAndReviewFetcher = get(),
         )
     }
     viewModel {

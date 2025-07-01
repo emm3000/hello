@@ -21,7 +21,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteRepository
 import com.emm.hello.newfeatures.card.FlashcardDetailScreen
@@ -33,6 +32,7 @@ import com.emm.hello.newfeatures.dashboard.DashboardUiState
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.dashboard.QuotesScreen
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
+import com.emm.hello.newfeatures.deck.DeckDetailUiState
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
@@ -138,12 +138,12 @@ fun NewRoot() {
                 parameters = { parametersOf(deckDetail.deckId) }
             )
 
-            val state: Deck by vm.decks.collectAsStateWithLifecycle()
+            val state: DeckDetailUiState by vm.decks.collectAsStateWithLifecycle()
 
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onReview = { navController.navigate(NewRoutes.Study(state.id)) },
-                cards = state.cards,
+                onReview = { navController.navigate(NewRoutes.Study(state.deck.id)) },
+                state = state,
                 onCardClick = { cardId ->
                     navController.navigate(NewRoutes.CardDetail(cardId))
                 }

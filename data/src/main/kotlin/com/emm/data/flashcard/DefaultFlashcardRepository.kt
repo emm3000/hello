@@ -5,6 +5,8 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.FlashcardExampleQueries
 import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
+import com.emm.data.FlashcardsToReviewByDeck
+import com.emm.data.FlashcardsWithReview
 import com.emm.data.HelloDb
 import com.emm.data.SyncStatus
 import com.emm.domain.flashcard.CreateFlashcardInput
@@ -117,5 +119,63 @@ class DefaultFlashcardRepository(
             examples = examples,
             review = FlashcardReview.Empty,
         )
+    }
+
+    override suspend fun sessionToday(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
+        val flashcardsToReviewByDeck: List<FlashcardsToReviewByDeck> = dao.flashcardsToReviewByDeck(
+            deckId = deckId,
+            now = Instant.now().epochSecond,
+        ).executeAsList()
+
+        flashcardsToReviewByDeck.map {
+            val review: FlashcardReview = mapFlashcardReview(it)
+            Flashcard(
+                id = it.id,
+                word = it.word,
+                meaning = it.meaning,
+                translation = it.translation.orEmpty(),
+                phonetic = it.phonetic.orEmpty(),
+                examples = emptyList(),
+                review = review,
+            )
+        }
+    }
+
+    override suspend fun flashcardWithReview(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
+        val flashcardsWithReview: List<FlashcardsWithReview> = dao.flashcardsWithReview(deckId).executeAsList()
+        flashcardsWithReview.map {
+            Flashcard(
+                id = it.id,
+                word = it.word,
+                meaning = it.meaning,
+                translation = it.translation.orEmpty(),
+                phonetic = it.phonetic.orEmpty(),
+                examples = emptyList(),
+                review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond),
+            )
+        }
+    }
+
+    private fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {
+        val review = if (
+            deck.flashcardId != null &&
+            deck.lastReviewedAt != null &&
+            deck.nextReviewAt != null &&
+            deck.easeFactor != null &&
+            deck.interval != null &&
+            deck.repetitions != null &&
+            deck.lapses != null
+        ) {
+            FlashcardReview(
+                flashcardId = deck.flashcardId,
+                lastReviewedAt = deck.lastReviewedAt,
+                nextReviewAt = deck.nextReviewAt,
+                easeFactor = deck.easeFactor,
+                interval = deck.interval,
+                repetitions = deck.repetitions,
+                lapses = deck.lapses,
+            )
+        } else FlashcardReview.Empty
+        return review
     }
 }

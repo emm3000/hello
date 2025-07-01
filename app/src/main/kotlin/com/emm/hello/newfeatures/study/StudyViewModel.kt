@@ -9,7 +9,6 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewUpdater
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 data class StudyUiState(
@@ -30,7 +29,7 @@ class StudyViewModel(
 
     init {
         viewModelScope.launch {
-            val flashcards: List<Flashcard> = flashcardFetcher.fetchAll(deckId).firstOrNull().orEmpty()
+            val flashcards: List<Flashcard> = flashcardFetcher.fetchAll(deckId)
             flashcardsForToday.addAll(flashcards)
             showNextCard()
         }

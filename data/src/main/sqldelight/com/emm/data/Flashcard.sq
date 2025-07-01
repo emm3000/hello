@@ -45,3 +45,15 @@ SELECT
 FROM Flashcard f
 LEFT JOIN FlashcardExample e ON f.id = e.flashcardId
 WHERE f.id = :flashcardId;
+
+flashcardsToReviewByDeck:
+SELECT f.*, r.*
+FROM Flashcard f
+LEFT JOIN FlashcardReview r ON f.id = r.flashcardId
+WHERE f.deckId = :deckId AND (r.nextReviewAt IS NULL OR r.nextReviewAt <= :now);
+
+flashcardsWithReview:
+SELECT f.*, r.nextReviewAt
+FROM Flashcard f
+LEFT JOIN FlashcardReview r ON f.id = r.flashcardId
+WHERE f.deckId = :deckId;
