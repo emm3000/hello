@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures
+package com.emm.hello.newfeatures.study
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,21 +41,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
-
-// Data class para la tarjeta de estudio
-data class StudyCard(val question: String, val answer: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudyScreen(modifier: Modifier = Modifier, onExit: () -> Unit = {}) {
+fun StudyScreen(
+    modifier: Modifier = Modifier,
+    onNavigateBack: () -> Unit = {},
+    onReviewAnswer: (Flashcard?, ReviewGrade) -> Unit = { _, _ -> },
+    state: StudyUiState = StudyUiState(),
+) {
+
     var isFlipped by remember { mutableStateOf(false) }
-    val card = StudyCard(
-        question = "What is Jetpack Compose?",
-        answer = "A modern toolkit for building native Android UI. It simplifies and accelerates UI development on Android."
-    )
+    val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.currentFlashcard?.id) {
+        isFlipped = false
+    }
+
+    LaunchedEffect(state.isFinished) {
+        if (state.isFinished) {
+            setShowDialog(true)
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -60,7 +75,7 @@ fun StudyScreen(modifier: Modifier = Modifier, onExit: () -> Unit = {}) {
             TopAppBar(
                 title = { Text("Sesión de Repaso") },
                 navigationIcon = {
-                    IconButton(onClick = onExit) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Salir de la sesión")
                     }
                 }
@@ -76,22 +91,43 @@ fun StudyScreen(modifier: Modifier = Modifier, onExit: () -> Unit = {}) {
             verticalArrangement = Arrangement.Center
         ) {
             Flashcard(
-                card = card,
+                card = state.currentFlashcard,
                 isFlipped = isFlipped,
                 onFlip = { isFlipped = !isFlipped }
             )
 
             if (isFlipped) {
                 Spacer(Modifier.height(24.dp))
-                AnswerButtons()
+                AnswerButtons { reviewGrade ->
+                    onReviewAnswer(state.currentFlashcard, reviewGrade)
+                }
             }
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { setShowDialog(false) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        setShowDialog(false)
+                        onNavigateBack()
+                    }
+                ) {
+                    Text(text = "Aceptar", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            title = { Text(text = "Sesión de repaso") },
+            text = { Text(text = "Has terminado la sesión de repaso") },
+            icon = { Icon(Icons.Outlined.Check, contentDescription = "Example Icon") },
+        )
     }
 }
 
 @Composable
 fun Flashcard(
-    card: StudyCard,
+    card: Flashcard?,
     isFlipped: Boolean,
     onFlip: () -> Unit
 ) {
@@ -119,7 +155,7 @@ fun Flashcard(
             if (rotationY <= 90f) {
                 // Frente
                 Text(
-                    text = card.question,
+                    text = card?.word.orEmpty(),
                     style = MaterialTheme.typography.headlineSmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(16.dp)
@@ -134,16 +170,16 @@ fun Flashcard(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = card.answer,
+                        text = card?.translation.orEmpty(),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(16.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = {  }) {
+                        IconButton(onClick = { }) {
                             Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
                         }
-                        TextButton(onClick = {  }) {
+                        TextButton(onClick = { }) {
                             Text("📝 Añadir nota")
                         }
                     }
@@ -154,30 +190,50 @@ fun Flashcard(
 }
 
 @Composable
-fun AnswerButtons() {
+fun AnswerButtons(onReviewAnswer: (ReviewGrade) -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
     ) {
-        Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))) { Text("Again") }
-        Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57C00))) { Text("Hard") }
-        Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))) { Text("Good") }
-        Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF689F38))) { Text("Easy") }
+        Button(
+            onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+            content = { Text("Again") }
+        )
+        Button(
+            onClick = { onReviewAnswer(ReviewGrade.HARD) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57C00)),
+            content = { Text("Hard") }
+        )
+        Button(
+            onClick = { onReviewAnswer(ReviewGrade.GOOD) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
+            content = { Text("Good") }
+        )
+        Button(
+            onClick = { onReviewAnswer(ReviewGrade.EASY) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF689F38)),
+            content = { Text("Easy") }
+        )
     }
 }
 
-@Preview(showBackground = true, name = "Study Screen Light")
+@PreviewLightDark
 @Composable
 fun StudyScreenPreviewLight() {
     HelloTheme(darkTheme = false) {
-        StudyScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "Study Screen Dark")
-@Composable
-fun StudyScreenPreviewDark() {
-    HelloTheme(darkTheme = true) {
-        StudyScreen()
+        StudyScreen(
+            state = StudyUiState(
+                currentFlashcard = Flashcard(
+                    id = "Hello",
+                    word = "Hola",
+                    meaning = "nec",
+                    translation = "partiendo",
+                    examples = listOf(),
+                    phonetic = "(831) 768-0261",
+                    review = FlashcardReview.Empty
+                )
+            )
+        )
     }
 }

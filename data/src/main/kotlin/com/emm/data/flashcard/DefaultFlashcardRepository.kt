@@ -12,6 +12,7 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.FlashcardReview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -114,6 +115,7 @@ class DefaultFlashcardRepository(
             translation = first.translation.orEmpty(),
             phonetic = first.phonetic.orEmpty(),
             examples = examples,
+            review = FlashcardReview.Empty,
         )
     }
 }

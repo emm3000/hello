@@ -36,6 +36,8 @@ import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.study.StudyScreen
+import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.sync.Sync
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -102,7 +104,16 @@ fun NewRoot() {
             QuotesScreen(quotes)
         }
         composable<NewRoutes.Study> {
-            StudyScreen { navController.popBackStack() }
+            val route = it.toRoute<NewRoutes.Study>()
+            val vm: StudyViewModel = koinViewModel(
+                parameters = { parametersOf(route.deckId) }
+            )
+
+            StudyScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onReviewAnswer = vm::onProcess,
+                state = vm.state
+            )
         }
         composable<NewRoutes.NewCard> {
             val vm: NewCardViewModel = koinViewModel()
@@ -131,7 +142,7 @@ fun NewRoot() {
 
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onReview = { navController.navigate(NewRoutes.Study) },
+                onReview = { navController.navigate(NewRoutes.Study(state.id)) },
                 cards = state.cards,
                 onCardClick = { cardId ->
                     navController.navigate(NewRoutes.CardDetail(cardId))

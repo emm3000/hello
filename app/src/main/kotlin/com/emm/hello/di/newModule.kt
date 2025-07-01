@@ -9,6 +9,7 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
+import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
@@ -22,6 +23,8 @@ import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardFinder
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.FlashcardReviewUpdater
 import com.emm.domain.quote.QuoteGenerator
 import com.emm.domain.quote.QuoteLastFetcher
 import com.emm.domain.quote.QuoteRepository
@@ -31,6 +34,7 @@ import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidApplication
@@ -65,6 +69,7 @@ fun Module.repository() {
     factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
+    factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
 
     factoryOf(::DataStore)
     single {
@@ -87,6 +92,7 @@ fun Module.useCases() {
     factoryOf(::QuoteGenerator)
     factoryOf(::QuoteLastFetcher)
     factoryOf(::BackupExecutor)
+    factoryOf(::FlashcardReviewUpdater)
 }
 
 fun Module.viewModels() {
@@ -94,6 +100,13 @@ fun Module.viewModels() {
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::NewCardViewModel)
+    viewModel {
+        StudyViewModel(
+            deckId = it.get(),
+            flashcardFetcher = get(),
+            flashcardReviewUpdater = get(),
+        )
+    }
     viewModel {
         DeckDetailViewModel(
             deckId = it.get(),

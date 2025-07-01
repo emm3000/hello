@@ -8,7 +8,7 @@ object NewRoutes {
     object Dashboard
 
     @Serializable
-    object Study
+    data class Study(val deckId: String)
 
     @Serializable
     object NewCard

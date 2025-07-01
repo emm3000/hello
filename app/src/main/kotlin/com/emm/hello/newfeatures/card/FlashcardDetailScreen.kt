@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
 
 @Composable
@@ -189,7 +190,7 @@ fun CardDetailScreenPreview() {
                     exampleId = "ex1",
                     text = "The new building has a very aesthetic design.",
                     translation = "El nuevo edificio tiene un diseño muy estético.",
-                    type = ""
+                    type = "",
                 ),
                 Example(
                     exampleId = "ex2",
@@ -197,7 +198,8 @@ fun CardDetailScreenPreview() {
                     translation = "Su página de Instagram es muy estética.",
                     type = ""
                 )
-            )
+            ),
+            review = FlashcardReview.Empty,
         )
         FlashcardDetailScreen(flashcard = sampleCard)
     }

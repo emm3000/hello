@@ -1,5 +1,5 @@
 CREATE TABLE FlashcardReview (
-    flashcard_id TEXT NOT NULL PRIMARY KEY,  -- Igual a Flashcards.id (1:1)
+    flashcardId TEXT NOT NULL PRIMARY KEY,  -- Igual a Flashcards.id (1:1)
 
     lastReviewedAt INTEGER,  -- Último repaso (timestamp)
     nextReviewAt INTEGER,    -- Cuándo debe aparecer de nuevo
@@ -8,5 +8,29 @@ CREATE TABLE FlashcardReview (
     repetitions INTEGER NOT NULL DEFAULT 0, -- Veces seguidas correctas
     lapses INTEGER NOT NULL DEFAULT 0,       -- Fallos
 
-    FOREIGN KEY (flashcard_id) REFERENCES Flashcard(id) ON DELETE CASCADE
+    FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
 );
+
+all:
+SELECT * FROM FlashcardReview;
+
+upsertFlashcardReview:
+INSERT OR REPLACE INTO FlashcardReview (
+    flashcardId,
+    lastReviewedAt,
+    nextReviewAt,
+    easeFactor,
+    interval,
+    repetitions,
+    lapses
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE FlashcardReview SET
+    lastReviewedAt = ?,
+    nextReviewAt = ?,
+    easeFactor = ?,
+    interval = ?,
+    repetitions = ?,
+    lapses = ?
+WHERE flashcardId = ?;

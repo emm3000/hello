@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -232,7 +233,8 @@ private fun CardPreviewPreview() {
                 Example("ex1", "Hello, how are you?", "¿Hola como estas?", ""),
                 Example("ex2", "She said hello to him.", "Ella le dijo hola.", "")
             ),
-            phonetic = "/həˈloʊ/"
+            phonetic = "/həˈloʊ/",
+            review = FlashcardReview.Empty,
         )
         CardPreview(flashcard = sampleFlashcard)
     }

@@ -1,11 +1,5 @@
 package com.emm.hello.newfeatures.deck
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,30 +12,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,14 +83,14 @@ fun DeckDetailHeader(progress: Float, onReview: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)) {
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(MaterialTheme.shapes.small)
-        )
-        Spacer(Modifier.height(16.dp))
+//        LinearProgressIndicator(
+//            progress = { progress },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(8.dp)
+//                .clip(MaterialTheme.shapes.small)
+//        )
+//        Spacer(Modifier.height(16.dp))
         Button(onClick = onReview, modifier = Modifier.fillMaxWidth()) {
             Text("Empezar repaso de este mazo")
         }
@@ -126,26 +116,6 @@ fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
                 Text(card.word, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 Text(card.examples.firstOrNull()?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
             }
-            Row {
-                val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
-
-                val rotation by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = Random.nextInt(500, 3000), easing = LinearOutSlowInEasing),
-                        repeatMode = RepeatMode.Restart
-                    ),
-                    label = "rotationAnimation"
-                )
-                IconButton(onClick = {  }) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        modifier = Modifier.rotate(rotation),
-                        contentDescription = "Editar"
-                    )
-                }
-            }
         }
     }
 }
@@ -154,6 +124,25 @@ fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
 @Composable
 fun DeckDetailScreenPreview() {
     HelloTheme {
-        DeckDetailScreen()
+        DeckDetailScreen(
+            cards = listOf(
+                Flashcard(
+                    id = "urna",
+                    word = "suscipiantur",
+                    meaning = "wisi",
+                    translation = "consectetur",
+                    examples = listOf(
+                        Example(
+                            exampleId = "reprimique",
+                            text = "impetus",
+                            translation = "appareat",
+                            type = "ridens"
+                        )
+                    ),
+                    phonetic = "(603) 760-5336",
+                    review = FlashcardReview.Empty
+                )
+            )
+        )
     }
 }

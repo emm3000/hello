@@ -7,6 +7,7 @@ data class Flashcard(
     val translation: String,
     val examples: List<Example>,
     val phonetic: String,
+    val review: FlashcardReview,
 ) {
 
     companion object {
@@ -19,6 +20,7 @@ data class Flashcard(
                 translation = "",
                 examples = emptyList(),
                 phonetic = "",
+                review = FlashcardReview.Empty,
             )
     }
 }
