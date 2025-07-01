@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -153,7 +152,6 @@ fun Flashcard(
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (rotationY <= 90f) {
-                // Frente
                 Text(
                     text = card?.word.orEmpty(),
                     style = MaterialTheme.typography.headlineSmall,
@@ -161,7 +159,6 @@ fun Flashcard(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                // Reverso
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
@@ -172,17 +169,14 @@ fun Flashcard(
                     Text(
                         text = card?.translation.orEmpty(),
                         style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = card?.meaning.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(Modifier.height(16.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
-                            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
-                        }
-                        TextButton(onClick = { }) {
-                            Text("📝 Añadir nota")
-                        }
-                    }
                 }
             }
         }
