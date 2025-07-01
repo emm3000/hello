@@ -21,6 +21,9 @@ SELECT * FROM FlashcardReview;
 pending:
 SELECT * FROM FlashcardReview WHERE syncStatus = 'Pending';
 
+markAsSynced:
+UPDATE FlashcardReview SET syncStatus = 'Synced' WHERE flashcardId IN ?;
+
 upsertFlashcardReview:
 INSERT OR REPLACE INTO FlashcardReview (
     flashcardId,

@@ -3,8 +3,10 @@ package com.emm.data.remote
 import com.emm.data.Deck
 import com.emm.data.Flashcard
 import com.emm.data.FlashcardExample
+import com.emm.data.FlashcardReview
 import com.emm.data.Quote
 import java.security.MessageDigest
+import java.time.Instant
 
 fun String.toSha256(): String {
     val bytes = MessageDigest.getInstance("SHA-256")
@@ -58,4 +60,16 @@ fun quoteToDto(quote: Quote) = QuoteUpsertRequest(
     tags = quote.tags,
     createdAt = quote.createdAt.toString(),
     updatedAt = quote.updatedAt.toString(),
+)
+
+fun reviewToDto(review: FlashcardReview) = FlashcardReviewUpsertRequest(
+    flashcardId = review.flashcardId,
+    lastReviewedAt = review.lastReviewedAt ?: Instant.now().epochSecond,
+    nextReviewAt = review.nextReviewAt ?: Instant.now().epochSecond,
+    easeFactor = review.easeFactor,
+    interval = review.interval,
+    repetitions = review.repetitions,
+    lapses = review.lapses,
+    createdAt = review.createdAt.toString(),
+    updatedAt = review.updatedAt.toString(),
 )

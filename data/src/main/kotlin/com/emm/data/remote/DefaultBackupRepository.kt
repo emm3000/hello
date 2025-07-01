@@ -13,6 +13,7 @@ import com.emm.data.Quote
 import com.emm.data.QuotesQueries
 import com.emm.data.SyncStatus
 import com.emm.domain.backup.BackupRepository
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -51,21 +52,13 @@ class DefaultBackupRepository(
                 return@withContext Result.success(Unit)
             }
 
-            val (pendingDecks, pendingFlashCards, pendingExamples: List<FlashcardExample>, pendingQuotes: List<Quote>) = fetchPendingSyncDataInParallel()
-            val reviewsDto: List<FlashcardReviewUpsertRequest> = reviewDao.pending().executeAsList()
-                .map {
-                    FlashcardReviewUpsertRequest(
-                        flashcardId = it.flashcardId,
-                        lastReviewedAt = it.lastReviewedAt ?: Instant.now().epochSecond,
-                        nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond,
-                        easeFactor = it.easeFactor,
-                        interval = it.interval,
-                        repetitions = it.repetitions,
-                        lapses = it.lapses,
-                        createdAt = it.createdAt.toString(),
-                        updatedAt = it.updatedAt.toString(),
-                    )
-                }
+            val (
+                pendingDecks: List<Deck>,
+                pendingFlashCards: List<Flashcard>,
+                pendingExamples: List<FlashcardExample>,
+                pendingReviews: List<FlashcardReview>,
+                pendingQuotes: List<Quote>,
+            ) = fetchPendingSyncDataInParallel()
 
             val syncRequest = SyncRequest(
                 androidId = androidId,
@@ -73,7 +66,7 @@ class DefaultBackupRepository(
                 flashcards = pendingFlashCards.map(::flashcardToDto),
                 flashcardExamples = pendingExamples.map(::exampleToDto),
                 quotes = pendingQuotes.map(::quoteToDto),
-                flashcardReviews = reviewsDto,
+                flashcardReviews = pendingReviews.map(::reviewToDto),
             )
 
             val response = backupService.createBackup(syncRequest)
@@ -81,6 +74,7 @@ class DefaultBackupRepository(
             cardsDao.markAsSynced(pendingFlashCards.map(Flashcard::id))
             examplesDao.markAsSynced(pendingExamples.map(FlashcardExample::id))
             quotesDao.markAsSynced(pendingQuotes.map(Quote::id))
+            reviewDao.markAsSynced(pendingReviews.map(FlashcardReview::flashcardId))
             dataStore.markDate()
             dataStore.saveSuccess(json.encodeToString(response))
 
@@ -102,23 +96,34 @@ class DefaultBackupRepository(
         reviews: List<FlashcardReview>,
     ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty() && reviews.isEmpty()
 
-    private suspend fun fetchAllDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<FlashcardReview>> =
-        coroutineScope {
-            val decks = async { decksDao.all().executeAsList() }
-            val flashcards = async { cardsDao.all().executeAsList() }
-            val examples = async { examplesDao.all().executeAsList() }
-            val reviews = async { reviewDao.all().executeAsList() }
-            Quad(decks.await(), flashcards.await(), examples.await(), reviews.await())
-        }
+    private suspend fun fetchAllDataInParallel(): HolderOfDatabaseTables = coroutineScope {
+        val decks: Deferred<List<Deck>> = async { decksDao.all().executeAsList() }
+        val flashcards: Deferred<List<Flashcard>> = async { cardsDao.all().executeAsList() }
+        val examples: Deferred<List<FlashcardExample>> = async { examplesDao.all().executeAsList() }
+        val reviews: Deferred<List<FlashcardReview>> = async { reviewDao.all().executeAsList() }
+        HolderOfDatabaseTables(
+            decks = decks.await(),
+            flashcards = flashcards.await(),
+            examples = examples.await(),
+            reviews = reviews.await(),
+            quotes = emptyList(),
+        )
+    }
 
-    private suspend fun fetchPendingSyncDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<Quote>> =
-        coroutineScope {
-            val decks = async { decksDao.pending().executeAsList() }
-            val flashcards = async { cardsDao.pending().executeAsList() }
-            val examples = async { examplesDao.pending().executeAsList() }
-            val quotes = async { quotesDao.pending().executeAsList() }
-            Quad(decks.await(), flashcards.await(), examples.await(), quotes.await())
-        }
+    private suspend fun fetchPendingSyncDataInParallel(): HolderOfDatabaseTables = coroutineScope {
+        val decks = async { decksDao.pending().executeAsList() }
+        val flashcards = async { cardsDao.pending().executeAsList() }
+        val examples = async { examplesDao.pending().executeAsList() }
+        val quotes = async { quotesDao.pending().executeAsList() }
+        val reviews = async { reviewDao.pending().executeAsList() }
+        HolderOfDatabaseTables(
+            decks = decks.await(),
+            flashcards = flashcards.await(),
+            examples = examples.await(),
+            reviews = reviews.await(),
+            quotes = quotes.await(),
+        )
+    }
 
     suspend fun populate() {
         val syncResponse: FetchSyncResponse = backupService.fetchSync(androidId)
