@@ -18,5 +18,5 @@ interface FlashcardRepository {
 
     suspend fun sessionToday(deckId: String): List<Flashcard>
 
-    suspend fun flashcardWithReview(deckId: String): List<Flashcard>
+    fun flashcardWithReview(deckId: String): Flow<List<Flashcard>>
 }

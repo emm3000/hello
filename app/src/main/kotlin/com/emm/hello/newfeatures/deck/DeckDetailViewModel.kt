@@ -10,8 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 
@@ -43,10 +42,20 @@ class DeckDetailViewModel(
         initialValue = DeckDetailUiState(),
     )
 
-    private fun fetchSessionCars(): Flow<Pair<List<Flashcard>, Boolean>> = flow {
-        val fetchAll: List<Flashcard> = flashcardAndReviewFetcher.fetch(deckId)
-            .map { flashcard -> flashcard.copy(id = "${flashcard.id}${flashcard.review.nextReviewAt}") }
-        val hasSessionEnabled = fetchAll.any { it.review.nextReviewAt <= Instant.now().epochSecond }
-        emit(Pair(fetchAll, hasSessionEnabled))
-    }.onStart { emit(Pair(emptyList(), false)) }
+    private fun fetchSessionCars(): Flow<Pair<List<Flashcard>, Boolean>> {
+        return flashcardAndReviewFetcher.fetch(deckId)
+            .map {
+                val updatedFlashcards: List<Flashcard> = it.map(::copyWithUpdatedId)
+                val reviewAvailable: Boolean = updatedFlashcards.any(::isReviewDue)
+                Pair(updatedFlashcards, reviewAvailable)
+            }
+    }
+
+    private fun copyWithUpdatedId(
+        flashcard: Flashcard,
+    ): Flashcard = flashcard.copy(id = "${flashcard.id}${flashcard.review.nextReviewAt}")
+
+    private fun isReviewDue(
+        flashcard: Flashcard,
+    ): Boolean = flashcard.review.nextReviewAt <= Instant.now().epochSecond
 }

@@ -6,7 +6,6 @@ import com.emm.data.FlashcardExampleQueries
 import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
 import com.emm.data.FlashcardsToReviewByDeck
-import com.emm.data.FlashcardsWithReview
 import com.emm.data.HelloDb
 import com.emm.data.SyncStatus
 import com.emm.domain.flashcard.CreateFlashcardInput
@@ -141,19 +140,23 @@ class DefaultFlashcardRepository(
         }
     }
 
-    override suspend fun flashcardWithReview(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
-        val flashcardsWithReview: List<FlashcardsWithReview> = dao.flashcardsWithReview(deckId).executeAsList()
-        flashcardsWithReview.map {
-            Flashcard(
-                id = it.id,
-                word = it.word,
-                meaning = it.meaning,
-                translation = it.translation.orEmpty(),
-                phonetic = it.phonetic.orEmpty(),
-                examples = emptyList(),
-                review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond),
-            )
-        }
+    override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> {
+        return dao.flashcardsWithReview(deckId).asFlow()
+            .mapToList(Dispatchers.IO)
+            .map {
+                it.map { it ->
+                    Flashcard(
+                        id = it.id,
+                        word = it.word,
+                        meaning = it.meaning,
+                        translation = it.translation.orEmpty(),
+                        phonetic = it.phonetic.orEmpty(),
+                        examples = emptyList(),
+                        review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond),
+                    )
+                }
+            }
+
     }
 
     private fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {

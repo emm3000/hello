@@ -1,8 +1,10 @@
 package com.emm.domain.flashcard
 
+import kotlinx.coroutines.flow.Flow
+
 class FlashcardAndReviewFetcher(private val repository: FlashcardRepository) {
 
-    suspend fun fetch(deckId: String): List<Flashcard> {
+    fun fetch(deckId: String): Flow<List<Flashcard>> {
         return repository.flashcardWithReview(deckId)
     }
 }
