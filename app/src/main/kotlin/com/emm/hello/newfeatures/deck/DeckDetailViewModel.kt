@@ -2,7 +2,6 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DecksWithCardsProvider
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardAndReviewFetcher
@@ -13,12 +12,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
-
-data class DeckDetailUiState(
-    val deck: Deck = Deck.Empty,
-    val cardsSession: List<Flashcard> = emptyList(),
-    val hasSessionEnabled: Boolean = false,
-)
 
 class DeckDetailViewModel(
     private val deckId: String,
