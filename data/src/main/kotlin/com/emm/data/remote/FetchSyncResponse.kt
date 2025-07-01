@@ -8,6 +8,7 @@ data class FetchSyncResponse(
     val flashcards: List<CardResponse>,
     val flashcardExamples: List<ExampleResponse>,
     val quotes: List<QuoteResponse>,
+    val flashcardReviews: List<FlashcardReviewResponse>,
 )
 
 @Serializable
@@ -61,4 +62,17 @@ data class QuoteResponse(
     val category: String?,
     val createdAt: String,
     val updatedAt: String?,
+)
+
+@Serializable
+data class FlashcardReviewResponse(
+    val flashcardId: String,
+    val lastReviewedAt: Long,
+    val nextReviewAt: Long,
+    val easeFactor: Double,
+    val interval: Long,
+    val repetitions: Long,
+    val lapses: Long,
+    val createdAt: String,
+    val updatedAt: String,
 )

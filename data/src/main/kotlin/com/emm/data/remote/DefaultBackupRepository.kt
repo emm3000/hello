@@ -6,6 +6,8 @@ import com.emm.data.Flashcard
 import com.emm.data.FlashcardExample
 import com.emm.data.FlashcardExampleQueries
 import com.emm.data.FlashcardQueries
+import com.emm.data.FlashcardReview
+import com.emm.data.FlashcardReviewQueries
 import com.emm.data.HelloDb
 import com.emm.data.Quote
 import com.emm.data.QuotesQueries
@@ -33,6 +35,7 @@ class DefaultBackupRepository(
     private val cardsDao: FlashcardQueries = db.flashcardQueries
     private val examplesDao: FlashcardExampleQueries = db.flashcardExampleQueries
     private val quotesDao: QuotesQueries = db.quotesQueries
+    private val reviewDao: FlashcardReviewQueries = db.flashcardReviewQueries
 
     override suspend fun execute(force: Boolean) = withContext(Dispatchers.IO) {
         try {
@@ -40,14 +43,29 @@ class DefaultBackupRepository(
                 decks: List<Deck>,
                 flashcards: List<Flashcard>,
                 examples: List<FlashcardExample>,
+                reviews: List<FlashcardReview>,
             ) = fetchAllDataInParallel()
 
-            if (isEmpty(decks, flashcards, examples) || force) {
+            if (isEmpty(decks, flashcards, examples, reviews) || force) {
                 populate()
                 return@withContext Result.success(Unit)
             }
 
             val (pendingDecks, pendingFlashCards, pendingExamples: List<FlashcardExample>, pendingQuotes: List<Quote>) = fetchPendingSyncDataInParallel()
+            val reviewsDto: List<FlashcardReviewUpsertRequest> = reviewDao.pending().executeAsList()
+                .map {
+                    FlashcardReviewUpsertRequest(
+                        flashcardId = it.flashcardId,
+                        lastReviewedAt = it.lastReviewedAt ?: Instant.now().epochSecond,
+                        nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond,
+                        easeFactor = it.easeFactor,
+                        interval = it.interval,
+                        repetitions = it.repetitions,
+                        lapses = it.lapses,
+                        createdAt = it.createdAt.toString(),
+                        updatedAt = it.updatedAt.toString(),
+                    )
+                }
 
             val syncRequest = SyncRequest(
                 androidId = androidId,
@@ -55,6 +73,7 @@ class DefaultBackupRepository(
                 flashcards = pendingFlashCards.map(::flashcardToDto),
                 flashcardExamples = pendingExamples.map(::exampleToDto),
                 quotes = pendingQuotes.map(::quoteToDto),
+                flashcardReviews = reviewsDto,
             )
 
             val response = backupService.createBackup(syncRequest)
@@ -80,14 +99,17 @@ class DefaultBackupRepository(
         decks: List<Deck>,
         flashcards: List<Flashcard>,
         examples: List<FlashcardExample>,
-    ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty()
+        reviews: List<FlashcardReview>,
+    ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty() && reviews.isEmpty()
 
-    private suspend fun fetchAllDataInParallel(): Triple<List<Deck>, List<Flashcard>, List<FlashcardExample>> = coroutineScope {
-        val decks = async { decksDao.all().executeAsList() }
-        val flashcards = async { cardsDao.all().executeAsList() }
-        val examples = async { examplesDao.all().executeAsList() }
-        Triple(decks.await(), flashcards.await(), examples.await())
-    }
+    private suspend fun fetchAllDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<FlashcardReview>> =
+        coroutineScope {
+            val decks = async { decksDao.all().executeAsList() }
+            val flashcards = async { cardsDao.all().executeAsList() }
+            val examples = async { examplesDao.all().executeAsList() }
+            val reviews = async { reviewDao.all().executeAsList() }
+            Quad(decks.await(), flashcards.await(), examples.await(), reviews.await())
+        }
 
     private suspend fun fetchPendingSyncDataInParallel(): Quad<List<Deck>, List<Flashcard>, List<FlashcardExample>, List<Quote>> =
         coroutineScope {
@@ -154,6 +176,21 @@ class DefaultBackupRepository(
                 category = it.category.orEmpty(),
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
+                syncStatus = SyncStatus.Synced.name,
+            )
+        }
+
+        syncResponse.flashcardReviews.forEach {
+            reviewDao.upsertFlashcardReview(
+                flashcardId = it.flashcardId,
+                lastReviewedAt = it.lastReviewedAt,
+                nextReviewAt = it.nextReviewAt,
+                easeFactor = it.easeFactor,
+                interval = it.interval,
+                repetitions = it.repetitions,
+                lapses = it.lapses,
+                createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
+                updatedAt = it.updatedAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 syncStatus = SyncStatus.Synced.name,
             )
         }

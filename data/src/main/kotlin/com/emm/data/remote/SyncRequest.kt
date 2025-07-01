@@ -9,6 +9,7 @@ data class SyncRequest(
     val flashcards: List<CardUpsertRequest>,
     val flashcardExamples: List<ExampleUpsertRequest>,
     val quotes: List<QuoteUpsertRequest>,
+    val flashcardReviews: List<FlashcardReviewUpsertRequest>,
 )
 
 @Serializable
@@ -59,6 +60,19 @@ data class QuoteUpsertRequest(
     val pronunciation: String,
     val formality: String,
     val tags: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+@Serializable
+data class FlashcardReviewUpsertRequest(
+    val flashcardId: String,
+    val lastReviewedAt: Long,
+    val nextReviewAt: Long,
+    val easeFactor: Double,
+    val interval: Long,
+    val repetitions: Long,
+    val lapses: Long,
     val createdAt: String,
     val updatedAt: String,
 )

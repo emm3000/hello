@@ -8,11 +8,18 @@ CREATE TABLE FlashcardReview (
     repetitions INTEGER NOT NULL DEFAULT 0, -- Veces seguidas correctas
     lapses INTEGER NOT NULL DEFAULT 0,       -- Fallos
 
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL,
+    syncStatus TEXT NOT NULL,
+
     FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
 );
 
 all:
 SELECT * FROM FlashcardReview;
+
+pending:
+SELECT * FROM FlashcardReview WHERE syncStatus = 'Pending';
 
 upsertFlashcardReview:
 INSERT OR REPLACE INTO FlashcardReview (
@@ -22,8 +29,11 @@ INSERT OR REPLACE INTO FlashcardReview (
     easeFactor,
     interval,
     repetitions,
-    lapses
-) VALUES (?, ?, ?, ?, ?, ?, ?);
+    lapses,
+    createdAt,
+    updatedAt,
+    syncStatus
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 update:
 UPDATE FlashcardReview SET
