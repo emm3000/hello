@@ -1,6 +1,5 @@
 package com.emm.hello.newfeatures.study
 
-import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +55,8 @@ fun StudyScreen(
 
     var isFlipped by remember { mutableStateOf(false) }
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
+    val tts: TextToSpeechController = rememberTextToSpeech()
+    val isSpeaking: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     LaunchedEffect(state.currentFlashcard?.id) {
         isFlipped = false
@@ -115,7 +115,19 @@ fun StudyScreen(
                     }
                 },
                 backContent = {
-                    FlashcardContent(state.currentFlashcard)
+                    FlashcardContent(
+                        card = state.currentFlashcard,
+                        isSpeaking = isSpeaking.value,
+                        enabled = tts.isReady,
+                        onStop = {
+                            isSpeaking.value = false
+                            tts.stop()
+                        },
+                        onSpeak = {
+                            isSpeaking.value = true
+                            tts.speak(state.currentFlashcard?.word.orEmpty())
+                        }
+                    )
                 }
             )
 
@@ -125,7 +137,7 @@ fun StudyScreen(
                     .weight(0.5f),
                 contentAlignment = Alignment.Center,
             ) {
-                if (isFlipped) {
+                if (isFlipped.not()) {
                     AnswerButtons { reviewGrade ->
                         onReviewAnswer(state.currentFlashcard, reviewGrade)
                     }
@@ -155,8 +167,13 @@ fun StudyScreen(
 }
 
 @Composable
-private fun FlashcardContent(card: Flashcard?) {
-    val tts: TextToSpeech? by rememberTextToSpeech()
+private fun FlashcardContent(
+    card: Flashcard?,
+    isSpeaking: Boolean,
+    enabled: Boolean,
+    onStop: () -> Unit = {},
+    onSpeak: () -> Unit = {},
+) {
 
     Column(
         modifier = Modifier
@@ -177,42 +194,35 @@ private fun FlashcardContent(card: Flashcard?) {
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(16.dp))
-        IconButton(onClick = {
-            if (tts?.isSpeaking == true) {
-                tts?.stop()
-            } else {
-                tts?.speak(
-                    card?.word, TextToSpeech.QUEUE_FLUSH, null, ""
-                )
-            }
-        }) {
+        IconButton(
+            onClick = {
+                if (isSpeaking) {
+                    onStop()
+                } else {
+                    onSpeak()
+                }
+            },
+            enabled = enabled
+        ) {
             Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
         }
     }
 }
 
 @Composable
-fun rememberTextToSpeech(): MutableState<TextToSpeech?> {
+fun rememberTextToSpeech(): TextToSpeechController {
 
     val context = LocalContext.current
-    val tts = remember { mutableStateOf<TextToSpeech?>(null) }
+    val controller = remember { TextToSpeechController(context) }
 
-    DisposableEffect(context) {
-        val textToSpeech = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts.value?.language = Locale.US
-            }
-        }
-        textToSpeech.setSpeechRate(0.5f)
-        textToSpeech.setPitch(1.05f)
-        tts.value = textToSpeech
-
+    DisposableEffect(Unit) {
+        controller.init()
         onDispose {
-            textToSpeech.stop()
-            textToSpeech.shutdown()
+            controller.shutdown()
         }
     }
-    return tts
+
+    return controller
 }
 
 @Composable
