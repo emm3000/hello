@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,8 +64,8 @@ fun DeckDetailScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 50.dp),
+            modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
