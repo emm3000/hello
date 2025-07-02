@@ -25,6 +25,7 @@ class TextToSpeechController(private val context: Context) {
     }
 
     fun speak(text: String) {
+        tts?.isSpeaking ?: return
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts-${System.currentTimeMillis()}")
     }
 

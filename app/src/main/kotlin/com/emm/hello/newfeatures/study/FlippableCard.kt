@@ -26,16 +26,18 @@ fun FlippableCard(
     modifier: Modifier = Modifier,
     cardFace: CardFace,
     onClick: (CardFace) -> Unit,
+    onFinished: (Float) -> Unit = {},
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit
 ) {
-    // Anima el valor de la rotación cuando cambia el estado 'cardFace'.
+
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
         animationSpec = tween(
             durationMillis = 600, // Duración de la animación
         ),
-        label = "cardRotation"
+        label = "cardRotation",
+        finishedListener = onFinished,
     )
 
     val randomGradient = rememberThemedMinimalGradientBrush()
@@ -43,7 +45,9 @@ fun FlippableCard(
     Card(
         modifier = modifier
             .clickable(
-                onClick = { onClick(cardFace) },
+                onClick = {
+                    onClick(cardFace)
+                },
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             )

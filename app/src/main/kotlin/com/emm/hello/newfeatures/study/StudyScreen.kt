@@ -57,6 +57,8 @@ fun StudyScreen(
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechController = rememberTextToSpeech()
     val isSpeaking: MutableState<Boolean> = remember { mutableStateOf(false) }
+
+    val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
 
     LaunchedEffect(state.currentFlashcard?.id) {
@@ -97,6 +99,9 @@ fun StudyScreen(
                 onClick = {
                     cardFace = it.next
                 },
+                onFinished = {
+                    prevFlashCard.value = state.currentFlashcard
+                },
                 modifier = Modifier
                     .weight(1f)
                     .size(300.dp),
@@ -115,7 +120,7 @@ fun StudyScreen(
                 },
                 backContent = {
                     FlashcardContent(
-                        card = state.currentFlashcard,
+                        card = prevFlashCard.value,
                         isSpeaking = isSpeaking.value,
                         enabled = tts.isReady,
                         onStop = {
