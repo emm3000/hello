@@ -59,62 +59,68 @@ object Prompt {
 
     fun quotePrompt(): String {
         val now = LocalDateTime.now()
-        val seed: String = now.truncatedTo(ChronoUnit.HOURS).toString() + "_${(0..1000).random()}"
+        val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
+        val randomLetters = (('A'..'Z')).shuffled().take(3).joinToString("")
+        val seed = "$seedBase-$randomLetters-${(100..999).random()}"
+        
+        return """
+        Seed for generation: $seed
 
-        val fullPrompt = """
-            Seed for generation: $seed
-            
-            Act as an English language assistant specialized in real-world software development communication.
-            
-            Your task is to generate a JSON object that contains a phrase commonly used by developers in real-world work settings (e.g., team meetings, code reviews, version control discussions, debugging sessions, or task coordination).
+        Act as an English learning assistant specialized in **everyday real-world conversation** across multiple life contexts.
 
-            The phrase should follow these quality guidelines:
-            
-            - ✅ It must be **naturally spoken or written** by software engineers during real interactions.
-            - ✅ It must be **long enough** to sound realistic (at least 7–10 words), not too short or generic.
-            - ✅ It should reflect a **specific and meaningful situation**, such as:
-              - Asking for help or clarification
-              - Explaining a technical decision
-              - Giving or receiving feedback
-              - Describing a bug, a merge conflict, or a code smell
-              - Planning or estimating tasks
-            - ✅ It should vary in structure and vocabulary from previously common phrases.
-            - ⚠️ Avoid repeating simple or generic phrases like "Can you review this?" or "Let's fix this bug."
-            
-            Return the result in this JSON format:
-            
-            {
-              "success": true,
-              "data": {
-                "title": "<short title>",
-                "phrase": "<the phrase>",
-                "description": "<explanation of what it means and when it's used>",
-                "translation": "<Spanish translation>",
-                "example": "<a full sentence using the phrase>",
-                "context": "<describe a realistic situation where this is said>",
-                "pronunciation": "<IPA transcription>",
-                "formality": "<casual | formal | neutral>",
-                "tags": ["tag1", "tag2"],
-                "category": "<general topic like 'code review', 'communication', etc.>"
-              }
-            }
-            
-            If the phrase cannot be generated or validated, respond with:
-            
-            {
-              "success": false,
-              "error": {
-                "message": "Unable to generate a valid software development phrase."
-              }
-            }
-            
-            ⚠️ Very Important:
-            - Only return a valid JSON object.
-            - Do NOT include any markdown formatting (no backticks).
-            - Do NOT include any explanation or extra text before or after the JSON.
-            
-            Respond with the appropriate JSON only.
-        """.trimIndent()
-        return fullPrompt
+        Your task is to generate a JSON object containing a **natural phrase commonly used in real daily life**, which could be used in any of the following contexts:
+
+        - 🏠 At home  
+        - 🧑‍🤝‍🧑 With friends or social gatherings  
+        - 🏢 In the office or remote work  
+        - 🛒 Shopping in stores or supermarkets  
+        - ✈️ Traveling (airports, hotels, check-ins)  
+        - 🍽️ At restaurants or cafés  
+        - 📞 On the phone or customer service  
+        - 🎓 School, university, or study-related  
+        - 💬 Any real-world social or practical scenario
+
+        ✅ Quality constraints:
+
+        - The phrase must sound **natural, specific, and useful**.
+        - It must be something people **actually say** in casual or professional conversation.
+        - It must contain at least **one phrasal verb** (e.g., "figure out", "check in", "run into", "look forward to").
+        - The phrase should have at least **8–12 words**, not too short.
+        - ⚠️ Avoid generic textbook phrases or motivational quotes.
+
+        🔠 To ensure variety and prevent repetition:
+        - The phrase must contain at least **one word that starts with each of these letters**: ${randomLetters.toCharArray().joinToString(", ")}.
+
+        Return only the following valid JSON format:
+
+        {
+          "success": true,
+          "data": {
+            "title": "<short title>",
+            "phrase": "<the phrase>",
+            "description": "<explanation of what it means and when it's used>",
+            "translation": "<Spanish translation>",
+            "example": "<a full sentence using the phrase>",
+            "context": "<realistic situation where someone would say this>",
+            "pronunciation": "<IPA transcription>",
+            "formality": "<casual | formal | neutral>",
+            "tags": ["tag1", "tag2"],
+            "category": "<context category like 'restaurant', 'airport', 'home', 'friends', etc.>"
+          }
+        }
+
+        If a valid phrase cannot be generated, return:
+
+        {
+          "success": false,
+          "error": {
+            "message": "Unable to generate a valid everyday English phrase."
+          }
+        }
+
+        ⚠️ Very Important:
+        - Only return the **JSON object**.
+        - Do **NOT include** markdown, backticks, explanations, or comments outside the JSON.
+    """.trimIndent()
     }
 }
