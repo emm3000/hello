@@ -257,7 +257,6 @@ fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        elevation = CardDefaults.cardElevation(4.dp),
         onClick = { expanded = !expanded }
     ) {
         Column(
@@ -335,7 +334,7 @@ fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
 @PreviewLightDark
 @Composable
 fun DashboardScreenPreviewDark() {
-    HelloTheme(darkTheme = true) {
+    HelloTheme {
         DashboardScreen(
             state = DashboardUiState(
                 decks = listOf(),

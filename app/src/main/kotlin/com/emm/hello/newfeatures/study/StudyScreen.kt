@@ -138,7 +138,7 @@ fun StudyScreen(
                     .weight(0.5f),
                 contentAlignment = Alignment.Center,
             ) {
-                if (isFlipped.not()) {
+                if (isFlipped) {
                     AnswerButtons { reviewGrade ->
                         onReviewAnswer(state.currentFlashcard, reviewGrade)
                     }
