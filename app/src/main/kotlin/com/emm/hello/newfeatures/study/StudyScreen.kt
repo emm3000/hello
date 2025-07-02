@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.study
 
+import android.speech.tts.TextToSpeech
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -30,7 +32,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,12 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,28 +165,72 @@ fun Flashcard(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .graphicsLayer { scaleX = -1f }, // Corrige el efecto espejo
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = card?.translation.orEmpty(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        text = card?.meaning.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                FlashcardContent(card)
             }
         }
     }
+}
+
+@Composable
+private fun FlashcardContent(card: Flashcard?) {
+    var isSpeaking by remember { mutableStateOf(false) }
+    val tts: TextToSpeech? by rememberTextToSpeech()
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .graphicsLayer { scaleX = -1f }, // Corrige el efecto espejo
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = card?.translation.orEmpty(),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            text = card?.meaning.orEmpty(),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        IconButton(onClick = {
+            if (tts?.isSpeaking == true) {
+                tts?.stop()
+            } else {
+                tts?.speak(
+                    card?.word, TextToSpeech.QUEUE_FLUSH, null, ""
+                )
+            }
+        }) {
+            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
+        }
+    }
+}
+
+@Composable
+fun rememberTextToSpeech(): MutableState<TextToSpeech?> {
+
+    val context = LocalContext.current
+    val tts = remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(context) {
+        val textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.value?.language = Locale.US
+            }
+        }
+        textToSpeech.setSpeechRate(0.5f)
+        textToSpeech.setPitch(1.05f)
+        tts.value = textToSpeech
+
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+    return tts
 }
 
 @Composable
