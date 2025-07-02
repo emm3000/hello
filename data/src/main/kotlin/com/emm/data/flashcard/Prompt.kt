@@ -62,7 +62,7 @@ object Prompt {
         val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
         val randomLetters = (('A'..'Z')).shuffled().take(3).joinToString("")
         val seed = "$seedBase-$randomLetters-${(100..999).random()}"
-        
+
         return """
         Seed for generation: $seed
 

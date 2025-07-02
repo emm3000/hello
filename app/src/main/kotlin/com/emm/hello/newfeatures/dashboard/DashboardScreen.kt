@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
@@ -253,13 +252,13 @@ fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
-            .clickable { expanded = !expanded },
+            .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = { expanded = !expanded }
     ) {
         Column(
             modifier = Modifier.padding(
@@ -333,18 +332,29 @@ fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, name = "Dashboard Light")
-@Composable
-fun DashboardScreenPreviewLight() {
-    HelloTheme(darkTheme = false) {
-        DashboardScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "Dashboard Dark")
+@PreviewLightDark
 @Composable
 fun DashboardScreenPreviewDark() {
     HelloTheme(darkTheme = true) {
-        DashboardScreen()
+        DashboardScreen(
+            state = DashboardUiState(
+                decks = listOf(),
+                quote = Quote(
+                    id = "vidisse",
+                    title = "persecuti",
+                    phrase = "neglegentur",
+                    description = "deseruisse",
+                    translation = "harum",
+                    example = "eget",
+                    context = "novum",
+                    pronunciation = "a",
+                    formality = "dicam",
+                    tags = listOf(),
+                    category = "litora"
+                ),
+                isSyncing = true,
+                lastUpdatedDate = null,
+            )
+        )
     }
 }
