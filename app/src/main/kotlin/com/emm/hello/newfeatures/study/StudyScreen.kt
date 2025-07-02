@@ -54,13 +54,13 @@ fun StudyScreen(
     state: StudyUiState = StudyUiState(),
 ) {
 
-    var isFlipped by remember { mutableStateOf(false) }
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechController = rememberTextToSpeech()
     val isSpeaking: MutableState<Boolean> = remember { mutableStateOf(false) }
+    var cardFace by remember { mutableStateOf(CardFace.Front) }
 
     LaunchedEffect(state.currentFlashcard?.id) {
-        isFlipped = false
+        cardFace = CardFace.Front
     }
 
     LaunchedEffect(state.isFinished) {
@@ -91,13 +91,11 @@ fun StudyScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            var cardFace by remember { mutableStateOf(CardFace.Front) }
 
             FlippableCard(
                 cardFace = cardFace,
                 onClick = {
                     cardFace = it.next
-                    isFlipped = !isFlipped
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -138,7 +136,7 @@ fun StudyScreen(
                     .weight(0.5f),
                 contentAlignment = Alignment.Center,
             ) {
-                if (isFlipped) {
+                if (cardFace == CardFace.Back) {
                     AnswerButtons { reviewGrade ->
                         onReviewAnswer(state.currentFlashcard, reviewGrade)
                     }
