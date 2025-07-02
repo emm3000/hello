@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -135,8 +136,9 @@ fun DashboardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp),
+            modifier = Modifier
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
