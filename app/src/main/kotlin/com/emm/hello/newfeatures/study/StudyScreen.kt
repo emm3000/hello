@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.study
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -227,6 +228,19 @@ fun rememberTextToSpeech(): TextToSpeechController {
 
 @Composable
 fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -> Unit = {}) {
+
+    val colorScheme = MaterialTheme.colorScheme
+
+    val textColor = if (isSystemInDarkTheme()) {
+        colorScheme.onSurface.copy(alpha = 0.85f)
+    } else {
+        Color.White
+    }
+
+    val alpha = if (isSystemInDarkTheme()) {
+        0.25f
+    } else 0.85f
+
     Column(
         modifier = modifier
             .fillMaxSize(),
@@ -238,13 +252,19 @@ fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -
         ) {
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.errorContainer.copy(alpha = alpha),
+                    contentColor = textColor,
+                ),
                 content = { Text("Again") },
                 modifier = Modifier.weight(1f)
             )
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57C00)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.secondaryContainer.copy(alpha = alpha),
+                    contentColor = textColor,
+                ),
                 content = { Text("Hard") },
                 modifier = Modifier.weight(1f)
             )
@@ -255,13 +275,19 @@ fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -
         ) {
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.primaryContainer.copy(alpha = alpha),
+                    contentColor = textColor,
+                ),
                 content = { Text("Good") },
                 modifier = Modifier.weight(1f)
             )
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF689F38)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.tertiaryContainer.copy(alpha = alpha),
+                    contentColor = textColor,
+                ),
                 content = { Text("Easy") },
                 modifier = Modifier.weight(1f)
             )
