@@ -51,7 +51,10 @@ import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
 
 @Composable
-fun QuotesScreen(quotes: List<Quote>) {
+fun QuotesScreen(
+    quotes: List<Quote>,
+    createCard: (Quote) -> Unit = {}
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -60,13 +63,13 @@ fun QuotesScreen(quotes: List<Quote>) {
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         items(quotes, key = Quote::id) { quote ->
-            QuoteItem(quote = quote)
+            QuoteItem(quote = quote, onClick = createCard)
         }
     }
 }
 
 @Composable
-fun QuoteItem(quote: Quote) {
+fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -130,11 +133,17 @@ fun QuoteItem(quote: Quote) {
                 }
                 Button(
                     onClick = {
-
-                    }
+                        onClick(quote)
+                    },
+                    enabled = quote.hasCard.not()
                 ) {
-                    Text("Create Flashcard")
+                    if (quote.hasCard.not()) {
+                        Text("Create Flashcard")
+                    } else {
+                        Text("Has card")
+                    }
                 }
+
             }
         }
     }
@@ -194,7 +203,8 @@ private val sampleQuotes = listOf(
         pronunciation = "/ˌkɑːrpeɪ ˈdiːɛm/",
         formality = "Informal",
         tags = listOf("motivation", "latin", "classic"),
-        category = "Philosophy"
+        category = "Philosophy",
+        hasCard = false,
     ),
     Quote(
         id = "2",
@@ -207,7 +217,8 @@ private val sampleQuotes = listOf(
         pronunciation = "/ˈweːniː ˈwiːdiː ˈwiːkiː/",
         formality = "Formal",
         tags = listOf("history", "latin", "victory"),
-        category = "History"
+        category = "History",
+        hasCard = false,
     )
 )
 

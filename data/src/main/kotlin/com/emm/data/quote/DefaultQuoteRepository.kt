@@ -57,10 +57,28 @@ class DefaultQuoteRepository(
         .map(::toDomain)
 
     override fun allQuotes(): Flow<List<Quote>> = dao
-        .all()
+        .all2()
         .asFlow()
         .mapToList(Dispatchers.IO)
-        .map(::toDomain)
+        .map {
+            it.map { entity ->
+                Quote(
+                    id = entity.id,
+                    title = entity.title,
+                    phrase = entity.phrase,
+                    description = entity.description,
+                    translation = entity.translation,
+                    example = entity.example,
+                    context = entity.context,
+                    pronunciation = entity.pronunciation,
+                    formality = entity.formality,
+                    tags = entity.tags.split("|").map(String::trim),
+                    category = entity.category,
+                    hasCard = entity.hasCard,
+                )
+            }
+
+        }
 
     private fun toDomain(quotes: List<QuoteEntity>): List<Quote> = quotes.map(QuoteEntity::toDomain)
 }

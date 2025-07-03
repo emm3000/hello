@@ -21,6 +21,13 @@ INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 all:
 SELECT * FROM Quote ORDER BY createdAt DESC;
 
+all2:
+SELECT
+    Quote.*,
+    Flashcard.id IS NOT NULL AS hasCard
+FROM Quote
+LEFT JOIN Flashcard ON Flashcard.id = Quote.id;
+
 pending:
 SELECT * FROM Quote WHERE syncStatus = 'Pending';
 

@@ -12,4 +12,5 @@ data class Quote(
     val formality: String,
     val tags: List<String>,
     val category: String,
+    val hasCard: Boolean,
 )

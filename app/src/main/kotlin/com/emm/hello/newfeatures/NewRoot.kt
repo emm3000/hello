@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -19,6 +20,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import com.emm.data.remote.DataStore
+import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteRepository
 import com.emm.hello.newfeatures.card.FlashcardDetailScreen
@@ -36,6 +40,7 @@ import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.study.StudyScreen
 import com.emm.hello.newfeatures.study.StudyViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -88,10 +93,28 @@ fun NewRoot() {
             )
         ) {
             val quotesRepository: QuoteRepository = koinInject()
+            val cardRepository: FlashcardRepository = koinInject()
+            val dataStore: DataStore = koinInject()
 
             val quotes: List<Quote> by quotesRepository.allQuotes().collectAsStateWithLifecycle(emptyList())
 
-            QuotesScreen(quotes)
+            val scope = rememberCoroutineScope()
+
+            QuotesScreen(quotes) {
+                scope.launch {
+                    if (dataStore.defaultDeck.isNotEmpty()) {
+                        val input = CreateFlashcardInput(
+                            id = it.id,
+                            deckId = dataStore.defaultDeck,
+                            word = it.phrase,
+                            meaning = it.description,
+                            translation = it.translation,
+                            phonetic = it.pronunciation
+                        )
+                        cardRepository.create(input)
+                    }
+                }
+            }
         }
         composable<NewRoutes.Study> {
             val route = it.toRoute<NewRoutes.Study>()

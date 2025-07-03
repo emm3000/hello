@@ -325,7 +325,8 @@ fun DashboardScreenPreviewDark() {
                     pronunciation = "a",
                     formality = "dicam",
                     tags = listOf(),
-                    category = "litora"
+                    category = "litora",
+                    hasCard = false,
                 ),
                 isSyncing = true,
                 lastUpdatedDate = null,

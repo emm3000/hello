@@ -31,4 +31,5 @@ fun QuoteEntity.toDomain() = Quote(
     formality = formality,
     tags = tags.split("|").map(String::trim),
     category = category,
+    hasCard = false,
 )

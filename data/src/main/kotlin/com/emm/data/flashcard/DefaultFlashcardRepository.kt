@@ -35,7 +35,7 @@ class DefaultFlashcardRepository(
     private val exampleDao: FlashcardExampleQueries = db.flashcardExampleQueries
 
     override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
-        val cardId: String = UUID.randomUUID().toString()
+        val cardId: String = input.id ?: UUID.randomUUID().toString()
         dao.create(
             id = cardId,
             deckId = input.deckId,
