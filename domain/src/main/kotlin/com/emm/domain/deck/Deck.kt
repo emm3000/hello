@@ -9,6 +9,7 @@ data class Deck(
     val description: String,
     val createdAt: LocalDateTime,
     val cards: List<Flashcard>,
+    val cardsCount: Long,
 ) {
 
     companion object {
@@ -20,6 +21,7 @@ data class Deck(
                 description = "",
                 createdAt = LocalDateTime.now(),
                 cards = emptyList(),
+                cardsCount = 0L,
             )
     }
 }

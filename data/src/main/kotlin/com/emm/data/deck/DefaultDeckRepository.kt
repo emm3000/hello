@@ -45,4 +45,21 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
         .asFlow()
         .mapToList(Dispatchers.IO)
         .map(List<DeckEntity>::toDomain)
+
+    override fun deckWithFlashcardCount(): Flow<List<Deck>> = dq
+        .deckWithFlashcardCount()
+        .asFlow()
+        .mapToList(Dispatchers.IO)
+        .map {
+            it.map { flashcardCount ->
+                Deck(
+                    id = flashcardCount.id,
+                    name = flashcardCount.name,
+                    description = flashcardCount.description.orEmpty(),
+                    createdAt = flashcardCount.createdAt.toLocalDateTime(),
+                    cards = emptyList(),
+                    cardsCount = flashcardCount.flashcardCount,
+                )
+            }
+        }
 }

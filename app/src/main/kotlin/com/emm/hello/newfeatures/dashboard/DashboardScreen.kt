@@ -8,7 +8,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,18 +23,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -68,7 +62,6 @@ fun DashboardScreen(
     onDeckDetail: (String) -> Unit = {},
     onStartReview: () -> Unit = {},
     onCreateDeck: () -> Unit = {},
-    onForcePopulate: () -> Unit = {},
     onNavigateToQuotes: () -> Unit = {},
 ) {
 
@@ -98,30 +91,11 @@ fun DashboardScreen(
                         )
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            modifier = Modifier.rotate(rotation),
+                            modifier = Modifier.rotate(rotation).padding(end = 10.dp),
                             contentDescription = "Editar"
                         )
                     } else if (state.lastUpdatedDate != null) {
                         Text(text = state.lastUpdatedDate, fontSize = 14.sp)
-                    }
-                    Box {
-                        var isMenuExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { isMenuExpanded = true }) {
-                            Icon(Icons.Default.Settings, contentDescription = "Configuración")
-                        }
-                        DropdownMenu(
-                            expanded = isMenuExpanded,
-                            onDismissRequest = { isMenuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("force populate") },
-                                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
-                                onClick = {
-                                    onForcePopulate()
-                                    isMenuExpanded = false
-                                }
-                            )
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -242,7 +216,7 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(deck.name, style = MaterialTheme.typography.bodyLarge)
-            Text("${deck.cards.size} cards", style = MaterialTheme.typography.bodyMedium)
+            Text("${deck.cardsCount} cards", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

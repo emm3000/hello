@@ -74,21 +74,10 @@ fun DeckDetailScreen(
                     enabled = state.hasSessionEnabled,
                 )
             }
-
             items(state.deck.cards, key = Flashcard::id) { card ->
                 DeckCardItem(card = card) {
-                    onCardClick(card.id)
+                    onCardClick(it)
                 }
-            }
-
-            item {
-                Text(
-                    text = "Cards revisadas"
-                )
-            }
-
-            items(state.cardsSession, key = Flashcard::id) { card ->
-                DeckCardItem2(card = card)
             }
         }
     }
@@ -116,33 +105,13 @@ fun DeckDetailHeader(
 }
 
 @Composable
-fun DeckCardItem(card: Flashcard, onCardClick: (String) -> Unit = {}) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { onCardClick(card.id) },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(card.word, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(card.examples.firstOrNull()?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-    }
-}
-
-@Composable
-fun DeckCardItem2(
+fun DeckCardItem(
     card: Flashcard,
+    onCardClick: (String) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = {  },
+        onClick = { onCardClick(card.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
@@ -193,24 +162,6 @@ fun DeckDetailScreenPreview() {
                         )
                     )
                 ),
-                cardsSession = listOf(
-                    Flashcard(
-                        id = "urna2",
-                        word = "suscipiantur",
-                        meaning = "wisi",
-                        translation = "consectetur",
-                        examples = listOf(
-                            Example(
-                                exampleId = "reprimique",
-                                text = "impetus",
-                                translation = "appareat",
-                                type = "ridens"
-                            )
-                        ),
-                        phonetic = "(603) 760-5336",
-                        review = FlashcardReview.Empty
-                    )
-                )
             )
         )
     }

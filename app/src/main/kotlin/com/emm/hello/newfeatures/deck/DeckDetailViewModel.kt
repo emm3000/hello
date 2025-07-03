@@ -23,9 +23,19 @@ class DeckDetailViewModel(
         flow = decksWithCardsProvider.provide(deckId),
         flow2 = fetchSessionCars(),
         transform = { deck, (cardsSession, hasSessionEnabled) ->
+            val deckCardsWithReview: List<Flashcard> = deck.cards.zip(cardsSession) { deckCards: Flashcard, sessionCards: Flashcard ->
+                Flashcard(
+                    id = deckCards.id,
+                    word = deckCards.word,
+                    meaning = deckCards.meaning,
+                    translation = deckCards.translation,
+                    examples = deckCards.examples,
+                    phonetic = deckCards.phonetic,
+                    review = sessionCards.review,
+                )
+            }
             DeckDetailUiState(
-                deck = deck,
-                cardsSession = cardsSession,
+                deck = deck.copy(cards = deckCardsWithReview),
                 hasSessionEnabled = hasSessionEnabled,
             )
         }

@@ -21,3 +21,9 @@ SELECT * FROM Deck WHERE id = ?;
 
 insert:
 INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?, ?, ?);
+
+deckWithFlashcardCount:
+SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount
+FROM Deck
+LEFT JOIN Flashcard ON Flashcard.deckId = Deck.id
+GROUP BY Deck.id;
