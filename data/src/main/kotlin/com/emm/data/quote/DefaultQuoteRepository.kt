@@ -28,7 +28,7 @@ class DefaultQuoteRepository(
     private val dao: QuotesQueries = db.quotesQueries
 
     override suspend fun generate() = withContext(Dispatchers.IO) {
-        val quotePrompt: String = Prompt.quotePrompt()
+        val quotePrompt: String = Prompt.quotePrompt2()
         val process: String = geminiApi.process(quotePrompt)
         val quote: QuoteResponse = parseQuoteResponse(process, json) ?: return@withContext
         dao.insert(

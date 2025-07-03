@@ -89,7 +89,9 @@ object Prompt {
         - ⚠️ Avoid generic textbook phrases or motivational quotes.
 
         🔠 To ensure variety and prevent repetition:
-        - The phrase must contain at least **one word that starts with each of these letters**: ${randomLetters.toCharArray().joinToString(", ")}.
+        - The phrase must contain at least **one word that starts with each of these letters**: ${
+            randomLetters.toCharArray().joinToString(", ")
+        }.
 
         Return only the following valid JSON format:
 
@@ -121,6 +123,74 @@ object Prompt {
         ⚠️ Very Important:
         - Only return the **JSON object**.
         - Do **NOT include** markdown, backticks, explanations, or comments outside the JSON.
+    """.trimIndent()
+    }
+
+    fun quotePrompt2(): String {
+        val now = LocalDateTime.now()
+        val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
+        val randomLetters = (('A'..'Z')).shuffled().take(3).joinToString("")
+        val seed = "$seedBase-$randomLetters-${(100..999).random()}"
+
+        return """
+            Seed for generation: $seed
+            
+            Act as a native English speaker who helps language learners acquire **natural English** through **real-life, comprehensible input**.
+            
+            Your task is to generate a **JSON object** containing a **natural phrase** that is:
+            - Commonly said by **native speakers** in real, everyday situations.
+            - Short enough to be memorable, but long enough to contain meaning (8–14 words).
+            - Based on **real spoken English**, not textbook or artificial language.
+            - Easy enough for learners to understand from context (comprehensible input).
+            - Includes at least **one phrasal verb** (e.g., "run into", "figure out", "check in", "get over").
+            
+            🔍 Focus on **daily, non-work, non-academic** real-life contexts, such as:
+            - 🏠 At home
+            - 🧑‍🤝‍🧑 Talking with friends or family
+            - 📺 Watching TV or commenting on social media
+            - 🛒 Doing chores or shopping
+            - ☕ At cafés or restaurants
+            - 🚌 Public transport, walking, or running errands
+            - 📱 Talking on the phone or texting
+            - 💬 Everyday emotional or casual expression
+            - 🙄 Handling problems, complaints, or surprises
+            
+            ✅ Requirements:
+            - The phrase must be **specific and useful** in real conversation.
+            - It must be something people **actually say**, not motivational or philosophical.
+            - It must contain **at least one word that starts with each of these letters**: ${randomLetters.toCharArray().joinToString(", ")}.
+            - Avoid slang that's too obscure; favor **natural but understandable** English.
+            
+            Return ONLY the following JSON structure:
+            
+            {
+              "success": true,
+              "data": {
+                "title": "<short title>",
+                "phrase": "<the phrase>",
+                "description": "<explanation of what it means and when it's used>",
+                "translation": "<Spanish translation>",
+                "example": "<a full sentence using the phrase>",
+                "context": "<realistic situation where someone would say this>",
+                "pronunciation": "<IPA transcription>",
+                "formality": "<casual | neutral>",
+                "tags": ["tag1", "tag2"],
+                "category": "<home, friends, errands, phone, restaurant, etc.>"
+              }
+            }
+            
+            If a valid phrase cannot be generated, return:
+            
+            {
+              "success": false,
+              "error": {
+                "message": "Unable to generate a valid everyday English phrase."
+              }
+            }
+            
+            ⚠️ Very Important:
+            - Output must be ONLY the **raw JSON object**.
+            - Do **NOT** include Markdown, backticks, explanations, or comments.
     """.trimIndent()
     }
 }
