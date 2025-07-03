@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.emm.data.remote.DataStore
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.flashcard.Flashcard
@@ -18,6 +19,7 @@ data class NewCardUiState(
     val decks: List<Deck> = emptyList(),
     val deckSelected: Deck? = null,
     val isLoading: Boolean = false,
+    val isCheck: Boolean = false,
     val error: String? = null,
     val result: Flashcard? = null,
 )
@@ -28,6 +30,8 @@ sealed interface NewCardAction {
 
     data class OnDeckSelected(val deck: Deck) : NewCardAction
 
+    data class OnCheckChanged(val checked: Boolean) : NewCardAction
+
     object OnGenerateClicked : NewCardAction
 
     object OnSaveClicked : NewCardAction
@@ -36,6 +40,7 @@ sealed interface NewCardAction {
 class NewCardViewModel(
     deckFetcher: DeckFetcher,
     private val cardCreator: FlashcardCreator,
+    private val dataStore: DataStore,
 ) : ViewModel() {
 
     var state by mutableStateOf(NewCardUiState())
@@ -43,8 +48,20 @@ class NewCardViewModel(
 
     fun onAction(action: NewCardAction) {
         when (action) {
-            is NewCardAction.OnDeckSelected -> state = state.copy(deckSelected = action.deck)
+            is NewCardAction.OnDeckSelected -> state = state.copy(
+                deckSelected = action.deck,
+                isCheck = dataStore.defaultDeck == action.deck.id,
+            )
             is NewCardAction.OnWordChanged -> state = state.copy(word = action.word)
+            is NewCardAction.OnCheckChanged -> {
+                if (action.checked) {
+                    dataStore.defaultDeck = state.deckSelected?.id.orEmpty()
+                    state = state.copy(isCheck = true)
+                } else {
+                    dataStore.defaultDeck = ""
+                    state = state.copy(isCheck = false)
+                }
+            }
             NewCardAction.OnSaveClicked -> createFlashcard()
             NewCardAction.OnGenerateClicked -> createFlashcard()
         }

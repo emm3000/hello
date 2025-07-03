@@ -21,10 +21,10 @@ class DataStore(
         defaultValue = LocalDateTime.now().toString(),
     ).distinctUntilChanged()
 
-    var checksum: String
-        get() = sharedPreferences.getString(LAST_CHECKSUM, null).orEmpty()
+    var defaultDeck
+        get() = sharedPreferences.getString("DEFAULT_DECK", "").orEmpty()
         set(value) {
-            editor.putString(LAST_CHECKSUM, value).apply()
+            editor.putString("DEFAULT_DECK", value).apply()
         }
 
     fun markDate() {
@@ -53,7 +53,6 @@ class DataStore(
         const val ERROR_KEY = "ERROR_KEY"
         const val SUCCESS_KEY = "SUCCESS_KEY"
         const val DATE_KEY = "DATE_KEY"
-        const val LAST_CHECKSUM = "LAST_CHECKSUM"
     }
 }
 
