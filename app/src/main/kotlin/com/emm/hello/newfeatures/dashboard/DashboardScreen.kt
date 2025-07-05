@@ -69,6 +69,7 @@ fun DashboardScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(end = 20.dp),
                 title = {
                     Text(
                         "Hola, Edgardo 😎",
@@ -91,7 +92,7 @@ fun DashboardScreen(
                         )
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            modifier = Modifier.rotate(rotation).padding(end = 10.dp),
+                            modifier = Modifier.rotate(rotation),
                             contentDescription = "Editar"
                         )
                     } else if (state.lastUpdatedDate != null) {
