@@ -8,7 +8,6 @@ import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
@@ -76,17 +75,17 @@ class SyncWorker(
 
         val soundUri = "android.resource://${appContext.packageName}/raw/random".toUri()
 
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .build()
+//        val audioAttributes = AudioAttributes.Builder()
+//            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+//            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+//            .build()
 
         val channel = NotificationChannel(
             channelId,
             "Frases del día",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            setSound(soundUri, audioAttributes)
+//            setSound(soundUri, audioAttributes)
         }
         notificationManager.createNotificationChannel(channel)
 
