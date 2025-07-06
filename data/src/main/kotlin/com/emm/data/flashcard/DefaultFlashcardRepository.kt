@@ -14,6 +14,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.StaticCategories
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -76,6 +77,16 @@ class DefaultFlashcardRepository(
         val prompt: String = Prompt.buildPrompt(word)
         val response: String = geminiService.process(prompt)
         val flashcardGenerated: FlashcardGenerated = FlashcardResponseParses.parse(response, json)
+        return@withContext flashcardGenerated
+    }
+
+    override suspend fun generatedFlashcard(
+        categories: StaticCategories,
+        difficulty: String
+    ): FlashcardGenerated = withContext(Dispatchers.IO) {
+        val prompt: String = Prompt.buildPrompt(categories.name, difficulty)
+        val response: String = geminiService.process(prompt)
+        val flashcardGenerated: FlashcardGenerated = AnkiResponseParses.parse(response, json)
         return@withContext flashcardGenerated
     }
 

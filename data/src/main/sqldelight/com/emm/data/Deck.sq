@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 CREATE TABLE Deck (
     id TEXT NOT NULL PRIMARY KEY, -- UUID
     name TEXT NOT NULL,           -- Ej: "Frases de viaje", "Nivel A1"
@@ -26,4 +28,5 @@ deckWithFlashcardCount:
 SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount
 FROM Deck
 LEFT JOIN Flashcard ON Flashcard.deckId = Deck.id
-GROUP BY Deck.id;
+GROUP BY Deck.id
+ORDER BY Deck.createdAt DESC;

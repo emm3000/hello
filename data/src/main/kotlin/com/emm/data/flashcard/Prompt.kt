@@ -57,6 +57,66 @@ object Prompt {
         return fullPrompt
     }
 
+    fun buildPrompt2(wordOrPhrase: String): String {
+        return """
+        You are a bilingual language learning assistant designed for native Spanish speakers who want to learn English using spaced repetition flashcards.
+
+        The user input may be either:
+        - A word or phrase in **Spanish** they want to learn in English.
+        - A word or phrase in **English** they want to understand better.
+
+        Your job is to:
+        1. Detect the input language automatically.
+        2. Translate or interpret it into English appropriately (not word-for-word—use natural, useful English).
+        3. Build a detailed Anki flashcard in JSON format with rich data for vocabulary acquisition.
+
+        ⚠️ Ensure the output uses the following schema:
+
+        {
+          "success": true,
+          "detected_language": "<es | en>",
+          "type": "<word | phrase | idiom | sentence | phrasal_verb>",
+          "data": {
+            "word": "<target word or phrase in English>",
+            "meaning": "<clear English explanation of the word or phrase>",
+            "translation": "<Spanish translation>",
+            "phonetic": "<IPA pronunciation of the English term>",
+            "language": "en",
+            "audio_url": null,
+            "image_prompt": "<a prompt to generate an image that represents the meaning>",
+            "tags": ["<basic>", "<daily_use>", "<verb>", "<intermediate>", "<idiom>", ...],
+            "examples": [
+              {
+                "text": "<English sentence using the word/phrase>",
+                "translation": "<Spanish translation>",
+                "level": "<easy | medium | advanced>"
+              }
+            ],
+            "notes": "<grammar tips, collocations, common errors, or synonyms>",
+            "conjugation": {
+              "present": "<present>",
+              "past": "<past>",
+              "participle": "<past participle>",
+              "gerund": "<-ing>"
+            } // Only include if it's a verb
+          }
+        }
+
+        If the input is invalid, nonsensical, or not useful for learning English, return:
+        {
+          "success": false,
+          "error": {
+            "message": "Invalid or unclear input for language learning.",
+            "input": "<original input>"
+          }
+        }
+
+        Return only a valid JSON object. No markdown, no extra text.
+
+        Input: "$wordOrPhrase"
+    """.trimIndent()
+    }
+
     fun quotePrompt(): String {
         val now = LocalDateTime.now()
         val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
@@ -158,7 +218,9 @@ object Prompt {
             ✅ Requirements:
             - The phrase must be **specific and useful** in real conversation.
             - It must be something people **actually say**, not motivational or philosophical.
-            - It must contain **at least one word that starts with each of these letters**: ${randomLetters.toCharArray().joinToString(", ")}.
+            - It must contain **at least one word that starts with each of these letters**: ${
+            randomLetters.toCharArray().joinToString(", ")
+        }.
             - Avoid slang that's too obscure; favor **natural but understandable** English.
             
             Return ONLY the following JSON structure:
@@ -191,6 +253,43 @@ object Prompt {
             ⚠️ Very Important:
             - Output must be ONLY the **raw JSON object**.
             - Do **NOT** include Markdown, backticks, explanations, or comments.
+    """.trimIndent()
+    }
+
+    fun buildPrompt(category: String, complexity: String): String {
+        val now = LocalDateTime.now()
+        val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
+        val randomLetters = (('A'..'Z')).shuffled().take(4).joinToString("")
+        val seed = "$seedBase-$randomLetters-${(100..999).random()}"
+        return """
+            Seed for generation: $seed
+            Act as an English teacher that creates simple and effective flashcards for Spanish-speaking learners using the Anki format.
+    
+            The flashcard should be based on the category: "$category"
+            and the complexity level: "$complexity" (one of: basic, intermediate, advanced).
+    
+            Your task:
+            - Choose a useful and natural English sentence or phrase that fits the category and level.
+            - Translate it to Spanish clearly.
+            - Return a minimal JSON object with ONLY the essential info for an Anki card.
+            - It must contain **at least one word that starts with each of these letters**: ${
+            randomLetters.toCharArray().joinToString(", ")
+        }
+    
+            Format:
+            {
+              "success": true,
+              "category": "<category>",
+              "complexity": "<complexity>",
+              "front": "<english phrase or sentence>",
+              "back": "<spanish translation>"
+            }
+    
+            ❌ Do NOT include examples, IPA, audio, tags, explanations or any extra fields.
+            ❌ Do NOT include markdown, prefaces, or notes.
+            ✅ Return only raw JSON in the format above.
+    
+            Generate one flashcard only.
     """.trimIndent()
     }
 }

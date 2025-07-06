@@ -10,6 +10,8 @@ interface FlashcardRepository {
 
     suspend fun generateFlashcard(word: String): FlashcardGenerated
 
+    suspend fun generatedFlashcard(categories: StaticCategories, difficulty: String): FlashcardGenerated
+
     fun fetchAll(): Flow<List<Flashcard>>
 
     fun fetchByDeckId(deckId: String): Flow<List<Flashcard>>

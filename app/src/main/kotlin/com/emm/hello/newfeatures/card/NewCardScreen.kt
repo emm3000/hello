@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,6 +50,9 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.TypeView
+import com.emm.domain.flashcard.difficult
+import com.emm.domain.flashcard.staticCategories
 import com.emm.hello.core.theme.HelloTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +64,8 @@ fun NewCardScreen(
     onNavigateBack: () -> Unit = {},
 ) {
 
+    val showBottomSheet = remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -68,6 +74,18 @@ fun NewCardScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            onAction(NewCardAction.OnTypeViewSelected(state.typeView.other))
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SwitchLeft,
+                            contentDescription = "Change Ui"
+                        )
                     }
                 }
             )
@@ -80,16 +98,35 @@ fun NewCardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = state.word,
-                    onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
-                    enabled = !state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Palabra o frase en inglés") },
-                    singleLine = true
-                )
+
+            when(state.typeView) {
+                TypeView.WordOrPhase -> item {
+                    OutlinedTextField(
+                        value = state.word,
+                        onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
+                        enabled = !state.isLoading,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Palabra o frase en inglés") },
+                        singleLine = true
+                    )
+                }
+                TypeView.WithCategories -> item {
+                    JustClickableInput(
+                        value = state.category.name,
+                        label = "Category",
+                        onClick = { showBottomSheet.value = true }
+                    )
+                    GemaDropdown(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = true,
+                        textLabel = "Difficult",
+                        items = difficult,
+                        itemSelected = state.difficulty,
+                        onItemSelected = {
+                            onAction(NewCardAction.OnDifficultySelected(it))
+                        }
+                    )
+                }
             }
 
             item {
@@ -105,6 +142,7 @@ fun NewCardScreen(
                         LabeledCheckbox(
                             label = "Marcar deck por defecto",
                             checked = state.isCheck,
+                            isEnabled = state.deckSelected != null,
                             onCheckedChange = {
                                 onAction(NewCardAction.OnCheckChanged(it))
                             }
@@ -119,8 +157,9 @@ fun NewCardScreen(
                     onClick = {
                         onAction(NewCardAction.OnGenerateClicked)
                     },
-                    enabled = !state.isLoading && state.deckSelected != null && state.word.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth()
+                    enabled = !state.isLoading && state.deckSelected != null && state.word.isNotBlank() || (state.typeView == TypeView.WithCategories && !state.isLoading),
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(48.dp)
                 ) {
                     if (state.isLoading) {
@@ -146,12 +185,20 @@ fun NewCardScreen(
 
         }
     }
+
+    BottomSheetDialogForPickCategory(
+        onDismissRequest = { showBottomSheet.value = it },
+        showBottomSheet = showBottomSheet.value,
+        accounts = staticCategories,
+        onAction = { onAction(NewCardAction.OnCategorySelected(it)) }
+    )
 }
 
 @Composable
 fun LabeledCheckbox(
     label: String,
     checked: Boolean,
+    isEnabled: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -160,12 +207,13 @@ fun LabeledCheckbox(
             .fillMaxWidth()
             .clickable(
                 onClick = { onCheckedChange(!checked) },
+                enabled = isEnabled
             )
             .padding(8.dp)
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = null
+            onCheckedChange = null,
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = label)

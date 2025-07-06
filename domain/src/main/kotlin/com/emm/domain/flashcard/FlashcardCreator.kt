@@ -2,9 +2,18 @@ package com.emm.domain.flashcard
 
 class FlashcardCreator(private val repository: FlashcardRepository) {
 
-    suspend fun createFlashcard(word: String, deckId: String): Flashcard {
+    suspend fun createFlashcard(
+        word: String,
+        deckId: String,
+        categories: StaticCategories,
+        difficulty: String,
+        typeView: TypeView,
+    ): Flashcard {
 
-        val flashcard: FlashcardGenerated = repository.generateFlashcard(word)
+        val flashcard: FlashcardGenerated = when(typeView) {
+            TypeView.WordOrPhase -> repository.generateFlashcard(word)
+            TypeView.WithCategories -> repository.generatedFlashcard(categories, difficulty)
+        }
         val input = CreateFlashcardInput(
             deckId = deckId,
             word = flashcard.word,

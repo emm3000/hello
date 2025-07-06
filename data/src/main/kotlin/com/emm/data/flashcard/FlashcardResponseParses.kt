@@ -14,11 +14,7 @@ import kotlinx.serialization.json.jsonPrimitive
 object FlashcardResponseParses {
 
     fun parse(raw: String, json: Json): FlashcardGenerated {
-        val cleaned: String = raw
-            .removePrefix("```json")
-            .removePrefix("```")
-            .removeSuffix("```")
-            .trim()
+        val cleaned: String = raw.removePrefixAndSuffix()
 
         return try {
             val root: JsonObject = json.parseToJsonElement(cleaned).jsonObject

@@ -10,6 +10,10 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardCreator
+import com.emm.domain.flashcard.StaticCategories
+import com.emm.domain.flashcard.TypeView
+import com.emm.domain.flashcard.difficult
+import com.emm.domain.flashcard.staticCategories
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -20,6 +24,9 @@ data class NewCardUiState(
     val deckSelected: Deck? = null,
     val isLoading: Boolean = false,
     val isCheck: Boolean = false,
+    val category: StaticCategories = staticCategories.first(),
+    val typeView: TypeView = TypeView.WordOrPhase,
+    val difficulty: String = difficult.first(),
     val error: String? = null,
     val result: Flashcard? = null,
 )
@@ -31,6 +38,12 @@ sealed interface NewCardAction {
     data class OnDeckSelected(val deck: Deck) : NewCardAction
 
     data class OnCheckChanged(val checked: Boolean) : NewCardAction
+
+    data class OnCategorySelected(val category: StaticCategories) : NewCardAction
+
+    data class OnDifficultySelected(val difficulty: String) : NewCardAction
+
+    data class OnTypeViewSelected(val typeView: TypeView) : NewCardAction
 
     object OnGenerateClicked : NewCardAction
 
@@ -64,6 +77,9 @@ class NewCardViewModel(
             }
             NewCardAction.OnSaveClicked -> createFlashcard()
             NewCardAction.OnGenerateClicked -> createFlashcard()
+            is NewCardAction.OnCategorySelected -> state = state.copy(category = action.category)
+            is NewCardAction.OnDifficultySelected -> state = state.copy(difficulty = action.difficulty)
+            is NewCardAction.OnTypeViewSelected -> state = state.copy(typeView = action.typeView)
         }
     }
 
@@ -84,6 +100,9 @@ class NewCardViewModel(
             val createFlashcard = cardCreator.createFlashcard(
                 word = state.word,
                 deckId = deckId,
+                categories = state.category,
+                difficulty = state.difficulty,
+                typeView = state.typeView,
             )
             state = state.copy(word = "", result = createFlashcard, isLoading = false)
         } catch (e: Exception) {
