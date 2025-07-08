@@ -3,7 +3,7 @@ package com.emm.hello.features.backup
 import android.content.Context
 import java.io.File
 
-const val DIRECTORY = "Betsy Silva"
+const val DIRECTORY = "Bro"
 
 fun Context.createDirectory(): File {
     val directory = File(this.filesDir, DIRECTORY)
