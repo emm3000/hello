@@ -13,6 +13,7 @@ import com.emm.hello.R
 val SyncConstraints
     get() = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.CONNECTED)
+        .setRequiresCharging(true)
         .build()
 
 fun Context.syncForegroundInfo(channelName: String, notificationId: Int, channelId: String) = ForegroundInfo(
