@@ -13,8 +13,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.emm.hello.newfeatures.NewRoutes
 import com.emm.hello.newfeatures.card.NewCardRoute
+import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.serialization.Serializable
@@ -49,7 +49,7 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
         DashboardScreen(
             state = state,
             newCard = { navController.navigate(NewCardRoute) },
-            onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
+            onDeckDetail = { navController.navigate(DeckDetailRoute(it)) },
             onStartReview = { navController.navigate(StudyRoute) },
             onCreateDeck = { navController.navigate(NewDeckRoute) },
             onNavigateToQuotes = { navController.navigate(QuoteRoute) },
