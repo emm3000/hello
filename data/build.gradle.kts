@@ -4,7 +4,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
+    id("com.google.devtools.ksp")
     id("androidx.room")
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("app.cash.sqldelight") version libs.versions.androidDriver
@@ -16,7 +16,7 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.emm.data"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
