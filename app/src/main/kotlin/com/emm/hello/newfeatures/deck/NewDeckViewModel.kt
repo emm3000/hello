@@ -9,18 +9,6 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.DeckCreator
 import kotlinx.coroutines.launch
 
-data class NewDeckUiState(
-    val name: String = "",
-    val description: String = ""
-)
-
-sealed interface NewDeckAction {
-
-    data class NameChanged(val name: String) : NewDeckAction
-    data class DescriptionChanged(val description: String) : NewDeckAction
-    object Submit : NewDeckAction
-}
-
 class NewDeckViewModel(private val deckCreator: DeckCreator) : ViewModel() {
 
     var state by mutableStateOf(NewDeckUiState())

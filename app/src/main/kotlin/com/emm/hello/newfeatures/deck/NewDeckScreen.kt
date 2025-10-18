@@ -56,7 +56,7 @@ fun NewDeckScreen(
                             onAction(NewDeckAction.Submit)
                             onNavigateBack()
                         },
-                        enabled = state.name.isNotBlank()
+                        enabled = state.isValid
                     ) {
                         Text("Guardar")
                     }
