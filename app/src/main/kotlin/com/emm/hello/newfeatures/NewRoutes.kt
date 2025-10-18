@@ -16,8 +16,7 @@ object NewRoutes {
     @Serializable
     object Decks
 
-    @Serializable
-    object Quotes
+
 
     @Serializable
     data class DeckDetail(val deckId: String)

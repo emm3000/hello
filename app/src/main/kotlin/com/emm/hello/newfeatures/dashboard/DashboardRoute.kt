@@ -49,7 +49,7 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
             onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
             onStartReview = { navController.navigate(NewRoutes.Study) },
             onCreateDeck = { navController.navigate(NewRoutes.NewDeck) },
-            onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) },
+            onNavigateToQuotes = { navController.navigate(QuoteRoute) },
         )
     }
 }

@@ -17,13 +17,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-data class DashboardUiState(
-    val decks: List<Deck> = emptyList(),
-    val quote: Quote? = null,
-    val isSyncing: Boolean = false,
-    val lastUpdatedDate: String? = null,
-)
-
 class DashboardViewModel(
     deckFetcher: DeckFetcher,
     quoteFetcher: QuoteLastFetcher,
