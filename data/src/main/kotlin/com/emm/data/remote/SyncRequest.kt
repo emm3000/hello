@@ -28,12 +28,9 @@ data class CardUpsertRequest(
     val meaning: String,
     val translation: String,
     val phonetic: String,
-    val audioPath: String,
-    val imagePath: String,
     val note: String,
     val createdAt: String,
     val updatedAt: String,
-    val isGenerated: Int,
     val deckId: String,
 )
 

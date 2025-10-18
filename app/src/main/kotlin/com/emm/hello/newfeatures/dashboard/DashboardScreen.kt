@@ -60,7 +60,6 @@ fun DashboardScreen(
     state: DashboardUiState = DashboardUiState(),
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
-    onStartReview: () -> Unit = {},
     onCreateDeck: () -> Unit = {},
     onNavigateToQuotes: () -> Unit = {},
 ) {
@@ -125,12 +124,6 @@ fun DashboardScreen(
                     )
                 }
             }
-
-//            item {
-//                ReviewCard(cardsToReview = 42) {
-//                    onStartReview()
-//                }
-//            }
 
             item {
                 DecksSection(onCreateDeck = onCreateDeck)

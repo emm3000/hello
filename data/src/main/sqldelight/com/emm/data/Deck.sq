@@ -1,5 +1,3 @@
-import kotlin.Boolean;
-
 CREATE TABLE Deck (
     id TEXT NOT NULL PRIMARY KEY, -- UUID
     name TEXT NOT NULL,           -- Ej: "Frases de viaje", "Nivel A1"

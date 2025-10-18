@@ -28,12 +28,9 @@ fun flashcardToDto(flashcard: Flashcard) = CardUpsertRequest(
     meaning = flashcard.meaning,
     translation = flashcard.translation.orEmpty(),
     phonetic = flashcard.phonetic.orEmpty(),
-    audioPath = flashcard.audioPath.orEmpty(),
-    imagePath = flashcard.imagePath.orEmpty(),
     note = flashcard.note.orEmpty(),
     createdAt = flashcard.createdAt.toString(),
     updatedAt = flashcard.updatedAt.toString(),
-    isGenerated = flashcard.isGenerated.toInt(),
     deckId = flashcard.deckId,
 )
 

@@ -7,21 +7,18 @@ CREATE TABLE Flashcard (
     translation TEXT,                   -- Traducción en español ("convincente")
 
     phonetic TEXT,                      -- Pronunciación /kəmˈpelɪŋ/
-    audioPath TEXT,                    -- Ruta local (opcional)
-    imagePath TEXT,                    -- Ruta a imagen local (opcional)
 
     note TEXT,                          -- Nota personal del usuario
     createdAt INTEGER NOT NULL,        -- Fecha de creación
     updatedAt INTEGER NOT NULL,
-    isGenerated INTEGER NOT NULL DEFAULT 0, -- 1 si fue generada por IA
     syncStatus TEXT NOT NULL,
 
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
 );
 
 create:
-INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, updatedAt, isGenerated, syncStatus)
-VALUES (?, ?, ?, ?, ?, ?, ?,?, 1, ?);
+INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, updatedAt, syncStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?,?, ?);
 
 all:
 SELECT * FROM Flashcard;
