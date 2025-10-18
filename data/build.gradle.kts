@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
-    id("androidx.room")
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("app.cash.sqldelight") version libs.versions.androidDriver
 }
@@ -46,10 +45,6 @@ android {
     buildFeatures {
         buildConfig = true
     }
-}
-
-room {
-    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {

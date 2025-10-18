@@ -18,6 +18,7 @@ import com.emm.data.deprecated.wordcontent.WordContentEntity
         ExampleEntity::class
     ],
     version = 9,
+    exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
 
