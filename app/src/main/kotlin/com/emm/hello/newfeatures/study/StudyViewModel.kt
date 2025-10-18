@@ -11,11 +11,6 @@ import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewUpdater
 import kotlinx.coroutines.launch
 
-data class StudyUiState(
-    val currentFlashcard: Flashcard? = null,
-    val isFinished: Boolean = false,
-)
-
 class StudyViewModel(
     deckId: String,
     flashcardFetcher: FlashcardFetcher,

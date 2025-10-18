@@ -22,8 +22,8 @@ import com.emm.hello.newfeatures.deck.DeckDetailUiState
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckScreen
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
-import com.emm.hello.newfeatures.study.StudyScreen
-import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.newfeatures.study.StudyRoute
+import com.emm.hello.newfeatures.study.study
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -40,18 +40,7 @@ fun NewRoot() {
 
         dashboard(navController)
         quote(navController)
-        composable<NewRoutes.Study> {
-            val route = it.toRoute<NewRoutes.Study>()
-            val vm: StudyViewModel = koinViewModel(
-                parameters = { parametersOf(route.deckId) }
-            )
-
-            StudyScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onReviewAnswer = vm::onProcess,
-                state = vm.state
-            )
-        }
+        study(navController)
         composable<NewRoutes.NewCard> {
             val vm: NewCardViewModel = koinViewModel()
 
@@ -79,7 +68,7 @@ fun NewRoot() {
 
             DeckDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onReview = { navController.navigate(NewRoutes.Study(state.deck.id)) },
+                onReview = { navController.navigate(StudyRoute(state.deck.id)) },
                 state = state,
                 onCardClick = { cardId ->
                     navController.navigate(NewRoutes.CardDetail(cardId))

@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 object NewRoutes {
 
     @Serializable
-    data class Study(val deckId: String)
-
-    @Serializable
     object NewCard
 
     @Serializable
@@ -15,8 +12,6 @@ object NewRoutes {
 
     @Serializable
     object Decks
-
-
 
     @Serializable
     data class DeckDetail(val deckId: String)
