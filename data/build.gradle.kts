@@ -89,8 +89,6 @@ sqldelight {
     databases {
         create("HelloDb") {
             packageName.set("com.emm.data")
-            schemaOutputDirectory = file("src/main/sqldelight/databases")
-            verifyMigrations = true
         }
     }
 }
