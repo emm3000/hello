@@ -19,8 +19,7 @@ import com.emm.hello.newfeatures.dashboard.quote
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailUiState
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
-import com.emm.hello.newfeatures.deck.NewDeckScreen
-import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.deck.newDeckRoute
 import com.emm.hello.newfeatures.study.StudyRoute
 import com.emm.hello.newfeatures.study.study
 import org.koin.androidx.compose.koinViewModel
@@ -41,14 +40,7 @@ fun NewRoot() {
         quote(navController)
         study(navController)
         newCardRoute(navController)
-        composable<NewRoutes.NewDeck> {
-            val vm: NewDeckViewModel = koinViewModel()
-            NewDeckScreen(
-                onNavigateBack = { navController.popBackStack() },
-                state = vm.state,
-                onAction = vm::onAction,
-            )
-        }
+        newDeckRoute(navController)
         composable<NewRoutes.DeckDetail> {
             val deckDetail: NewRoutes.DeckDetail = it.toRoute<NewRoutes.DeckDetail>()
             val vm: DeckDetailViewModel = koinViewModel(

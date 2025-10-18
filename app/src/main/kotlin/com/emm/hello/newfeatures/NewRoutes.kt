@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 object NewRoutes {
 
     @Serializable
-    object NewDeck
-
-    @Serializable
     object Decks
 
     @Serializable
