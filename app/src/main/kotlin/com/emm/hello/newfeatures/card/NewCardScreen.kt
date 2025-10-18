@@ -54,6 +54,7 @@ import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
 import com.emm.hello.core.theme.HelloTheme
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,8 +93,8 @@ fun NewCardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
+            contentPadding = innerPadding,
             modifier = Modifier
-                .padding(innerPadding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -371,10 +372,60 @@ fun DeckSelector(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun NewCardScreenPreview() {
     HelloTheme {
-        NewCardScreen()
+        NewCardScreen(
+            state = NewCardUiState(
+                word = "word",
+                decks = listOf(
+                    Deck(
+                        id = "doctus",
+                        name = "Joshua Maxwell",
+                        description = "idque",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 4080
+                    )
+                ),
+                result = Flashcard(
+                    id = "dictumst",
+                    word = "utroque",
+                    meaning = "porro",
+                    translation = "est",
+                    examples = listOf(
+                        Example(
+                            exampleId = "facilisis",
+                            text = "adversarium",
+                            translation = "montes",
+                            type = "petentium"
+                        ),
+                        Example(
+                            exampleId = "facilisis1",
+                            text = "adversarium",
+                            translation = "montes",
+                            type = "petentium"
+                        ),
+                        Example(
+                            exampleId = "facilisis2",
+                            text = "adversarium",
+                            translation = "montes",
+                            type = "petentium"
+                        )
+                    ),
+                    phonetic = "(608) 847-7529",
+                    review = FlashcardReview(
+                        flashcardId = "pri",
+                        lastReviewedAt = 1816,
+                        nextReviewAt = 3409,
+                        easeFactor = 2.3,
+                        interval = 8173,
+                        repetitions = 7428,
+                        lapses = 9002
+                    )
+                )
+            )
+        )
     }
 }
