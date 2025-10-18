@@ -1,19 +1,11 @@
 package com.emm.hello.newfeatures
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,10 +21,9 @@ import com.emm.hello.newfeatures.card.FlashcardDetailScreen
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardScreen
 import com.emm.hello.newfeatures.card.NewCardViewModel
-import com.emm.hello.newfeatures.dashboard.DashboardScreen
-import com.emm.hello.newfeatures.dashboard.DashboardUiState
-import com.emm.hello.newfeatures.dashboard.DashboardViewModel
+import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.QuotesScreen
+import com.emm.hello.newfeatures.dashboard.dashboard
 import com.emm.hello.newfeatures.deck.DeckDetailScreen
 import com.emm.hello.newfeatures.deck.DeckDetailUiState
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
@@ -52,41 +43,11 @@ fun NewRoot() {
 
     NavHost(
         navController = navController,
-        startDestination = NewRoutes.Dashboard,
+        startDestination = DashboardRoute,
         modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
 
-        composable<NewRoutes.Dashboard> {
-            val vm: DashboardViewModel = koinViewModel()
-
-            val state: DashboardUiState by vm.state.collectAsStateWithLifecycle()
-
-            val ctx = LocalContext.current
-
-            val permissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission(),
-                onResult = {}
-            )
-
-            LaunchedEffect(Unit) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val checkSelfPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS)
-                    val hasPermission: Boolean = checkSelfPermission == PackageManager.PERMISSION_GRANTED
-                    if (hasPermission.not()) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                }
-            }
-
-            DashboardScreen(
-                state = state,
-                newCard = { navController.navigate(NewRoutes.NewCard) },
-                onDeckDetail = { navController.navigate(NewRoutes.DeckDetail(it)) },
-                onStartReview = { navController.navigate(NewRoutes.Study) },
-                onCreateDeck = { navController.navigate(NewRoutes.NewDeck) },
-                onNavigateToQuotes = { navController.navigate(NewRoutes.Quotes) },
-            )
-        }
+        dashboard(navController)
         composable<NewRoutes.Quotes>(
             deepLinks = listOf(
                 navDeepLink { uriPattern = "gema://quotes" }

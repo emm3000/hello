@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 object NewRoutes {
 
     @Serializable
-    object Dashboard
-
-    @Serializable
     data class Study(val deckId: String)
 
     @Serializable
