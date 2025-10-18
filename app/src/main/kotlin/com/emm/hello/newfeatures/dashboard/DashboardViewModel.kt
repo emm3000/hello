@@ -44,8 +44,8 @@ class DashboardViewModel(
         )
 
     private fun formatString(dateTimeString: String): String {
-        val parse = LocalDateTime.parse(dateTimeString)
-        val formatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.getDefault())
+        val parse: LocalDateTime = LocalDateTime.parse(dateTimeString)
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a", Locale.getDefault())
         return parse.format(formatter)
     }
 }

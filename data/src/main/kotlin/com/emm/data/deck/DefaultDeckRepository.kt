@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
+import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
 import com.emm.data.SyncStatus
 import com.emm.domain.deck.CreateDeckInput
@@ -50,16 +51,16 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
         .deckWithFlashcardCount()
         .asFlow()
         .mapToList(Dispatchers.IO)
-        .map {
-            it.map { flashcardCount ->
-                Deck(
-                    id = flashcardCount.id,
-                    name = flashcardCount.name,
-                    description = flashcardCount.description.orEmpty(),
-                    createdAt = flashcardCount.createdAt.toLocalDateTime(),
-                    cards = emptyList(),
-                    cardsCount = flashcardCount.flashcardCount,
-                )
-            }
-        }
+        .map(::toDomain)
 }
+
+private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)
+
+private fun toDomain(flashcardCount: DeckWithFlashcardCount): Deck = Deck(
+    id = flashcardCount.id,
+    name = flashcardCount.name,
+    description = flashcardCount.description.orEmpty(),
+    createdAt = flashcardCount.createdAt.toLocalDateTime(),
+    cards = emptyList(),
+    cardsCount = flashcardCount.flashcardCount,
+)
