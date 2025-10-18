@@ -10,18 +10,14 @@ import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deprecated.anki.AnkiRepository
 import com.emm.domain.deprecated.word.WordContentRepository
 import com.emm.domain.deprecated.word.WordRepository
-import com.emm.hello.features.backup.domain.LocalStorageRepository
-import com.emm.hello.features.backup.domain.SharedLocalStorageRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import org.koin.android.ext.koin.androidApplication
-import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val repositoryModule = module {
     singleOf(::LocalWordRepository) bind WordRepository::class
-    factoryOf(::SharedLocalStorageRepository) bind LocalStorageRepository::class
     single {
         GeminiService(
             generativeModel = provideGenerativeModel(androidApplication())
