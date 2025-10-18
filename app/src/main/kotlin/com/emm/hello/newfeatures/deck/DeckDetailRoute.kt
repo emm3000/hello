@@ -6,7 +6,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.emm.hello.newfeatures.NewRoutes
+import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -29,7 +29,7 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
             onReview = { navController.navigate(StudyRoute(state.deck.id)) },
             state = state,
             onCardClick = { cardId ->
-                navController.navigate(NewRoutes.CardDetail(cardId))
+                navController.navigate(CardDetailRoute(cardId))
             }
         )
     }
