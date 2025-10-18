@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.emm.hello.newfeatures.card.cardDetailRoute
 import com.emm.hello.newfeatures.card.newCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.dashboard
@@ -31,6 +32,6 @@ fun NewRoot() {
         newCardRoute(navController)
         newDeckRoute(navController)
         deckDetailRoute(navController)
-
+        cardDetailRoute(navController)
     }
 }
