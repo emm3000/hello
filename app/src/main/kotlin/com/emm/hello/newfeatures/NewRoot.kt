@@ -12,8 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.emm.hello.newfeatures.card.FlashcardDetailScreen
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
-import com.emm.hello.newfeatures.card.NewCardScreen
-import com.emm.hello.newfeatures.card.NewCardViewModel
+import com.emm.hello.newfeatures.card.newCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.dashboard
 import com.emm.hello.newfeatures.dashboard.quote
@@ -41,15 +40,7 @@ fun NewRoot() {
         dashboard(navController)
         quote(navController)
         study(navController)
-        composable<NewRoutes.NewCard> {
-            val vm: NewCardViewModel = koinViewModel()
-
-            NewCardScreen(
-                onNavigateBack = { navController.popBackStack() },
-                state = vm.state,
-                onAction = vm::onAction,
-            )
-        }
+        newCardRoute(navController)
         composable<NewRoutes.NewDeck> {
             val vm: NewDeckViewModel = koinViewModel()
             NewDeckScreen(

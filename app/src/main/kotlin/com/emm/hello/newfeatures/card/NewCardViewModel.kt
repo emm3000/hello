@@ -6,49 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.data.remote.DataStore
-import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckFetcher
-import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardCreator
-import com.emm.domain.flashcard.StaticCategories
-import com.emm.domain.flashcard.TypeView
-import com.emm.domain.flashcard.difficult
-import com.emm.domain.flashcard.staticCategories
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-
-data class NewCardUiState(
-    val word: String = "",
-    val decks: List<Deck> = emptyList(),
-    val deckSelected: Deck? = null,
-    val isLoading: Boolean = false,
-    val isCheck: Boolean = false,
-    val category: StaticCategories = staticCategories.first(),
-    val typeView: TypeView = TypeView.WordOrPhase,
-    val difficulty: String = difficult.first(),
-    val error: String? = null,
-    val result: Flashcard? = null,
-)
-
-sealed interface NewCardAction {
-
-    data class OnWordChanged(val word: String) : NewCardAction
-
-    data class OnDeckSelected(val deck: Deck) : NewCardAction
-
-    data class OnCheckChanged(val checked: Boolean) : NewCardAction
-
-    data class OnCategorySelected(val category: StaticCategories) : NewCardAction
-
-    data class OnDifficultySelected(val difficulty: String) : NewCardAction
-
-    data class OnTypeViewSelected(val typeView: TypeView) : NewCardAction
-
-    object OnGenerateClicked : NewCardAction
-
-    object OnSaveClicked : NewCardAction
-}
 
 class NewCardViewModel(
     deckFetcher: DeckFetcher,
