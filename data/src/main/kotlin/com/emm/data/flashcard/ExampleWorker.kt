@@ -1,15 +1,12 @@
 @file:Suppress("ConstPropertyName")
 
-package com.emm.data.deck
+package com.emm.data.flashcard
 
 import android.content.Context
-import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
@@ -17,21 +14,16 @@ import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-val SyncConstraints
-    get() = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
-
-class DeckWorker(
+class ExampleWorker(
     appContext: Context,
     workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
-    private val deckSynchronizer: DeckSynchronizer by inject<DeckSynchronizer>()
+    private val exampleSynchronizer: ExampleSynchronizer by inject<ExampleSynchronizer>()
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            deckSynchronizer.execute()
+            exampleSynchronizer.execute()
             Result.success()
         } catch (t: Throwable) {
             Result.failure(
@@ -42,20 +34,11 @@ class DeckWorker(
 
     companion object {
 
-        const val DeckWorkerName: String = "DeckWorkerName"
+        const val ExampleWorkerName: String = "ExampleWorkerName"
 
-        private fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<DeckWorker>()
+        fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<ExampleWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(SyncConstraints)
             .build()
-
-        fun initialize(context: Context) {
-            WorkManager.getInstance(context)
-                .enqueueUniqueWork(
-                    DeckWorkerName,
-                    androidx.work.ExistingWorkPolicy.KEEP,
-                    startUpSyncWork()
-                )
-        }
     }
 }

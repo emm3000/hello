@@ -1,6 +1,8 @@
 package com.emm.data.remote
 
 import com.emm.data.deck.CreateDeckRequest
+import com.emm.data.flashcard.CreateExampleRequest
+import com.emm.data.flashcard.CreateFlashcardRequest
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -17,4 +19,10 @@ interface ApiService {
 
     @POST("decks/all")
     suspend fun createDecks(@Body body: List<CreateDeckRequest>): ResponseBody
+
+    @POST("flashcards/all")
+    suspend fun createFlashcard(@Body body: List<CreateFlashcardRequest>): ResponseBody
+
+    @POST("examples/all")
+    suspend fun createExamples(@Body body: List<CreateExampleRequest>): ResponseBody
 }

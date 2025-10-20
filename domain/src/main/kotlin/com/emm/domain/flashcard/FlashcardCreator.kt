@@ -1,6 +1,8 @@
 package com.emm.domain.flashcard
 
-class FlashcardCreator(private val repository: FlashcardRepository) {
+class FlashcardCreator(
+    private val repository: FlashcardRepository,
+) {
 
     suspend fun createFlashcard(
         word: String,

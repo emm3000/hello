@@ -29,6 +29,7 @@ class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
+    private val flashcardSynchronizer: FlashcardSynchronizer,
 ) : FlashcardRepository {
 
     private val dao: FlashcardQueries = db.flashcardQueries
@@ -37,6 +38,7 @@ class DefaultFlashcardRepository(
 
     override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
         val cardId: String = input.id ?: UUID.randomUUID().toString()
+        val now: Long = Instant.now().toEpochMilli()
         dao.create(
             id = cardId,
             deckId = input.deckId,
@@ -44,10 +46,10 @@ class DefaultFlashcardRepository(
             meaning = input.meaning,
             translation = input.translation,
             phonetic = input.phonetic,
-            createdAt = Instant.now().toEpochMilli(),
-            updatedAt = Instant.now().toEpochMilli(),
+            createdAt = now,
+            updatedAt = now,
             syncStatus = SyncStatus.Pending.name,
-        ).await()
+        )
         return@withContext cardId
     }
 
@@ -56,6 +58,7 @@ class DefaultFlashcardRepository(
         flashcardId: String,
     ) = withContext(Dispatchers.IO) {
         db.transaction { populate(examples, flashcardId) }
+        flashcardSynchronizer.synchronize()
     }
 
     private fun populate(examples: List<Example>, flashcardId: String) {
@@ -68,7 +71,7 @@ class DefaultFlashcardRepository(
                 type = it.type,
                 createdAt = Instant.now().toEpochMilli(),
                 updatedAt = Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Synced.name,
+                syncStatus = SyncStatus.Pending.name,
             )
         }
     }

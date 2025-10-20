@@ -1,10 +1,11 @@
 @file:Suppress("ConstPropertyName")
 
-package com.emm.data.deck
+package com.emm.data.flashcard
 
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
@@ -22,16 +23,16 @@ val SyncConstraints
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
 
-class DeckWorker(
+class FlashcardWorker(
     appContext: Context,
     workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
-    private val deckSynchronizer: DeckSynchronizer by inject<DeckSynchronizer>()
+    private val flashcardSynchronizer: FlashcardSynchronizer by inject<FlashcardSynchronizer>()
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            deckSynchronizer.execute()
+            flashcardSynchronizer.execute()
             Result.success()
         } catch (t: Throwable) {
             Result.failure(
@@ -42,20 +43,22 @@ class DeckWorker(
 
     companion object {
 
-        const val DeckWorkerName: String = "DeckWorkerName"
+        const val FlashcardWorkerName: String = "FlashcardWorkerName"
 
-        private fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<DeckWorker>()
+        private fun startUpSyncWork(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<FlashcardWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(SyncConstraints)
             .build()
 
         fun initialize(context: Context) {
             WorkManager.getInstance(context)
-                .enqueueUniqueWork(
-                    DeckWorkerName,
-                    androidx.work.ExistingWorkPolicy.KEEP,
+                .beginUniqueWork(
+                    FlashcardWorkerName,
+                    ExistingWorkPolicy.KEEP,
                     startUpSyncWork()
                 )
+                .then(ExampleWorker.startUpSyncWork())
+                .enqueue()
         }
     }
 }

@@ -113,7 +113,7 @@ class DefaultBackupRepository(
     private suspend fun fetchPendingSyncDataInParallel(): HolderOfDatabaseTables = coroutineScope {
         val decks = async { decksDao.pending().executeAsList() }
         val flashcards = async { cardsDao.pending().executeAsList() }
-        val examples = async { examplesDao.pending().executeAsList() }
+        val examples: Deferred<List<FlashcardExample>> = async { examplesDao.pending().executeAsList() }
         val quotes = async { quotesDao.pending().executeAsList() }
         val reviews = async { reviewDao.pending().executeAsList() }
         HolderOfDatabaseTables(
