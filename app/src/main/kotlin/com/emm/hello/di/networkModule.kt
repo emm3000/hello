@@ -1,7 +1,7 @@
 package com.emm.hello.di
 
 import android.content.SharedPreferences
-import com.emm.data.remote.BackupApi
+import com.emm.data.remote.ApiService
 import com.emm.data.remote.provideOkHttp
 import com.emm.data.remote.provideRetrofit
 import com.emm.data.remote.provideSharedPreferences
@@ -14,7 +14,7 @@ val networkModule = module {
 
     single<OkHttpClient> { provideOkHttp(androidApplication()) }
     single<Retrofit> { provideRetrofit(get(), get()) }
-    single<BackupApi> { provideApi(get()) }
+    single<ApiService> { provideApi(get()) }
     single<SharedPreferences> { provideSharedPreferences(androidApplication()) }
 }
 

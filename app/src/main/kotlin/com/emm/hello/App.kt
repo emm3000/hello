@@ -9,6 +9,7 @@ import com.emm.hello.di.homeModule
 import com.emm.hello.di.networkModule
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
+import com.emm.hello.di.syncModule
 import com.emm.hello.sync.Sync
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -28,6 +29,7 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
                 casesModule,
                 newModule,
                 networkModule,
+                syncModule,
             )
         }
         registerActivityLifecycleCallbacks(this)

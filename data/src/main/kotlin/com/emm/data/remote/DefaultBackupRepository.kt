@@ -27,7 +27,7 @@ import java.time.Instant
 class DefaultBackupRepository(
     db: HelloDb,
     private val androidId: String,
-    private val backupService: BackupApi,
+    private val backupService: ApiService,
     private val dataStore: DataStore,
     private val json: Json,
 ) : BackupRepository {

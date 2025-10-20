@@ -19,7 +19,10 @@ import java.util.UUID
 
 typealias DeckEntity = com.emm.data.Deck
 
-class DefaultDeckRepository(db: HelloDb): DeckRepository {
+class DefaultDeckRepository(
+    db: HelloDb,
+    private val synchronizer: DeckSynchronizer,
+): DeckRepository {
 
     private val dq: DeckQueries = db.deckQueries
 
@@ -34,7 +37,7 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
             updatedAt = now,
             syncStatus = SyncStatus.Pending.name,
         )
-        Unit
+        synchronizer.synchronize()
     }
 
     override fun findById(deckId: String): Flow<Deck> {

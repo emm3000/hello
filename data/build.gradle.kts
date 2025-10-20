@@ -78,6 +78,10 @@ dependencies {
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
 }
 
 sqldelight {
