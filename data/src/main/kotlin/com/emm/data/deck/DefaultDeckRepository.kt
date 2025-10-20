@@ -13,6 +13,7 @@ import com.emm.domain.deck.DeckRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.util.UUID
 
@@ -22,15 +23,18 @@ class DefaultDeckRepository(db: HelloDb): DeckRepository {
 
     private val dq: DeckQueries = db.deckQueries
 
-    override suspend fun addDeck(deck: CreateDeckInput) {
+    override suspend fun addDeck(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
+        val now: Long = Instant.now().toEpochMilli()
+        val newId: String = UUID.randomUUID().toString()
         dq.insert(
-            id = UUID.randomUUID().toString(),
+            id = newId,
             name = deck.name,
             description = deck.description,
-            createdAt = Instant.now().toEpochMilli(),
-            updatedAt = Instant.now().toEpochMilli(),
+            createdAt = now,
+            updatedAt = now,
             syncStatus = SyncStatus.Pending.name,
         )
+        Unit
     }
 
     override fun findById(deckId: String): Flow<Deck> {

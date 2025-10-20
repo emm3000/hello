@@ -47,7 +47,7 @@ class DefaultFlashcardRepository(
             createdAt = Instant.now().toEpochMilli(),
             updatedAt = Instant.now().toEpochMilli(),
             syncStatus = SyncStatus.Pending.name,
-        )
+        ).await()
         return@withContext cardId
     }
 
