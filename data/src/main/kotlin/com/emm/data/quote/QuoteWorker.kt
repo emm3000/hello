@@ -14,6 +14,7 @@ import androidx.work.workDataOf
 import com.emm.data.flashcard.SyncConstraints
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okio.IOException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -28,7 +29,9 @@ class QuoteWorker(
         try {
             quoteSynchronizer.execute()
             Result.success()
-        } catch (t: Throwable) {
+        } catch (t: IOException) {
+            Result.retry()
+        } catch (t: Exception) {
             Result.failure(
                 workDataOf("aea" to t.message.toString())
             )
