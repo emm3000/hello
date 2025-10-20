@@ -14,6 +14,9 @@ class DeckSynchronizer(
 
     suspend fun execute() {
         val pendingDecks: List<DeckEntity> = dq.pending().executeAsList()
+
+        if (pendingDecks.isEmpty()) return
+
         val deckRequests: List<CreateDeckRequest> = pendingDecks.map(::toRequest)
         remote.createDeck(deckRequests)
         val syncedDeckIds = pendingDecks.map(DeckEntity::id)
