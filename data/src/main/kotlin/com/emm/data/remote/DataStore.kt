@@ -27,6 +27,12 @@ class DataStore(
             editor.putString("DEFAULT_DECK", value).apply()
         }
 
+    var firstInitializer: Boolean
+        get() = sharedPreferences.getBoolean("FIRST_INITIALIZER", false)
+        set(value) {
+            editor.putBoolean("FIRST_INITIALIZER", value).apply()
+        }
+
     fun markDate() {
         val now = LocalDateTime.now()
         editor.putString(DATE_KEY, now.toString()).apply()

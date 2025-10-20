@@ -9,6 +9,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 interface ApiService {
 
@@ -29,4 +30,8 @@ interface ApiService {
 
     @POST("reviews/all")
     suspend fun createReviews(@Body body: List<CreateFlashcardReviewRequest>): ResponseBody
+
+    @GET("exports")
+    @Streaming
+    suspend fun export(): ResponseBody
 }
