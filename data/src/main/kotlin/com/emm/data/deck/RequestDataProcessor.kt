@@ -5,6 +5,7 @@ import com.emm.data.SyncStatus
 import com.emm.data.flashcard.CreateExampleRequest
 import com.emm.data.flashcard.CreateFlashcardRequest
 import com.emm.data.flashcard.CreateFlashcardReviewRequest
+import com.emm.data.quote.CreateQuoteRequest
 
 class RequestDataProcessor(helloDb: HelloDb) {
 
@@ -12,6 +13,7 @@ class RequestDataProcessor(helloDb: HelloDb) {
     private val fq = helloDb.flashcardQueries
     private val eq = helloDb.flashcardExampleQueries
     private val fr = helloDb.flashcardReviewQueries
+    private val qq = helloDb.quotesQueries
 
     fun process(data: Any) {
         if (data is CreateDeckRequest) {
@@ -61,6 +63,25 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 interval = data.interval,
                 repetitions = data.repetitions,
                 lapses = data.lapses,
+                createdAt = data.createdAt,
+                updatedAt = data.updatedAt,
+                syncStatus = SyncStatus.Synced.name,
+            )
+        }
+
+        if (data is CreateQuoteRequest) {
+            qq.insert(
+                id = data.id,
+                title = data.title,
+                phrase = data.phrase,
+                description = data.description,
+                translation = data.translation,
+                example = data.example,
+                context = data.context,
+                pronunciation = data.pronunciation,
+                formality = data.formality,
+                tags = data.tags,
+                category = data.category,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
                 syncStatus = SyncStatus.Synced.name,

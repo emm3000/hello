@@ -24,7 +24,7 @@ private fun Context.syncWorkNotification(channelName: String, channelId: String)
     val channel = NotificationChannel(
         /* id = */ channelId,
         /* name = */ channelName,
-        /* importance = */ NotificationManager.IMPORTANCE_LOW,
+        /* importance = */ NotificationManager.IMPORTANCE_DEFAULT,
     ).apply {
         description = "Notificación para sincronización"
     }
@@ -39,6 +39,6 @@ private fun Context.syncWorkNotification(channelName: String, channelId: String)
         .setSmallIcon(R.drawable.outline_save_24)
         .setContentTitle("Estamos sincronizando")
         .setContentText("Esta es una frase de prueba para validar la notificación.")
-        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .build()
 }
