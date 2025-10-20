@@ -4,6 +4,7 @@ import com.emm.data.deck.CreateDeckRequest
 import com.emm.data.flashcard.CreateExampleRequest
 import com.emm.data.flashcard.CreateFlashcardRequest
 import com.emm.data.flashcard.CreateFlashcardReviewRequest
+import com.emm.data.quote.CreateQuoteRequest
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -30,6 +31,9 @@ interface ApiService {
 
     @POST("reviews/all")
     suspend fun createReviews(@Body body: List<CreateFlashcardReviewRequest>): ResponseBody
+
+    @POST("quotes/all")
+    suspend fun createQuotes(@Body body: List<CreateQuoteRequest>): ResponseBody
 
     @GET("exports")
     @Streaming

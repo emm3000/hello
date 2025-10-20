@@ -23,6 +23,7 @@ class DefaultQuoteRepository(
     db: HelloDb,
     private val geminiApi: GeminiService,
     private val json: Json,
+    private val synchronizer: QuoteSynchronizer,
 ) : QuoteRepository {
 
     private val dao: QuotesQueries = db.quotesQueries
@@ -47,7 +48,7 @@ class DefaultQuoteRepository(
             updatedAt = Instant.now().toEpochMilli(),
             syncStatus = SyncStatus.Pending.name,
         )
-        Unit
+        synchronizer.synchronize()
     }
 
     override fun lastQuote(): Flow<List<Quote>> = dao

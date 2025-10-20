@@ -4,6 +4,7 @@ import android.util.Log
 import com.emm.data.flashcard.CreateExampleRequest
 import com.emm.data.flashcard.CreateFlashcardRequest
 import com.emm.data.flashcard.CreateFlashcardReviewRequest
+import com.emm.data.quote.CreateQuoteRequest
 import com.emm.data.remote.ApiService
 import com.emm.data.remote.DataStore
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,10 @@ class RemoteDataSource(
 
     suspend fun createReview(newReviews: List<CreateFlashcardReviewRequest>) {
         apiService.createReviews(newReviews)
+    }
+
+    suspend fun createQuote(quoteRequests: List<CreateQuoteRequest>) {
+        apiService.createQuotes(quoteRequests)
     }
 
     suspend fun export() = withContext(Dispatchers.IO) {
