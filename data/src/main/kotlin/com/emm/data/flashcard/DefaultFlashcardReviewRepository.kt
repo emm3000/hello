@@ -9,12 +9,14 @@ import com.emm.domain.flashcard.FlashcardReviewRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 typealias FlashcardReviewEntity = com.emm.data.FlashcardReview
 
 class DefaultFlashcardReviewRepository(
     db: HelloDb,
+    private val reviewSynchronizer: FlashcardReviewSynchronizer,
 ) : FlashcardReviewRepository {
 
     private val dao = db.flashcardReviewQueries
@@ -27,7 +29,7 @@ class DefaultFlashcardReviewRepository(
             .map(List<FlashcardReviewEntity>::toDomain)
     }
 
-    override suspend fun update(flashcardReview: FlashcardReview) {
+    override suspend fun update(flashcardReview: FlashcardReview) = withContext(Dispatchers.IO) {
         dao.upsertFlashcardReview(
             flashcardId = flashcardReview.flashcardId,
             lastReviewedAt = flashcardReview.lastReviewedAt,
@@ -40,5 +42,6 @@ class DefaultFlashcardReviewRepository(
             updatedAt = Instant.now().toEpochMilli(),
             syncStatus = SyncStatus.Pending.name,
         )
+        Unit
     }
 }

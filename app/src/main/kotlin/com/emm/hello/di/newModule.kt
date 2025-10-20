@@ -107,6 +107,7 @@ fun Module.viewModels() {
             deckId = it.get(),
             flashcardFetcher = get(),
             flashcardReviewUpdater = get(),
+            reviewSynchronizer = get(),
         )
     }
     viewModel {
