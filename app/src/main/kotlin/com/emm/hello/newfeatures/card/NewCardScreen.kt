@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -66,12 +67,18 @@ fun NewCardScreen(
 ) {
 
     val showBottomSheet = remember { mutableStateOf(false) }
+    val isGenerateEnabled by remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
+        derivedStateOf {
+            (!state.isLoading && state.deckSelected != null && state.word.isNotBlank()) ||
+                (state.typeView == TypeView.WithCategories && !state.isLoading)
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Crear Nueva Tarjeta") },
+                title = { Text("Crear nueva tarjeta", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -85,7 +92,7 @@ fun NewCardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwitchLeft,
-                            contentDescription = "Change Ui"
+                            contentDescription = "Cambiar vista"
                         )
                     }
                 }
@@ -99,6 +106,8 @@ fun NewCardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            item { SectionTitle(title = "Entrada") }
 
             when(state.typeView) {
                 TypeView.WordOrPhase -> item {
@@ -130,6 +139,8 @@ fun NewCardScreen(
                 }
             }
 
+            item { SectionTitle(title = "Destino") }
+
             item {
                 Column {
                     DeckSelector(
@@ -153,18 +164,23 @@ fun NewCardScreen(
 
             }
 
+            item { SectionTitle(title = "Acción") }
+
             item {
                 Button(
                     onClick = {
                         onAction(NewCardAction.OnGenerateClicked)
                     },
-                    enabled = !state.isLoading && state.deckSelected != null && state.word.isNotBlank() || (state.typeView == TypeView.WithCategories && !state.isLoading),
+                    enabled = isGenerateEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
                 ) {
                     if (state.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LocalContentColor.current)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = LocalContentColor.current, strokeWidth = 2.dp)
+                            Text("Generando…")
+                        }
                     } else {
                         Text("🤖 Generar con IA")
                     }
@@ -172,6 +188,7 @@ fun NewCardScreen(
             }
 
             if (state.result != null) {
+                item { SectionTitle(title = "Resultado") }
                 item { CardPreview(state.result) }
             }
 
@@ -234,7 +251,7 @@ fun CardPreview(flashcard: Flashcard) {
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
                 text = flashcard.word,
@@ -243,10 +260,10 @@ fun CardPreview(flashcard: Flashcard) {
             )
             Text(
                 text = flashcard.phonetic,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Traducción: ${flashcard.translation}",
                 style = MaterialTheme.typography.bodyLarge
@@ -273,6 +290,16 @@ fun CardPreview(flashcard: Flashcard) {
             }
         }
     }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
