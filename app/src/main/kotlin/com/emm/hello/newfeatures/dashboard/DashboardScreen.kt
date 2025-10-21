@@ -2,12 +2,7 @@ package com.emm.hello.newfeatures.dashboard
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -15,15 +10,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,15 +49,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +68,6 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
-    onNavigateToQuotes: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -91,65 +84,6 @@ fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                },
-                actions = {
-                    AnimatedVisibility(
-                        visible = state.isSyncing || state.lastUpdatedDate != null,
-                        enter = fadeIn() + scaleIn(),
-                        exit = fadeOut() + scaleOut()
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(end = 16.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                if (state.isSyncing) {
-                                    val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
-                                    val rotation by infiniteTransition.animateFloat(
-                                        initialValue = 0f,
-                                        targetValue = 360f,
-                                        animationSpec = infiniteRepeatable(
-                                            animation = tween(durationMillis = 1500, easing = LinearEasing),
-                                            repeatMode = RepeatMode.Restart
-                                        ),
-                                        label = "rotationAnimation"
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .rotate(rotation),
-                                        contentDescription = "Sincronizando",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        text = "Sincronizando",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                } else if (state.lastUpdatedDate != null) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(6.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary)
-                                    )
-                                    Text(
-                                        text = state.lastUpdatedDate,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -172,25 +106,12 @@ fun DashboardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 120.dp, top = 12.dp),
+            contentPadding = innerPadding,
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            if (state.quote != null) {
-                item {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn(animationSpec = tween(400)) + slideInVertically(initialOffsetY = { -30 })
-                    ) {
-                        QuoteOfTheDayCard(
-                            quote = state.quote,
-                            onNavigateToQuotes = onNavigateToQuotes
-                        )
-                    }
-                }
-            }
 
             item {
                 AnimatedVisibility(
@@ -229,6 +150,10 @@ fun DashboardScreen(
                         )
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }
@@ -322,13 +247,7 @@ fun DecksSection(
 fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ),
+            .fillMaxWidth(),
         onClick = { onDeckClick(deck.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -570,29 +489,87 @@ fun EmptyDecksCard(onCreateDeck: () -> Unit) {
     }
 }
 
+@Preview(showSystemUi = true)
 @PreviewLightDark
 @Composable
 fun DashboardScreenPreviewDark() {
     HelloTheme {
         DashboardScreen(
             state = DashboardUiState(
-                decks = listOf(),
-                quote = Quote(
-                    id = "vidisse",
-                    title = "persecuti",
-                    phrase = "neglegentur",
-                    description = "deseruisse",
-                    translation = "harum",
-                    example = "eget",
-                    context = "novum",
-                    pronunciation = "a",
-                    formality = "dicam",
-                    tags = listOf(),
-                    category = "litora",
-                    hasCard = false,
+                decks = listOf(
+                    Deck(
+                        id = "plat7ea",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "plat6ea",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "plat5ea",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "plate4a",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "platea3",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "platea2",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "platea1",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "555",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    ),
+                    Deck(
+                        id = "pla777tea1",
+                        name = "Joanne Wise",
+                        description = "falli",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 6442
+                    )
                 ),
-                isSyncing = true,
-                lastUpdatedDate = null,
             )
         )
     }

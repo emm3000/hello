@@ -50,7 +50,6 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
             newCard = { navController.navigate(NewCardRoute) },
             onDeckDetail = { navController.navigate(DeckDetailRoute(it)) },
             onCreateDeck = { navController.navigate(NewDeckRoute) },
-            onNavigateToQuotes = { navController.navigate(QuoteRoute) },
         )
     }
 }
