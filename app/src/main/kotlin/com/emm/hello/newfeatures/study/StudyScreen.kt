@@ -71,6 +71,15 @@ fun StudyScreen(
         }
     }
 
+    DisposableEffect(tts) {
+        tts.onDoneSpeaking = {
+            isSpeaking.value = false
+        }
+        onDispose {
+            tts.onDoneSpeaking = null
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -128,8 +137,10 @@ fun StudyScreen(
                             tts.stop()
                         },
                         onSpeak = {
-                            isSpeaking.value = true
-                            tts.speak(state.currentFlashcard?.word.orEmpty())
+                            if (tts.isReady) {
+                                isSpeaking.value = true
+                                tts.speak(state.currentFlashcard?.word.orEmpty())
+                            }
                         }
                     )
                 }
