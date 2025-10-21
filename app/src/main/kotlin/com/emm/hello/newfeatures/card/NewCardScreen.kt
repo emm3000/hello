@@ -1,8 +1,20 @@
 package com.emm.hello.newfeatures.card
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +24,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -44,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,7 +85,7 @@ fun NewCardScreen(
     val isGenerateEnabled by remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         derivedStateOf {
             (!state.isLoading && state.deckSelected != null && state.word.isNotBlank()) ||
-                (state.typeView == TypeView.WithCategories && !state.isLoading)
+                (state.typeView == TypeView.WithCategories && !state.isLoading && state.deckSelected != null)
         }
     }
 
@@ -78,7 +93,22 @@ fun NewCardScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Crear nueva tarjeta", style = MaterialTheme.typography.titleMedium) },
+                title = { 
+                    Column {
+                        Text(
+                            "Crear nueva tarjeta", 
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            text = when(state.typeView) {
+                                TypeView.WordOrPhase -> "Modo: Palabra o frase"
+                                TypeView.WithCategories -> "Modo: Por categoría"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -100,104 +130,214 @@ fun NewCardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding,
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 100.dp
+            ),
             modifier = Modifier
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(innerPadding)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            item { SectionTitle(title = "Entrada") }
+            item { 
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { -20 })
+                ) {
+                    SectionCard(title = "📝 Entrada") {
 
-            when(state.typeView) {
-                TypeView.WordOrPhase -> item {
-                    OutlinedTextField(
-                        value = state.word,
-                        onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
-                        enabled = !state.isLoading,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Palabra o frase en inglés") },
-                        singleLine = true
-                    )
-                }
-                TypeView.WithCategories -> item {
-                    JustClickableInput(
-                        value = state.category.name,
-                        label = "Category",
-                        onClick = { showBottomSheet.value = true }
-                    )
-                    GemaDropdown(
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = true,
-                        textLabel = "Difficult",
-                        items = difficult,
-                        itemSelected = state.difficulty,
-                        onItemSelected = {
-                            onAction(NewCardAction.OnDifficultySelected(it))
-                        }
-                    )
-                }
-            }
-
-            item { SectionTitle(title = "Destino") }
-
-            item {
-                Column {
-                    DeckSelector(
-                        decks = state.decks,
-                        selected = state.deckSelected,
-                        enabled = state.isLoading.not(),
-                        onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
-                    )
-                    if (state.decks.isNotEmpty()) {
-                        Spacer(Modifier.height(10.dp))
-                        LabeledCheckbox(
-                            label = "Marcar deck por defecto",
-                            checked = state.isCheck,
-                            isEnabled = state.deckSelected != null,
-                            onCheckedChange = {
-                                onAction(NewCardAction.OnCheckChanged(it))
+                        when(state.typeView) {
+                            TypeView.WordOrPhase -> {
+                                OutlinedTextField(
+                                    value = state.word,
+                                    onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
+                                    enabled = !state.isLoading,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Palabra o frase en inglés") },
+                                    placeholder = { Text("Ej: Hello, Good morning...") },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
                             }
-                        )
+                            TypeView.WithCategories -> {
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    JustClickableInput(
+                                        value = state.category.name,
+                                        label = "Categoría",
+                                        onClick = { showBottomSheet.value = true }
+                                    )
+                                    GemaDropdown(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        enabled = true,
+                                        textLabel = "Dificultad",
+                                        items = difficult,
+                                        itemSelected = state.difficulty,
+                                        onItemSelected = {
+                                            onAction(NewCardAction.OnDifficultySelected(it))
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-
             }
 
-            item { SectionTitle(title = "Acción") }
-
-            item {
-                Button(
-                    onClick = {
-                        onAction(NewCardAction.OnGenerateClicked)
-                    },
-                    enabled = isGenerateEnabled,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
+            item { 
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(300, delayMillis = 100)) + 
+                           slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, delayMillis = 100))
                 ) {
-                    if (state.isLoading) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = LocalContentColor.current, strokeWidth = 2.dp)
-                            Text("Generando…")
+                    SectionCard(title = "🎯 Destino") {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            DeckSelector(
+                                decks = state.decks,
+                                selected = state.deckSelected,
+                                enabled = state.isLoading.not(),
+                                onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
+                            )
+                            
+                            AnimatedVisibility(
+                                visible = state.decks.isNotEmpty(),
+                                enter = fadeIn() + slideInVertically(),
+                                exit = fadeOut() + slideOutVertically()
+                            ) {
+                                LabeledCheckbox(
+                                    label = "Marcar como deck por defecto",
+                                    checked = state.isCheck,
+                                    isEnabled = state.deckSelected != null,
+                                    onCheckedChange = {
+                                        onAction(NewCardAction.OnCheckChanged(it))
+                                    }
+                                )
+                            }
                         }
-                    } else {
-                        Text("🤖 Generar con IA")
+                    }
+                }
+            }
+
+            item { 
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(300, delayMillis = 200)) + 
+                           slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, delayMillis = 200))
+                ) {
+                    Button(
+                        onClick = {
+                            onAction(NewCardAction.OnGenerateClicked)
+                        },
+                        enabled = isGenerateEnabled,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .animateContentSize(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                )
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp,
+                            disabledElevation = 0.dp
+                        )
+                    ) {
+                        if (state.isLoading) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically, 
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp), 
+                                    color = LocalContentColor.current, 
+                                    strokeWidth = 2.5.dp
+                                )
+                                Text(
+                                    "Generando con IA…",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("🤖")
+                                Text(
+                                    "Generar con IA",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                            }
+                        }
                     }
                 }
             }
 
             if (state.result != null) {
-                item { SectionTitle(title = "Resultado") }
-                item { CardPreview(state.result) }
+                item { 
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(animationSpec = tween(400)) + 
+                               slideInVertically(initialOffsetY = { 40 }, animationSpec = tween(400))
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "✨ Resultado",
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            CardPreview(state.result)
+                        }
+                    }
+                }
             }
 
             if (state.error != null) {
                 item {
-                    Text(
-                        text = state.error,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut() + slideOutVertically()
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "⚠️",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Text(
+                                    text = state.error,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -243,47 +383,54 @@ fun CardPreview(flashcard: Flashcard) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = MaterialTheme.shapes.large,
+            .animateContentSize(),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = flashcard.word,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = flashcard.phonetic,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Traducción: ${flashcard.translation}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "Significado: ${flashcard.meaning}",
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = flashcard.word,
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = flashcard.phonetic,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            
+            InfoRow(label = "Traducción", value = flashcard.translation)
+            InfoRow(label = "Significado", value = flashcard.meaning)
 
             if (flashcard.examples.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                
                 Text(
-                    text = "Ejemplos:",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "📚 Ejemplos de uso",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                flashcard.examples.forEachIndexed { index, example ->
-                    key(example.exampleId) {
-                        ExampleItem(index = index + 1, example = example)
-                        if (index < flashcard.examples.lastIndex) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    flashcard.examples.forEachIndexed { index, example ->
+                        key(example.exampleId) {
+                            ExampleItem(index = index + 1, example = example)
                         }
                     }
                 }
@@ -293,44 +440,124 @@ fun CardPreview(flashcard: Flashcard) {
 }
 
 @Composable
-private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.fillMaxWidth()
-    )
+private fun SectionCard(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
 
 @Composable
 private fun ExampleItem(index: Int, example: Example) {
-    var showTranslation by remember { mutableStateOf(false) }
+    var showTranslation by remember(example.exampleId) { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.padding(top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = "$index. ${example.text}",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
-
-        if (showTranslation) {
-            Text(
-                text = example.translation,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            TextButton(onClick = { showTranslation = !showTranslation }) {
-                Text(if (showTranslation) "Ocultar traducción" else "Ver traducción")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "$index",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    text = example.text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showTranslation,
+                enter = fadeIn() + slideInVertically(),
+                exit = fadeOut() + slideOutVertically()
+            ) {
+                Text(
+                    text = example.translation,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 32.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = { showTranslation = !showTranslation },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        if (showTranslation) "Ocultar" else "Ver traducción",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
     }
