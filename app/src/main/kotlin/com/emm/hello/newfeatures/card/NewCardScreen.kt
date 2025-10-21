@@ -14,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -130,15 +129,10 @@ fun NewCardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp,
-                bottom = 100.dp
-            ),
+            contentPadding = innerPadding,
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
@@ -286,8 +280,6 @@ fun NewCardScreen(
                 item { 
                     AnimatedVisibility(
                         visible = true,
-                        enter = fadeIn(animationSpec = tween(400)) + 
-                               slideInVertically(initialOffsetY = { 40 }, animationSpec = tween(400))
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Row(
@@ -304,6 +296,10 @@ fun NewCardScreen(
                             CardPreview(state.result)
                         }
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
 
@@ -382,8 +378,7 @@ fun LabeledCheckbox(
 fun CardPreview(flashcard: Flashcard) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -497,12 +492,7 @@ private fun ExampleItem(index: Int, example: Example) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
-                    )
-                ),
+                .animateContentSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
@@ -534,8 +524,6 @@ private fun ExampleItem(index: Int, example: Example) {
 
             AnimatedVisibility(
                 visible = showTranslation,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
             ) {
                 Text(
                     text = example.translation,
