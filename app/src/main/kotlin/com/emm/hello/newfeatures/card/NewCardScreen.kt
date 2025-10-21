@@ -2,13 +2,9 @@ package com.emm.hello.newfeatures.card
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -136,76 +132,37 @@ fun NewCardScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            item { 
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { -20 })
-                ) {
-                    SectionCard(title = "📝 Entrada") {
+            item {
+                SectionCard(title = "📝 Entrada") {
 
-                        when(state.typeView) {
-                            TypeView.WordOrPhase -> {
-                                OutlinedTextField(
-                                    value = state.word,
-                                    onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
-                                    enabled = !state.isLoading,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Palabra o frase en inglés") },
-                                    placeholder = { Text("Ej: Hello, Good morning...") },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                            }
-                            TypeView.WithCategories -> {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    JustClickableInput(
-                                        value = state.category.name,
-                                        label = "Categoría",
-                                        onClick = { showBottomSheet.value = true }
-                                    )
-                                    GemaDropdown(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        enabled = true,
-                                        textLabel = "Dificultad",
-                                        items = difficult,
-                                        itemSelected = state.difficulty,
-                                        onItemSelected = {
-                                            onAction(NewCardAction.OnDifficultySelected(it))
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            item { 
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(animationSpec = tween(300, delayMillis = 100)) + 
-                           slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, delayMillis = 100))
-                ) {
-                    SectionCard(title = "🎯 Destino") {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            DeckSelector(
-                                decks = state.decks,
-                                selected = state.deckSelected,
-                                enabled = state.isLoading.not(),
-                                onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
+                    when(state.typeView) {
+                        TypeView.WordOrPhase -> {
+                            OutlinedTextField(
+                                value = state.word,
+                                onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
+                                enabled = !state.isLoading,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Palabra o frase en inglés") },
+                                placeholder = { Text("Ej: Hello, Good morning...") },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
                             )
-                            
-                            AnimatedVisibility(
-                                visible = state.decks.isNotEmpty(),
-                                enter = fadeIn() + slideInVertically(),
-                                exit = fadeOut() + slideOutVertically()
-                            ) {
-                                LabeledCheckbox(
-                                    label = "Marcar como deck por defecto",
-                                    checked = state.isCheck,
-                                    isEnabled = state.deckSelected != null,
-                                    onCheckedChange = {
-                                        onAction(NewCardAction.OnCheckChanged(it))
+                        }
+                        TypeView.WithCategories -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                JustClickableInput(
+                                    value = state.category.name,
+                                    label = "Categoría",
+                                    onClick = { showBottomSheet.value = true }
+                                )
+                                GemaDropdown(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = true,
+                                    textLabel = "Dificultad",
+                                    items = difficult,
+                                    itemSelected = state.difficulty,
+                                    onItemSelected = {
+                                        onAction(NewCardAction.OnDifficultySelected(it))
                                     }
                                 )
                             }
@@ -214,87 +171,102 @@ fun NewCardScreen(
                 }
             }
 
-            item { 
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(animationSpec = tween(300, delayMillis = 200)) + 
-                           slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, delayMillis = 200))
-                ) {
-                    Button(
-                        onClick = {
-                            onAction(NewCardAction.OnGenerateClicked)
-                        },
-                        enabled = isGenerateEnabled,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .animateContentSize(
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessLow
-                                )
-                            ),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 4.dp,
-                            pressedElevation = 8.dp,
-                            disabledElevation = 0.dp
+            item {
+                SectionCard(title = "🎯 Destino") {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DeckSelector(
+                            decks = state.decks,
+                            selected = state.deckSelected,
+                            enabled = state.isLoading.not(),
+                            onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
                         )
-                    ) {
-                        if (state.isLoading) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically, 
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp), 
-                                    color = LocalContentColor.current, 
-                                    strokeWidth = 2.5.dp
-                                )
-                                Text(
-                                    "Generando con IA…",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                                )
-                            }
-                        } else {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text("🤖")
-                                Text(
-                                    "Generar con IA",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                                )
-                            }
+
+                        AnimatedVisibility(
+                            visible = state.decks.isNotEmpty(),
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ) {
+                            LabeledCheckbox(
+                                label = "Marcar como deck por defecto",
+                                checked = state.isCheck,
+                                isEnabled = state.deckSelected != null,
+                                onCheckedChange = {
+                                    onAction(NewCardAction.OnCheckChanged(it))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Button(
+                    onClick = {
+                        onAction(NewCardAction.OnGenerateClicked)
+                    },
+                    enabled = isGenerateEnabled,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .animateContentSize(
+                            animationSpec = tween(durationMillis = 300)
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp,
+                        disabledElevation = 0.dp
+                    )
+                ) {
+                    if (state.isLoading) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = LocalContentColor.current,
+                                strokeWidth = 2.5.dp
+                            )
+                            Text(
+                                "Generando con IA…",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                        }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("🤖")
+                            Text(
+                                "Generar con IA",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
                         }
                     }
                 }
             }
 
             if (state.result != null) {
-                item { 
-                    AnimatedVisibility(
-                        visible = true,
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "✨ Resultado",
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            CardPreview(state.result)
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "✨ Resultado",
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
+                        CardPreview(state.result)
                     }
                 }
 
@@ -305,33 +277,27 @@ fun NewCardScreen(
 
             if (state.error != null) {
                 item {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn() + slideInVertically(),
-                        exit = fadeOut() + slideOutVertically()
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "⚠️",
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                Text(
-                                    text = state.error,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
+                            Text(
+                                "⚠️",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                text = state.error,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }
@@ -491,8 +457,7 @@ private fun ExampleItem(index: Int, example: Example) {
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
-                .animateContentSize(),
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
