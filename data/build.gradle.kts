@@ -71,7 +71,7 @@ dependencies {
     implementation(libs.coroutines.extensions)
 
     debugImplementation(libs.library)
-    releaseImplementation(libs.library.no.op)
+    releaseImplementation(libs.library)
 
     // retrofit
     api(libs.retrofit)

@@ -38,11 +38,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build Release (assembleRelease)
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
 
       - name: Get Release APK path
         id: prodDebugPath
-        run: echo "release=$(find app/build/outputs/apk/debug/*.apk)" >> $GITHUB_OUTPUT
+        run: echo "release=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
 
       - name: upload DEBUG (APP DISTRIBUTION)
         uses: wzieba/Firebase-Distribution-Github-Action@v1
