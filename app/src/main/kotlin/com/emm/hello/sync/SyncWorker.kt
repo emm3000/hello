@@ -117,7 +117,7 @@ class SyncWorker(
             .build()
 
         fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-            50, TimeUnit.MINUTES
+            70, TimeUnit.MINUTES
         )
             .setConstraints(SyncConstraints)
             .build()

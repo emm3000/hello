@@ -48,7 +48,7 @@ class DefaultQuoteRepository(
             updatedAt = Instant.now().toEpochMilli(),
             syncStatus = SyncStatus.Pending.name,
         )
-        synchronizer.synchronize()
+        synchronizer.execute()
     }
 
     override fun lastQuote(): Flow<List<Quote>> = dao
