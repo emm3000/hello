@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
@@ -63,7 +62,6 @@ fun DashboardScreen(
     onCreateDeck: () -> Unit = {},
     onNavigateToQuotes: () -> Unit = {},
 ) {
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -72,30 +70,39 @@ fun DashboardScreen(
                 title = {
                     Text(
                         "Hola, Edgardo 😎",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     )
                 },
                 actions = {
-                    if (state.isSyncing) {
-                        val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
-
-                        val rotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 3000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "rotationAnimation"
-                        )
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            modifier = Modifier.rotate(rotation),
-                            contentDescription = "Editar"
-                        )
-                    } else if (state.lastUpdatedDate != null) {
-                        Text(text = state.lastUpdatedDate, fontSize = 14.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.isSyncing) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "iconRotation")
+                            val rotation by infiniteTransition.animateFloat(
+                                initialValue = 0f,
+                                targetValue = 360f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(durationMillis = 2000, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Restart
+                                ),
+                                label = "rotationAnimation"
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                modifier = Modifier.rotate(rotation),
+                                contentDescription = "Sincronizando"
+                            )
+                            Text(
+                                text = "Sincronizando…",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else if (state.lastUpdatedDate != null) {
+                            Text(
+                                text = "Actualizado: ${state.lastUpdatedDate}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -110,12 +117,11 @@ fun DashboardScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp, top = 8.dp),
             modifier = Modifier
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             if (state.quote != null) {
                 item {
                     QuoteOfTheDayCard(
@@ -126,16 +132,20 @@ fun DashboardScreen(
             }
 
             item {
-                DecksSection(onCreateDeck = onCreateDeck)
+                DecksSection(onCreateDeck = onCreateDeck, decksCount = state.decks.size)
             }
 
-            items(state.decks, key = Deck::id) {
-                DeckItem(
-                    deck = it,
-                    onDeckClick = { deckId ->
-                        onDeckDetail(deckId)
-                    }
-                )
+            if (state.decks.isEmpty()) {
+                item {
+                    EmptyDecksCard(onCreateDeck = onCreateDeck)
+                }
+            } else {
+                items(state.decks, key = Deck::id) { deck ->
+                    DeckItem(
+                        deck = deck,
+                        onDeckClick = { deckId -> onDeckDetail(deckId) }
+                    )
+                }
             }
         }
     }
@@ -168,7 +178,8 @@ fun ReviewCard(cardsToReview: Int, onStartReview: () -> Unit = {}) {
 
 @Composable
 fun DecksSection(
-    onCreateDeck: () -> Unit = {}
+    onCreateDeck: () -> Unit = {},
+    decksCount: Int = 0,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -176,7 +187,16 @@ fun DecksSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("📚 Mis Mazos", style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("📚 Mis Mazos", style = MaterialTheme.typography.titleLarge)
+                if (decksCount > 0) {
+                    Text(
+                        text = "$decksCount",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             TextButton(onClick = onCreateDeck) {
                 Text(
                     text = "Crear deck",
@@ -200,24 +220,42 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
         onClick = { onDeckClick(deck.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(deck.name, style = MaterialTheme.typography.bodyLarge)
-            Text("${deck.cardsCount} cards", style = MaterialTheme.typography.bodyMedium)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    deck.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "${deck.cardsCount} cards",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Abrir",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
 
 @Composable
 fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember(quote.id) { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -295,6 +333,38 @@ fun QuoteOfTheDayCard(quote: Quote, onNavigateToQuotes: () -> Unit) {
                     TextButton(onClick = onNavigateToQuotes) {
                         Text("Ver todas")
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyDecksCard(onCreateDeck: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Aún no tienes mazos",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Crea tu primer deck para empezar a estudiar.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onCreateDeck) {
+                    Text("Crear deck")
                 }
             }
         }
