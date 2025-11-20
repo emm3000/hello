@@ -1,6 +1,5 @@
 package com.emm.hello.newfeatures.study
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -84,7 +82,7 @@ fun StudyScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Sesión de Repaso") },
+                title = { Text("Repaso") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Salir de la sesión")
@@ -243,21 +241,10 @@ fun rememberTextToSpeech(): TextToSpeechController {
 @Composable
 fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -> Unit = {}) {
 
-    val colorScheme = MaterialTheme.colorScheme
-
-    val textColor = if (isSystemInDarkTheme()) {
-        colorScheme.onSurface.copy(alpha = 0.85f)
-    } else {
-        Color.White
-    }
-
-    val alpha = if (isSystemInDarkTheme()) {
-        0.25f
-    } else 0.85f
+    val c = MaterialTheme.colorScheme
 
     Column(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center
     ) {
         Row(
@@ -267,21 +254,20 @@ fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.errorContainer.copy(alpha = alpha),
-                    contentColor = textColor,
+                    containerColor = c.errorContainer,
+                    contentColor = c.onErrorContainer,
                 ),
-                content = { Text("Again") },
                 modifier = Modifier.weight(1f)
-            )
+            ) { Text("Again") }
+
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.secondaryContainer.copy(alpha = alpha),
-                    contentColor = textColor,
+                    containerColor = c.secondaryContainer,
+                    contentColor = c.onSecondaryContainer,
                 ),
-                content = { Text("Hard") },
                 modifier = Modifier.weight(1f)
-            )
+            ) { Text("Hard") }
         }
         Row(
             modifier = modifier,
@@ -290,21 +276,20 @@ fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primaryContainer.copy(alpha = alpha),
-                    contentColor = textColor,
+                    containerColor = c.primaryContainer,
+                    contentColor = c.onPrimaryContainer,
                 ),
-                content = { Text("Good") },
                 modifier = Modifier.weight(1f)
-            )
+            ) { Text("Good") }
+
             Button(
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.tertiaryContainer.copy(alpha = alpha),
-                    contentColor = textColor,
+                    containerColor = c.tertiaryContainer,
+                    contentColor = c.onTertiaryContainer,
                 ),
-                content = { Text("Easy") },
                 modifier = Modifier.weight(1f)
-            )
+            ) { Text("Easy") }
         }
     }
 
