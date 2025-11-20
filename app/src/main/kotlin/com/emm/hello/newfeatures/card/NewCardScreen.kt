@@ -5,10 +5,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,9 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -37,7 +32,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -53,7 +47,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -88,16 +81,16 @@ fun NewCardScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Column {
                         Text(
-                            "Crear nueva tarjeta", 
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            "Nueva tarjeta",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(
                             text = when(state.typeView) {
-                                TypeView.WordOrPhase -> "Modo: Palabra o frase"
-                                TypeView.WithCategories -> "Modo: Por categoría"
+                                TypeView.WordOrPhase -> "Palabra o frase"
+                                TypeView.WithCategories -> "Por categoría"
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -133,7 +126,7 @@ fun NewCardScreen(
         ) {
 
             item {
-                SectionCard(title = "📝 Entrada") {
+                SectionCard(title = "Entrada") {
 
                     when(state.typeView) {
                         TypeView.WordOrPhase -> {
@@ -172,7 +165,7 @@ fun NewCardScreen(
             }
 
             item {
-                SectionCard(title = "🎯 Destino") {
+                SectionCard(title = "Destino") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         DeckSelector(
                             decks = state.decks,
@@ -207,20 +200,11 @@ fun NewCardScreen(
                     enabled = isGenerateEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(48.dp)
                         .animateContentSize(
-                            animationSpec = tween(durationMillis = 300)
+                            animationSpec = tween(durationMillis = 200)
                         ),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 4.dp,
-                        pressedElevation = 8.dp,
-                        disabledElevation = 0.dp
-                    )
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     if (state.isLoading) {
                         Row(
@@ -229,11 +213,10 @@ fun NewCardScreen(
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = LocalContentColor.current,
                                 strokeWidth = 2.5.dp
                             )
                             Text(
-                                "Generando con IA…",
+                                "Generando…",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                             )
                         }
@@ -242,9 +225,8 @@ fun NewCardScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("🤖")
                             Text(
-                                "Generar con IA",
+                                "Generar",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                             )
                         }
@@ -261,9 +243,9 @@ fun NewCardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "✨ Resultado",
+                                "Resultado",
                                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         CardPreview(state.result)
@@ -277,28 +259,18 @@ fun NewCardScreen(
 
             if (state.error != null) {
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "⚠️",
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Text(
-                                text = state.error,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+                        Text(
+                            text = state.error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
             }
@@ -342,57 +314,41 @@ fun LabeledCheckbox(
 
 @Composable
 fun CardPreview(flashcard: Flashcard) {
-    Card(
+    Column(
         modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .fillMaxWidth()
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = flashcard.word,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = flashcard.phonetic,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            
-            InfoRow(label = "Traducción", value = flashcard.translation)
-            InfoRow(label = "Significado", value = flashcard.meaning)
+        Text(
+            text = flashcard.word,
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = flashcard.phonetic,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-            if (flashcard.examples.isNotEmpty()) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                
-                Text(
-                    text = "📚 Ejemplos de uso",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    flashcard.examples.forEachIndexed { index, example ->
-                        key(example.exampleId) {
-                            ExampleItem(index = index + 1, example = example)
-                        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        InfoRow(label = "Traducción", value = flashcard.translation)
+        InfoRow(label = "Significado", value = flashcard.meaning)
+
+        if (flashcard.examples.isNotEmpty()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Text(
+                text = "Ejemplos",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                flashcard.examples.forEachIndexed { index, example ->
+                    key(example.exampleId) {
+                        ExampleItem(index = index + 1, example = example)
                     }
                 }
             }
@@ -405,25 +361,17 @@ private fun SectionCard(
     title: String,
     content: @Composable () -> Unit
 ) {
-    Card(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            content()
-        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        content()
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -448,69 +396,51 @@ private fun InfoRow(label: String, value: String) {
 private fun ExampleItem(index: Int, example: Example) {
     var showTranslation by remember(example.exampleId) { mutableStateOf(false) }
 
-    Card(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-        )
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "$index",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Text(
-                    text = example.text,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            Text(
+                text = "$index.",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = example.text,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-            AnimatedVisibility(
-                visible = showTranslation,
+        AnimatedVisibility(
+            visible = showTranslation,
+        ) {
+            Text(
+                text = example.translation,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 28.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = { showTranslation = !showTranslation },
+                shape = RoundedCornerShape(6.dp)
             ) {
                 Text(
-                    text = example.translation,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 32.dp)
+                    if (showTranslation) "Ocultar" else "Ver traducción",
+                    style = MaterialTheme.typography.labelLarge
                 )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(
-                    onClick = { showTranslation = !showTranslation },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        if (showTranslation) "Ocultar" else "Ver traducción",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
             }
         }
     }
@@ -556,7 +486,7 @@ fun DeckSelector(
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
-            label = { Text("📂 Mazo") },
+            label = { Text("Mazo") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
