@@ -1,9 +1,5 @@
 package com.emm.hello.newfeatures.deck
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +34,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +52,6 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
-import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -73,13 +67,8 @@ fun DeckDetailScreen(
     onReview: () -> Unit = {},
     onCardClick: (String) -> Unit = {}
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    var isVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        delay(50)
-        isVisible = true
-    }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         modifier = modifier
@@ -103,42 +92,36 @@ fun DeckDetailScreen(
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
     ) { innerPadding ->
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut()
+        LazyColumn(
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 8.dp,
+                bottom = 80.dp
+            ),
+            modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 8.dp,
-                    bottom = 80.dp
-                ),
-                modifier = Modifier.padding(innerPadding),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    DeckDetailHeader(
-                        cardCount = state.deck.cards.size,
-                        onReview = onReview,
-                        enabled = state.hasSessionEnabled,
-                    )
-                }
+            item {
+                DeckDetailHeader(
+                    cardCount = state.deck.cards.size,
+                    onReview = onReview,
+                    enabled = state.hasSessionEnabled,
+                )
+            }
 
-                items(state.deck.cards, key = Flashcard::id) { card ->
-                    DeckCardItem(
-                        card = card,
-                        onCardClick = { onCardClick(it) }
-                    )
-                }
+            items(state.deck.cards, key = Flashcard::id) { card ->
+                DeckCardItem(
+                    card = card,
+                    onCardClick = { onCardClick(it) }
+                )
             }
         }
     }
@@ -394,13 +377,6 @@ fun DeckCardItem(
                     fontWeight = FontWeight.Medium
                 )
             }
-        }
-    }
-
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            delay(100)
-            isPressed = false
         }
     }
 }
