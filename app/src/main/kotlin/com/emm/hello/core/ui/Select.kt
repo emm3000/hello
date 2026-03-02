@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
@@ -45,7 +44,6 @@ import com.emm.hello.core.theme.HelloTheme
  * - Fondo transparente, altura mínima 40dp
  * - Chevron rotado cuando está expandido
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> HSelect(
     items: List<T>,

@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -34,7 +33,6 @@ import com.emm.hello.core.theme.HelloTheme
 // Data class para representar un mazo
 data class DeckInfo(val name: String, val cardCount: Int, val completion: Float)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DecksScreen(modifier: Modifier = Modifier, onDeckClick: (DeckInfo) -> Unit = {}) {
     val decks = listOf(
