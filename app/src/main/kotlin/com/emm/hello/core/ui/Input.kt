@@ -1,23 +1,31 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 /**
  * Input de texto inspirado en shadcn/ui.
@@ -104,6 +112,57 @@ fun HInput(
                 color = if (isError) MaterialTheme.colorScheme.error
                 else MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HInputPreview() {
+    HelloTheme {
+        Surface {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                var name by remember { mutableStateOf("") }
+                HInput(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = "Nombre del mazo",
+                    placeholder = "Ej: Vocabulario de Inglés B2",
+                )
+
+                var word by remember { mutableStateOf("serendipity") }
+                HInput(
+                    value = word,
+                    onValueChange = { word = it },
+                    label = "Palabra",
+                    supportingText = "Escribe la palabra en inglés",
+                )
+
+                var broken by remember { mutableStateOf("") }
+                HInput(
+                    value = broken,
+                    onValueChange = { broken = it },
+                    label = "Campo requerido",
+                    placeholder = "Este campo es obligatorio",
+                    errorMessage = if (broken.isBlank()) "Este campo es obligatorio" else null,
+                )
+
+                var notes by remember { mutableStateOf("") }
+                HInput(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = "Notas (multiline)",
+                    singleLine = false,
+                    minLines = 4,
+                )
+            }
         }
     }
 }

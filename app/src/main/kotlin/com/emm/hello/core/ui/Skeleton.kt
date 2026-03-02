@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,9 +15,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 // ─── Primitivo ───────────────────────────────────────────────────────────────
 
@@ -137,6 +142,60 @@ fun TextSkeleton(
                     .height(14.dp),
             )
             if (index < lines - 1) Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HSkeletonPreview() {
+    HelloTheme {
+        Surface {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                // Línea de título
+                HSkeleton(Modifier.fillMaxWidth(0.5f).height(20.dp))
+                // Líneas de cuerpo
+                HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+                HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+                HSkeleton(Modifier.fillMaxWidth(0.7f).height(14.dp))
+                // Botón skeleton
+                HSkeleton(Modifier.size(width = 120.dp, height = 36.dp), cornerRadius = 20.dp)
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun DashboardSkeletonPreview() {
+    HelloTheme {
+        Surface {
+            DashboardSkeleton(
+                count = 4,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TextSkeletonPreview() {
+    HelloTheme {
+        Surface {
+            TextSkeleton(
+                lines = 4,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            )
         }
     }
 }

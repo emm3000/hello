@@ -1,13 +1,23 @@
 package com.emm.hello.core.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import com.emm.hello.core.theme.HelloTheme
 
 /**
  * Dialog estándar inspirado en shadcn/ui `<AlertDialog />`.
@@ -72,4 +82,49 @@ fun HAlertDialog(
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     )
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HAlertDialogPreview() {
+    HelloTheme {
+        Surface {
+            var show by remember { mutableStateOf(true) }
+            if (show) {
+                HAlertDialog(
+                    title = "Sesión completada",
+                    description = "¡Bien hecho! Has repasado todas las tarjetas de esta sesión.",
+                    icon = Icons.Outlined.Check,
+                    confirmText = "Volver",
+                    cancelText = null,
+                    onConfirm = { show = false },
+                    onDismiss = { show = false },
+                )
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun HAlertDialogDangerousPreview() {
+    HelloTheme {
+        Surface {
+            var show by remember { mutableStateOf(true) }
+            if (show) {
+                HAlertDialog(
+                    title = "Eliminar mazo",
+                    description = "Esta acción no se puede deshacer. Perderás todas las tarjetas asociadas.",
+                    icon = Icons.Outlined.Delete,
+                    confirmText = "Eliminar",
+                    cancelText = "Cancelar",
+                    isDangerous = true,
+                    onConfirm = { show = false },
+                    onDismiss = { show = false },
+                )
+            }
+        }
+    }
 }

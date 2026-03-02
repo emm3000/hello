@@ -1,6 +1,10 @@
 package com.emm.hello.core.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -9,7 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 // ─── Variantes ──────────────────────────────────────────────────────────────
 
@@ -58,5 +64,30 @@ private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
         BadgeVariant.Destructive -> cs.errorContainer to cs.onErrorContainer
         BadgeVariant.Outline -> Color.Transparent to cs.onSurface
         BadgeVariant.Success -> cs.tertiaryContainer to cs.onTertiaryContainer
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HBadgeVariantsPreview() {
+    HelloTheme {
+        Surface {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                BadgeVariant.entries.forEach { variant ->
+                    HBadge(
+                        label = variant.name,
+                        variant = variant,
+                        modifier = Modifier.wrapContentWidth(),
+                    )
+                }
+            }
+        }
     }
 }

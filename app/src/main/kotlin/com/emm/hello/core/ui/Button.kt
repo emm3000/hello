@@ -1,12 +1,18 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -14,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 // ─── Variantes ──────────────────────────────────────────────────────────────
 
@@ -176,5 +185,61 @@ fun HButton(
             text = if (isLoading) "Cargando…" else text,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         )
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HButtonVariantsPreview() {
+    HelloTheme {
+        Surface {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ButtonVariant.entries.forEach { variant ->
+                    HButton(
+                        text = variant.name,
+                        onClick = {},
+                        variant = variant,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun HButtonWithIconPreview() {
+    HelloTheme {
+        Surface(Modifier.padding(16.dp)) {
+            HButton(
+                text = "Nueva tarjeta",
+                onClick = {},
+                leadingIcon = Icons.Default.Add,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun HButtonLoadingPreview() {
+    HelloTheme {
+        Surface(Modifier.padding(16.dp)) {
+            HButton(
+                text = "Generar",
+                onClick = {},
+                isLoading = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }

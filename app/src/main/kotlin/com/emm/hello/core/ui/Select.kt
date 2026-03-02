@@ -1,9 +1,11 @@
 package com.emm.hello.core.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -12,13 +14,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 /**
  * Dropdown selector inspirado en shadcn/ui `<Select />`.
@@ -87,6 +94,62 @@ fun <T> HSelect(
                         },
                     )
                 }
+            }
+        }
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+private val demoItems = listOf("Vocabulario B2", "Phrasal Verbs", "Idioms", "Gramática")
+
+@PreviewLightDark
+@Composable
+private fun HSelectEmptyPreview() {
+    HelloTheme {
+        Surface {
+            HSelect(
+                items = demoItems,
+                itemSelected = null,
+                onItemSelected = {},
+                label = "Mazo",
+                placeholder = "Seleccionar mazo…",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun HSelectWithValuePreview() {
+    HelloTheme {
+        Surface {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                var selected1 by remember { mutableStateOf<String?>(demoItems.first()) }
+                HSelect(
+                    items = demoItems,
+                    itemSelected = selected1,
+                    onItemSelected = { selected1 = it },
+                    label = "Mazo seleccionado",
+                )
+
+                var selected2 by remember { mutableStateOf<String?>(null) }
+                HSelect(
+                    items = demoItems,
+                    itemSelected = selected2,
+                    onItemSelected = { selected2 = it },
+                    label = "Dificultad",
+                    enabled = false,
+                    placeholder = "Desactivado",
+                )
             }
         }
     }

@@ -2,6 +2,7 @@ package com.emm.hello.core.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
 
 // ─── Variantes ──────────────────────────────────────────────────────────────
 
@@ -115,5 +119,43 @@ private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
             cs.onSecondaryContainer,
             cs.secondary,
         )
+    }
+}
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@PreviewLightDark
+@Composable
+private fun HAlertVariantsPreview() {
+    HelloTheme {
+        Surface {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                HAlert(
+                    title = "Información",
+                    description = "Revisa los datos antes de continuar.",
+                    variant = AlertVariant.Default,
+                )
+                HAlert(
+                    title = "Error al generar",
+                    description = "No se pudo conectar con el servidor. Verifica tu conexión.",
+                    variant = AlertVariant.Destructive,
+                )
+                HAlert(
+                    title = "Atención",
+                    description = "Esta acción no se puede deshacer.",
+                    variant = AlertVariant.Warning,
+                )
+                HAlert(
+                    title = "Tarjeta guardada",
+                    description = "La flashcard fue creada y añadida a tu mazo.",
+                    variant = AlertVariant.Success,
+                )
+            }
+        }
     }
 }
