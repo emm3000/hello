@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -9,13 +10,13 @@ plugins {
     kotlin("plugin.serialization") version libs.versions.kotlin
 }
 
-val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "com.emm.hello"
     compileSdk = 36
 
@@ -59,6 +60,7 @@ android {
             signingConfig = signingConfigs["config"]
             matchingFallbacks += listOf("release")
             proguardFiles(
+                //noinspection ProguardAndroidTxtUsage
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
@@ -70,16 +72,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        jvmToolchain(17)
-        compilerOptions {
-            freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
-        }
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
     }
 }
 

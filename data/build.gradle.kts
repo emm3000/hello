@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.LibraryExtension
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -8,13 +9,13 @@ plugins {
     id("app.cash.sqldelight") version libs.versions.androidDriver
 }
 
-val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-android {
+configure<LibraryExtension> {
     namespace = "com.emm.data"
     compileSdk = 36
 
@@ -47,14 +48,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        jvmToolchain(17)
-    }
-
     buildFeatures {
         buildConfig = true
         resValues = true
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
