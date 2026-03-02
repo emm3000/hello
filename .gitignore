@@ -17,3 +17,4 @@ local.properties
 keystore.properties
 /key
 .kotlin
+domain/bin/
