@@ -80,7 +80,7 @@ dependencies {
     implementation(libs.coroutines.extensions)
 
     debugImplementation(libs.library)
-    releaseImplementation(libs.library)
+    releaseImplementation(libs.library.no.op)
     "stagingImplementation"(libs.library)
 
     // retrofit
