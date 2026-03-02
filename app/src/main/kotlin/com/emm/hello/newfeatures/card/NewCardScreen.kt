@@ -1,6 +1,15 @@
 package com.emm.hello.newfeatures.card
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
@@ -16,6 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -32,9 +43,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -42,6 +56,7 @@ import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
+import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -53,6 +68,7 @@ import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSelect
 import com.emm.hello.core.ui.HSeparator
 import java.time.LocalDateTime
+import java.util.Locale
 
 @Composable
 fun NewCardScreen(
@@ -61,6 +77,34 @@ fun NewCardScreen(
     onAction: (NewCardAction) -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val sttManager = rememberSpeechToTextManager { voiceText ->
+        onAction(NewCardAction.WordChanged(voiceText))
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) sttManager.startListening(Locale.US)
+        }
+    )
+
+    val toggleVoiceInput = {
+        if (sttManager.isListening.value) {
+            sttManager.stopListening()
+        } else {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPermission) {
+                sttManager.startListening(Locale.US)
+            } else {
+                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
+
     val showBottomSheet = remember { mutableStateOf(false) }
     val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         val hasWord = state.word.isNotBlank()
@@ -129,7 +173,13 @@ fun NewCardScreen(
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = "Palabra o frase en inglés",
-                                placeholder = "Ej: Hello, Good morning…",
+                                placeholder = if (sttManager.isListening.value) "Escuchando…" else "Ej: Hello, Good morning…",
+                                trailingIcon = {
+                                    VoiceInputButton(
+                                        isListening = sttManager.isListening.value,
+                                        onClick = toggleVoiceInput
+                                    )
+                                }
                             )
                         }
                         TypeView.WithCategories -> {
@@ -230,6 +280,36 @@ fun NewCardScreen(
         accounts = staticCategories,
         onAction = { onAction(NewCardAction.CategorySelected(it)) },
     )
+}
+
+// -- Voice Components ---------------------------------------------------------
+
+@Composable
+private fun VoiceInputButton(
+    isListening: Boolean,
+    onClick: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isListening) 1.25f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.scale(scale)
+    ) {
+        Icon(
+            imageVector = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
+            contentDescription = "Entrada de voz",
+            tint = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+        )
+    }
 }
 
 // -- Internal Composables -----------------------------------------------------

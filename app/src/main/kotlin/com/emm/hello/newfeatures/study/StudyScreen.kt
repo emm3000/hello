@@ -34,13 +34,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.hello.core.audio.TextToSpeechManager
+import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -56,8 +57,7 @@ fun StudyScreen(
     state: StudyUiState = StudyUiState(),
 ) {
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
-    val tts: TextToSpeechController = rememberTextToSpeech()
-    var isSpeaking by remember { mutableStateOf(false) }
+    val tts: TextToSpeechManager = rememberTextToSpeechManager()
 
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
@@ -74,8 +74,9 @@ fun StudyScreen(
         if (state.isFinished) setShowDialog(true)
     }
 
+    // -- Lifecycle ----------------------------------------------------------------
     DisposableEffect(tts) {
-        tts.onDoneSpeaking = { isSpeaking = false }
+        tts.onDoneSpeaking = { /* tts.isSpeaking ya gestiona el estado */ }
         onDispose { tts.onDoneSpeaking = null }
     }
 
@@ -178,15 +179,11 @@ fun StudyScreen(
                     backContent = {
                         FlashcardBackContent(
                             card = prevFlashCard.value,
-                            isSpeaking = isSpeaking,
-                            ttsReady = tts.isReady,
-                            onStop = {
-                                isSpeaking = false
-                                tts.stop()
-                            },
+                            isSpeaking = tts.isSpeaking.value,
+                            ttsReady = tts.isReady.value,
+                            onStop = { tts.stop() },
                             onSpeak = {
-                                if (tts.isReady) {
-                                    isSpeaking = true
+                                if (tts.isReady.value) {
                                     tts.speak(state.currentFlashcard?.word.orEmpty())
                                 }
                             },
@@ -331,18 +328,7 @@ private fun AnswerButtons(
     }
 }
 
-// ── TTS helper ────────────────────────────────────────────────────────────────
-
-@Composable
-private fun rememberTextToSpeech(): TextToSpeechController {
-    val context = LocalContext.current
-    val controller = remember { TextToSpeechController(context) }
-    DisposableEffect(Unit) {
-        controller.init()
-        onDispose { controller.shutdown() }
-    }
-    return controller
-}
+// -----------------------------------------------------------------------------
 
 // ── Previews ──────────────────────────────────────────────────────────────────
 
