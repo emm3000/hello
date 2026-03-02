@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -81,6 +82,7 @@ fun NewCardScreen(
     val sttManager = rememberSpeechToTextManager { voiceText ->
         onAction(NewCardAction.WordChanged(voiceText))
     }
+    val isListening by sttManager.isListening.collectAsStateWithLifecycle()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -90,7 +92,7 @@ fun NewCardScreen(
     )
 
     val toggleVoiceInput = {
-        if (sttManager.isListening.value) {
+        if (isListening) {
             sttManager.stopListening()
         } else {
             val hasPermission = ContextCompat.checkSelfPermission(
@@ -173,10 +175,10 @@ fun NewCardScreen(
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = "Palabra o frase en inglés",
-                                placeholder = if (sttManager.isListening.value) "Escuchando…" else "Ej: Hello, Good morning…",
+                                placeholder = if (isListening) "Escuchando…" else "Ej: Hello, Good morning…",
                                 trailingIcon = {
                                     VoiceInputButton(
-                                        isListening = sttManager.isListening.value,
+                                        isListening = isListening,
                                         onClick = toggleVoiceInput
                                     )
                                 }
