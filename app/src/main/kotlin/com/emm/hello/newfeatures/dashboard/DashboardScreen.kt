@@ -109,7 +109,7 @@ fun DashboardScreen(
         ) {
             // ── Resumen de sesión ────────────────────────────────────────────
             item {
-                val totalPending = state.decks.sumOf { it.cardsCount.toLong() }
+                val totalPending = state.decks.sumOf { it.cardsCount }
                 AnimatedVisibility(
                     visible = !state.isLoading && totalPending > 0,
                     enter = fadeIn(),
