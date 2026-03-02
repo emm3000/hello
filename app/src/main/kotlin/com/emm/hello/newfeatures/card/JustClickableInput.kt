@@ -11,31 +11,28 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
+/**
+ * Campo de texto de solo lectura que actúa como un trigger clickeable.
+ * Usa el mismo visual language que [com.emm.hello.core.ui.HInput]:
+ * label externo en labelMedium + OutlinedTextField.
+ */
 @Composable
 fun JustClickableInput(
     value: String,
     label: String,
     onClick: () -> Unit,
 ) {
-
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 17.sp
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
         )
-
-        Spacer(modifier = Modifier.height(5.dp))
-
+        Spacer(Modifier.height(6.dp))
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -44,24 +41,20 @@ fun JustClickableInput(
             onValueChange = {},
             readOnly = true,
             enabled = false,
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = MaterialTheme.colorScheme.onBackground,
-                disabledBorderColor = MaterialTheme.colorScheme.onBackground,
-                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                focusedBorderColor = MaterialTheme.colorScheme.onBackground
-            ),
             placeholder = {
                 Text(
-                    text = "Seleccione una cuenta",
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                    fontSize = 16.sp
+                    text = "Seleccionar categoría",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
-            textStyle = TextStyle(
-                fontWeight = FontWeight.Normal,
-                fontSize = 18.sp,
-            )
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
+            shape = MaterialTheme.shapes.small,
         )
     }
 }

@@ -28,6 +28,7 @@ class StudyViewModel(
         viewModelScope.launch {
             val flashcards: List<Flashcard> = flashcardFetcher.fetchAll(deckId)
             flashcardsForToday.addAll(flashcards)
+            state = state.copy(totalCount = flashcards.size)
             showNextCard()
         }
     }
@@ -40,6 +41,10 @@ class StudyViewModel(
         }
     }
 
+    private fun incrementReviewed() {
+        state = state.copy(reviewedCount = state.reviewedCount + 1)
+    }
+
     fun onProcess(flashcard: Flashcard?, reviewResult: ReviewGrade) = viewModelScope.launch {
         if (flashcard == null) return@launch
 
@@ -49,6 +54,7 @@ class StudyViewModel(
             flashcardId = flashcard.id,
         )
         flashcardReviewUpdater.update(newReview)
+        incrementReviewed()
         showNextCard()
     }
 

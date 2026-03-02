@@ -15,10 +15,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -28,6 +26,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,16 +51,16 @@ fun NewDeckScreen(
                     }
                 },
                 actions = {
-                    TextButton(
+                    HButton(
+                        text = "Guardar",
                         onClick = {
                             focusManager.clearFocus()
                             onAction(NewDeckAction.Submit)
                             onNavigateBack()
                         },
-                        enabled = state.isValid
-                    ) {
-                        Text("Guardar")
-                    }
+                        enabled = state.isValid,
+                        variant = ButtonVariant.Ghost,
+                    )
                 }
             )
         }
@@ -70,39 +71,39 @@ fun NewDeckScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            OutlinedTextField(
+            HInput(
                 value = state.name,
                 onValueChange = { onAction(NewDeckAction.NameChanged(it)) },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                label = { Text("Nombre del mazo") },
-                placeholder = { Text("Ej: Vocabulario de Inglés B2") },
-                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                label = "Nombre del mazo",
+                placeholder = "Ej: Vocabulario de Inglés B2",
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                ),
             )
 
-            OutlinedTextField(
+            HInput(
                 value = state.description,
                 onValueChange = { onAction(NewDeckAction.DescriptionChanged(it)) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Descripción (opcional)") },
-                placeholder = { Text("Un mazo para los verbos irregulares más comunes.") },
+                label = "Descripción",
+                placeholder = "Un mazo para los verbos irregulares más comunes.",
+                supportingText = "Opcional",
+                singleLine = false,
+                minLines = 5,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Done
+                    imeAction = ImeAction.Done,
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = { focusManager.clearFocus() }
                 ),
-                minLines = 5
             )
         }
     }

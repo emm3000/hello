@@ -103,7 +103,7 @@ fun DeckItemSkeleton(modifier: Modifier = Modifier) {
 /** Skeleton de la pantalla Dashboard con N DeckItems. */
 @Composable
 fun DashboardSkeleton(count: Int = 4, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    Column(modifier = modifier.fillMaxWidth()) {
         // Header row
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),

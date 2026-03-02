@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.stateIn
 class DashboardViewModel(deckFetcher: DeckFetcher) : ViewModel() {
 
     val state: StateFlow<DashboardUiState> = deckFetcher.fetch()
-        .map(::DashboardUiState)
+        .map { decks -> DashboardUiState(decks = decks, isLoading = false) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DashboardUiState(),
+            initialValue = DashboardUiState(isLoading = true),
         )
 }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Category
@@ -24,10 +23,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
@@ -46,21 +41,27 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.emm.domain.quote.Quote
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.BadgeVariant
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.ui.HBadge
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HCard
+import com.emm.hello.core.ui.HSeparator
 
 @Composable
 fun QuotesScreen(
     quotes: List<Quote>,
-    createCard: (Quote) -> Unit = {}
+    createCard: (Quote) -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
+        contentPadding = PaddingValues(vertical = 16.dp),
     ) {
         items(quotes, key = Quote::id) { quote ->
             QuoteItem(quote = quote, onClick = createCard)
@@ -72,78 +73,103 @@ fun QuotesScreen(
 fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(
+    HCard(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
             .clickable { expanded = !expanded },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        variant = CardVariant.Elevated,
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = quote.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = quote.phrase,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Expand",
-                    modifier = Modifier.rotate(if (expanded) 180f else 0f)
+                    contentDescription = if (expanded) "Contraer" else "Expandir",
+                    modifier = Modifier.rotate(if (expanded) 180f else 0f),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             if (expanded) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                QuoteDetailRow(icon = Icons.Default.Translate, title = "Translation", content = quote.translation)
-                QuoteDetailRow(icon = Icons.Default.Info, title = "Description", content = quote.description)
-                QuoteDetailRow(icon = Icons.Default.School, title = "Example", content = quote.example)
-                QuoteDetailRow(icon = Icons.Default.RecordVoiceOver, title = "Pronunciation", content = quote.pronunciation)
+                Spacer(Modifier.height(12.dp))
+                HSeparator()
+                Spacer(Modifier.height(12.dp))
+
+                QuoteDetailRow(
+                    icon = Icons.Default.Translate,
+                    title = "Translation",
+                    content = quote.translation,
+                )
+                QuoteDetailRow(
+                    icon = Icons.Default.Info,
+                    title = "Description",
+                    content = quote.description,
+                )
+                QuoteDetailRow(
+                    icon = Icons.Default.School,
+                    title = "Example",
+                    content = quote.example,
+                )
+                QuoteDetailRow(
+                    icon = Icons.Default.RecordVoiceOver,
+                    title = "Pronunciation",
+                    content = quote.pronunciation,
+                )
                 if (quote.category.isNotEmpty()) {
-                    QuoteDetailRow(icon = Icons.Default.Category, title = "Category", content = quote.category)
+                    QuoteDetailRow(
+                        icon = Icons.Default.Category,
+                        title = "Category",
+                        content = quote.category,
+                    )
                 }
 
                 if (quote.tags.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(Modifier.height(8.dp))
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         quote.tags.forEach { tag ->
                             SuggestionChip(onClick = {}, label = { Text(tag) })
                         }
                     }
                 }
-                Button(
-                    onClick = {
-                        onClick(quote)
-                    },
-                    enabled = quote.hasCard.not()
-                ) {
-                    if (quote.hasCard.not()) {
-                        Text("Create Flashcard")
-                    } else {
-                        Text("Has card")
-                    }
-                }
 
+                Spacer(Modifier.height(12.dp))
+
+                HButton(
+                    text = if (quote.hasCard) "Ya tiene tarjeta" else "Crear flashcard",
+                    onClick = { onClick(quote) },
+                    enabled = !quote.hasCard,
+                    variant = if (quote.hasCard) ButtonVariant.Secondary else ButtonVariant.Default,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (quote.hasCard) {
+                    Spacer(Modifier.height(4.dp))
+                    HBadge(
+                        label = "Flashcard ya creada",
+                        variant = BadgeVariant.Success,
+                    )
+                }
             }
         }
     }
@@ -155,18 +181,27 @@ fun QuoteDetailRow(icon: ImageVector, title: String, content: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = title,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.secondary
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column {
-            Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            Text(text = content, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = content,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
     }
 }
@@ -196,7 +231,7 @@ private val sampleQuotes = listOf(
         id = "1",
         title = "Carpe Diem",
         phrase = "Seize the day",
-        description = "A Latin aphorism, usually translated 'seize the day', taken from book 1 of the Roman poet Horace's work Odes.",
+        description = "A Latin aphorism, usually translated 'seize the day'.",
         translation = "Aprovecha el día",
         example = "I'm going to go skydiving, carpe diem!",
         context = "Motivational",
@@ -210,15 +245,14 @@ private val sampleQuotes = listOf(
         id = "2",
         title = "Veni, Vidi, Vici",
         phrase = "I came, I saw, I conquered",
-        description = "A Latin phrase popularly attributed to Julius Caesar who, according to Appian, used the phrase in a letter to the Roman Senate around 47 BC after he had achieved a quick victory in his short war against Pharnaces II of Pontus at the Battle of Zela.",
+        description = "A Latin phrase attributed to Julius Caesar.",
         translation = "Vine, vi, vencí",
-        example = "After the successful product launch, the CEO proudly said 'Veni, vidi, vici'.",
+        example = "After the successful product launch, the CEO said 'Veni, vidi, vici'.",
         context = "Achievement",
         pronunciation = "/ˈweːniː ˈwiːdiː ˈwiːkiː/",
         formality = "Formal",
         tags = listOf("history", "latin", "victory"),
         category = "History",
-        hasCard = false,
-    )
+        hasCard = true,
+    ),
 )
-

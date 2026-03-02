@@ -4,4 +4,5 @@ import com.emm.domain.deck.Deck
 
 data class DashboardUiState(
     val decks: List<Deck> = emptyList(),
+    val isLoading: Boolean = true,
 )

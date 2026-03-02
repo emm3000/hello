@@ -14,16 +14,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -36,12 +32,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.BadgeVariant
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HBadge
+import com.emm.hello.core.ui.HButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +53,6 @@ fun StudyScreen(
     onReviewAnswer: (Flashcard?, ReviewGrade) -> Unit = { _, _ -> },
     state: StudyUiState = StudyUiState(),
 ) {
-
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechController = rememberTextToSpeech()
     val isSpeaking: MutableState<Boolean> = remember { mutableStateOf(false) }
@@ -59,35 +60,41 @@ fun StudyScreen(
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
 
-    LaunchedEffect(state.currentFlashcard?.id) {
-        cardFace = CardFace.Front
-    }
+    LaunchedEffect(state.currentFlashcard?.id) { cardFace = CardFace.Front }
 
     LaunchedEffect(state.isFinished) {
-        if (state.isFinished) {
-            setShowDialog(true)
-        }
+        if (state.isFinished) setShowDialog(true)
     }
 
     DisposableEffect(tts) {
-        tts.onDoneSpeaking = {
-            isSpeaking.value = false
-        }
-        onDispose {
-            tts.onDoneSpeaking = null
-        }
+        tts.onDoneSpeaking = { isSpeaking.value = false }
+        onDispose { tts.onDoneSpeaking = null }
     }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Repaso") },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("Repaso")
+                        HBadge(
+                            label = "${state.reviewedCount}/${state.totalCount}",
+                            variant = BadgeVariant.Secondary,
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Salir de la sesión")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Salir de la sesión",
+                        )
                     }
-                }
+                },
             )
         }
     ) { innerPadding ->
@@ -97,31 +104,26 @@ fun StudyScreen(
                 .padding(16.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
-
-
             FlippableCard(
                 cardFace = cardFace,
-                onClick = {
-                    cardFace = it.next
-                },
-                onFinished = {
-                    prevFlashCard.value = state.currentFlashcard
-                },
+                onClick = { cardFace = it.next },
+                onFinished = { prevFlashCard.value = state.currentFlashcard },
                 modifier = Modifier
                     .weight(1f)
                     .size(300.dp),
                 frontContent = {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = state.currentFlashcard?.word.orEmpty(),
                             style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
                 },
@@ -130,18 +132,15 @@ fun StudyScreen(
                         card = prevFlashCard.value,
                         isSpeaking = isSpeaking.value,
                         enabled = tts.isReady,
-                        onStop = {
-                            isSpeaking.value = false
-                            tts.stop()
-                        },
+                        onStop = { isSpeaking.value = false; tts.stop() },
                         onSpeak = {
                             if (tts.isReady) {
                                 isSpeaking.value = true
                                 tts.speak(state.currentFlashcard?.word.orEmpty())
                             }
-                        }
+                        },
                     )
-                }
+                },
             )
 
             Box(
@@ -151,30 +150,21 @@ fun StudyScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 if (cardFace == CardFace.Back) {
-                    AnswerButtons { reviewGrade ->
-                        onReviewAnswer(state.currentFlashcard, reviewGrade)
-                    }
+                    AnswerButtons { reviewGrade -> onReviewAnswer(state.currentFlashcard, reviewGrade) }
                 }
             }
         }
     }
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { setShowDialog(false) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        setShowDialog(false)
-                        onNavigateBack()
-                    }
-                ) {
-                    Text(text = "Aceptar", color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            title = { Text(text = "Sesión de repaso") },
-            text = { Text(text = "Has terminado la sesión de repaso") },
-            icon = { Icon(Icons.Outlined.Check, contentDescription = "Example Icon") },
+        HAlertDialog(
+            title = "Sesión de repaso completada",
+            description = "¡Bien hecho! Has repasado todas las tarjetas de esta sesión.",
+            icon = Icons.Outlined.Check,
+            confirmText = "Volver",
+            cancelText = null,
+            onConfirm = { setShowDialog(false); onNavigateBack() },
+            onDismiss = { setShowDialog(false); onNavigateBack() },
         )
     }
 }
@@ -187,112 +177,96 @@ private fun FlashcardContent(
     onStop: () -> Unit = {},
     onSpeak: () -> Unit = {},
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp), // Corrige el efecto espejo
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = card?.translation.orEmpty(),
             style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 6.dp),
         )
         Text(
             text = card?.meaning.orEmpty(),
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))
         IconButton(
-            onClick = {
-                if (isSpeaking) {
-                    onStop()
-                } else {
-                    onSpeak()
-                }
-            },
-            enabled = enabled
+            onClick = { if (isSpeaking) onStop() else onSpeak() },
+            enabled = enabled,
         ) {
-            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Pronunciación")
+            Icon(
+                Icons.AutoMirrored.Filled.VolumeUp,
+                contentDescription = if (isSpeaking) "Detener" else "Pronunciar",
+                tint = if (isSpeaking) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
 
 @Composable
 fun rememberTextToSpeech(): TextToSpeechController {
-
     val context = LocalContext.current
     val controller = remember { TextToSpeechController(context) }
-
     DisposableEffect(Unit) {
         controller.init()
-        onDispose {
-            controller.shutdown()
-        }
+        onDispose { controller.shutdown() }
     }
-
     return controller
 }
 
 @Composable
-fun AnswerButtons(modifier: Modifier = Modifier, onReviewAnswer: (ReviewGrade) -> Unit = {}) {
-
-    val c = MaterialTheme.colorScheme
-
+fun AnswerButtons(
+    modifier: Modifier = Modifier,
+    onReviewAnswer: (ReviewGrade) -> Unit = {},
+) {
     Column(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
     ) {
         Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(
+            HButton(
+                text = "Again",
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = c.errorContainer,
-                    contentColor = c.onErrorContainer,
-                ),
-                modifier = Modifier.weight(1f)
-            ) { Text("Again") }
-
-            Button(
+                variant = ButtonVariant.Destructive,
+                modifier = Modifier.weight(1f),
+            )
+            HButton(
+                text = "Hard",
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = c.secondaryContainer,
-                    contentColor = c.onSecondaryContainer,
-                ),
-                modifier = Modifier.weight(1f)
-            ) { Text("Hard") }
+                variant = ButtonVariant.Secondary,
+                modifier = Modifier.weight(1f),
+            )
         }
         Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(
+            HButton(
+                text = "Good",
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = c.primaryContainer,
-                    contentColor = c.onPrimaryContainer,
-                ),
-                modifier = Modifier.weight(1f)
-            ) { Text("Good") }
-
-            Button(
+                variant = ButtonVariant.Default,
+                modifier = Modifier.weight(1f),
+            )
+            HButton(
+                text = "Easy",
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = c.tertiaryContainer,
-                    contentColor = c.onTertiaryContainer,
-                ),
-                modifier = Modifier.weight(1f)
-            ) { Text("Easy") }
+                variant = ButtonVariant.Outline,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
-
 }
 
 @PreviewLightDark
@@ -303,13 +277,15 @@ fun StudyScreenPreviewLight() {
             state = StudyUiState(
                 currentFlashcard = Flashcard(
                     id = "Hello",
-                    word = "Hola",
-                    meaning = "nec",
-                    translation = "partiendo",
+                    word = "Serendipity",
+                    meaning = "The occurrence of events by chance in a happy way",
+                    translation = "Casualidad afortunada",
                     examples = listOf(),
-                    phonetic = "(831) 768-0261",
-                    review = FlashcardReview.Empty
-                )
+                    phonetic = "/ˌserənˈdɪpɪti/",
+                    review = FlashcardReview.Empty,
+                ),
+                reviewedCount = 3,
+                totalCount = 10,
             )
         )
     }

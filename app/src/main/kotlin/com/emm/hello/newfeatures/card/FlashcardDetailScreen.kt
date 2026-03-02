@@ -16,17 +16,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -42,19 +38,28 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HCard
+import com.emm.hello.core.ui.HSeparator
 
 @Composable
 fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
     flashcard: Flashcard = Flashcard.Empty,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             MediumTopAppBar(
-                title = { Text(flashcard.word) },
+                title = {
+                    Text(
+                        flashcard.word,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -67,7 +72,7 @@ fun FlashcardDetailScreen(
                     IconButton(onClick = { /* TODO: Borrar */ }) {
                         Icon(Icons.Default.Delete, contentDescription = "Borrar")
                     }
-                }
+                },
             )
         }
     ) { innerPadding ->
@@ -76,44 +81,56 @@ fun FlashcardDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 10.dp)
-                .padding(innerPadding)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Card(
+            // ── Tarjeta principal ─────────────────────────────────────────────
+            HCard(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                variant = CardVariant.Elevated,
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
                         text = flashcard.word,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = flashcard.phonetic,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                    Spacer(Modifier.height(8.dp))
+                    HSeparator()
+                    Spacer(Modifier.height(12.dp))
 
                     DetailItem(label = "Traducción", value = flashcard.translation)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(12.dp))
                     DetailItem(label = "Significado", value = flashcard.meaning)
 
                     if (flashcard.examples.isNotEmpty()) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                        Spacer(Modifier.height(4.dp))
+                        HSeparator()
+                        Spacer(Modifier.height(12.dp))
+
                         Text(
                             text = "Ejemplos",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(Modifier.height(8.dp))
+
                         flashcard.examples.forEachIndexed { index, example ->
                             key(example.exampleId) {
                                 ExampleItem(index = index + 1, example = example)
                                 if (index < flashcard.examples.lastIndex) {
-                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Spacer(Modifier.height(4.dp))
                                 }
                             }
                         }
@@ -126,16 +143,17 @@ fun FlashcardDetailScreen(
 
 @Composable
 private fun DetailItem(label: String, value: String) {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
         )
-        Spacer(Modifier.height(4.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -146,35 +164,37 @@ private fun ExampleItem(index: Int, example: Example) {
 
     Column(
         modifier = Modifier.padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = "$index. ${example.text}",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         if (showTranslation) {
             Text(
                 text = example.translation,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = 16.dp),
             )
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = { showTranslation = !showTranslation }) {
-                Text(if (showTranslation) "Ocultar traducción" else "Ver traducción")
-            }
+            HButton(
+                text = if (showTranslation) "Ocultar traducción" else "Ver traducción",
+                onClick = { showTranslation = !showTranslation },
+                variant = ButtonVariant.Ghost,
+            )
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -197,8 +217,8 @@ fun CardDetailScreenPreview() {
                     exampleId = "ex2",
                     text = "Her Instagram page is very aesthetic.",
                     translation = "Su página de Instagram es muy estética.",
-                    type = ""
-                )
+                    type = "",
+                ),
             ),
             review = FlashcardReview.Empty,
         )

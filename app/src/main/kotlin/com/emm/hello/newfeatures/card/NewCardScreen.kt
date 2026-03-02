@@ -1,8 +1,6 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
@@ -14,29 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwitchLeft
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -58,6 +45,15 @@ import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.AlertVariant
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.ui.HAlert
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HCard
+import com.emm.hello.core.ui.HInput
+import com.emm.hello.core.ui.HSelect
+import com.emm.hello.core.ui.HSeparator
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,12 +64,11 @@ fun NewCardScreen(
     onAction: (NewCardAction) -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
-
     val showBottomSheet = remember { mutableStateOf(false) }
     val isGenerateEnabled by remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         derivedStateOf {
             (!state.isLoading && state.deckSelected != null && state.word.isNotBlank()) ||
-                (state.typeView == TypeView.WithCategories && !state.isLoading && state.deckSelected != null)
+                    (state.typeView == TypeView.WithCategories && !state.isLoading && state.deckSelected != null)
         }
     }
 
@@ -85,15 +80,16 @@ fun NewCardScreen(
                     Column {
                         Text(
                             "Nueva tarjeta",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = when(state.typeView) {
+                            text = when (state.typeView) {
                                 TypeView.WordOrPhase -> "Palabra o frase"
                                 TypeView.WithCategories -> "Por categoría"
                             },
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
@@ -104,13 +100,11 @@ fun NewCardScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            onAction(NewCardAction.OnTypeViewSelected(state.typeView.other))
-                        }
+                        onClick = { onAction(NewCardAction.OnTypeViewSelected(state.typeView.other)) }
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwitchLeft,
-                            contentDescription = "Cambiar vista"
+                            contentDescription = "Cambiar vista",
                         )
                     }
                 }
@@ -125,20 +119,18 @@ fun NewCardScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
+            // ── Sección entrada ──────────────────────────────────────────────
             item {
                 SectionCard(title = "Entrada") {
-
-                    when(state.typeView) {
+                    when (state.typeView) {
                         TypeView.WordOrPhase -> {
-                            OutlinedTextField(
+                            HInput(
                                 value = state.word,
                                 onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Palabra o frase en inglés") },
-                                placeholder = { Text("Ej: Hello, Good morning...") },
-                                singleLine = true,
-                                shape = RoundedCornerShape(12.dp)
+                                label = "Palabra o frase en inglés",
+                                placeholder = "Ej: Hello, Good morning…",
                             )
                         }
                         TypeView.WithCategories -> {
@@ -146,17 +138,15 @@ fun NewCardScreen(
                                 JustClickableInput(
                                     value = state.category.name,
                                     label = "Categoría",
-                                    onClick = { showBottomSheet.value = true }
+                                    onClick = { showBottomSheet.value = true },
                                 )
-                                GemaDropdown(
+                                HSelect(
                                     modifier = Modifier.fillMaxWidth(),
                                     enabled = true,
-                                    textLabel = "Dificultad",
+                                    label = "Dificultad",
                                     items = difficult,
                                     itemSelected = state.difficulty,
-                                    onItemSelected = {
-                                        onAction(NewCardAction.OnDifficultySelected(it))
-                                    }
+                                    onItemSelected = { onAction(NewCardAction.OnDifficultySelected(it)) },
                                 )
                             }
                         }
@@ -164,14 +154,18 @@ fun NewCardScreen(
                 }
             }
 
+            // ── Sección destino ──────────────────────────────────────────────
             item {
                 SectionCard(title = "Destino") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        DeckSelector(
-                            decks = state.decks,
+                        HSelect(
+                            items = state.decks,
                             selected = state.deckSelected,
-                            enabled = state.isLoading.not(),
-                            onSelected = { onAction(NewCardAction.OnDeckSelected(it)) }
+                            enabled = !state.isLoading,
+                            onItemSelected = { onAction(NewCardAction.OnDeckSelected(it)) },
+                            label = "Mazo",
+                            placeholder = "Seleccionar mazo…",
+                            itemLabel = { it.name },
                         )
 
                         AnimatedVisibility(
@@ -183,98 +177,52 @@ fun NewCardScreen(
                                 label = "Marcar como deck por defecto",
                                 checked = state.isCheck,
                                 isEnabled = state.deckSelected != null,
-                                onCheckedChange = {
-                                    onAction(NewCardAction.OnCheckChanged(it))
-                                }
+                                onCheckedChange = { onAction(NewCardAction.OnCheckChanged(it)) },
                             )
                         }
                     }
                 }
             }
 
+            // ── Botón generar ────────────────────────────────────────────────
             item {
-                Button(
-                    onClick = {
-                        onAction(NewCardAction.OnGenerateClicked)
-                    },
+                HButton(
+                    text = "Generar",
+                    onClick = { onAction(NewCardAction.OnGenerateClicked) },
                     enabled = isGenerateEnabled,
+                    isLoading = state.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .animateContentSize(
-                            animationSpec = tween(durationMillis = 200)
-                        ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    if (state.isLoading) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.5.dp
-                            )
-                            Text(
-                                "Generando…",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                            )
-                        }
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                "Generar",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                            )
-                        }
-                    }
+                        .height(48.dp),
+                )
+            }
+
+            // ── Error ────────────────────────────────────────────────────────
+            if (state.error != null) {
+                item {
+                    HAlert(
+                        title = "Error al generar",
+                        description = state.error,
+                        variant = AlertVariant.Destructive,
+                    )
                 }
             }
 
+            // ── Resultado ────────────────────────────────────────────────────
             if (state.result != null) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Resultado",
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        Text(
+                            "Resultado",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                         CardPreview(state.result)
                     }
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
+                item { Spacer(modifier = Modifier.height(20.dp)) }
             }
-
-            if (state.error != null) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = state.error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-
         }
     }
 
@@ -282,73 +230,101 @@ fun NewCardScreen(
         onDismissRequest = { showBottomSheet.value = it },
         showBottomSheet = showBottomSheet.value,
         accounts = staticCategories,
-        onAction = { onAction(NewCardAction.OnCategorySelected(it)) }
+        onAction = { onAction(NewCardAction.OnCategorySelected(it)) },
     )
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// HSelect overload que acepta `selected` nombrado (compatibilidad con Deck)
+// ────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> HSelect(
+    items: List<T>,
+    selected: T?,
+    enabled: Boolean,
+    onItemSelected: (T) -> Unit,
+    label: String,
+    placeholder: String,
+    itemLabel: (T) -> String,
+    modifier: Modifier = Modifier,
+) {
+    com.emm.hello.core.ui.HSelect(
+        items = items,
+        itemSelected = selected,
+        onItemSelected = onItemSelected,
+        label = label,
+        modifier = modifier,
+        enabled = enabled,
+        itemLabel = itemLabel,
+        placeholder = placeholder,
+    )
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Composables internos
+// ────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun LabeledCheckbox(
     label: String,
     checked: Boolean,
     isEnabled: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                onClick = { onCheckedChange(!checked) },
-                enabled = isEnabled
-            )
+            .clickable(onClick = { onCheckedChange(!checked) }, enabled = isEnabled)
             .padding(8.dp)
     ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = null,
-        )
+        Checkbox(checked = checked, onCheckedChange = null)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = label)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
 fun CardPreview(flashcard: Flashcard) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = flashcard.word,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = flashcard.phonetic,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-        InfoRow(label = "Traducción", value = flashcard.translation)
-        InfoRow(label = "Significado", value = flashcard.meaning)
-
-        if (flashcard.examples.isNotEmpty()) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
+    HCard(variant = CardVariant.Outlined) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Text(
-                text = "Ejemplos",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
+                text = flashcard.word,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = flashcard.phonetic,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                flashcard.examples.forEachIndexed { index, example ->
-                    key(example.exampleId) {
-                        ExampleItem(index = index + 1, example = example)
+            HSeparator()
+
+            InfoRow(label = "Traducción", value = flashcard.translation)
+            InfoRow(label = "Significado", value = flashcard.meaning)
+
+            if (flashcard.examples.isNotEmpty()) {
+                HSeparator()
+                Text(
+                    text = "Ejemplos",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    flashcard.examples.forEachIndexed { index, example ->
+                        key(example.exampleId) {
+                            ExampleItem(index = index + 1, example = example)
+                        }
                     }
                 }
             }
@@ -359,35 +335,36 @@ fun CardPreview(flashcard: Flashcard) {
 @Composable
 private fun SectionCard(
     title: String,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
         )
         content()
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        HSeparator()
     }
 }
 
 @Composable
 private fun InfoRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -398,113 +375,41 @@ private fun ExampleItem(index: Int, example: Example) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "$index.",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = example.text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
-        AnimatedVisibility(
-            visible = showTranslation,
-        ) {
+        AnimatedVisibility(visible = showTranslation) {
             Text(
                 text = example.translation,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 28.dp)
+                modifier = Modifier.padding(start = 24.dp),
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TextButton(
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            HButton(
+                text = if (showTranslation) "Ocultar" else "Ver traducción",
                 onClick = { showTranslation = !showTranslation },
-                shape = RoundedCornerShape(6.dp)
-            ) {
-                Text(
-                    if (showTranslation) "Ocultar" else "Ver traducción",
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CardPreviewPreview() {
-    HelloTheme {
-        val sampleFlashcard = Flashcard(
-            id = "1",
-            word = "Hello",
-            meaning = "A greeting or salutation.",
-            translation = "Hola",
-            examples = listOf(
-                Example("ex1", "Hello, how are you?", "¿Hola como estas?", ""),
-                Example("ex2", "She said hello to him.", "Ella le dijo hola.", "")
-            ),
-            phonetic = "/həˈloʊ/",
-            review = FlashcardReview.Empty,
-        )
-        CardPreview(flashcard = sampleFlashcard)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeckSelector(
-    decks: List<Deck>,
-    selected: Deck?,
-    enabled: Boolean,
-    onSelected: (Deck) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = selected?.name.orEmpty(),
-            onValueChange = {},
-            readOnly = true,
-            enabled = enabled,
-            label = { Text("Mazo") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            decks.forEach { deck ->
-                DropdownMenuItem(
-                    text = { Text(deck.name) },
-                    onClick = {
-                        onSelected(deck)
-                        expanded = false
-                    }
-                )
-            }
+                variant = ButtonVariant.Ghost,
+            )
         }
     }
 }
@@ -515,52 +420,28 @@ fun NewCardScreenPreview() {
     HelloTheme {
         NewCardScreen(
             state = NewCardUiState(
-                word = "word",
+                word = "Serendipity",
                 decks = listOf(
                     Deck(
-                        id = "doctus",
-                        name = "Joshua Maxwell",
-                        description = "idque",
+                        id = "1",
+                        name = "Vocabulario Inglés",
+                        description = "",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
-                        cardsCount = 4080
+                        cardsCount = 24,
                     )
                 ),
                 result = Flashcard(
-                    id = "dictumst",
-                    word = "utroque",
-                    meaning = "porro",
-                    translation = "est",
+                    id = "1",
+                    word = "Serendipity",
+                    meaning = "The occurrence of events by chance in a happy way",
+                    translation = "Casualidad afortunada",
                     examples = listOf(
-                        Example(
-                            exampleId = "facilisis",
-                            text = "adversarium",
-                            translation = "montes",
-                            type = "petentium"
-                        ),
-                        Example(
-                            exampleId = "facilisis1",
-                            text = "adversarium",
-                            translation = "montes",
-                            type = "petentium"
-                        ),
-                        Example(
-                            exampleId = "facilisis2",
-                            text = "adversarium",
-                            translation = "montes",
-                            type = "petentium"
-                        )
+                        Example("ex1", "Finding that book was pure serendipity", "Encontrar ese libro fue pura casualidad afortunada", ""),
+                        Example("ex2", "She called it serendipity", "Ella lo llamó serendipia", ""),
                     ),
-                    phonetic = "(608) 847-7529",
-                    review = FlashcardReview(
-                        flashcardId = "pri",
-                        lastReviewedAt = 1816,
-                        nextReviewAt = 3409,
-                        easeFactor = 2.3,
-                        interval = 8173,
-                        repetitions = 7428,
-                        lapses = 9002
-                    )
+                    phonetic = "/ˌserənˈdɪpɪti/",
+                    review = FlashcardReview.Empty,
                 )
             )
         )

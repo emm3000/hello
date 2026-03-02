@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -22,17 +23,23 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.BadgeVariant
+import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.DashboardSkeleton
+import com.emm.hello.core.ui.HBadge
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HSeparator
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,14 +55,24 @@ fun DashboardScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Mazos", style = MaterialTheme.typography.titleLarge) },
+                title = {
+                    Text(
+                        "Mazos",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = newCard) {
+            FloatingActionButton(
+                onClick = newCard,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Nueva tarjeta")
             }
         }
@@ -71,11 +88,14 @@ fun DashboardScreen(
                 DecksSection(onCreateDeck = onCreateDeck, decksCount = state.decks.size)
             }
 
-            if (state.decks.isEmpty()) {
+            if (state.isLoading) {
+                item { DashboardSkeleton(count = 4) }
+            } else if (state.decks.isEmpty()) {
                 item { EmptyDecks(onCreateDeck) }
             } else {
                 itemsIndexed(state.decks, key = { _, deck -> deck.id }) { _, deck ->
                     DeckItem(deck = deck, onDeckClick = onDeckDetail)
+                    HSeparator()
                 }
                 item { Spacer(modifier = Modifier.height(24.dp)) }
             }
@@ -83,42 +103,63 @@ fun DashboardScreen(
     }
 }
 
-// Removed ReviewCard for minimalism
-
 @Composable
 fun DecksSection(
     onCreateDeck: () -> Unit = {},
     decksCount: Int = 0,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Mazos", style = MaterialTheme.typography.titleMedium)
-            Text("• ${decksCount}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Mazos",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (decksCount > 0) {
+                HBadge(label = "$decksCount", variant = BadgeVariant.Secondary)
+            }
         }
-        TextButton(
-            onClick = onCreateDeck
-        ) {
-            Text("Nuevo mazo")
-        }
+        HButton(
+            text = "Nuevo mazo",
+            onClick = onCreateDeck,
+            variant = ButtonVariant.Ghost,
+        )
     }
 }
 
 @Composable
 fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     ListItem(
-        headlineContent = { Text(deck.name) },
+        headlineContent = {
+            Text(
+                deck.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+        },
         supportingContent = {
-            Text(text = "${deck.cardsCount} tarjetas", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = "${deck.cardsCount} tarjetas",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
         },
         trailingContent = {
-            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         },
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
@@ -127,23 +168,27 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     )
 }
 
-// Removed QuoteOfTheDayCard for minimalism
-
 @Composable
 fun EmptyDecks(onCreateDeck: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp),
+            .padding(vertical = 64.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("No hay mazos", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Crea tu primer mazo para comenzar",
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            "No hay mazos todavía",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
         )
-        TextButton(onClick = onCreateDeck) { Text("Crear mazo") }
+        Text(
+            "Crea tu primer mazo para comenzar a estudiar",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(8.dp))
+        HButton(text = "Crear mazo", onClick = onCreateDeck, variant = ButtonVariant.Outline)
     }
 }
 

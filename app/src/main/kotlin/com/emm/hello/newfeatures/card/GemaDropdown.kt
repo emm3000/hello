@@ -1,3 +1,7 @@
+// ⚠️ DEPRECATED — usa com.emm.hello.core.ui.HSelect en su lugar.
+// Este archivo se mantiene temporalmente para evitar rompimiento de compilación.
+// Será eliminado en la siguiente limpieza.
+
 package com.emm.hello.newfeatures.card
 
 import androidx.compose.foundation.layout.fillMaxSize
