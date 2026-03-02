@@ -83,7 +83,6 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
         variant = CardVariant.Outlined,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
             // ── Cabecera siempre visible ──────────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,

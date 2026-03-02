@@ -22,13 +22,18 @@ fun Context.syncForegroundInfo(channelName: String, notificationId: Int, channel
 
 private fun Context.syncWorkNotification(channelName: String, channelId: String): Notification {
     val channel = NotificationChannel(
-        /* id = */ channelId,
-        /* name = */ channelName,
-        /* importance = */ NotificationManager.IMPORTANCE_DEFAULT,
+        /* id = */
+        channelId,
+        /* name = */
+        channelName,
+        /* importance = */
+        NotificationManager.IMPORTANCE_DEFAULT,
     ).apply {
         description = "Notificación para sincronización"
     }
-    val notificationManager: NotificationManager? = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+    val notificationManager: NotificationManager? = getSystemService(
+        Context.NOTIFICATION_SERVICE
+    ) as? NotificationManager
 
     notificationManager?.createNotificationChannel(channel)
 

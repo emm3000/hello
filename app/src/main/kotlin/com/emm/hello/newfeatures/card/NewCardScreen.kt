@@ -120,7 +120,6 @@ fun NewCardScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-
             // ── Sección entrada ──────────────────────────────────────────────
             item {
                 SectionCard(title = "Entrada") {
@@ -160,14 +159,14 @@ fun NewCardScreen(
                 SectionCard(title = "Destino") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         HSelect(
-                                items = state.decks,
-                                itemSelected = state.deckSelected,
-                                enabled = !state.isLoading,
-                                onItemSelected = { onAction(NewCardAction.DeckSelected(it)) },
-                                label = "Mazo",
-                                placeholder = "Seleccionar mazo…",
-                                itemLabel = { it.name },
-                            )
+                            items = state.decks,
+                            itemSelected = state.deckSelected,
+                            enabled = !state.isLoading,
+                            onItemSelected = { onAction(NewCardAction.DeckSelected(it)) },
+                            label = "Mazo",
+                            placeholder = "Seleccionar mazo…",
+                            itemLabel = { it.name },
+                        )
 
                         AnimatedVisibility(
                             visible = state.decks.isNotEmpty(),
@@ -410,7 +409,12 @@ fun NewCardScreenPreview() {
                     meaning = "The occurrence of events by chance in a happy way",
                     translation = "Casualidad afortunada",
                     examples = listOf(
-                        Example("ex1", "Finding that book was pure serendipity", "Encontrar ese libro fue pura casualidad afortunada", ""),
+                        Example(
+                            "ex1",
+                            "Finding that book was pure serendipity",
+                            "Encontrar ese libro fue pura casualidad afortunada",
+                            ""
+                        ),
                         Example("ex2", "She called it serendipity", "Ella lo llamó serendipia", ""),
                     ),
                     phonetic = "/ˌserənˈdɪpɪti/",

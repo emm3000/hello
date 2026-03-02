@@ -1,0 +1,144 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+  weights:
+    # complexity: 2
+    # LongParameterList: 1
+    # style: 1
+    # comments: 1
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+complexity:
+  active: true
+  LongMethod:
+    active: true
+    threshold: 60
+  LongParameterList:
+    active: true
+    functionThreshold: 12
+    constructorThreshold: 10
+    ignoreDataClasses: true
+    ignoreAnnotatedParameter:
+      - 'Composable'
+  ComplexCondition:
+    active: true
+    threshold: 4
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 40
+    thresholdInClasses: 30
+    thresholdInInterfaces: 20
+    thresholdInObjects: 20
+    thresholdInEnums: 20
+    ignoreDeprecated: true
+    ignorePrivate: false
+    ignoreOverridden: false
+
+naming:
+  active: true
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    excludeClassPattern: '.*'
+    ignoreAnnotated:
+      - 'Composable'
+  TopLevelPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*|[a-z][a-zA-Z0-9]*'
+    propertyPattern: '[A-Z][_A-Z0-9]*|[a-z][a-zA-Z0-9]*'
+    privatePropertyPattern: '(_)?[a-z][a-zA-Z0-9]*'
+
+style:
+  active: true
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '4'
+      - '8'
+      - '12'
+      - '16'
+      - '24'
+      - '32'
+      - '48'
+      - '64'
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: true
+    ignoreLocalVariableDeclaration: true
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreNamedArgument: true
+    ignoreEnums: true
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID|.*Preview)'
+    ignoreAnnotated: ['Preview']
+  UnusedPrivateProperty:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID|.*Preview)'
+    ignoreAnnotated: ['Preview']
+  WildcardImport:
+    active: true
+    excludeImports:
+      - 'java.util.*'
+      - 'kotlinx.android.synthetic.*'
+      - 'androidx.compose.ui.graphics.*'
+      - 'androidx.compose.material.icons.*'
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: true
+  MaximumLineLength:
+    active: true
+    maxLineLength: 120
+  NoWildcardImports:
+    active: true
+  NoUnusedImports:
+    active: true
+  Indentation:
+    active: true
+  FinalNewline:
+    active: true
+
+# io.nlopez.compose.rules plugin usually uses 'Compose' or similar
+# Let's try 'compose' if 'Compose' failed or just omit it for now if it causes issues.
+# Actually, the error said 'Compose' misspelled. Let's try 'compose'.
+Compose:
+  active: true
+  ComposeParameterOrder:
+    active: true
+  ComposeNamingUppercase:
+    active: true
+  ComposeModifierMissing:
+    active: true
+  ComposeModifierReused:
+    active: true
+  ComposeModifierWithoutDefault:
+    active: true
+  ComposeMultipleContentEmitters:
+    active: true
+  ComposeNamingLowercase:
+    active: true
+  ComposePreviewNaming:
+    active: true
+  ComposePreviewPublic:
+    active: true
+  ComposeViewModelForwarding:
+    active: true
+  ComposeViewModelInjection:
+    active: true
+  ComposeReusedModifier:
+    active: true
+  ComposeUnstableCollections:
+    active: true

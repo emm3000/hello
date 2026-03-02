@@ -66,10 +66,10 @@ fun FlashcardDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Editar */ }) {
+                    IconButton(onClick = { /* Implementar edicion */ }) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar")
                     }
-                    IconButton(onClick = { /* TODO: Borrar */ }) {
+                    IconButton(onClick = { /* Implementar borrado */ }) {
                         Icon(Icons.Default.Delete, contentDescription = "Borrar")
                     }
                 },

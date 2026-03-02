@@ -319,9 +319,30 @@ private fun DashboardScreenPreview() {
         DashboardScreen(
             state = DashboardUiState(
                 decks = listOf(
-                    Deck(id = "1", name = "Inglés B2", description = "Vocabulario", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 24),
-                    Deck(id = "2", name = "Phrasal Verbs", description = "Verbos", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 7),
-                    Deck(id = "3", name = "Gramática", description = "Gramática", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 15),
+                    Deck(
+                        id = "1",
+                        name = "Inglés B2",
+                        description = "Vocabulario",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 24
+                    ),
+                    Deck(
+                        id = "2",
+                        name = "Phrasal Verbs",
+                        description = "Verbos",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 7
+                    ),
+                    Deck(
+                        id = "3",
+                        name = "Gramática",
+                        description = "Gramática",
+                        createdAt = LocalDateTime.now(),
+                        cards = listOf(),
+                        cardsCount = 15
+                    ),
                 )
             ),
         )

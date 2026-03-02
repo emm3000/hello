@@ -27,114 +27,114 @@ import androidx.compose.ui.platform.LocalContext
 
 private val lightScheme = lightColorScheme(
     // ── Primary (black button in shadcn) ──────────────────────────────────────
-    primary                = ShadcnPrimary,
-    onPrimary              = ShadcnPrimaryFg,
-    primaryContainer       = ShadcnSecondary,
-    onPrimaryContainer     = ShadcnPrimary,
+    primary = ShadcnPrimary,
+    onPrimary = ShadcnPrimaryFg,
+    primaryContainer = ShadcnSecondary,
+    onPrimaryContainer = ShadcnPrimary,
 
     // ── Secondary (soft gray, "secondary" variant) ────────────────────────────
-    secondary              = ShadcnMuted,
-    onSecondary            = ShadcnForeground,
-    secondaryContainer     = ShadcnSecondary,
-    onSecondaryContainer   = ShadcnSecondaryFg,
+    secondary = ShadcnMuted,
+    onSecondary = ShadcnForeground,
+    secondaryContainer = ShadcnSecondary,
+    onSecondaryContainer = ShadcnSecondaryFg,
 
     // ── Tertiary → success green ───────────────────────────────────────────────
-    tertiary               = ShadcnSuccess,
-    onTertiary             = ShadcnWhite,
-    tertiaryContainer      = ShadcnSuccessContainer,
-    onTertiaryContainer    = ShadcnOnSuccessContainer,
+    tertiary = ShadcnSuccess,
+    onTertiary = ShadcnWhite,
+    tertiaryContainer = ShadcnSuccessContainer,
+    onTertiaryContainer = ShadcnOnSuccessContainer,
 
     // ── Error → destructive red ───────────────────────────────────────────────
-    error                  = ShadcnDestructive,
-    onError                = ShadcnDestructiveFg,
-    errorContainer         = ShadcnErrorContainer,
-    onErrorContainer       = ShadcnOnErrorContainer,
+    error = ShadcnDestructive,
+    onError = ShadcnDestructiveFg,
+    errorContainer = ShadcnErrorContainer,
+    onErrorContainer = ShadcnOnErrorContainer,
 
     // ── Background & Surface ──────────────────────────────────────────────────
-    background             = ShadcnBackground,
-    onBackground           = ShadcnForeground,
-    surface                = ShadcnBackground,
-    onSurface              = ShadcnForeground,
+    background = ShadcnBackground,
+    onBackground = ShadcnForeground,
+    surface = ShadcnBackground,
+    onSurface = ShadcnForeground,
 
     // ── Surface variants → muted / card tones ────────────────────────────────
-    surfaceVariant         = ShadcnMuted,
-    onSurfaceVariant       = ShadcnMutedFg,
+    surfaceVariant = ShadcnMuted,
+    onSurfaceVariant = ShadcnMutedFg,
 
     // ── Borders & rings ───────────────────────────────────────────────────────
-    outline                = ShadcnRing,
-    outlineVariant         = ShadcnBorder,
+    outline = ShadcnRing,
+    outlineVariant = ShadcnBorder,
 
     // ── Inverse ───────────────────────────────────────────────────────────────
-    inverseSurface         = ShadcnPrimary,
-    inverseOnSurface       = ShadcnPrimaryFg,
-    inversePrimary         = ShadcnDarkPrimary,
+    inverseSurface = ShadcnPrimary,
+    inverseOnSurface = ShadcnPrimaryFg,
+    inversePrimary = ShadcnDarkPrimary,
 
-    scrim                  = ShadcnBlack,
+    scrim = ShadcnBlack,
 
     // ── Surface containers → card / popover tones ────────────────────────────
     surfaceContainerLowest = ShadcnWhite,
-    surfaceContainerLow    = ShadcnBackground,    // pure white
-    surfaceContainer       = ShadcnSecondary,     // #F5F5F5
-    surfaceContainerHigh   = ShadcnBorder,        // #E5E5E5
-    surfaceContainerHighest = ShadcnInput,        // #E5E5E5
-    surfaceDim             = ShadcnBorder,
-    surfaceBright          = ShadcnWhite,
+    surfaceContainerLow = ShadcnBackground, // pure white
+    surfaceContainer = ShadcnSecondary, // #F5F5F5
+    surfaceContainerHigh = ShadcnBorder, // #E5E5E5
+    surfaceContainerHighest = ShadcnInput, // #E5E5E5
+    surfaceDim = ShadcnBorder,
+    surfaceBright = ShadcnWhite,
 )
 
 private val darkScheme = darkColorScheme(
     // ── Primary (near-white in dark mode) ─────────────────────────────────────
-    primary                = ShadcnDarkPrimary,
-    onPrimary              = ShadcnDarkPrimaryFg,
-    primaryContainer       = ShadcnDarkSecondary,
-    onPrimaryContainer     = ShadcnDarkPrimary,
+    primary = ShadcnDarkPrimary,
+    onPrimary = ShadcnDarkPrimaryFg,
+    primaryContainer = ShadcnDarkSecondary,
+    onPrimaryContainer = ShadcnDarkPrimary,
 
     // ── Secondary ─────────────────────────────────────────────────────────────
-    secondary              = ShadcnDarkMuted,
-    onSecondary            = ShadcnDarkForeground,
-    secondaryContainer     = ShadcnDarkSecondary,
-    onSecondaryContainer   = ShadcnDarkSecondaryFg,
+    secondary = ShadcnDarkMuted,
+    onSecondary = ShadcnDarkForeground,
+    secondaryContainer = ShadcnDarkSecondary,
+    onSecondaryContainer = ShadcnDarkSecondaryFg,
 
     // ── Tertiary → success green ───────────────────────────────────────────────
-    tertiary               = ShadcnDarkSuccess,
-    onTertiary             = ShadcnBlack,
-    tertiaryContainer      = ShadcnDarkSuccessContainer,
-    onTertiaryContainer    = ShadcnDarkOnSuccessContainer,
+    tertiary = ShadcnDarkSuccess,
+    onTertiary = ShadcnBlack,
+    tertiaryContainer = ShadcnDarkSuccessContainer,
+    onTertiaryContainer = ShadcnDarkOnSuccessContainer,
 
     // ── Error → destructive red ───────────────────────────────────────────────
-    error                  = ShadcnDarkDestructive,
-    onError                = ShadcnDarkDestructiveFg,
-    errorContainer         = ShadcnDarkErrorContainer,
-    onErrorContainer       = ShadcnDarkOnErrorContainer,
+    error = ShadcnDarkDestructive,
+    onError = ShadcnDarkDestructiveFg,
+    errorContainer = ShadcnDarkErrorContainer,
+    onErrorContainer = ShadcnDarkOnErrorContainer,
 
     // ── Background & Surface ──────────────────────────────────────────────────
-    background             = ShadcnDarkBackground,
-    onBackground           = ShadcnDarkForeground,
-    surface                = ShadcnDarkBackground,
-    onSurface              = ShadcnDarkForeground,
+    background = ShadcnDarkBackground,
+    onBackground = ShadcnDarkForeground,
+    surface = ShadcnDarkBackground,
+    onSurface = ShadcnDarkForeground,
 
     // ── Surface variants → muted tones ────────────────────────────────────────
-    surfaceVariant         = ShadcnDarkMuted,
-    onSurfaceVariant       = ShadcnDarkMutedFg,
+    surfaceVariant = ShadcnDarkMuted,
+    onSurfaceVariant = ShadcnDarkMutedFg,
 
     // ── Borders & rings ───────────────────────────────────────────────────────
-    outline                = ShadcnDarkRing,
-    outlineVariant         = ShadcnDarkBorder,
+    outline = ShadcnDarkRing,
+    outlineVariant = ShadcnDarkBorder,
 
     // ── Inverse ───────────────────────────────────────────────────────────────
-    inverseSurface         = ShadcnDarkPrimary,
-    inverseOnSurface       = ShadcnDarkPrimaryFg,
-    inversePrimary         = ShadcnPrimary,
+    inverseSurface = ShadcnDarkPrimary,
+    inverseOnSurface = ShadcnDarkPrimaryFg,
+    inversePrimary = ShadcnPrimary,
 
-    scrim                  = ShadcnBlack,
+    scrim = ShadcnBlack,
 
     // ── Surface containers → card tones ──────────────────────────────────────
     surfaceContainerLowest = ShadcnBlack,
-    surfaceContainerLow    = ShadcnDarkBackground,  // #0A0A0A
-    surfaceContainer       = ShadcnDarkCard,         // #171717
-    surfaceContainerHigh   = ShadcnDarkSecondary,    // #262626
-    surfaceContainerHighest = ShadcnDarkAccent,      // #3F3F3F
-    surfaceDim             = ShadcnDarkBackground,
-    surfaceBright          = ShadcnDarkCard,
+    surfaceContainerLow = ShadcnDarkBackground, // #0A0A0A
+    surfaceContainer = ShadcnDarkCard, // #171717
+    surfaceContainerHigh = ShadcnDarkSecondary, // #262626
+    surfaceContainerHighest = ShadcnDarkAccent, // #3F3F3F
+    surfaceDim = ShadcnDarkBackground,
+    surfaceBright = ShadcnDarkCard,
 )
 
 @Composable

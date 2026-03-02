@@ -8,4 +8,29 @@ plugins {
     id("com.google.devtools.ksp") version libs.versions.kspVersion apply false
     id("androidx.room") version libs.versions.roomRuntime apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    alias(libs.plugins.detekt)
+}
+
+subprojects {
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+
+    detekt {
+        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        baseline = file("$projectDir/detekt-baseline.xml")
+        buildUponDefaultConfig = true
+        parallel = true
+    }
+
+
+    dependencies {
+        detektPlugins(rootProject.libs.detekt.formatting)
+        detektPlugins(rootProject.libs.detekt.compose.rules)
+    }
+}
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+    parallel = true
 }

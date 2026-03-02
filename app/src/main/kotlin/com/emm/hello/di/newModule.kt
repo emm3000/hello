@@ -58,7 +58,6 @@ val newModule = module {
 
 @SuppressLint("HardwareIds")
 fun Module.repository() {
-
     single {
         Json {
             ignoreUnknownKeys = true
@@ -83,7 +82,6 @@ fun Module.repository() {
 }
 
 fun Module.useCases() {
-
     factoryOf(::DeckCreator)
     factoryOf(::DeckFetcher)
     factoryOf(::FlashcardCreator)
@@ -98,7 +96,6 @@ fun Module.useCases() {
 }
 
 fun Module.viewModels() {
-
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::NewCardViewModel)

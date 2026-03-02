@@ -45,7 +45,9 @@ fun HBadge(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline,
             )
-        } else null,
+        } else {
+            null
+        },
     ) {
         Text(
             text = label,
@@ -60,15 +62,15 @@ private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
     val cs = MaterialTheme.colorScheme
     return when (variant) {
         // Default → primary (black bg, white text)
-        BadgeVariant.Default     -> cs.primary to cs.onPrimary
+        BadgeVariant.Default -> cs.primary to cs.onPrimary
         // Secondary → muted gray bg
-        BadgeVariant.Secondary   -> cs.surfaceContainerHighest to cs.onSurface
+        BadgeVariant.Secondary -> cs.surfaceContainerHighest to cs.onSurface
         // Destructive → error container (soft red)
         BadgeVariant.Destructive -> cs.errorContainer to cs.onErrorContainer
         // Outline → transparent + foreground text
-        BadgeVariant.Outline     -> Color.Transparent to cs.onSurface
+        BadgeVariant.Outline -> Color.Transparent to cs.onSurface
         // Success → tertiary (green in new theme)
-        BadgeVariant.Success     -> cs.tertiaryContainer to cs.onTertiaryContainer
+        BadgeVariant.Success -> cs.tertiaryContainer to cs.onTertiaryContainer
     }
 }
 

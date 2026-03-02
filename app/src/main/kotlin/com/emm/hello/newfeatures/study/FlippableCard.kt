@@ -30,7 +30,6 @@ fun FlippableCard(
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit
 ) {
-
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
         animationSpec = tween(

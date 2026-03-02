@@ -7,5 +7,4 @@ data class NewDeckUiState(
 
     val isValid: Boolean
         get() = name.isNotBlank() && description.isNotBlank()
-
 }

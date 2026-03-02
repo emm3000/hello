@@ -62,10 +62,14 @@ class SyncWorker(
         val channelId = "quote_channel"
 
         val deepLinkIntent = Intent(
-            /* action = */ Intent.ACTION_VIEW,
-            /* uri = */ "gema://quotes".toUri(),
-            /* packageContext = */ appContext,
-            /* cls = */ MainActivity::class.java
+            /* action = */
+            Intent.ACTION_VIEW,
+            /* uri = */
+            "gema://quotes".toUri(),
+            /* packageContext = */
+            appContext,
+            /* cls = */
+            MainActivity::class.java
         )
 
         val pendingIntent: PendingIntent? = TaskStackBuilder.create(appContext).run {
@@ -73,7 +77,7 @@ class SyncWorker(
             getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
-        val soundUri = "android.resource://${appContext.packageName}/raw/random".toUri()
+        // val soundUri = "android.resource://${appContext.packageName}/raw/random".toUri()
 
 //        val audioAttributes = AudioAttributes.Builder()
 //            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -101,7 +105,8 @@ class SyncWorker(
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(1001, notification)
+        val notificationId = 1001
+        notificationManager.notify(notificationId, notification)
     }
 
     companion object {
@@ -117,7 +122,8 @@ class SyncWorker(
             .build()
 
         fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-            7, TimeUnit.HOURS
+            7,
+            TimeUnit.HOURS
         )
             .setConstraints(SyncConstraints)
             .build()

@@ -8,9 +8,7 @@ import androidx.work.WorkManager
 object Sync {
 
     fun initialize(context: Context) {
-
         WorkManager.getInstance(context).apply {
-
             enqueueUniquePeriodicWork(
                 SYNC_WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,

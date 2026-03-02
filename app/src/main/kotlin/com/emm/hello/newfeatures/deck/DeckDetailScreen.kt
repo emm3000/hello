@@ -218,8 +218,11 @@ private fun StatCard(
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        color = if (highlight) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = if (highlight) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -229,14 +232,20 @@ private fun StatCard(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = if (highlight) MaterialTheme.colorScheme.onPrimary
-                else MaterialTheme.colorScheme.onSurface,
+                color = if (highlight) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (highlight) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (highlight) {
+                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
         }
     }
@@ -355,17 +364,24 @@ private fun DeckDetailScreenPreview() {
                     description = "Palabras de nivel C1",
                     cards = listOf(
                         Flashcard(
-                            id = "1", word = "Serendipity",
+                            id = "1",
+                            word = "Serendipity",
                             meaning = "The occurrence of events by chance in a happy way",
                             translation = "Casualidad afortunada",
                             examples = listOf(
-                                Example("1", "Finding that book was pure serendipity", "Encontrar ese libro fue pura casualidad", "")
+                                Example(
+                                    "1",
+                                    "Finding that book was pure serendipity",
+                                    "Encontrar ese libro fue pura casualidad",
+                                    ""
+                                )
                             ),
                             phonetic = "/ˌserənˈdɪpɪti/",
                             review = FlashcardReview.Empty,
                         ),
                         Flashcard(
-                            id = "2", word = "Ephemeral",
+                            id = "2",
+                            word = "Ephemeral",
                             meaning = "Lasting for a very short time",
                             translation = "Efímero",
                             examples = listOf(),

@@ -66,8 +66,11 @@ fun JustClickableInput(
                 Text(
                     text = display ?: placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (display != null) cs.onSurface
-                    else cs.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = if (display != null) {
+                        cs.onSurface
+                    } else {
+                        cs.onSurfaceVariant.copy(alpha = 0.6f)
+                    },
                     modifier = Modifier.weight(1f),
                 )
                 Icon(

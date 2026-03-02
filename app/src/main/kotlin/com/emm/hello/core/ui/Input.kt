@@ -75,9 +75,9 @@ fun HInput(
     // Border color: error → error / focused → outline (ring) / idle → outlineVariant
     val borderColor by animateColorAsState(
         targetValue = when {
-            isError  -> cs.error
+            isError -> cs.error
             isFocused -> cs.outline
-            else     -> cs.outlineVariant
+            else -> cs.outlineVariant
         },
         animationSpec = tween(durationMillis = 150),
         label = "input_border",
@@ -140,19 +140,21 @@ fun HInput(
                             text = placeholder,
                             style = MaterialTheme.typography.bodyMedium,
                             color = cs.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = if (leadingIcon != null)
+                            modifier = if (leadingIcon != null) {
                                 Modifier.padding(start = 28.dp)
-                            else
-                                Modifier,
+                            } else {
+                                Modifier
+                            },
                         )
                     }
 
                     // Actual text field
                     Box(
-                        modifier = if (leadingIcon != null)
+                        modifier = if (leadingIcon != null) {
                             Modifier.padding(start = 28.dp)
-                        else
-                            Modifier,
+                        } else {
+                            Modifier
+                        },
                     ) { innerTextField() }
 
                     // Trailing icon

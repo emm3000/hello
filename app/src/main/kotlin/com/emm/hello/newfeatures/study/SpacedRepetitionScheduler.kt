@@ -27,7 +27,6 @@ object SpacedRepetitionScheduler {
         val newLapses: Long
 
         if (quality < 3) {
-
             newEaseFactor = review.easeFactor
             newRepetitions = 0
             newInterval = 1

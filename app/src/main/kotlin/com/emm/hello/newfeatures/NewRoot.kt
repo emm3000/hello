@@ -17,7 +17,6 @@ import com.emm.hello.newfeatures.study.study
 
 @Composable
 fun NewRoot() {
-
     val navController = rememberNavController()
 
     NavHost(
@@ -25,7 +24,6 @@ fun NewRoot() {
         startDestination = DashboardRoute,
         modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
-
         dashboard(navController)
         quote(navController)
         study(navController)

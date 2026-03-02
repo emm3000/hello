@@ -66,7 +66,9 @@ fun StudyScreen(
 
     val progress = if (state.totalCount > 0) {
         state.reviewedCount.toFloat() / state.totalCount.toFloat()
-    } else 0f
+    } else {
+        0f
+    }
 
     LaunchedEffect(state.currentFlashcard?.id) { cardFace = CardFace.Front }
 
@@ -222,8 +224,14 @@ fun StudyScreen(
             icon = Icons.Outlined.Check,
             confirmText = "Volver",
             cancelText = null,
-            onConfirm = { setShowDialog(false); onNavigateBack() },
-            onDismiss = { setShowDialog(false); onNavigateBack() },
+            onConfirm = {
+                setShowDialog(false)
+                onNavigateBack()
+            },
+            onDismiss = {
+                setShowDialog(false)
+                onNavigateBack()
+            },
         )
     }
 }
@@ -267,8 +275,11 @@ private fun FlashcardBackContent(
             Icon(
                 Icons.AutoMirrored.Filled.VolumeUp,
                 contentDescription = if (isSpeaking) "Detener" else "Pronunciar",
-                tint = if (isSpeaking) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isSpeaking) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
         }
     }

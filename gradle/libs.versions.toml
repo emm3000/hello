@@ -29,6 +29,9 @@ retrofit = "3.0.0"
 retrofit2KotlinxSerializationConverter = "1.0.0"
 library = "4.3.0"
 libraryNoOp = "4.3.0"
+detekt = "1.23.8"
+detektComposeRules = "0.4.22"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +76,9 @@ retrofit2-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit
 
 library = { module = "com.github.chuckerteam.chucker:library", version.ref = "library" }
 library-no-op = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "libraryNoOp" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -82,4 +88,6 @@ google-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "go
 android-library = { id = "com.android.library", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+
 
