@@ -24,7 +24,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +54,7 @@ fun StudyScreen(
 ) {
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechController = rememberTextToSpeech()
-    val isSpeaking: MutableState<Boolean> = remember { mutableStateOf(false) }
+    var isSpeaking by remember { mutableStateOf(false) }
 
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
@@ -67,7 +66,7 @@ fun StudyScreen(
     }
 
     DisposableEffect(tts) {
-        tts.onDoneSpeaking = { isSpeaking.value = false }
+        tts.onDoneSpeaking = { isSpeaking = false }
         onDispose { tts.onDoneSpeaking = null }
     }
 
@@ -130,12 +129,15 @@ fun StudyScreen(
                 backContent = {
                     FlashcardContent(
                         card = prevFlashCard.value,
-                        isSpeaking = isSpeaking.value,
+                        isSpeaking = isSpeaking,
                         enabled = tts.isReady,
-                        onStop = { isSpeaking.value = false; tts.stop() },
+                        onStop = {
+                            isSpeaking = false
+                            tts.stop()
+                        },
                         onSpeak = {
                             if (tts.isReady) {
-                                isSpeaking.value = true
+                                isSpeaking = true
                                 tts.speak(state.currentFlashcard?.word.orEmpty())
                             }
                         },
@@ -213,7 +215,7 @@ private fun FlashcardContent(
 }
 
 @Composable
-fun rememberTextToSpeech(): TextToSpeechController {
+private fun rememberTextToSpeech(): TextToSpeechController {
     val context = LocalContext.current
     val controller = remember { TextToSpeechController(context) }
     DisposableEffect(Unit) {
@@ -224,7 +226,7 @@ fun rememberTextToSpeech(): TextToSpeechController {
 }
 
 @Composable
-fun AnswerButtons(
+private fun AnswerButtons(
     modifier: Modifier = Modifier,
     onReviewAnswer: (ReviewGrade) -> Unit = {},
 ) {
@@ -271,8 +273,8 @@ fun AnswerButtons(
 
 @PreviewLightDark
 @Composable
-fun StudyScreenPreviewLight() {
-    HelloTheme(darkTheme = false) {
+private fun StudyScreenPreview() {
+    HelloTheme {
         StudyScreen(
             state = StudyUiState(
                 currentFlashcard = Flashcard(

@@ -22,7 +22,7 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
             parameters = { parametersOf(deckDetailRoute.deckId) }
         )
 
-        val state: DeckDetailUiState by vm.decks.collectAsStateWithLifecycle()
+        val state: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
 
         DeckDetailScreen(
             onNavigateBack = { navController.popBackStack() },

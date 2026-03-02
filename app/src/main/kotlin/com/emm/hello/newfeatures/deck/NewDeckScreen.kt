@@ -44,7 +44,7 @@ fun NewDeckScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Nuevo Mazo") },
+                title = { Text("Nuevo mazo") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -111,7 +111,7 @@ fun NewDeckScreen(
 
 @PreviewLightDark
 @Composable
-fun NewDeckScreenPreview() {
+private fun NewDeckScreenPreview() {
     HelloTheme {
         NewDeckScreen()
     }

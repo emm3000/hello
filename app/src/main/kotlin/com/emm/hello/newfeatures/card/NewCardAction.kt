@@ -6,19 +6,19 @@ import com.emm.domain.flashcard.TypeView
 
 sealed interface NewCardAction {
 
-    data class OnWordChanged(val word: String) : NewCardAction
+    data class WordChanged(val word: String) : NewCardAction
 
-    data class OnDeckSelected(val deck: Deck) : NewCardAction
+    data class DeckSelected(val deck: Deck) : NewCardAction
 
-    data class OnCheckChanged(val checked: Boolean) : NewCardAction
+    data class CheckChanged(val checked: Boolean) : NewCardAction
 
-    data class OnCategorySelected(val category: StaticCategories) : NewCardAction
+    data class CategorySelected(val category: StaticCategories) : NewCardAction
 
-    data class OnDifficultySelected(val difficulty: String) : NewCardAction
+    data class DifficultySelected(val difficulty: String) : NewCardAction
 
-    data class OnTypeViewSelected(val typeView: TypeView) : NewCardAction
+    data class TypeViewSelected(val typeView: TypeView) : NewCardAction
 
-    object OnGenerateClicked : NewCardAction
+    data object GenerateClicked : NewCardAction
 
-    object OnSaveClicked : NewCardAction
+    data object SaveClicked : NewCardAction
 }

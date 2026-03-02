@@ -82,7 +82,6 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             item {
                 DecksSection(onCreateDeck = onCreateDeck, decksCount = state.decks.size)
@@ -104,7 +103,7 @@ fun DashboardScreen(
 }
 
 @Composable
-fun DecksSection(
+private fun DecksSection(
     onCreateDeck: () -> Unit = {},
     decksCount: Int = 0,
 ) {
@@ -137,7 +136,7 @@ fun DecksSection(
 }
 
 @Composable
-fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
+private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     ListItem(
         headlineContent = {
             Text(
@@ -169,7 +168,7 @@ fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
 }
 
 @Composable
-fun EmptyDecks(onCreateDeck: () -> Unit) {
+private fun EmptyDecks(onCreateDeck: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,7 +194,7 @@ fun EmptyDecks(onCreateDeck: () -> Unit) {
 @Preview(showSystemUi = true)
 @PreviewLightDark
 @Composable
-fun DashboardScreenPreview() {
+private fun DashboardScreenPreview() {
     HelloTheme {
         DashboardScreen(
             state = DashboardUiState(

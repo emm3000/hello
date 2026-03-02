@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
 @Serializable
-object NewCardRoute
+data object NewCardRoute
 
 fun NavGraphBuilder.newCardRoute(navController: NavController) {
     composable<NewCardRoute> {

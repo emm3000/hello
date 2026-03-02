@@ -19,46 +19,30 @@ class DeckDetailViewModel(
     private val flashcardAndReviewFetcher: FlashcardAndReviewFetcher,
 ) : ViewModel() {
 
-    val decks: StateFlow<DeckDetailUiState> = combine(
+    // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
+    val uiState: StateFlow<DeckDetailUiState> = combine(
         flow = decksWithCardsProvider.provide(deckId),
-        flow2 = fetchSessionCars(),
-        transform = { deck, (cardsSession, hasSessionEnabled) ->
-            val deckCardsWithReview: List<Flashcard> = deck.cards.zip(cardsSession) { deckCards: Flashcard, sessionCards: Flashcard ->
-                Flashcard(
-                    id = deckCards.id,
-                    word = deckCards.word,
-                    meaning = deckCards.meaning,
-                    translation = deckCards.translation,
-                    examples = deckCards.examples,
-                    phonetic = deckCards.phonetic,
-                    review = sessionCards.review,
-                )
+        flow2 = fetchSessionCards(),
+        transform = { deck, (sessionCards, hasSessionEnabled) ->
+            val mergedCards: List<Flashcard> = deck.cards.zip(sessionCards) { deckCard, sessionCard ->
+                deckCard.copy(review = sessionCard.review)
             }
             DeckDetailUiState(
-                deck = deck.copy(cards = deckCardsWithReview),
+                deck = deck.copy(cards = mergedCards),
                 hasSessionEnabled = hasSessionEnabled,
             )
         }
     ).stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = DeckDetailUiState(),
     )
 
-    private fun fetchSessionCars(): Flow<Pair<List<Flashcard>, Boolean>> {
-        return flashcardAndReviewFetcher.fetch(deckId)
-            .map {
-                val updatedFlashcards: List<Flashcard> = it.map(::copyWithUpdatedId)
-                val reviewAvailable: Boolean = updatedFlashcards.any(::isReviewDue)
-                Pair(updatedFlashcards, reviewAvailable)
-            }
-    }
-
-    private fun copyWithUpdatedId(
-        flashcard: Flashcard,
-    ): Flashcard = flashcard.copy(id = "${flashcard.id}${flashcard.review.nextReviewAt}")
-
-    private fun isReviewDue(
-        flashcard: Flashcard,
-    ): Boolean = flashcard.review.nextReviewAt <= Instant.now().epochSecond
+    // Fixed typo: fetchSessionCars → fetchSessionCards
+    private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
+        flashcardAndReviewFetcher.fetch(deckId).map { flashcards ->
+            val withUniqueKeys = flashcards.map { it.copy(id = "${it.id}${it.review.nextReviewAt}") }
+            val hasSessionEnabled = withUniqueKeys.any { it.review.nextReviewAt <= Instant.now().epochSecond }
+            withUniqueKeys to hasSessionEnabled
+        }
 }

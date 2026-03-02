@@ -67,8 +67,13 @@ fun NewCardScreen(
     val showBottomSheet = remember { mutableStateOf(false) }
     val isGenerateEnabled by remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         derivedStateOf {
-            (!state.isLoading && state.deckSelected != null && state.word.isNotBlank()) ||
-                    (state.typeView == TypeView.WithCategories && !state.isLoading && state.deckSelected != null)
+            val hasWord = state.word.isNotBlank()
+            val hasDeck = state.deckSelected != null
+            val notLoading = !state.isLoading
+            when (state.typeView) {
+                TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
+                TypeView.WithCategories -> notLoading && hasDeck
+            }
         }
     }
 
@@ -100,7 +105,7 @@ fun NewCardScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { onAction(NewCardAction.OnTypeViewSelected(state.typeView.other)) }
+                        onClick = { onAction(NewCardAction.TypeViewSelected(state.typeView.other)) }
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwitchLeft,
@@ -126,7 +131,7 @@ fun NewCardScreen(
                         TypeView.WordOrPhase -> {
                             HInput(
                                 value = state.word,
-                                onValueChange = { onAction(NewCardAction.OnWordChanged(it)) },
+                                onValueChange = { onAction(NewCardAction.WordChanged(it)) },
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = "Palabra o frase en inglés",
@@ -142,11 +147,10 @@ fun NewCardScreen(
                                 )
                                 HSelect(
                                     modifier = Modifier.fillMaxWidth(),
-                                    enabled = true,
                                     label = "Dificultad",
                                     items = difficult,
                                     itemSelected = state.difficulty,
-                                    onItemSelected = { onAction(NewCardAction.OnDifficultySelected(it)) },
+                                    onItemSelected = { onAction(NewCardAction.DifficultySelected(it)) },
                                 )
                             }
                         }
@@ -159,14 +163,14 @@ fun NewCardScreen(
                 SectionCard(title = "Destino") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         HSelect(
-                            items = state.decks,
-                            selected = state.deckSelected,
-                            enabled = !state.isLoading,
-                            onItemSelected = { onAction(NewCardAction.OnDeckSelected(it)) },
-                            label = "Mazo",
-                            placeholder = "Seleccionar mazo…",
-                            itemLabel = { it.name },
-                        )
+                                items = state.decks,
+                                itemSelected = state.deckSelected,
+                                enabled = !state.isLoading,
+                                onItemSelected = { onAction(NewCardAction.DeckSelected(it)) },
+                                label = "Mazo",
+                                placeholder = "Seleccionar mazo…",
+                                itemLabel = { it.name },
+                            )
 
                         AnimatedVisibility(
                             visible = state.decks.isNotEmpty(),
@@ -174,10 +178,10 @@ fun NewCardScreen(
                             exit = fadeOut(),
                         ) {
                             LabeledCheckbox(
-                                label = "Marcar como deck por defecto",
+                                label = "Marcar como mazo por defecto",
                                 checked = state.isCheck,
                                 isEnabled = state.deckSelected != null,
-                                onCheckedChange = { onAction(NewCardAction.OnCheckChanged(it)) },
+                                onCheckedChange = { onAction(NewCardAction.CheckChanged(it)) },
                             )
                         }
                     }
@@ -188,7 +192,7 @@ fun NewCardScreen(
             item {
                 HButton(
                     text = "Generar",
-                    onClick = { onAction(NewCardAction.OnGenerateClicked) },
+                    onClick = { onAction(NewCardAction.GenerateClicked) },
                     enabled = isGenerateEnabled,
                     isLoading = state.isLoading,
                     modifier = Modifier
@@ -230,35 +234,7 @@ fun NewCardScreen(
         onDismissRequest = { showBottomSheet.value = it },
         showBottomSheet = showBottomSheet.value,
         accounts = staticCategories,
-        onAction = { onAction(NewCardAction.OnCategorySelected(it)) },
-    )
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// HSelect overload que acepta `selected` nombrado (compatibilidad con Deck)
-// ────────────────────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun <T> HSelect(
-    items: List<T>,
-    selected: T?,
-    enabled: Boolean,
-    onItemSelected: (T) -> Unit,
-    label: String,
-    placeholder: String,
-    itemLabel: (T) -> String,
-    modifier: Modifier = Modifier,
-) {
-    com.emm.hello.core.ui.HSelect(
-        items = items,
-        itemSelected = selected,
-        onItemSelected = onItemSelected,
-        label = label,
-        modifier = modifier,
-        enabled = enabled,
-        itemLabel = itemLabel,
-        placeholder = placeholder,
+        onAction = { onAction(NewCardAction.CategorySelected(it)) },
     )
 }
 
@@ -267,7 +243,7 @@ private fun <T> HSelect(
 // ────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun LabeledCheckbox(
+private fun LabeledCheckbox(
     label: String,
     checked: Boolean,
     isEnabled: Boolean,
@@ -287,7 +263,7 @@ fun LabeledCheckbox(
 }
 
 @Composable
-fun CardPreview(flashcard: Flashcard) {
+private fun CardPreview(flashcard: Flashcard) {
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
