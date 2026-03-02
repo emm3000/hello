@@ -26,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.core.audio.TextToSpeechManager
@@ -58,6 +58,8 @@ fun StudyScreen(
 ) {
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
+    val isSpeaking by tts.isSpeaking.collectAsStateWithLifecycle()
+    val ttsReady by tts.isReady.collectAsStateWithLifecycle()
 
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
@@ -72,12 +74,6 @@ fun StudyScreen(
 
     LaunchedEffect(state.isFinished) {
         if (state.isFinished) setShowDialog(true)
-    }
-
-    // -- Lifecycle ----------------------------------------------------------------
-    DisposableEffect(tts) {
-        tts.onDoneSpeaking = { /* tts.isSpeaking ya gestiona el estado */ }
-        onDispose { tts.onDoneSpeaking = null }
     }
 
     Scaffold(
@@ -179,11 +175,11 @@ fun StudyScreen(
                     backContent = {
                         FlashcardBackContent(
                             card = prevFlashCard.value,
-                            isSpeaking = tts.isSpeaking.value,
-                            ttsReady = tts.isReady.value,
+                            isSpeaking = isSpeaking,
+                            ttsReady = ttsReady,
                             onStop = { tts.stop() },
                             onSpeak = {
-                                if (tts.isReady.value) {
+                                if (ttsReady) {
                                     tts.speak(state.currentFlashcard?.word.orEmpty())
                                 }
                             },

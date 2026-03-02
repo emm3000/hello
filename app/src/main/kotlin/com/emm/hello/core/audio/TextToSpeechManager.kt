@@ -1,28 +1,30 @@
 package com.emm.hello.core.audio
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
-/**
- * TextToSpeechManager - Refined and optimized version for the user experience.
- */
 class TextToSpeechManager(private val context: Context) {
 
     private var tts: TextToSpeech? = null
-    
-    private val _isReady = mutableStateOf(false)
-    val isReady: State<Boolean> = _isReady
-    
-    private val _isSpeaking = mutableStateOf(false)
-    val isSpeaking: State<Boolean> = _isSpeaking
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
+    private val _isSpeaking = MutableStateFlow(false)
+    val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
     var onDoneSpeaking: (() -> Unit)? = null
 
@@ -46,28 +48,30 @@ class TextToSpeechManager(private val context: Context) {
             setPitch(pitch)
             setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) {
-                    _isSpeaking.value = true
+                    mainHandler.post { _isSpeaking.value = true }
                 }
 
                 override fun onDone(utteranceId: String?) {
-                    _isSpeaking.value = false
-                    onDoneSpeaking?.invoke()
+                    mainHandler.post {
+                        _isSpeaking.value = false
+                        onDoneSpeaking?.invoke()
+                    }
                 }
 
                 @Deprecated("Deprecated in Java")
                 override fun onError(utteranceId: String?) {
-                    _isSpeaking.value = false
-                    onDoneSpeaking?.invoke()
+                    mainHandler.post { _isSpeaking.value = false }
                 }
 
                 override fun onError(utteranceId: String?, errorCode: Int) {
-                    _isSpeaking.value = false
-                    onDoneSpeaking?.invoke()
+                    mainHandler.post { _isSpeaking.value = false }
                 }
 
                 override fun onStop(utteranceId: String?, interrupted: Boolean) {
-                    _isSpeaking.value = false
-                    onDoneSpeaking?.invoke()
+                    mainHandler.post {
+                        _isSpeaking.value = false
+                        onDoneSpeaking?.invoke()
+                    }
                 }
             })
         }
@@ -76,10 +80,8 @@ class TextToSpeechManager(private val context: Context) {
     fun speak(text: String) {
         if (!_isReady.value || tts == null || text.isBlank()) return
 
-        val cleanText = text.replace(Regex("[^a-zA-Z0-9 ]"), " ").trim()
         val utteranceId = "tts-${System.currentTimeMillis()}"
-        
-        tts?.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+        tts?.speak(text.trim(), TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 
     fun stop() {
@@ -106,11 +108,11 @@ fun rememberTextToSpeechManager(
 ): TextToSpeechManager {
     val context = LocalContext.current
     val manager = remember { TextToSpeechManager(context) }
-    
+
     DisposableEffect(Unit) {
         manager.init(locale, speed, pitch)
         onDispose { manager.shutdown() }
     }
-    
+
     return manager
 }
