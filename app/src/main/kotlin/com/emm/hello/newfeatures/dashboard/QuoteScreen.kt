@@ -1,6 +1,11 @@
 package com.emm.hello.newfeatures.dashboard
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,19 +18,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,11 +61,9 @@ fun QuotesScreen(
     createCard: (Quote) -> Unit = {},
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 16.dp),
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
     ) {
         items(quotes, key = Quote::id) { quote ->
             QuoteItem(quote = quote, onClick = createCard)
@@ -70,7 +72,7 @@ fun QuotesScreen(
 }
 
 @Composable
-fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
+private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     HCard(
@@ -78,97 +80,167 @@ fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
             .fillMaxWidth()
             .animateContentSize()
             .clickable { expanded = !expanded },
-        variant = CardVariant.Elevated,
+        variant = CardVariant.Outlined,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+
+            // ── Cabecera siempre visible ──────────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = quote.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = quote.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        if (quote.hasCard) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Ya tiene flashcard",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.tertiary,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = quote.phrase,
                         style = MaterialTheme.typography.bodyMedium,
                         fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
+                    imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "Contraer" else "Expandir",
-                    modifier = Modifier.rotate(if (expanded) 180f else 0f),
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .rotate(if (expanded) 180f else 0f),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            if (expanded) {
-                Spacer(Modifier.height(12.dp))
-                HSeparator()
-                Spacer(Modifier.height(12.dp))
+            // ── Contenido expandible ──────────────────────────────────────────
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                Column {
+                    Spacer(Modifier.height(12.dp))
+                    HSeparator()
+                    Spacer(Modifier.height(12.dp))
 
-                QuoteDetailRow(
-                    icon = Icons.Default.Translate,
-                    title = "Translation",
-                    content = quote.translation,
-                )
-                QuoteDetailRow(
-                    icon = Icons.Default.Info,
-                    title = "Description",
-                    content = quote.description,
-                )
-                QuoteDetailRow(
-                    icon = Icons.Default.School,
-                    title = "Example",
-                    content = quote.example,
-                )
-                QuoteDetailRow(
-                    icon = Icons.Default.RecordVoiceOver,
-                    title = "Pronunciation",
-                    content = quote.pronunciation,
-                )
-                if (quote.category.isNotEmpty()) {
-                    QuoteDetailRow(
-                        icon = Icons.Default.Category,
-                        title = "Category",
-                        content = quote.category,
-                    )
-                }
-
-                if (quote.tags.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        quote.tags.forEach { tag ->
-                            SuggestionChip(onClick = {}, label = { Text(tag) })
+                    // Pronunciación + formality badge
+                    if (quote.pronunciation.isNotBlank()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(bottom = 10.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                text = quote.pronunciation,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontStyle = FontStyle.Italic,
+                            )
+                            if (quote.formality.isNotBlank()) {
+                                HBadge(
+                                    label = quote.formality,
+                                    variant = BadgeVariant.Secondary,
+                                )
+                            }
                         }
                     }
-                }
 
-                Spacer(Modifier.height(12.dp))
+                    // Traducción
+                    if (quote.translation.isNotBlank()) {
+                        QuoteDetailRow(
+                            icon = Icons.Default.Translate,
+                            label = "Traducción",
+                            content = quote.translation,
+                        )
+                    }
 
-                HButton(
-                    text = if (quote.hasCard) "Ya tiene tarjeta" else "Crear flashcard",
-                    onClick = { onClick(quote) },
-                    enabled = !quote.hasCard,
-                    variant = if (quote.hasCard) ButtonVariant.Secondary else ButtonVariant.Default,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    // Ejemplo de uso
+                    if (quote.example.isNotBlank()) {
+                        QuoteDetailRow(
+                            icon = Icons.Default.School,
+                            label = "Ejemplo",
+                            content = "\"${quote.example}\"",
+                        )
+                    }
 
-                if (quote.hasCard) {
-                    Spacer(Modifier.height(4.dp))
-                    HBadge(
-                        label = "Flashcard ya creada",
-                        variant = BadgeVariant.Success,
-                    )
+                    // Tags
+                    if (quote.tags.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            quote.tags.forEach { tag ->
+                                SuggestionChip(
+                                    onClick = {},
+                                    label = {
+                                        Text(
+                                            text = tag,
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                    },
+                                    colors = SuggestionChipDefaults.suggestionChipColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+                    HSeparator()
+                    Spacer(Modifier.height(12.dp))
+
+                    // CTA: crear tarjeta
+                    if (quote.hasCard) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.tertiary,
+                            )
+                            Text(
+                                text = "Flashcard ya creada",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+                    } else {
+                        HButton(
+                            text = "Crear flashcard",
+                            onClick = { onClick(quote) },
+                            variant = ButtonVariant.Default,
+                            leadingIcon = Icons.Default.BookmarkAdd,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         }
@@ -176,53 +248,63 @@ fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
 }
 
 @Composable
-fun QuoteDetailRow(icon: ImageVector, title: String, content: String) {
-    Row(
+private fun QuoteDetailRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    content: String,
+) {
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(top = 2.dp),
+                tint = MaterialTheme.colorScheme.primary,
             )
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true, name = "Quotes Screen Light")
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, name = "Quotes Screen")
 @Composable
-fun QuotesScreenPreviewLight() {
-    HelloTheme(darkTheme = false) {
-        Surface {
-            QuotesScreen(quotes = sampleQuotes)
-        }
+private fun QuotesScreenPreview() {
+    HelloTheme {
+        QuotesScreen(quotes = sampleQuotes)
     }
 }
 
 @Preview(showBackground = true, name = "Quotes Screen Dark")
 @Composable
-fun QuotesScreenPreviewDark() {
+private fun QuotesScreenPreviewDark() {
     HelloTheme(darkTheme = true) {
-        Surface {
-            QuotesScreen(quotes = sampleQuotes)
-        }
+        QuotesScreen(quotes = sampleQuotes)
     }
 }
 
@@ -233,7 +315,7 @@ private val sampleQuotes = listOf(
         phrase = "Seize the day",
         description = "A Latin aphorism, usually translated 'seize the day'.",
         translation = "Aprovecha el día",
-        example = "I'm going to go skydiving, carpe diem!",
+        example = "I'm going to go skydiving — carpe diem!",
         context = "Motivational",
         pronunciation = "/ˌkɑːrpeɪ ˈdiːɛm/",
         formality = "Informal",

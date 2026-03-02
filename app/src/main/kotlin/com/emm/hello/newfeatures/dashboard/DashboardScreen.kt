@@ -1,7 +1,11 @@
 package com.emm.hello.newfeatures.dashboard
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +19,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -57,25 +67,39 @@ fun DashboardScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Mazos",
+                        "Mis mazos",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = newCard,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nueva tarjeta")
+                // FAB secundario: nuevo mazo
+                SmallFloatingActionButton(
+                    onClick = onCreateDeck,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    Icon(Icons.Default.BookmarkAdd, contentDescription = "Nuevo mazo")
+                }
+                // FAB principal: nueva tarjeta
+                FloatingActionButton(
+                    onClick = newCard,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Nueva tarjeta")
+                }
             }
-        }
+        },
     ) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
@@ -83,10 +107,53 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
+            // ── Resumen de sesión ────────────────────────────────────────────
             item {
-                DecksSection(onCreateDeck = onCreateDeck, decksCount = state.decks.size)
+                val totalPending = state.decks.sumOf { it.cardsCount.toLong() }
+                AnimatedVisibility(
+                    visible = !state.isLoading && totalPending > 0,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    SessionSummaryBanner(
+                        totalDecks = state.decks.size,
+                        totalCards = totalPending,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    )
+                }
             }
 
+            // ── Header de la sección ─────────────────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            "Mazos",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (state.decks.isNotEmpty()) {
+                            HBadge(label = "${state.decks.size}", variant = BadgeVariant.Secondary)
+                        }
+                    }
+                    HButton(
+                        text = "Nuevo mazo",
+                        onClick = onCreateDeck,
+                        variant = ButtonVariant.Ghost,
+                    )
+                }
+            }
+
+            // ── Contenido ────────────────────────────────────────────────────
             if (state.isLoading) {
                 item { DashboardSkeleton(count = 4) }
             } else if (state.decks.isEmpty()) {
@@ -96,44 +163,64 @@ fun DashboardScreen(
                     DeckItem(deck = deck, onDeckClick = onDeckDetail)
                     HSeparator()
                 }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
+                item { Spacer(modifier = Modifier.height(88.dp)) }
             }
         }
     }
 }
 
+// ── Componente: Banner de resumen ─────────────────────────────────────────────
+
 @Composable
-private fun DecksSection(
-    onCreateDeck: () -> Unit = {},
-    decksCount: Int = 0,
+private fun SessionSummaryBanner(
+    totalDecks: Int,
+    totalCards: Long,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                "Mazos",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (decksCount > 0) {
-                HBadge(label = "$decksCount", variant = BadgeVariant.Secondary)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PlayCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Column {
+                    Text(
+                        text = "$totalCards tarjetas listas",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "en $totalDecks ${if (totalDecks == 1) "mazo" else "mazos"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        HButton(
-            text = "Nuevo mazo",
-            onClick = onCreateDeck,
-            variant = ButtonVariant.Ghost,
-        )
     }
 }
+
+// ── Componente: Fila de mazo ──────────────────────────────────────────────────
 
 @Composable
 private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
@@ -146,50 +233,83 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
             )
         },
         supportingContent = {
-            Text(
-                text = "${deck.cardsCount} tarjetas",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Column(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = "${deck.cardsCount} tarjetas",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                // Barra de progreso visual (usa cardsCount como indicador)
+                if (deck.cardsCount > 0) {
+                    LinearProgressIndicator(
+                        progress = { (deck.cardsCount % 10) / 10f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                }
+            }
         },
         trailingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            HBadge(
+                label = "${deck.cardsCount}",
+                variant = BadgeVariant.Secondary,
             )
         },
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onDeckClick(deck.id) }
+            .clickable { onDeckClick(deck.id) },
     )
 }
 
+// ── Componente: Estado vacío ──────────────────────────────────────────────────
+
 @Composable
 private fun EmptyDecks(onCreateDeck: () -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 64.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            "No hay mazos todavía",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            "Crea tu primer mazo para comenzar a estudiar",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(Modifier.height(8.dp))
-        HButton(text = "Crear mazo", onClick = onCreateDeck, variant = ButtonVariant.Outline)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.BookmarkBorder,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Sin mazos todavía",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "Crea un mazo para empezar a estudiar",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(Modifier.height(8.dp))
+            HButton(
+                text = "Crear primer mazo",
+                onClick = onCreateDeck,
+                variant = ButtonVariant.Outline,
+            )
+        }
     }
 }
+
+// ── Previews ──────────────────────────────────────────────────────────────────
 
 @Preview(showSystemUi = true)
 @PreviewLightDark
@@ -199,27 +319,19 @@ private fun DashboardScreenPreview() {
         DashboardScreen(
             state = DashboardUiState(
                 decks = listOf(
-                    Deck(
-                        id = "1",
-                        name = "Inglés",
-                        description = "Vocabulario",
-                        createdAt = LocalDateTime.now(),
-                        cards = listOf(),
-                        cardsCount = 24
-                    ),
-                    Deck(
-                        id = "2",
-                        name = "Kotlin",
-                        description = "Fundamentos",
-                        createdAt = LocalDateTime.now(),
-                        cards = listOf(),
-                        cardsCount = 15
-                    )
+                    Deck(id = "1", name = "Inglés B2", description = "Vocabulario", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 24),
+                    Deck(id = "2", name = "Phrasal Verbs", description = "Verbos", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 7),
+                    Deck(id = "3", name = "Gramática", description = "Gramática", createdAt = LocalDateTime.now(), cards = listOf(), cardsCount = 15),
                 )
             ),
-            newCard = {},
-            onDeckDetail = {},
-            onCreateDeck = {}
         )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun DashboardScreenEmptyPreview() {
+    HelloTheme {
+        DashboardScreen(state = DashboardUiState(decks = emptyList()))
     }
 }

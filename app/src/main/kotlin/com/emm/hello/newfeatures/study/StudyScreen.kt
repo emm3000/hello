@@ -1,5 +1,10 @@
 package com.emm.hello.newfeatures.study
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -17,6 +21,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -59,6 +64,10 @@ fun StudyScreen(
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
 
+    val progress = if (state.totalCount > 0) {
+        state.reviewedCount.toFloat() / state.totalCount.toFloat()
+    } else 0f
+
     LaunchedEffect(state.currentFlashcard?.id) { cardFace = CardFace.Front }
 
     LaunchedEffect(state.isFinished) {
@@ -75,15 +84,21 @@ fun StudyScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("Repaso")
-                        HBadge(
-                            label = "${state.reviewedCount}/${state.totalCount}",
-                            variant = BadgeVariant.Secondary,
-                        )
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                "Repaso",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            HBadge(
+                                label = "${state.reviewedCount}/${state.totalCount}",
+                                variant = BadgeVariant.Secondary,
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
@@ -95,64 +110,106 @@ fun StudyScreen(
                     }
                 },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
-            FlippableCard(
-                cardFace = cardFace,
-                onClick = { cardFace = it.next },
-                onFinished = { prevFlashCard.value = state.currentFlashcard },
-                modifier = Modifier
-                    .weight(1f)
-                    .size(300.dp),
-                frontContent = {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = state.currentFlashcard?.word.orEmpty(),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp),
-                        )
-                    }
-                },
-                backContent = {
-                    FlashcardContent(
-                        card = prevFlashCard.value,
-                        isSpeaking = isSpeaking,
-                        enabled = tts.isReady,
-                        onStop = {
-                            isSpeaking = false
-                            tts.stop()
-                        },
-                        onSpeak = {
-                            if (tts.isReady) {
-                                isSpeaking = true
-                                tts.speak(state.currentFlashcard?.word.orEmpty())
-                            }
-                        },
-                    )
-                },
+            // ── Barra de progreso de la sesión ───────────────────────────────
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.outlineVariant,
             )
 
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.5f),
-                contentAlignment = Alignment.Center,
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                if (cardFace == CardFace.Back) {
-                    AnswerButtons { reviewGrade -> onReviewAnswer(state.currentFlashcard, reviewGrade) }
+                // ── Indicador de cara ────────────────────────────────────────
+                Text(
+                    text = if (cardFace == CardFace.Front) "Toca para revelar" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                )
+
+                // ── Tarjeta animada ──────────────────────────────────────────
+                FlippableCard(
+                    cardFace = cardFace,
+                    onClick = { cardFace = it.next },
+                    onFinished = { prevFlashCard.value = state.currentFlashcard },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    frontContent = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(24.dp),
+                            ) {
+                                Text(
+                                    text = state.currentFlashcard?.word.orEmpty(),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                )
+                                if (state.currentFlashcard?.phonetic?.isNotBlank() == true) {
+                                    Text(
+                                        text = state.currentFlashcard.phonetic,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    backContent = {
+                        FlashcardBackContent(
+                            card = prevFlashCard.value,
+                            isSpeaking = isSpeaking,
+                            ttsReady = tts.isReady,
+                            onStop = {
+                                isSpeaking = false
+                                tts.stop()
+                            },
+                            onSpeak = {
+                                if (tts.isReady) {
+                                    isSpeaking = true
+                                    tts.speak(state.currentFlashcard?.word.orEmpty())
+                                }
+                            },
+                        )
+                    },
+                )
+
+                // ── Botones de respuesta ─────────────────────────────────────
+                AnimatedContent(
+                    targetState = cardFace == CardFace.Back,
+                    transitionSpec = {
+                        fadeIn(tween(200)) togetherWith fadeOut(tween(200))
+                    },
+                    label = "answer_buttons",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                ) { showButtons ->
+                    if (showButtons) {
+                        AnswerButtons { grade -> onReviewAnswer(state.currentFlashcard, grade) }
+                    } else {
+                        Spacer(Modifier.height(104.dp))
+                    }
                 }
             }
         }
@@ -160,8 +217,8 @@ fun StudyScreen(
 
     if (showDialog) {
         HAlertDialog(
-            title = "Sesión de repaso completada",
-            description = "¡Bien hecho! Has repasado todas las tarjetas de esta sesión.",
+            title = "¡Sesión completada! 🎉",
+            description = "Has repasado ${state.totalCount} tarjetas. ¡Sigue así!",
             icon = Icons.Outlined.Check,
             confirmText = "Volver",
             cancelText = null,
@@ -171,38 +228,41 @@ fun StudyScreen(
     }
 }
 
+// ── Contenido del reverso de la tarjeta ──────────────────────────────────────
+
 @Composable
-private fun FlashcardContent(
+private fun FlashcardBackContent(
     card: Flashcard?,
     isSpeaking: Boolean,
-    enabled: Boolean,
+    ttsReady: Boolean,
     onStop: () -> Unit = {},
     onSpeak: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = card?.translation.orEmpty(),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 6.dp),
+            color = MaterialTheme.colorScheme.onSurface,
         )
+        Spacer(Modifier.height(8.dp))
         Text(
             text = card?.meaning.orEmpty(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
         IconButton(
             onClick = { if (isSpeaking) onStop() else onSpeak() },
-            enabled = enabled,
+            enabled = ttsReady,
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.VolumeUp,
@@ -213,6 +273,56 @@ private fun FlashcardContent(
         }
     }
 }
+
+// ── Botones de calificación ───────────────────────────────────────────────────
+
+@Composable
+private fun AnswerButtons(
+    modifier: Modifier = Modifier,
+    onReviewAnswer: (ReviewGrade) -> Unit = {},
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HButton(
+                text = "Otra vez",
+                onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
+                variant = ButtonVariant.Destructive,
+                modifier = Modifier.weight(1f),
+            )
+            HButton(
+                text = "Difícil",
+                onClick = { onReviewAnswer(ReviewGrade.HARD) },
+                variant = ButtonVariant.Secondary,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HButton(
+                text = "Bien",
+                onClick = { onReviewAnswer(ReviewGrade.GOOD) },
+                variant = ButtonVariant.Default,
+                modifier = Modifier.weight(1f),
+            )
+            HButton(
+                text = "Fácil",
+                onClick = { onReviewAnswer(ReviewGrade.EASY) },
+                variant = ButtonVariant.Outline,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+// ── TTS helper ────────────────────────────────────────────────────────────────
 
 @Composable
 private fun rememberTextToSpeech(): TextToSpeechController {
@@ -225,51 +335,7 @@ private fun rememberTextToSpeech(): TextToSpeechController {
     return controller
 }
 
-@Composable
-private fun AnswerButtons(
-    modifier: Modifier = Modifier,
-    onReviewAnswer: (ReviewGrade) -> Unit = {},
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HButton(
-                text = "Again",
-                onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
-                variant = ButtonVariant.Destructive,
-                modifier = Modifier.weight(1f),
-            )
-            HButton(
-                text = "Hard",
-                onClick = { onReviewAnswer(ReviewGrade.HARD) },
-                variant = ButtonVariant.Secondary,
-                modifier = Modifier.weight(1f),
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HButton(
-                text = "Good",
-                onClick = { onReviewAnswer(ReviewGrade.GOOD) },
-                variant = ButtonVariant.Default,
-                modifier = Modifier.weight(1f),
-            )
-            HButton(
-                text = "Easy",
-                onClick = { onReviewAnswer(ReviewGrade.EASY) },
-                variant = ButtonVariant.Outline,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
+// ── Previews ──────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable
@@ -278,7 +344,7 @@ private fun StudyScreenPreview() {
         StudyScreen(
             state = StudyUiState(
                 currentFlashcard = Flashcard(
-                    id = "Hello",
+                    id = "1",
                     word = "Serendipity",
                     meaning = "The occurrence of events by chance in a happy way",
                     translation = "Casualidad afortunada",
@@ -288,7 +354,7 @@ private fun StudyScreenPreview() {
                 ),
                 reviewedCount = 3,
                 totalCount = 10,
-            )
+            ),
         )
     }
 }

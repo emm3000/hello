@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.emm.hello.newfeatures.card.CardDetailRoute
+import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -28,9 +29,8 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
             onNavigateBack = { navController.popBackStack() },
             onReview = { navController.navigate(StudyRoute(state.deck.id)) },
             state = state,
-            onCardClick = { cardId ->
-                navController.navigate(CardDetailRoute(cardId))
-            }
+            onCardClick = { cardId -> navController.navigate(CardDetailRoute(cardId)) },
+            onAddCard = { navController.navigate(NewCardRoute) },
         )
     }
 }
