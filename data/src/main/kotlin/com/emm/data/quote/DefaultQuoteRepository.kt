@@ -78,7 +78,6 @@ class DefaultQuoteRepository(
                     hasCard = entity.hasCard,
                 )
             }
-
         }
 
     private fun toDomain(quotes: List<QuoteEntity>): List<Quote> = quotes.map(QuoteEntity::toDomain)

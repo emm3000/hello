@@ -22,7 +22,7 @@ typealias DeckEntity = com.emm.data.Deck
 class DefaultDeckRepository(
     db: HelloDb,
     private val synchronizer: DeckSynchronizer,
-): DeckRepository {
+) : DeckRepository {
 
     private val dq: DeckQueries = db.deckQueries
 

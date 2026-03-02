@@ -1,7 +1,6 @@
 package com.emm.hello
 
 import android.app.Application
-import com.emm.hello.di.dataModule
 import com.emm.hello.di.networkModule
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
@@ -19,7 +18,6 @@ class App : Application() {
             androidLogger()
             androidContext(this@App)
             modules(
-                dataModule,
                 repositoryModule,
                 newModule,
                 networkModule,

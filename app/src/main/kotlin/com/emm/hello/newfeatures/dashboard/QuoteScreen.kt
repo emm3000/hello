@@ -83,7 +83,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
         variant = CardVariant.Outlined,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // ── Cabecera siempre visible ──────────────────────────────────────
+            // -- Header (Always visible) -----------------------------------------------
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -126,7 +126,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                 )
             }
 
-            // ── Contenido expandible ──────────────────────────────────────────
+            // -- Expandable Content ----------------------------------------------------
             AnimatedVisibility(
                 visible = expanded,
                 enter = fadeIn() + expandVertically(),
@@ -137,7 +137,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                     HSeparator()
                     Spacer(Modifier.height(12.dp))
 
-                    // Pronunciación + formality badge
+                    // Pronunciation + formality badge
                     if (quote.pronunciation.isNotBlank()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -165,7 +165,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                         }
                     }
 
-                    // Traducción
+                    // Translation
                     if (quote.translation.isNotBlank()) {
                         QuoteDetailRow(
                             icon = Icons.Default.Translate,
@@ -174,7 +174,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                         )
                     }
 
-                    // Ejemplo de uso
+                    // Usage example
                     if (quote.example.isNotBlank()) {
                         QuoteDetailRow(
                             icon = Icons.Default.School,
@@ -212,7 +212,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                     HSeparator()
                     Spacer(Modifier.height(12.dp))
 
-                    // CTA: crear tarjeta
+                    // CTA: Create flashcard
                     if (quote.hasCard) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -289,7 +289,7 @@ private fun QuoteDetailRow(
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
+// -- Previews -----------------------------------------------------------------
 
 @Preview(showBackground = true, name = "Quotes Screen")
 @Composable

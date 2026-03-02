@@ -13,10 +13,11 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
 fun provideOkHttp(context: Context): OkHttpClient {
-
     val level: HttpLoggingInterceptor.Level = if (BuildConfig.DEBUG) {
         HttpLoggingInterceptor.Level.BODY
-    } else HttpLoggingInterceptor.Level.NONE
+    } else {
+        HttpLoggingInterceptor.Level.NONE
+    }
 
     val loggingInterceptor = HttpLoggingInterceptor().apply {
         this.level = level

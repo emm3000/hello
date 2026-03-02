@@ -11,8 +11,7 @@ class FlashcardCreator(
         difficulty: String,
         typeView: TypeView,
     ): Flashcard {
-
-        val flashcard: FlashcardGenerated = when(typeView) {
+        val flashcard: FlashcardGenerated = when (typeView) {
             TypeView.WordOrPhase -> repository.generateFlashcard(word)
             TypeView.WithCategories -> repository.generatedFlashcard(categories, difficulty)
         }

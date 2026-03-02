@@ -120,7 +120,7 @@ fun NewCardScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── Sección entrada ──────────────────────────────────────────────
+            // -- Input Section --------------------------------------------------------
             item {
                 SectionCard(title = "Entrada") {
                     when (state.typeView) {
@@ -154,7 +154,7 @@ fun NewCardScreen(
                 }
             }
 
-            // ── Sección destino ──────────────────────────────────────────────
+            // -- Destination Section --------------------------------------------------
             item {
                 SectionCard(title = "Destino") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -184,7 +184,7 @@ fun NewCardScreen(
                 }
             }
 
-            // ── Botón generar ────────────────────────────────────────────────
+            // -- Generate Button ------------------------------------------------------
             item {
                 HButton(
                     text = "Generar",
@@ -197,7 +197,7 @@ fun NewCardScreen(
                 )
             }
 
-            // ── Error ────────────────────────────────────────────────────────
+            // -- Error Display --------------------------------------------------------
             if (state.error != null) {
                 item {
                     HAlert(
@@ -208,7 +208,7 @@ fun NewCardScreen(
                 }
             }
 
-            // ── Resultado ────────────────────────────────────────────────────
+            // -- Result Preview -------------------------------------------------------
             if (state.result != null) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -234,9 +234,7 @@ fun NewCardScreen(
     )
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Composables internos
-// ────────────────────────────────────────────────────────────────────────────
+// -- Internal Composables -----------------------------------------------------
 
 @Composable
 private fun LabeledCheckbox(

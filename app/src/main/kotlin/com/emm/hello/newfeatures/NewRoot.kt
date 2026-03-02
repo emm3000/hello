@@ -25,7 +25,7 @@ fun NewRoot() {
         modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
         dashboard(navController)
-        quote(navController)
+        quote()
         study(navController)
         newCardRoute(navController)
         newDeckRoute(navController)

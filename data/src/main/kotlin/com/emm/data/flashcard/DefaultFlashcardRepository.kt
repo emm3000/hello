@@ -157,8 +157,8 @@ class DefaultFlashcardRepository(
     override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> {
         return dao.flashcardsWithReview(deckId).asFlow()
             .mapToList(Dispatchers.IO)
-            .map {
-                it.map { it ->
+            .map { list ->
+                list.map {
                     Flashcard(
                         id = it.id,
                         word = it.word,
@@ -166,11 +166,12 @@ class DefaultFlashcardRepository(
                         translation = it.translation.orEmpty(),
                         phonetic = it.phonetic.orEmpty(),
                         examples = emptyList(),
-                        review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond),
+                        review = FlashcardReview.Empty.copy(
+                            nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond
+                        ),
                     )
                 }
             }
-
     }
 
     private fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {
@@ -192,7 +193,9 @@ class DefaultFlashcardRepository(
                 repetitions = deck.repetitions,
                 lapses = deck.lapses,
             )
-        } else FlashcardReview.Empty
+        } else {
+            FlashcardReview.Empty
+        }
         return review
     }
 }

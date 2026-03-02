@@ -110,9 +110,9 @@ private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
             cs.error,
         )
         AlertVariant.Warning -> Triple(
-            com.emm.hello.core.theme.ShadcnWarningContainer,
-            com.emm.hello.core.theme.ShadcnOnWarningContainer,
-            com.emm.hello.core.theme.ShadcnWarning,
+            com.emm.hello.core.theme.shadcnWarningContainer,
+            com.emm.hello.core.theme.shadcnOnWarningContainer,
+            com.emm.hello.core.theme.shadcnWarning,
         )
         AlertVariant.Success -> Triple(
             cs.tertiaryContainer,

@@ -114,7 +114,7 @@ object Prompt {
         Return only a valid JSON object. No markdown, no extra text.
 
         Input: "$wordOrPhrase"
-    """.trimIndent()
+        """.trimIndent()
     }
 
     fun quotePrompt(): String {
@@ -183,7 +183,7 @@ object Prompt {
         ⚠️ Very Important:
         - Only return the **JSON object**.
         - Do **NOT include** markdown, backticks, explanations, or comments outside the JSON.
-    """.trimIndent()
+        """.trimIndent()
     }
 
     fun quotePrompt2(): String {
@@ -253,7 +253,7 @@ object Prompt {
             ⚠️ Very Important:
             - Output must be ONLY the **raw JSON object**.
             - Do **NOT** include Markdown, backticks, explanations, or comments.
-    """.trimIndent()
+        """.trimIndent()
     }
 
     fun buildPrompt(category: String, complexity: String): String {
@@ -290,6 +290,6 @@ object Prompt {
             ✅ Return only raw JSON in the format above.
     
             Generate one flashcard only.
-    """.trimIndent()
+        """.trimIndent()
     }
 }

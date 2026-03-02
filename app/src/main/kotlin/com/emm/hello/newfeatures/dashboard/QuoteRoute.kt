@@ -3,7 +3,6 @@ package com.emm.hello.newfeatures.dashboard
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
@@ -19,7 +18,7 @@ import org.koin.compose.koinInject
 @Serializable
 object QuoteRoute
 
-fun NavGraphBuilder.quote(navController: NavController) {
+fun NavGraphBuilder.quote() {
     composable<QuoteRoute>(
         deepLinks = listOf(
             navDeepLink { uriPattern = "gema://quotes" }

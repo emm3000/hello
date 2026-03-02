@@ -86,10 +86,9 @@ class SyncWorker(
 
         val channel = NotificationChannel(
             channelId,
-            "Frases del día",
+            "Daily Quotes",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-//            setSound(soundUri, audioAttributes)
             setSound(null, null)
             enableVibration(false)
             setShowBadge(false)

@@ -107,7 +107,7 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            // ── Resumen de sesión ────────────────────────────────────────────
+            // -- Session Summary ------------------------------------------------------
             item {
                 val totalPending = state.decks.sumOf { it.cardsCount }
                 AnimatedVisibility(
@@ -123,7 +123,7 @@ fun DashboardScreen(
                 }
             }
 
-            // ── Header de la sección ─────────────────────────────────────────
+            // -- Section Header -------------------------------------------------------
             item {
                 Row(
                     modifier = Modifier
@@ -153,7 +153,7 @@ fun DashboardScreen(
                 }
             }
 
-            // ── Contenido ────────────────────────────────────────────────────
+            // -- Content --------------------------------------------------------------
             if (state.isLoading) {
                 item { DashboardSkeleton(count = 4) }
             } else if (state.decks.isEmpty()) {
@@ -169,7 +169,7 @@ fun DashboardScreen(
     }
 }
 
-// ── Componente: Banner de resumen ─────────────────────────────────────────────
+// -- Component: Summary Banner ------------------------------------------------
 
 @Composable
 private fun SessionSummaryBanner(
@@ -220,7 +220,7 @@ private fun SessionSummaryBanner(
     }
 }
 
-// ── Componente: Fila de mazo ──────────────────────────────────────────────────
+// -- Component: Deck Row ------------------------------------------------------
 
 @Composable
 private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
@@ -268,7 +268,7 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
     )
 }
 
-// ── Componente: Estado vacío ──────────────────────────────────────────────────
+// -- Component: Empty State ---------------------------------------------------
 
 @Composable
 private fun EmptyDecks(onCreateDeck: () -> Unit) {
@@ -309,7 +309,7 @@ private fun EmptyDecks(onCreateDeck: () -> Unit) {
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
+// -- Previews -----------------------------------------------------------------
 
 @Preview(showSystemUi = true)
 @PreviewLightDark

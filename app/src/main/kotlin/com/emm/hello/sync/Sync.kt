@@ -14,12 +14,6 @@ object Sync {
                 ExistingPeriodicWorkPolicy.KEEP,
                 SyncWorker.startUpSyncWorkPeriodic(),
             )
-
-//            enqueueUniqueWork(
-//                SYNC_WORK_NAME,
-//                ExistingWorkPolicy.KEEP,
-//                SyncWorker.startUpSyncWork(),
-//            )
         }
     }
 
