@@ -10,254 +10,152 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+// ─────────────────────────────────────────────────────────────────────────────
+// shadcn/ui — Neutral theme mapped to Material 3 color roles
+//
+// Mapping strategy:
+//   M3 primary          → shadcn --primary (near-black / near-white)
+//   M3 secondary        → shadcn --secondary (light gray)
+//   M3 tertiary         → shadcn success green
+//   M3 error            → shadcn --destructive (red)
+//   M3 background/surface → shadcn --background
+//   M3 surfaceVariant   → shadcn --muted (light gray bg)
+//   M3 surfaceContainer → shadcn --card
+//   M3 outline          → shadcn --ring (subtle ring)
+//   M3 outlineVariant   → shadcn --border
+// ─────────────────────────────────────────────────────────────────────────────
+
 private val lightScheme = lightColorScheme(
-    primary = primaryLight,
-    onPrimary = onPrimaryLight,
-    primaryContainer = primaryContainerLight,
-    onPrimaryContainer = onPrimaryContainerLight,
-    secondary = secondaryLight,
-    onSecondary = onSecondaryLight,
-    secondaryContainer = secondaryContainerLight,
-    onSecondaryContainer = onSecondaryContainerLight,
-    tertiary = tertiaryLight,
-    onTertiary = onTertiaryLight,
-    tertiaryContainer = tertiaryContainerLight,
-    onTertiaryContainer = onTertiaryContainerLight,
-    error = errorLight,
-    onError = onErrorLight,
-    errorContainer = errorContainerLight,
-    onErrorContainer = onErrorContainerLight,
-    background = backgroundLight,
-    onBackground = onBackgroundLight,
-    surface = surfaceLight,
-    onSurface = onSurfaceLight,
-    surfaceVariant = surfaceVariantLight,
-    onSurfaceVariant = onSurfaceVariantLight,
-    outline = outlineLight,
-    outlineVariant = outlineVariantLight,
-    scrim = scrimLight,
-    inverseSurface = inverseSurfaceLight,
-    inverseOnSurface = inverseOnSurfaceLight,
-    inversePrimary = inversePrimaryLight,
-    surfaceDim = surfaceDimLight,
-    surfaceBright = surfaceBrightLight,
-    surfaceContainerLowest = surfaceContainerLowestLight,
-    surfaceContainerLow = surfaceContainerLowLight,
-    surfaceContainer = surfaceContainerLight,
-    surfaceContainerHigh = surfaceContainerHighLight,
-    surfaceContainerHighest = surfaceContainerHighestLight,
+    // ── Primary (black button in shadcn) ──────────────────────────────────────
+    primary                = ShadcnPrimary,
+    onPrimary              = ShadcnPrimaryFg,
+    primaryContainer       = ShadcnSecondary,
+    onPrimaryContainer     = ShadcnPrimary,
+
+    // ── Secondary (soft gray, "secondary" variant) ────────────────────────────
+    secondary              = ShadcnMuted,
+    onSecondary            = ShadcnForeground,
+    secondaryContainer     = ShadcnSecondary,
+    onSecondaryContainer   = ShadcnSecondaryFg,
+
+    // ── Tertiary → success green ───────────────────────────────────────────────
+    tertiary               = ShadcnSuccess,
+    onTertiary             = ShadcnWhite,
+    tertiaryContainer      = ShadcnSuccessContainer,
+    onTertiaryContainer    = ShadcnOnSuccessContainer,
+
+    // ── Error → destructive red ───────────────────────────────────────────────
+    error                  = ShadcnDestructive,
+    onError                = ShadcnDestructiveFg,
+    errorContainer         = ShadcnErrorContainer,
+    onErrorContainer       = ShadcnOnErrorContainer,
+
+    // ── Background & Surface ──────────────────────────────────────────────────
+    background             = ShadcnBackground,
+    onBackground           = ShadcnForeground,
+    surface                = ShadcnBackground,
+    onSurface              = ShadcnForeground,
+
+    // ── Surface variants → muted / card tones ────────────────────────────────
+    surfaceVariant         = ShadcnMuted,
+    onSurfaceVariant       = ShadcnMutedFg,
+
+    // ── Borders & rings ───────────────────────────────────────────────────────
+    outline                = ShadcnRing,
+    outlineVariant         = ShadcnBorder,
+
+    // ── Inverse ───────────────────────────────────────────────────────────────
+    inverseSurface         = ShadcnPrimary,
+    inverseOnSurface       = ShadcnPrimaryFg,
+    inversePrimary         = ShadcnDarkPrimary,
+
+    scrim                  = ShadcnBlack,
+
+    // ── Surface containers → card / popover tones ────────────────────────────
+    surfaceContainerLowest = ShadcnWhite,
+    surfaceContainerLow    = ShadcnBackground,    // pure white
+    surfaceContainer       = ShadcnSecondary,     // #F5F5F5
+    surfaceContainerHigh   = ShadcnBorder,        // #E5E5E5
+    surfaceContainerHighest = ShadcnInput,        // #E5E5E5
+    surfaceDim             = ShadcnBorder,
+    surfaceBright          = ShadcnWhite,
 )
 
 private val darkScheme = darkColorScheme(
-    primary = primaryDark,
-    onPrimary = onPrimaryDark,
-    primaryContainer = primaryContainerDark,
-    onPrimaryContainer = onPrimaryContainerDark,
-    secondary = secondaryDark,
-    onSecondary = onSecondaryDark,
-    secondaryContainer = secondaryContainerDark,
-    onSecondaryContainer = onSecondaryContainerDark,
-    tertiary = tertiaryDark,
-    onTertiary = onTertiaryDark,
-    tertiaryContainer = tertiaryContainerDark,
-    onTertiaryContainer = onTertiaryContainerDark,
-    error = errorDark,
-    onError = onErrorDark,
-    errorContainer = errorContainerDark,
-    onErrorContainer = onErrorContainerDark,
-    background = backgroundDark,
-    onBackground = onBackgroundDark,
-    surface = surfaceDark,
-    onSurface = onSurfaceDark,
-    surfaceVariant = surfaceVariantDark,
-    onSurfaceVariant = onSurfaceVariantDark,
-    outline = outlineDark,
-    outlineVariant = outlineVariantDark,
-    scrim = scrimDark,
-    inverseSurface = inverseSurfaceDark,
-    inverseOnSurface = inverseOnSurfaceDark,
-    inversePrimary = inversePrimaryDark,
-    surfaceDim = surfaceDimDark,
-    surfaceBright = surfaceBrightDark,
-    surfaceContainerLowest = surfaceContainerLowestDark,
-    surfaceContainerLow = surfaceContainerLowDark,
-    surfaceContainer = surfaceContainerDark,
-    surfaceContainerHigh = surfaceContainerHighDark,
-    surfaceContainerHighest = surfaceContainerHighestDark,
-)
+    // ── Primary (near-white in dark mode) ─────────────────────────────────────
+    primary                = ShadcnDarkPrimary,
+    onPrimary              = ShadcnDarkPrimaryFg,
+    primaryContainer       = ShadcnDarkSecondary,
+    onPrimaryContainer     = ShadcnDarkPrimary,
 
-private val mediumContrastLightColorScheme = lightColorScheme(
-    primary = primaryLightMediumContrast,
-    onPrimary = onPrimaryLightMediumContrast,
-    primaryContainer = primaryContainerLightMediumContrast,
-    onPrimaryContainer = onPrimaryContainerLightMediumContrast,
-    secondary = secondaryLightMediumContrast,
-    onSecondary = onSecondaryLightMediumContrast,
-    secondaryContainer = secondaryContainerLightMediumContrast,
-    onSecondaryContainer = onSecondaryContainerLightMediumContrast,
-    tertiary = tertiaryLightMediumContrast,
-    onTertiary = onTertiaryLightMediumContrast,
-    tertiaryContainer = tertiaryContainerLightMediumContrast,
-    onTertiaryContainer = onTertiaryContainerLightMediumContrast,
-    error = errorLightMediumContrast,
-    onError = onErrorLightMediumContrast,
-    errorContainer = errorContainerLightMediumContrast,
-    onErrorContainer = onErrorContainerLightMediumContrast,
-    background = backgroundLightMediumContrast,
-    onBackground = onBackgroundLightMediumContrast,
-    surface = surfaceLightMediumContrast,
-    onSurface = onSurfaceLightMediumContrast,
-    surfaceVariant = surfaceVariantLightMediumContrast,
-    onSurfaceVariant = onSurfaceVariantLightMediumContrast,
-    outline = outlineLightMediumContrast,
-    outlineVariant = outlineVariantLightMediumContrast,
-    scrim = scrimLightMediumContrast,
-    inverseSurface = inverseSurfaceLightMediumContrast,
-    inverseOnSurface = inverseOnSurfaceLightMediumContrast,
-    inversePrimary = inversePrimaryLightMediumContrast,
-    surfaceDim = surfaceDimLightMediumContrast,
-    surfaceBright = surfaceBrightLightMediumContrast,
-    surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
-    surfaceContainerLow = surfaceContainerLowLightMediumContrast,
-    surfaceContainer = surfaceContainerLightMediumContrast,
-    surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
-    surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
-)
+    // ── Secondary ─────────────────────────────────────────────────────────────
+    secondary              = ShadcnDarkMuted,
+    onSecondary            = ShadcnDarkForeground,
+    secondaryContainer     = ShadcnDarkSecondary,
+    onSecondaryContainer   = ShadcnDarkSecondaryFg,
 
-private val highContrastLightColorScheme = lightColorScheme(
-    primary = primaryLightHighContrast,
-    onPrimary = onPrimaryLightHighContrast,
-    primaryContainer = primaryContainerLightHighContrast,
-    onPrimaryContainer = onPrimaryContainerLightHighContrast,
-    secondary = secondaryLightHighContrast,
-    onSecondary = onSecondaryLightHighContrast,
-    secondaryContainer = secondaryContainerLightHighContrast,
-    onSecondaryContainer = onSecondaryContainerLightHighContrast,
-    tertiary = tertiaryLightHighContrast,
-    onTertiary = onTertiaryLightHighContrast,
-    tertiaryContainer = tertiaryContainerLightHighContrast,
-    onTertiaryContainer = onTertiaryContainerLightHighContrast,
-    error = errorLightHighContrast,
-    onError = onErrorLightHighContrast,
-    errorContainer = errorContainerLightHighContrast,
-    onErrorContainer = onErrorContainerLightHighContrast,
-    background = backgroundLightHighContrast,
-    onBackground = onBackgroundLightHighContrast,
-    surface = surfaceLightHighContrast,
-    onSurface = onSurfaceLightHighContrast,
-    surfaceVariant = surfaceVariantLightHighContrast,
-    onSurfaceVariant = onSurfaceVariantLightHighContrast,
-    outline = outlineLightHighContrast,
-    outlineVariant = outlineVariantLightHighContrast,
-    scrim = scrimLightHighContrast,
-    inverseSurface = inverseSurfaceLightHighContrast,
-    inverseOnSurface = inverseOnSurfaceLightHighContrast,
-    inversePrimary = inversePrimaryLightHighContrast,
-    surfaceDim = surfaceDimLightHighContrast,
-    surfaceBright = surfaceBrightLightHighContrast,
-    surfaceContainerLowest = surfaceContainerLowestLightHighContrast,
-    surfaceContainerLow = surfaceContainerLowLightHighContrast,
-    surfaceContainer = surfaceContainerLightHighContrast,
-    surfaceContainerHigh = surfaceContainerHighLightHighContrast,
-    surfaceContainerHighest = surfaceContainerHighestLightHighContrast,
-)
+    // ── Tertiary → success green ───────────────────────────────────────────────
+    tertiary               = ShadcnDarkSuccess,
+    onTertiary             = ShadcnBlack,
+    tertiaryContainer      = ShadcnDarkSuccessContainer,
+    onTertiaryContainer    = ShadcnDarkOnSuccessContainer,
 
-private val mediumContrastDarkColorScheme = darkColorScheme(
-    primary = primaryDarkMediumContrast,
-    onPrimary = onPrimaryDarkMediumContrast,
-    primaryContainer = primaryContainerDarkMediumContrast,
-    onPrimaryContainer = onPrimaryContainerDarkMediumContrast,
-    secondary = secondaryDarkMediumContrast,
-    onSecondary = onSecondaryDarkMediumContrast,
-    secondaryContainer = secondaryContainerDarkMediumContrast,
-    onSecondaryContainer = onSecondaryContainerDarkMediumContrast,
-    tertiary = tertiaryDarkMediumContrast,
-    onTertiary = onTertiaryDarkMediumContrast,
-    tertiaryContainer = tertiaryContainerDarkMediumContrast,
-    onTertiaryContainer = onTertiaryContainerDarkMediumContrast,
-    error = errorDarkMediumContrast,
-    onError = onErrorDarkMediumContrast,
-    errorContainer = errorContainerDarkMediumContrast,
-    onErrorContainer = onErrorContainerDarkMediumContrast,
-    background = backgroundDarkMediumContrast,
-    onBackground = onBackgroundDarkMediumContrast,
-    surface = surfaceDarkMediumContrast,
-    onSurface = onSurfaceDarkMediumContrast,
-    surfaceVariant = surfaceVariantDarkMediumContrast,
-    onSurfaceVariant = onSurfaceVariantDarkMediumContrast,
-    outline = outlineDarkMediumContrast,
-    outlineVariant = outlineVariantDarkMediumContrast,
-    scrim = scrimDarkMediumContrast,
-    inverseSurface = inverseSurfaceDarkMediumContrast,
-    inverseOnSurface = inverseOnSurfaceDarkMediumContrast,
-    inversePrimary = inversePrimaryDarkMediumContrast,
-    surfaceDim = surfaceDimDarkMediumContrast,
-    surfaceBright = surfaceBrightDarkMediumContrast,
-    surfaceContainerLowest = surfaceContainerLowestDarkMediumContrast,
-    surfaceContainerLow = surfaceContainerLowDarkMediumContrast,
-    surfaceContainer = surfaceContainerDarkMediumContrast,
-    surfaceContainerHigh = surfaceContainerHighDarkMediumContrast,
-    surfaceContainerHighest = surfaceContainerHighestDarkMediumContrast,
-)
+    // ── Error → destructive red ───────────────────────────────────────────────
+    error                  = ShadcnDarkDestructive,
+    onError                = ShadcnDarkDestructiveFg,
+    errorContainer         = ShadcnDarkErrorContainer,
+    onErrorContainer       = ShadcnDarkOnErrorContainer,
 
-private val highContrastDarkColorScheme = darkColorScheme(
-    primary = primaryDarkHighContrast,
-    onPrimary = onPrimaryDarkHighContrast,
-    primaryContainer = primaryContainerDarkHighContrast,
-    onPrimaryContainer = onPrimaryContainerDarkHighContrast,
-    secondary = secondaryDarkHighContrast,
-    onSecondary = onSecondaryDarkHighContrast,
-    secondaryContainer = secondaryContainerDarkHighContrast,
-    onSecondaryContainer = onSecondaryContainerDarkHighContrast,
-    tertiary = tertiaryDarkHighContrast,
-    onTertiary = onTertiaryDarkHighContrast,
-    tertiaryContainer = tertiaryContainerDarkHighContrast,
-    onTertiaryContainer = onTertiaryContainerDarkHighContrast,
-    error = errorDarkHighContrast,
-    onError = onErrorDarkHighContrast,
-    errorContainer = errorContainerDarkHighContrast,
-    onErrorContainer = onErrorContainerDarkHighContrast,
-    background = backgroundDarkHighContrast,
-    onBackground = onBackgroundDarkHighContrast,
-    surface = surfaceDarkHighContrast,
-    onSurface = onSurfaceDarkHighContrast,
-    surfaceVariant = surfaceVariantDarkHighContrast,
-    onSurfaceVariant = onSurfaceVariantDarkHighContrast,
-    outline = outlineDarkHighContrast,
-    outlineVariant = outlineVariantDarkHighContrast,
-    scrim = scrimDarkHighContrast,
-    inverseSurface = inverseSurfaceDarkHighContrast,
-    inverseOnSurface = inverseOnSurfaceDarkHighContrast,
-    inversePrimary = inversePrimaryDarkHighContrast,
-    surfaceDim = surfaceDimDarkHighContrast,
-    surfaceBright = surfaceBrightDarkHighContrast,
-    surfaceContainerLowest = surfaceContainerLowestDarkHighContrast,
-    surfaceContainerLow = surfaceContainerLowDarkHighContrast,
-    surfaceContainer = surfaceContainerDarkHighContrast,
-    surfaceContainerHigh = surfaceContainerHighDarkHighContrast,
-    surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
+    // ── Background & Surface ──────────────────────────────────────────────────
+    background             = ShadcnDarkBackground,
+    onBackground           = ShadcnDarkForeground,
+    surface                = ShadcnDarkBackground,
+    onSurface              = ShadcnDarkForeground,
+
+    // ── Surface variants → muted tones ────────────────────────────────────────
+    surfaceVariant         = ShadcnDarkMuted,
+    onSurfaceVariant       = ShadcnDarkMutedFg,
+
+    // ── Borders & rings ───────────────────────────────────────────────────────
+    outline                = ShadcnDarkRing,
+    outlineVariant         = ShadcnDarkBorder,
+
+    // ── Inverse ───────────────────────────────────────────────────────────────
+    inverseSurface         = ShadcnDarkPrimary,
+    inverseOnSurface       = ShadcnDarkPrimaryFg,
+    inversePrimary         = ShadcnPrimary,
+
+    scrim                  = ShadcnBlack,
+
+    // ── Surface containers → card tones ──────────────────────────────────────
+    surfaceContainerLowest = ShadcnBlack,
+    surfaceContainerLow    = ShadcnDarkBackground,  // #0A0A0A
+    surfaceContainer       = ShadcnDarkCard,         // #171717
+    surfaceContainerHigh   = ShadcnDarkSecondary,    // #262626
+    surfaceContainerHighest = ShadcnDarkAccent,      // #3F3F3F
+    surfaceDim             = ShadcnDarkBackground,
+    surfaceBright          = ShadcnDarkCard,
 )
 
 @Composable
 fun HelloTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    // Dynamic color disabled by default — we want exact shadcn colors
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> highContrastDarkColorScheme
-        else -> highContrastLightColorScheme
+        darkTheme -> darkScheme
+        else -> lightScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

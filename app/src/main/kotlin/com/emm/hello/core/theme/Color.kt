@@ -2,218 +2,120 @@ package com.emm.hello.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primaryLight = Color(0xFF176476)
-val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFF387D8F)
-val onPrimaryContainerLight = Color(0xFFF9FDFF)
-val secondaryLight = Color(0xFF4A6269)
-val onSecondaryLight = Color(0xFFFFFFFF)
-val secondaryContainerLight = Color(0xFFCAE4ED)
-val onSecondaryContainerLight = Color(0xFF4E666E)
-val tertiaryLight = Color(0xFF6F5080)
-val onTertiaryLight = Color(0xFFFFFFFF)
-val tertiaryContainerLight = Color(0xFF89689A)
-val onTertiaryContainerLight = Color(0xFFFFFBFF)
-val errorLight = Color(0xFFBA1A1A)
-val onErrorLight = Color(0xFFFFFFFF)
-val errorContainerLight = Color(0xFFFFDAD6)
-val onErrorContainerLight = Color(0xFF93000A)
-val backgroundLight = Color(0xFFF8FAFB)
-val onBackgroundLight = Color(0xFF191C1D)
-val surfaceLight = Color(0xFFF8FAFB)
-val onSurfaceLight = Color(0xFF191C1D)
-val surfaceVariantLight = Color(0xFFDBE4E7)
-val onSurfaceVariantLight = Color(0xFF3F484B)
-val outlineLight = Color(0xFF6F797C)
-val outlineVariantLight = Color(0xFFBFC8CB)
-val scrimLight = Color(0xFF000000)
-val inverseSurfaceLight = Color(0xFF2E3132)
-val inverseOnSurfaceLight = Color(0xFFEFF1F2)
-val inversePrimaryLight = Color(0xFF8ED0E4)
-val surfaceDimLight = Color(0xFFD8DADB)
-val surfaceBrightLight = Color(0xFFF8FAFB)
-val surfaceContainerLowestLight = Color(0xFFFFFFFF)
-val surfaceContainerLowLight = Color(0xFFF2F4F5)
-val surfaceContainerLight = Color(0xFFECEEEF)
-val surfaceContainerHighLight = Color(0xFFE6E8EA)
-val surfaceContainerHighestLight = Color(0xFFE1E3E4)
+// ─────────────────────────────────────────────────────────────────────────────
+// shadcn/ui — "Neutral" base color palette (New York style)
+// CSS variables converted from OKLCH → sRGB hex
+//
+// Light mode reference:
+//   --background:   oklch(1 0 0)        → #FFFFFF
+//   --foreground:   oklch(0.145 0 0)    → #252525
+//   --primary:      oklch(0.205 0 0)    → #343434
+//   --secondary:    oklch(0.97 0 0)     → #F7F7F7
+//   --muted:        oklch(0.97 0 0)     → #F7F7F7
+//   --accent:       oklch(0.97 0 0)     → #F7F7F7
+//   --destructive:  oklch(0.577 0.245 27.325) → #E5484D
+//   --border:       oklch(0.922 0 0)    → #EBEBEB
+//   --input:        oklch(0.922 0 0)    → #EBEBEB
+//   --ring:         oklch(0.708 0 0)    → #B5B5B5
+//
+// Dark mode reference:
+//   --background:   oklch(0.145 0 0)    → #252525
+//   --foreground:   oklch(0.985 0 0)    → #FAFAFA
+//   --primary:      oklch(0.922 0 0)    → #EBEBEB
+//   --secondary:    oklch(0.269 0 0)    → #404040
+//   --muted:        oklch(0.269 0 0)    → #404040
+//   --accent:       oklch(0.371 0 0)    → #5C5C5C
+//   --destructive:  oklch(0.704 0.191 22.216) → #F2555A
+//   --border:       oklch(1 0 0 / 10%) → #FFFFFF1A
+//   --input:        oklch(1 0 0 / 15%) → #FFFFFF26
+//   --ring:         oklch(0.556 0 0)    → #8C8C8C
+// ─────────────────────────────────────────────────────────────────────────────
 
-val primaryLightMediumContrast = Color(0xFF003C48)
-val onPrimaryLightMediumContrast = Color(0xFFFFFFFF)
-val primaryContainerLightMediumContrast = Color(0xFF2F7687)
-val onPrimaryContainerLightMediumContrast = Color(0xFFFFFFFF)
-val secondaryLightMediumContrast = Color(0xFF223A40)
-val onSecondaryLightMediumContrast = Color(0xFFFFFFFF)
-val secondaryContainerLightMediumContrast = Color(0xFF597178)
-val onSecondaryContainerLightMediumContrast = Color(0xFFFFFFFF)
-val tertiaryLightMediumContrast = Color(0xFF472A57)
-val onTertiaryLightMediumContrast = Color(0xFFFFFFFF)
-val tertiaryContainerLightMediumContrast = Color(0xFF816192)
-val onTertiaryContainerLightMediumContrast = Color(0xFFFFFFFF)
-val errorLightMediumContrast = Color(0xFF740006)
-val onErrorLightMediumContrast = Color(0xFFFFFFFF)
-val errorContainerLightMediumContrast = Color(0xFFCF2C27)
-val onErrorContainerLightMediumContrast = Color(0xFFFFFFFF)
-val backgroundLightMediumContrast = Color(0xFFF8FAFB)
-val onBackgroundLightMediumContrast = Color(0xFF191C1D)
-val surfaceLightMediumContrast = Color(0xFFF8FAFB)
-val onSurfaceLightMediumContrast = Color(0xFF0E1213)
-val surfaceVariantLightMediumContrast = Color(0xFFDBE4E7)
-val onSurfaceVariantLightMediumContrast = Color(0xFF2F383A)
-val outlineLightMediumContrast = Color(0xFF4B5457)
-val outlineVariantLightMediumContrast = Color(0xFF656F72)
-val scrimLightMediumContrast = Color(0xFF000000)
-val inverseSurfaceLightMediumContrast = Color(0xFF2E3132)
-val inverseOnSurfaceLightMediumContrast = Color(0xFFEFF1F2)
-val inversePrimaryLightMediumContrast = Color(0xFF8ED0E4)
-val surfaceDimLightMediumContrast = Color(0xFFC4C7C8)
-val surfaceBrightLightMediumContrast = Color(0xFFF8FAFB)
-val surfaceContainerLowestLightMediumContrast = Color(0xFFFFFFFF)
-val surfaceContainerLowLightMediumContrast = Color(0xFFF2F4F5)
-val surfaceContainerLightMediumContrast = Color(0xFFE6E8EA)
-val surfaceContainerHighLightMediumContrast = Color(0xFFDBDDDE)
-val surfaceContainerHighestLightMediumContrast = Color(0xFFD0D2D3)
+// ── Neutrals (shared) ────────────────────────────────────────────────────────
+val ShadcnWhite        = Color(0xFFFFFFFF)
+val ShadcnBlack        = Color(0xFF000000)
 
-val primaryLightHighContrast = Color(0xFF00313B)
-val onPrimaryLightHighContrast = Color(0xFFFFFFFF)
-val primaryContainerLightHighContrast = Color(0xFF005160)
-val onPrimaryContainerLightHighContrast = Color(0xFFFFFFFF)
-val secondaryLightHighContrast = Color(0xFF172F36)
-val onSecondaryLightHighContrast = Color(0xFFFFFFFF)
-val secondaryContainerLightHighContrast = Color(0xFF354D54)
-val onSecondaryContainerLightHighContrast = Color(0xFFFFFFFF)
-val tertiaryLightHighContrast = Color(0xFF3C204C)
-val onTertiaryLightHighContrast = Color(0xFFFFFFFF)
-val tertiaryContainerLightHighContrast = Color(0xFF5B3D6C)
-val onTertiaryContainerLightHighContrast = Color(0xFFFFFFFF)
-val errorLightHighContrast = Color(0xFF600004)
-val onErrorLightHighContrast = Color(0xFFFFFFFF)
-val errorContainerLightHighContrast = Color(0xFF98000A)
-val onErrorContainerLightHighContrast = Color(0xFFFFFFFF)
-val backgroundLightHighContrast = Color(0xFFF8FAFB)
-val onBackgroundLightHighContrast = Color(0xFF191C1D)
-val surfaceLightHighContrast = Color(0xFFF8FAFB)
-val onSurfaceLightHighContrast = Color(0xFF000000)
-val surfaceVariantLightHighContrast = Color(0xFFDBE4E7)
-val onSurfaceVariantLightHighContrast = Color(0xFF000000)
-val outlineLightHighContrast = Color(0xFF252D30)
-val outlineVariantLightHighContrast = Color(0xFF424B4E)
-val scrimLightHighContrast = Color(0xFF000000)
-val inverseSurfaceLightHighContrast = Color(0xFF2E3132)
-val inverseOnSurfaceLightHighContrast = Color(0xFFFFFFFF)
-val inversePrimaryLightHighContrast = Color(0xFF8ED0E4)
-val surfaceDimLightHighContrast = Color(0xFFB7B9BA)
-val surfaceBrightLightHighContrast = Color(0xFFF8FAFB)
-val surfaceContainerLowestLightHighContrast = Color(0xFFFFFFFF)
-val surfaceContainerLowLightHighContrast = Color(0xFFEFF1F2)
-val surfaceContainerLightHighContrast = Color(0xFFE1E3E4)
-val surfaceContainerHighLightHighContrast = Color(0xFFD2D5D6)
-val surfaceContainerHighestLightHighContrast = Color(0xFFC4C7C8)
+// Light palette
+val ShadcnBackground   = Color(0xFFFFFFFF)   // --background
+val ShadcnForeground   = Color(0xFF0A0A0A)   // --foreground  (oklch 0.145)
+val ShadcnCard         = Color(0xFFFFFFFF)   // --card
+val ShadcnCardFg       = Color(0xFF0A0A0A)   // --card-foreground
 
-val primaryDark = Color(0xFF8ED0E4)
-val onPrimaryDark = Color(0xFF003641)
-val primaryContainerDark = Color(0xFF579AAD)
-val onPrimaryContainerDark = Color(0xFF000C11)
-val secondaryDark = Color(0xFFB1CBD3)
-val onSecondaryDark = Color(0xFF1C343A)
-val secondaryContainerDark = Color(0xFF354D54)
-val onSecondaryContainerDark = Color(0xFFA3BDC5)
-val tertiaryDark = Color(0xFFDFB9F0)
-val onTertiaryDark = Color(0xFF412451)
-val tertiaryContainerDark = Color(0xFFA784B8)
-val onTertiaryContainerDark = Color(0xFF170027)
-val errorDark = Color(0xFFFFB4AB)
-val onErrorDark = Color(0xFF690005)
-val errorContainerDark = Color(0xFF93000A)
-val onErrorContainerDark = Color(0xFFFFDAD6)
-val backgroundDark = Color(0xFF111415)
-val onBackgroundDark = Color(0xFFE1E3E4)
-val surfaceDark = Color(0xFF111415)
-val onSurfaceDark = Color(0xFFE1E3E4)
-val surfaceVariantDark = Color(0xFF3F484B)
-val onSurfaceVariantDark = Color(0xFFBFC8CB)
-val outlineDark = Color(0xFF899295)
-val outlineVariantDark = Color(0xFF3F484B)
-val scrimDark = Color(0xFF000000)
-val inverseSurfaceDark = Color(0xFFE1E3E4)
-val inverseOnSurfaceDark = Color(0xFF2E3132)
-val inversePrimaryDark = Color(0xFF1B6778)
-val surfaceDimDark = Color(0xFF111415)
-val surfaceBrightDark = Color(0xFF363A3B)
-val surfaceContainerLowestDark = Color(0xFF0B0F10)
-val surfaceContainerLowDark = Color(0xFF191C1D)
-val surfaceContainerDark = Color(0xFF1D2021)
-val surfaceContainerHighDark = Color(0xFF272A2C)
-val surfaceContainerHighestDark = Color(0xFF323536)
+val ShadcnPrimary      = Color(0xFF171717)   // --primary      (oklch 0.205)
+val ShadcnPrimaryFg    = Color(0xFFFAFAFA)   // --primary-foreground
 
-val primaryDarkMediumContrast = Color(0xFFA3E7FB)
-val onPrimaryDarkMediumContrast = Color(0xFF002A33)
-val primaryContainerDarkMediumContrast = Color(0xFF579AAD)
-val onPrimaryContainerDarkMediumContrast = Color(0xFF000000)
-val secondaryDarkMediumContrast = Color(0xFFC7E1E9)
-val onSecondaryDarkMediumContrast = Color(0xFF10292F)
-val secondaryContainerDarkMediumContrast = Color(0xFF7C959D)
-val onSecondaryContainerDarkMediumContrast = Color(0xFF000000)
-val tertiaryDarkMediumContrast = Color(0xFFF2D1FF)
-val onTertiaryDarkMediumContrast = Color(0xFF351945)
-val tertiaryContainerDarkMediumContrast = Color(0xFFA784B8)
-val onTertiaryContainerDarkMediumContrast = Color(0xFF000000)
-val errorDarkMediumContrast = Color(0xFFFFD2CC)
-val onErrorDarkMediumContrast = Color(0xFF540003)
-val errorContainerDarkMediumContrast = Color(0xFFFF5449)
-val onErrorContainerDarkMediumContrast = Color(0xFF000000)
-val backgroundDarkMediumContrast = Color(0xFF111415)
-val onBackgroundDarkMediumContrast = Color(0xFFE1E3E4)
-val surfaceDarkMediumContrast = Color(0xFF111415)
-val onSurfaceDarkMediumContrast = Color(0xFFFFFFFF)
-val surfaceVariantDarkMediumContrast = Color(0xFF3F484B)
-val onSurfaceVariantDarkMediumContrast = Color(0xFFD5DEE1)
-val outlineDarkMediumContrast = Color(0xFFAAB3B7)
-val outlineVariantDarkMediumContrast = Color(0xFF899295)
-val scrimDarkMediumContrast = Color(0xFF000000)
-val inverseSurfaceDarkMediumContrast = Color(0xFFE1E3E4)
-val inverseOnSurfaceDarkMediumContrast = Color(0xFF272B2C)
-val inversePrimaryDarkMediumContrast = Color(0xFF004F5E)
-val surfaceDimDarkMediumContrast = Color(0xFF111415)
-val surfaceBrightDarkMediumContrast = Color(0xFF424546)
-val surfaceContainerLowestDarkMediumContrast = Color(0xFF050809)
-val surfaceContainerLowDarkMediumContrast = Color(0xFF1B1E1F)
-val surfaceContainerDarkMediumContrast = Color(0xFF25282A)
-val surfaceContainerHighDarkMediumContrast = Color(0xFF303334)
-val surfaceContainerHighestDarkMediumContrast = Color(0xFF3B3E3F)
+val ShadcnSecondary    = Color(0xFFF5F5F5)   // --secondary    (oklch 0.97)
+val ShadcnSecondaryFg  = Color(0xFF171717)   // --secondary-foreground
 
-val primaryDarkHighContrast = Color(0xFFD7F5FF)
-val onPrimaryDarkHighContrast = Color(0xFF000000)
-val primaryContainerDarkHighContrast = Color(0xFF8ACDE0)
-val onPrimaryContainerDarkHighContrast = Color(0xFF000C11)
-val secondaryDarkHighContrast = Color(0xFFDAF4FD)
-val onSecondaryDarkHighContrast = Color(0xFF000000)
-val secondaryContainerDarkHighContrast = Color(0xFFAEC7CF)
-val onSecondaryContainerDarkHighContrast = Color(0xFF000D12)
-val tertiaryDarkHighContrast = Color(0xFFFCEAFF)
-val onTertiaryDarkHighContrast = Color(0xFF000000)
-val tertiaryContainerDarkHighContrast = Color(0xFFDBB5EC)
-val onTertiaryContainerDarkHighContrast = Color(0xFF170027)
-val errorDarkHighContrast = Color(0xFFFFECE9)
-val onErrorDarkHighContrast = Color(0xFF000000)
-val errorContainerDarkHighContrast = Color(0xFFFFAEA4)
-val onErrorContainerDarkHighContrast = Color(0xFF220001)
-val backgroundDarkHighContrast = Color(0xFF111415)
-val onBackgroundDarkHighContrast = Color(0xFFE1E3E4)
-val surfaceDarkHighContrast = Color(0xFF111415)
-val onSurfaceDarkHighContrast = Color(0xFFFFFFFF)
-val surfaceVariantDarkHighContrast = Color(0xFF3F484B)
-val onSurfaceVariantDarkHighContrast = Color(0xFFFFFFFF)
-val outlineDarkHighContrast = Color(0xFFE8F1F5)
-val outlineVariantDarkHighContrast = Color(0xFFBBC4C7)
-val scrimDarkHighContrast = Color(0xFF000000)
-val inverseSurfaceDarkHighContrast = Color(0xFFE1E3E4)
-val inverseOnSurfaceDarkHighContrast = Color(0xFF000000)
-val inversePrimaryDarkHighContrast = Color(0xFF004F5E)
-val surfaceDimDarkHighContrast = Color(0xFF111415)
-val surfaceBrightDarkHighContrast = Color(0xFF4D5152)
-val surfaceContainerLowestDarkHighContrast = Color(0xFF000000)
-val surfaceContainerLowDarkHighContrast = Color(0xFF1D2021)
-val surfaceContainerDarkHighContrast = Color(0xFF2E3132)
-val surfaceContainerHighDarkHighContrast = Color(0xFF393C3D)
-val surfaceContainerHighestDarkHighContrast = Color(0xFF444748)
+val ShadcnMuted        = Color(0xFFF5F5F5)   // --muted
+val ShadcnMutedFg      = Color(0xFF737373)   // --muted-foreground (oklch 0.556)
+
+val ShadcnAccent       = Color(0xFFF5F5F5)   // --accent
+val ShadcnAccentFg     = Color(0xFF171717)   // --accent-foreground
+
+val ShadcnDestructive  = Color(0xFFEF4444)   // --destructive  (oklch 0.577 0.245 27)
+val ShadcnDestructiveFg = Color(0xFFFAFAFA)  // --destructive-foreground
+
+val ShadcnBorder       = Color(0xFFE5E5E5)   // --border       (oklch 0.922)
+val ShadcnInput        = Color(0xFFE5E5E5)   // --input
+val ShadcnRing         = Color(0xFFB3B3B3)   // --ring         (oklch 0.708)
+
+// Popover (same as card in Neutral)
+val ShadcnPopover      = Color(0xFFFFFFFF)
+val ShadcnPopoverFg    = Color(0xFF0A0A0A)
+
+// Dark palette
+val ShadcnDarkBackground  = Color(0xFF0A0A0A)  // --background dark
+val ShadcnDarkForeground  = Color(0xFFFAFAFA)  // --foreground dark
+val ShadcnDarkCard        = Color(0xFF171717)  // --card dark    (oklch 0.205)
+val ShadcnDarkCardFg      = Color(0xFFFAFAFA)
+
+val ShadcnDarkPrimary     = Color(0xFFFAFAFA)  // --primary dark  (oklch 0.922)
+val ShadcnDarkPrimaryFg   = Color(0xFF171717)  // --primary-foreground dark
+
+val ShadcnDarkSecondary   = Color(0xFF262626)  // --secondary dark (oklch 0.269)
+val ShadcnDarkSecondaryFg = Color(0xFFFAFAFA)
+
+val ShadcnDarkMuted       = Color(0xFF262626)  // --muted dark
+val ShadcnDarkMutedFg     = Color(0xFFA3A3A3)  // --muted-foreground dark (oklch 0.708)
+
+val ShadcnDarkAccent      = Color(0xFF3F3F3F)  // --accent dark  (oklch 0.371)
+val ShadcnDarkAccentFg    = Color(0xFFFAFAFA)
+
+val ShadcnDarkDestructive = Color(0xFFF87171)  // --destructive dark (oklch 0.704 0.191 22)
+val ShadcnDarkDestructiveFg = Color(0xFFFAFAFA)
+
+val ShadcnDarkBorder      = Color(0x1AFFFFFF)  // --border dark  oklch(1 0 0 / 10%)
+val ShadcnDarkInput       = Color(0x26FFFFFF)  // --input dark   oklch(1 0 0 / 15%)
+val ShadcnDarkRing        = Color(0xFF737373)  // --ring dark    (oklch 0.556)
+
+val ShadcnDarkPopover     = Color(0xFF1C1C1C)
+val ShadcnDarkPopoverFg   = Color(0xFFFAFAFA)
+
+// ── Destructive / Error shades ────────────────────────────────────────────────
+// Error container light (soft red, used in HAlert Destructive)
+val ShadcnErrorContainer  = Color(0xFFFEE2E2) // Tailwind red-100
+val ShadcnOnErrorContainer = Color(0xFF991B1B) // Tailwind red-800
+
+// Error container dark
+val ShadcnDarkErrorContainer  = Color(0xFF7F1D1D) // Tailwind red-900
+val ShadcnDarkOnErrorContainer = Color(0xFFFECACA) // Tailwind red-200
+
+// ── Success / Tertiary shades ─────────────────────────────────────────────────
+// Using green-based tokens for HAlert Success and HBadge Success
+val ShadcnSuccessContainer    = Color(0xFFDCFCE7) // Tailwind green-100
+val ShadcnOnSuccessContainer  = Color(0xFF166534) // Tailwind green-800
+val ShadcnSuccess             = Color(0xFF16A34A) // Tailwind green-600
+
+val ShadcnDarkSuccessContainer   = Color(0xFF14532D) // Tailwind green-900
+val ShadcnDarkOnSuccessContainer = Color(0xFFBBF7D0) // Tailwind green-200
+val ShadcnDarkSuccess            = Color(0xFF4ADE80) // Tailwind green-400
+
+// ── Warning shades ────────────────────────────────────────────────────────────
+val ShadcnWarningContainer    = Color(0xFFFEF9C3) // Tailwind yellow-100
+val ShadcnOnWarningContainer  = Color(0xFF854D0E) // Tailwind yellow-800
+val ShadcnWarning             = Color(0xFFCA8A04) // Tailwind yellow-600
+
+val ShadcnDarkWarningContainer   = Color(0xFF713F12) // Tailwind yellow-900
+val ShadcnDarkOnWarningContainer = Color(0xFFFEF08A) // Tailwind yellow-200
+val ShadcnDarkWarning            = Color(0xFFFACC15) // Tailwind yellow-400
