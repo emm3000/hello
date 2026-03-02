@@ -32,8 +32,11 @@ class TextToSpeechController(private val context: Context) {
                         override fun onDone(utteranceId: String?) {
                             onDoneSpeaking?.invoke()
                         }
-                        @Deprecated("Deprecated in API 26")
                         override fun onError(utteranceId: String?) {
+                            onDoneSpeaking?.invoke()
+                        }
+
+                        override fun onError(utteranceId: String?, errorCode: Int) {
                             onDoneSpeaking?.invoke()
                         }
                     })

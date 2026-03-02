@@ -26,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -65,15 +64,13 @@ fun NewCardScreen(
     onNavigateBack: () -> Unit = {},
 ) {
     val showBottomSheet = remember { mutableStateOf(false) }
-    val isGenerateEnabled by remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
-        derivedStateOf {
-            val hasWord = state.word.isNotBlank()
-            val hasDeck = state.deckSelected != null
-            val notLoading = !state.isLoading
-            when (state.typeView) {
-                TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
-                TypeView.WithCategories -> notLoading && hasDeck
-            }
+    val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
+        val hasWord = state.word.isNotBlank()
+        val hasDeck = state.deckSelected != null
+        val notLoading = !state.isLoading
+        when (state.typeView) {
+            TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
+            TypeView.WithCategories -> notLoading && hasDeck
         }
     }
 

@@ -10,7 +10,9 @@ plugins {
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "com.emm.data"
@@ -21,17 +23,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "BASE_URL", "\"${keystoreProperties["BASE_URL"]}\"")
+        buildConfigField("String", "BASE_URL", "\"${keystoreProperties.getProperty("BASE_URL") ?: ""}\"")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue("string", "xmm", keystoreProperties["xmm"] as String)
+            resValue("string", "xmm", keystoreProperties.getProperty("xmm") ?: "")
         }
         debug {
-            resValue("string", "xmm", keystoreProperties["xmm"] as String)
+            resValue("string", "xmm", keystoreProperties.getProperty("xmm") ?: "")
         }
     }
     compileOptions {
