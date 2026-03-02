@@ -1,10 +1,10 @@
 package com.emm.hello.di
-
-import android.content.Context
-import com.emm.data.R
+ 
 import com.emm.data.flashcard.GeminiService
-import com.google.ai.client.generativeai.GenerativeModel
-import org.koin.android.ext.koin.androidApplication
+import com.google.firebase.Firebase
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import org.koin.dsl.module
 
 /**
@@ -14,12 +14,13 @@ import org.koin.dsl.module
 val repositoryModule = module {
     single {
         GeminiService(
-            generativeModel = provideGenerativeModel(androidApplication())
+            generativeModel = provideGenerativeModel()
         )
     }
 }
 
-private fun provideGenerativeModel(context: Context) = GenerativeModel(
-    modelName = "gemini-2.0-flash",
-    apiKey = context.getString(R.string.xmm),
+private fun provideGenerativeModel(): GenerativeModel = Firebase.ai(
+    backend = GenerativeBackend.googleAI()
+).generativeModel(
+    modelName = "gemini-3-flash-preview"
 )

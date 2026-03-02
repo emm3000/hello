@@ -1,7 +1,7 @@
 package com.emm.data.flashcard
 
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.GenerateContentResponse
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.type.GenerateContentResponse
 
 class GeminiService(private val generativeModel: GenerativeModel) {
 

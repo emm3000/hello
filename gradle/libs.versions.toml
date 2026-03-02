@@ -1,7 +1,6 @@
 [versions]
 agp = "9.0.1"
 firebaseBom = "34.10.0"
-generativeai = "0.9.0"
 jsoup = "1.22.1"
 koinBom = "4.1.1"
 kotlin = "2.3.10"
@@ -43,7 +42,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
+firebase-ai = { module = "com.google.firebase:firebase-ai" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

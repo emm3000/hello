@@ -67,7 +67,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    api(libs.generativeai)
     implementation(libs.kotlinx.serialization.json)
 
     // Sqldelight
@@ -85,6 +84,8 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.koin.bom))
+    implementation(platform(libs.firebase.bom))
+    api(libs.firebase.ai)
     implementation(libs.koin.android)
 }
 
