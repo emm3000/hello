@@ -11,43 +11,45 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/trunk' }}
 
 jobs:
-  upload_dev_apk:
+  upload_release_apk:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set current date as env variable
-        run: echo "date_today=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+        run: echo "date_today=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
 
       - name: Create keystore.properties file
         run: echo "${{ secrets.JUST_VERONICA }}" > keystore.properties
 
-      - name: JUST CHILL
+      - name: Decode Keystore
         run: |
           mkdir -p key
           echo "${{ secrets.APP_KEY }}" | base64 --decode > key/just_chill_key.p12
 
-      - name: Set Up JDK
+      - name: Set Up JDK 17
         uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: 17
+          cache: 'gradle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build Release (assembleRelease)
+      - name: Build Release APK
         run: ./gradlew assembleRelease
 
       - name: Get Release APK path
-        id: prodDebugPath
-        run: echo "release=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
+        id: releaseApkPath
+        run: echo "apk=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
 
-      - name: upload DEBUG (APP DISTRIBUTION)
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+      - name: Upload Release to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.7.1
         with:
           appId: ${{secrets.FIREBASE_RELEASE_APP_ID}}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: Hello
-          file: ${{ steps.prodDebugPath.outputs.release }}
+          file: ${{ steps.releaseApkPath.outputs.apk }}
+          releaseNotes: "Build generated on ${{ env.date_today }} by ${{ github.actor }}"
