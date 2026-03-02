@@ -34,6 +34,12 @@ android {
         }
         debug {
             resValue("string", "xmm", keystoreProperties.getProperty("xmm") ?: "")
+            matchingFallbacks += listOf("release")
+        }
+
+        create("staging") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
         }
     }
     compileOptions {
@@ -75,6 +81,7 @@ dependencies {
 
     debugImplementation(libs.library)
     releaseImplementation(libs.library)
+    "stagingImplementation"(libs.library)
 
     // retrofit
     api(libs.retrofit)

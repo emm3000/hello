@@ -49,6 +49,19 @@ android {
         debug {
             signingConfig = signingConfigs["config"]
             manifestPlaceholders["usesCleartextTraffic"] = "true"
+            matchingFallbacks += listOf("release")
+        }
+
+        create("staging") {
+            initWith(getByName("release"))
+            isMinifyEnabled = true
+            isShrinkResources = false
+            signingConfig = signingConfigs["config"]
+            matchingFallbacks += listOf("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 

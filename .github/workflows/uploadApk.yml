@@ -38,12 +38,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
+      - name: Build Staging APK
+        run: ./gradlew assembleStaging
 
-      - name: Get Release APK path
+      - name: Get Staging APK path
         id: releaseApkPath
-        run: echo "apk=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
+        run: echo "apk=$(find app/build/outputs/apk/staging/*.apk)" >> $GITHUB_OUTPUT
 
       - name: Upload Release to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1.7.1
