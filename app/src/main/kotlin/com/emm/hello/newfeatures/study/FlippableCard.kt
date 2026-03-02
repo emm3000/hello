@@ -33,7 +33,7 @@ fun FlippableCard(
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
         animationSpec = tween(
-            durationMillis = 600, // Duración de la animación
+            durationMillis = 600, // Animation duration
         ),
         label = "cardRotation",
         finishedListener = onFinished,
@@ -51,10 +51,10 @@ fun FlippableCard(
                 interactionSource = remember { MutableInteractionSource() }
             )
             .graphicsLayer {
-                // Aplica la rotación en el eje Y.
+                // Applies the Y-axis rotation.
                 rotationY = rotation
-                // Aumenta la distancia de la cámara para un efecto 3D más realista.
-                // El valor por defecto es 8.dp, un valor mayor da más perspectiva.
+                // Increases camera distance for a more realistic 3D effect.
+                // Default value is 8.dp; a higher value gives more perspective.
                 cameraDistance = 12f * density
             },
         shape = RoundedCornerShape(16.dp),
@@ -67,12 +67,12 @@ fun FlippableCard(
                 .fillMaxSize()
                 .background(randomGradient) // Apply gradient to the Box
         ) {
-            // Mostramos el contenido frontal o trasero según el ángulo de rotación.
+            // Show front or back content based on the rotation angle.
             if (rotation <= 90f) {
                 frontContent()
             } else {
-                // El contenido trasero necesita ser rotado 180 grados para corregir
-                // el efecto espejo causado por la rotación de la tarjeta principal.
+                // Back content needs to be rotated 180 degrees to correct
+                // the mirror effect caused by the main card's rotation.
                 Box(
                     Modifier
                         .fillMaxSize()

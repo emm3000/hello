@@ -17,15 +17,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// ─── Variantes ──────────────────────────────────────────────────────────────
+// ─── Variants ──────────────────────────────────────────────────────────────
 
 enum class BadgeVariant { Default, Secondary, Destructive, Outline, Success }
 
 /**
- * Badge/chip de estado inspirado en shadcn/ui.
+ * Status badge/chip inspired by shadcn/ui.
  *
- * Uso típico: conteo de cards en un Deck, estado de revisión,
- * categoría de una flashcard, dificultad.
+ * Typical usage: cards count in a Deck, review status,
+ * flashcard category, difficulty.
  */
 @Composable
 fun HBadge(

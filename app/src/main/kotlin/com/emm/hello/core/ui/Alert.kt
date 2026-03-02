@@ -32,15 +32,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// ─── Variantes ──────────────────────────────────────────────────────────────
+// ─── Variants ──────────────────────────────────────────────────────────────
 
 enum class AlertVariant { Default, Destructive, Warning, Success }
 
 /**
- * Alert / callout inspirado en shadcn/ui.
+ * Alert / callout inspired by shadcn/ui.
  *
- * Uso: mensajes de error en NewCardScreen ([AlertVariant.Destructive]),
- *      información general, confirmaciones de acción.
+ * Usage: error messages in NewCardScreen ([AlertVariant.Destructive]),
+ *        general information, action confirmations.
  */
 @Composable
 fun HAlert(

@@ -16,8 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
 
 /**
- * SpeechToTextManager - Proporciona una experiencia fluida de reconocimiento de voz.
- * Incluye gestión de estados, haptic-ready events y limpieza de resultados.
+ * SpeechToTextManager - Provides a fluid voice recognition experience.
+ * Includes state management, haptic-ready events, and results cleanup.
  */
 class SpeechToTextManager(private val context: Context) : RecognitionListener {
 
@@ -58,7 +58,7 @@ class SpeechToTextManager(private val context: Context) : RecognitionListener {
             _isListening.value = true
             onStateChanged?.invoke(STTState.READY_TO_LISTEN)
         } catch (e: Exception) {
-            _error.value = "No se pudo iniciar el reconocedor de voz"
+            _error.value = "Could not start speech recognizer"
             _isListening.value = false
             onStateChanged?.invoke(STTState.ERROR)
         }
@@ -104,12 +104,12 @@ class SpeechToTextManager(private val context: Context) : RecognitionListener {
     override fun onError(error: Int) {
         _isListening.value = false
         _error.value = when (error) {
-            SpeechRecognizer.ERROR_NO_MATCH -> "No se reconoció ninguna palabra"
-            SpeechRecognizer.ERROR_NETWORK -> "Error de red"
-            SpeechRecognizer.ERROR_AUDIO -> "Error de audio"
-            SpeechRecognizer.ERROR_CLIENT -> "Error del cliente"
-            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permiso denegado"
-            else -> "Error en el reconocimiento: $error"
+            SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
+            SpeechRecognizer.ERROR_NETWORK -> "Network error"
+            SpeechRecognizer.ERROR_AUDIO -> "Audio error"
+            SpeechRecognizer.ERROR_CLIENT -> "Client error"
+            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
+            else -> "Recognition error: $error"
         }
         onStateChanged?.invoke(STTState.ERROR)
     }

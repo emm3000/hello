@@ -69,7 +69,7 @@ fun DeckDetailScreen(
                 title = {
                     Column {
                         Text(
-                            text = state.deck.name.ifBlank { "Mazo" },
+                            text = state.deck.name.ifBlank { "Deck" },
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
@@ -88,7 +88,7 @@ fun DeckDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -102,7 +102,7 @@ fun DeckDetailScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir tarjeta")
+                Icon(Icons.Default.Add, contentDescription = "Add card")
             }
         },
     ) { innerPadding ->
@@ -115,7 +115,7 @@ fun DeckDetailScreen(
             ),
             modifier = Modifier.padding(innerPadding),
         ) {
-            // ── Header con estadísticas ──────────────────────────────────────
+            // ── Header with statistics ──────────────────────────────────────
             item {
                 DeckStatsHeader(
                     cardCount = state.deck.cards.size,
@@ -124,14 +124,14 @@ fun DeckDetailScreen(
                 )
             }
 
-            // ── Lista vacía ──────────────────────────────────────────────────
+            // ── Empty list ──────────────────────────────────────────────────
             if (state.deck.cards.isEmpty()) {
                 item {
                     EmptyCards(onAddCard = onAddCard)
                 }
             }
 
-            // ── Tarjetas ─────────────────────────────────────────────────────
+            // ── Cards ─────────────────────────────────────────────────────
             if (state.deck.cards.isNotEmpty()) {
                 item {
                     Row(
@@ -160,7 +160,7 @@ fun DeckDetailScreen(
     }
 }
 
-// ── Componente: Estadísticas del mazo ────────────────────────────────────────
+// ── Component: Deck statistics ────────────────────────────────────────
 
 @Composable
 private fun DeckStatsHeader(
@@ -249,7 +249,7 @@ private fun StatCard(
     }
 }
 
-// ── Componente: Estado vacío de tarjetas ─────────────────────────────────────
+// ── Component: Empty cards state ─────────────────────────────────────
 
 @Composable
 private fun EmptyCards(onAddCard: () -> Unit) {
@@ -290,7 +290,7 @@ private fun EmptyCards(onAddCard: () -> Unit) {
     }
 }
 
-// ── Componente: Fila de tarjeta ───────────────────────────────────────────────
+// ── Component: Card row ───────────────────────────────────────────────
 
 @Composable
 private fun DeckCardItem(

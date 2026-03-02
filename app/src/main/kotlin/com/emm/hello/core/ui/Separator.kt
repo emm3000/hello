@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
 /**
- * Separador horizontal inspirado en shadcn/ui `<Separator />`.
+ * Horizontal separator inspired by shadcn/ui `<Separator />`.
  *
- * Uso: entre secciones en NewCardScreen, entre campos en FlashcardDetailScreen.
+ * Usage: between sections in NewCardScreen, between fields in FlashcardDetailScreen.
  */
 @Composable
 fun HSeparator(

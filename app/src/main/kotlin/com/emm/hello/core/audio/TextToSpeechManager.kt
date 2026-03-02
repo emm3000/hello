@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
 
 /**
- * TextToSpeechManager - Versión refinada y optimizada para la experiencia del usuario.
+ * TextToSpeechManager - Refined and optimized version for the user experience.
  */
 class TextToSpeechManager(private val context: Context) {
 

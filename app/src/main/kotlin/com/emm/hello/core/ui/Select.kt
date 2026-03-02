@@ -37,12 +37,12 @@ import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
 /**
- * Dropdown selector inspirado en shadcn/ui `<Select />`.
+ * Dropdown selector inspired by shadcn/ui `<Select />`.
  *
- * Usa label externo como [HInput], con el mismo visual language:
- * - Borde 1dp outlineVariant → outline animado al focus/open
- * - Fondo transparente, altura mínima 40dp
- * - Chevron rotado cuando está expandido
+ * Uses an external label like [HInput], with the same visual language:
+ * - 1dp outlineVariant border → animated outline on focus/open
+ * - Transparent background, minimum height 40dp
+ * - Rotated chevron when expanded
  */
 @Composable
 fun <T> HSelect(

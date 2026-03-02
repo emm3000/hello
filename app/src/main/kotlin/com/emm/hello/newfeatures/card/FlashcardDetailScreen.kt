@@ -60,15 +60,15 @@ fun FlashcardDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Implementar edicion */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Editar")
+                    IconButton(onClick = { /* TODO: Implement edit */ }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
-                    IconButton(onClick = { /* Implementar borrado */ }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Borrar")
+                    IconButton(onClick = { /* TODO: Implement delete */ }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }
                 },
             )
@@ -82,7 +82,7 @@ fun FlashcardDetailScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ── Tarjeta principal ─────────────────────────────────────────────
+            // ── Main card ─────────────────────────────────────────────
             HCard(
                 modifier = Modifier.fillMaxWidth(),
                 variant = CardVariant.Elevated,

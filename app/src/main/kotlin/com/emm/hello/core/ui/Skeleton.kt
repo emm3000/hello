@@ -32,13 +32,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// ─── Primitivo ───────────────────────────────────────────────────────────────
+// ─── Primitive ───────────────────────────────────────────────────────────────
 
 /**
- * Skeleton primitivo inspirado en shadcn/ui.
+ * Primitive skeleton inspired by shadcn/ui.
  *
- * Produce un rectángulo con shimmer animado. Especificar siempre
- * [modifier] con width/height explícitos.
+ * Produces a rectangle with animated shimmer. Always specify
+ * [modifier] with explicit width/height.
  */
 @Composable
 fun HSkeleton(
@@ -72,9 +72,9 @@ fun HSkeleton(
     )
 }
 
-// ─── Presets de pantalla ─────────────────────────────────────────────────────
+// ─── Screen Presets ─────────────────────────────────────────────────────
 
-/** Skeleton de un DeckItem en el Dashboard. */
+/** Skeleton of a DeckItem in the Dashboard. */
 @Composable
 fun DeckItemSkeleton(modifier: Modifier = Modifier) {
     Row(
@@ -105,7 +105,7 @@ fun DeckItemSkeleton(modifier: Modifier = Modifier) {
     }
 }
 
-/** Skeleton de la pantalla Dashboard con N DeckItems. */
+/** Skeleton of the Dashboard screen with N DeckItems. */
 @Composable
 fun DashboardSkeleton(count: Int = 4, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -126,7 +126,7 @@ fun DashboardSkeleton(count: Int = 4, modifier: Modifier = Modifier) {
     }
 }
 
-/** Skeleton genérico de líneas de texto. */
+/** Generic skeleton for text lines. */
 @Composable
 fun TextSkeleton(
     lines: Int = 3,
@@ -159,13 +159,13 @@ private fun HSkeletonPreview() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                // Línea de título
+                // Title line
                 HSkeleton(Modifier.fillMaxWidth(0.5f).height(20.dp))
-                // Líneas de cuerpo
+                // Body lines
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                 HSkeleton(Modifier.fillMaxWidth(0.7f).height(14.dp))
-                // Botón skeleton
+                // Skeleton button
                 HSkeleton(Modifier.size(width = 120.dp, height = 36.dp), cornerRadius = 20.dp)
             }
         }

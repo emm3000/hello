@@ -32,15 +32,15 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// ─── Variantes ──────────────────────────────────────────────────────────────
+// ─── Variants ──────────────────────────────────────────────────────────────
 
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
 
 /**
- * Botón principal inspirado en shadcn/ui.
+ * Main button inspired by shadcn/ui.
  *
- * Soporta variantes: Default, Destructive, Outline, Secondary, Ghost, Link.
- * Tiene soporte para estado de carga con [isLoading].
+ * Supports variants: Default, Destructive, Outline, Secondary, Ghost, Link.
+ * Has support for loading state with [isLoading].
  */
 @Composable
 fun HButton(
@@ -182,7 +182,7 @@ fun HButton(
         leadingIcon = leadingIcon,
     ) {
         Text(
-            text = if (isLoading) "Cargando…" else text,
+            text = if (isLoading) "Loading…" else text,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         )
     }

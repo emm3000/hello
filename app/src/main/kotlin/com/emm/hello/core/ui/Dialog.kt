@@ -20,18 +20,18 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.emm.hello.core.theme.HelloTheme
 
 /**
- * Dialog estándar inspirado en shadcn/ui `<AlertDialog />`.
+ * Standard Dialog inspired by shadcn/ui `<AlertDialog />`.
  *
- * Uso: "Sesión de repaso finalizada" en StudyScreen.
+ * Usage: "Review session finished" in StudyScreen.
  *
- * @param title         Título del diálogo
- * @param description   Cuerpo descriptivo (opcional)
- * @param icon          Icono opcional encima del título
- * @param confirmText   Texto del botón de confirmación
- * @param cancelText    Texto del botón de cancelación (null = oculta el botón)
- * @param onConfirm     Acción al confirmar
- * @param onDismiss     Acción al cancelar o tocar fuera
- * @param isDangerous   Si es true, el botón de confirmación usa color destructive
+ * @param title         Dialog title
+ * @param description   Descriptive body (optional)
+ * @param icon          Optional icon above the title
+ * @param confirmText   Confirmation button text
+ * @param cancelText    Cancellation button text (null = hides the button)
+ * @param onConfirm     Action on confirmation
+ * @param onDismiss     Action on cancel or touching outside
+ * @param isDangerous   If true, the confirmation button uses destructive color
  */
 @Composable
 fun HAlertDialog(

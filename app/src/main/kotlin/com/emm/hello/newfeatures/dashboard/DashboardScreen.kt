@@ -80,21 +80,21 @@ fun DashboardScreen(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // FAB secundario: nuevo mazo
+                // Secondary FAB: new deck
                 SmallFloatingActionButton(
                     onClick = onCreateDeck,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    Icon(Icons.Default.BookmarkAdd, contentDescription = "Nuevo mazo")
+                    Icon(Icons.Default.BookmarkAdd, contentDescription = "New deck")
                 }
-                // FAB principal: nueva tarjeta
+                // Main FAB: new card
                 FloatingActionButton(
                     onClick = newCard,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Nueva tarjeta")
+                    Icon(Icons.Default.Add, contentDescription = "New card")
                 }
             }
         },
@@ -240,7 +240,7 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
-                // Barra de progreso visual (usa cardsCount como indicador)
+                // Visual progress bar (uses cardsCount as an indicator)
                 if (deck.cardsCount > 0) {
                     LinearProgressIndicator(
                         progress = { (deck.cardsCount % 10) / 10f },

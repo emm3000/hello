@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// Data class para representar un mazo
+// Data class to represent a deck
 data class DeckInfo(val name: String, val cardCount: Int, val completion: Float)
 
 @Composable
@@ -48,8 +48,8 @@ fun DecksScreen(modifier: Modifier = Modifier, onDeckClick: (DeckInfo) -> Unit =
             TopAppBar(title = { Text("📚 Mis Mazos") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Abrir pantalla de nuevo mazo */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Crear nuevo mazo")
+            FloatingActionButton(onClick = { /* TODO: Open new deck screen */ }) {
+                Icon(Icons.Default.Add, contentDescription = "Create new deck")
             }
         }
     ) { innerPadding ->
@@ -81,8 +81,8 @@ fun DeckListItem(deck: DeckInfo, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("${deck.cardCount} tarjetas", style = MaterialTheme.typography.bodyMedium)
-                Text("${(deck.completion * 100).toInt()}% completado", style = MaterialTheme.typography.bodyMedium)
+                Text("${deck.cardCount} cards", style = MaterialTheme.typography.bodyMedium)
+                Text("${(deck.completion * 100).toInt()}% completed", style = MaterialTheme.typography.bodyMedium)
             }
             Spacer(Modifier.height(8.dp))
             LinearProgressIndicator(
