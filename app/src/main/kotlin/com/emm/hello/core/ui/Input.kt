@@ -86,6 +86,9 @@ fun HInput(
     // Text color dims when disabled
     val textColor = if (enabled) cs.onSurface else cs.onSurface.copy(alpha = 0.38f)
 
+    val boxAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart
+    val trailingAlignment = if (singleLine) Alignment.CenterEnd else Alignment.TopEnd
+
     Column(modifier = modifier) {
         // ── External label (shadcn pattern) ──────────────────────────────────
         if (label != null) {
@@ -124,13 +127,13 @@ fun HInput(
             decorationBox = { innerTextField ->
                 Box(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.CenterStart,
+                    contentAlignment = boxAlignment,
                 ) {
                     // Leading icon
                     if (leadingIcon != null) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.CenterStart)
+                                .align(boxAlignment)
                                 .padding(end = 36.dp),
                         ) { leadingIcon() }
                     }
@@ -142,7 +145,7 @@ fun HInput(
                             style = MaterialTheme.typography.bodyMedium,
                             color = cs.onSurfaceVariant.copy(alpha = 0.6f),
                             modifier = Modifier
-                                .align(Alignment.CenterStart)
+                                .align(boxAlignment)
                                 .then(
                                     if (leadingIcon != null) Modifier.padding(start = 28.dp)
                                     else Modifier
@@ -156,7 +159,7 @@ fun HInput(
                     // Actual text field
                     Box(
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
+                            .align(boxAlignment)
                             .padding(
                                 start = if (leadingIcon != null) 28.dp else 0.dp,
                                 end = textEndPadding,
@@ -166,7 +169,7 @@ fun HInput(
 
                     // Trailing icon
                     if (trailingIcon != null) {
-                        Box(Modifier.align(Alignment.CenterEnd)) { trailingIcon() }
+                        Box(Modifier.align(trailingAlignment)) { trailingIcon() }
                     }
                 }
             },
