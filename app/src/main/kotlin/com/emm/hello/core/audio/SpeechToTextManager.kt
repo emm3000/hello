@@ -13,48 +13,66 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
 /**
- * SpeechToTextManager - Provides a fluid voice recognition experience.
- * Thread-safe, lifecycle-aware, and decoupled from Compose Runtime.
+ * States for the speech-to-text process.
  */
-class SpeechToTextManager(private val context: Context) : RecognitionListener {
+enum class STTState { IDLE, READY_TO_LISTEN, LISTENING, PROCESSING, ERROR }
+
+/**
+ * Interface to control speech-to-text functionality.
+ * This allows us to provide a stub implementation during Compose Previews,
+ * avoiding NoClassDefFoundError for Android Speech classes not available in layoutlib.
+ */
+interface SpeechToTextManager {
+    val isListening: StateFlow<Boolean>
+    val textResult: StateFlow<String>
+    val error: StateFlow<String?>
+    val state: StateFlow<STTState>
+    var onResultCallback: ((String) -> Unit)?
+    fun startListening(locale: Locale = Locale.US)
+    fun stopListening()
+}
+
+/**
+ * Android-specific implementation of SpeechToTextManager using SpeechRecognizer.
+ */
+class AndroidSpeechToTextManager(private val context: Context) : RecognitionListener, SpeechToTextManager {
 
     private var recognizer: SpeechRecognizer? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private val _isListening = MutableStateFlow(false)
-    val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
+    override val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
 
     private val _textResult = MutableStateFlow("")
-    val textResult: StateFlow<String> = _textResult.asStateFlow()
+    override val textResult: StateFlow<String> = _textResult.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    override val error: StateFlow<String?> = _error.asStateFlow()
 
     private val _state = MutableStateFlow(STTState.IDLE)
-    val state: StateFlow<STTState> = _state.asStateFlow()
+    override val state: StateFlow<STTState> = _state.asStateFlow()
 
-    var onResultCallback: ((String) -> Unit)? = null
-
-    enum class STTState { IDLE, READY_TO_LISTEN, LISTENING, PROCESSING, ERROR }
+    override var onResultCallback: ((String) -> Unit)? = null
 
     fun init() {
         if (recognizer != null) return
         // SpeechRecognizer must be created on the Main Thread
         mainHandler.post {
             recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
-                setRecognitionListener(this@SpeechToTextManager)
+                setRecognitionListener(this@AndroidSpeechToTextManager)
             }
         }
     }
 
-    fun startListening(locale: Locale = Locale.US) {
+    override fun startListening(locale: Locale) {
         _error.value = null
         _textResult.value = ""
 
@@ -76,7 +94,7 @@ class SpeechToTextManager(private val context: Context) : RecognitionListener {
         }
     }
 
-    fun stopListening() {
+    override fun stopListening() {
         recognizer?.stopListening()
         _isListening.value = false
         _state.value = STTState.IDLE
@@ -105,9 +123,6 @@ class SpeechToTextManager(private val context: Context) : RecognitionListener {
         mainHandler.post { _state.value = STTState.LISTENING }
     }
 
-    // Not exposed as state: updating a Flow on every RMS tick would cause
-    // continuous recompositions. Use the raw value only for canvas/animation
-    // driven directly from a side-effect if needed in the future.
     override fun onRmsChanged(rmsdB: Float) {}
 
     override fun onBufferReceived(buffer: ByteArray?) {}
@@ -162,8 +177,24 @@ class SpeechToTextManager(private val context: Context) : RecognitionListener {
 fun rememberSpeechToTextManager(
     onResult: (String) -> Unit = {},
 ): SpeechToTextManager {
+    val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
-    val manager = remember { SpeechToTextManager(context) }
+
+    if (isPreview) {
+        return remember {
+            object : SpeechToTextManager {
+                override val isListening: StateFlow<Boolean> = MutableStateFlow(false)
+                override val textResult: StateFlow<String> = MutableStateFlow("")
+                override val error: StateFlow<String?> = MutableStateFlow(null)
+                override val state: StateFlow<STTState> = MutableStateFlow(STTState.IDLE)
+                override var onResultCallback: ((String) -> Unit)? = null
+                override fun startListening(locale: Locale) {}
+                override fun stopListening() {}
+            }
+        }
+    }
+
+    val manager = remember { AndroidSpeechToTextManager(context) }
     // rememberUpdatedState ensures the callback always holds the latest lambda,
     // even if the Composable recomposes with a new capture after init.
     val currentOnResult = rememberUpdatedState(onResult)
