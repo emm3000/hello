@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
@@ -33,9 +34,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +73,7 @@ import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSelect
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.HSkeleton
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -108,6 +114,10 @@ fun NewCardScreen(
     }
 
     val showBottomSheet = remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         val hasWord = state.word.isNotBlank()
         val hasDeck = state.deckSelected != null
@@ -115,6 +125,20 @@ fun NewCardScreen(
         when (state.typeView) {
             TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
             TypeView.WithCategories -> notLoading && hasDeck
+        }
+    }
+
+    // -- Success feedback: Snackbar + auto-scroll to result --------------------
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            snackbarHostState.showSnackbar("Tarjeta creada ✅")
+            onAction(NewCardAction.SuccessConsumed)
+        }
+    }
+    LaunchedEffect(state.result) {
+        if (state.result != null) {
+            // Scroll to last item (result preview) after a brief delay for layout
+            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
         }
     }
 
@@ -155,9 +179,11 @@ fun NewCardScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         LazyColumn(
+            state = listState,
             contentPadding = innerPadding,
             modifier = Modifier
                 .fillMaxSize()
@@ -238,7 +264,10 @@ fun NewCardScreen(
             item {
                 HButton(
                     text = "Generar",
-                    onClick = { onAction(NewCardAction.GenerateClicked) },
+                    onClick = {
+                        keyboardController?.hide()
+                        onAction(NewCardAction.GenerateClicked)
+                    },
                     enabled = isGenerateEnabled,
                     isLoading = state.isLoading,
                     modifier = Modifier
@@ -258,17 +287,44 @@ fun NewCardScreen(
                 }
             }
 
+            // -- Loading Skeleton -----------------------------------------------------
+            if (state.isLoading) {
+                item {
+                    HCard(variant = CardVariant.Outlined) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            HSkeleton(Modifier.fillMaxWidth(0.5f).height(24.dp))
+                            HSkeleton(Modifier.fillMaxWidth(0.35f).height(14.dp))
+                            HSeparator()
+                            HSkeleton(Modifier.fillMaxWidth(0.4f).height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth(0.4f).height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+                        }
+                    }
+                }
+            }
+
             // -- Result Preview -------------------------------------------------------
             if (state.result != null) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            "Resultado",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        CardPreview(state.result)
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(tween(300)),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(
+                                "Resultado",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            CardPreview(state.result)
+                        }
                     }
                 }
                 item { Spacer(modifier = Modifier.height(20.dp)) }
@@ -280,6 +336,7 @@ fun NewCardScreen(
         onDismissRequest = { showBottomSheet.value = it },
         showBottomSheet = showBottomSheet.value,
         accounts = staticCategories,
+        selectedCategory = state.category,
         onAction = { onAction(NewCardAction.CategorySelected(it)) },
     )
 }

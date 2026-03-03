@@ -21,4 +21,6 @@ sealed interface NewCardAction {
     data object GenerateClicked : NewCardAction
 
     data object SaveClicked : NewCardAction
+
+    data object SuccessConsumed : NewCardAction
 }

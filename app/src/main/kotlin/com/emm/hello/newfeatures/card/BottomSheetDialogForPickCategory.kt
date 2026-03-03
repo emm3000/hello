@@ -42,6 +42,7 @@ fun BottomSheetDialogForPickCategory(
     onDismissRequest: (Boolean) -> Unit,
     showBottomSheet: Boolean,
     accounts: List<StaticCategories>,
+    selectedCategory: StaticCategories? = null,
     onAction: (StaticCategories) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -64,6 +65,7 @@ fun BottomSheetDialogForPickCategory(
             }
             AccountSelectorContent(
                 categories = accounts,
+                selectedCategory = selectedCategory,
                 onAccountSelected = { onAction(it) },
                 dismiss = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -79,6 +81,7 @@ fun BottomSheetDialogForPickCategory(
 fun AccountSelectorContent(
     modifier: Modifier = Modifier,
     categories: List<StaticCategories>,
+    selectedCategory: StaticCategories? = null,
     onAccountSelected: (StaticCategories) -> Unit,
     dismiss: () -> Unit,
 ) {
@@ -114,8 +117,11 @@ fun AccountSelectorContent(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             categories.forEach { category ->
-                key(category.id) {
-                    CategoryChip(category) { selected ->
+                    key(category.id) {
+                        CategoryChip(
+                            account = category,
+                            isSelected = category == selectedCategory,
+                        ) { selected ->
                         onAccountSelected(selected)
                         dismiss()
                     }
@@ -130,12 +136,13 @@ fun AccountSelectorContent(
 @Composable
 fun CategoryChip(
     account: StaticCategories,
+    isSelected: Boolean = false,
     onCardClick: (StaticCategories) -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(100.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = Modifier
             .clip(RoundedCornerShape(100.dp))
             .clickable { onCardClick(account) },
