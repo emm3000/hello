@@ -1,7 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
-import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
@@ -17,6 +17,6 @@ data class NewCardUiState(
     val typeView: TypeView = TypeView.WordOrPhase,
     val difficulty: String = difficult.first(),
     val error: String? = null,
-    val result: Flashcard? = null,
+    val previewResult: FlashcardGenerated? = null,
     val isSuccess: Boolean = false,
 )

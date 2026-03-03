@@ -57,8 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
-import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
@@ -135,8 +134,8 @@ fun NewCardScreen(
             onAction(NewCardAction.SuccessConsumed)
         }
     }
-    LaunchedEffect(state.result) {
-        if (state.result != null) {
+    LaunchedEffect(state.previewResult) {
+        if (state.previewResult != null) {
             // Scroll to last item (result preview) after a brief delay for layout
             listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
         }
@@ -261,19 +260,21 @@ fun NewCardScreen(
             }
 
             // -- Generate Button ------------------------------------------------------
-            item {
-                HButton(
-                    text = "Generar",
-                    onClick = {
-                        keyboardController?.hide()
-                        onAction(NewCardAction.GenerateClicked)
-                    },
-                    enabled = isGenerateEnabled,
-                    isLoading = state.isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                )
+            if (state.previewResult == null) {
+                item {
+                    HButton(
+                        text = "Generar",
+                        onClick = {
+                            keyboardController?.hide()
+                            onAction(NewCardAction.GenerateClicked)
+                        },
+                        enabled = isGenerateEnabled,
+                        isLoading = state.isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                    )
+                }
             }
 
             // -- Error Display --------------------------------------------------------
@@ -310,20 +311,33 @@ fun NewCardScreen(
             }
 
             // -- Result Preview -------------------------------------------------------
-            if (state.result != null) {
+            if (state.previewResult != null) {
                 item {
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn(tween(300)),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(
-                                "Resultado",
+                                "Verifica el resultado",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
-                            CardPreview(state.result)
+                            CardPreview(state.previewResult)
+                            
+                            HButton(
+                                text = "Guardar en ${state.deckSelected?.name}",
+                                onClick = { 
+                                    keyboardController?.hide()
+                                    onAction(NewCardAction.SaveClicked) 
+                                },
+                                enabled = !state.isLoading,
+                                isLoading = state.isLoading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                            )
                         }
                     }
                 }
@@ -394,7 +408,7 @@ private fun LabeledCheckbox(
 }
 
 @Composable
-private fun CardPreview(flashcard: Flashcard) {
+private fun CardPreview(flashcard: FlashcardGenerated) {
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -409,7 +423,7 @@ private fun CardPreview(flashcard: Flashcard) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = flashcard.phonetic,
+                text = flashcard.phonetics,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -538,8 +552,7 @@ fun NewCardScreenPreview() {
                         cardsCount = 24,
                     )
                 ),
-                result = Flashcard(
-                    id = "1",
+                previewResult = FlashcardGenerated(
                     word = "Serendipity",
                     meaning = "The occurrence of events by chance in a happy way",
                     translation = "Casualidad afortunada",
@@ -552,8 +565,8 @@ fun NewCardScreenPreview() {
                         ),
                         Example("ex2", "She called it serendipity", "Ella lo llamó serendipia", ""),
                     ),
-                    phonetic = "/ˌserənˈdɪpɪti/",
-                    review = FlashcardReview.Empty,
+                    phonetics = "/ˌserənˈdɪpɪti/",
+                    language = "en",
                 )
             )
         )

@@ -38,33 +38,51 @@ class NewCardViewModel(
                 deckSelected = action.deck,
                 isCheck = dataStore.defaultDeck == action.deck.id,
             )
-            is NewCardAction.WordChanged -> state = state.copy(word = action.word, error = null)
+            is NewCardAction.WordChanged -> state = state.copy(word = action.word, error = null, previewResult = null)
             is NewCardAction.CheckChanged -> {
                 val newDeckId = if (action.checked) state.deckSelected?.id.orEmpty() else ""
                 dataStore.defaultDeck = newDeckId
                 state = state.copy(isCheck = action.checked)
             }
-            NewCardAction.GenerateClicked,
-            NewCardAction.SaveClicked -> createFlashcard()
-            is NewCardAction.CategorySelected -> state = state.copy(category = action.category, error = null)
-            is NewCardAction.DifficultySelected -> state = state.copy(difficulty = action.difficulty, error = null)
-            is NewCardAction.TypeViewSelected -> state = state.copy(typeView = action.typeView)
+            NewCardAction.GenerateClicked -> generateFlashcard()
+            NewCardAction.SaveClicked -> saveFlashcard()
+            is NewCardAction.CategorySelected -> state = state.copy(category = action.category, error = null, previewResult = null)
+            is NewCardAction.DifficultySelected -> state = state.copy(difficulty = action.difficulty, error = null, previewResult = null)
+            is NewCardAction.TypeViewSelected -> state = state.copy(typeView = action.typeView, previewResult = null)
             NewCardAction.SuccessConsumed -> state = state.copy(isSuccess = false)
         }
     }
 
-    private fun createFlashcard() = viewModelScope.launch {
-        val deckId = state.deckSelected?.id ?: return@launch
-        state = state.copy(isLoading = true, error = null)
+    private fun generateFlashcard() = viewModelScope.launch {
+        state = state.copy(isLoading = true, error = null, isSuccess = false)
         try {
-            val flashcard = cardCreator.createFlashcard(
+            val preview = cardCreator.generateFlashcardPreview(
                 word = state.word,
-                deckId = deckId,
                 categories = state.category,
                 difficulty = state.difficulty,
                 typeView = state.typeView,
             )
-            state = state.copy(word = "", result = flashcard, isLoading = false, isSuccess = true)
+            state = state.copy(previewResult = preview, isLoading = false)
+        } catch (e: Exception) {
+            state = state.copy(error = e.message, isLoading = false)
+        }
+    }
+
+    private fun saveFlashcard() = viewModelScope.launch {
+        val deckId = state.deckSelected?.id ?: return@launch
+        val preview = state.previewResult ?: return@launch
+        state = state.copy(isLoading = true, error = null)
+        try {
+            cardCreator.saveFlashcard(
+                deckId = deckId,
+                flashcard = preview,
+            )
+            state = state.copy(
+                word = "", 
+                previewResult = null, 
+                isLoading = false, 
+                isSuccess = true
+            )
         } catch (e: Exception) {
             state = state.copy(error = e.message, isLoading = false)
         }
