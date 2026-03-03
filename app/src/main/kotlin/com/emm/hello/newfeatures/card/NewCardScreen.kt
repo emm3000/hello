@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -78,6 +79,7 @@ import com.emm.hello.core.ui.HSkeleton
 import java.time.LocalDateTime
 import java.util.Locale
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun NewCardScreen(
     modifier: Modifier = Modifier,
