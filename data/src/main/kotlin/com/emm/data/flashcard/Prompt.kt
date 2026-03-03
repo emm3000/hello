@@ -31,7 +31,7 @@ object Prompt {
                     "type": "<easy | medium | daily_use | advanced>"
                   },
                   ...
-                  // Include at least 10 examples with different types
+                  // Include at least 3 examples with different types
                 ]
               }
             }
@@ -47,8 +47,6 @@ object Prompt {
             
             ⚠️ Very Important:
             - Only return a valid JSON object.
-            - Do NOT include any markdown formatting (no backticks).
-            - Do NOT include any explanation or extra text before or after the JSON.
             
             User input: "$wordOrPhrase"
             

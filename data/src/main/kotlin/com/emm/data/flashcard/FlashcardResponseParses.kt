@@ -14,10 +14,8 @@ import kotlinx.serialization.json.jsonPrimitive
 object FlashcardResponseParses {
 
     fun parse(raw: String, json: Json): FlashcardGenerated {
-        val cleaned: String = raw.removePrefixAndSuffix()
-
         return try {
-            val root: JsonObject = json.parseToJsonElement(cleaned).jsonObject
+            val root: JsonObject = json.parseToJsonElement(raw).jsonObject
             val isSuccess: Boolean = root["success"]?.jsonPrimitive?.booleanOrNull == true
             if (isSuccess) {
                 val flashcardGenerated: FlashcardGenerated = parseToDomain(root, json)
