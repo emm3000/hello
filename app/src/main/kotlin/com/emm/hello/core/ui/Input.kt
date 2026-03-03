@@ -124,6 +124,7 @@ fun HInput(
             decorationBox = { innerTextField ->
                 Box(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.CenterStart,
                 ) {
                     // Leading icon
                     if (leadingIcon != null) {
@@ -140,21 +141,27 @@ fun HInput(
                             text = placeholder,
                             style = MaterialTheme.typography.bodyMedium,
                             color = cs.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = if (leadingIcon != null) {
-                                Modifier.padding(start = 28.dp)
-                            } else {
-                                Modifier
-                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .then(
+                                    if (leadingIcon != null) Modifier.padding(start = 28.dp)
+                                    else Modifier
+                                ),
                         )
                     }
 
+                    // Trailing icon padding so text doesn't overlap it
+                    val textEndPadding = if (trailingIcon != null) 40.dp else 0.dp
+
                     // Actual text field
                     Box(
-                        modifier = if (leadingIcon != null) {
-                            Modifier.padding(start = 28.dp)
-                        } else {
-                            Modifier
-                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(
+                                start = if (leadingIcon != null) 28.dp else 0.dp,
+                                end = textEndPadding,
+                            )
+                            .fillMaxWidth(),
                     ) { innerTextField() }
 
                     // Trailing icon
@@ -163,6 +170,7 @@ fun HInput(
                     }
                 }
             },
+
         )
 
         // ── Helper / error text ───────────────────────────────────────────────
