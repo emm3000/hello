@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,7 @@ import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
+import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.AlertVariant
@@ -130,7 +132,7 @@ fun NewCardScreen(
     // -- Success feedback: Snackbar + auto-scroll to result --------------------
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            snackbarHostState.showSnackbar("Tarjeta creada ✅")
+            snackbarHostState.showSnackbar(context.getString(R.string.card_created_feedback))
             onAction(NewCardAction.SuccessConsumed)
         }
     }
@@ -148,14 +150,14 @@ fun NewCardScreen(
                 title = {
                     Column {
                         Text(
-                            "Nueva tarjeta",
+                            text = stringResource(R.string.new_card_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
                             text = when (state.typeView) {
-                                TypeView.WordOrPhase -> "Palabra o frase"
-                                TypeView.WithCategories -> "Por categoría"
+                                TypeView.WordOrPhase -> stringResource(R.string.new_card_mode_word)
+                                TypeView.WithCategories -> stringResource(R.string.new_card_mode_category)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -164,7 +166,7 @@ fun NewCardScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -173,7 +175,7 @@ fun NewCardScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwitchLeft,
-                            contentDescription = "Cambiar vista",
+                            contentDescription = stringResource(R.string.change_view_desc),
                         )
                     }
                 }
@@ -191,7 +193,7 @@ fun NewCardScreen(
         ) {
             // -- Input Section --------------------------------------------------------
             item {
-                SectionCard(title = "Entrada") {
+                SectionCard(title = stringResource(R.string.input_section_title)) {
                     when (state.typeView) {
                         TypeView.WordOrPhase -> {
                             HInput(
@@ -199,8 +201,8 @@ fun NewCardScreen(
                                 onValueChange = { onAction(NewCardAction.WordChanged(it)) },
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
-                                label = "Palabra o frase en inglés",
-                                placeholder = if (isListening) "Escuchando…" else "Ej: Hello, Good morning…",
+                                label = stringResource(R.string.word_label),
+                                placeholder = if (isListening) stringResource(R.string.listening_placeholder) else stringResource(R.string.word_placeholder),
                                 trailingIcon = {
                                     VoiceInputButton(
                                         isListening = isListening,
@@ -213,12 +215,12 @@ fun NewCardScreen(
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 JustClickableInput(
                                     value = state.category.name,
-                                    label = "Categoría",
+                                    label = stringResource(R.string.category_label),
                                     onClick = { showBottomSheet.value = true },
                                 )
                                 HSelect(
                                     modifier = Modifier.fillMaxWidth(),
-                                    label = "Dificultad",
+                                    label = stringResource(R.string.difficulty_label),
                                     items = difficult,
                                     itemSelected = state.difficulty,
                                     onItemSelected = { onAction(NewCardAction.DifficultySelected(it)) },
@@ -231,15 +233,15 @@ fun NewCardScreen(
 
             // -- Destination Section --------------------------------------------------
             item {
-                SectionCard(title = "Destino") {
+                SectionCard(title = stringResource(R.string.destination_section_title)) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         HSelect(
                             items = state.decks,
                             itemSelected = state.deckSelected,
                             enabled = !state.isLoading,
                             onItemSelected = { onAction(NewCardAction.DeckSelected(it)) },
-                            label = "Mazo",
-                            placeholder = "Seleccionar mazo…",
+                            label = stringResource(R.string.deck_label),
+                            placeholder = stringResource(R.string.select_deck_placeholder),
                             itemLabel = { it.name },
                         )
 
@@ -249,7 +251,7 @@ fun NewCardScreen(
                             exit = fadeOut(),
                         ) {
                             LabeledCheckbox(
-                                label = "Marcar como mazo por defecto",
+                                label = stringResource(R.string.default_deck_checkbox),
                                 checked = state.isCheck,
                                 isEnabled = state.deckSelected != null,
                                 onCheckedChange = { onAction(NewCardAction.CheckChanged(it)) },
@@ -263,7 +265,7 @@ fun NewCardScreen(
             if (state.previewResult == null) {
                 item {
                     HButton(
-                        text = "Generar",
+                        text = stringResource(R.string.generate_card),
                         onClick = {
                             keyboardController?.hide()
                             onAction(NewCardAction.GenerateClicked)
@@ -281,7 +283,7 @@ fun NewCardScreen(
             if (state.error != null) {
                 item {
                     HAlert(
-                        title = "Error al generar",
+                        title = stringResource(R.string.generate_error_title),
                         description = state.error,
                         variant = AlertVariant.Destructive,
                     )
@@ -319,7 +321,7 @@ fun NewCardScreen(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(
-                                "Verifica el resultado",
+                                stringResource(R.string.verify_result_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface,
@@ -327,7 +329,7 @@ fun NewCardScreen(
                             CardPreview(state.previewResult)
                             
                             HButton(
-                                text = "Guardar en ${state.deckSelected?.name}",
+                                text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
                                 onClick = { 
                                     keyboardController?.hide()
                                     onAction(NewCardAction.SaveClicked) 
@@ -379,7 +381,7 @@ private fun VoiceInputButton(
     ) {
         Icon(
             imageVector = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
-            contentDescription = "Entrada de voz",
+            contentDescription = stringResource(R.string.voice_input_desc),
             tint = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
         )
     }
@@ -430,13 +432,13 @@ private fun CardPreview(flashcard: FlashcardGenerated) {
 
             HSeparator()
 
-            InfoRow(label = "Traducción", value = flashcard.translation)
-            InfoRow(label = "Significado", value = flashcard.meaning)
+            InfoRow(label = stringResource(R.string.translation_label), value = flashcard.translation)
+            InfoRow(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
 
             if (flashcard.examples.isNotEmpty()) {
                 HSeparator()
                 Text(
-                    text = "Ejemplos",
+                    text = stringResource(R.string.examples_label),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -527,7 +529,7 @@ private fun ExampleItem(index: Int, example: Example) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             HButton(
-                text = if (showTranslation) "Ocultar" else "Ver traducción",
+                text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation),
                 onClick = { showTranslation = !showTranslation },
                 variant = ButtonVariant.Ghost,
             )

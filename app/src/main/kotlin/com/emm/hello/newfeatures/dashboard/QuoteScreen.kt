@@ -41,11 +41,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.quote.Quote
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -102,7 +104,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                         if (quote.hasCard) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Ya tiene flashcard",
+                                contentDescription = stringResource(R.string.already_has_flashcard),
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.tertiary,
                             )
@@ -118,7 +120,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                 }
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Contraer" else "Expandir",
+                    contentDescription = if (expanded) stringResource(R.string.collapse_quote) else stringResource(R.string.expand_quote),
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .rotate(if (expanded) 180f else 0f),
@@ -169,7 +171,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                     if (quote.translation.isNotBlank()) {
                         QuoteDetailRow(
                             icon = Icons.Default.Translate,
-                            label = "Traducción",
+                            label = stringResource(R.string.translation_label),
                             content = quote.translation,
                         )
                     }
@@ -178,7 +180,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                     if (quote.example.isNotBlank()) {
                         QuoteDetailRow(
                             icon = Icons.Default.School,
-                            label = "Ejemplo",
+                            label = stringResource(R.string.examples_label),
                             content = "\"${quote.example}\"",
                         )
                     }
@@ -225,7 +227,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                                 tint = MaterialTheme.colorScheme.tertiary,
                             )
                             Text(
-                                text = "Flashcard ya creada",
+                                text = stringResource(R.string.quote_translated_label),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Medium,
@@ -233,7 +235,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                         }
                     } else {
                         HButton(
-                            text = "Crear flashcard",
+                            text = stringResource(R.string.generate_card),
                             onClick = { onClick(quote) },
                             variant = ButtonVariant.Default,
                             leadingIcon = Icons.Default.BookmarkAdd,

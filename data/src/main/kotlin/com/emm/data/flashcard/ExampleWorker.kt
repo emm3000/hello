@@ -1,5 +1,3 @@
-@file:Suppress("ConstPropertyName")
-
 package com.emm.data.flashcard
 
 import android.content.Context

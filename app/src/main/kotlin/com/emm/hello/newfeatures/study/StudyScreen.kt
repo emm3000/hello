@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
@@ -87,7 +89,7 @@ fun StudyScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Text(
-                                "Repaso",
+                                stringResource(R.string.study_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -102,7 +104,7 @@ fun StudyScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Salir de la sesión",
+                            contentDescription = stringResource(R.string.exit_session_desc),
                         )
                     }
                 },
@@ -131,7 +133,7 @@ fun StudyScreen(
             ) {
                 // ── Indicador de cara ────────────────────────────────────────
                 Text(
-                    text = if (cardFace == CardFace.Front) "Toca para revelar" else "",
+                    text = if (cardFace == CardFace.Front) stringResource(R.string.tap_to_reveal) else "",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -210,10 +212,10 @@ fun StudyScreen(
 
     if (showDialog) {
         HAlertDialog(
-            title = "¡Sesión completada! 🎉",
-            description = "Has repasado ${state.totalCount} tarjetas. ¡Sigue así!",
+            title = stringResource(R.string.session_completed_title),
+            description = stringResource(R.string.session_completed_desc, state.totalCount),
             icon = Icons.Outlined.Check,
-            confirmText = "Volver",
+            confirmText = stringResource(R.string.back),
             cancelText = null,
             onConfirm = {
                 setShowDialog(false)
@@ -265,7 +267,7 @@ private fun FlashcardBackContent(
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.VolumeUp,
-                contentDescription = if (isSpeaking) "Detener" else "Pronunciar",
+                contentDescription = if (isSpeaking) stringResource(R.string.stop_speech_desc) else stringResource(R.string.speak_desc),
                 tint = if (isSpeaking) {
                     MaterialTheme.colorScheme.primary
                 } else {
@@ -292,13 +294,13 @@ private fun AnswerButtons(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             HButton(
-                text = "Otra vez",
+                text = stringResource(R.string.grade_again),
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
                 variant = ButtonVariant.Destructive,
                 modifier = Modifier.weight(1f),
             )
             HButton(
-                text = "Difícil",
+                text = stringResource(R.string.grade_hard),
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
                 variant = ButtonVariant.Secondary,
                 modifier = Modifier.weight(1f),
@@ -309,13 +311,13 @@ private fun AnswerButtons(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             HButton(
-                text = "Bien",
+                text = stringResource(R.string.grade_good),
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
                 variant = ButtonVariant.Default,
                 modifier = Modifier.weight(1f),
             )
             HButton(
-                text = "Fácil",
+                text = stringResource(R.string.grade_easy),
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
                 variant = ButtonVariant.Outline,
                 modifier = Modifier.weight(1f),

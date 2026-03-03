@@ -20,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HButton
@@ -42,15 +44,15 @@ fun NewDeckScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Nuevo mazo") },
+                title = { Text(stringResource(R.string.new_deck_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     HButton(
-                        text = "Guardar",
+                        text = stringResource(R.string.save),
                         onClick = {
                             focusManager.clearFocus()
                             onAction(NewDeckAction.Submit)
@@ -75,8 +77,8 @@ fun NewDeckScreen(
                 value = state.name,
                 onValueChange = { onAction(NewDeckAction.NameChanged(it)) },
                 modifier = Modifier.fillMaxWidth(),
-                label = "Nombre del mazo",
-                placeholder = "Ej: Vocabulario de Inglés B2",
+                label = stringResource(R.string.deck_name_label),
+                placeholder = stringResource(R.string.deck_name_placeholder),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Next,
@@ -90,9 +92,9 @@ fun NewDeckScreen(
                 value = state.description,
                 onValueChange = { onAction(NewDeckAction.DescriptionChanged(it)) },
                 modifier = Modifier.fillMaxWidth(),
-                label = "Descripción",
-                placeholder = "Un mazo para los verbos irregulares más comunes.",
-                supportingText = "Opcional",
+                label = stringResource(R.string.deck_description_label),
+                placeholder = stringResource(R.string.deck_description_placeholder),
+                supportingText = stringResource(R.string.optional),
                 singleLine = false,
                 minLines = 5,
                 keyboardOptions = KeyboardOptions(

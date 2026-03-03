@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -42,6 +43,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -69,7 +71,7 @@ fun DeckDetailScreen(
                 title = {
                     Column {
                         Text(
-                            text = state.deck.name.ifBlank { "Deck" },
+                            text = state.deck.name.ifBlank { stringResource(R.string.deck_detail_title_fallback) },
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
@@ -88,7 +90,7 @@ fun DeckDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -102,7 +104,7 @@ fun DeckDetailScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add card")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_card))
             }
         },
     ) { innerPadding ->
@@ -140,7 +142,7 @@ fun DeckDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            text = "Tarjetas",
+                            text = stringResource(R.string.cards_section_label),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -181,12 +183,12 @@ private fun DeckStatsHeader(
         ) {
             StatCard(
                 value = "$cardCount",
-                label = if (cardCount == 1) "tarjeta" else "tarjetas",
+                label = if (cardCount == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other),
                 modifier = Modifier.weight(1f),
             )
             StatCard(
-                value = if (hasSessionEnabled) "✓ Listo" else "Al día",
-                label = "estado de repaso",
+                value = if (hasSessionEnabled) stringResource(R.string.review_status_ready) else stringResource(R.string.review_status_up_to_date),
+                label = stringResource(R.string.review_status_label),
                 highlight = hasSessionEnabled,
                 modifier = Modifier.weight(1f),
             )
@@ -194,7 +196,7 @@ private fun DeckStatsHeader(
 
         // Botón de repaso
         HButton(
-            text = if (hasSessionEnabled) "Empezar repaso" else "Sin tarjetas pendientes",
+            text = if (hasSessionEnabled) stringResource(R.string.start_review) else stringResource(R.string.no_pending_cards),
             onClick = onReview,
             modifier = Modifier
                 .fillMaxWidth()
@@ -271,18 +273,18 @@ private fun EmptyCards(onAddCard: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Sin tarjetas",
+                stringResource(R.string.empty_cards_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "Añade la primera tarjeta a este mazo",
+                stringResource(R.string.empty_cards_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(4.dp))
             HButton(
-                text = "Añadir tarjeta",
+                text = stringResource(R.string.add_card),
                 onClick = onAddCard,
                 variant = ButtonVariant.Outline,
             )

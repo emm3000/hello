@@ -29,12 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.CardVariant
@@ -60,15 +62,15 @@ fun FlashcardDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO: Implement edit */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
                     }
                     IconButton(onClick = { /* TODO: Implement delete */ }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
                     }
                 },
             )
@@ -107,9 +109,9 @@ fun FlashcardDetailScreen(
                     HSeparator()
                     Spacer(Modifier.height(12.dp))
 
-                    DetailItem(label = "Traducción", value = flashcard.translation)
+                    DetailItem(label = stringResource(R.string.translation_label), value = flashcard.translation)
                     Spacer(Modifier.height(12.dp))
-                    DetailItem(label = "Significado", value = flashcard.meaning)
+                    DetailItem(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
 
                     if (flashcard.examples.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))
@@ -117,7 +119,7 @@ fun FlashcardDetailScreen(
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            text = "Ejemplos",
+                            text = stringResource(R.string.examples_label),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.SemiBold,
@@ -186,7 +188,7 @@ private fun ExampleItem(index: Int, example: Example) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HButton(
-                text = if (showTranslation) "Ocultar traducción" else "Ver traducción",
+                text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation),
                 onClick = { showTranslation = !showTranslation },
                 variant = ButtonVariant.Ghost,
             )

@@ -37,11 +37,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -65,7 +67,7 @@ fun DashboardScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Mis mazos",
+                        stringResource(R.string.dashboard_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -86,7 +88,7 @@ fun DashboardScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    Icon(Icons.Default.BookmarkAdd, contentDescription = "New deck")
+                    Icon(Icons.Default.BookmarkAdd, contentDescription = stringResource(R.string.new_deck_content_description))
                 }
                 // Main FAB: new card
                 FloatingActionButton(
@@ -94,7 +96,7 @@ fun DashboardScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "New card")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_card_content_description))
                 }
             }
         },
@@ -135,7 +137,7 @@ fun DashboardScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            "Mazos",
+                            stringResource(R.string.decks_section_label),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -144,7 +146,7 @@ fun DashboardScreen(
                         }
                     }
                     HButton(
-                        text = "Nuevo mazo",
+                        text = stringResource(R.string.new_deck),
                         onClick = onCreateDeck,
                         variant = ButtonVariant.Ghost,
                     )
@@ -197,12 +199,16 @@ private fun SessionSummaryBanner(
                 )
                 Column {
                     Text(
-                        text = "$totalCards tarjetas listas",
+                        text = stringResource(R.string.cards_ready_label, totalCards),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = "en $totalDecks ${if (totalDecks == 1) "mazo" else "mazos"}",
+                        text = stringResource(
+                            R.string.deck_count_format,
+                            totalDecks,
+                            if (totalDecks == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other)
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -236,7 +242,7 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
-                    text = "${deck.cardsCount} tarjetas",
+                    text = stringResource(R.string.cards_count, deck.cardsCount),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -288,18 +294,18 @@ private fun EmptyDecks(onCreateDeck: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Sin mazos todavía",
+                stringResource(R.string.empty_decks_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "Crea un mazo para empezar a estudiar",
+                stringResource(R.string.empty_decks_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(8.dp))
             HButton(
-                text = "Crear primer mazo",
+                text = stringResource(R.string.create_first_deck),
                 onClick = onCreateDeck,
                 variant = ButtonVariant.Outline,
             )

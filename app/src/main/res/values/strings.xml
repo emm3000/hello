@@ -1,3 +1,103 @@
 <resources>
     <string name="app_name">Hello</string>
+
+    <!-- General -->
+    <string name="save">Guardar</string>
+    <string name="back">Atrás</string>
+    <string name="cancel">Cancelar</string>
+    <string name="loading">Cargando...</string>
+    <string name="error_label">Error</string>
+    <string name="success_label">Éxito</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+    <string name="close">Cerrar</string>
+    <string name="ok">Aceptar</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Mis mazos</string>
+    <string name="new_deck">Nuevo mazo</string>
+    <string name="decks_section_label">Mazos</string>
+    <string name="cards_ready_label">%1$d tarjetas listas</string>
+    <string name="deck_count_format">en %1$d %2$s</string>
+    <string name="deck_plural_one">mazo</string>
+    <string name="deck_plural_other">mazos</string>
+    <string name="empty_decks_title">Sin mazos todavía</string>
+    <string name="empty_decks_description">Crea un mazo para empezar a estudiar</string>
+    <string name="create_first_deck">Crear primer mazo</string>
+    <string name="new_card_content_description">Nueva tarjeta</string>
+    <string name="new_deck_content_description">Nuevo mazo</string>
+
+    <!-- Decks Screen -->
+    <string name="my_decks">Mis Mazos</string>
+    <string name="create_new_deck">Crear nuevo mazo</string>
+    <string name="cards_count">%1$s tarjetas</string>
+    <string name="completion_percentage">%1$d%% completado</string>
+
+    <!-- New Deck Screen -->
+    <string name="new_deck_title">Nuevo mazo</string>
+    <string name="deck_name_label">Nombre del mazo</string>
+    <string name="deck_name_placeholder">Ej: Vocabulario de Inglés B2</string>
+    <string name="deck_description_label">Descripción</string>
+    <string name="deck_description_placeholder">Un mazo para los verbos irregulares más comunes.</string>
+    <string name="optional">Opcional</string>
+
+    <!-- Deck Detail Screen -->
+    <string name="deck_detail_title_fallback">Mazo</string>
+    <string name="review_status_ready">✓ Listo</string>
+    <string name="review_status_up_to_date">Al día</string>
+    <string name="review_status_label">estado de repaso</string>
+    <string name="start_review">Empezar repaso</string>
+    <string name="no_pending_cards">Sin tarjetas pendientes</string>
+    <string name="empty_cards_title">Sin tarjetas</string>
+    <string name="empty_cards_description">Añade la primera tarjeta a este mazo</string>
+    <string name="add_card">Añadir tarjeta</string>
+    <string name="cards_section_label">Tarjetas</string>
+
+    <!-- Flashcards -->
+    <string name="new_card_title">Nueva tarjeta</string>
+    <string name="new_card_mode_word">Palabra o frase</string>
+    <string name="new_card_mode_category">Por categoría</string>
+    <string name="change_view_desc">Cambiar vista</string>
+    <string name="generate_card">Generar</string>
+    <string name="input_section_title">Entrada</string>
+    <string name="word_label">Palabra o frase en inglés</string>
+    <string name="word_placeholder">Ej: Hello, Good morning…</string>
+    <string name="listening_placeholder">Escuchando…</string>
+    <string name="category_label">Categoría</string>
+    <string name="difficulty_label">Dificultad</string>
+    <string name="destination_section_title">Destino</string>
+    <string name="deck_label">Mazo</string>
+    <string name="select_deck_placeholder">Seleccionar mazo…</string>
+    <string name="default_deck_checkbox">Marcar como mazo por defecto</string>
+    <string name="generate_error_title">Error al generar</string>
+    <string name="verify_result_title">Verifica el resultado</string>
+    <string name="save_in_deck">Guardar en %1$s</string>
+    <string name="voice_input_desc">Entrada de voz</string>
+    <string name="card_created_feedback">Tarjeta creada ✅</string>
+    <string name="phonetics_label">Fonética</string>
+    <string name="meaning_label">Significado</string>
+    <string name="translation_label">Traducción</string>
+    <string name="examples_label">Ejemplos</string>
+    <string name="show_translation">Ver traducción</string>
+    <string name="hide_translation">Ocultar traducción</string>
+    <string name="categories_bottom_sheet_title">Categorías</string>
+
+    <!-- Study Screen -->
+    <string name="study_title">Repaso</string>
+    <string name="exit_session_desc">Salir de la sesión</string>
+    <string name="tap_to_reveal">Toca para revelar</string>
+    <string name="stop_speech_desc">Detener</string>
+    <string name="speak_desc">Pronunciar</string>
+    <string name="grade_again">Otra vez</string>
+    <string name="grade_hard">Difícil</string>
+    <string name="grade_good">Bien</string>
+    <string name="grade_easy">Fácil</string>
+    <string name="session_completed_title">¡Sesión completada! 🎉</string>
+    <string name="session_completed_desc">Has repasado %1$d tarjetas. ¡Sigue así!</string>
+
+    <!-- Quotes -->
+    <string name="already_has_flashcard">Ya tiene flashcard</string>
+    <string name="expand_quote">Expandir</string>
+    <string name="collapse_quote">Contraer</string>
+    <string name="quote_translated_label">Flashcard ya creada</string>
 </resources>

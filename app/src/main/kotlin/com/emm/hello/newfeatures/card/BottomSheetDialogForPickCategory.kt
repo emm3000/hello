@@ -30,11 +30,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import com.emm.domain.flashcard.StaticCategories
+import com.emm.hello.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -94,13 +96,13 @@ fun AccountSelectorContent(
             IconButton(onClick = dismiss) {
                 Icon(
                     imageVector = Icons.Rounded.Close,
-                    contentDescription = "Cerrar",
+                    contentDescription = stringResource(R.string.close),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Text(
                 modifier = Modifier.align(Alignment.Center),
-                text = "Categorías",
+                text = stringResource(R.string.categories_bottom_sheet_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
