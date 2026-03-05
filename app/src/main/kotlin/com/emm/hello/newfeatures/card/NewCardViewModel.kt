@@ -24,9 +24,12 @@ class NewCardViewModel(
     init {
         deckFetcher.fetch()
             .onEach { decks ->
+                val defaultDeckId = dataStore.defaultDeck
+                val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
                 state = state.copy(
                     decks = decks,
-                    deckSelected = decks.firstOrNull(),
+                    deckSelected = selectedDeck,
+                    isCheck = defaultDeckId.isNotEmpty() && selectedDeck?.id == defaultDeckId
                 )
             }
             .launchIn(viewModelScope)
