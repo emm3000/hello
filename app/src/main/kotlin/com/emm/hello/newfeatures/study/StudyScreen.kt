@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +57,8 @@ import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HProgressBar
+import com.emm.hello.core.ui.HSeparator
 
 @Composable
 fun StudyScreen(
@@ -62,6 +71,7 @@ fun StudyScreen(
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
     val isSpeaking by tts.isSpeaking.collectAsStateWithLifecycle()
     val ttsReady by tts.isReady.collectAsStateWithLifecycle()
+    val haptics = LocalHapticFeedback.current
 
     val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
@@ -116,22 +126,22 @@ fun StudyScreen(
                 .padding(innerPadding)
                 .fillMaxSize(),
         ) {
-            // ── Barra de progreso de la sesión ───────────────────────────────
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.outlineVariant,
+            // ── Progress bar (shadcn-style) ─────────────────────────────────
+            HProgressBar(
+                progress = progress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                // ── Indicador de cara ────────────────────────────────────────
+                // ── Hint: "Toca para revelar" ───────────────────────────────
                 Text(
                     text = if (cardFace == CardFace.Front) stringResource(R.string.tap_to_reveal) else "",
                     style = MaterialTheme.typography.bodySmall,
@@ -139,57 +149,52 @@ fun StudyScreen(
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
                 )
 
-                // ── Tarjeta animada ──────────────────────────────────────────
-                FlippableCard(
-                    cardFace = cardFace,
-                    onClick = { cardFace = it.next },
-                    onFinished = { prevFlashCard.value = state.currentFlashcard },
+                // ── Animated card with slide transition between flashcards ──
+                AnimatedContent(
+                    targetState = state.currentFlashcard,
+                    transitionSpec = {
+                        (slideInHorizontally(tween(350)) { it / 3 } + fadeIn(tween(350)))
+                            .togetherWith(
+                                slideOutHorizontally(tween(350)) { -it / 3 } + fadeOut(tween(250))
+                            )
+                    },
+                    label = "card_transition",
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    frontContent = {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(24.dp),
-                            ) {
-                                Text(
-                                    text = state.currentFlashcard?.word.orEmpty(),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textAlign = TextAlign.Center,
-                                )
-                                if (state.currentFlashcard?.phonetic?.isNotBlank() == true) {
-                                    Text(
-                                        text = state.currentFlashcard.phonetic,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    backContent = {
-                        FlashcardBackContent(
-                            card = prevFlashCard.value,
-                            isSpeaking = isSpeaking,
-                            ttsReady = ttsReady,
-                            onStop = { tts.stop() },
-                            onSpeak = {
-                                if (ttsReady) {
-                                    tts.speak(state.currentFlashcard?.word.orEmpty())
-                                }
-                            },
-                        )
-                    },
-                )
+                ) { flashcard ->
+                    FlippableCard(
+                        cardFace = cardFace,
+                        onClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            cardFace = it.next
+                        },
+                        progress = progress,
+                        onFinished = { prevFlashCard.value = state.currentFlashcard },
+                        modifier = Modifier.fillMaxSize(),
+                        frontContent = {
+                            FlashcardFrontContent(
+                                word = flashcard?.word.orEmpty(),
+                                phonetic = flashcard?.phonetic.orEmpty(),
+                            )
+                        },
+                        backContent = {
+                            FlashcardBackContent(
+                                card = prevFlashCard.value,
+                                isSpeaking = isSpeaking,
+                                ttsReady = ttsReady,
+                                onStop = { tts.stop() },
+                                onSpeak = {
+                                    if (ttsReady) {
+                                        tts.speak(state.currentFlashcard?.word.orEmpty())
+                                    }
+                                },
+                            )
+                        },
+                    )
+                }
 
-                // ── Botones de respuesta ─────────────────────────────────────
+                // ── Answer buttons ──────────────────────────────────────────
                 AnimatedContent(
                     targetState = cardFace == CardFace.Back,
                     transitionSpec = {
@@ -201,7 +206,10 @@ fun StudyScreen(
                         .padding(top = 16.dp),
                 ) { showButtons ->
                     if (showButtons) {
-                        AnswerButtons { grade -> onReviewAnswer(state.currentFlashcard, grade) }
+                        AnswerButtons { grade ->
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onReviewAnswer(state.currentFlashcard, grade)
+                        }
                     } else {
                         Spacer(Modifier.height(104.dp))
                     }
@@ -229,7 +237,44 @@ fun StudyScreen(
     }
 }
 
-// ── Contenido del reverso de la tarjeta ──────────────────────────────────────
+// ── Front content ────────────────────────────────────────────────────────────
+
+@Composable
+private fun FlashcardFrontContent(
+    word: String,
+    phonetic: String,
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp),
+        ) {
+            Text(
+                text = word,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (phonetic.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                HSeparator(modifier = Modifier.fillMaxWidth(0.4f))
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = phonetic,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+// ── Back content ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun FlashcardBackContent(
@@ -246,6 +291,7 @@ private fun FlashcardBackContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // ── Translation (primary answer) ────────────────────────────────
         Text(
             text = card?.translation.orEmpty(),
             style = MaterialTheme.typography.headlineSmall,
@@ -253,32 +299,33 @@ private fun FlashcardBackContent(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Spacer(Modifier.height(8.dp))
+
+        Spacer(Modifier.height(12.dp))
+        HSeparator(modifier = Modifier.fillMaxWidth(0.5f))
+        Spacer(Modifier.height(12.dp))
+
+        // ── Meaning (secondary info) ────────────────────────────────────
         Text(
             text = card?.meaning.orEmpty(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+
         Spacer(Modifier.height(20.dp))
-        IconButton(
+
+        // ── TTS button ──────────────────────────────────────────────────
+        HButton(
+            text = if (isSpeaking) stringResource(R.string.stop_speech_desc) else stringResource(R.string.speak_desc),
             onClick = { if (isSpeaking) onStop() else onSpeak() },
             enabled = ttsReady,
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.VolumeUp,
-                contentDescription = if (isSpeaking) stringResource(R.string.stop_speech_desc) else stringResource(R.string.speak_desc),
-                tint = if (isSpeaking) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-        }
+            variant = ButtonVariant.Ghost,
+            leadingIcon = Icons.AutoMirrored.Filled.VolumeUp,
+        )
     }
 }
 
-// ── Botones de calificación ───────────────────────────────────────────────────
+// ── Answer buttons with icons ────────────────────────────────────────────────
 
 @Composable
 private fun AnswerButtons(
@@ -298,12 +345,14 @@ private fun AnswerButtons(
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
                 variant = ButtonVariant.Destructive,
                 modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Outlined.Refresh,
             )
             HButton(
                 text = stringResource(R.string.grade_hard),
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
                 variant = ButtonVariant.Secondary,
                 modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Outlined.Warning,
             )
         }
         Row(
@@ -315,20 +364,20 @@ private fun AnswerButtons(
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
                 variant = ButtonVariant.Default,
                 modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Rounded.CheckCircle,
             )
             HButton(
                 text = stringResource(R.string.grade_easy),
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
                 variant = ButtonVariant.Outline,
                 modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Rounded.Bolt,
             )
         }
     }
 }
 
-// -----------------------------------------------------------------------------
-
-// ── Previews ──────────────────────────────────────────────────────────────────
+// ── Previews ─────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

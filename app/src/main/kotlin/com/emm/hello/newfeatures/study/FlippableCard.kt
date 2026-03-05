@@ -1,7 +1,9 @@
 package com.emm.hello.newfeatures.study
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,59 +28,57 @@ fun FlippableCard(
     modifier: Modifier = Modifier,
     cardFace: CardFace,
     onClick: (CardFace) -> Unit,
+    progress: Float = 0f,
     onFinished: (Float) -> Unit = {},
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit
 ) {
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
-        animationSpec = tween(
-            durationMillis = 600, // Animation duration
-        ),
+        animationSpec = tween(durationMillis = 600),
         label = "cardRotation",
         finishedListener = onFinished,
     )
 
-    val randomGradient = rememberThemedMinimalGradientBrush()
+    val gradientBrush = rememberDynamicStudyGradient(
+        progress = progress,
+        cardFace = cardFace,
+    )
+
+    val borderColor = MaterialTheme.colorScheme.outlineVariant
 
     Card(
         modifier = modifier
             .clickable(
-                onClick = {
-                    onClick(cardFace)
-                },
+                onClick = { onClick(cardFace) },
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             )
             .graphicsLayer {
-                // Applies the Y-axis rotation.
                 rotationY = rotation
-                // Increases camera distance for a more realistic 3D effect.
-                // Default value is 8.dp; a higher value gives more perspective.
                 cameraDistance = 12f * density
             },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent, // Make card container transparent
-        )
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp,
+        ),
+        border = BorderStroke(1.dp, borderColor),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(randomGradient) // Apply gradient to the Box
+                .background(gradientBrush)
         ) {
-            // Show front or back content based on the rotation angle.
             if (rotation <= 90f) {
                 frontContent()
             } else {
-                // Back content needs to be rotated 180 degrees to correct
-                // the mirror effect caused by the main card's rotation.
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer {
-                            rotationY = 180f
-                        }
+                        .graphicsLayer { rotationY = 180f }
                 ) {
                     backContent()
                 }
@@ -87,32 +87,89 @@ fun FlippableCard(
     }
 }
 
+// ── Dynamic gradient that evolves with session progress ──────────────────────
+
 @Composable
-fun rememberThemedMinimalGradientBrush(): Brush {
+fun rememberDynamicStudyGradient(
+    progress: Float,
+    cardFace: CardFace,
+): Brush {
     val colorScheme = MaterialTheme.colorScheme
     val isDark = isSystemInDarkTheme()
 
-    val gradients = remember(colorScheme, isDark) {
-        if (isDark) {
-            listOf(
-                listOf(colorScheme.surface, colorScheme.surfaceVariant),
-                listOf(colorScheme.surfaceVariant, colorScheme.outline),
-                listOf(colorScheme.background, colorScheme.surface),
-                listOf(Color(0xFF1E1E1E), colorScheme.outline.copy(alpha = 0.5f))
-            )
+    // Opaque color palettes per theme — no alpha transparency
+    val startColor1: Color
+    val startColor2: Color
+    val endColor1: Color
+    val endColor2: Color
+
+    if (isDark) {
+        // Dark: surface → surfaceContainerHigh (subtle contrast)
+        startColor1 = colorScheme.surface
+        startColor2 = colorScheme.surfaceContainerHigh
+        endColor1 = colorScheme.surfaceContainerHigh
+        endColor2 = colorScheme.surfaceContainer
+    } else {
+        // Light: use the container tones from shadcn for visible difference
+        // surfaceContainerLowest (#FFFFFF) → surfaceContainer (#F5F5F5)
+        // and towards surfaceContainerHigh (#E5E5E5) at full progress
+        startColor1 = colorScheme.surfaceContainerLowest
+        startColor2 = colorScheme.surfaceContainer
+        endColor1 = colorScheme.surfaceContainer
+        endColor2 = colorScheme.surfaceContainerHigh
+    }
+
+    // Animate the gradient colors based on progress (smooth transition per card)
+    val animatedColor1 by animateColorAsState(
+        targetValue = lerp(startColor1, endColor1, progress),
+        animationSpec = tween(durationMillis = 500),
+        label = "gradientColor1",
+    )
+    val animatedColor2 by animateColorAsState(
+        targetValue = lerp(startColor2, endColor2, progress),
+        animationSpec = tween(durationMillis = 500),
+        label = "gradientColor2",
+    )
+
+    // Subtle tint shift when card is flipped to the back
+    val backTint = if (isDark) {
+        colorScheme.surfaceContainerHighest
+    } else {
+        colorScheme.surfaceContainerHigh
+    }
+
+    val finalColor1 by animateColorAsState(
+        targetValue = if (cardFace == CardFace.Back) {
+            lerp(animatedColor1, backTint, 0.15f)
         } else {
-            listOf(
-                listOf(colorScheme.background, colorScheme.surfaceVariant),
-                listOf(Color.White, colorScheme.primaryContainer.copy(alpha = 0.3f)),
-                listOf(colorScheme.surface, colorScheme.secondaryContainer.copy(alpha = 0.2f)),
-                listOf(colorScheme.surfaceVariant, colorScheme.outline.copy(alpha = 0.1f))
-            )
-        }
-    }
+            animatedColor1
+        },
+        animationSpec = tween(durationMillis = 400),
+        label = "finalColor1",
+    )
+    val finalColor2 by animateColorAsState(
+        targetValue = if (cardFace == CardFace.Back) {
+            lerp(animatedColor2, backTint, 0.15f)
+        } else {
+            animatedColor2
+        },
+        animationSpec = tween(durationMillis = 400),
+        label = "finalColor2",
+    )
 
-    val selected = remember(gradients) { gradients.random() }
-
-    return remember(selected) {
-        Brush.linearGradient(colors = selected)
+    return remember(finalColor1, finalColor2) {
+        Brush.verticalGradient(colors = listOf(finalColor1, finalColor2))
     }
+}
+
+// ── Color utilities ─────────────────────────────────────────────────────────
+
+private fun lerp(start: Color, end: Color, fraction: Float): Color {
+    val clampedFraction = fraction.coerceIn(0f, 1f)
+    return Color(
+        red = start.red + (end.red - start.red) * clampedFraction,
+        green = start.green + (end.green - start.green) * clampedFraction,
+        blue = start.blue + (end.blue - start.blue) * clampedFraction,
+        alpha = 1f, // always opaque
+    )
 }
