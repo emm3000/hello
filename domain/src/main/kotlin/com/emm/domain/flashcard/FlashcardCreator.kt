@@ -26,6 +26,9 @@ class FlashcardCreator(
             meaning = flashcard.meaning,
             translation = flashcard.translation,
             phonetic = flashcard.phonetics,
+            partOfSpeech = flashcard.partOfSpeech,
+            type = flashcard.type,
+            note = flashcard.notes,
         )
 
         val flashcardId: String = repository.create(input)

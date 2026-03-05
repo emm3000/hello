@@ -35,6 +35,9 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 meaning = data.meaning,
                 translation = data.translation,
                 phonetic = data.phonetic,
+                partOfSpeech = data.partOfSpeech,
+                type = data.type,
+                note = data.note,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
                 syncStatus = SyncStatus.Synced.name

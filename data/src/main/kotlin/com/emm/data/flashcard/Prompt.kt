@@ -5,59 +5,14 @@ import java.time.temporal.ChronoUnit
 
 object Prompt {
 
+    /**
+     * Unified rich prompt for generating an English flashcard from a word or phrase.
+     * Returns a JSON with: word, meaning, translation, phonetic, partOfSpeech, type,
+     * notes, tags, examples (with level), and optional conjugation for verbs.
+     */
     fun buildPrompt(wordOrPhrase: String): String {
-        val fullPrompt = """
-            Act as a smart English language assistant that helps users learn vocabulary and phrases.
-
-            You will receive an input word or phrase in English from the user.
-            
-            Your task is to return a well-formatted JSON with the following structure:
-            
-            ✅ If the input is a valid English word or phrase, respond with:
-            {
-              "success": true,
-              "data": {
-                "word": "<original input in lowercase>",
-                "meaning": "<a clear and simple English explanation of the word or phrase>",
-                "translation": "<the translation to Spanish>",
-                "phonetic": "<IPA pronunciation of the word or phrase>",
-                "language": "en",
-                "audio_url": null,
-                "image_prompt": "<a short English description of an image that could represent the word or phrase>",
-                "examples": [
-                  {
-                    "text": "<short natural sentence using the word or phrase in context>",
-                    "translation": "<Spanish translation of the sentence>",
-                    "type": "<easy | medium | daily_use | advanced>"
-                  },
-                  ...
-                  // Include at least 3 examples with different types
-                ]
-              }
-            }
-            
-            ❌ If the input is invalid, not in English, or nonsensical (e.g., random characters or gibberish), respond with:
-            {
-              "success": false,
-              "error": {
-                "message": "The input appears to be invalid or nonsensical.",
-                "input": "<original input>"
-              }
-            }
-            
-            ⚠️ Very Important:
-            - Only return a valid JSON object.
-            
-            User input: "$wordOrPhrase"
-            
-            Respond with the appropriate JSON only.
-        """.trimIndent()
-        return fullPrompt
-    }
-
-    fun buildPrompt2(wordOrPhrase: String): String {
         return """
-        You are a bilingual language learning assistant designed for native Spanish speakers who want to learn English using spaced repetition flashcards.
+        You are a bilingual language learning assistant designed for native Spanish speakers who want to learn English using spaced repetition flashcards (Anki-style).
 
         The user input may be either:
         - A word or phrase in **Spanish** they want to learn in English.
@@ -65,53 +20,134 @@ object Prompt {
 
         Your job is to:
         1. Detect the input language automatically.
-        2. Translate or interpret it into English appropriately (not word-for-word—use natural, useful English).
-        3. Build a detailed Anki flashcard in JSON format with rich data for vocabulary acquisition.
+        2. Translate or interpret it into English appropriately (use natural, useful English — not word-for-word).
+        3. Build a detailed flashcard in JSON format with rich data for vocabulary acquisition.
 
-        ⚠️ Ensure the output uses the following schema:
+        ⚠️ Return ONLY a valid JSON object using this exact schema:
 
+        ✅ If the input is a valid word or phrase for learning:
         {
           "success": true,
-          "detected_language": "<es | en>",
-          "type": "<word | phrase | idiom | sentence | phrasal_verb>",
           "data": {
-            "word": "<target word or phrase in English>",
-            "meaning": "<clear English explanation of the word or phrase>",
-            "translation": "<Spanish translation>",
-            "phonetic": "<IPA pronunciation of the English term>",
+            "word": "<target word or phrase in English, lowercase>",
+            "meaning": "<clear and simple English explanation — 1 or 2 sentences max>",
+            "translation": "<natural Spanish translation>",
+            "phonetic": "<IPA pronunciation of the English word/phrase>",
             "language": "en",
-            "audio_url": null,
-            "image_prompt": "<a prompt to generate an image that represents the meaning>",
-            "tags": ["<basic>", "<daily_use>", "<verb>", "<intermediate>", "<idiom>", ...],
+            "part_of_speech": "<noun | verb | adjective | adverb | phrasal_verb | idiom | preposition | conjunction | interjection>",
+            "type": "<word | phrase | idiom | phrasal_verb | sentence>",
+            "notes": "<grammar tips, common collocations, usage notes, common mistakes, or synonyms/antonyms. Keep concise but useful.>",
+            "tags": ["<level: basic | intermediate | advanced>", "<category: daily_use | academic | business | travel | social | emotions>", "<any other relevant tag>"],
             "examples": [
               {
-                "text": "<English sentence using the word/phrase>",
-                "translation": "<Spanish translation>",
-                "level": "<easy | medium | advanced>"
+                "text": "<natural English sentence using the word in real-life context>",
+                "translation": "<Spanish translation of the sentence>",
+                "type": "<easy | medium | advanced>"
               }
             ],
-            "notes": "<grammar tips, collocations, common errors, or synonyms>",
             "conjugation": {
-              "present": "<present>",
-              "past": "<past>",
+              "present": "<present tense>",
+              "past": "<simple past>",
               "participle": "<past participle>",
-              "gerund": "<-ing>"
-            } // Only include if it's a verb
+              "gerund": "<-ing form>"
+            }
           }
         }
 
-        If the input is invalid, nonsensical, or not useful for learning English, return:
+        Rules for examples:
+        - Include exactly 3 examples with different difficulty levels.
+        - Examples must use the word/phrase in realistic, everyday contexts — NOT generic textbook sentences.
+        - Each example should showcase a different usage or context.
+
+        Rules for conjugation:
+        - Only include "conjugation" if the word is a VERB or PHRASAL VERB.
+        - If it's not a verb, omit the "conjugation" field entirely.
+
+        Rules for notes:
+        - Include at least one useful tip (grammar pattern, common error, collocation, or synonym).
+        - Keep it under 2 sentences.
+
+        ❌ If the input is invalid, not useful for learning, or nonsensical:
         {
           "success": false,
           "error": {
-            "message": "Invalid or unclear input for language learning.",
+            "message": "The input appears to be invalid or not useful for learning.",
             "input": "<original input>"
           }
         }
 
-        Return only a valid JSON object. No markdown, no extra text.
+        ⚠️ Very Important:
+        - Return ONLY the raw JSON object.
+        - Do NOT include markdown, backticks, explanations, or comments outside the JSON.
 
         Input: "$wordOrPhrase"
+        """.trimIndent()
+    }
+
+    /**
+     * Rich prompt for generating a flashcard from a category and complexity level.
+     * Returns the same rich JSON structure as buildPrompt(word).
+     */
+    fun buildPrompt(category: String, complexity: String): String {
+        val now = LocalDateTime.now()
+        val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
+        val randomLetters = (('A'..'Z')).shuffled().take(4).joinToString("")
+        val seed = "$seedBase-$randomLetters-${(100..999).random()}"
+
+        return """
+        Seed for generation: $seed
+
+        You are a bilingual language learning assistant designed for native Spanish speakers learning English with Anki flashcards.
+
+        Generate a flashcard for the category: "$category"
+        and the complexity level: "$complexity" (one of: basic, intermediate, advanced).
+
+        Your task:
+        - Choose a useful and natural English word or phrase that fits the category and level.
+        - It must contain at least one word starting with each of these letters: ${
+            randomLetters.toCharArray().joinToString(", ")
+        }
+        - Build a detailed flashcard with rich data.
+
+        ⚠️ Return ONLY a valid JSON object using this exact schema:
+
+        {
+          "success": true,
+          "data": {
+            "word": "<the chosen English word or phrase, lowercase>",
+            "meaning": "<clear English explanation — 1 or 2 sentences max>",
+            "translation": "<natural Spanish translation>",
+            "phonetic": "<IPA pronunciation>",
+            "language": "en",
+            "part_of_speech": "<noun | verb | adjective | adverb | phrasal_verb | idiom | preposition | conjunction | interjection>",
+            "type": "<word | phrase | idiom | phrasal_verb | sentence>",
+            "notes": "<grammar tips, common collocations, usage notes, common mistakes, or synonyms/antonyms. Keep concise.>",
+            "tags": ["$complexity", "$category", "<any other relevant tag>"],
+            "examples": [
+              {
+                "text": "<natural English sentence using the word in real-life context>",
+                "translation": "<Spanish translation of the sentence>",
+                "type": "<easy | medium | advanced>"
+              }
+            ],
+            "conjugation": {
+              "present": "<present tense>",
+              "past": "<simple past>",
+              "participle": "<past participle>",
+              "gerund": "<-ing form>"
+            }
+          }
+        }
+
+        Rules:
+        - Include exactly 3 examples with different difficulty levels.
+        - Examples must use the word in realistic, everyday contexts.
+        - Only include "conjugation" if the word is a VERB or PHRASAL VERB; otherwise omit it.
+        - Include at least one useful note (grammar tip, common error, collocation, or synonym).
+        - Do NOT include markdown, backticks, or explanations outside the JSON.
+        - Return only raw JSON.
+
+        Generate one flashcard only.
         """.trimIndent()
     }
 
@@ -251,43 +287,6 @@ object Prompt {
             ⚠️ Very Important:
             - Output must be ONLY the **raw JSON object**.
             - Do **NOT** include Markdown, backticks, explanations, or comments.
-        """.trimIndent()
-    }
-
-    fun buildPrompt(category: String, complexity: String): String {
-        val now = LocalDateTime.now()
-        val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
-        val randomLetters = (('A'..'Z')).shuffled().take(4).joinToString("")
-        val seed = "$seedBase-$randomLetters-${(100..999).random()}"
-        return """
-            Seed for generation: $seed
-            Act as an English teacher that creates simple and effective flashcards for Spanish-speaking learners using the Anki format.
-    
-            The flashcard should be based on the category: "$category"
-            and the complexity level: "$complexity" (one of: basic, intermediate, advanced).
-    
-            Your task:
-            - Choose a useful and natural English sentence or phrase that fits the category and level.
-            - Translate it to Spanish clearly.
-            - Return a minimal JSON object with ONLY the essential info for an Anki card.
-            - It must contain **at least one word that starts with each of these letters**: ${
-            randomLetters.toCharArray().joinToString(", ")
-        }
-    
-            Format:
-            {
-              "success": true,
-              "category": "<category>",
-              "complexity": "<complexity>",
-              "front": "<english phrase or sentence>",
-              "back": "<spanish translation>"
-            }
-    
-            ❌ Do NOT include examples, IPA, audio, tags, explanations or any extra fields.
-            ❌ Do NOT include markdown, prefaces, or notes.
-            ✅ Return only raw JSON in the format above.
-    
-            Generate one flashcard only.
         """.trimIndent()
     }
 }

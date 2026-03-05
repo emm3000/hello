@@ -7,4 +7,7 @@ data class CreateFlashcardInput(
     val meaning: String,
     val translation: String,
     val phonetic: String,
+    val partOfSpeech: String = "",
+    val type: String = "",
+    val note: String = "",
 )

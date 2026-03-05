@@ -7,4 +7,8 @@ data class FlashcardGenerated(
     val meaning: String,
     val language: String,
     val examples: List<Example>,
+    val partOfSpeech: String = "",
+    val type: String = "",
+    val notes: String = "",
+    val tags: List<String> = emptyList(),
 )

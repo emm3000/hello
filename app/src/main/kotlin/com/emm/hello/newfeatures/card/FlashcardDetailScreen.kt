@@ -38,8 +38,10 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HSeparator
@@ -93,12 +95,24 @@ fun FlashcardDetailScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text(
-                        text = flashcard.word,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = flashcard.word,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        if (flashcard.partOfSpeech.isNotBlank()) {
+                            HBadge(
+                                label = flashcard.partOfSpeech,
+                                variant = BadgeVariant.Secondary,
+                            )
+                        }
+                    }
                     Text(
                         text = flashcard.phonetic,
                         style = MaterialTheme.typography.bodyLarge,
@@ -112,6 +126,13 @@ fun FlashcardDetailScreen(
                     DetailItem(label = stringResource(R.string.translation_label), value = flashcard.translation)
                     Spacer(Modifier.height(12.dp))
                     DetailItem(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
+
+                    if (flashcard.note.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        HSeparator()
+                        Spacer(Modifier.height(12.dp))
+                        DetailItem(label = stringResource(R.string.notes_label), value = flashcard.note)
+                    }
 
                     if (flashcard.examples.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))

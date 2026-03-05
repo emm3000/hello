@@ -12,6 +12,9 @@ fun FlashcardEntity.toDomain() = Flashcard(
     examples = emptyList(),
     phonetic = phonetic.orEmpty(),
     review = FlashcardReview.Empty,
+    partOfSpeech = partOfSpeech.orEmpty(),
+    type = type.orEmpty(),
+    note = note.orEmpty(),
 )
 
 @JvmName("toDomainFlashcardEntity")

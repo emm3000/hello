@@ -46,6 +46,9 @@ class DefaultFlashcardRepository(
             meaning = input.meaning,
             translation = input.translation,
             phonetic = input.phonetic,
+            partOfSpeech = input.partOfSpeech,
+            type = input.type,
+            note = input.note,
             createdAt = now,
             updatedAt = now,
             syncStatus = SyncStatus.Pending.name,
@@ -131,6 +134,9 @@ class DefaultFlashcardRepository(
             phonetic = first.phonetic.orEmpty(),
             examples = examples,
             review = FlashcardReview.Empty,
+            partOfSpeech = first.partOfSpeech.orEmpty(),
+            type = first.type.orEmpty(),
+            note = first.note.orEmpty(),
         )
     }
 
@@ -150,6 +156,9 @@ class DefaultFlashcardRepository(
                 phonetic = it.phonetic.orEmpty(),
                 examples = emptyList(),
                 review = review,
+                partOfSpeech = it.partOfSpeech.orEmpty(),
+                type = it.type.orEmpty(),
+                note = it.note.orEmpty(),
             )
         }
     }
@@ -169,6 +178,9 @@ class DefaultFlashcardRepository(
                         review = FlashcardReview.Empty.copy(
                             nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond
                         ),
+                        partOfSpeech = it.partOfSpeech.orEmpty(),
+                        type = it.type.orEmpty(),
+                        note = it.note.orEmpty(),
                     )
                 }
             }

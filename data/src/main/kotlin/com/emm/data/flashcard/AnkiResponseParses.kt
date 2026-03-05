@@ -1,26 +1,47 @@
 package com.emm.data.flashcard
 
-import com.emm.data.flashcard.iadto.AnkiDto
+import com.emm.data.flashcard.iadto.GeminiResponse
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardGenerated
 import kotlinx.serialization.json.Json
 
+/**
+ * Parser for category-mode generated flashcards.
+ * Now uses the same rich GeminiResponse schema as the word-mode parser.
+ */
 object AnkiResponseParses {
 
     fun parse(raw: String, json: Json): FlashcardGenerated {
-        val cleaned: String = raw
-
         return try {
-            val data: AnkiDto = json.decodeFromString<AnkiDto>(cleaned)
-            FlashcardGenerated(
-                word = data.front,
-                translation = data.back,
-                phonetics = "",
-                meaning = "",
-                language = "",
-                examples = listOf()
-            )
+            val response: GeminiResponse = json.decodeFromString<GeminiResponse>(raw)
+
+            if (response.success && response.data != null) {
+                val data = response.data
+                FlashcardGenerated(
+                    word = data.word,
+                    translation = data.translation,
+                    phonetics = data.phonetic,
+                    meaning = data.meaning,
+                    language = data.language,
+                    partOfSpeech = data.partOfSpeech,
+                    type = data.type,
+                    notes = data.notes,
+                    tags = data.tags,
+                    examples = data.examples.map { dto ->
+                        Example(
+                            text = dto.text,
+                            translation = dto.translation,
+                            type = dto.type,
+                            exampleId = ""
+                        )
+                    }
+                )
+            } else {
+                val errorMsg = response.error?.message ?: "Unknown AI error"
+                throw IllegalArgumentException(errorMsg)
+            }
         } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException(e)
+            throw e
         } catch (_: Exception) {
             throw IllegalArgumentException("Invalid response")
         }

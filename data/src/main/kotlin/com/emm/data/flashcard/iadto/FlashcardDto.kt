@@ -6,21 +6,34 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FlashcardDto(
 
-    @SerialName("audio_url")
-    val audioUrl: String?,
-
-    @SerialName("image_prompt")
-    val imagePrompt: String,
-
-    val language: String,
+    val word: String,
 
     val meaning: String,
 
-    val phonetic: String,
-
     val translation: String,
 
-    val word: String,
+    val phonetic: String,
 
-    val examples: List<ExampleDto>,
+    val language: String,
+
+    @SerialName("part_of_speech")
+    val partOfSpeech: String = "",
+
+    val type: String = "",
+
+    val notes: String = "",
+
+    val tags: List<String> = emptyList(),
+
+    val examples: List<ExampleDto> = emptyList(),
+
+    val conjugation: ConjugationDto? = null,
+)
+
+@Serializable
+data class ConjugationDto(
+    val present: String = "",
+    val past: String = "",
+    val participle: String = "",
+    val gerund: String = "",
 )

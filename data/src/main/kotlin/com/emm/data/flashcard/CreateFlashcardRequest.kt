@@ -10,7 +10,9 @@ data class CreateFlashcardRequest(
     val meaning: String,
     val translation: String,
     val phonetic: String,
-    val note: String,
+    val note: String = "",
+    val partOfSpeech: String = "",
+    val type: String = "",
     val createdAt: Long,
     val updatedAt: Long,
 )

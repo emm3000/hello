@@ -7,8 +7,10 @@ CREATE TABLE Flashcard (
     translation TEXT,                   -- Traducción en español ("convincente")
 
     phonetic TEXT,                      -- Pronunciación /kəmˈpelɪŋ/
+    partOfSpeech TEXT,                  -- noun, verb, adjective, phrasal_verb, etc.
+    type TEXT,                          -- word, phrase, idiom, phrasal_verb, sentence
 
-    note TEXT,                          -- Nota personal del usuario
+    note TEXT,                          -- Nota personal / tips de gramática
     createdAt INTEGER NOT NULL,        -- Fecha de creación
     updatedAt INTEGER NOT NULL,
     syncStatus TEXT NOT NULL,
@@ -17,8 +19,8 @@ CREATE TABLE Flashcard (
 );
 
 create:
-INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, createdAt, updatedAt, syncStatus)
-VALUES (?, ?, ?, ?, ?, ?, ?,?, ?);
+INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, partOfSpeech, type, note, createdAt, updatedAt, syncStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 all:
 SELECT * FROM Flashcard;

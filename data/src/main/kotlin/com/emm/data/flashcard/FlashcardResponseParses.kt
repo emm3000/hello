@@ -20,6 +20,10 @@ object FlashcardResponseParses {
                     phonetics = data.phonetic,
                     meaning = data.meaning,
                     language = data.language,
+                    partOfSpeech = data.partOfSpeech,
+                    type = data.type,
+                    notes = data.notes,
+                    tags = data.tags,
                     examples = data.examples.map { dto ->
                         Example(
                             text = dto.text,

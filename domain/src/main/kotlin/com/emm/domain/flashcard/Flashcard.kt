@@ -8,6 +8,9 @@ data class Flashcard(
     val examples: List<Example>,
     val phonetic: String,
     val review: FlashcardReview,
+    val partOfSpeech: String = "",
+    val type: String = "",
+    val note: String = "",
 ) {
 
     companion object {

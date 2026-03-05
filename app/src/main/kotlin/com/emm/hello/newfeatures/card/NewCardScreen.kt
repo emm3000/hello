@@ -67,9 +67,11 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.AlertVariant
+import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.CardVariant
 import com.emm.hello.core.ui.HAlert
+import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HInput
@@ -420,12 +422,24 @@ private fun CardPreview(flashcard: FlashcardGenerated) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = flashcard.word,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = flashcard.word,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (flashcard.partOfSpeech.isNotBlank()) {
+                    HBadge(
+                        label = flashcard.partOfSpeech,
+                        variant = BadgeVariant.Secondary,
+                    )
+                }
+            }
             Text(
                 text = flashcard.phonetics,
                 style = MaterialTheme.typography.bodyMedium,
@@ -436,6 +450,22 @@ private fun CardPreview(flashcard: FlashcardGenerated) {
 
             InfoRow(label = stringResource(R.string.translation_label), value = flashcard.translation)
             InfoRow(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
+
+            if (flashcard.notes.isNotBlank()) {
+                HSeparator()
+                InfoRow(label = stringResource(R.string.notes_label), value = flashcard.notes)
+            }
+
+            if (flashcard.tags.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    flashcard.tags.forEach { tag ->
+                        HBadge(label = tag, variant = BadgeVariant.Outline)
+                    }
+                }
+            }
 
             if (flashcard.examples.isNotEmpty()) {
                 HSeparator()
