@@ -6,7 +6,8 @@ import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
 import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
-import com.emm.data.SyncStatus
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.LOCAL_DEVICE_ID
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -35,7 +36,10 @@ class DefaultDeckRepository(
             description = deck.description,
             createdAt = now,
             updatedAt = now,
-            syncStatus = SyncStatus.Pending.name,
+            deletedAt = null,
+            originDeviceId = LOCAL_DEVICE_ID,
+            lastModifiedByDeviceId = LOCAL_DEVICE_ID,
+            versionLamport = INITIAL_LAMPORT_VERSION,
         )
         synchronizer.synchronize()
     }

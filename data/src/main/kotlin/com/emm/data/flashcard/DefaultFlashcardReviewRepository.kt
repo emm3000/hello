@@ -3,7 +3,6 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
-import com.emm.data.SyncStatus
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +39,6 @@ class DefaultFlashcardReviewRepository(
             lapses = flashcardReview.lapses,
             createdAt = Instant.now().toEpochMilli(),
             updatedAt = Instant.now().toEpochMilli(),
-            syncStatus = SyncStatus.Pending.name,
         )
         Unit
     }

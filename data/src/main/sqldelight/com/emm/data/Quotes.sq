@@ -12,14 +12,35 @@ CREATE TABLE Quote (
     category TEXT NOT NULL,
     createdAt INTEGER NOT NULL,
     updatedAt INTEGER NOT NULL,
-    syncStatus TEXT NOT NULL
+    deletedAt INTEGER,
+    originDeviceId TEXT NOT NULL,
+    lastModifiedByDeviceId TEXT NOT NULL,
+    versionLamport INTEGER NOT NULL
 );
 
-CREATE INDEX idx_Quote_syncStatus ON Quote(syncStatus);
 CREATE INDEX idx_Quote_createdAt ON Quote(createdAt DESC);
+CREATE INDEX idx_Quote_deletedAt ON Quote(deletedAt);
 
 insert:
-INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Quote (
+    id,
+    title,
+    phrase,
+    description,
+    translation,
+    example,
+    context,
+    pronunciation,
+    formality,
+    tags,
+    category,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    originDeviceId,
+    lastModifiedByDeviceId,
+    versionLamport
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 all:
 SELECT * FROM Quote ORDER BY createdAt DESC;
@@ -31,12 +52,6 @@ SELECT
 FROM Quote
 LEFT JOIN Flashcard ON Flashcard.id = Quote.id
 ORDER BY Quote.createdAt DESC;
-
-pending:
-SELECT * FROM Quote WHERE syncStatus = 'Pending';
-
-markAsSynced:
-UPDATE Quote SET syncStatus = 'Synced' WHERE id IN ?;
 
 lastInsertedQuote:
 SELECT *

@@ -4,26 +4,33 @@ CREATE TABLE Deck (
     description TEXT,             -- Explicación opcional
     createdAt INTEGER NOT NULL,   -- Timestamp (Unix epoch millis)
     updatedAt INTEGER NOT NULL,   -- Timestamp (Unix epoch millis)
-    syncStatus TEXT NOT NULL
+    deletedAt INTEGER,
+    originDeviceId TEXT NOT NULL,
+    lastModifiedByDeviceId TEXT NOT NULL,
+    versionLamport INTEGER NOT NULL
 );
 
-CREATE INDEX idx_Deck_syncStatus ON Deck(syncStatus);
 CREATE INDEX idx_Deck_createdAt ON Deck(createdAt DESC);
+CREATE INDEX idx_Deck_deletedAt ON Deck(deletedAt);
 
 all:
 SELECT * FROM Deck;
-
-pending:
-SELECT * FROM Deck WHERE syncStatus = 'Pending';
-
-markAsSynced:
-UPDATE Deck SET syncStatus = 'Synced' WHERE id IN ?;
 
 findById:
 SELECT * FROM Deck WHERE id = ?;
 
 insert:
-INSERT OR REPLACE INTO Deck VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Deck (
+    id,
+    name,
+    description,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    originDeviceId,
+    lastModifiedByDeviceId,
+    versionLamport
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deckWithFlashcardCount:
 SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount

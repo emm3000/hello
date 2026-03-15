@@ -7,7 +7,8 @@ import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
 import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.HelloDb
-import com.emm.data.SyncStatus
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.LOCAL_DEVICE_ID
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -51,7 +52,10 @@ class DefaultFlashcardRepository(
             note = input.note,
             createdAt = now,
             updatedAt = now,
-            syncStatus = SyncStatus.Pending.name,
+            deletedAt = null,
+            originDeviceId = LOCAL_DEVICE_ID,
+            lastModifiedByDeviceId = LOCAL_DEVICE_ID,
+            versionLamport = INITIAL_LAMPORT_VERSION,
         )
         return@withContext cardId
     }
@@ -74,7 +78,10 @@ class DefaultFlashcardRepository(
                 type = it.type,
                 createdAt = Instant.now().toEpochMilli(),
                 updatedAt = Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Pending.name,
+                deletedAt = null,
+                originDeviceId = LOCAL_DEVICE_ID,
+                lastModifiedByDeviceId = LOCAL_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
     }

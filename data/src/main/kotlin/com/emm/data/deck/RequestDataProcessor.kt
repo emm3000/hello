@@ -1,10 +1,11 @@
 package com.emm.data.deck
 
 import com.emm.data.HelloDb
-import com.emm.data.SyncStatus
 import com.emm.data.flashcard.CreateExampleRequest
 import com.emm.data.flashcard.CreateFlashcardRequest
 import com.emm.data.flashcard.CreateFlashcardReviewRequest
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.REMOTE_DEVICE_ID
 import com.emm.data.quote.CreateQuoteRequest
 
 class RequestDataProcessor(helloDb: HelloDb) {
@@ -23,7 +24,10 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 description = data.description,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
-                syncStatus = SyncStatus.Synced.name
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -40,7 +44,10 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 note = data.note,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
-                syncStatus = SyncStatus.Synced.name
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -53,7 +60,10 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 type = data.type,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -68,7 +78,6 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 lapses = data.lapses,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
-                syncStatus = SyncStatus.Synced.name,
             )
         }
 
@@ -87,7 +96,10 @@ class RequestDataProcessor(helloDb: HelloDb) {
                 category = data.category,
                 createdAt = data.createdAt,
                 updatedAt = data.updatedAt,
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
     }

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SyncRequest(
-    val androidId: String,
+    val deviceId: String,
     val decks: List<DeckUpsertRequest>,
     val flashcards: List<CardUpsertRequest>,
     val flashcardExamples: List<ExampleUpsertRequest>,

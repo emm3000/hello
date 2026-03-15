@@ -13,26 +13,38 @@ CREATE TABLE Flashcard (
     note TEXT,                          -- Nota personal / tips de gramática
     createdAt INTEGER NOT NULL,        -- Fecha de creación
     updatedAt INTEGER NOT NULL,
-    syncStatus TEXT NOT NULL,
+    deletedAt INTEGER,
+    originDeviceId TEXT NOT NULL,
+    lastModifiedByDeviceId TEXT NOT NULL,
+    versionLamport INTEGER NOT NULL,
 
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_Flashcard_deckId ON Flashcard(deckId);
-CREATE INDEX idx_Flashcard_syncStatus ON Flashcard(syncStatus);
+CREATE INDEX idx_Flashcard_deletedAt ON Flashcard(deletedAt);
 
 create:
-INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, partOfSpeech, type, note, createdAt, updatedAt, syncStatus)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Flashcard (
+    id,
+    deckId,
+    word,
+    meaning,
+    translation,
+    phonetic,
+    partOfSpeech,
+    type,
+    note,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    originDeviceId,
+    lastModifiedByDeviceId,
+    versionLamport
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 all:
 SELECT * FROM Flashcard;
-
-pending:
-SELECT * FROM Flashcard WHERE syncStatus = 'Pending';
-
-markAsSynced:
-UPDATE Flashcard SET syncStatus = 'Synced' WHERE id IN ?;
 
 selectByDeck:
 SELECT * FROM Flashcard WHERE deckId = ?;

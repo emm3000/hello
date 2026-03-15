@@ -4,9 +4,10 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
 import com.emm.data.QuotesQueries
-import com.emm.data.SyncStatus
 import com.emm.data.flashcard.GeminiService
 import com.emm.data.flashcard.Prompt
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.LOCAL_DEVICE_ID
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteRepository
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,10 @@ class DefaultQuoteRepository(
             category = quote.category,
             createdAt = Instant.now().toEpochMilli(),
             updatedAt = Instant.now().toEpochMilli(),
-            syncStatus = SyncStatus.Pending.name,
+            deletedAt = null,
+            originDeviceId = LOCAL_DEVICE_ID,
+            lastModifiedByDeviceId = LOCAL_DEVICE_ID,
+            versionLamport = INITIAL_LAMPORT_VERSION,
         )
         synchronizer.execute()
     }

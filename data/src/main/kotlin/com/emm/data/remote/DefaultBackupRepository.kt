@@ -11,22 +11,19 @@ import com.emm.data.FlashcardReviewQueries
 import com.emm.data.HelloDb
 import com.emm.data.Quote
 import com.emm.data.QuotesQueries
-import com.emm.data.SyncStatus
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.LocalDeviceIdentityProvider
+import com.emm.data.localfirst.REMOTE_DEVICE_ID
 import com.emm.domain.backup.BackupRepository
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.internal.toLongOrDefault
-import retrofit2.HttpException
-import java.net.SocketTimeoutException
 import java.time.Instant
 
 class DefaultBackupRepository(
     db: HelloDb,
-    private val androidId: String,
+    private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
     private val backupService: ApiService,
     private val dataStore: DataStore,
     private val json: Json,
@@ -40,50 +37,20 @@ class DefaultBackupRepository(
 
     override suspend fun execute(force: Boolean) = withContext(Dispatchers.IO) {
         try {
-            val (
-                decks: List<Deck>,
-                flashcards: List<Flashcard>,
-                examples: List<FlashcardExample>,
-                reviews: List<FlashcardReview>,
-            ) = fetchAllDataInParallel()
+            val decks: List<Deck> = decksDao.all().executeAsList()
+            val flashcards: List<Flashcard> = cardsDao.all().executeAsList()
+            val examples: List<FlashcardExample> = examplesDao.all().executeAsList()
+            val reviews: List<FlashcardReview> = reviewDao.all().executeAsList()
 
             if (isEmpty(decks, flashcards, examples, reviews) || force) {
                 populate()
                 return@withContext Result.success(Unit)
             }
 
-            val (
-                pendingDecks: List<Deck>,
-                pendingFlashCards: List<Flashcard>,
-                pendingExamples: List<FlashcardExample>,
-                pendingReviews: List<FlashcardReview>,
-                pendingQuotes: List<Quote>,
-            ) = fetchPendingSyncDataInParallel()
-
-            val syncRequest = SyncRequest(
-                androidId = androidId,
-                decks = pendingDecks.map(::deckToDto),
-                flashcards = pendingFlashCards.map(::flashcardToDto),
-                flashcardExamples = pendingExamples.map(::exampleToDto),
-                quotes = pendingQuotes.map(::quoteToDto),
-                flashcardReviews = pendingReviews.map(::reviewToDto),
-            )
-
-            val response = backupService.createBackup(syncRequest)
-            decksDao.markAsSynced(pendingDecks.map(Deck::id))
-            cardsDao.markAsSynced(pendingFlashCards.map(Flashcard::id))
-            examplesDao.markAsSynced(pendingExamples.map(FlashcardExample::id))
-            quotesDao.markAsSynced(pendingQuotes.map(Quote::id))
-            reviewDao.markAsSynced(pendingReviews.map(FlashcardReview::flashcardId))
             dataStore.markDate()
-            dataStore.saveSuccess(json.encodeToString(response))
+            dataStore.saveSuccess("Local-first mode: legacy backup push disabled")
 
             return@withContext Result.success(Unit)
-        } catch (e: SocketTimeoutException) {
-            return@withContext Result.failure(e)
-        } catch (e: HttpException) {
-            dataStore.saveError(e)
-            return@withContext Result.failure(e)
         } catch (e: Exception) {
             return@withContext Result.failure(e)
         }
@@ -96,37 +63,9 @@ class DefaultBackupRepository(
         reviews: List<FlashcardReview>,
     ): Boolean = decks.isEmpty() && flashcards.isEmpty() && examples.isEmpty() && reviews.isEmpty()
 
-    private suspend fun fetchAllDataInParallel(): HolderOfDatabaseTables = coroutineScope {
-        val decks: Deferred<List<Deck>> = async { decksDao.all().executeAsList() }
-        val flashcards: Deferred<List<Flashcard>> = async { cardsDao.all().executeAsList() }
-        val examples: Deferred<List<FlashcardExample>> = async { examplesDao.all().executeAsList() }
-        val reviews: Deferred<List<FlashcardReview>> = async { reviewDao.all().executeAsList() }
-        HolderOfDatabaseTables(
-            decks = decks.await(),
-            flashcards = flashcards.await(),
-            examples = examples.await(),
-            reviews = reviews.await(),
-            quotes = emptyList(),
-        )
-    }
-
-    private suspend fun fetchPendingSyncDataInParallel(): HolderOfDatabaseTables = coroutineScope {
-        val decks = async { decksDao.pending().executeAsList() }
-        val flashcards = async { cardsDao.pending().executeAsList() }
-        val examples: Deferred<List<FlashcardExample>> = async { examplesDao.pending().executeAsList() }
-        val quotes = async { quotesDao.pending().executeAsList() }
-        val reviews = async { reviewDao.pending().executeAsList() }
-        HolderOfDatabaseTables(
-            decks = decks.await(),
-            flashcards = flashcards.await(),
-            examples = examples.await(),
-            reviews = reviews.await(),
-            quotes = quotes.await(),
-        )
-    }
-
     suspend fun populate() {
-        val syncResponse: FetchSyncResponse = backupService.fetchSync(androidId)
+        val deviceId: String = localDeviceIdentityProvider.getOrCreateDeviceId()
+        val syncResponse: FetchSyncResponse = backupService.fetchSync(deviceId)
 
         syncResponse.decks.forEach {
             decksDao.insert(
@@ -135,7 +74,10 @@ class DefaultBackupRepository(
                 description = it.description,
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -152,7 +94,10 @@ class DefaultBackupRepository(
                 note = "",
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -165,7 +110,10 @@ class DefaultBackupRepository(
                 type = it.type,
                 createdAt = it.createdAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
                 updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -184,7 +132,10 @@ class DefaultBackupRepository(
                 category = it.category.orEmpty(),
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 updatedAt = it.updatedAt?.toLongOrDefault(Instant.now().toEpochMilli()) ?: Instant.now().toEpochMilli(),
-                syncStatus = SyncStatus.Synced.name,
+                deletedAt = null,
+                originDeviceId = REMOTE_DEVICE_ID,
+                lastModifiedByDeviceId = REMOTE_DEVICE_ID,
+                versionLamport = INITIAL_LAMPORT_VERSION,
             )
         }
 
@@ -199,7 +150,6 @@ class DefaultBackupRepository(
                 lapses = it.lapses,
                 createdAt = it.createdAt.toLongOrDefault(Instant.now().toEpochMilli()),
                 updatedAt = it.updatedAt.toLongOrDefault(Instant.now().toEpochMilli()),
-                syncStatus = SyncStatus.Synced.name,
             )
         }
     }

@@ -1,8 +1,6 @@
 package com.emm.hello.di
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.provider.Settings
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -10,6 +8,7 @@ import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
+import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
@@ -38,7 +37,6 @@ import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
-import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
@@ -56,7 +54,6 @@ val newModule = module {
     viewModels()
 }
 
-@SuppressLint("HardwareIds")
 fun Module.repository() {
     single {
         Json {
@@ -71,13 +68,8 @@ fun Module.repository() {
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
 
+    factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::DataStore)
-    single {
-        Settings.Secure.getString(
-            androidApplication().contentResolver,
-            Settings.Secure.ANDROID_ID
-        )
-    }
     factoryOf(::WorkManagerSyncManager)
 }
 

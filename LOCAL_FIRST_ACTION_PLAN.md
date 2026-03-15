@@ -57,7 +57,7 @@ Decisiones cerradas:
 
 ## Fase 1. Reiniciar el modelo local
 
-- [ ] Eliminar la dependencia conceptual de `syncStatus = Pending/Synced`.
+- [x] Eliminar la dependencia conceptual de `syncStatus = Pending/Synced`.
 - [x] Crear tabla local `LocalDeviceIdentity`.
 - [x] Crear tabla local `LocalAccountState`.
 - [x] Crear tabla local `OperationLog`.
@@ -65,14 +65,14 @@ Decisiones cerradas:
 - [x] Crear tabla local `DeadLetterOperation`.
 - [x] Crear tabla local `ReviewEvent`.
 - [x] Crear tabla local `ReviewProjection`.
-- [ ] Agregar `deletedAt` o `isDeleted` a `Deck`.
-- [ ] Agregar `deletedAt` o `isDeleted` a `Flashcard`.
-- [ ] Agregar `deletedAt` o `isDeleted` a `FlashcardExample`.
-- [ ] Agregar `deletedAt` o `isDeleted` a `Quote`.
-- [ ] Agregar `originDeviceId` a entidades sincronizables.
-- [ ] Agregar `lastModifiedByDeviceId` a entidades sincronizables.
-- [ ] Agregar `versionLamport` a entidades sincronizables.
-- [ ] Eliminar el uso de `androidId` como identidad principal de sync.
+- [x] Agregar `deletedAt` o `isDeleted` a `Deck`.
+- [x] Agregar `deletedAt` o `isDeleted` a `Flashcard`.
+- [x] Agregar `deletedAt` o `isDeleted` a `FlashcardExample`.
+- [x] Agregar `deletedAt` o `isDeleted` a `Quote`.
+- [x] Agregar `originDeviceId` a entidades sincronizables.
+- [x] Agregar `lastModifiedByDeviceId` a entidades sincronizables.
+- [x] Agregar `versionLamport` a entidades sincronizables.
+- [x] Eliminar el uso de `androidId` como identidad principal de sync.
 
 ## Fase 2. Rediseñar el dominio local
 

@@ -18,7 +18,7 @@ interface ApiService {
     suspend fun createBackup(@Body request: SyncRequest): SyncStatusResponse
 
     @GET("/hello")
-    suspend fun fetchSync(@Query("androidId") androidId: String): FetchSyncResponse
+    suspend fun fetchSync(@Query("deviceId") deviceId: String): FetchSyncResponse
 
     @POST("decks/all")
     suspend fun createDecks(@Body body: List<CreateDeckRequest>): ResponseBody

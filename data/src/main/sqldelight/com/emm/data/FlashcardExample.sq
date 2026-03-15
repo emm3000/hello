@@ -6,20 +6,29 @@ CREATE TABLE FlashcardExample (
     type TEXT NOT NULL,
     createdAt INTEGER NOT NULL,
     updatedAt INTEGER NOT NULL,
-    syncStatus TEXT NOT NULL
+    deletedAt INTEGER,
+    originDeviceId TEXT NOT NULL,
+    lastModifiedByDeviceId TEXT NOT NULL,
+    versionLamport INTEGER NOT NULL
 );
 
 CREATE INDEX idx_FlashcardExample_flashcardId ON FlashcardExample(flashcardId);
-CREATE INDEX idx_FlashcardExample_syncStatus ON FlashcardExample(syncStatus);
+CREATE INDEX idx_FlashcardExample_deletedAt ON FlashcardExample(deletedAt);
 
 insert:
-INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-
-pending:
-SELECT * FROM FlashcardExample WHERE syncStatus = 'Pending';
-
-markAsSynced:
-UPDATE FlashcardExample SET syncStatus = 'Synced' WHERE id IN ?;
+INSERT OR REPLACE INTO FlashcardExample (
+    id,
+    flashcardId,
+    text,
+    translation,
+    type,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    originDeviceId,
+    lastModifiedByDeviceId,
+    versionLamport
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 all:
 SELECT * FROM FlashcardExample;

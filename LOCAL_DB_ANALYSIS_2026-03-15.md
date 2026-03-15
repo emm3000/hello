@@ -146,6 +146,9 @@ Si decides mantener `camelCase` local por compatibilidad de codegen:
 - Unidad temporal cerrada en `epoch_millis` para `FlashcardReview` en scheduler/UI/repositorio.
 - `FlashcardExample.flashcardId` ajustado a `NOT NULL` + `ON DELETE CASCADE`.
 - Indices agregados para consultas frecuentes (`pending`, joins y due-date).
+- Metadata de replicacion agregada a entidades sincronizables (`deletedAt`, `originDeviceId`, `lastModifiedByDeviceId`, `versionLamport`) sin defaults legacy implícitos en schema.
+- `syncStatus` eliminado del modelo local principal; la sync legacy por entidad queda desactivada en favor de migrar a `OperationLog`.
+- `androidId` removido como identidad principal; se usa identidad local persistida en `LocalDeviceIdentity`.
 - Schema Fase 1 agregado en SQLDelight (`LocalFirst.sq`) con:
   - `LocalDeviceIdentity`
   - `LocalAccountState`
