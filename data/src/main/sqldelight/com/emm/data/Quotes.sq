@@ -15,6 +15,9 @@ CREATE TABLE Quote (
     syncStatus TEXT NOT NULL
 );
 
+CREATE INDEX idx_Quote_syncStatus ON Quote(syncStatus);
+CREATE INDEX idx_Quote_createdAt ON Quote(createdAt DESC);
+
 insert:
 INSERT OR REPLACE INTO Quote VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
@@ -26,7 +29,8 @@ SELECT
     Quote.*,
     Flashcard.id IS NOT NULL AS hasCard
 FROM Quote
-LEFT JOIN Flashcard ON Flashcard.id = Quote.id;
+LEFT JOIN Flashcard ON Flashcard.id = Quote.id
+ORDER BY Quote.createdAt DESC;
 
 pending:
 SELECT * FROM Quote WHERE syncStatus = 'Pending';

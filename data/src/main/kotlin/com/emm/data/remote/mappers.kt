@@ -61,8 +61,8 @@ fun quoteToDto(quote: Quote) = QuoteUpsertRequest(
 
 fun reviewToDto(review: FlashcardReview) = FlashcardReviewUpsertRequest(
     flashcardId = review.flashcardId,
-    lastReviewedAt = review.lastReviewedAt ?: Instant.now().epochSecond,
-    nextReviewAt = review.nextReviewAt ?: Instant.now().epochSecond,
+    lastReviewedAt = review.lastReviewedAt ?: Instant.now().toEpochMilli(),
+    nextReviewAt = review.nextReviewAt ?: Instant.now().toEpochMilli(),
     easeFactor = review.easeFactor,
     interval = review.interval,
     repetitions = review.repetitions,

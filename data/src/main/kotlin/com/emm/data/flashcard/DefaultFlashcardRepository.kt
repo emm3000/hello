@@ -143,7 +143,7 @@ class DefaultFlashcardRepository(
     override suspend fun sessionToday(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
         val flashcardsToReviewByDeck: List<FlashcardsToReviewByDeck> = dao.flashcardsToReviewByDeck(
             deckId = deckId,
-            now = Instant.now().epochSecond,
+            now = Instant.now().toEpochMilli(),
         ).executeAsList()
 
         flashcardsToReviewByDeck.map {
@@ -176,7 +176,7 @@ class DefaultFlashcardRepository(
                         phonetic = it.phonetic.orEmpty(),
                         examples = emptyList(),
                         review = FlashcardReview.Empty.copy(
-                            nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond
+                            nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli()
                         ),
                         partOfSpeech = it.partOfSpeech.orEmpty(),
                         type = it.type.orEmpty(),

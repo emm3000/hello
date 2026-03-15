@@ -22,22 +22,49 @@ Al terminar este plan, la app deberia:
 
 ## Fase 0. Cerrar decisiones base
 
-- [ ] Definir que `multi-device` en esta etapa significa: varios dispositivos del mismo usuario vinculados por `pairing`, no cuentas compartidas entre personas.
-- [ ] Fijar `pairing` v1 con codigo corto de 6 caracteres.
-- [ ] Confirmar si `Quote` debe sincronizarse entre dispositivos o si puede seguir siendo local por ahora.
-- [ ] Confirmar si la cuenta anonima debe sobrevivir reinstalacion solo con pairing o si habra restore manual.
-- [ ] Congelar los nombres de entidades remotas: `deck`, `flashcard`, `flashcard_example`, `review_event`, `quote`.
+- [x] Definir que `multi-device` en esta etapa significa: varios dispositivos del mismo usuario vinculados por `pairing`, no cuentas compartidas entre personas.
+- [x] Fijar `pairing` v1 con codigo corto de 6 caracteres.
+- [x] Confirmar si `Quote` debe sincronizarse entre dispositivos o si puede seguir siendo local por ahora.
+- [x] Confirmar si la cuenta anonima debe sobrevivir reinstalacion solo con pairing o si habra restore manual.
+- [x] Congelar los nombres de entidades remotas: `deck`, `flashcard`, `flashcard_example`, `review_event`, `quote`.
+
+### Decisiones cerradas (Fase 0)
+
+- `multi-device` v1: solo multiples dispositivos de la misma persona/cuenta (`app_account`), vinculados por pairing.
+- `pairing` v1: codigo corto de 6 caracteres, de un solo uso y con expiracion corta.
+- `Quote`: se sincroniza entre dispositivos en esta etapa (queda dentro del alcance del sync principal).
+- Supervivencia tras reinstalacion: no hay recuperacion automatica por `auth anonymous`; se soporta recuperacion por `pairing` y, opcionalmente, restore manual si existe backup.
+- Nombres remotos congelados para esta etapa: `deck`, `flashcard`, `flashcard_example`, `review_event`, `quote`.
+
+### Pre-Fase 1: analisis tecnico de DB local (2026-03-15)
+
+- Informe: `LOCAL_DB_ANALYSIS_2026-03-15.md`.
+- Riesgos prioritarios detectados antes de migrar:
+  - mezcla de unidades de tiempo en `FlashcardReview` (segundos/milisegundos)
+  - `FlashcardExample.flashcardId` nullable con riesgo de huerfanos
+  - uso de `INSERT OR REPLACE` en entidades principales
+  - falta de indices en consultas frecuentes de lectura y sync
+- Convencion propuesta:
+  - remoto en `snake_case` (ya congelado en Fase 0)
+  - local: decidir `snake_case` o mantener `camelCase` y mapear en una sola capa
+- [x] Cerrar decision final de unidad temporal (`epoch_millis` recomendado).
+- [x] Cerrar decision final de convencion de nombres local (`snake_case` o `camelCase` + mapper unico).
+
+Decisiones cerradas:
+
+- Unidad temporal local: `epoch_millis` en todos los timestamps de dominio/scheduler.
+- Convencion de nombres local: `camelCase` (alineado a Kotlin/SQLDelight actual) y mapeo remoto centralizado a `snake_case`.
 
 ## Fase 1. Reiniciar el modelo local
 
 - [ ] Eliminar la dependencia conceptual de `syncStatus = Pending/Synced`.
-- [ ] Crear tabla local `LocalDeviceIdentity`.
-- [ ] Crear tabla local `LocalAccountState`.
-- [ ] Crear tabla local `OperationLog`.
-- [ ] Crear tabla local `SyncCheckpoint`.
-- [ ] Crear tabla local `DeadLetterOperation`.
-- [ ] Crear tabla local `ReviewEvent`.
-- [ ] Crear tabla local `ReviewProjection`.
+- [x] Crear tabla local `LocalDeviceIdentity`.
+- [x] Crear tabla local `LocalAccountState`.
+- [x] Crear tabla local `OperationLog`.
+- [x] Crear tabla local `SyncCheckpoint`.
+- [x] Crear tabla local `DeadLetterOperation`.
+- [x] Crear tabla local `ReviewEvent`.
+- [x] Crear tabla local `ReviewProjection`.
 - [ ] Agregar `deletedAt` o `isDeleted` a `Deck`.
 - [ ] Agregar `deletedAt` o `isDeleted` a `Flashcard`.
 - [ ] Agregar `deletedAt` o `isDeleted` a `FlashcardExample`.

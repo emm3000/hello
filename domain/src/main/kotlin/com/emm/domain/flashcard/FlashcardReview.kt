@@ -16,8 +16,8 @@ data class FlashcardReview(
 
         val Empty get() = FlashcardReview(
             flashcardId = "",
-            lastReviewedAt = Instant.now().epochSecond,
-            nextReviewAt = Instant.now().epochSecond,
+            lastReviewedAt = Instant.now().toEpochMilli(),
+            nextReviewAt = Instant.now().toEpochMilli(),
             easeFactor = 2.5,
             interval = 0L,
             repetitions = 0L,

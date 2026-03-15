@@ -7,6 +7,9 @@ CREATE TABLE Deck (
     syncStatus TEXT NOT NULL
 );
 
+CREATE INDEX idx_Deck_syncStatus ON Deck(syncStatus);
+CREATE INDEX idx_Deck_createdAt ON Deck(createdAt DESC);
+
 all:
 SELECT * FROM Deck;
 

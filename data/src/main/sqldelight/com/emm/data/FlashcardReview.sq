@@ -15,6 +15,9 @@ CREATE TABLE FlashcardReview (
     FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_FlashcardReview_syncStatus ON FlashcardReview(syncStatus);
+CREATE INDEX idx_FlashcardReview_nextReviewAt ON FlashcardReview(nextReviewAt);
+
 all:
 SELECT * FROM FlashcardReview;
 

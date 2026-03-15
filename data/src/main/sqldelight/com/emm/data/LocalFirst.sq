@@ -1,0 +1,233 @@
+CREATE TABLE LocalDeviceIdentity (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    deviceId TEXT NOT NULL UNIQUE,
+    installId TEXT NOT NULL UNIQUE,
+    lamportCounter INTEGER NOT NULL DEFAULT 0,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+selectLocalDeviceIdentity:
+SELECT * FROM LocalDeviceIdentity WHERE singletonId = 1;
+
+upsertLocalDeviceIdentity:
+INSERT OR REPLACE INTO LocalDeviceIdentity (
+    singletonId,
+    deviceId,
+    installId,
+    lamportCounter,
+    createdAt,
+    updatedAt
+) VALUES (1, ?, ?, ?, ?, ?);
+
+incrementLamport:
+UPDATE LocalDeviceIdentity
+SET lamportCounter = lamportCounter + 1, updatedAt = ?
+WHERE singletonId = 1;
+
+currentLamport:
+SELECT lamportCounter FROM LocalDeviceIdentity WHERE singletonId = 1;
+
+CREATE TABLE LocalAccountState (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    appAccountId TEXT,
+    authUserId TEXT,
+    pairingState TEXT NOT NULL DEFAULT 'Unpaired',
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+selectLocalAccountState:
+SELECT * FROM LocalAccountState WHERE singletonId = 1;
+
+upsertLocalAccountState:
+INSERT OR REPLACE INTO LocalAccountState (
+    singletonId,
+    appAccountId,
+    authUserId,
+    pairingState,
+    createdAt,
+    updatedAt
+) VALUES (1, ?, ?, ?, ?, ?);
+
+CREATE TABLE OperationLog (
+    opId TEXT NOT NULL PRIMARY KEY,
+    entityType TEXT NOT NULL,
+    entityId TEXT NOT NULL,
+    operationType TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    lamport INTEGER NOT NULL,
+    originDeviceId TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    retryCount INTEGER NOT NULL DEFAULT 0,
+    lastAttemptAt INTEGER,
+    lastError TEXT
+);
+
+CREATE INDEX idx_OperationLog_status_createdAt ON OperationLog(status, createdAt);
+CREATE INDEX idx_OperationLog_entityType_entityId ON OperationLog(entityType, entityId);
+CREATE INDEX idx_OperationLog_lamport ON OperationLog(lamport);
+
+insertOperation:
+INSERT INTO OperationLog (
+    opId,
+    entityType,
+    entityId,
+    operationType,
+    payload,
+    lamport,
+    originDeviceId,
+    createdAt,
+    status,
+    retryCount,
+    lastAttemptAt,
+    lastError
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+pendingOperations:
+SELECT * FROM OperationLog
+WHERE status = 'Pending'
+ORDER BY createdAt ASC
+LIMIT ?;
+
+markOperationAcked:
+UPDATE OperationLog
+SET status = 'Acked', lastAttemptAt = ?, lastError = NULL
+WHERE opId = ?;
+
+markOperationFailed:
+UPDATE OperationLog
+SET
+    status = 'Failed',
+    retryCount = retryCount + 1,
+    lastAttemptAt = ?,
+    lastError = ?
+WHERE opId = ?;
+
+markOperationDead:
+UPDATE OperationLog
+SET
+    status = 'Dead',
+    lastAttemptAt = ?,
+    lastError = ?
+WHERE opId = ?;
+
+CREATE TABLE SyncCheckpoint (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    lastPulledCursor INTEGER NOT NULL DEFAULT 0,
+    lastSuccessfulSyncAt INTEGER,
+    lastSyncError TEXT,
+    lastSyncErrorAt INTEGER,
+    updatedAt INTEGER NOT NULL
+);
+
+selectSyncCheckpoint:
+SELECT * FROM SyncCheckpoint WHERE singletonId = 1;
+
+upsertSyncCheckpoint:
+INSERT OR REPLACE INTO SyncCheckpoint (
+    singletonId,
+    lastPulledCursor,
+    lastSuccessfulSyncAt,
+    lastSyncError,
+    lastSyncErrorAt,
+    updatedAt
+) VALUES (1, ?, ?, ?, ?, ?);
+
+CREATE TABLE DeadLetterOperation (
+    opId TEXT NOT NULL PRIMARY KEY,
+    entityType TEXT NOT NULL,
+    entityId TEXT NOT NULL,
+    operationType TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    failedAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_DeadLetterOperation_failedAt ON DeadLetterOperation(failedAt DESC);
+
+insertDeadLetterOperation:
+INSERT OR REPLACE INTO DeadLetterOperation (
+    opId,
+    entityType,
+    entityId,
+    operationType,
+    payload,
+    reason,
+    failedAt
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+allDeadLetterOperations:
+SELECT * FROM DeadLetterOperation
+ORDER BY failedAt DESC;
+
+CREATE TABLE ReviewEvent (
+    eventId TEXT NOT NULL PRIMARY KEY,
+    flashcardId TEXT NOT NULL REFERENCES Flashcard(id) ON DELETE CASCADE,
+    grade TEXT NOT NULL,
+    reviewedAt INTEGER NOT NULL,
+    nextReviewAt INTEGER NOT NULL,
+    easeFactor REAL NOT NULL,
+    interval INTEGER NOT NULL,
+    repetitions INTEGER NOT NULL,
+    lapses INTEGER NOT NULL,
+    originDeviceId TEXT NOT NULL,
+    versionLamport INTEGER NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_ReviewEvent_flashcardId_reviewedAt ON ReviewEvent(flashcardId, reviewedAt DESC);
+CREATE INDEX idx_ReviewEvent_createdAt ON ReviewEvent(createdAt DESC);
+
+insertReviewEvent:
+INSERT INTO ReviewEvent (
+    eventId,
+    flashcardId,
+    grade,
+    reviewedAt,
+    nextReviewAt,
+    easeFactor,
+    interval,
+    repetitions,
+    lapses,
+    originDeviceId,
+    versionLamport,
+    createdAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+findReviewEventsByFlashcardId:
+SELECT * FROM ReviewEvent
+WHERE flashcardId = ?
+ORDER BY reviewedAt DESC;
+
+CREATE TABLE ReviewProjection (
+    flashcardId TEXT NOT NULL PRIMARY KEY REFERENCES Flashcard(id) ON DELETE CASCADE,
+    lastReviewedAt INTEGER NOT NULL,
+    nextReviewAt INTEGER NOT NULL,
+    easeFactor REAL NOT NULL,
+    interval INTEGER NOT NULL,
+    repetitions INTEGER NOT NULL,
+    lapses INTEGER NOT NULL,
+    sourceEventId TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_ReviewProjection_nextReviewAt ON ReviewProjection(nextReviewAt);
+
+upsertReviewProjection:
+INSERT OR REPLACE INTO ReviewProjection (
+    flashcardId,
+    lastReviewedAt,
+    nextReviewAt,
+    easeFactor,
+    interval,
+    repetitions,
+    lapses,
+    sourceEventId,
+    updatedAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+findReviewProjectionByFlashcardId:
+SELECT * FROM ReviewProjection
+WHERE flashcardId = ?;

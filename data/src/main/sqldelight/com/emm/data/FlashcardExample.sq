@@ -1,6 +1,6 @@
 CREATE TABLE FlashcardExample (
     id TEXT PRIMARY KEY,
-    flashcardId TEXT REFERENCES Flashcard(id) ON DELETE SET NULL,
+    flashcardId TEXT NOT NULL REFERENCES Flashcard(id) ON DELETE CASCADE,
     text TEXT NOT NULL,
     translation TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -8,6 +8,9 @@ CREATE TABLE FlashcardExample (
     updatedAt INTEGER NOT NULL,
     syncStatus TEXT NOT NULL
 );
+
+CREATE INDEX idx_FlashcardExample_flashcardId ON FlashcardExample(flashcardId);
+CREATE INDEX idx_FlashcardExample_syncStatus ON FlashcardExample(syncStatus);
 
 insert:
 INSERT OR REPLACE INTO FlashcardExample VALUES (?, ?, ?, ?, ?, ?, ?, ?);

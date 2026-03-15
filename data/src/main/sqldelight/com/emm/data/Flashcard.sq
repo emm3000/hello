@@ -18,6 +18,9 @@ CREATE TABLE Flashcard (
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_Flashcard_deckId ON Flashcard(deckId);
+CREATE INDEX idx_Flashcard_syncStatus ON Flashcard(syncStatus);
+
 create:
 INSERT OR REPLACE INTO Flashcard (id, deckId, word, meaning, translation, phonetic, partOfSpeech, type, note, createdAt, updatedAt, syncStatus)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);

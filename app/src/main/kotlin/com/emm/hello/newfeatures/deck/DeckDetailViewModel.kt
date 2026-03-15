@@ -42,7 +42,7 @@ class DeckDetailViewModel(
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
         flashcardAndReviewFetcher.fetch(deckId).map { flashcards ->
             val withUniqueKeys = flashcards.map { it.copy(id = "${it.id}${it.review.nextReviewAt}") }
-            val hasSessionEnabled = withUniqueKeys.any { it.review.nextReviewAt <= Instant.now().epochSecond }
+            val hasSessionEnabled = withUniqueKeys.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
             withUniqueKeys to hasSessionEnabled
         }
 }

@@ -300,7 +300,7 @@ private fun DeckCardItem(
     onCardClick: (String) -> Unit,
 ) {
     val formatter = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
-    val reviewDate = Instant.ofEpochSecond(card.review.nextReviewAt)
+    val reviewDate = Instant.ofEpochMilli(card.review.nextReviewAt)
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
 
