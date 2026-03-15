@@ -1,0 +1,243 @@
+# Plan de Accion Local-First Multi-Device con Supabase
+
+## Supuestos de este plan
+
+- `Hello` seguira usando `SQLDelight` como base local principal.
+- `Supabase` sera el backend principal.
+- no habra `login/register` tradicional en esta etapa.
+- se usara `Supabase Auth anonymous` para autenticar la instalacion.
+- la identidad compartida del producto sera `app_account`, no `auth.users`.
+- el linking multi-device inicial se hara con `codigo corto` de 6 caracteres.
+- se permite reestructurar por completo la base local y remota.
+
+## Objetivo de entrega
+
+Al terminar este plan, la app deberia:
+
+- funcionar siempre contra SQLite local
+- sincronizar cambios entre dispositivos de la misma cuenta
+- soportar pairing de un segundo dispositivo sin email ni password
+- replicar `Deck`, `Flashcard`, `FlashcardExample`, `Quote` y `ReviewEvent`
+- dejar `ReviewProjection` como estado derivado local
+
+## Fase 0. Cerrar decisiones base
+
+- [ ] Definir que `multi-device` en esta etapa significa: varios dispositivos del mismo usuario vinculados por `pairing`, no cuentas compartidas entre personas.
+- [ ] Fijar `pairing` v1 con codigo corto de 6 caracteres.
+- [ ] Confirmar si `Quote` debe sincronizarse entre dispositivos o si puede seguir siendo local por ahora.
+- [ ] Confirmar si la cuenta anonima debe sobrevivir reinstalacion solo con pairing o si habra restore manual.
+- [ ] Congelar los nombres de entidades remotas: `deck`, `flashcard`, `flashcard_example`, `review_event`, `quote`.
+
+## Fase 1. Reiniciar el modelo local
+
+- [ ] Eliminar la dependencia conceptual de `syncStatus = Pending/Synced`.
+- [ ] Crear tabla local `LocalDeviceIdentity`.
+- [ ] Crear tabla local `LocalAccountState`.
+- [ ] Crear tabla local `OperationLog`.
+- [ ] Crear tabla local `SyncCheckpoint`.
+- [ ] Crear tabla local `DeadLetterOperation`.
+- [ ] Crear tabla local `ReviewEvent`.
+- [ ] Crear tabla local `ReviewProjection`.
+- [ ] Agregar `deletedAt` o `isDeleted` a `Deck`.
+- [ ] Agregar `deletedAt` o `isDeleted` a `Flashcard`.
+- [ ] Agregar `deletedAt` o `isDeleted` a `FlashcardExample`.
+- [ ] Agregar `deletedAt` o `isDeleted` a `Quote`.
+- [ ] Agregar `originDeviceId` a entidades sincronizables.
+- [ ] Agregar `lastModifiedByDeviceId` a entidades sincronizables.
+- [ ] Agregar `versionLamport` a entidades sincronizables.
+- [ ] Eliminar el uso de `androidId` como identidad principal de sync.
+
+## Fase 2. Rediseñar el dominio local
+
+- [ ] Reemplazar la idea de "review sincronizable" por `ReviewEvent` como evento fuente.
+- [ ] Mantener `ReviewProjection` como lectura rapida para UI.
+- [ ] Definir `sealed class SyncOperationPayload` en Kotlin para todas las operaciones replicables.
+- [ ] Definir un `OperationType` comun: `Create`, `Update`, `Delete`, `AppendEvent`.
+- [ ] Definir una sola abstraccion `SyncEngine` en `domain` o `data`.
+- [ ] Definir un `SyncState` observable para UI y debug.
+- [ ] Marcar los repositorios para que toda escritura sea local primero.
+
+## Fase 3. Escribir local + outbox en una sola transaccion
+
+- [ ] Refactorizar `DefaultDeckRepository` para escribir `Deck` y `OperationLog` en una misma transaccion.
+- [ ] Refactorizar `DefaultFlashcardRepository.create()` para escribir `Flashcard` y `OperationLog`.
+- [ ] Refactorizar `DefaultFlashcardRepository.upsertExamples()` para escribir `FlashcardExample` y `OperationLog`.
+- [ ] Refactorizar `DefaultQuoteRepository.generate()` para escribir `Quote` y `OperationLog`.
+- [ ] Refactorizar `DefaultFlashcardReviewRepository.update()` para crear `ReviewEvent` y recalcular `ReviewProjection`.
+- [ ] Eliminar la necesidad de disparar sync desde cada repositorio inmediatamente despues de escribir.
+- [ ] Agregar incremento monotono local de `lamport` por dispositivo.
+- [ ] Guardar cada operacion con `opId`, `entityId`, `payload`, `lamport`, `createdAt`, `status`.
+
+## Fase 4. Limpiar la estrategia actual de sync
+
+- [ ] Desacoplar `DeckSynchronizer` de `Context` y `WorkManager`.
+- [ ] Desacoplar `FlashcardSynchronizer` de `Context` y `WorkManager`.
+- [ ] Desacoplar `FlashcardReviewSynchronizer` de `Context` y `WorkManager`.
+- [ ] Desacoplar `QuoteSynchronizer` de `Context` y `WorkManager`.
+- [ ] Retirar gradualmente los workers por entidad como camino principal.
+- [ ] Mantener un solo `SyncWorker` o `SyncEngineWorker` para drenar la outbox y hacer pull.
+- [ ] Separar por completo `backup` de `sync`.
+
+## Fase 5. Preparar Supabase
+
+- [ ] Crear proyecto de Supabase para desarrollo.
+- [ ] Habilitar `Anonymous Sign-Ins` en Supabase Auth.
+- [ ] Configurar `supabase-kt` en Android para `Auth`, `Postgrest`, `Functions`, `Realtime`.
+- [ ] Crear script SQL versionado para bootstrap de schema remoto.
+- [ ] Crear tabla `app_account`.
+- [ ] Crear tabla `app_device`.
+- [ ] Crear tabla `pairing_session`.
+- [ ] Crear tabla `sync_operation`.
+- [ ] Crear tabla `sync_ack`.
+- [ ] Crear tabla `sync_cursor` si decides persistirlo del lado servidor.
+- [ ] Crear tabla remota `deck`.
+- [ ] Crear tabla remota `flashcard`.
+- [ ] Crear tabla remota `flashcard_example`.
+- [ ] Crear tabla remota `review_event`.
+- [ ] Crear tabla remota `quote`.
+- [ ] Agregar `app_account_id` a todas las tablas de dominio remotas.
+- [ ] Crear indices por `app_account_id`, `entity_id`, `lamport`, `created_at`.
+
+## Fase 6. Seguridad y acceso
+
+- [ ] Crear politicas RLS para `app_device`.
+- [ ] Crear politicas RLS para tablas de dominio basadas en pertenencia a `app_account`.
+- [ ] Crear politicas RLS para `sync_operation`.
+- [ ] Definir si el cliente tendra acceso directo a tablas de dominio o solo a `RPC`.
+- [ ] Si eliges solo `RPC` para sync, minimizar acceso directo desde cliente a tablas sensibles.
+- [ ] Agregar revocacion de dispositivos en `app_device`.
+
+## Fase 7. Protocolo de sync en Supabase
+
+- [ ] Diseñar el contrato de `sync_push`.
+- [ ] Diseñar el contrato de `sync_pull`.
+- [ ] Diseñar el contrato de `sync_ack`.
+- [ ] Implementar `rpc.sync_push(batch jsonb)`.
+- [ ] Implementar `rpc.sync_pull(cursor bigint, limit int)`.
+- [ ] Implementar `rpc.sync_ack(op_ids jsonb)`.
+- [ ] Hacer que `sync_push` aplique operaciones idempotentemente.
+- [ ] Hacer que `sync_push` escriba `sync_operation` con secuencia global o por cuenta.
+- [ ] Hacer que `sync_pull` entregue operaciones ordenadas por cursor.
+- [ ] Hacer que `sync_pull` excluya operaciones originadas por el mismo dispositivo si asi lo decides.
+- [ ] Hacer que `sync_push` devuelva `acks` y metadata canonica.
+- [ ] Agregar tests SQL o integration tests para idempotencia y orden.
+
+## Fase 8. Pairing multi-device
+
+- [ ] Implementar `create_pairing_session`.
+- [ ] Implementar expiracion corta de pairing code.
+- [ ] Implementar `redeem_pairing_code`.
+- [ ] Asociar el nuevo `auth_user_id` anonimo al mismo `app_account_id`.
+- [ ] Registrar el nuevo `app_device`.
+- [ ] Bloquear reutilizacion de pairing code.
+- [ ] Crear pantalla simple de `Link new device`.
+- [ ] Crear pantalla simple de `Join device`.
+- [ ] Permitir mostrar lista de dispositivos vinculados.
+- [ ] Permitir revocar un dispositivo desde otro dispositivo autorizado.
+
+## Fase 9. Android SyncEngine
+
+- [ ] Crear caso de uso `DrainOutbox`.
+- [ ] Crear caso de uso `PullRemoteOperations`.
+- [ ] Crear caso de uso `ApplyRemoteOperation`.
+- [ ] Crear caso de uso `AckOperations`.
+- [ ] Implementar `SyncEngine.runOnce()`.
+- [ ] Implementar backoff exponencial para errores recuperables.
+- [ ] Implementar reintento inmediato en cambio de conectividad.
+- [ ] Persistir `lastPulledCursor` en SQLite.
+- [ ] Persistir `lastSuccessfulSyncAt`.
+- [ ] Persistir `lastSyncError`.
+- [ ] Exponer `SyncState` como `Flow`.
+
+## Fase 10. Integrar WorkManager sin acoplar dominio
+
+- [ ] Crear un solo worker `SyncEngineWorker`.
+- [ ] Hacer que el worker solo invoque `SyncEngine.runOnce()`.
+- [ ] Programar sync periodico moderado.
+- [ ] Programar sync one-shot cuando haya nuevas operaciones pendientes.
+- [ ] Cancelar o deprecar los workers antiguos por entidad.
+- [ ] Mantener foreground sync solo si realmente hace falta por duracion.
+
+## Fase 11. Aplicacion de operaciones remotas
+
+- [ ] Implementar merge de `Deck` por campo con `versionLamport`.
+- [ ] Implementar merge de `Flashcard` por campo con `versionLamport`.
+- [ ] Implementar merge de `FlashcardExample` por entidad hija.
+- [ ] Implementar merge de `Quote`.
+- [ ] Implementar `Delete` con `deletedAt` o tombstones.
+- [ ] Implementar aplicacion de `ReviewEvent`.
+- [ ] Recalcular `ReviewProjection` cada vez que entra un `ReviewEvent`.
+- [ ] Garantizar idempotencia de aplicacion local por `opId`.
+
+## Fase 12. Realtime como acelerador
+
+- [ ] Suscribirse a una señal ligera de cambios por cuenta o por dispositivo.
+- [ ] Cuando llegue una señal, disparar `sync_pull`.
+- [ ] No aplicar cambios directamente desde `Realtime` a las tablas locales sin pasar por el pipeline de merge.
+- [ ] Medir si `Realtime` realmente aporta valor o si polling con cursor es suficiente.
+
+## Fase 13. UI y observabilidad
+
+- [ ] Mostrar `pending operations` en pantalla de debug.
+- [ ] Mostrar `last successful sync`.
+- [ ] Mostrar `last sync error`.
+- [ ] Mostrar `device id` y `app account id` en pantalla de debug.
+- [ ] Mostrar lista de dispositivos vinculados.
+- [ ] Agregar logging estructurado de sync en Android.
+- [ ] Agregar tabla o vista de auditoria de operaciones en Supabase para soporte.
+
+## Fase 14. Corte con el sistema anterior
+
+- [ ] Eliminar dependencias de `syncStatus` donde ya no sean necesarias.
+- [ ] Eliminar llamadas a endpoints legacy `/hello`, `/decks/all`, `/flashcards/all`, `/examples/all`, `/reviews/all`, `/quotes/all` cuando el nuevo pipeline ya cubra esos casos.
+- [ ] Retirar `RemoteDataSource` legacy o reconvertirlo a cliente del nuevo `SyncApi`.
+- [ ] Retirar `WorkManagerSyncManager` basado en nombre de work legacy si deja de servir.
+- [ ] Dejar `backup` como feature separada, no como sync principal.
+
+## Fase 15. Validacion de escenarios reales
+
+- [ ] Probar alta de deck en dispositivo A y replica en dispositivo B.
+- [ ] Probar alta de flashcard en dispositivo A y replica en dispositivo B.
+- [ ] Probar review en A y continuidad en B.
+- [ ] Probar cambios concurrentes del mismo `Flashcard` en A y B.
+- [ ] Probar delete en A y no resurreccion en B.
+- [ ] Probar linking de un segundo dispositivo con pairing code expirado.
+- [ ] Probar revocacion de dispositivo.
+- [ ] Probar cold start sin red.
+- [ ] Probar red intermitente con operaciones pendientes.
+
+## Orden recomendado de ejecucion
+
+Si quieres avanzar sin dispersarte, este es el orden correcto:
+
+1. Fase 0
+2. Fase 1
+3. Fase 2
+4. Fase 3
+5. Fase 5
+6. Fase 6
+7. Fase 7
+8. Fase 9
+9. Fase 11
+10. Fase 8
+11. Fase 10
+12. Fase 12
+13. Fase 13
+14. Fase 14
+15. Fase 15
+
+## Primer sprint recomendado
+
+Si tuvieras que empezar ya, yo haria solo esto:
+
+- [ ] Crear nuevo schema local: `OperationLog`, `SyncCheckpoint`, `ReviewEvent`, `ReviewProjection`, `LocalDeviceIdentity`, `LocalAccountState`.
+- [ ] Refactorizar un solo flujo end-to-end: `Deck`.
+- [ ] Montar Supabase con `Anonymous Auth`, `app_account`, `app_device`, `sync_operation`.
+- [ ] Implementar `sync_push` y `sync_pull` solo para `Deck`.
+- [ ] Implementar pairing minimo con codigo corto de 6 caracteres.
+- [ ] Probar dos dispositivos reales con `Deck` antes de tocar `FlashcardReview`.
+
+## Decision ya tomada
+
+- `Pairing` v1 sera con codigo corto de 6 caracteres.
+- `QR` queda como mejora futura de UX, no como requisito inicial.
