@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,8 +32,17 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+
+private const val inputBorderAnimationMs = 150
+private const val inputDisabledAlpha = 0.38f
+private const val inputPlaceholderAlpha = 0.6f
+private val inputContentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+private val inputLeadingIconOffset = 36.dp
+private val inputLeadingTextStartPadding = 28.dp
+private val inputTrailingTextEndPadding = 40.dp
 
 /**
  * Input de texto inspirado en shadcn/ui — look & feel exacto.
@@ -79,12 +89,12 @@ fun HInput(
             isFocused -> cs.outline
             else -> cs.outlineVariant
         },
-        animationSpec = tween(durationMillis = 150),
+        animationSpec = tween(durationMillis = inputBorderAnimationMs),
         label = "input_border",
     )
 
     // Text color dims when disabled
-    val textColor = if (enabled) cs.onSurface else cs.onSurface.copy(alpha = 0.38f)
+    val textColor = if (enabled) cs.onSurface else cs.onSurface.copy(alpha = inputDisabledAlpha)
 
     val boxAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart
     val trailingAlignment = if (singleLine) Alignment.CenterEnd else Alignment.TopEnd
@@ -125,56 +135,16 @@ fun HInput(
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = textColor),
             cursorBrush = SolidColor(cs.onSurface),
             decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    contentAlignment = boxAlignment,
-                ) {
-                    // Leading icon
-                    if (leadingIcon != null) {
-                        Box(
-                            modifier = Modifier
-                                .align(boxAlignment)
-                                .padding(end = 36.dp),
-                        ) { leadingIcon() }
-                    }
-
-                    // Placeholder
-                    if (value.isEmpty() && placeholder != null) {
-                        Text(
-                            text = placeholder,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = cs.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier
-                                .align(boxAlignment)
-                                .then(
-                                    if (leadingIcon != null) {
-                                        Modifier.padding(start = 28.dp)
-                                    } else {
-                                        Modifier
-                                    }
-                                ),
-                        )
-                    }
-
-                    // Trailing icon padding so text doesn't overlap it
-                    val textEndPadding = if (trailingIcon != null) 40.dp else 0.dp
-
-                    // Actual text field
-                    Box(
-                        modifier = Modifier
-                            .align(boxAlignment)
-                            .padding(
-                                start = if (leadingIcon != null) 28.dp else 0.dp,
-                                end = textEndPadding,
-                            )
-                            .fillMaxWidth(),
-                    ) { innerTextField() }
-
-                    // Trailing icon
-                    if (trailingIcon != null) {
-                        Box(Modifier.align(trailingAlignment)) { trailingIcon() }
-                    }
-                }
+                InputDecoration(
+                    value = value,
+                    placeholder = placeholder,
+                    leadingIcon = leadingIcon,
+                    trailingIcon = trailingIcon,
+                    boxAlignment = boxAlignment,
+                    trailingAlignment = trailingAlignment,
+                    placeholderColor = cs.onSurfaceVariant.copy(alpha = inputPlaceholderAlpha),
+                    innerTextField = innerTextField,
+                )
             },
 
         )
@@ -188,6 +158,63 @@ fun HInput(
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isError) cs.error else cs.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun InputDecoration(
+    value: String,
+    placeholder: String?,
+    leadingIcon: (@Composable () -> Unit)?,
+    trailingIcon: (@Composable () -> Unit)?,
+    boxAlignment: Alignment,
+    trailingAlignment: Alignment,
+    placeholderColor: androidx.compose.ui.graphics.Color,
+    innerTextField: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier.padding(inputContentPadding),
+        contentAlignment = boxAlignment,
+    ) {
+        if (leadingIcon != null) {
+            Box(
+                modifier = Modifier
+                    .align(boxAlignment)
+                    .padding(end = inputLeadingIconOffset),
+            ) { leadingIcon() }
+        }
+
+        if (value.isEmpty() && placeholder != null) {
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium,
+                color = placeholderColor,
+                modifier = Modifier
+                    .align(boxAlignment)
+                    .then(
+                        if (leadingIcon != null) {
+                            Modifier.padding(start = inputLeadingTextStartPadding)
+                        } else {
+                            Modifier
+                        }
+                    ),
+            )
+        }
+
+        val textEndPadding: Dp = if (trailingIcon != null) inputTrailingTextEndPadding else 0.dp
+        Box(
+            modifier = Modifier
+                .align(boxAlignment)
+                .padding(
+                    start = if (leadingIcon != null) inputLeadingTextStartPadding else 0.dp,
+                    end = textEndPadding,
+                )
+                .fillMaxWidth(),
+        ) { innerTextField() }
+
+        if (trailingIcon != null) {
+            Box(Modifier.align(trailingAlignment)) { trailingIcon() }
         }
     }
 }
