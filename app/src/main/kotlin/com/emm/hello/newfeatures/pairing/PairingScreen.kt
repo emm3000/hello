@@ -20,7 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.emm.data.sync.LinkedDevice
+import com.emm.domain.sync.LinkedDevice
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HButton
 

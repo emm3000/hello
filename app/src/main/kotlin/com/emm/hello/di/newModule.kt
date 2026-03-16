@@ -5,6 +5,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
+import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
@@ -15,6 +16,8 @@ import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
 import com.emm.data.sync.AckOperations
 import com.emm.data.sync.ApplyRemoteOperation
+import com.emm.data.sync.DefaultPairingRepository
+import com.emm.data.sync.DefaultSyncDebugStateRepository
 import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.PullRemoteOperations
@@ -25,6 +28,9 @@ import com.emm.domain.deck.DeckCreator
 import com.emm.domain.deck.DeckFetcher
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DecksWithCardsProvider
+import com.emm.domain.deck.DefaultDeckSelectionRepository
+import com.emm.domain.deck.GetDefaultDeckUseCase
+import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.FlashcardAndReviewFetcher
 import com.emm.domain.flashcard.FlashcardCreator
 import com.emm.domain.flashcard.FlashcardFetcher
@@ -35,6 +41,14 @@ import com.emm.domain.flashcard.FlashcardReviewUpdater
 import com.emm.domain.quote.QuoteGenerator
 import com.emm.domain.quote.QuoteLastFetcher
 import com.emm.domain.quote.QuoteRepository
+import com.emm.domain.sync.CreatePairingSessionUseCase
+import com.emm.domain.sync.EnsureLinkedIdentityUseCase
+import com.emm.domain.sync.GetSyncDebugStateUseCase
+import com.emm.domain.sync.ListLinkedDevicesUseCase
+import com.emm.domain.sync.PairingRepository
+import com.emm.domain.sync.RedeemPairingCodeUseCase
+import com.emm.domain.sync.RevokeLinkedDeviceUseCase
+import com.emm.domain.sync.SyncDebugStateRepository
 import com.emm.domain.sync.SyncEngine
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
@@ -74,11 +88,14 @@ fun Module.repository() {
     }
 
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
+    factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
     factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultSyncEngine) bind SyncEngine::class
+    factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
+    factoryOf(::DefaultPairingRepository) bind PairingRepository::class
 
     factoryOf(::DrainOutbox)
     factoryOf(::PullRemoteOperations)
@@ -94,6 +111,8 @@ fun Module.repository() {
 fun Module.useCases() {
     factoryOf(::DeckCreator)
     factoryOf(::DeckFetcher)
+    factoryOf(::GetDefaultDeckUseCase)
+    factoryOf(::SetDefaultDeckUseCase)
     factoryOf(::FlashcardCreator)
     factoryOf(::FlashcardFetcher)
     factoryOf(::DecksWithCardsProvider)
@@ -103,6 +122,12 @@ fun Module.useCases() {
     factoryOf(::BackupExecutor)
     factoryOf(::FlashcardReviewUpdater)
     factoryOf(::FlashcardAndReviewFetcher)
+    factoryOf(::GetSyncDebugStateUseCase)
+    factoryOf(::EnsureLinkedIdentityUseCase)
+    factoryOf(::CreatePairingSessionUseCase)
+    factoryOf(::RedeemPairingCodeUseCase)
+    factoryOf(::ListLinkedDevicesUseCase)
+    factoryOf(::RevokeLinkedDeviceUseCase)
 }
 
 fun Module.viewModels() {

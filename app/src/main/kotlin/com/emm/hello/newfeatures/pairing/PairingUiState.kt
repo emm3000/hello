@@ -1,6 +1,6 @@
 package com.emm.hello.newfeatures.pairing
 
-import com.emm.data.sync.LinkedDevice
+import com.emm.domain.sync.LinkedDevice
 
 data class PairingUiState(
     val isLoading: Boolean = false,

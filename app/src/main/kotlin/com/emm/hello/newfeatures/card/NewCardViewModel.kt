@@ -5,8 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.data.remote.DataStore
 import com.emm.domain.deck.DeckFetcher
+import com.emm.domain.deck.GetDefaultDeckUseCase
+import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.FlashcardCreator
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 class NewCardViewModel(
     deckFetcher: DeckFetcher,
     private val cardCreator: FlashcardCreator,
-    private val dataStore: DataStore,
+    private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
+    private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
 ) : ViewModel() {
 
     var state by mutableStateOf(NewCardUiState())
@@ -24,7 +26,7 @@ class NewCardViewModel(
     init {
         deckFetcher.fetch()
             .onEach { decks ->
-                val defaultDeckId = dataStore.defaultDeck
+                val defaultDeckId = getDefaultDeckUseCase.execute()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
                 state = state.copy(
                     decks = decks,
@@ -39,12 +41,12 @@ class NewCardViewModel(
         when (action) {
             is NewCardAction.DeckSelected -> state = state.copy(
                 deckSelected = action.deck,
-                isCheck = dataStore.defaultDeck == action.deck.id,
+                isCheck = getDefaultDeckUseCase.execute() == action.deck.id,
             )
             is NewCardAction.WordChanged -> state = state.copy(word = action.word, error = null, previewResult = null)
             is NewCardAction.CheckChanged -> {
                 val newDeckId = if (action.checked) state.deckSelected?.id.orEmpty() else ""
-                dataStore.defaultDeck = newDeckId
+                setDefaultDeckUseCase.execute(newDeckId)
                 state = state.copy(isCheck = action.checked)
             }
             NewCardAction.GenerateClicked -> generateFlashcard()

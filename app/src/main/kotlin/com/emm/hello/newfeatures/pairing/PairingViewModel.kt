@@ -1,22 +1,24 @@
 package com.emm.hello.newfeatures.pairing
 
-import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.data.HelloDb
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
-import com.emm.data.sync.SupabaseSyncRemoteDataSource
+import com.emm.domain.sync.CreatePairingSessionUseCase
+import com.emm.domain.sync.EnsureLinkedIdentityUseCase
+import com.emm.domain.sync.ListLinkedDevicesUseCase
+import com.emm.domain.sync.RedeemPairingCodeUseCase
+import com.emm.domain.sync.RevokeLinkedDeviceUseCase
 import com.emm.domain.sync.SyncEngine
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 class PairingViewModel(
-    private val remote: SupabaseSyncRemoteDataSource,
-    private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
-    private val db: HelloDb,
+    private val ensureLinkedIdentityUseCase: EnsureLinkedIdentityUseCase,
+    private val createPairingSessionUseCase: CreatePairingSessionUseCase,
+    private val redeemPairingCodeUseCase: RedeemPairingCodeUseCase,
+    private val listLinkedDevicesUseCase: ListLinkedDevicesUseCase,
+    private val revokeLinkedDeviceUseCase: RevokeLinkedDeviceUseCase,
     private val syncEngine: SyncEngine,
 ) : ViewModel() {
 
@@ -35,9 +37,9 @@ class PairingViewModel(
         viewModelScope.launch {
             state = state.copy(isGeneratingCode = true, error = null, success = null)
             runCatching {
-                ensureLinkedIdentity()
+                ensureLinkedIdentityUseCase.execute()
                 syncEngine.runOnce()
-                remote.createPairingSession(ttlMinutes = 10)
+                createPairingSessionUseCase.execute(ttlMinutes = 10)
             }.onSuccess { session ->
                 state = state.copy(
                     isGeneratingCode = false,
@@ -61,19 +63,7 @@ class PairingViewModel(
         viewModelScope.launch {
             state = state.copy(isSubmittingJoin = true, error = null, success = null)
             runCatching {
-                val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-                remote.ensureAnonymousSession()
-                val redeem = remote.redeemPairingCode(
-                    code = code,
-                    deviceId = deviceId,
-                    deviceName = Build.MODEL,
-                    platform = "android",
-                )
-                persistLocalAccountState(
-                    appAccountId = redeem.appAccountId,
-                    authUserId = redeem.authUserId,
-                    resetSyncCursor = true,
-                )
+                redeemPairingCodeUseCase.execute(code)
                 syncEngine.runOnce()
             }.onSuccess {
                 state = state.copy(
@@ -92,8 +82,8 @@ class PairingViewModel(
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, success = null)
             runCatching {
-                ensureLinkedIdentity()
-                remote.revokeLinkedDevice(deviceId = deviceId, reason = "revoked_from_app")
+                ensureLinkedIdentityUseCase.execute()
+                revokeLinkedDeviceUseCase.execute(deviceId = deviceId, reason = "revoked_from_app")
             }.onSuccess { revoked ->
                 state = state.copy(
                     isLoading = false,
@@ -110,56 +100,13 @@ class PairingViewModel(
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null)
             runCatching {
-                ensureLinkedIdentity()
-                remote.listLinkedDevices()
+                ensureLinkedIdentityUseCase.execute()
+                listLinkedDevicesUseCase.execute()
             }.onSuccess { devices ->
                 state = state.copy(isLoading = false, devices = devices)
             }.onFailure { error ->
                 state = state.copy(isLoading = false, error = error.message ?: "No se pudo cargar dispositivos")
             }
-        }
-    }
-
-    private suspend fun ensureLinkedIdentity() {
-        val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-        remote.ensureAnonymousSession()
-        val bootstrap = remote.bootstrapAnonymousDevice(
-            deviceId = deviceId,
-            deviceName = Build.MODEL,
-            platform = "android",
-        )
-        persistLocalAccountState(
-            appAccountId = bootstrap.appAccountId,
-            authUserId = bootstrap.authUserId,
-            resetSyncCursor = false,
-        )
-    }
-
-    private fun persistLocalAccountState(
-        appAccountId: String,
-        authUserId: String,
-        resetSyncCursor: Boolean,
-    ) {
-        val queries = db.localFirstQueries
-        val now = Instant.now().toEpochMilli()
-        val current = queries.selectLocalAccountState().executeAsOneOrNull()
-        queries.upsertLocalAccountState(
-            appAccountId = appAccountId,
-            authUserId = authUserId,
-            pairingState = "Paired",
-            createdAt = current?.createdAt ?: now,
-            updatedAt = now,
-        )
-
-        if (resetSyncCursor) {
-            val checkpoint = queries.selectSyncCheckpoint().executeAsOneOrNull()
-            queries.upsertSyncCheckpoint(
-                lastPulledCursor = 0L,
-                lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
-                lastSyncError = null,
-                lastSyncErrorAt = null,
-                updatedAt = now,
-            )
         }
     }
 }
