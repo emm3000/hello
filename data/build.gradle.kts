@@ -9,10 +9,20 @@ plugins {
     id("app.cash.sqldelight") version libs.versions.androidDriver
 }
 
+val localPropertiesFile: File = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+fun resolveProperty(key: String): String {
+    return localProperties.getProperty(key) ?: keystoreProperties.getProperty(key) ?: ""
 }
 
 configure<LibraryExtension> {
@@ -24,17 +34,19 @@ configure<LibraryExtension> {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "BASE_URL", "\"${keystoreProperties.getProperty("BASE_URL") ?: ""}\"")
+        buildConfigField("String", "BASE_URL", "\"${resolveProperty("BASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${resolveProperty("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${resolveProperty("SUPABASE_ANON_KEY")}\"")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue("string", "xmm", keystoreProperties.getProperty("xmm") ?: "")
+            resValue("string", "xmm", resolveProperty("xmm"))
         }
         debug {
-            resValue("string", "xmm", keystoreProperties.getProperty("xmm") ?: "")
+            resValue("string", "xmm", resolveProperty("xmm"))
             matchingFallbacks += listOf("release")
         }
 
@@ -89,6 +101,13 @@ dependencies {
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.postgrest.kt)
+    implementation(libs.supabase.functions.kt)
+    implementation(libs.supabase.realtime.kt)
+    implementation(libs.ktor.client.android)
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.koin.bom))

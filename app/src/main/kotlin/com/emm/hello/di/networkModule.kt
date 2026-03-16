@@ -5,12 +5,14 @@ import com.emm.data.remote.ApiService
 import com.emm.data.remote.provideOkHttp
 import com.emm.data.remote.provideRetrofit
 import com.emm.data.remote.provideSharedPreferences
+import com.emm.data.remote.supabaseModule
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
 val networkModule = module {
+    includes(supabaseModule)
 
     single<OkHttpClient> { provideOkHttp(androidApplication()) }
     single<Retrofit> { provideRetrofit(get(), get()) }
