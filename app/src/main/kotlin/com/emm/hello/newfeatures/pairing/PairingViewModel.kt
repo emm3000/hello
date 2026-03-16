@@ -50,9 +50,9 @@ class PairingViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGeneratingCode = true) }
             runCatching {
-                ensureLinkedIdentityUseCase.execute()
+                ensureLinkedIdentityUseCase()
                 syncEngine.runOnce()
-                createPairingSessionUseCase.execute(ttlMinutes = 10)
+                createPairingSessionUseCase(ttlMinutes = 10)
             }.onSuccess { session ->
                 _state.update {
                     it.copy(
@@ -85,7 +85,7 @@ class PairingViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isSubmittingJoin = true) }
             runCatching {
-                redeemPairingCodeUseCase.execute(code)
+                redeemPairingCodeUseCase(code)
                 syncEngine.runOnce()
             }.onSuccess {
                 _state.update {
@@ -107,8 +107,8 @@ class PairingViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             runCatching {
-                ensureLinkedIdentityUseCase.execute()
-                revokeLinkedDeviceUseCase.execute(deviceId = deviceId, reason = "revoked_from_app")
+                ensureLinkedIdentityUseCase()
+                revokeLinkedDeviceUseCase(deviceId = deviceId, reason = "revoked_from_app")
             }.onSuccess { revoked ->
                 _state.update { it.copy(isLoading = false) }
                 _effect.send(
@@ -128,8 +128,8 @@ class PairingViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             runCatching {
-                ensureLinkedIdentityUseCase.execute()
-                listLinkedDevicesUseCase.execute()
+                ensureLinkedIdentityUseCase()
+                listLinkedDevicesUseCase()
             }.onSuccess { devices ->
                 _state.update { it.copy(isLoading = false, devices = devices) }
             }.onFailure { error ->

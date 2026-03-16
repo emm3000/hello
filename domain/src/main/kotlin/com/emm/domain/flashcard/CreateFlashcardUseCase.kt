@@ -4,19 +4,7 @@ class CreateFlashcardUseCase(
     private val repository: FlashcardRepository,
 ) {
 
-    suspend fun generateFlashcardPreview(
-        word: String,
-        categories: StaticCategories,
-        difficulty: String,
-        typeView: TypeView,
-    ): FlashcardGenerated {
-        return when (typeView) {
-            TypeView.WordOrPhase -> repository.generateFlashcard(word)
-            TypeView.WithCategories -> repository.generatedFlashcard(categories, difficulty)
-        }
-    }
-
-    suspend fun saveFlashcard(
+    suspend operator fun invoke(
         deckId: String,
         flashcard: FlashcardGenerated,
     ): Flashcard {

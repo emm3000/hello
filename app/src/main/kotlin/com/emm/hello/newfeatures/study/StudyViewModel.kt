@@ -24,7 +24,7 @@ class StudyViewModel(
 
     init {
         viewModelScope.launch {
-            val flashcards: List<Flashcard> = getStudySessionUseCase.fetchAll(deckId)
+            val flashcards: List<Flashcard> = getStudySessionUseCase(deckId)
             flashcardsForToday.addAll(flashcards)
             state = state.copy(totalCount = flashcards.size)
             showNextCard()
@@ -60,7 +60,7 @@ class StudyViewModel(
             grade = reviewResult,
             flashcardId = flashcard.id,
         )
-        updateFlashcardReviewUseCase.update(newReview)
+        updateFlashcardReviewUseCase(newReview)
         incrementReviewed()
         showNextCard()
     }

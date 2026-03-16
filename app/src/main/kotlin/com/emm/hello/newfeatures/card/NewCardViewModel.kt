@@ -6,6 +6,7 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
+import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 class NewCardViewModel(
     getDecksUseCase: GetDecksUseCase,
     private val createFlashcardUseCase: CreateFlashcardUseCase,
+    private val generateFlashcardPreviewUseCase: GenerateFlashcardPreviewUseCase,
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
 ) : ViewModel() {
@@ -29,9 +31,9 @@ class NewCardViewModel(
     val effect = _effect.receiveAsFlow()
 
     init {
-        getDecksUseCase.fetch()
+        getDecksUseCase()
             .onEach { decks ->
-                val defaultDeckId = getDefaultDeckUseCase.execute()
+                val defaultDeckId = getDefaultDeckUseCase()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
                 _state.update {
                     it.copy(
@@ -49,13 +51,13 @@ class NewCardViewModel(
             is NewCardUiIntent.DeckSelected -> _state.update {
                 it.copy(
                     deckSelected = intent.deck,
-                    isCheck = getDefaultDeckUseCase.execute() == intent.deck.id,
+                    isCheck = getDefaultDeckUseCase() == intent.deck.id,
                 )
             }
             is NewCardUiIntent.WordChanged -> _state.update { it.copy(word = intent.word, error = null, previewResult = null) }
             is NewCardUiIntent.CheckChanged -> {
                 val newDeckId = if (intent.checked) _state.value.deckSelected?.id.orEmpty() else ""
-                setDefaultDeckUseCase.execute(newDeckId)
+                setDefaultDeckUseCase(newDeckId)
                 _state.update { it.copy(isCheck = intent.checked) }
             }
             NewCardUiIntent.GenerateClicked -> generateFlashcard()
@@ -76,7 +78,7 @@ class NewCardViewModel(
         val current = _state.value
         _state.update { it.copy(isLoading = true, error = null) }
         try {
-            val preview = createFlashcardUseCase.generateFlashcardPreview(
+            val preview = generateFlashcardPreviewUseCase(
                 word = current.word,
                 categories = current.category,
                 difficulty = current.difficulty,
@@ -94,7 +96,7 @@ class NewCardViewModel(
         val preview = current.previewResult ?: return@launch
         _state.update { it.copy(isLoading = true, error = null) }
         try {
-            createFlashcardUseCase.saveFlashcard(
+            createFlashcardUseCase(
                 deckId = deckId,
                 flashcard = preview,
             )

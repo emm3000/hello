@@ -2,7 +2,7 @@ package com.emm.domain.quote
 
 class GenerateQuoteUseCase(private val repository: QuoteRepository) {
 
-    suspend fun generateQuote() {
+    suspend operator fun invoke() {
         repository.generate()
     }
 }

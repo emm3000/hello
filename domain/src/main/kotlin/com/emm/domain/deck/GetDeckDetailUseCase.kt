@@ -11,7 +11,7 @@ class GetDeckDetailUseCase(
     private val cardRepository: FlashcardRepository,
 ) {
 
-    fun fetch(deckId: String): Flow<Deck> = combine(
+    operator fun invoke(deckId: String): Flow<Deck> = combine(
         flow = repository.findById(deckId),
         flow2 = cardRepository.fetchByDeckId(deckId)
     ) { deck: Deck, cards: List<Flashcard> ->

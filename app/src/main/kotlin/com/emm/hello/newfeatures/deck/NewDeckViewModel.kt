@@ -37,7 +37,7 @@ class NewDeckViewModel(private val createDeckUseCase: CreateDeckUseCase) : ViewM
                 name = current.name,
                 description = current.description,
             )
-            createDeckUseCase.create(input)
+            createDeckUseCase(input)
         }.onSuccess {
             _state.update { NewDeckUiState() }
             _effect.send(NewDeckUiEffect.NavigateBack)

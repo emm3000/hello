@@ -17,7 +17,7 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     private val syncDebugState = combine(
-        getSyncDebugStateUseCase.fetch(),
+        getSyncDebugStateUseCase(),
         syncEngine.state,
     ) { syncDebug, syncState ->
         SyncDebugUiState(
@@ -31,7 +31,7 @@ class DashboardViewModel(
     }
 
     val state: StateFlow<DashboardUiState> = combine(
-        getDecksUseCase.fetch(),
+        getDecksUseCase(),
         syncDebugState,
     ) { decks, syncDebug ->
         DashboardUiState(

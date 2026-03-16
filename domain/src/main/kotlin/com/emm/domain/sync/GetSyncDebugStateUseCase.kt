@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 class GetSyncDebugStateUseCase(
     private val repository: SyncDebugStateRepository,
 ) {
-    fun fetch(): Flow<SyncDebugState> {
+    operator fun invoke(): Flow<SyncDebugState> {
         return repository.observe()
     }
 }

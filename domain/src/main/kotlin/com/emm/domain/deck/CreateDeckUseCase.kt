@@ -2,7 +2,7 @@ package com.emm.domain.deck
 
 class CreateDeckUseCase(private val repository: DeckRepository) {
 
-    suspend fun create(input: CreateDeckInput) {
+    suspend operator fun invoke(input: CreateDeckInput) {
         repository.addDeck(input)
     }
 }

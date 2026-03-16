@@ -36,7 +36,7 @@ fun NavGraphBuilder.quote() {
 
         QuotesScreen(quotes) {
             scope.launch {
-                when (saveQuoteAsFlashcardUseCase.execute(it)) {
+                when (saveQuoteAsFlashcardUseCase(it)) {
                     SaveQuoteAsFlashcardResult.Saved -> {
                         android.widget.Toast.makeText(
                             context,

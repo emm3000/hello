@@ -21,7 +21,7 @@ class DeckDetailViewModel(
 
     // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
     val uiState: StateFlow<DeckDetailUiState> = combine(
-        flow = getDeckDetailUseCase.fetch(deckId),
+        flow = getDeckDetailUseCase(deckId),
         flow2 = fetchSessionCards(),
         transform = { deck, (sessionCards, hasSessionEnabled) ->
             val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
@@ -38,7 +38,7 @@ class DeckDetailViewModel(
 
     // Fixed typo: fetchSessionCars → fetchSessionCards
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
-        observeFlashcardsWithReviewUseCase.fetch(deckId).map { flashcards ->
+        observeFlashcardsWithReviewUseCase(deckId).map { flashcards ->
             val hasSessionEnabled = flashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
             flashcards to hasSessionEnabled
         }

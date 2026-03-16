@@ -3,7 +3,7 @@ package com.emm.domain.deck
 class SetDefaultDeckUseCase(
     private val repository: DefaultDeckSelectionRepository,
 ) {
-    fun execute(deckId: String) {
+    operator fun invoke(deckId: String) {
         repository.setDefaultDeckId(deckId)
     }
 }

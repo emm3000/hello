@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 class ObserveLatestQuoteUseCase(private val repository: QuoteRepository) {
 
-    fun fetch(): Flow<List<Quote>> {
+    operator fun invoke(): Flow<List<Quote>> {
         return repository.lastQuote()
     }
 }

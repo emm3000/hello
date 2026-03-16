@@ -31,7 +31,7 @@ class BackupSyncWorker(
     private val force: Boolean = inputData.getBoolean("force", false)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        runBackupUseCase.execute(force)
+        runBackupUseCase(force)
             .fold(
                 onSuccess = {
                     Result.success()

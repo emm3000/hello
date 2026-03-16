@@ -3,7 +3,7 @@ package com.emm.domain.sync
 class ListLinkedDevicesUseCase(
     private val repository: PairingRepository,
 ) {
-    suspend fun execute(): List<LinkedDevice> {
+    suspend operator fun invoke(): List<LinkedDevice> {
         return repository.listLinkedDevices()
     }
 }

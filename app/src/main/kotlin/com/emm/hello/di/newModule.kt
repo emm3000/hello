@@ -34,6 +34,7 @@ import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
@@ -115,6 +116,7 @@ fun Module.useCases() {
     factoryOf(::GetDefaultDeckUseCase)
     factoryOf(::SetDefaultDeckUseCase)
     factoryOf(::CreateFlashcardUseCase)
+    factoryOf(::GenerateFlashcardPreviewUseCase)
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::GetFlashcardByIdUseCase)

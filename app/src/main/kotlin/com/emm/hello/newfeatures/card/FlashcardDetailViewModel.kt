@@ -20,7 +20,7 @@ class FlashcardDetailViewModel(
 
     init {
         viewModelScope.launch {
-            val flashcard = getFlashcardByIdUseCase.find(flashcardId)
+            val flashcard = getFlashcardByIdUseCase(flashcardId)
             _state.update { flashcard }
         }
     }
