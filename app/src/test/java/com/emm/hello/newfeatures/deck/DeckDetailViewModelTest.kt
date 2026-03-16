@@ -10,7 +10,7 @@ import org.junit.Test
 class DeckDetailViewModelTest {
 
     @Test
-    fun mergeDeckCardsById_preservesAllDeckCards_whenSessionListIsShorter() {
+    fun `merge deck cards by id preserves all deck cards when session list is shorter`() {
         val baseReview = FlashcardReview.Empty.copy(nextReviewAt = 10L)
         val updatedReview = FlashcardReview.Empty.copy(nextReviewAt = 99L)
         val cardA = flashcard(id = "a", review = baseReview)

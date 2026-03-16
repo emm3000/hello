@@ -8,7 +8,7 @@ import org.junit.Test
 class PairingUseCasesTest {
 
     @Test
-    fun ensureLinkedIdentity_callsRepository() = runBlocking {
+    fun `ensure linked identity calls repository`() = runBlocking {
         val repository = FakePairingRepository()
         val useCase = EnsureLinkedIdentityUseCase(repository)
 
@@ -18,7 +18,7 @@ class PairingUseCasesTest {
     }
 
     @Test
-    fun createPairingSession_forwardsTtlAndReturnsSession() = runBlocking {
+    fun `create pairing session forwards ttl and returns session`() = runBlocking {
         val repository = FakePairingRepository()
         val useCase = CreatePairingSessionUseCase(repository)
 
@@ -29,7 +29,7 @@ class PairingUseCasesTest {
     }
 
     @Test
-    fun redeemPairingCode_forwardsCode() = runBlocking {
+    fun `redeem pairing code forwards code`() = runBlocking {
         val repository = FakePairingRepository()
         val useCase = RedeemPairingCodeUseCase(repository)
 
@@ -39,7 +39,7 @@ class PairingUseCasesTest {
     }
 
     @Test
-    fun listLinkedDevices_returnsRepositoryList() = runBlocking {
+    fun `list linked devices returns repository list`() = runBlocking {
         val repository = FakePairingRepository()
         val useCase = ListLinkedDevicesUseCase(repository)
 
@@ -49,7 +49,7 @@ class PairingUseCasesTest {
     }
 
     @Test
-    fun revokeLinkedDevice_forwardsArgumentsAndReturnsResult() = runBlocking {
+    fun `revoke linked device forwards arguments and returns result`() = runBlocking {
         val repository = FakePairingRepository().apply { revokeResult = true }
         val useCase = RevokeLinkedDeviceUseCase(repository)
 

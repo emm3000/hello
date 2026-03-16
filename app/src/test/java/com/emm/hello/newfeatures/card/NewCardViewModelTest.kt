@@ -41,7 +41,7 @@ class NewCardViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun wordChanged_clearsErrorAndPreview() = runTest {
+    fun `word changed clears error and preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val writeRepository = mockk<FlashcardWriteRepository>()
         val readRepository = mockk<FlashcardReadRepository>()
@@ -78,7 +78,7 @@ class NewCardViewModelTest {
     }
 
     @Test
-    fun saveClicked_success_emitsShowMessageEffect() = runTest {
+    fun `save clicked success emits show message effect`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val writeRepository = mockk<FlashcardWriteRepository>()
         val readRepository = mockk<FlashcardReadRepository>()

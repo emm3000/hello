@@ -22,7 +22,7 @@ class NewDeckViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun submit_success_resetsStateAndEmitsNavigateBackEffect() = runTest {
+    fun `submit success resets state and emits navigate back effect`() = runTest {
         val repository = FakeDeckRepository()
         val viewModel = NewDeckViewModel(CreateDeckUseCase(repository))
 
@@ -41,7 +41,7 @@ class NewDeckViewModelTest {
     }
 
     @Test
-    fun submit_failure_emitsShowMessageAndStopsLoading() = runTest {
+    fun `submit failure emits show message and stops loading`() = runTest {
         val repository = FakeDeckRepository(shouldFail = true)
         val viewModel = NewDeckViewModel(CreateDeckUseCase(repository))
 

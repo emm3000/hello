@@ -10,7 +10,7 @@ import org.junit.Test
 class CreateDeckUseCaseTest {
 
     @Test
-    fun invoke_delegatesInputToRepository() = runBlocking {
+    fun `invoke delegates input to repository`() = runBlocking {
         val repository = FakeDeckRepository()
         val useCase = CreateDeckUseCase(repository)
         val input = CreateDeckInput(name = "Basics", description = "Starter deck")
@@ -22,7 +22,7 @@ class CreateDeckUseCaseTest {
     }
 
     @Test
-    fun invoke_canBeCalledMultipleTimes() = runBlocking {
+    fun `invoke can be called multiple times`() = runBlocking {
         val repository = FakeDeckRepository()
         val useCase = CreateDeckUseCase(repository)
 

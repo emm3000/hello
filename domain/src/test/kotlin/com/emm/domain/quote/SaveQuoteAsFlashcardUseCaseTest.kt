@@ -13,7 +13,7 @@ import org.junit.Test
 class SaveQuoteAsFlashcardUseCaseTest {
 
     @Test
-    fun invoke_whenDefaultDeckIsBlank_returnsDefaultDeckRequiredAndDoesNotCreate() = runBlocking {
+    fun `invoke when default deck is blank returns default deck required and does not create`() = runBlocking {
         val deckSelectionRepository = FakeDefaultDeckSelectionRepository(defaultDeckId = "")
         val flashcardWriteRepository = FakeFlashcardWriteRepository()
         val useCase = SaveQuoteAsFlashcardUseCase(
@@ -29,7 +29,7 @@ class SaveQuoteAsFlashcardUseCaseTest {
     }
 
     @Test
-    fun invoke_whenDefaultDeckExists_createsFlashcardAndReturnsSaved() = runBlocking {
+    fun `invoke when default deck exists creates flashcard and returns saved`() = runBlocking {
         val deckSelectionRepository = FakeDefaultDeckSelectionRepository(defaultDeckId = "deck-1")
         val flashcardWriteRepository = FakeFlashcardWriteRepository()
         val useCase = SaveQuoteAsFlashcardUseCase(

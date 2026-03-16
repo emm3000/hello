@@ -10,7 +10,7 @@ class ScheduleFlashcardReviewUseCaseTest {
     private val useCase = ScheduleFlashcardReviewUseCase()
 
     @Test
-    fun invoke_whenAgain_resetsRepetitionsAndSetsOneDayInterval() {
+    fun `invoke when again resets repetitions and sets one day interval`() {
         val review = baseReview().copy(
             easeFactor = 2.1,
             repetitions = 7L,
@@ -29,7 +29,7 @@ class ScheduleFlashcardReviewUseCaseTest {
     }
 
     @Test
-    fun invoke_whenGoodAndSecondRepetition_setsSixDayInterval() {
+    fun `invoke when good and second repetition sets six day interval`() {
         val review = baseReview().copy(
             easeFactor = 2.5,
             repetitions = 1L,
@@ -46,7 +46,7 @@ class ScheduleFlashcardReviewUseCaseTest {
     }
 
     @Test
-    fun invoke_whenEasyAfterSecondReview_increasesEaseAndRoundsInterval() {
+    fun `invoke when easy after second review increases ease and rounds interval`() {
         val review = baseReview().copy(
             easeFactor = 2.5,
             repetitions = 2L,
