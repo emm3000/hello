@@ -136,14 +136,14 @@ Decisiones cerradas:
 
 ## Fase 7. Protocolo de sync en Supabase
 
-- [ ] Diseñar el contrato de `sync_push`.
-- [ ] Diseñar el contrato de `sync_pull`.
-- [ ] Diseñar el contrato de `sync_ack`.
-- [ ] Implementar `rpc.sync_push(batch jsonb)`.
-- [ ] Implementar `rpc.sync_pull(cursor bigint, limit int)`.
-- [ ] Implementar `rpc.sync_ack(op_ids jsonb)`.
-- [ ] Hacer que `sync_push` aplique operaciones idempotentemente.
-- [ ] Hacer que `sync_push` escriba `sync_operation` con secuencia global o por cuenta.
+- [x] Diseñar el contrato de `sync_push`.
+- [x] Diseñar el contrato de `sync_pull`.
+- [x] Diseñar el contrato de `sync_ack`.
+- [x] Implementar `rpc.sync_push(batch jsonb)`.
+- [x] Implementar `rpc.sync_pull(cursor bigint, limit int)`.
+- [x] Implementar `rpc.sync_ack(op_ids jsonb)`.
+- [x] Hacer que `sync_push` aplique operaciones idempotentemente.
+- [x] Hacer que `sync_push` escriba `sync_operation` con secuencia global o por cuenta.
 - [ ] Hacer que `sync_pull` entregue operaciones ordenadas por cursor.
 - [ ] Hacer que `sync_pull` excluya operaciones originadas por el mismo dispositivo si asi lo decides.
 - [ ] Hacer que `sync_push` devuelva `acks` y metadata canonica.
