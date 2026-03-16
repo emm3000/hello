@@ -133,7 +133,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [ ] Añadir tests del reducer o transición de estado en `NewCard`.
 - [ ] Añadir tests de emisión de `UiEffect` por `Channel`.
 - [x] Añadir tests para merge de tarjetas + reviews por `id`.
-- [ ] Reemplazar los tests plantilla por pruebas reales o eliminarlos si no aportan valor.
+- [x] Reemplazar los tests plantilla por pruebas reales o eliminarlos si no aportan valor.
 
 ## Primer sprint recomendado
 
