@@ -260,7 +260,7 @@ Si tuvieras que empezar ya, yo haria solo esto:
 - [ ] Crear nuevo schema local: `OperationLog`, `SyncCheckpoint`, `ReviewEvent`, `ReviewProjection`, `LocalDeviceIdentity`, `LocalAccountState`.
 - [ ] Refactorizar un solo flujo end-to-end: `Deck`.
 - [ ] Montar Supabase con `Anonymous Auth`, `app_account`, `app_device`, `sync_operation`.
-- [ ] Implementar `sync_push` y `sync_pull` solo para `Deck`.
+- [x] Implementar `sync_push` y `sync_pull` solo para `Deck`.
 - [ ] Implementar pairing minimo con codigo corto de 6 caracteres.
 - [ ] Probar dos dispositivos reales con `Deck` antes de tocar `FlashcardReview`.
 

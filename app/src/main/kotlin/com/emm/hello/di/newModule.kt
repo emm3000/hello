@@ -14,6 +14,7 @@ import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
 import com.emm.data.sync.DefaultSyncEngine
+import com.emm.data.sync.syncDataModule
 import com.emm.domain.backup.BackupExecutor
 import com.emm.domain.backup.BackupRepository
 import com.emm.domain.deck.DeckCreator
@@ -49,6 +50,8 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val newModule = module {
+    includes(syncDataModule)
+
     single { provideSqlDriver(androidContext()) }
     single<HelloDb> { provideDb(get()) }
 
