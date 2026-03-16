@@ -55,7 +55,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 ## Fase 3: Estandarizar MVI
 
-- [ ] Crear contrato base para `ViewModel` MVI si el equipo quiere reutilizar helpers.
+- [x] Crear contrato base para `ViewModel` MVI si el equipo quiere reutilizar helpers.
 - [x] Definir snippet estándar por feature:
   - `private val _state = MutableStateFlow(UiState())`
   - `val uiState = _state.asStateFlow()`
