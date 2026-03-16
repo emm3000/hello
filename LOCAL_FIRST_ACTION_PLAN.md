@@ -127,12 +127,12 @@ Decisiones cerradas:
 
 ## Fase 6. Seguridad y acceso
 
-- [ ] Crear politicas RLS para `app_device`.
-- [ ] Crear politicas RLS para tablas de dominio basadas en pertenencia a `app_account`.
-- [ ] Crear politicas RLS para `sync_operation`.
-- [ ] Definir si el cliente tendra acceso directo a tablas de dominio o solo a `RPC`.
-- [ ] Si eliges solo `RPC` para sync, minimizar acceso directo desde cliente a tablas sensibles.
-- [ ] Agregar revocacion de dispositivos en `app_device`.
+- [x] Crear politicas RLS para `app_device`.
+- [x] Crear politicas RLS para tablas de dominio basadas en pertenencia a `app_account`.
+- [x] Crear politicas RLS para `sync_operation`.
+- [x] Definir si el cliente tendra acceso directo a tablas de dominio o solo a `RPC`.
+- [x] Si eliges solo `RPC` para sync, minimizar acceso directo desde cliente a tablas sensibles.
+- [x] Agregar revocacion de dispositivos en `app_device`.
 
 ## Fase 7. Protocolo de sync en Supabase
 
@@ -268,3 +268,4 @@ Si tuvieras que empezar ya, yo haria solo esto:
 
 - `Pairing` v1 sera con codigo corto de 6 caracteres.
 - `QR` queda como mejora futura de UX, no como requisito inicial.
+- `Sync` v1 usara `RPC` como camino principal y se minimiza escritura directa del cliente en tablas sensibles.
