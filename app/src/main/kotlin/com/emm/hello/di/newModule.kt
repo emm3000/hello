@@ -43,6 +43,7 @@ import com.emm.domain.quote.GenerateQuoteUseCase
 import com.emm.domain.quote.ObserveLatestQuoteUseCase
 import com.emm.domain.quote.QuoteRepository
 import com.emm.domain.quote.SaveQuoteAsFlashcardUseCase
+import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.GetSyncDebugStateUseCase
@@ -132,6 +133,7 @@ fun Module.useCases() {
     factoryOf(::RedeemPairingCodeUseCase)
     factoryOf(::ListLinkedDevicesUseCase)
     factoryOf(::RevokeLinkedDeviceUseCase)
+    factoryOf(::ScheduleFlashcardReviewUseCase)
 }
 
 fun Module.viewModels() {
@@ -143,6 +145,7 @@ fun Module.viewModels() {
         StudyViewModel(
             deckId = it.get(),
             getStudySessionUseCase = get(),
+            scheduleFlashcardReviewUseCase = get(),
             updateFlashcardReviewUseCase = get(),
         )
     }

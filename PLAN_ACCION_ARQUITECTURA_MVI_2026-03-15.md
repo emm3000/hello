@@ -86,10 +86,10 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 ## Fase 4: Mover lógica de negocio a `domain`
 
-- [ ] Mover `ReviewGrade` a `domain` si forma parte de la lógica de negocio.
-- [ ] Mover `SpacedRepetitionScheduler` a `domain`.
-- [ ] Crear `ScheduleFlashcardReviewUseCase`.
-- [ ] Hacer que `StudyViewModel` use el caso de uso en lugar del objeto en `app`.
+- [x] Mover `ReviewGrade` a `domain` si forma parte de la lógica de negocio.
+- [x] Mover `SpacedRepetitionScheduler` a `domain`.
+- [x] Crear `ScheduleFlashcardReviewUseCase`.
+- [x] Hacer que `StudyViewModel` use el caso de uso en lugar del objeto en `app`.
 - [ ] Extraer desde `QuoteRoute` toda la lógica de crear `CreateFlashcardInput`.
 - [ ] Decidir si `CreateFlashcardInput` sigue siendo DTO de dominio o si conviene un comando más expresivo por caso de uso.
 
@@ -142,7 +142,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [x] Crear `NewDeckUiEffect`.
 - [x] Mover navegación de éxito/error de `NewDeck` a `Channel`.
 - [x] Reemplazar `zip` por merge por `id` en `DeckDetailViewModel`.
-- [ ] Mover `SpacedRepetitionScheduler` a `domain`.
+- [x] Mover `SpacedRepetitionScheduler` a `domain`.
 - [x] Renombrar `DeckCreator` y `DeckFetcher` a `*UseCase`.
 - [x] Crear `GetDefaultDeckUseCase` y `SetDefaultDeckUseCase`.
 - [x] Quitar `DataStore` de `NewCardViewModel`.
