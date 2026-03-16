@@ -144,10 +144,10 @@ Decisiones cerradas:
 - [x] Implementar `rpc.sync_ack(op_ids jsonb)`.
 - [x] Hacer que `sync_push` aplique operaciones idempotentemente.
 - [x] Hacer que `sync_push` escriba `sync_operation` con secuencia global o por cuenta.
-- [ ] Hacer que `sync_pull` entregue operaciones ordenadas por cursor.
-- [ ] Hacer que `sync_pull` excluya operaciones originadas por el mismo dispositivo si asi lo decides.
-- [ ] Hacer que `sync_push` devuelva `acks` y metadata canonica.
-- [ ] Agregar tests SQL o integration tests para idempotencia y orden.
+- [x] Hacer que `sync_pull` entregue operaciones ordenadas por cursor.
+- [x] Hacer que `sync_pull` excluya operaciones originadas por el mismo dispositivo si asi lo decides.
+- [x] Hacer que `sync_push` devuelva `acks` y metadata canonica.
+- [x] Agregar tests SQL o integration tests para idempotencia y orden.
 
 ## Fase 8. Pairing multi-device
 
