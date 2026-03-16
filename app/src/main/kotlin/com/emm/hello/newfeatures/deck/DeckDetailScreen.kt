@@ -170,6 +170,22 @@ private fun DeckStatsHeader(
     hasSessionEnabled: Boolean,
     onReview: () -> Unit,
 ) {
+    val deckPluralLabel = if (cardCount == 1) {
+        stringResource(R.string.deck_plural_one)
+    } else {
+        stringResource(R.string.deck_plural_other)
+    }
+    val reviewStatusValue = if (hasSessionEnabled) {
+        stringResource(R.string.review_status_ready)
+    } else {
+        stringResource(R.string.review_status_up_to_date)
+    }
+    val reviewButtonText = if (hasSessionEnabled) {
+        stringResource(R.string.start_review)
+    } else {
+        stringResource(R.string.no_pending_cards)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,11 +199,11 @@ private fun DeckStatsHeader(
         ) {
             StatCard(
                 value = "$cardCount",
-                label = if (cardCount == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other),
+                label = deckPluralLabel,
                 modifier = Modifier.weight(1f),
             )
             StatCard(
-                value = if (hasSessionEnabled) stringResource(R.string.review_status_ready) else stringResource(R.string.review_status_up_to_date),
+                value = reviewStatusValue,
                 label = stringResource(R.string.review_status_label),
                 highlight = hasSessionEnabled,
                 modifier = Modifier.weight(1f),
@@ -196,7 +212,7 @@ private fun DeckStatsHeader(
 
         // Botón de repaso
         HButton(
-            text = if (hasSessionEnabled) stringResource(R.string.start_review) else stringResource(R.string.no_pending_cards),
+            text = reviewButtonText,
             onClick = onReview,
             modifier = Modifier
                 .fillMaxWidth()

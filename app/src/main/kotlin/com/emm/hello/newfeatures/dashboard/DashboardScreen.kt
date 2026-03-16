@@ -93,14 +93,20 @@ fun DashboardScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    Icon(Icons.Default.BookmarkAdd, contentDescription = stringResource(R.string.new_deck_content_description))
+                    Icon(
+                        Icons.Default.BookmarkAdd,
+                        contentDescription = stringResource(R.string.new_deck_content_description)
+                    )
                 }
                 SmallFloatingActionButton(
                     onClick = onPairDevice,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    Icon(Icons.Default.Link, contentDescription = stringResource(R.string.link_device_content_description))
+                    Icon(
+                        Icons.Default.Link,
+                        contentDescription = stringResource(R.string.link_device_content_description)
+                    )
                 }
                 // Main FAB: new card
                 FloatingActionButton(
@@ -273,6 +279,12 @@ private fun SessionSummaryBanner(
     totalCards: Long,
     modifier: Modifier = Modifier,
 ) {
+    val deckPluralLabel = if (totalDecks == 1) {
+        stringResource(R.string.deck_plural_one)
+    } else {
+        stringResource(R.string.deck_plural_other)
+    }
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -303,7 +315,7 @@ private fun SessionSummaryBanner(
                         text = stringResource(
                             R.string.deck_count_format,
                             totalDecks,
-                            if (totalDecks == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other)
+                            deckPluralLabel,
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

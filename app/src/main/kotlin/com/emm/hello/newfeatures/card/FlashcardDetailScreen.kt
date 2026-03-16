@@ -208,8 +208,13 @@ private fun ExampleItem(index: Int, example: Example) {
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val buttonText = if (showTranslation) {
+                stringResource(R.string.hide_translation)
+            } else {
+                stringResource(R.string.show_translation)
+            }
             HButton(
-                text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation),
+                text = buttonText,
                 onClick = { showTranslation = !showTranslation },
                 variant = ButtonVariant.Ghost,
             )

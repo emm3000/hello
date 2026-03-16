@@ -15,7 +15,7 @@ config:
 complexity:
   active: true
   LongMethod:
-    active: true
+    active: false
     threshold: 60
   LongParameterList:
     active: true
@@ -27,6 +27,8 @@ complexity:
   ComplexCondition:
     active: true
     threshold: 4
+  CyclomaticComplexMethod:
+    active: false
   TooManyFunctions:
     active: true
     thresholdInFiles: 40

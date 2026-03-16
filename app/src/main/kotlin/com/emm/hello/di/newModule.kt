@@ -5,8 +5,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
-import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultDeckRepository
+import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
@@ -22,14 +22,14 @@ import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.PullRemoteOperations
 import com.emm.data.sync.syncDataModule
-import com.emm.domain.backup.RunBackupUseCase
 import com.emm.domain.backup.BackupRepository
+import com.emm.domain.backup.RunBackupUseCase
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
-import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.FlashcardRepository

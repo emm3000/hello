@@ -84,6 +84,11 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
             .clickable { expanded = !expanded },
         variant = CardVariant.Outlined,
     ) {
+        val expandContentDescription = if (expanded) {
+            stringResource(R.string.collapse_quote)
+        } else {
+            stringResource(R.string.expand_quote)
+        }
         Column(modifier = Modifier.padding(16.dp)) {
             // -- Header (Always visible) -----------------------------------------------
             Row(
@@ -120,7 +125,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                 }
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) stringResource(R.string.collapse_quote) else stringResource(R.string.expand_quote),
+                    contentDescription = expandContentDescription,
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .rotate(if (expanded) 180f else 0f),

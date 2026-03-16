@@ -147,8 +147,11 @@ fun HInput(
                             modifier = Modifier
                                 .align(boxAlignment)
                                 .then(
-                                    if (leadingIcon != null) Modifier.padding(start = 28.dp)
-                                    else Modifier
+                                    if (leadingIcon != null) {
+                                        Modifier.padding(start = 28.dp)
+                                    } else {
+                                        Modifier
+                                    }
                                 ),
                         )
                     }

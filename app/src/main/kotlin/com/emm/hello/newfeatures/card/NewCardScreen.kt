@@ -195,7 +195,13 @@ fun NewCardScreen(
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = stringResource(R.string.word_label),
-                                placeholder = if (isListening) stringResource(R.string.listening_placeholder) else stringResource(R.string.word_placeholder),
+                                placeholder = if (isListening) {
+                                    stringResource(
+                                        R.string.listening_placeholder
+                                    )
+                                } else {
+                                    stringResource(R.string.word_placeholder)
+                                },
                                 trailingIcon = {
                                     VoiceInputButton(
                                         isListening = isListening,
@@ -320,12 +326,12 @@ fun NewCardScreen(
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                             CardPreview(state.previewResult)
-                            
+
                             HButton(
                                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
-                                onClick = { 
+                                onClick = {
                                     keyboardController?.hide()
-                                    onIntent(NewCardUiIntent.SaveClicked) 
+                                    onIntent(NewCardUiIntent.SaveClicked)
                                 },
                                 enabled = !state.isLoading,
                                 isLoading = state.isLoading,
@@ -550,7 +556,13 @@ private fun ExampleItem(index: Int, example: Example) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             HButton(
-                text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation),
+                text = if (showTranslation) {
+                    stringResource(
+                        R.string.hide_translation
+                    )
+                } else {
+                    stringResource(R.string.show_translation)
+                },
                 onClick = { showTranslation = !showTranslation },
                 variant = ButtonVariant.Ghost,
             )

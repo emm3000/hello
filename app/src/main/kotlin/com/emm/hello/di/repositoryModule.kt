@@ -1,5 +1,5 @@
 package com.emm.hello.di
- 
+
 import com.emm.data.flashcard.GeminiService
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel

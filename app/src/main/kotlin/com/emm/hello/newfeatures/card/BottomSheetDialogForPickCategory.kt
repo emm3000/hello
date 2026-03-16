@@ -119,11 +119,11 @@ fun AccountSelectorContent(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             categories.forEach { category ->
-                    key(category.id) {
-                        CategoryChip(
-                            account = category,
-                            isSelected = category == selectedCategory,
-                        ) { selected ->
+                key(category.id) {
+                    CategoryChip(
+                        account = category,
+                        isSelected = category == selectedCategory,
+                    ) { selected ->
                         onAccountSelected(selected)
                         dismiss()
                     }

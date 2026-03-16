@@ -54,7 +54,13 @@ class NewCardViewModel(
                     isCheck = getDefaultDeckUseCase() == intent.deck.id,
                 )
             }
-            is NewCardUiIntent.WordChanged -> _state.update { it.copy(word = intent.word, error = null, previewResult = null) }
+            is NewCardUiIntent.WordChanged -> _state.update {
+                it.copy(
+                    word = intent.word,
+                    error = null,
+                    previewResult = null
+                )
+            }
             is NewCardUiIntent.CheckChanged -> {
                 val newDeckId = if (intent.checked) _state.value.deckSelected?.id.orEmpty() else ""
                 setDefaultDeckUseCase(newDeckId)
@@ -62,7 +68,13 @@ class NewCardViewModel(
             }
             NewCardUiIntent.GenerateClicked -> generateFlashcard()
             NewCardUiIntent.SaveClicked -> saveFlashcard()
-            is NewCardUiIntent.CategorySelected -> _state.update { it.copy(category = intent.category, error = null, previewResult = null) }
+            is NewCardUiIntent.CategorySelected -> _state.update {
+                it.copy(
+                    category = intent.category,
+                    error = null,
+                    previewResult = null
+                )
+            }
             is NewCardUiIntent.DifficultySelected -> _state.update {
                 it.copy(
                     difficulty = intent.difficulty,
@@ -70,7 +82,12 @@ class NewCardViewModel(
                     previewResult = null,
                 )
             }
-            is NewCardUiIntent.TypeViewSelected -> _state.update { it.copy(typeView = intent.typeView, previewResult = null) }
+            is NewCardUiIntent.TypeViewSelected -> _state.update {
+                it.copy(
+                    typeView = intent.typeView,
+                    previewResult = null
+                )
+            }
         }
     }
 
