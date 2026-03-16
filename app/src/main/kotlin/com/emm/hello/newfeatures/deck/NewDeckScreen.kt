@@ -36,7 +36,7 @@ fun NewDeckScreen(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit = {},
     state: NewDeckUiState = NewDeckUiState(),
-    onAction: (NewDeckAction) -> Unit = {},
+    onIntent: (NewDeckUiIntent) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -55,10 +55,10 @@ fun NewDeckScreen(
                         text = stringResource(R.string.save),
                         onClick = {
                             focusManager.clearFocus()
-                            onAction(NewDeckAction.Submit)
-                            onNavigateBack()
+                            onIntent(NewDeckUiIntent.Submit)
                         },
-                        enabled = state.isValid,
+                        enabled = state.isValid && !state.isLoading,
+                        isLoading = state.isLoading,
                         variant = ButtonVariant.Ghost,
                     )
                 }
@@ -75,7 +75,7 @@ fun NewDeckScreen(
         ) {
             HInput(
                 value = state.name,
-                onValueChange = { onAction(NewDeckAction.NameChanged(it)) },
+                onValueChange = { onIntent(NewDeckUiIntent.NameChanged(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(R.string.deck_name_label),
                 placeholder = stringResource(R.string.deck_name_placeholder),
@@ -90,7 +90,7 @@ fun NewDeckScreen(
 
             HInput(
                 value = state.description,
-                onValueChange = { onAction(NewDeckAction.DescriptionChanged(it)) },
+                onValueChange = { onIntent(NewDeckUiIntent.DescriptionChanged(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(R.string.deck_description_label),
                 placeholder = stringResource(R.string.deck_description_placeholder),

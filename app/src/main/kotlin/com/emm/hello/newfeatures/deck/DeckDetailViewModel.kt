@@ -24,9 +24,7 @@ class DeckDetailViewModel(
         flow = getDeckDetailUseCase.fetch(deckId),
         flow2 = fetchSessionCards(),
         transform = { deck, (sessionCards, hasSessionEnabled) ->
-            val mergedCards: List<Flashcard> = deck.cards.zip(sessionCards) { deckCard, sessionCard ->
-                deckCard.copy(review = sessionCard.review)
-            }
+            val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
             DeckDetailUiState(
                 deck = deck.copy(cards = mergedCards),
                 hasSessionEnabled = hasSessionEnabled,
@@ -41,8 +39,18 @@ class DeckDetailViewModel(
     // Fixed typo: fetchSessionCars → fetchSessionCards
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
         observeFlashcardsWithReviewUseCase.fetch(deckId).map { flashcards ->
-            val withUniqueKeys = flashcards.map { it.copy(id = "${it.id}${it.review.nextReviewAt}") }
-            val hasSessionEnabled = withUniqueKeys.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
-            withUniqueKeys to hasSessionEnabled
+            val hasSessionEnabled = flashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
+            flashcards to hasSessionEnabled
         }
+}
+
+internal fun mergeDeckCardsById(
+    deckCards: List<Flashcard>,
+    sessionCards: List<Flashcard>,
+): List<Flashcard> {
+    val reviewsByCardId = sessionCards.associateBy(Flashcard::id)
+    return deckCards.map { deckCard ->
+        val sessionCard = reviewsByCardId[deckCard.id]
+        if (sessionCard == null) deckCard else deckCard.copy(review = sessionCard.review)
+    }
 }
