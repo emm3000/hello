@@ -1,14 +1,14 @@
 package com.emm.hello.newfeatures.study
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StudyViewModel(
@@ -17,8 +17,8 @@ class StudyViewModel(
     private val updateFlashcardReviewUseCase: UpdateFlashcardReviewUseCase,
 ) : ViewModel() {
 
-    var state by mutableStateOf(StudyUiState())
-        private set
+    private val _state = MutableStateFlow(StudyUiState())
+    val state = _state.asStateFlow()
 
     private val flashcardsForToday: ArrayDeque<Flashcard> = ArrayDeque()
 
@@ -26,21 +26,23 @@ class StudyViewModel(
         viewModelScope.launch {
             val flashcards: List<Flashcard> = getStudySessionUseCase(deckId)
             flashcardsForToday.addAll(flashcards)
-            state = state.copy(totalCount = flashcards.size)
+            _state.update { it.copy(totalCount = flashcards.size) }
             showNextCard()
         }
     }
 
     private fun showNextCard() {
-        state = if (flashcardsForToday.isNotEmpty()) {
-            state.copy(currentFlashcard = flashcardsForToday.removeFirstOrNull())
-        } else {
-            state.copy(isFinished = true)
+        _state.update {
+            if (flashcardsForToday.isNotEmpty()) {
+                it.copy(currentFlashcard = flashcardsForToday.removeFirstOrNull())
+            } else {
+                it.copy(isFinished = true)
+            }
         }
     }
 
     private fun incrementReviewed() {
-        state = state.copy(reviewedCount = state.reviewedCount + 1)
+        _state.update { it.copy(reviewedCount = it.reviewedCount + 1) }
     }
 
     fun onIntent(intent: StudyUiIntent) {

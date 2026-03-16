@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.study
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -17,6 +18,7 @@ fun NavGraphBuilder.study(navController: NavController) {
         val vm: StudyViewModel = koinViewModel(
             parameters = { parametersOf(route.deckId) }
         )
+        val state = vm.state.collectAsStateWithLifecycle()
 
         StudyScreen(
             onNavigateBack = { navController.popBackStack() },
@@ -28,7 +30,7 @@ fun NavGraphBuilder.study(navController: NavController) {
                     )
                 )
             },
-            state = vm.state
+            state = state.value
         )
     }
 }
