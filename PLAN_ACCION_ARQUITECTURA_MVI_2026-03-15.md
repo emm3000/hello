@@ -114,7 +114,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 - [x] Documentar que `./gradlew detekt` debe correr en cada PR.
 - [ ] Crear tarea para vaciar primero baseline de `domain` y mantenerla vacía.
-- [ ] Eliminar del baseline de `app` los issues de naming/filename más baratos.
+- [x] Eliminar del baseline de `app` los issues de naming/filename más baratos.
 - [x] Renombrar `networkModule.kt`, `newModule.kt` y `repositoryModule.kt` para cumplir naming consistente.
 - [ ] Eliminar del baseline de `data` los issues de `Filename` en `mappers.kt` y `providers.kt`.
 - [ ] Resolver los `TooGenericExceptionCaught` más críticos.

@@ -27,12 +27,7 @@
     <ID>CyclomaticComplexMethod:NewCardScreen.kt$@SuppressLint("LocalContextGetResourceValueCall") @Composable fun NewCardScreen( modifier: Modifier = Modifier, state: NewCardUiState = NewCardUiState(), onAction: (NewCardAction) -&gt; Unit = {}, onNavigateBack: () -&gt; Unit = {}, )</ID>
     <ID>EmptyFunctionBlock:SpeechToTextManager.kt$&lt;no name provided&gt;${}</ID>
     <ID>EmptyFunctionBlock:SpeechToTextManager.kt$AndroidSpeechToTextManager${}</ID>
-    <ID>Filename:networkModule.kt$com.emm.hello.di.networkModule.kt</ID>
-    <ID>Filename:newModule.kt$com.emm.hello.di.newModule.kt</ID>
-    <ID>Filename:repositoryModule.kt$com.emm.hello.di.repositoryModule.kt</ID>
-    <ID>Filename:syncModule.kt$com.emm.hello.di.syncModule.kt</ID>
     <ID>ImportOrdering:Sync.kt$import android.content.Context import androidx.work.ExistingWorkPolicy import androidx.work.ExistingPeriodicWorkPolicy import androidx.work.WorkManager</ID>
-    <ID>ImportOrdering:newModule.kt$import android.content.Context import androidx.sqlite.db.SupportSQLiteDatabase import app.cash.sqldelight.db.SqlDriver import app.cash.sqldelight.driver.android.AndroidSqliteDriver import com.emm.data.HelloDb import com.emm.data.deck.DefaultDeckRepository import com.emm.data.flashcard.DefaultFlashcardRepository import com.emm.data.flashcard.DefaultFlashcardReviewRepository import com.emm.data.localfirst.LocalDeviceIdentityProvider import com.emm.data.localfirst.OperationLogWriter import com.emm.data.quote.DefaultQuoteRepository import com.emm.data.remote.DataStore import com.emm.data.remote.DefaultBackupRepository import com.emm.data.sync.DefaultSyncEngine import com.emm.data.sync.DrainOutbox import com.emm.data.sync.PullRemoteOperations import com.emm.data.sync.ApplyRemoteOperation import com.emm.data.sync.AckOperations import com.emm.data.sync.syncDataModule import com.emm.domain.backup.BackupExecutor import com.emm.domain.backup.BackupRepository import com.emm.domain.deck.DeckCreator import com.emm.domain.deck.DeckFetcher import com.emm.domain.deck.DeckRepository import com.emm.domain.deck.DecksWithCardsProvider import com.emm.domain.flashcard.FlashcardAndReviewFetcher import com.emm.domain.flashcard.FlashcardCreator import com.emm.domain.flashcard.FlashcardFetcher import com.emm.domain.flashcard.FlashcardFinder import com.emm.domain.flashcard.FlashcardRepository import com.emm.domain.flashcard.FlashcardReviewRepository import com.emm.domain.flashcard.FlashcardReviewUpdater import com.emm.domain.quote.QuoteGenerator import com.emm.domain.quote.QuoteLastFetcher import com.emm.domain.quote.QuoteRepository import com.emm.domain.sync.SyncEngine import com.emm.hello.BuildConfig import com.emm.hello.newfeatures.card.FlashcardDetailViewModel import com.emm.hello.newfeatures.card.NewCardViewModel import com.emm.hello.newfeatures.dashboard.DashboardViewModel import com.emm.hello.newfeatures.deck.DeckDetailViewModel import com.emm.hello.newfeatures.deck.NewDeckViewModel import com.emm.hello.newfeatures.pairing.PairingViewModel import com.emm.hello.newfeatures.study.StudyViewModel import com.emm.hello.sync.WorkManagerSyncManager import kotlinx.serialization.json.Json import org.koin.android.ext.koin.androidContext import org.koin.core.module.Module import org.koin.core.module.dsl.factoryOf import org.koin.core.module.dsl.viewModel import org.koin.core.module.dsl.viewModelOf import org.koin.dsl.bind import org.koin.dsl.module</ID>
     <ID>Indentation:BottomSheetDialogForPickCategory.kt$ </ID>
     <ID>LongMethod:Button.kt$@Composable fun HButton( onClick: () -&gt; Unit, modifier: Modifier = Modifier, variant: ButtonVariant = ButtonVariant.Default, enabled: Boolean = true, isLoading: Boolean = false, leadingIcon: ImageVector? = null, contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 10.dp), content: @Composable RowScope.() -&gt; Unit, )</ID>
     <ID>LongMethod:DashboardScreen.kt$@Composable fun DashboardScreen( modifier: Modifier = Modifier, state: DashboardUiState = DashboardUiState(), newCard: () -&gt; Unit = {}, onDeckDetail: (String) -&gt; Unit = {}, onCreateDeck: () -&gt; Unit = {}, onPairDevice: () -&gt; Unit = {}, )</ID>
@@ -77,8 +72,6 @@
     <ID>MagicNumber:SyncWorker.kt$SyncWorker.Companion$10</ID>
     <ID>MagicNumber:SyncWorker.kt$SyncWorker.Companion$15</ID>
     <ID>MagicNumber:SyncWorker.kt$SyncWorker.Companion$30</ID>
-    <ID>MagicNumber:repositoryModule.kt$0.1f</ID>
-    <ID>MagicNumber:repositoryModule.kt$0.95f</ID>
     <ID>MatchingDeclarationName:Alert.kt$AlertVariant</ID>
     <ID>MatchingDeclarationName:Badge.kt$BadgeVariant</ID>
     <ID>MatchingDeclarationName:Button.kt$ButtonVariant</ID>
@@ -110,7 +103,6 @@
     <ID>MultiLineIfElse:Input.kt$Modifier.padding(start = 28.dp)</ID>
     <ID>NoTrailingSpaces:NewCardScreen.kt$ </ID>
     <ID>NoTrailingSpaces:NewCardViewModel.kt$NewCardViewModel$ </ID>
-    <ID>NoTrailingSpaces:repositoryModule.kt$ </ID>
     <ID>ReturnCount:ConnectivitySyncTrigger.kt$ConnectivitySyncTrigger$fun register(context: Context)</ID>
     <ID>ReturnCount:SyncWorker.kt$private fun Throwable.isRecoverableSyncError(): Boolean</ID>
     <ID>SwallowedException:SpeechToTextManager.kt$AndroidSpeechToTextManager$e: Exception</ID>
