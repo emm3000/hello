@@ -164,17 +164,17 @@ Decisiones cerradas:
 
 ## Fase 9. Android SyncEngine
 
-- [ ] Crear caso de uso `DrainOutbox`.
-- [ ] Crear caso de uso `PullRemoteOperations`.
-- [ ] Crear caso de uso `ApplyRemoteOperation`.
-- [ ] Crear caso de uso `AckOperations`.
+- [x] Crear caso de uso `DrainOutbox`.
+- [x] Crear caso de uso `PullRemoteOperations`.
+- [x] Crear caso de uso `ApplyRemoteOperation`.
+- [x] Crear caso de uso `AckOperations`.
 - [x] Implementar `SyncEngine.runOnce()`.
-- [ ] Implementar backoff exponencial para errores recuperables.
-- [ ] Implementar reintento inmediato en cambio de conectividad.
+- [x] Implementar backoff exponencial para errores recuperables.
+- [x] Implementar reintento inmediato en cambio de conectividad.
 - [x] Persistir `lastPulledCursor` en SQLite.
 - [x] Persistir `lastSuccessfulSyncAt`.
 - [x] Persistir `lastSyncError`.
-- [ ] Exponer `SyncState` como `Flow`.
+- [x] Exponer `SyncState` como `Flow`.
 
 ## Fase 10. Integrar WorkManager sin acoplar dominio
 

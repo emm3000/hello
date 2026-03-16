@@ -14,6 +14,10 @@ import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
 import com.emm.data.sync.DefaultSyncEngine
+import com.emm.data.sync.DrainOutbox
+import com.emm.data.sync.PullRemoteOperations
+import com.emm.data.sync.ApplyRemoteOperation
+import com.emm.data.sync.AckOperations
 import com.emm.data.sync.syncDataModule
 import com.emm.domain.backup.BackupExecutor
 import com.emm.domain.backup.BackupRepository
@@ -75,6 +79,11 @@ fun Module.repository() {
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultSyncEngine) bind SyncEngine::class
+
+    factoryOf(::DrainOutbox)
+    factoryOf(::PullRemoteOperations)
+    factoryOf(::ApplyRemoteOperation)
+    factoryOf(::AckOperations)
 
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::OperationLogWriter)

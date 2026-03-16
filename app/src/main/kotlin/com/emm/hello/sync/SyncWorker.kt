@@ -3,8 +3,11 @@
 package com.emm.hello.sync
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
@@ -14,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(
@@ -29,7 +33,7 @@ class SyncWorker(
             Result.success()
         } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
-            Result.retry()
+            if (e.isRecoverableSyncError()) Result.retry() else Result.failure()
         }
     }
 
@@ -51,6 +55,36 @@ class SyncWorker(
             TimeUnit.MINUTES
         )
             .setConstraints(SyncConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                30,
+                TimeUnit.SECONDS
+            )
+            .addTag(SYNC_WORK_TAG)
+            .build()
+
+        fun startUpSyncWorkOneShot(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(SyncConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                10,
+                TimeUnit.SECONDS
+            )
+            .addTag(SYNC_WORK_TAG)
             .build()
     }
+}
+
+private fun Throwable.isRecoverableSyncError(): Boolean {
+    if (this is IOException) return true
+    val raw = message?.lowercase().orEmpty()
+    if (raw.isBlank()) return true
+    return raw.contains("timeout") ||
+        raw.contains("temporar") ||
+        raw.contains("network") ||
+        raw.contains("unavailable") ||
+        raw.contains("connection") ||
+        raw.contains("too many requests") ||
+        raw.contains("429") ||
+        raw.contains("5xx")
 }
