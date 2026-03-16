@@ -1,0 +1,14 @@
+complexity:
+  LongMethod:
+    active: false
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  TooManyFunctions:
+    thresholdInFiles: 50
+    thresholdInClasses: 35
+
+style:
+  ReturnCount:
+    active: true
+    max: 4

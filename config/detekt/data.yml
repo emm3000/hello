@@ -1,0 +1,25 @@
+complexity:
+  LongMethod:
+    active: true
+    threshold: 60
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 14
+  ComplexCondition:
+    active: true
+    threshold: 4
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - RuntimeException
+  TooGenericExceptionThrown:
+    active: true
+    exceptionNames:
+      - RuntimeException
+
+style:
+  ReturnCount:
+    active: true
+    max: 3

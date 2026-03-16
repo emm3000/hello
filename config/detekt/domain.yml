@@ -1,0 +1,26 @@
+complexity:
+  LongMethod:
+    active: true
+    threshold: 50
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 12
+  TooManyFunctions:
+    thresholdInFiles: 30
+    thresholdInClasses: 20
+    thresholdInInterfaces: 15
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - RuntimeException
+  TooGenericExceptionThrown:
+    active: true
+    exceptionNames:
+      - RuntimeException
+
+style:
+  ReturnCount:
+    active: true
+    max: 2

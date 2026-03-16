@@ -15,10 +15,17 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     detekt {
-        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        val moduleConfig = file("$rootDir/config/detekt/${project.name}.yml")
+        config.setFrom(
+            files(
+                "$rootDir/config/detekt/detekt.yml",
+                moduleConfig.takeIf { it.exists() }
+            )
+        )
         baseline = file("$projectDir/detekt-baseline.xml")
         buildUponDefaultConfig = true
         parallel = true
+        basePath = rootDir.absolutePath
     }
 
 
@@ -33,4 +40,5 @@ detekt {
     config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
     parallel = true
+    basePath = rootDir.absolutePath
 }
