@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -297,55 +298,18 @@ fun NewCardScreen(
             // -- Loading Skeleton -----------------------------------------------------
             if (state.isLoading) {
                 item {
-                    HCard(variant = CardVariant.Outlined) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            HSkeleton(Modifier.fillMaxWidth(SKELETON_TITLE_WIDTH).height(24.dp))
-                            HSkeleton(Modifier.fillMaxWidth(SKELETON_SUBTITLE_WIDTH).height(14.dp))
-                            HSeparator()
-                            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
-                            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
-                            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
-                            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
-                        }
-                    }
+                    LoadingPreviewSkeleton()
                 }
             }
 
             // -- Result Preview -------------------------------------------------------
             if (state.previewResult != null) {
                 item {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn(tween(RESULT_FADE_IN_DURATION_MS)),
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text(
-                                stringResource(R.string.verify_result_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            CardPreview(state.previewResult)
-
-                            HButton(
-                                text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
-                                onClick = {
-                                    keyboardController?.hide()
-                                    onIntent(NewCardUiIntent.SaveClicked)
-                                },
-                                enabled = !state.isLoading,
-                                isLoading = state.isLoading,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                            )
-                        }
-                    }
+                    ResultPreviewSection(
+                        state = state,
+                        keyboardController = keyboardController,
+                        onIntent = onIntent,
+                    )
                 }
                 item { Spacer(modifier = Modifier.height(20.dp)) }
             }
@@ -359,6 +323,63 @@ fun NewCardScreen(
         selectedCategory = state.category,
         onAction = { onIntent(NewCardUiIntent.CategorySelected(it)) },
     )
+}
+
+@Composable
+private fun LoadingPreviewSkeleton() {
+    HCard(variant = CardVariant.Outlined) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            HSkeleton(Modifier.fillMaxWidth(SKELETON_TITLE_WIDTH).height(24.dp))
+            HSkeleton(Modifier.fillMaxWidth(SKELETON_SUBTITLE_WIDTH).height(14.dp))
+            HSeparator()
+            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
+            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
+            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+        }
+    }
+}
+
+@Composable
+private fun ResultPreviewSection(
+    state: NewCardUiState,
+    keyboardController: SoftwareKeyboardController?,
+    onIntent: (NewCardUiIntent) -> Unit,
+) {
+    val preview = state.previewResult ?: return
+
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn(tween(RESULT_FADE_IN_DURATION_MS)),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                stringResource(R.string.verify_result_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            CardPreview(preview)
+
+            HButton(
+                text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
+                onClick = {
+                    keyboardController?.hide()
+                    onIntent(NewCardUiIntent.SaveClicked)
+                },
+                enabled = !state.isLoading,
+                isLoading = state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+            )
+        }
+    }
 }
 
 // -- Voice Components ---------------------------------------------------------
