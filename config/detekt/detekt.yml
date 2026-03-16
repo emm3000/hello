@@ -111,34 +111,57 @@ formatting:
   FinalNewline:
     active: true
 
-# io.nlopez.compose.rules plugin usually uses 'Compose' or similar
-# Let's try 'compose' if 'Compose' failed or just omit it for now if it causes issues.
-# Actually, the error said 'Compose' misspelled. Let's try 'compose'.
 Compose:
   active: true
-  ComposeParameterOrder:
+  ParameterNaming:
     active: true
-  ComposeNamingUppercase:
+  ComposableAnnotationNaming:
     active: true
-  ComposeModifierMissing:
+  ModifierMissing:
     active: true
-  ComposeModifierReused:
+  ModifierNaming:
     active: true
-  ComposeModifierWithoutDefault:
+  ModifierNotUsedAtRoot:
     active: true
-  ComposeMultipleContentEmitters:
+  ModifierReused:
     active: true
-  ComposeNamingLowercase:
+  ModifierWithoutDefault:
     active: true
-  ComposePreviewNaming:
+  ModifierClickableOrder:
     active: true
-  ComposePreviewPublic:
+  ModifierComposed:
     active: true
-  ComposeViewModelForwarding:
+  ContentEmitterReturningValues:
     active: true
-  ComposeViewModelInjection:
+  ContentSlotReused:
     active: true
-  ComposeReusedModifier:
+  ContentTrailingLambda:
     active: true
-  ComposeUnstableCollections:
+  DefaultsVisibility:
+    active: true
+  LambdaParameterEventTrailing:
+    active: true
+  LambdaParameterInRestartableEffect:
+    active: true
+  Material2:
+    active: true
+  MutableStateAutoboxing:
+    active: true
+  RememberContentMissing:
+    active: true
+  CompositionLocalAllowlist:
+    active: true
+  CompositionLocalNaming:
+    active: true
+  PreviewAnnotationNaming:
+    active: true
+  PreviewNaming:
+    active: true
+  PreviewPublic:
+    active: true
+  ViewModelForwarding:
+    active: true
+  ViewModelInjection:
+    active: true
+  UnstableCollections:
     active: true

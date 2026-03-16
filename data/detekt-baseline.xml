@@ -2,171 +2,51 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ArgumentListWrapping:AppDataBase.kt$AppDatabase.Companion$( context, AppDatabase::class.java, "database-name_1" )</ID>
-    <ID>ArgumentListWrapping:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond)</ID>
-    <ID>ArgumentListWrapping:mappers.kt$(::mapToWordContent)</ID>
+    <ID>ComplexCondition:ApplyRemoteOperation.kt$ApplyRemoteOperation$operationType != "delete" &amp;&amp; (phrase.isNullOrBlank() || translation.isNullOrBlank() || category.isNullOrBlank())</ID>
+    <ID>ComplexCondition:ApplyRemoteOperation.kt$ApplyRemoteOperation$operationType != "delete" &amp;&amp; (text.isNullOrBlank() || translation.isNullOrBlank() || type.isNullOrBlank())</ID>
     <ID>ComplexCondition:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$deck.flashcardId != null &amp;&amp; deck.lastReviewedAt != null &amp;&amp; deck.nextReviewAt != null &amp;&amp; deck.easeFactor != null &amp;&amp; deck.interval != null &amp;&amp; deck.repetitions != null &amp;&amp; deck.lapses != null</ID>
     <ID>ComplexCondition:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$it.exampleId != null &amp;&amp; it.exampleText != null &amp;&amp; it.exampleTranslation != null &amp;&amp; it.exampleType != null</ID>
-    <ID>DestructuringDeclarationWithTooManyEntries:DefaultBackupRepository.kt$DefaultBackupRepository$val ( decks: List&lt;Deck&gt;, flashcards: List&lt;Flashcard&gt;, examples: List&lt;FlashcardExample&gt;, reviews: List&lt;FlashcardReview&gt;, ) = fetchAllDataInParallel()</ID>
-    <ID>DestructuringDeclarationWithTooManyEntries:DefaultBackupRepository.kt$DefaultBackupRepository$val ( pendingDecks: List&lt;Deck&gt;, pendingFlashCards: List&lt;Flashcard&gt;, pendingExamples: List&lt;FlashcardExample&gt;, pendingReviews: List&lt;FlashcardReview&gt;, pendingQuotes: List&lt;Quote&gt;, ) = fetchPendingSyncDataInParallel()</ID>
-    <ID>ExplicitItLambdaParameter:DefaultFlashcardRepository.kt$DefaultFlashcardRepository${ it -&gt; Flashcard( id = it.id, word = it.word, meaning = it.meaning, translation = it.translation.orEmpty(), phonetic = it.phonetic.orEmpty(), examples = emptyList(), review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond), ) }</ID>
-    <ID>Filename:AppDataBase.kt$com.emm.data.deprecated.AppDataBase.kt</ID>
-    <ID>Filename:mappers.kt$com.emm.data.deprecated.wordcontent.mappers.kt</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>Filename:mappers.kt$com.emm.data.remote.mappers.kt</ID>
     <ID>Filename:providers.kt$com.emm.data.remote.providers.kt</ID>
-    <ID>FinalNewline:AnkiDto.kt$com.emm.data.flashcard.iadto.AnkiDto.kt</ID>
-    <ID>FinalNewline:AnkiResponseParses.kt$com.emm.data.flashcard.AnkiResponseParses.kt</ID>
-    <ID>FinalNewline:ApiService.kt$com.emm.data.remote.ApiService.kt</ID>
-    <ID>FinalNewline:AppDataBase.kt$com.emm.data.deprecated.AppDataBase.kt</ID>
-    <ID>FinalNewline:CreateDeckRequest.kt$com.emm.data.deck.CreateDeckRequest.kt</ID>
-    <ID>FinalNewline:CreateExampleRequest.kt$com.emm.data.flashcard.CreateExampleRequest.kt</ID>
-    <ID>FinalNewline:CreateFlashcardRequest.kt$com.emm.data.flashcard.CreateFlashcardRequest.kt</ID>
-    <ID>FinalNewline:CreateFlashcardReviewRequest.kt$com.emm.data.flashcard.CreateFlashcardReviewRequest.kt</ID>
-    <ID>FinalNewline:CreateQuoteRequest.kt$com.emm.data.quote.CreateQuoteRequest.kt</ID>
-    <ID>FinalNewline:DataStore.kt$com.emm.data.remote.DataStore.kt</ID>
-    <ID>FinalNewline:DeckMappers.kt$com.emm.data.deck.DeckMappers.kt</ID>
-    <ID>FinalNewline:DeckSynchronizer.kt$com.emm.data.deck.DeckSynchronizer.kt</ID>
-    <ID>FinalNewline:DeckWorker.kt$com.emm.data.deck.DeckWorker.kt</ID>
-    <ID>FinalNewline:DefaultAnkiRepository.kt$com.emm.data.deprecated.anki.DefaultAnkiRepository.kt</ID>
-    <ID>FinalNewline:DefaultBackupRepository.kt$com.emm.data.remote.DefaultBackupRepository.kt</ID>
-    <ID>FinalNewline:DefaultDeckRepository.kt$com.emm.data.deck.DefaultDeckRepository.kt</ID>
-    <ID>FinalNewline:DefaultFlashcardRepository.kt$com.emm.data.flashcard.DefaultFlashcardRepository.kt</ID>
-    <ID>FinalNewline:DefaultFlashcardReviewRepository.kt$com.emm.data.flashcard.DefaultFlashcardReviewRepository.kt</ID>
-    <ID>FinalNewline:DefaultQuoteRepository.kt$com.emm.data.quote.DefaultQuoteRepository.kt</ID>
-    <ID>FinalNewline:DefaultWordContentRepository.kt$com.emm.data.deprecated.wordcontent.DefaultWordContentRepository.kt</ID>
-    <ID>FinalNewline:ExampleDao.kt$com.emm.data.deprecated.wordcontent.ExampleDao.kt</ID>
-    <ID>FinalNewline:ExampleDto.kt$com.emm.data.flashcard.iadto.ExampleDto.kt</ID>
-    <ID>FinalNewline:ExampleEntity.kt$com.emm.data.deprecated.wordcontent.ExampleEntity.kt</ID>
-    <ID>FinalNewline:ExampleSynchronizer.kt$com.emm.data.flashcard.ExampleSynchronizer.kt</ID>
-    <ID>FinalNewline:ExampleWorker.kt$com.emm.data.flashcard.ExampleWorker.kt</ID>
-    <ID>FinalNewline:Extensions.kt$com.emm.data.flashcard.Extensions.kt</ID>
-    <ID>FinalNewline:FetchSyncResponse.kt$com.emm.data.remote.FetchSyncResponse.kt</ID>
-    <ID>FinalNewline:FlashcardDto.kt$com.emm.data.flashcard.iadto.FlashcardDto.kt</ID>
-    <ID>FinalNewline:FlashcardMappers.kt$com.emm.data.flashcard.FlashcardMappers.kt</ID>
-    <ID>FinalNewline:FlashcardResponseParses.kt$com.emm.data.flashcard.FlashcardResponseParses.kt</ID>
-    <ID>FinalNewline:FlashcardReviewSynchronizer.kt$com.emm.data.flashcard.FlashcardReviewSynchronizer.kt</ID>
-    <ID>FinalNewline:FlashcardReviewWorker.kt$com.emm.data.flashcard.FlashcardReviewWorker.kt</ID>
-    <ID>FinalNewline:FlashcardSynchronizer.kt$com.emm.data.flashcard.FlashcardSynchronizer.kt</ID>
-    <ID>FinalNewline:FlashcardWorker.kt$com.emm.data.flashcard.FlashcardWorker.kt</ID>
-    <ID>FinalNewline:GeminiErrorDto.kt$com.emm.data.flashcard.iadto.GeminiErrorDto.kt</ID>
-    <ID>FinalNewline:GeminiService.kt$com.emm.data.flashcard.GeminiService.kt</ID>
-    <ID>FinalNewline:GeminiSuccessDto.kt$com.emm.data.flashcard.iadto.GeminiSuccessDto.kt</ID>
-    <ID>FinalNewline:HolderOfDatabaseTables.kt$com.emm.data.remote.HolderOfDatabaseTables.kt</ID>
-    <ID>FinalNewline:LocalWordRepository.kt$com.emm.data.deprecated.word.LocalWordRepository.kt</ID>
-    <ID>FinalNewline:OxfordScrapper.kt$com.emm.data.deprecated.wordcontent.OxfordScrapper.kt</ID>
-    <ID>FinalNewline:Prompt.kt$com.emm.data.flashcard.Prompt.kt</ID>
-    <ID>FinalNewline:PromptFactory.kt$com.emm.data.deprecated.wordcontent.PromptFactory.kt</ID>
-    <ID>FinalNewline:QuoteMappers.kt$com.emm.data.quote.QuoteMappers.kt</ID>
-    <ID>FinalNewline:QuoteResponse.kt$com.emm.data.quote.QuoteResponse.kt</ID>
-    <ID>FinalNewline:QuoteSynchronizer.kt$com.emm.data.quote.QuoteSynchronizer.kt</ID>
-    <ID>FinalNewline:QuoteWorker.kt$com.emm.data.quote.QuoteWorker.kt</ID>
-    <ID>FinalNewline:RequestDataProcessor.kt$com.emm.data.deck.RequestDataProcessor.kt</ID>
-    <ID>FinalNewline:ResponseError.kt$com.emm.data.flashcard.iadto.ResponseError.kt</ID>
-    <ID>FinalNewline:SyncStatus.kt$com.emm.data.SyncStatus.kt</ID>
-    <ID>FinalNewline:SyncStatusResponse.kt$com.emm.data.remote.SyncStatusResponse.kt</ID>
-    <ID>FinalNewline:TypeFile.kt$com.emm.data.deck.TypeFile.kt</ID>
-    <ID>FinalNewline:WordContentDao.kt$com.emm.data.deprecated.wordcontent.WordContentDao.kt</ID>
-    <ID>FinalNewline:WordContentEntity.kt$com.emm.data.deprecated.wordcontent.WordContentEntity.kt</ID>
-    <ID>FinalNewline:WordDao.kt$com.emm.data.deprecated.word.WordDao.kt</ID>
-    <ID>FinalNewline:WordEntity.kt$com.emm.data.deprecated.word.WordEntity.kt</ID>
-    <ID>FinalNewline:mappers.kt$com.emm.data.deprecated.wordcontent.mappers.kt</ID>
-    <ID>FinalNewline:mappers.kt$com.emm.data.remote.mappers.kt</ID>
-    <ID>FinalNewline:providers.kt$com.emm.data.remote.providers.kt</ID>
-    <ID>Indentation:Prompt.kt$Prompt$ </ID>
+    <ID>ImportOrdering:ApplyRemoteOperation.kt$import com.emm.data.HelloDb import kotlinx.serialization.json.JsonObject import kotlinx.serialization.json.JsonPrimitive import kotlinx.serialization.json.doubleOrNull import kotlinx.serialization.json.longOrNull import kotlinx.serialization.json.contentOrNull import kotlinx.serialization.json.jsonPrimitive import java.time.Instant</ID>
     <ID>LongMethod:DefaultBackupRepository.kt$DefaultBackupRepository$suspend fun populate()</ID>
+    <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(category: String, complexity: String): String</ID>
+    <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(wordOrPhrase: String): String</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt(): String</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt2(): String</ID>
-    <ID>LongMethod:PromptFactory.kt$PromptFactory$fun ankiPrompt(input: String): String</ID>
     <ID>LongMethod:RequestDataProcessor.kt$RequestDataProcessor$fun process(data: Any)</ID>
     <ID>MagicNumber:providers.kt$60</ID>
-    <ID>MatchingDeclarationName:AppDataBase.kt$AppDatabase : RoomDatabase</ID>
+    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$if</ID>
+    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$private</ID>
+    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$translation = if (operationType == "delete") existing?.translation ?: translation.orEmpty() else translation.orEmpty()</ID>
     <ID>MaxLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$if</ID>
-    <ID>MaxLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$review = FlashcardReview.Empty.copy(nextReviewAt = it.nextReviewAt ?: Instant.now().epochSecond)</ID>
-    <ID>MaxLineLength:mappers.kt$fun mapToWordContents(wordContentWithExamples: List&lt;WordContentWithExamples&gt;): List&lt;WordContent&gt;</ID>
+    <ID>MaximumLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$ </ID>
     <ID>MaximumLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$ </ID>
-    <ID>MaximumLineLength:mappers.kt$fun</ID>
-    <ID>MultiLineIfElse:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$FlashcardReview.Empty</ID>
-    <ID>MultiLineIfElse:providers.kt$HttpLoggingInterceptor.Level.NONE</ID>
-    <ID>NewLineAtEndOfFile:AnkiDto.kt$com.emm.data.flashcard.iadto.AnkiDto.kt</ID>
-    <ID>NewLineAtEndOfFile:AnkiResponseParses.kt$com.emm.data.flashcard.AnkiResponseParses.kt</ID>
-    <ID>NewLineAtEndOfFile:ApiService.kt$com.emm.data.remote.ApiService.kt</ID>
-    <ID>NewLineAtEndOfFile:AppDataBase.kt$com.emm.data.deprecated.AppDataBase.kt</ID>
-    <ID>NewLineAtEndOfFile:CreateDeckRequest.kt$com.emm.data.deck.CreateDeckRequest.kt</ID>
-    <ID>NewLineAtEndOfFile:CreateExampleRequest.kt$com.emm.data.flashcard.CreateExampleRequest.kt</ID>
-    <ID>NewLineAtEndOfFile:CreateFlashcardRequest.kt$com.emm.data.flashcard.CreateFlashcardRequest.kt</ID>
-    <ID>NewLineAtEndOfFile:CreateFlashcardReviewRequest.kt$com.emm.data.flashcard.CreateFlashcardReviewRequest.kt</ID>
-    <ID>NewLineAtEndOfFile:CreateQuoteRequest.kt$com.emm.data.quote.CreateQuoteRequest.kt</ID>
-    <ID>NewLineAtEndOfFile:DataStore.kt$com.emm.data.remote.DataStore.kt</ID>
-    <ID>NewLineAtEndOfFile:DeckMappers.kt$com.emm.data.deck.DeckMappers.kt</ID>
-    <ID>NewLineAtEndOfFile:DeckSynchronizer.kt$com.emm.data.deck.DeckSynchronizer.kt</ID>
-    <ID>NewLineAtEndOfFile:DeckWorker.kt$com.emm.data.deck.DeckWorker.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultAnkiRepository.kt$com.emm.data.deprecated.anki.DefaultAnkiRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultBackupRepository.kt$com.emm.data.remote.DefaultBackupRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultDeckRepository.kt$com.emm.data.deck.DefaultDeckRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultFlashcardRepository.kt$com.emm.data.flashcard.DefaultFlashcardRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultFlashcardReviewRepository.kt$com.emm.data.flashcard.DefaultFlashcardReviewRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultQuoteRepository.kt$com.emm.data.quote.DefaultQuoteRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:DefaultWordContentRepository.kt$com.emm.data.deprecated.wordcontent.DefaultWordContentRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:ExampleDao.kt$com.emm.data.deprecated.wordcontent.ExampleDao.kt</ID>
-    <ID>NewLineAtEndOfFile:ExampleDto.kt$com.emm.data.flashcard.iadto.ExampleDto.kt</ID>
-    <ID>NewLineAtEndOfFile:ExampleEntity.kt$com.emm.data.deprecated.wordcontent.ExampleEntity.kt</ID>
-    <ID>NewLineAtEndOfFile:ExampleSynchronizer.kt$com.emm.data.flashcard.ExampleSynchronizer.kt</ID>
-    <ID>NewLineAtEndOfFile:ExampleWorker.kt$com.emm.data.flashcard.ExampleWorker.kt</ID>
-    <ID>NewLineAtEndOfFile:Extensions.kt$com.emm.data.flashcard.Extensions.kt</ID>
-    <ID>NewLineAtEndOfFile:FetchSyncResponse.kt$com.emm.data.remote.FetchSyncResponse.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardDto.kt$com.emm.data.flashcard.iadto.FlashcardDto.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardMappers.kt$com.emm.data.flashcard.FlashcardMappers.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardResponseParses.kt$com.emm.data.flashcard.FlashcardResponseParses.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardReviewSynchronizer.kt$com.emm.data.flashcard.FlashcardReviewSynchronizer.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardReviewWorker.kt$com.emm.data.flashcard.FlashcardReviewWorker.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardSynchronizer.kt$com.emm.data.flashcard.FlashcardSynchronizer.kt</ID>
-    <ID>NewLineAtEndOfFile:FlashcardWorker.kt$com.emm.data.flashcard.FlashcardWorker.kt</ID>
-    <ID>NewLineAtEndOfFile:GeminiErrorDto.kt$com.emm.data.flashcard.iadto.GeminiErrorDto.kt</ID>
-    <ID>NewLineAtEndOfFile:GeminiService.kt$com.emm.data.flashcard.GeminiService.kt</ID>
-    <ID>NewLineAtEndOfFile:GeminiSuccessDto.kt$com.emm.data.flashcard.iadto.GeminiSuccessDto.kt</ID>
-    <ID>NewLineAtEndOfFile:HolderOfDatabaseTables.kt$com.emm.data.remote.HolderOfDatabaseTables.kt</ID>
-    <ID>NewLineAtEndOfFile:LocalWordRepository.kt$com.emm.data.deprecated.word.LocalWordRepository.kt</ID>
-    <ID>NewLineAtEndOfFile:OxfordScrapper.kt$com.emm.data.deprecated.wordcontent.OxfordScrapper.kt</ID>
-    <ID>NewLineAtEndOfFile:Prompt.kt$com.emm.data.flashcard.Prompt.kt</ID>
-    <ID>NewLineAtEndOfFile:PromptFactory.kt$com.emm.data.deprecated.wordcontent.PromptFactory.kt</ID>
-    <ID>NewLineAtEndOfFile:QuoteMappers.kt$com.emm.data.quote.QuoteMappers.kt</ID>
-    <ID>NewLineAtEndOfFile:QuoteResponse.kt$com.emm.data.quote.QuoteResponse.kt</ID>
-    <ID>NewLineAtEndOfFile:QuoteSynchronizer.kt$com.emm.data.quote.QuoteSynchronizer.kt</ID>
-    <ID>NewLineAtEndOfFile:QuoteWorker.kt$com.emm.data.quote.QuoteWorker.kt</ID>
-    <ID>NewLineAtEndOfFile:RequestDataProcessor.kt$com.emm.data.deck.RequestDataProcessor.kt</ID>
-    <ID>NewLineAtEndOfFile:ResponseError.kt$com.emm.data.flashcard.iadto.ResponseError.kt</ID>
-    <ID>NewLineAtEndOfFile:SyncStatus.kt$com.emm.data.SyncStatus.kt</ID>
-    <ID>NewLineAtEndOfFile:SyncStatusResponse.kt$com.emm.data.remote.SyncStatusResponse.kt</ID>
-    <ID>NewLineAtEndOfFile:TypeFile.kt$com.emm.data.deck.TypeFile.kt</ID>
-    <ID>NewLineAtEndOfFile:WordContentDao.kt$com.emm.data.deprecated.wordcontent.WordContentDao.kt</ID>
-    <ID>NewLineAtEndOfFile:WordContentEntity.kt$com.emm.data.deprecated.wordcontent.WordContentEntity.kt</ID>
-    <ID>NewLineAtEndOfFile:WordDao.kt$com.emm.data.deprecated.word.WordDao.kt</ID>
-    <ID>NewLineAtEndOfFile:WordEntity.kt$com.emm.data.deprecated.word.WordEntity.kt</ID>
-    <ID>NewLineAtEndOfFile:mappers.kt$com.emm.data.deprecated.wordcontent.mappers.kt</ID>
-    <ID>NewLineAtEndOfFile:mappers.kt$com.emm.data.remote.mappers.kt</ID>
-    <ID>NewLineAtEndOfFile:providers.kt$com.emm.data.remote.providers.kt</ID>
-    <ID>NoBlankLineBeforeRbrace:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$ </ID>
-    <ID>NoBlankLineBeforeRbrace:DefaultQuoteRepository.kt$DefaultQuoteRepository$ </ID>
-    <ID>NoConsecutiveBlankLines:RemoteDataSource.kt$ </ID>
-    <ID>NoEmptyFirstLineInMethodBlock:providers.kt$ </ID>
+    <ID>NoUnusedImports:DefaultBackupRepository.kt$com.emm.data.remote.DefaultBackupRepository.kt</ID>
+    <ID>NoUnusedImports:SupabaseSyncRemoteDataSource.kt$com.emm.data.sync.SupabaseSyncRemoteDataSource.kt</ID>
     <ID>PrintStackTrace:DataStore.kt$DataStore$e</ID>
-    <ID>SpacingAroundColon:DefaultDeckRepository.kt$DefaultDeckRepository$:</ID>
-    <ID>SwallowedException:QuoteWorker.kt$QuoteWorker$t: IOException</ID>
-    <ID>ThrowingNewInstanceOfSameException:AnkiResponseParses.kt$AnkiResponseParses$throw IllegalArgumentException(e)</ID>
-    <ID>ThrowingNewInstanceOfSameException:FlashcardResponseParses.kt$FlashcardResponseParses$throw IllegalArgumentException(e)</ID>
+    <ID>RethrowCaughtException:FlashcardResponseParses.kt$FlashcardResponseParses$throw e</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.doubleAny(vararg keys: String): Double?</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.epochAny(vararg keys: String): Long?</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.longAny(vararg keys: String): Long?</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ThrowsCount:AnkiResponseParses.kt$AnkiResponseParses$fun parse(raw: String, json: Json): FlashcardGenerated</ID>
     <ID>ThrowsCount:FlashcardResponseParses.kt$FlashcardResponseParses$fun parse(raw: String, json: Json): FlashcardGenerated</ID>
     <ID>TooGenericExceptionCaught:DataStore.kt$DataStore$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DeckWorker.kt$DeckWorker$t: Throwable</ID>
     <ID>TooGenericExceptionCaught:DefaultBackupRepository.kt$DefaultBackupRepository$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:ExampleWorker.kt$ExampleWorker$t: Throwable</ID>
-    <ID>TooGenericExceptionCaught:FlashcardReviewWorker.kt$FlashcardReviewWorker$t: Throwable</ID>
-    <ID>TooGenericExceptionCaught:FlashcardWorker.kt$FlashcardWorker$t: Throwable</ID>
-    <ID>TooGenericExceptionCaught:QuoteWorker.kt$QuoteWorker$t: Exception</ID>
+    <ID>TooGenericExceptionCaught:DefaultSyncEngine.kt$DefaultSyncEngine$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FlashcardResponseParses.kt$FlashcardResponseParses$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RemoteDataSource.kt$RemoteDataSource$e: Exception</ID>
     <ID>TooGenericExceptionThrown:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$throw Exception("Flashcard not found")</ID>
-    <ID>TopLevelPropertyNaming:DeckWorker.kt$val SyncConstraints get() = Constraints.Builder() .setRequiredNetworkType(NetworkType.CONNECTED) .build()</ID>
-    <ID>TopLevelPropertyNaming:FlashcardWorker.kt$val SyncConstraints get() = Constraints.Builder() .setRequiredNetworkType(NetworkType.CONNECTED) .build()</ID>
-    <ID>UnusedParameter:OxfordScrapper.kt$OxfordScrapper$word: Word</ID>
-    <ID>UnusedPrivateProperty:DefaultFlashcardReviewRepository.kt$DefaultFlashcardReviewRepository$private val reviewSynchronizer: FlashcardReviewSynchronizer</ID>
+    <ID>UnusedPrivateProperty:DefaultBackupRepository.kt$DefaultBackupRepository$private val json: Json</ID>
   </CurrentIssues>
 </SmellBaseline>
