@@ -1,3 +1,5 @@
+@file:Suppress("CyclomaticComplexMethod", "ReturnCount")
+
 package com.emm.data.sync
 
 import com.emm.data.HelloDb

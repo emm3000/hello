@@ -1,14 +1,5 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample( operation: RemoteSyncOperation, localDeviceId: String, ): ApplyRemoteOperationResult</ID>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample( operation: RemoteSyncOperation, localDeviceId: String, ): ApplyRemoteOperationResult</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-  </CurrentIssues>
+  <CurrentIssues/>
 </SmellBaseline>
