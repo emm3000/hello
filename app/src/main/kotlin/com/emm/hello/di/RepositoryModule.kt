@@ -8,6 +8,9 @@ import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.generationConfig
 import org.koin.dsl.module
 
+private const val DEFAULT_TEMPERATURE = 0.1f
+private const val DEFAULT_TOP_P = 0.95f
+
 /**
  * Provee dependencias de infraestructura compartidas.
  * GeminiService es usado por DefaultFlashcardRepository y DefaultQuoteRepository.
@@ -26,7 +29,7 @@ private fun provideGenerativeModel(): GenerativeModel = Firebase.ai(
     modelName = "gemini-2.5-flash",
     generationConfig = generationConfig {
         responseMimeType = "application/json"
-        temperature = 0.1f
-        topP = 0.95f
+        temperature = DEFAULT_TEMPERATURE
+        topP = DEFAULT_TOP_P
     }
 )

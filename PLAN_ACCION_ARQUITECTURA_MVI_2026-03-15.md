@@ -112,10 +112,10 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 ## Fase 7: `detekt` como enforcement real
 
-- [ ] Documentar que `./gradlew detekt` debe correr en cada PR.
+- [x] Documentar que `./gradlew detekt` debe correr en cada PR.
 - [ ] Crear tarea para vaciar primero baseline de `domain` y mantenerla vacía.
 - [ ] Eliminar del baseline de `app` los issues de naming/filename más baratos.
-- [ ] Renombrar `networkModule.kt`, `newModule.kt` y `repositoryModule.kt` para cumplir naming consistente.
+- [x] Renombrar `networkModule.kt`, `newModule.kt` y `repositoryModule.kt` para cumplir naming consistente.
 - [ ] Eliminar del baseline de `data` los issues de `Filename` en `mappers.kt` y `providers.kt`.
 - [ ] Resolver los `TooGenericExceptionCaught` más críticos.
 - [ ] Resolver los `LongMethod` en pantallas grandes empezando por `NewCardScreen`. (Regla temporalmente desactivada)
