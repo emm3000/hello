@@ -2,19 +2,13 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:ApplyRemoteOperation.kt$ApplyRemoteOperation$operationType != "delete" &amp;&amp; (phrase.isNullOrBlank() || translation.isNullOrBlank() || category.isNullOrBlank())</ID>
-    <ID>ComplexCondition:ApplyRemoteOperation.kt$ApplyRemoteOperation$operationType != "delete" &amp;&amp; (text.isNullOrBlank() || translation.isNullOrBlank() || type.isNullOrBlank())</ID>
-    <ID>ComplexCondition:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$deck.flashcardId != null &amp;&amp; deck.lastReviewedAt != null &amp;&amp; deck.nextReviewAt != null &amp;&amp; deck.easeFactor != null &amp;&amp; deck.interval != null &amp;&amp; deck.repetitions != null &amp;&amp; deck.lapses != null</ID>
-    <ID>ComplexCondition:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$it.exampleId != null &amp;&amp; it.exampleText != null &amp;&amp; it.exampleTranslation != null &amp;&amp; it.exampleType != null</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample( operation: RemoteSyncOperation, localDeviceId: String, ): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>MaximumLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$ </ID>
-    <ID>MaximumLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$ </ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
+    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample( operation: RemoteSyncOperation, localDeviceId: String, ): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
   </CurrentIssues>
 </SmellBaseline>

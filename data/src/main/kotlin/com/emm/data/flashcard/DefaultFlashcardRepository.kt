@@ -167,17 +167,7 @@ class DefaultFlashcardRepository(
         val first: FlashcardWithExamples = flashcardEntities.firstOrNull()
             ?: throw NoSuchElementException("Flashcard not found")
 
-        val examples: List<Example> = flashcardEntities.mapNotNull {
-            if (it.exampleId != null && it.exampleText != null && it.exampleTranslation != null && it.exampleType != null) {
-                return@mapNotNull Example(
-                    exampleId = it.exampleId,
-                    text = it.exampleText,
-                    translation = it.exampleTranslation,
-                    type = it.exampleType,
-                )
-            }
-            null
-        }
+        val examples: List<Example> = flashcardEntities.mapNotNull(::toExampleOrNull)
         Flashcard(
             id = first.id,
             word = first.word,
@@ -238,28 +228,45 @@ class DefaultFlashcardRepository(
             }
     }
 
+    private fun toExampleOrNull(item: FlashcardWithExamples): Example? {
+        val hasMissingField = listOf(
+            item.exampleId,
+            item.exampleText,
+            item.exampleTranslation,
+            item.exampleType,
+        ).any { it == null }
+
+        if (hasMissingField) return null
+
+        return Example(
+            exampleId = item.exampleId.orEmpty(),
+            text = item.exampleText.orEmpty(),
+            translation = item.exampleTranslation.orEmpty(),
+            type = item.exampleType.orEmpty(),
+        )
+    }
+
     private fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {
-        val review = if (
-            deck.flashcardId != null &&
-            deck.lastReviewedAt != null &&
-            deck.nextReviewAt != null &&
-            deck.easeFactor != null &&
-            deck.interval != null &&
-            deck.repetitions != null &&
-            deck.lapses != null
-        ) {
-            FlashcardReview(
-                flashcardId = deck.flashcardId,
-                lastReviewedAt = deck.lastReviewedAt,
-                nextReviewAt = deck.nextReviewAt,
-                easeFactor = deck.easeFactor,
-                interval = deck.interval,
-                repetitions = deck.repetitions,
-                lapses = deck.lapses,
-            )
-        } else {
-            FlashcardReview.Empty
-        }
-        return review
+        val hasMissingField = listOf(
+            deck.flashcardId,
+            deck.lastReviewedAt,
+            deck.nextReviewAt,
+            deck.easeFactor,
+            deck.interval,
+            deck.repetitions,
+            deck.lapses,
+        ).any { it == null }
+
+        if (hasMissingField) return FlashcardReview.Empty
+
+        return FlashcardReview(
+            flashcardId = deck.flashcardId ?: "",
+            lastReviewedAt = deck.lastReviewedAt ?: 0L,
+            nextReviewAt = deck.nextReviewAt ?: 0L,
+            easeFactor = deck.easeFactor ?: 0.0,
+            interval = deck.interval ?: 0L,
+            repetitions = deck.repetitions ?: 0L,
+            lapses = deck.lapses ?: 0L,
+        )
     }
 }

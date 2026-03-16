@@ -137,7 +137,10 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+    private fun applyFlashcardExample(
+        operation: RemoteSyncOperation,
+        localDeviceId: String,
+    ): ApplyRemoteOperationResult {
         val existing = flashcardExampleQueries.findById(operation.entityId).executeAsOneOrNull()
         if (existing != null && operation.lamport < existing.versionLamport) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
@@ -159,7 +162,7 @@ class ApplyRemoteOperation(
         val translation = payload.stringAny("translation")
         val type = payload.stringAny("type")
 
-        if (operationType != "delete" && (text.isNullOrBlank() || translation.isNullOrBlank() || type.isNullOrBlank())) {
+        if (isMissingExamplePayload(operationType, text, translation, type)) {
             return ApplyRemoteOperationResult.Deferred(reason = "missing_required_field:example_payload")
         }
 
@@ -179,7 +182,11 @@ class ApplyRemoteOperation(
             id = operation.entityId,
             flashcardId = flashcardId,
             text = if (operationType == "delete") existing?.text ?: text.orEmpty() else text.orEmpty(),
-            translation = if (operationType == "delete") existing?.translation ?: translation.orEmpty() else translation.orEmpty(),
+            translation = if (operationType == "delete") {
+                existing?.translation ?: translation.orEmpty()
+            } else {
+                translation.orEmpty()
+            },
             type = if (operationType == "delete") existing?.type ?: type.orEmpty() else type.orEmpty(),
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -204,7 +211,7 @@ class ApplyRemoteOperation(
         val translation = payload.stringAny("translation")
         val category = payload.stringAny("category")
 
-        if (operationType != "delete" && (phrase.isNullOrBlank() || translation.isNullOrBlank() || category.isNullOrBlank())) {
+        if (isMissingQuotePayload(operationType, phrase, translation, category)) {
             return ApplyRemoteOperationResult.Deferred(reason = "missing_required_field:quote_payload")
         }
 
@@ -221,7 +228,11 @@ class ApplyRemoteOperation(
             title = payload.stringAny("title") ?: existing?.title ?: (phrase ?: "[deleted]"),
             phrase = if (operationType == "delete") existing?.phrase ?: (phrase ?: "[deleted]") else phrase.orEmpty(),
             description = payload.stringAny("description") ?: existing?.description.orEmpty(),
-            translation = if (operationType == "delete") existing?.translation ?: translation.orEmpty() else translation.orEmpty(),
+            translation = if (operationType == "delete") {
+                existing?.translation ?: translation.orEmpty()
+            } else {
+                translation.orEmpty()
+            },
             example = payload.stringAny("example") ?: existing?.example.orEmpty(),
             context = payload.stringAny("context") ?: existing?.context.orEmpty(),
             pronunciation = payload.stringAny("pronunciation") ?: existing?.pronunciation.orEmpty(),
@@ -344,6 +355,28 @@ class ApplyRemoteOperation(
     private fun parseIsoToEpoch(raw: String?): Long? {
         if (raw.isNullOrBlank()) return null
         return runCatching { Instant.parse(raw).toEpochMilli() }.getOrNull()
+    }
+
+    private fun isMissingExamplePayload(
+        operationType: String,
+        text: String?,
+        translation: String?,
+        type: String?,
+    ): Boolean {
+        if (operationType == "delete") return false
+
+        return listOf(text, translation, type).any { it.isNullOrBlank() }
+    }
+
+    private fun isMissingQuotePayload(
+        operationType: String,
+        phrase: String?,
+        translation: String?,
+        category: String?,
+    ): Boolean {
+        if (operationType == "delete") return false
+
+        return listOf(phrase, translation, category).any { it.isNullOrBlank() }
     }
 }
 
