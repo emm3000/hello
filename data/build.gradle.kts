@@ -82,10 +82,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(kotlin("test"))
 
-    api(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-
     implementation(libs.kotlinx.serialization.json)
 
     // Sqldelight

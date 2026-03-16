@@ -18,7 +18,6 @@ googleCrashlyticsVersion = "3.0.6"
 navigationCompose = "2.9.7"
 appcompat = "1.7.1"
 material = "1.13.0"
-roomRuntime = "2.8.4"
 kspVersion = "2.3.6"
 coreKtxVersion = "1.7.0"
 androidDriver = "2.2.1"
@@ -32,9 +31,6 @@ ktor = "3.4.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
-androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
-androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
