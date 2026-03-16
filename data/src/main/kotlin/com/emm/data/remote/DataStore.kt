@@ -1,10 +1,12 @@
 package com.emm.data.remote
 
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.time.LocalDateTime
@@ -45,8 +47,10 @@ class DataStore(
                 val encodedErrorResponse: String = json.encodeToString(decodedErrorResponse)
                 editor.putString(ERROR_KEY, encodedErrorResponse).apply()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e: SerializationException) {
+            Log.w(TAG, "Could not decode error response", e)
+        } catch (e: IllegalArgumentException) {
+            Log.w(TAG, "Unexpected error response format", e)
         }
     }
 
@@ -55,6 +59,7 @@ class DataStore(
     }
 
     companion object {
+        private const val TAG = "DataStore"
 
         const val ERROR_KEY = "ERROR_KEY"
         const val SUCCESS_KEY = "SUCCESS_KEY"

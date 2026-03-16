@@ -11,39 +11,15 @@
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ImportOrdering:ApplyRemoteOperation.kt$import com.emm.data.HelloDb import kotlinx.serialization.json.JsonObject import kotlinx.serialization.json.JsonPrimitive import kotlinx.serialization.json.doubleOrNull import kotlinx.serialization.json.longOrNull import kotlinx.serialization.json.contentOrNull import kotlinx.serialization.json.jsonPrimitive import java.time.Instant</ID>
-    <ID>LongMethod:DefaultBackupRepository.kt$DefaultBackupRepository$suspend fun populate()</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(category: String, complexity: String): String</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(wordOrPhrase: String): String</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt(): String</ID>
     <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt2(): String</ID>
-    <ID>LongMethod:RequestDataProcessor.kt$RequestDataProcessor$fun process(data: Any)</ID>
-    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$if</ID>
-    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$private</ID>
-    <ID>MaxLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$translation = if (operationType == "delete") existing?.translation ?: translation.orEmpty() else translation.orEmpty()</ID>
-    <ID>MaxLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$if</ID>
     <ID>MaximumLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$ </ID>
     <ID>MaximumLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$ </ID>
-    <ID>NoUnusedImports:DefaultBackupRepository.kt$com.emm.data.remote.DefaultBackupRepository.kt</ID>
-    <ID>NoUnusedImports:SupabaseSyncRemoteDataSource.kt$com.emm.data.sync.SupabaseSyncRemoteDataSource.kt</ID>
-    <ID>PrintStackTrace:DataStore.kt$DataStore$e</ID>
-    <ID>RethrowCaughtException:FlashcardResponseParses.kt$FlashcardResponseParses$throw e</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.doubleAny(vararg keys: String): Double?</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.epochAny(vararg keys: String): Long?</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun JsonObject.longAny(vararg keys: String): Long?</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ThrowsCount:AnkiResponseParses.kt$AnkiResponseParses$fun parse(raw: String, json: Json): FlashcardGenerated</ID>
-    <ID>ThrowsCount:FlashcardResponseParses.kt$FlashcardResponseParses$fun parse(raw: String, json: Json): FlashcardGenerated</ID>
-    <ID>TooGenericExceptionCaught:DataStore.kt$DataStore$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DefaultBackupRepository.kt$DefaultBackupRepository$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DefaultSyncEngine.kt$DefaultSyncEngine$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:FlashcardResponseParses.kt$FlashcardResponseParses$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:RemoteDataSource.kt$RemoteDataSource$e: Exception</ID>
-    <ID>TooGenericExceptionThrown:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$throw Exception("Flashcard not found")</ID>
-    <ID>UnusedPrivateProperty:DefaultBackupRepository.kt$DefaultBackupRepository$private val json: Json</ID>
   </CurrentIssues>
 </SmellBaseline>

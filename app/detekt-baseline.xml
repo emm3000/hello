@@ -2,75 +2,14 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(Icons.Default.BookmarkAdd, contentDescription = stringResource(R.string.new_deck_content_description))</ID>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(Icons.Default.Link, contentDescription = stringResource(R.string.link_device_content_description))</ID>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(R.string.deck_plural_one)</ID>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(R.string.deck_plural_other)</ID>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(R.string.link_device_content_description)</ID>
-    <ID>ArgumentListWrapping:DashboardScreen.kt$(R.string.new_deck_content_description)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.deck_plural_one)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.deck_plural_other)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.no_pending_cards)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.review_status_ready)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.review_status_up_to_date)</ID>
-    <ID>ArgumentListWrapping:DeckDetailScreen.kt$(R.string.start_review)</ID>
-    <ID>ArgumentListWrapping:FlashcardDetailScreen.kt$(R.string.hide_translation)</ID>
-    <ID>ArgumentListWrapping:FlashcardDetailScreen.kt$(R.string.show_translation)</ID>
-    <ID>ArgumentListWrapping:NewCardScreen.kt$(R.string.hide_translation)</ID>
-    <ID>ArgumentListWrapping:NewCardScreen.kt$(R.string.listening_placeholder)</ID>
-    <ID>ArgumentListWrapping:NewCardScreen.kt$(R.string.show_translation)</ID>
-    <ID>ArgumentListWrapping:NewCardScreen.kt$(R.string.word_placeholder)</ID>
-    <ID>ArgumentListWrapping:QuoteScreen.kt$(R.string.collapse_quote)</ID>
-    <ID>ArgumentListWrapping:QuoteScreen.kt$(R.string.expand_quote)</ID>
-    <ID>CyclomaticComplexMethod:NewCardScreen.kt$@SuppressLint("LocalContextGetResourceValueCall") @Composable fun NewCardScreen( modifier: Modifier = Modifier, state: NewCardUiState = NewCardUiState(), onAction: (NewCardAction) -&gt; Unit = {}, onNavigateBack: () -&gt; Unit = {}, )</ID>
     <ID>EmptyFunctionBlock:SpeechToTextManager.kt$&lt;no name provided&gt;${}</ID>
     <ID>EmptyFunctionBlock:SpeechToTextManager.kt$AndroidSpeechToTextManager${}</ID>
-    <ID>ImportOrdering:Sync.kt$import android.content.Context import androidx.work.ExistingWorkPolicy import androidx.work.ExistingPeriodicWorkPolicy import androidx.work.WorkManager</ID>
-    <ID>Indentation:BottomSheetDialogForPickCategory.kt$ </ID>
-    <ID>LongMethod:DashboardScreen.kt$@Composable fun DashboardScreen( modifier: Modifier = Modifier, state: DashboardUiState = DashboardUiState(), newCard: () -&gt; Unit = {}, onDeckDetail: (String) -&gt; Unit = {}, onCreateDeck: () -&gt; Unit = {}, onPairDevice: () -&gt; Unit = {}, )</ID>
-    <ID>LongMethod:DeckDetailScreen.kt$@Composable fun DeckDetailScreen( modifier: Modifier = Modifier, state: DeckDetailUiState = DeckDetailUiState(), onNavigateBack: () -&gt; Unit = {}, onReview: () -&gt; Unit = {}, onCardClick: (String) -&gt; Unit = {}, onAddCard: () -&gt; Unit = {}, )</ID>
-    <ID>LongMethod:FlashcardDetailScreen.kt$@Composable fun FlashcardDetailScreen( modifier: Modifier = Modifier, flashcard: Flashcard = Flashcard.Empty, onNavigateBack: () -&gt; Unit = {}, )</ID>
-    <ID>LongMethod:NewCardScreen.kt$@Composable private fun CardPreview(flashcard: FlashcardGenerated)</ID>
-    <ID>LongMethod:NewDeckScreen.kt$@Composable fun NewDeckScreen( modifier: Modifier = Modifier, onNavigateBack: () -&gt; Unit = {}, state: NewDeckUiState = NewDeckUiState(), onAction: (NewDeckAction) -&gt; Unit = {}, )</ID>
-    <ID>LongMethod:PairingScreen.kt$@Composable fun PairingScreen( state: PairingUiState, onBack: () -&gt; Unit, onRefresh: () -&gt; Unit, onCreateCode: () -&gt; Unit, onJoinCodeChange: (String) -&gt; Unit, onJoinWithCode: () -&gt; Unit, onRevoke: (String) -&gt; Unit, )</ID>
-    <ID>LongMethod:QuoteScreen.kt$@Composable private fun QuoteItem(quote: Quote, onClick: (Quote) -&gt; Unit)</ID>
-    <ID>LongMethod:Select.kt$@Composable fun &lt;T&gt; HSelect( items: List&lt;T&gt;, itemSelected: T?, onItemSelected: (T) -&gt; Unit, label: String, modifier: Modifier = Modifier, enabled: Boolean = true, itemLabel: (T) -&gt; String = { it.toString() }, placeholder: String = "Seleccionar…", )</ID>
-    <ID>LongMethod:StudyScreen.kt$@Composable fun StudyScreen( modifier: Modifier = Modifier, onNavigateBack: () -&gt; Unit = {}, onReviewAnswer: (Flashcard?, ReviewGrade) -&gt; Unit = { _, _ -&gt; }, state: StudyUiState = StudyUiState(), )</ID>
-    <ID>LongParameterList:Input.kt$( value: String, onValueChange: (String) -&gt; Unit, modifier: Modifier = Modifier, label: String? = null, placeholder: String? = null, supportingText: String? = null, errorMessage: String? = null, enabled: Boolean = true, readOnly: Boolean = false, singleLine: Boolean = true, minLines: Int = 1, maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE, leadingIcon: @Composable (() -&gt; Unit)? = null, trailingIcon: @Composable (() -&gt; Unit)? = null, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, keyboardActions: KeyboardActions = KeyboardActions.Default, visualTransformation: VisualTransformation = VisualTransformation.None, interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }, )</ID>
     <ID>MatchingDeclarationName:Alert.kt$AlertVariant</ID>
     <ID>MatchingDeclarationName:Badge.kt$BadgeVariant</ID>
     <ID>MatchingDeclarationName:Button.kt$ButtonVariant</ID>
     <ID>MatchingDeclarationName:Card.kt$CardVariant</ID>
-    <ID>MatchingDeclarationName:DecksScreen.kt$DeckInfo</ID>
-    <ID>MaxLineLength:BottomSheetDialogForPickCategory.kt$contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer</ID>
-    <ID>MaxLineLength:DashboardScreen.kt$Icon(Icons.Default.BookmarkAdd, contentDescription = stringResource(R.string.new_deck_content_description))</ID>
-    <ID>MaxLineLength:DashboardScreen.kt$Icon(Icons.Default.Link, contentDescription = stringResource(R.string.link_device_content_description))</ID>
-    <ID>MaxLineLength:DashboardScreen.kt$if (totalDecks == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other)</ID>
-    <ID>MaxLineLength:DeckDetailScreen.kt$label = if (cardCount == 1) stringResource(R.string.deck_plural_one) else stringResource(R.string.deck_plural_other)</ID>
-    <ID>MaxLineLength:DeckDetailScreen.kt$text = if (hasSessionEnabled) stringResource(R.string.start_review) else stringResource(R.string.no_pending_cards)</ID>
-    <ID>MaxLineLength:DeckDetailScreen.kt$value = if (hasSessionEnabled) stringResource(R.string.review_status_ready) else stringResource(R.string.review_status_up_to_date)</ID>
-    <ID>MaxLineLength:FlashcardDetailScreen.kt$text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation)</ID>
-    <ID>MaxLineLength:NewCardScreen.kt$placeholder = if (isListening) stringResource(R.string.listening_placeholder) else stringResource(R.string.word_placeholder)</ID>
-    <ID>MaxLineLength:NewCardScreen.kt$text = if (showTranslation) stringResource(R.string.hide_translation) else stringResource(R.string.show_translation)</ID>
-    <ID>MaxLineLength:NewCardViewModel.kt$NewCardViewModel$is NewCardAction.CategorySelected -&gt; state = state.copy(category = action.category, error = null, previewResult = null)</ID>
-    <ID>MaxLineLength:NewCardViewModel.kt$NewCardViewModel$is NewCardAction.DifficultySelected -&gt; state = state.copy(difficulty = action.difficulty, error = null, previewResult = null)</ID>
-    <ID>MaxLineLength:QuoteScreen.kt$contentDescription = if (expanded) stringResource(R.string.collapse_quote) else stringResource(R.string.expand_quote)</ID>
     <ID>MaximumLineLength:BottomSheetDialogForPickCategory.kt$ </ID>
-    <ID>MaximumLineLength:DashboardScreen.kt$ </ID>
-    <ID>MaximumLineLength:DeckDetailScreen.kt$ </ID>
-    <ID>MaximumLineLength:FlashcardDetailScreen.kt$ </ID>
-    <ID>MaximumLineLength:NewCardScreen.kt$ </ID>
-    <ID>MaximumLineLength:NewCardViewModel.kt$NewCardViewModel$ </ID>
-    <ID>MaximumLineLength:QuoteScreen.kt$ </ID>
     <ID>MemberNameEqualsClassName:BackupSyncWorker.kt$BackupSyncWorker.Companion$const val BackupSyncWorker = "BackupSyncWorker"</ID>
-    <ID>MemberNameEqualsClassName:SyncWorker.kt$SyncWorker.Companion$const val SyncWorker: String = "SyncWorker"</ID>
-    <ID>MultiLineIfElse:Input.kt$Modifier</ID>
-    <ID>MultiLineIfElse:Input.kt$Modifier.padding(start = 28.dp)</ID>
-    <ID>NoTrailingSpaces:NewCardScreen.kt$ </ID>
-    <ID>NoTrailingSpaces:NewCardViewModel.kt$NewCardViewModel$ </ID>
-    <ID>ReturnCount:ConnectivitySyncTrigger.kt$ConnectivitySyncTrigger$fun register(context: Context)</ID>
-    <ID>ReturnCount:SyncWorker.kt$private fun Throwable.isRecoverableSyncError(): Boolean</ID>
-    <ID>SwallowedException:SpeechToTextManager.kt$AndroidSpeechToTextManager$e: Exception</ID>
     <ID>TopLevelPropertyNaming:SyncWorkHelpers.kt$val SyncConstraints get() = Constraints.Builder() .setRequiredNetworkType(NetworkType.CONNECTED) .build()</ID>
     <ID>TopLevelPropertyNaming:Type.kt$/** * Sistema tipográfico inspirado directamente en shadcn/ui. * * Mapeo Material3 → shadcn (equivalencias de clase CSS): * * | Token M3 | shadcn clase | Uso en Hello | * |-------------------|----------------------|-----------------------------------| * | headlineLarge | text-4xl extrabold | — | * | headlineMedium | text-3xl bold | — | * | headlineSmall | text-2xl semibold | Título de word en CardDetail | * | titleLarge | text-xl semibold | TopAppBar, sección principal | * | titleMedium | text-lg medium | Subtítulos de sección | * | titleSmall | text-sm medium | Labels de sección (SectionCard) | * | bodyLarge | text-base normal | Cuerpo principal de flashcard | * | bodyMedium | text-sm normal | Textos secundarios / onSurfaceVariant | * | bodySmall | text-xs normal | Helper / supporting text | * | labelLarge | text-sm medium | Texto de botones | * | labelMedium | text-xs medium | Badges, chips, conteos | * | labelSmall | text-[10px] medium | Micro-labels, fechas de review | */ val Typography = Typography( headlineLarge = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = (-0.5).sp, ), headlineMedium = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 36.sp, letterSpacing = (-0.25).sp, ), headlineSmall = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = 0.sp, ), titleLarge = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 28.sp, letterSpacing = 0.sp, ), titleMedium = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.sp, ), titleSmall = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp, ), bodyLarge = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp, letterSpacing = 0.sp, ), bodyMedium = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp, ), bodySmall = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 18.sp, letterSpacing = 0.sp, ), labelLarge = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp, ), labelMedium = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.sp, ), labelSmall = TextStyle( fontFamily = AppFontFamily, fontWeight = FontWeight.Medium, fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 0.sp, ), )</ID>
     <ID>TopLevelPropertyNaming:Type.kt$private val AppFontFamily: FontFamily = FontFamily.Default</ID>

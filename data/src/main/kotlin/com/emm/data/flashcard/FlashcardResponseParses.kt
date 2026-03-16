@@ -39,8 +39,6 @@ object FlashcardResponseParses {
             }
         } catch (e: SerializationException) {
             throw IllegalArgumentException("La respuesta de la IA no coincide con el formato esperado", e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }
