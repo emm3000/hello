@@ -107,23 +107,23 @@ Decisiones cerradas:
 
 ## Fase 5. Preparar Supabase
 
-- [ ] Crear proyecto de Supabase para desarrollo.
-- [ ] Habilitar `Anonymous Sign-Ins` en Supabase Auth.
-- [ ] Configurar `supabase-kt` en Android para `Auth`, `Postgrest`, `Functions`, `Realtime`.
-- [ ] Crear script SQL versionado para bootstrap de schema remoto.
-- [ ] Crear tabla `app_account`.
-- [ ] Crear tabla `app_device`.
-- [ ] Crear tabla `pairing_session`.
-- [ ] Crear tabla `sync_operation`.
-- [ ] Crear tabla `sync_ack`.
-- [ ] Crear tabla `sync_cursor` si decides persistirlo del lado servidor.
-- [ ] Crear tabla remota `deck`.
-- [ ] Crear tabla remota `flashcard`.
-- [ ] Crear tabla remota `flashcard_example`.
-- [ ] Crear tabla remota `review_event`.
-- [ ] Crear tabla remota `quote`.
-- [ ] Agregar `app_account_id` a todas las tablas de dominio remotas.
-- [ ] Crear indices por `app_account_id`, `entity_id`, `lamport`, `created_at`.
+- [x] Crear proyecto de Supabase para desarrollo.
+- [x] Habilitar `Anonymous Sign-Ins` en Supabase Auth.
+- [x] Configurar `supabase-kt` en Android para `Auth`, `Postgrest`, `Functions`, `Realtime`.
+- [x] Crear script SQL versionado para bootstrap de schema remoto.
+- [x] Crear tabla `app_account`.
+- [x] Crear tabla `app_device`.
+- [x] Crear tabla `pairing_session`.
+- [x] Crear tabla `sync_operation`.
+- [x] Crear tabla `sync_ack`.
+- [x] Crear tabla `sync_cursor` si decides persistirlo del lado servidor.
+- [x] Crear tabla remota `deck`.
+- [x] Crear tabla remota `flashcard`.
+- [x] Crear tabla remota `flashcard_example`.
+- [x] Crear tabla remota `review_event`.
+- [x] Crear tabla remota `quote`.
+- [x] Agregar `app_account_id` a todas las tablas de dominio remotas.
+- [x] Crear indices por `app_account_id`, `entity_id`, `lamport`, `created_at`.
 
 ## Fase 6. Seguridad y acceso
 
