@@ -43,7 +43,16 @@ class StudyViewModel(
         state = state.copy(reviewedCount = state.reviewedCount + 1)
     }
 
-    fun onProcess(flashcard: Flashcard?, reviewResult: ReviewGrade) = viewModelScope.launch {
+    fun onIntent(intent: StudyUiIntent) {
+        when (intent) {
+            is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
+                flashcard = intent.flashcard,
+                reviewResult = intent.reviewGrade,
+            )
+        }
+    }
+
+    private fun processReviewAnswer(flashcard: Flashcard?, reviewResult: ReviewGrade) = viewModelScope.launch {
         if (flashcard == null) return@launch
 
         val newReview: FlashcardReview = SpacedRepetitionScheduler.schedule(

@@ -20,7 +20,14 @@ fun NavGraphBuilder.study(navController: NavController) {
 
         StudyScreen(
             onNavigateBack = { navController.popBackStack() },
-            onReviewAnswer = vm::onProcess,
+            onReviewAnswer = { flashcard, reviewGrade ->
+                vm.onIntent(
+                    StudyUiIntent.ReviewAnswered(
+                        flashcard = flashcard,
+                        reviewGrade = reviewGrade,
+                    )
+                )
+            },
             state = vm.state
         )
     }
