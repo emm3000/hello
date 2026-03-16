@@ -12,6 +12,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
+private const val NETWORK_TIMEOUT_SECONDS = 60L
+
 fun provideOkHttp(context: Context): OkHttpClient {
     val level: HttpLoggingInterceptor.Level = if (BuildConfig.DEBUG) {
         HttpLoggingInterceptor.Level.BODY
@@ -26,10 +28,10 @@ fun provideOkHttp(context: Context): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor(ChuckerInterceptor(context))
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .callTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .writeTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .callTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
 }
 

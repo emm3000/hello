@@ -116,7 +116,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [ ] Crear tarea para vaciar primero baseline de `domain` y mantenerla vacía.
 - [x] Eliminar del baseline de `app` los issues de naming/filename más baratos.
 - [x] Renombrar `networkModule.kt`, `newModule.kt` y `repositoryModule.kt` para cumplir naming consistente.
-- [ ] Eliminar del baseline de `data` los issues de `Filename` en `mappers.kt` y `providers.kt`.
+- [x] Eliminar del baseline de `data` los issues de `Filename` en `mappers.kt` y `providers.kt`.
 - [ ] Resolver los `TooGenericExceptionCaught` más críticos.
 - [ ] Resolver los `LongMethod` en pantallas grandes empezando por `NewCardScreen`. (Regla temporalmente desactivada)
 - [ ] Resolver los `CyclomaticComplexMethod` de UI reusable (`HButton`, `HInput`) si siguen creciendo. (Regla temporalmente desactivada)
