@@ -94,15 +94,17 @@ class NewCardViewModel(
     private fun generateFlashcard() = viewModelScope.launch {
         val current = _state.value
         _state.update { it.copy(isLoading = true, error = null) }
-        try {
+        runCatching {
             val preview = generateFlashcardPreviewUseCase(
                 word = current.word,
                 categories = current.category,
                 difficulty = current.difficulty,
                 typeView = current.typeView,
             )
+            preview
+        }.onSuccess { preview ->
             _state.update { it.copy(previewResult = preview, isLoading = false) }
-        } catch (e: Exception) {
+        }.onFailure { e ->
             _state.update { it.copy(error = e.message, isLoading = false) }
         }
     }
@@ -112,11 +114,12 @@ class NewCardViewModel(
         val deckId = current.deckSelected?.id ?: return@launch
         val preview = current.previewResult ?: return@launch
         _state.update { it.copy(isLoading = true, error = null) }
-        try {
+        runCatching {
             createFlashcardUseCase(
                 deckId = deckId,
                 flashcard = preview,
             )
+        }.onSuccess {
             _state.update {
                 it.copy(
                     word = "",
@@ -126,7 +129,7 @@ class NewCardViewModel(
                 )
             }
             _effect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
-        } catch (e: Exception) {
+        }.onFailure { e ->
             _state.update { it.copy(error = e.message, isLoading = false) }
             _effect.send(
                 NewCardUiEffect.ShowMessage(

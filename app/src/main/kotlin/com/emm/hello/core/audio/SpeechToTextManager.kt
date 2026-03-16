@@ -87,7 +87,11 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
             recognizer?.startListening(intent)
             _isListening.value = true
             _state.value = STTState.READY_TO_LISTEN
-        } catch (e: Exception) {
+        } catch (_: SecurityException) {
+            _error.value = "Could not start speech recognizer"
+            _isListening.value = false
+            _state.value = STTState.ERROR
+        } catch (_: IllegalStateException) {
             _error.value = "Could not start speech recognizer"
             _isListening.value = false
             _state.value = STTState.ERROR
