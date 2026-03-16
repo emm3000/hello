@@ -45,7 +45,6 @@ import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.sync.PendingOperationsSyncScheduler
-import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -89,7 +88,6 @@ fun Module.repository() {
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
-    factoryOf(::WorkManagerSyncManager)
     single { PendingOperationsSyncScheduler(androidContext(), get()) }
 }
 

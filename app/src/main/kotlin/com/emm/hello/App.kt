@@ -4,7 +4,6 @@ import android.app.Application
 import com.emm.hello.di.networkModule
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
-import com.emm.hello.di.syncModule
 import com.emm.hello.sync.PendingOperationsSyncScheduler
 import com.emm.hello.sync.Sync
 import org.koin.android.ext.koin.androidContext
@@ -23,7 +22,6 @@ class App : Application() {
                 repositoryModule,
                 newModule,
                 networkModule,
-                syncModule,
             )
         }
         Sync.initialize(this)

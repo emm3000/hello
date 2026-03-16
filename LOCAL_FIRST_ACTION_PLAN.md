@@ -215,11 +215,11 @@ Decisiones cerradas:
 
 ## Fase 14. Corte con el sistema anterior
 
-- [ ] Eliminar dependencias de `syncStatus` donde ya no sean necesarias.
-- [ ] Eliminar llamadas a endpoints legacy `/hello`, `/decks/all`, `/flashcards/all`, `/examples/all`, `/reviews/all`, `/quotes/all` cuando el nuevo pipeline ya cubra esos casos.
-- [ ] Retirar `RemoteDataSource` legacy o reconvertirlo a cliente del nuevo `SyncApi`.
-- [ ] Retirar `WorkManagerSyncManager` basado en nombre de work legacy si deja de servir.
-- [ ] Dejar `backup` como feature separada, no como sync principal.
+- [x] Eliminar dependencias de `syncStatus` donde ya no sean necesarias.
+- [x] Eliminar llamadas a endpoints legacy `/hello`, `/decks/all`, `/flashcards/all`, `/examples/all`, `/reviews/all`, `/quotes/all` cuando el nuevo pipeline ya cubra esos casos.
+- [x] Retirar `RemoteDataSource` legacy o reconvertirlo a cliente del nuevo `SyncApi`.
+- [x] Retirar `WorkManagerSyncManager` basado en nombre de work legacy si deja de servir.
+- [x] Dejar `backup` como feature separada, no como sync principal.
 
 ## Fase 15. Validacion de escenarios reales
 
