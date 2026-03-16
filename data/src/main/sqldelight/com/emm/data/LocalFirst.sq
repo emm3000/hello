@@ -87,9 +87,10 @@ INSERT INTO OperationLog (
 
 pendingOperations:
 SELECT * FROM OperationLog
-WHERE status = 'Pending'
+WHERE status IN ('Pending', 'Failed')
+  AND retryCount < :maxRetries
 ORDER BY createdAt ASC
-LIMIT ?;
+LIMIT :limit;
 
 countPendingOperations:
 SELECT COUNT(*) FROM OperationLog
@@ -138,33 +139,6 @@ INSERT OR REPLACE INTO SyncCheckpoint (
     lastSyncErrorAt,
     updatedAt
 ) VALUES (1, ?, ?, ?, ?, ?);
-
-CREATE TABLE DeadLetterOperation (
-    opId TEXT NOT NULL PRIMARY KEY,
-    entityType TEXT NOT NULL,
-    entityId TEXT NOT NULL,
-    operationType TEXT NOT NULL,
-    payload TEXT NOT NULL,
-    reason TEXT NOT NULL,
-    failedAt INTEGER NOT NULL
-);
-
-CREATE INDEX idx_DeadLetterOperation_failedAt ON DeadLetterOperation(failedAt DESC);
-
-insertDeadLetterOperation:
-INSERT OR REPLACE INTO DeadLetterOperation (
-    opId,
-    entityType,
-    entityId,
-    operationType,
-    payload,
-    reason,
-    failedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?);
-
-allDeadLetterOperations:
-SELECT * FROM DeadLetterOperation
-ORDER BY failedAt DESC;
 
 CREATE TABLE AppliedRemoteOperation (
     opId TEXT NOT NULL PRIMARY KEY,

@@ -74,20 +74,30 @@ class DefaultSyncEngine(
     }
 
     private suspend fun pullApplyAndAck(localDeviceId: String, now: Long) {
-        val pulledResult = pullRemoteOperations(limit = PullRemoteOperations.DEFAULT_PULL_BATCH_SIZE)
+        var keepPulling = true
+        while (keepPulling) {
+            val pulledResult = pullRemoteOperations(limit = PullRemoteOperations.DEFAULT_PULL_BATCH_SIZE)
 
-        if (pulledResult.operations.isEmpty()) {
-            localFirstQueries.upsertSyncCheckpoint(
-                lastPulledCursor = pulledResult.currentCursor,
-                lastSuccessfulSyncAt = now,
-                lastSyncError = null,
-                lastSyncErrorAt = null,
-                updatedAt = now,
-            )
-            return
+            if (pulledResult.operations.isEmpty()) {
+                saveCheckpoint(cursor = pulledResult.currentCursor, now = now)
+                keepPulling = false
+            } else {
+                val batchResult = applyBatch(pulledResult, localDeviceId, now)
+                ackOperations(batchResult.ackedOpIds.distinct())
+                saveCheckpoint(cursor = batchResult.maxCursor, now = now)
+                // Stop pagination if a deferred op was encountered to avoid a re-fetch loop
+                keepPulling = batchResult.firstDeferredCursor == null
+            }
         }
+    }
 
-        var maxAckedCursor = pulledResult.currentCursor
+    private fun applyBatch(
+        pulledResult: PullRemoteOperationsResult,
+        localDeviceId: String,
+        now: Long,
+    ): BatchResult {
+        var maxCursor = pulledResult.currentCursor
+        var firstDeferredCursor: Long? = null
         val ackedOpIds = mutableListOf<String>()
 
         db.transaction {
@@ -95,16 +105,11 @@ class DefaultSyncEngine(
                 val existing = localFirstQueries.findProcessedRemoteOperation(operation.opId).executeAsOneOrNull()
                 if (existing != null) {
                     ackedOpIds += operation.opId
-                    if (operation.cursor > maxAckedCursor) {
-                        maxAckedCursor = operation.cursor
-                    }
+                    if (operation.cursor > maxCursor) maxCursor = operation.cursor
                     return@forEach
                 }
 
-                val result = applyRemoteOperation(
-                    operation = operation,
-                    localDeviceId = localDeviceId,
-                )
+                val result = applyRemoteOperation(operation = operation, localDeviceId = localDeviceId)
 
                 if (result.shouldAck) {
                     localFirstQueries.markRemoteOperationProcessed(
@@ -116,17 +121,28 @@ class DefaultSyncEngine(
                         processedAt = now,
                     )
                     ackedOpIds += operation.opId
-                    if (operation.cursor > maxAckedCursor) {
-                        maxAckedCursor = operation.cursor
-                    }
+                    if (operation.cursor > maxCursor) maxCursor = operation.cursor
+                } else {
+                    if (firstDeferredCursor == null) firstDeferredCursor = operation.cursor
                 }
             }
         }
 
-        ackOperations(ackedOpIds.distinct())
+        // Never advance the checkpoint past a deferred operation
+        val cappedCursor = firstDeferredCursor?.let { deferredAt ->
+            if (deferredAt - 1 < maxCursor) deferredAt - 1 else maxCursor
+        } ?: maxCursor
 
+        return BatchResult(
+            ackedOpIds = ackedOpIds,
+            firstDeferredCursor = firstDeferredCursor,
+            maxCursor = cappedCursor,
+        )
+    }
+
+    private fun saveCheckpoint(cursor: Long, now: Long) {
         localFirstQueries.upsertSyncCheckpoint(
-            lastPulledCursor = maxAckedCursor,
+            lastPulledCursor = cursor,
             lastSuccessfulSyncAt = now,
             lastSyncError = null,
             lastSyncErrorAt = null,
@@ -147,3 +163,9 @@ class DefaultSyncEngine(
 
     private fun pendingCount(): Long = localFirstQueries.countPendingOperations().executeAsOne()
 }
+
+private data class BatchResult(
+    val ackedOpIds: List<String>,
+    val firstDeferredCursor: Long?,
+    val maxCursor: Long,
+)
