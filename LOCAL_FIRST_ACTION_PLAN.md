@@ -97,13 +97,13 @@ Decisiones cerradas:
 
 ## Fase 4. Limpiar la estrategia actual de sync
 
-- [ ] Desacoplar `DeckSynchronizer` de `Context` y `WorkManager`.
-- [ ] Desacoplar `FlashcardSynchronizer` de `Context` y `WorkManager`.
-- [ ] Desacoplar `FlashcardReviewSynchronizer` de `Context` y `WorkManager`.
-- [ ] Desacoplar `QuoteSynchronizer` de `Context` y `WorkManager`.
-- [ ] Retirar gradualmente los workers por entidad como camino principal.
-- [ ] Mantener un solo `SyncWorker` o `SyncEngineWorker` para drenar la outbox y hacer pull.
-- [ ] Separar por completo `backup` de `sync`.
+- [x] Desacoplar `DeckSynchronizer` de `Context` y `WorkManager`.
+- [x] Desacoplar `FlashcardSynchronizer` de `Context` y `WorkManager`.
+- [x] Desacoplar `FlashcardReviewSynchronizer` de `Context` y `WorkManager`.
+- [x] Desacoplar `QuoteSynchronizer` de `Context` y `WorkManager`.
+- [x] Retirar gradualmente los workers por entidad como camino principal.
+- [x] Mantener un solo `SyncWorker` o `SyncEngineWorker` para drenar la outbox y hacer pull.
+- [x] Separar por completo `backup` de `sync`.
 
 ## Fase 5. Preparar Supabase
 

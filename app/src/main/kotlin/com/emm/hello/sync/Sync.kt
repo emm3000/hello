@@ -2,7 +2,6 @@ package com.emm.hello.sync
 
 import android.content.Context
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 
 object Sync {
@@ -16,12 +15,15 @@ object Sync {
             )
         }
     }
+}
+
+object BackupSync {
 
     fun backupInitialize(context: Context, force: Boolean = false) {
         WorkManager.getInstance(context).apply {
             enqueueUniqueWork(
                 BACKUP_SYNC_WORK_NAME,
-                ExistingWorkPolicy.KEEP,
+                androidx.work.ExistingWorkPolicy.KEEP,
                 BackupSyncWorker.startUpSyncWork(force),
             )
         }

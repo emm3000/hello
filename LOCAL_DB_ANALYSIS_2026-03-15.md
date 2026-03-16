@@ -158,6 +158,10 @@ Si decides mantener `camelCase` local por compatibilidad de codegen:
   - escrituras de `Deck`, `Flashcard`, `FlashcardExample`, `Quote` y `ReviewEvent` en transaccion local + outbox (`OperationLog`)
   - eliminados disparos de sync directo desde repositorios
   - `lamport` monotono por dispositivo desde `LocalDeviceIdentity` en cada operacion
+- Fase 4 aplicada:
+  - removidos sincronizadores/workers por entidad (legacy)
+  - `SyncWorker` unico desacoplado de entidades, ejecutando `SyncEngine`
+  - scheduling de backup separado de scheduling de sync (`BackupSync` vs `Sync`)
 - Schema Fase 1 agregado en SQLDelight (`LocalFirst.sq`) con:
   - `LocalDeviceIdentity`
   - `LocalAccountState`

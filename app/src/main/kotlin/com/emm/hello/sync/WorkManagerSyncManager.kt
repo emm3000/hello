@@ -11,7 +11,7 @@ class WorkManagerSyncManager(context: Context) {
 
     val isSyncing: Flow<Boolean> = WorkManager
         .getInstance(context)
-        .getWorkInfosForUniqueWorkFlow(BACKUP_SYNC_WORK_NAME)
+        .getWorkInfosForUniqueWorkFlow(SYNC_WORK_NAME)
         .map(List<WorkInfo>::anyRunning)
         .conflate()
 }
