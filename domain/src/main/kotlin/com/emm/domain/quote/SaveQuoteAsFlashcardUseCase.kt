@@ -8,10 +8,6 @@ class SaveQuoteAsFlashcardUseCase(
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val flashcardWriteRepository: FlashcardWriteRepository,
 ) {
-    suspend operator fun invoke(quote: Quote): SaveQuoteAsFlashcardResult {
-        return invoke(SaveQuoteAsFlashcardCommand.fromQuote(quote))
-    }
-
     suspend operator fun invoke(command: SaveQuoteAsFlashcardCommand): SaveQuoteAsFlashcardResult {
         val defaultDeckId = getDefaultDeckUseCase()
         if (defaultDeckId.isBlank()) {

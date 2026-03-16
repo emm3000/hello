@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteRepository
+import com.emm.domain.quote.SaveQuoteAsFlashcardCommand
 import com.emm.domain.quote.SaveQuoteAsFlashcardResult
 import com.emm.domain.quote.SaveQuoteAsFlashcardUseCase
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ fun NavGraphBuilder.quote() {
 
         QuotesScreen(quotes) {
             scope.launch {
-                when (saveQuoteAsFlashcardUseCase(it)) {
+                when (saveQuoteAsFlashcardUseCase(SaveQuoteAsFlashcardCommand.fromQuote(it))) {
                     SaveQuoteAsFlashcardResult.Saved -> {
                         android.widget.Toast.makeText(
                             context,
