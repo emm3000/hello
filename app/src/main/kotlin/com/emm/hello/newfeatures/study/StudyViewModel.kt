@@ -26,6 +26,7 @@ class StudyViewModel(
     val effect = _effect.receiveAsFlow()
 
     private val flashcardsForToday: ArrayDeque<Flashcard> = ArrayDeque()
+    private var hasEmittedSessionFinished = false
 
     init {
         viewModelScope.launch {
@@ -37,16 +38,15 @@ class StudyViewModel(
     }
 
     private suspend fun showNextCard() {
-        var sessionJustFinished = false
         _state.update {
             if (flashcardsForToday.isNotEmpty()) {
                 it.copy(currentFlashcard = flashcardsForToday.removeFirstOrNull())
             } else {
-                sessionJustFinished = !it.isFinished
-                it.copy(isFinished = true)
+                it.copy(currentFlashcard = null)
             }
         }
-        if (sessionJustFinished) {
+        if (flashcardsForToday.isEmpty() && !hasEmittedSessionFinished) {
+            hasEmittedSessionFinished = true
             _effect.send(StudyUiEffect.SessionFinished)
         }
     }

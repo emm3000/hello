@@ -67,8 +67,8 @@ fun StudyScreen(
     onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (Flashcard?, ReviewGrade) -> Unit = { _, _ -> },
     state: StudyUiState = StudyUiState(),
+    showFinishDialog: Boolean = false,
 ) {
-    val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
     val isSpeaking by tts.isSpeaking.collectAsStateWithLifecycle()
     val ttsReady by tts.isReady.collectAsStateWithLifecycle()
@@ -84,10 +84,6 @@ fun StudyScreen(
     }
 
     LaunchedEffect(state.currentFlashcard?.id) { cardFace = CardFace.Front }
-
-    LaunchedEffect(state.isFinished) {
-        if (state.isFinished) setShowDialog(true)
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -219,7 +215,7 @@ fun StudyScreen(
         }
     }
 
-    if (showDialog) {
+    if (showFinishDialog) {
         HAlertDialog(
             title = stringResource(R.string.session_completed_title),
             description = stringResource(R.string.session_completed_desc, state.totalCount),
@@ -227,11 +223,9 @@ fun StudyScreen(
             confirmText = stringResource(R.string.back),
             cancelText = null,
             onConfirm = {
-                setShowDialog(false)
                 onFinishDialogDismissed()
             },
             onDismiss = {
-                setShowDialog(false)
                 onFinishDialogDismissed()
             },
         )

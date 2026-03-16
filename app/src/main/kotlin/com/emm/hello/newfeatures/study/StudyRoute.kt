@@ -2,6 +2,10 @@ package com.emm.hello.newfeatures.study
 
 import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -23,12 +27,14 @@ fun NavGraphBuilder.study(navController: NavController) {
         )
         val uiState = vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
+        var showFinishDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             vm.effect.collect { effect ->
                 when (effect) {
                     StudyUiEffect.NavigateBack -> navController.popBackStack()
                     StudyUiEffect.SessionFinished -> {
+                        showFinishDialog = true
                         Toast.makeText(context, "Sesion completada", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -37,7 +43,10 @@ fun NavGraphBuilder.study(navController: NavController) {
 
         StudyScreen(
             onBackRequested = { vm.onIntent(StudyUiIntent.BackClicked) },
-            onFinishDialogDismissed = { vm.onIntent(StudyUiIntent.FinishDialogDismissed) },
+            onFinishDialogDismissed = {
+                showFinishDialog = false
+                vm.onIntent(StudyUiIntent.FinishDialogDismissed)
+            },
             onReviewAnswer = { flashcard, reviewGrade ->
                 vm.onIntent(
                     StudyUiIntent.ReviewAnswered(
@@ -46,7 +55,8 @@ fun NavGraphBuilder.study(navController: NavController) {
                     )
                 )
             },
-            state = uiState.value
+            state = uiState.value,
+            showFinishDialog = showFinishDialog,
         )
     }
 }
