@@ -45,6 +45,10 @@ INSERT OR REPLACE INTO Quote (
 all:
 SELECT * FROM Quote ORDER BY createdAt DESC;
 
+findById:
+SELECT * FROM Quote
+WHERE id = ?;
+
 all2:
 SELECT
     Quote.*,

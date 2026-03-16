@@ -187,14 +187,14 @@ Decisiones cerradas:
 
 ## Fase 11. Aplicacion de operaciones remotas
 
-- [ ] Implementar merge de `Deck` por campo con `versionLamport`.
-- [ ] Implementar merge de `Flashcard` por campo con `versionLamport`.
-- [ ] Implementar merge de `FlashcardExample` por entidad hija.
-- [ ] Implementar merge de `Quote`.
-- [ ] Implementar `Delete` con `deletedAt` o tombstones.
-- [ ] Implementar aplicacion de `ReviewEvent`.
-- [ ] Recalcular `ReviewProjection` cada vez que entra un `ReviewEvent`.
-- [ ] Garantizar idempotencia de aplicacion local por `opId`.
+- [x] Implementar merge de `Deck` por campo con `versionLamport`.
+- [x] Implementar merge de `Flashcard` por campo con `versionLamport`.
+- [x] Implementar merge de `FlashcardExample` por entidad hija.
+- [x] Implementar merge de `Quote`.
+- [x] Implementar `Delete` con `deletedAt` o tombstones.
+- [x] Implementar aplicacion de `ReviewEvent`.
+- [x] Recalcular `ReviewProjection` cada vez que entra un `ReviewEvent`.
+- [x] Garantizar idempotencia de aplicacion local por `opId`.
 
 ## Fase 12. Realtime como acelerador
 

@@ -87,31 +87,46 @@ class DefaultSyncEngine(
             return
         }
 
-        var maxCursor = pulledResult.currentCursor
+        var maxAckedCursor = pulledResult.currentCursor
         val ackedOpIds = mutableListOf<String>()
 
         db.transaction {
             pulledResult.operations.forEach { operation ->
-                if (operation.cursor > maxCursor) {
-                    maxCursor = operation.cursor
+                val existing = localFirstQueries.findProcessedRemoteOperation(operation.opId).executeAsOneOrNull()
+                if (existing != null) {
+                    ackedOpIds += operation.opId
+                    if (operation.cursor > maxAckedCursor) {
+                        maxAckedCursor = operation.cursor
+                    }
+                    return@forEach
                 }
 
-                when (
-                    val result = applyRemoteOperation(
-                        operation = operation,
-                        localDeviceId = localDeviceId,
+                val result = applyRemoteOperation(
+                    operation = operation,
+                    localDeviceId = localDeviceId,
+                )
+
+                if (result.shouldAck) {
+                    localFirstQueries.markRemoteOperationProcessed(
+                        opId = operation.opId,
+                        cursor = operation.cursor,
+                        entityType = operation.entityType,
+                        entityId = operation.entityId,
+                        operationType = operation.operationType,
+                        processedAt = now,
                     )
-                ) {
-                    is ApplyRemoteOperationResult.Applied -> ackedOpIds += result.opId
-                    ApplyRemoteOperationResult.Ignored -> Unit
+                    ackedOpIds += operation.opId
+                    if (operation.cursor > maxAckedCursor) {
+                        maxAckedCursor = operation.cursor
+                    }
                 }
             }
         }
 
-        ackOperations(ackedOpIds)
+        ackOperations(ackedOpIds.distinct())
 
         localFirstQueries.upsertSyncCheckpoint(
-            lastPulledCursor = maxCursor,
+            lastPulledCursor = maxAckedCursor,
             lastSuccessfulSyncAt = now,
             lastSyncError = null,
             lastSyncErrorAt = null,

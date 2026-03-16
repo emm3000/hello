@@ -166,6 +166,31 @@ allDeadLetterOperations:
 SELECT * FROM DeadLetterOperation
 ORDER BY failedAt DESC;
 
+CREATE TABLE AppliedRemoteOperation (
+    opId TEXT NOT NULL PRIMARY KEY,
+    cursor INTEGER NOT NULL,
+    entityType TEXT NOT NULL,
+    entityId TEXT NOT NULL,
+    operationType TEXT NOT NULL,
+    processedAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_AppliedRemoteOperation_cursor ON AppliedRemoteOperation(cursor DESC);
+
+markRemoteOperationProcessed:
+INSERT OR REPLACE INTO AppliedRemoteOperation (
+    opId,
+    cursor,
+    entityType,
+    entityId,
+    operationType,
+    processedAt
+) VALUES (?, ?, ?, ?, ?, ?);
+
+findProcessedRemoteOperation:
+SELECT * FROM AppliedRemoteOperation
+WHERE opId = ?;
+
 CREATE TABLE ReviewEvent (
     eventId TEXT NOT NULL PRIMARY KEY,
     flashcardId TEXT NOT NULL REFERENCES Flashcard(id) ON DELETE CASCADE,
@@ -199,6 +224,10 @@ INSERT INTO ReviewEvent (
     versionLamport,
     createdAt
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+findReviewEventById:
+SELECT * FROM ReviewEvent
+WHERE eventId = ?;
 
 findReviewEventsByFlashcardId:
 SELECT * FROM ReviewEvent

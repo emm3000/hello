@@ -46,6 +46,9 @@ INSERT OR REPLACE INTO Flashcard (
 all:
 SELECT * FROM Flashcard;
 
+findById:
+SELECT * FROM Flashcard WHERE id = ?;
+
 selectByDeck:
 SELECT * FROM Flashcard WHERE deckId = ?;
 
