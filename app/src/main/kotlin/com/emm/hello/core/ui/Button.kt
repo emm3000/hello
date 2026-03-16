@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -36,6 +37,8 @@ import com.emm.hello.core.theme.HelloTheme
 
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
 
+private const val DISABLED_ALPHA = 0.38f
+
 /**
  * Main button inspired by shadcn/ui.
  *
@@ -53,48 +56,18 @@ fun HButton(
     contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
     content: @Composable RowScope.() -> Unit,
 ) {
-    val colors = when (variant) {
-        ButtonVariant.Default -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.38f),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.38f),
-        )
-        ButtonVariant.Destructive -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError,
-            disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.38f),
-            disabledContentColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.38f),
-        )
-        ButtonVariant.Secondary -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-        ButtonVariant.Outline, ButtonVariant.Ghost, ButtonVariant.Link ->
-            ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.primary,
-                disabledContainerColor = Color.Transparent,
-                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-            )
-    }
-
-    val border: BorderStroke? = when (variant) {
-        ButtonVariant.Outline -> BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline,
-        )
-        else -> null
-    }
+    val colors = buttonColorsFor(variant)
+    val border = buttonBorderFor(variant)
+    val buttonEnabled = enabled && !isLoading
 
     when (variant) {
         ButtonVariant.Ghost -> TextButton(
             onClick = onClick,
             modifier = modifier.defaultMinSize(minHeight = 40.dp),
-            enabled = enabled && !isLoading,
+            enabled = buttonEnabled,
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
             contentPadding = contentPadding,
         ) {
@@ -103,10 +76,10 @@ fun HButton(
         ButtonVariant.Link -> TextButton(
             onClick = onClick,
             modifier = modifier.defaultMinSize(minHeight = 40.dp),
-            enabled = enabled && !isLoading,
+            enabled = buttonEnabled,
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.primary,
-                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
         ) {
@@ -115,10 +88,10 @@ fun HButton(
         ButtonVariant.Outline -> OutlinedButton(
             onClick = onClick,
             modifier = modifier.defaultMinSize(minHeight = 40.dp),
-            enabled = enabled && !isLoading,
+            enabled = buttonEnabled,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
             border = border,
             contentPadding = contentPadding,
@@ -128,12 +101,54 @@ fun HButton(
         else -> Button(
             onClick = onClick,
             modifier = modifier.defaultMinSize(minHeight = 40.dp),
-            enabled = enabled && !isLoading,
+            enabled = buttonEnabled,
             colors = colors,
             contentPadding = contentPadding,
         ) {
             ButtonContent(leadingIcon = leadingIcon, isLoading = isLoading, content = content)
         }
+    }
+}
+
+@Composable
+private fun buttonColorsFor(variant: ButtonVariant): ButtonColors {
+    return when (variant) {
+        ButtonVariant.Default -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = DISABLED_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = DISABLED_ALPHA),
+        )
+        ButtonVariant.Destructive -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
+            disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = DISABLED_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onError.copy(alpha = DISABLED_ALPHA),
+        )
+        ButtonVariant.Secondary -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        ButtonVariant.Outline,
+        ButtonVariant.Ghost,
+        ButtonVariant.Link -> ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = Color.Transparent,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
+        )
+    }
+}
+
+@Composable
+private fun buttonBorderFor(variant: ButtonVariant): BorderStroke? {
+    return if (variant == ButtonVariant.Outline) {
+        BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline,
+        )
+    } else {
+        null
     }
 }
 
