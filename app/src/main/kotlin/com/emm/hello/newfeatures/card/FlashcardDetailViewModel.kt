@@ -3,7 +3,7 @@ package com.emm.hello.newfeatures.card
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardFinder
+import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class FlashcardDetailViewModel(
     private val flashcardId: String,
-    private val flashcardFinder: FlashcardFinder,
+    private val getFlashcardByIdUseCase: GetFlashcardByIdUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(Flashcard.Empty)
@@ -20,7 +20,7 @@ class FlashcardDetailViewModel(
 
     init {
         viewModelScope.launch {
-            val flashcard = flashcardFinder.find(flashcardId)
+            val flashcard = getFlashcardByIdUseCase.find(flashcardId)
             _state.update { flashcard }
         }
     }

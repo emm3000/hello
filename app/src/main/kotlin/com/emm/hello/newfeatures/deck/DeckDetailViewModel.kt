@@ -2,9 +2,9 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.deck.DecksWithCardsProvider
+import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardAndReviewFetcher
+import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,13 +15,13 @@ import java.time.Instant
 
 class DeckDetailViewModel(
     private val deckId: String,
-    decksWithCardsProvider: DecksWithCardsProvider,
-    private val flashcardAndReviewFetcher: FlashcardAndReviewFetcher,
+    getDeckDetailUseCase: GetDeckDetailUseCase,
+    private val observeFlashcardsWithReviewUseCase: ObserveFlashcardsWithReviewUseCase,
 ) : ViewModel() {
 
     // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
     val uiState: StateFlow<DeckDetailUiState> = combine(
-        flow = decksWithCardsProvider.provide(deckId),
+        flow = getDeckDetailUseCase.fetch(deckId),
         flow2 = fetchSessionCards(),
         transform = { deck, (sessionCards, hasSessionEnabled) ->
             val mergedCards: List<Flashcard> = deck.cards.zip(sessionCards) { deckCard, sessionCard ->
@@ -40,7 +40,7 @@ class DeckDetailViewModel(
 
     // Fixed typo: fetchSessionCars → fetchSessionCards
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
-        flashcardAndReviewFetcher.fetch(deckId).map { flashcards ->
+        observeFlashcardsWithReviewUseCase.fetch(deckId).map { flashcards ->
             val withUniqueKeys = flashcards.map { it.copy(id = "${it.id}${it.review.nextReviewAt}") }
             val hasSessionEnabled = withUniqueKeys.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
             withUniqueKeys to hasSessionEnabled

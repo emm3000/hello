@@ -6,12 +6,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
-class DecksWithCardsProvider(
+class GetDeckDetailUseCase(
     private val repository: DeckRepository,
     private val cardRepository: FlashcardRepository,
 ) {
 
-    fun provide(deckId: String): Flow<Deck> = combine(
+    fun fetch(deckId: String): Flow<Deck> = combine(
         flow = repository.findById(deckId),
         flow2 = cardRepository.fetchByDeckId(deckId)
     ) { deck: Deck, cards: List<Flashcard> ->

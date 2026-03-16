@@ -1,6 +1,6 @@
 package com.emm.domain.flashcard
 
-class FlashcardCreator(
+class CreateFlashcardUseCase(
     private val repository: FlashcardRepository,
 ) {
 

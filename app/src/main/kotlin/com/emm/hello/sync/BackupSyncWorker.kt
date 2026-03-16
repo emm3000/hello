@@ -12,7 +12,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
-import com.emm.domain.backup.BackupExecutor
+import com.emm.domain.backup.RunBackupUseCase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,12 +26,12 @@ class BackupSyncWorker(
     workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
-    val backupExecutor: BackupExecutor by inject<BackupExecutor>()
+    val runBackupUseCase: RunBackupUseCase by inject<RunBackupUseCase>()
 
     private val force: Boolean = inputData.getBoolean("force", false)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        backupExecutor.execute(force)
+        runBackupUseCase.execute(force)
             .fold(
                 onSuccess = {
                     Result.success()

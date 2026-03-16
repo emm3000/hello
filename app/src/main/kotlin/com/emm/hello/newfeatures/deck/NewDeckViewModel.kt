@@ -6,10 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
-import com.emm.domain.deck.DeckCreator
+import com.emm.domain.deck.CreateDeckUseCase
 import kotlinx.coroutines.launch
 
-class NewDeckViewModel(private val deckCreator: DeckCreator) : ViewModel() {
+class NewDeckViewModel(private val createDeckUseCase: CreateDeckUseCase) : ViewModel() {
 
     var state by mutableStateOf(NewDeckUiState())
         private set
@@ -27,6 +27,6 @@ class NewDeckViewModel(private val deckCreator: DeckCreator) : ViewModel() {
             name = state.name,
             description = state.description
         )
-        deckCreator.create(input)
+        createDeckUseCase.create(input)
     }
 }

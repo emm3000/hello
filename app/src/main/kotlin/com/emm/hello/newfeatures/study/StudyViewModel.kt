@@ -6,15 +6,15 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.FlashcardReviewUpdater
+import com.emm.domain.flashcard.GetStudySessionUseCase
+import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import kotlinx.coroutines.launch
 
 class StudyViewModel(
     deckId: String,
-    flashcardFetcher: FlashcardFetcher,
-    private val flashcardReviewUpdater: FlashcardReviewUpdater,
+    getStudySessionUseCase: GetStudySessionUseCase,
+    private val updateFlashcardReviewUseCase: UpdateFlashcardReviewUseCase,
 ) : ViewModel() {
 
     var state by mutableStateOf(StudyUiState())
@@ -24,7 +24,7 @@ class StudyViewModel(
 
     init {
         viewModelScope.launch {
-            val flashcards: List<Flashcard> = flashcardFetcher.fetchAll(deckId)
+            val flashcards: List<Flashcard> = getStudySessionUseCase.fetchAll(deckId)
             flashcardsForToday.addAll(flashcards)
             state = state.copy(totalCount = flashcards.size)
             showNextCard()
@@ -51,7 +51,7 @@ class StudyViewModel(
             grade = reviewResult,
             flashcardId = flashcard.id,
         )
-        flashcardReviewUpdater.update(newReview)
+        updateFlashcardReviewUseCase.update(newReview)
         incrementReviewed()
         showNextCard()
     }

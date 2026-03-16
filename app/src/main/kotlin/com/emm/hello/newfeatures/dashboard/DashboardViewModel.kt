@@ -2,7 +2,7 @@ package com.emm.hello.newfeatures.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.deck.DeckFetcher
+import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.sync.GetSyncDebugStateUseCase
 import com.emm.domain.sync.SyncEngine
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 class DashboardViewModel(
-    deckFetcher: DeckFetcher,
+    getDecksUseCase: GetDecksUseCase,
     getSyncDebugStateUseCase: GetSyncDebugStateUseCase,
     syncEngine: SyncEngine,
 ) : ViewModel() {
@@ -31,7 +31,7 @@ class DashboardViewModel(
     }
 
     val state: StateFlow<DashboardUiState> = combine(
-        deckFetcher.fetch(),
+        getDecksUseCase.fetch(),
         syncDebugState,
     ) { decks, syncDebug ->
         DashboardUiState(

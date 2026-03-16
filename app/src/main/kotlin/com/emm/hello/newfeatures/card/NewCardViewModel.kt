@@ -5,17 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.deck.DeckFetcher
+import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
-import com.emm.domain.flashcard.FlashcardCreator
+import com.emm.domain.flashcard.CreateFlashcardUseCase
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class NewCardViewModel(
-    deckFetcher: DeckFetcher,
-    private val cardCreator: FlashcardCreator,
+    getDecksUseCase: GetDecksUseCase,
+    private val createFlashcardUseCase: CreateFlashcardUseCase,
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
 ) : ViewModel() {
@@ -24,7 +24,7 @@ class NewCardViewModel(
         private set
 
     init {
-        deckFetcher.fetch()
+        getDecksUseCase.fetch()
             .onEach { decks ->
                 val defaultDeckId = getDefaultDeckUseCase.execute()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
@@ -61,7 +61,7 @@ class NewCardViewModel(
     private fun generateFlashcard() = viewModelScope.launch {
         state = state.copy(isLoading = true, error = null, isSuccess = false)
         try {
-            val preview = cardCreator.generateFlashcardPreview(
+            val preview = createFlashcardUseCase.generateFlashcardPreview(
                 word = state.word,
                 categories = state.category,
                 difficulty = state.difficulty,
@@ -78,7 +78,7 @@ class NewCardViewModel(
         val preview = state.previewResult ?: return@launch
         state = state.copy(isLoading = true, error = null)
         try {
-            cardCreator.saveFlashcard(
+            createFlashcardUseCase.saveFlashcard(
                 deckId = deckId,
                 flashcard = preview,
             )

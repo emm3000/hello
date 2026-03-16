@@ -22,25 +22,26 @@ import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.PullRemoteOperations
 import com.emm.data.sync.syncDataModule
-import com.emm.domain.backup.BackupExecutor
+import com.emm.domain.backup.RunBackupUseCase
 import com.emm.domain.backup.BackupRepository
-import com.emm.domain.deck.DeckCreator
-import com.emm.domain.deck.DeckFetcher
+import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
-import com.emm.domain.deck.DecksWithCardsProvider
 import com.emm.domain.deck.DefaultDeckSelectionRepository
+import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
+import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
-import com.emm.domain.flashcard.FlashcardAndReviewFetcher
-import com.emm.domain.flashcard.FlashcardCreator
-import com.emm.domain.flashcard.FlashcardFetcher
-import com.emm.domain.flashcard.FlashcardFinder
+import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
-import com.emm.domain.flashcard.FlashcardReviewUpdater
-import com.emm.domain.quote.QuoteGenerator
-import com.emm.domain.quote.QuoteLastFetcher
+import com.emm.domain.flashcard.GetFlashcardByIdUseCase
+import com.emm.domain.flashcard.GetStudySessionUseCase
+import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import com.emm.domain.quote.GenerateQuoteUseCase
+import com.emm.domain.quote.ObserveLatestQuoteUseCase
 import com.emm.domain.quote.QuoteRepository
+import com.emm.domain.quote.SaveQuoteAsFlashcardUseCase
 import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.GetSyncDebugStateUseCase
@@ -109,19 +110,20 @@ fun Module.repository() {
 }
 
 fun Module.useCases() {
-    factoryOf(::DeckCreator)
-    factoryOf(::DeckFetcher)
+    factoryOf(::CreateDeckUseCase)
+    factoryOf(::GetDecksUseCase)
     factoryOf(::GetDefaultDeckUseCase)
     factoryOf(::SetDefaultDeckUseCase)
-    factoryOf(::FlashcardCreator)
-    factoryOf(::FlashcardFetcher)
-    factoryOf(::DecksWithCardsProvider)
-    factoryOf(::FlashcardFinder)
-    factoryOf(::QuoteGenerator)
-    factoryOf(::QuoteLastFetcher)
-    factoryOf(::BackupExecutor)
-    factoryOf(::FlashcardReviewUpdater)
-    factoryOf(::FlashcardAndReviewFetcher)
+    factoryOf(::CreateFlashcardUseCase)
+    factoryOf(::GetStudySessionUseCase)
+    factoryOf(::GetDeckDetailUseCase)
+    factoryOf(::GetFlashcardByIdUseCase)
+    factoryOf(::GenerateQuoteUseCase)
+    factoryOf(::ObserveLatestQuoteUseCase)
+    factoryOf(::SaveQuoteAsFlashcardUseCase)
+    factoryOf(::RunBackupUseCase)
+    factoryOf(::UpdateFlashcardReviewUseCase)
+    factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::GetSyncDebugStateUseCase)
     factoryOf(::EnsureLinkedIdentityUseCase)
     factoryOf(::CreatePairingSessionUseCase)
@@ -138,21 +140,21 @@ fun Module.viewModels() {
     viewModel {
         StudyViewModel(
             deckId = it.get(),
-            flashcardFetcher = get(),
-            flashcardReviewUpdater = get(),
+            getStudySessionUseCase = get(),
+            updateFlashcardReviewUseCase = get(),
         )
     }
     viewModel {
         DeckDetailViewModel(
             deckId = it.get(),
-            decksWithCardsProvider = get(),
-            flashcardAndReviewFetcher = get(),
+            getDeckDetailUseCase = get(),
+            observeFlashcardsWithReviewUseCase = get(),
         )
     }
     viewModel {
         FlashcardDetailViewModel(
             flashcardId = it.get(),
-            flashcardFinder = get(),
+            getFlashcardByIdUseCase = get(),
         )
     }
 }
