@@ -15,7 +15,6 @@ import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.OperationLogWriter
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
-import com.emm.data.remote.DefaultBackupRepository
 import com.emm.data.sync.AckOperations
 import com.emm.data.sync.ApplyRemoteOperation
 import com.emm.data.sync.DefaultPairingRepository
@@ -25,8 +24,6 @@ import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.PullRemoteOperations
 import com.emm.data.sync.syncDataModule
-import com.emm.domain.backup.BackupRepository
-import com.emm.domain.backup.RunBackupUseCase
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
@@ -106,7 +103,6 @@ fun Module.repository() {
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
-    factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultSyncEngine) bind SyncEngine::class
     factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
@@ -137,7 +133,6 @@ fun Module.useCases() {
     factoryOf(::GenerateQuoteUseCase)
     factoryOf(::ObserveLatestQuoteUseCase)
     factoryOf(::SaveQuoteAsFlashcardUseCase)
-    factoryOf(::RunBackupUseCase)
     factoryOf(::UpdateFlashcardReviewUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::GetSyncDebugStateUseCase)

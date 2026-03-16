@@ -32,20 +32,6 @@ object Sync {
     }
 }
 
-object BackupSync {
-
-    fun backupInitialize(context: Context, force: Boolean = false) {
-        WorkManager.getInstance(context).apply {
-            enqueueUniqueWork(
-                BACKUP_SYNC_WORK_NAME,
-                androidx.work.ExistingWorkPolicy.KEEP,
-                BackupSyncWorker.startUpSyncWork(force),
-            )
-        }
-    }
-}
-
 internal const val SYNC_WORK_PERIODIC_NAME = "SyncWorkPeriodicName"
 internal const val SYNC_WORK_IMMEDIATE_NAME = "SyncWorkImmediateName"
 internal const val SYNC_WORK_TAG = "SyncWorkTag"
-internal const val BACKUP_SYNC_WORK_NAME = "BACKUP_SYNC_WORK_NAME"
