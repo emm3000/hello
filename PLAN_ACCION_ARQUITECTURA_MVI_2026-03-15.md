@@ -129,9 +129,9 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [x] Añadir tests unitarios para `CreateDeckUseCase`.
 - [x] Añadir tests unitarios para el flujo de pairing.
 - [x] Añadir tests unitarios para `SaveQuoteAsFlashcardUseCase`.
-- [ ] Añadir tests del reducer o transición de estado en `NewDeck`.
+- [x] Añadir tests del reducer o transición de estado en `NewDeck`.
 - [ ] Añadir tests del reducer o transición de estado en `NewCard`.
-- [ ] Añadir tests de emisión de `UiEffect` por `Channel`.
+- [x] Añadir tests de emisión de `UiEffect` por `Channel`.
 - [x] Añadir tests para merge de tarjetas + reviews por `id`.
 - [x] Reemplazar los tests plantilla por pruebas reales o eliminarlos si no aportan valor.
 
