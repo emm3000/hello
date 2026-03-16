@@ -36,6 +36,7 @@ class PairingViewModel(
             state = state.copy(isGeneratingCode = true, error = null, success = null)
             runCatching {
                 ensureLinkedIdentity()
+                syncEngine.runOnce()
                 remote.createPairingSession(ttlMinutes = 10)
             }.onSuccess { session ->
                 state = state.copy(
@@ -71,6 +72,7 @@ class PairingViewModel(
                 persistLocalAccountState(
                     appAccountId = redeem.appAccountId,
                     authUserId = redeem.authUserId,
+                    resetSyncCursor = true,
                 )
                 syncEngine.runOnce()
             }.onSuccess {
@@ -129,10 +131,15 @@ class PairingViewModel(
         persistLocalAccountState(
             appAccountId = bootstrap.appAccountId,
             authUserId = bootstrap.authUserId,
+            resetSyncCursor = false,
         )
     }
 
-    private fun persistLocalAccountState(appAccountId: String, authUserId: String) {
+    private fun persistLocalAccountState(
+        appAccountId: String,
+        authUserId: String,
+        resetSyncCursor: Boolean,
+    ) {
         val queries = db.localFirstQueries
         val now = Instant.now().toEpochMilli()
         val current = queries.selectLocalAccountState().executeAsOneOrNull()
@@ -143,5 +150,16 @@ class PairingViewModel(
             createdAt = current?.createdAt ?: now,
             updatedAt = now,
         )
+
+        if (resetSyncCursor) {
+            val checkpoint = queries.selectSyncCheckpoint().executeAsOneOrNull()
+            queries.upsertSyncCheckpoint(
+                lastPulledCursor = 0L,
+                lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
+                lastSyncError = null,
+                lastSyncErrorAt = null,
+                updatedAt = now,
+            )
+        }
     }
 }
