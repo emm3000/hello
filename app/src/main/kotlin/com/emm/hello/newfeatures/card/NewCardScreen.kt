@@ -35,8 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -86,12 +84,12 @@ import java.util.Locale
 fun NewCardScreen(
     modifier: Modifier = Modifier,
     state: NewCardUiState = NewCardUiState(),
-    onAction: (NewCardAction) -> Unit = {},
+    onIntent: (NewCardUiIntent) -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val sttManager = rememberSpeechToTextManager { voiceText ->
-        onAction(NewCardAction.WordChanged(voiceText))
+        onIntent(NewCardUiIntent.WordChanged(voiceText))
     }
     val isListening by sttManager.isListening.collectAsStateWithLifecycle()
 
@@ -119,7 +117,6 @@ fun NewCardScreen(
     }
 
     val showBottomSheet = remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -133,13 +130,6 @@ fun NewCardScreen(
         }
     }
 
-    // -- Success feedback: Snackbar + auto-scroll to result --------------------
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
-            snackbarHostState.showSnackbar(context.getString(R.string.card_created_feedback))
-            onAction(NewCardAction.SuccessConsumed)
-        }
-    }
     LaunchedEffect(state.previewResult) {
         if (state.previewResult != null) {
             // Scroll to last item (result preview) after a brief delay for layout
@@ -175,7 +165,7 @@ fun NewCardScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { onAction(NewCardAction.TypeViewSelected(state.typeView.other)) }
+                        onClick = { onIntent(NewCardUiIntent.TypeViewSelected(state.typeView.other)) }
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwitchLeft,
@@ -185,7 +175,6 @@ fun NewCardScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -202,7 +191,7 @@ fun NewCardScreen(
                         TypeView.WordOrPhase -> {
                             HInput(
                                 value = state.word,
-                                onValueChange = { onAction(NewCardAction.WordChanged(it)) },
+                                onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
                                 enabled = !state.isLoading,
                                 modifier = Modifier.fillMaxWidth(),
                                 label = stringResource(R.string.word_label),
@@ -227,7 +216,7 @@ fun NewCardScreen(
                                     label = stringResource(R.string.difficulty_label),
                                     items = difficult,
                                     itemSelected = state.difficulty,
-                                    onItemSelected = { onAction(NewCardAction.DifficultySelected(it)) },
+                                    onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
                                 )
                             }
                         }
@@ -243,7 +232,7 @@ fun NewCardScreen(
                             items = state.decks,
                             itemSelected = state.deckSelected,
                             enabled = !state.isLoading,
-                            onItemSelected = { onAction(NewCardAction.DeckSelected(it)) },
+                            onItemSelected = { onIntent(NewCardUiIntent.DeckSelected(it)) },
                             label = stringResource(R.string.deck_label),
                             placeholder = stringResource(R.string.select_deck_placeholder),
                             itemLabel = { it.name },
@@ -258,7 +247,7 @@ fun NewCardScreen(
                                 label = stringResource(R.string.default_deck_checkbox),
                                 checked = state.isCheck,
                                 isEnabled = state.deckSelected != null,
-                                onCheckedChange = { onAction(NewCardAction.CheckChanged(it)) },
+                                onCheckedChange = { onIntent(NewCardUiIntent.CheckChanged(it)) },
                             )
                         }
                     }
@@ -272,7 +261,7 @@ fun NewCardScreen(
                         text = stringResource(R.string.generate_card),
                         onClick = {
                             keyboardController?.hide()
-                            onAction(NewCardAction.GenerateClicked)
+                            onIntent(NewCardUiIntent.GenerateClicked)
                         },
                         enabled = isGenerateEnabled,
                         isLoading = state.isLoading,
@@ -336,7 +325,7 @@ fun NewCardScreen(
                                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
                                 onClick = { 
                                     keyboardController?.hide()
-                                    onAction(NewCardAction.SaveClicked) 
+                                    onIntent(NewCardUiIntent.SaveClicked) 
                                 },
                                 enabled = !state.isLoading,
                                 isLoading = state.isLoading,
@@ -357,7 +346,7 @@ fun NewCardScreen(
         showBottomSheet = showBottomSheet.value,
         accounts = staticCategories,
         selectedCategory = state.category,
-        onAction = { onAction(NewCardAction.CategorySelected(it)) },
+        onAction = { onIntent(NewCardUiIntent.CategorySelected(it)) },
     )
 }
 

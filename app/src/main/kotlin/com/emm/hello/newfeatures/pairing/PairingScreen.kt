@@ -28,11 +28,7 @@ import com.emm.hello.core.ui.HButton
 fun PairingScreen(
     state: PairingUiState,
     onBack: () -> Unit,
-    onRefresh: () -> Unit,
-    onCreateCode: () -> Unit,
-    onJoinCodeChange: (String) -> Unit,
-    onJoinWithCode: () -> Unit,
-    onRevoke: (String) -> Unit,
+    onIntent: (PairingUiIntent) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -63,7 +59,7 @@ fun PairingScreen(
                         Text("Crear código para nuevo dispositivo", fontWeight = FontWeight.SemiBold)
                         HButton(
                             text = "Crear código (6 dígitos)",
-                            onClick = onCreateCode,
+                            onClick = { onIntent(PairingUiIntent.CreateCodeClicked) },
                             isLoading = state.isGeneratingCode,
                         )
                         state.generatedCode?.let { code ->
@@ -87,25 +83,18 @@ fun PairingScreen(
                         Text("Unirse con código", fontWeight = FontWeight.SemiBold)
                         OutlinedTextField(
                             value = state.joinCode,
-                            onValueChange = onJoinCodeChange,
+                            onValueChange = { onIntent(PairingUiIntent.JoinCodeChanged(it)) },
                             label = { Text("Código de 6 dígitos") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                         )
                         HButton(
                             text = "Vincular dispositivo",
-                            onClick = onJoinWithCode,
+                            onClick = { onIntent(PairingUiIntent.JoinWithCodeClicked) },
                             isLoading = state.isSubmittingJoin,
                         )
                     }
                 }
-            }
-
-            state.error?.let { error ->
-                item { Text(error, color = MaterialTheme.colorScheme.error) }
-            }
-            state.success?.let { success ->
-                item { Text(success, color = MaterialTheme.colorScheme.primary) }
             }
 
             item {
@@ -116,7 +105,7 @@ fun PairingScreen(
                     Text("Dispositivos vinculados", fontWeight = FontWeight.SemiBold)
                     HButton(
                         text = "Refrescar",
-                        onClick = onRefresh,
+                        onClick = { onIntent(PairingUiIntent.RefreshDevicesClicked) },
                         variant = ButtonVariant.Ghost,
                         isLoading = state.isLoading,
                     )
@@ -126,7 +115,7 @@ fun PairingScreen(
             items(state.devices, key = { it.id }) { device ->
                 DeviceRow(
                     device = device,
-                    onRevoke = onRevoke,
+                    onRevoke = { onIntent(PairingUiIntent.RevokeDeviceClicked(it)) },
                 )
             }
 

@@ -1,16 +1,18 @@
 package com.emm.hello.newfeatures.card
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewCardViewModel(
@@ -20,76 +22,98 @@ class NewCardViewModel(
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
 ) : ViewModel() {
 
-    var state by mutableStateOf(NewCardUiState())
-        private set
+    private val _state = MutableStateFlow(NewCardUiState())
+    val state = _state.asStateFlow()
+
+    private val _effect = Channel<NewCardUiEffect>(Channel.BUFFERED)
+    val effect = _effect.receiveAsFlow()
 
     init {
         getDecksUseCase.fetch()
             .onEach { decks ->
                 val defaultDeckId = getDefaultDeckUseCase.execute()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
-                state = state.copy(
-                    decks = decks,
-                    deckSelected = selectedDeck,
-                    isCheck = defaultDeckId.isNotEmpty() && selectedDeck?.id == defaultDeckId
-                )
+                _state.update {
+                    it.copy(
+                        decks = decks,
+                        deckSelected = selectedDeck,
+                        isCheck = defaultDeckId.isNotEmpty() && selectedDeck?.id == defaultDeckId
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
 
-    fun onAction(action: NewCardAction) {
-        when (action) {
-            is NewCardAction.DeckSelected -> state = state.copy(
-                deckSelected = action.deck,
-                isCheck = getDefaultDeckUseCase.execute() == action.deck.id,
-            )
-            is NewCardAction.WordChanged -> state = state.copy(word = action.word, error = null, previewResult = null)
-            is NewCardAction.CheckChanged -> {
-                val newDeckId = if (action.checked) state.deckSelected?.id.orEmpty() else ""
-                setDefaultDeckUseCase.execute(newDeckId)
-                state = state.copy(isCheck = action.checked)
+    fun onIntent(intent: NewCardUiIntent) {
+        when (intent) {
+            is NewCardUiIntent.DeckSelected -> _state.update {
+                it.copy(
+                    deckSelected = intent.deck,
+                    isCheck = getDefaultDeckUseCase.execute() == intent.deck.id,
+                )
             }
-            NewCardAction.GenerateClicked -> generateFlashcard()
-            NewCardAction.SaveClicked -> saveFlashcard()
-            is NewCardAction.CategorySelected -> state = state.copy(category = action.category, error = null, previewResult = null)
-            is NewCardAction.DifficultySelected -> state = state.copy(difficulty = action.difficulty, error = null, previewResult = null)
-            is NewCardAction.TypeViewSelected -> state = state.copy(typeView = action.typeView, previewResult = null)
-            NewCardAction.SuccessConsumed -> state = state.copy(isSuccess = false)
+            is NewCardUiIntent.WordChanged -> _state.update { it.copy(word = intent.word, error = null, previewResult = null) }
+            is NewCardUiIntent.CheckChanged -> {
+                val newDeckId = if (intent.checked) _state.value.deckSelected?.id.orEmpty() else ""
+                setDefaultDeckUseCase.execute(newDeckId)
+                _state.update { it.copy(isCheck = intent.checked) }
+            }
+            NewCardUiIntent.GenerateClicked -> generateFlashcard()
+            NewCardUiIntent.SaveClicked -> saveFlashcard()
+            is NewCardUiIntent.CategorySelected -> _state.update { it.copy(category = intent.category, error = null, previewResult = null) }
+            is NewCardUiIntent.DifficultySelected -> _state.update {
+                it.copy(
+                    difficulty = intent.difficulty,
+                    error = null,
+                    previewResult = null,
+                )
+            }
+            is NewCardUiIntent.TypeViewSelected -> _state.update { it.copy(typeView = intent.typeView, previewResult = null) }
         }
     }
 
     private fun generateFlashcard() = viewModelScope.launch {
-        state = state.copy(isLoading = true, error = null, isSuccess = false)
+        val current = _state.value
+        _state.update { it.copy(isLoading = true, error = null) }
         try {
             val preview = createFlashcardUseCase.generateFlashcardPreview(
-                word = state.word,
-                categories = state.category,
-                difficulty = state.difficulty,
-                typeView = state.typeView,
+                word = current.word,
+                categories = current.category,
+                difficulty = current.difficulty,
+                typeView = current.typeView,
             )
-            state = state.copy(previewResult = preview, isLoading = false)
+            _state.update { it.copy(previewResult = preview, isLoading = false) }
         } catch (e: Exception) {
-            state = state.copy(error = e.message, isLoading = false)
+            _state.update { it.copy(error = e.message, isLoading = false) }
         }
     }
 
     private fun saveFlashcard() = viewModelScope.launch {
-        val deckId = state.deckSelected?.id ?: return@launch
-        val preview = state.previewResult ?: return@launch
-        state = state.copy(isLoading = true, error = null)
+        val current = _state.value
+        val deckId = current.deckSelected?.id ?: return@launch
+        val preview = current.previewResult ?: return@launch
+        _state.update { it.copy(isLoading = true, error = null) }
         try {
             createFlashcardUseCase.saveFlashcard(
                 deckId = deckId,
                 flashcard = preview,
             )
-            state = state.copy(
-                word = "", 
-                previewResult = null, 
-                isLoading = false, 
-                isSuccess = true
-            )
+            _state.update {
+                it.copy(
+                    word = "",
+                    previewResult = null,
+                    isLoading = false,
+                    error = null,
+                )
+            }
+            _effect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
         } catch (e: Exception) {
-            state = state.copy(error = e.message, isLoading = false)
+            _state.update { it.copy(error = e.message, isLoading = false) }
+            _effect.send(
+                NewCardUiEffect.ShowMessage(
+                    e.message ?: "No se pudo guardar la tarjeta"
+                )
+            )
         }
     }
 }

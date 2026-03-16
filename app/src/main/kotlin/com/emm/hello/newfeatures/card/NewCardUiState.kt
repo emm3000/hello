@@ -18,5 +18,4 @@ data class NewCardUiState(
     val difficulty: String = difficult.first(),
     val error: String? = null,
     val previewResult: FlashcardGenerated? = null,
-    val isSuccess: Boolean = false,
 )

@@ -1,5 +1,9 @@
 package com.emm.hello.newfeatures.pairing
 
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -12,14 +16,23 @@ object PairingRoute
 fun NavGraphBuilder.pairingRoute(navController: NavController) {
     composable<PairingRoute> {
         val vm: PairingViewModel = koinViewModel()
+        val state = vm.state.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+
+        LaunchedEffect(Unit) {
+            vm.effect.collect { effect ->
+                when (effect) {
+                    is PairingUiEffect.ShowMessage -> {
+                        Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
         PairingScreen(
-            state = vm.state,
+            state = state.value,
             onBack = { navController.popBackStack() },
-            onRefresh = vm::refreshDevices,
-            onCreateCode = vm::createCode,
-            onJoinCodeChange = vm::onJoinCodeChange,
-            onJoinWithCode = vm::joinWithCode,
-            onRevoke = vm::revokeDevice,
+            onIntent = vm::onIntent,
         )
     }
 }

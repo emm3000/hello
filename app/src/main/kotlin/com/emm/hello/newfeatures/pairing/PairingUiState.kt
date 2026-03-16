@@ -10,6 +10,4 @@ data class PairingUiState(
     val generatedCodeExpiresAt: String? = null,
     val joinCode: String = "",
     val devices: List<LinkedDevice> = emptyList(),
-    val error: String? = null,
-    val success: String? = null,
 )
