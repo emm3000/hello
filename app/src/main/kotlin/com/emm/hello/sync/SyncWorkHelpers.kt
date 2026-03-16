@@ -10,7 +10,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import com.emm.hello.R
 
-val SyncConstraints
+val syncConstraints
     get() = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()

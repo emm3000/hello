@@ -12,3 +12,7 @@ style:
   ReturnCount:
     active: true
     max: 4
+
+naming:
+  MatchingDeclarationName:
+    active: false

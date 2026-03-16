@@ -47,14 +47,14 @@ class BackupSyncWorker(
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo(
-        channelName = BackupSyncWorker,
+        channelName = WORK_NAME,
         notificationId = SYNC_NOTIFICATION_ID,
         channelId = SYNC_NOTIFICATION_CHANNEL_ID,
     )
 
     companion object {
 
-        const val BackupSyncWorker = "BackupSyncWorker"
+        const val WORK_NAME = "BackupSyncWorker"
 
         private const val SYNC_NOTIFICATION_ID = 1
         private const val SYNC_NOTIFICATION_CHANNEL_ID = "BackupSyncNotificationChannel"
@@ -62,7 +62,7 @@ class BackupSyncWorker(
 
         fun startUpSyncWork(force: Boolean): OneTimeWorkRequest = OneTimeWorkRequestBuilder<BackupSyncWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .setConstraints(SyncConstraints)
+            .setConstraints(syncConstraints)
             .setInputData(
                 Data.Builder()
                     .putBoolean("force", force)
@@ -74,7 +74,7 @@ class BackupSyncWorker(
             PERIODIC_INTERVAL_MINUTES,
             TimeUnit.MINUTES
         )
-            .setConstraints(SyncConstraints)
+            .setConstraints(syncConstraints)
             .build()
     }
 }

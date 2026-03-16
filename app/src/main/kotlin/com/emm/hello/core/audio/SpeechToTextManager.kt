@@ -127,9 +127,9 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
         mainHandler.post { _state.value = STTState.LISTENING }
     }
 
-    override fun onRmsChanged(rmsdB: Float) {}
+    override fun onRmsChanged(rmsdB: Float) = Unit
 
-    override fun onBufferReceived(buffer: ByteArray?) {}
+    override fun onBufferReceived(buffer: ByteArray?) = Unit
 
     override fun onEndOfSpeech() {
         mainHandler.post {
@@ -174,7 +174,7 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
         }
     }
 
-    override fun onEvent(eventType: Int, params: Bundle?) {}
+    override fun onEvent(eventType: Int, params: Bundle?) = Unit
 }
 
 @Composable
@@ -192,8 +192,8 @@ fun rememberSpeechToTextManager(
                 override val error: StateFlow<String?> = MutableStateFlow(null)
                 override val state: StateFlow<STTState> = MutableStateFlow(STTState.IDLE)
                 override var onResultCallback: ((String) -> Unit)? = null
-                override fun startListening(locale: Locale) {}
-                override fun stopListening() {}
+                override fun startListening(locale: Locale) = Unit
+                override fun stopListening() = Unit
             }
         }
     }

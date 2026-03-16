@@ -144,7 +144,11 @@ fun CategoryChip(
     Surface(
         shape = RoundedCornerShape(100.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+        contentColor = if (isSelected) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        },
         modifier = Modifier
             .clip(RoundedCornerShape(100.dp))
             .clickable { onCardClick(account) },
