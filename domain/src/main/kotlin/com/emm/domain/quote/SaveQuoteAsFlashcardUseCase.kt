@@ -9,23 +9,29 @@ class SaveQuoteAsFlashcardUseCase(
     private val flashcardRepository: FlashcardRepository,
 ) {
     suspend operator fun invoke(quote: Quote): SaveQuoteAsFlashcardResult {
+        return invoke(SaveQuoteAsFlashcardCommand.fromQuote(quote))
+    }
+
+    suspend operator fun invoke(command: SaveQuoteAsFlashcardCommand): SaveQuoteAsFlashcardResult {
         val defaultDeckId = getDefaultDeckUseCase()
         if (defaultDeckId.isBlank()) {
             return SaveQuoteAsFlashcardResult.DefaultDeckRequired
         }
 
-        flashcardRepository.create(
-            CreateFlashcardInput(
-                id = quote.id,
-                deckId = defaultDeckId,
-                word = quote.phrase,
-                meaning = quote.description,
-                translation = quote.translation,
-                phonetic = quote.pronunciation,
-            )
-        )
+        flashcardRepository.create(command.toCreateFlashcardInput(defaultDeckId))
 
         return SaveQuoteAsFlashcardResult.Saved
+    }
+
+    private fun SaveQuoteAsFlashcardCommand.toCreateFlashcardInput(defaultDeckId: String): CreateFlashcardInput {
+        return CreateFlashcardInput(
+            id = quoteId,
+            deckId = defaultDeckId,
+            word = phrase,
+            meaning = description,
+            translation = translation,
+            phonetic = pronunciation,
+        )
     }
 }
 

@@ -1,0 +1,77 @@
+package com.emm.domain.study
+
+import com.emm.domain.flashcard.FlashcardReview
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ScheduleFlashcardReviewUseCaseTest {
+
+    private val useCase = ScheduleFlashcardReviewUseCase()
+
+    @Test
+    fun invoke_whenAgain_resetsRepetitionsAndSetsOneDayInterval() {
+        val review = baseReview().copy(
+            easeFactor = 2.1,
+            repetitions = 7L,
+            interval = 20L,
+            lapses = 2L,
+        )
+
+        val result = useCase(review = review, grade = ReviewGrade.AGAIN, flashcardId = "card-1")
+
+        assertEquals("card-1", result.flashcardId)
+        assertEquals(review.easeFactor, result.easeFactor, 0.0001)
+        assertEquals(0L, result.repetitions)
+        assertEquals(1L, result.interval)
+        assertEquals(3L, result.lapses)
+        assertEquals(86_400_000L, result.nextReviewAt - result.lastReviewedAt)
+    }
+
+    @Test
+    fun invoke_whenGoodAndSecondRepetition_setsSixDayInterval() {
+        val review = baseReview().copy(
+            easeFactor = 2.5,
+            repetitions = 1L,
+            interval = 1L,
+        )
+
+        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-2")
+
+        assertEquals("card-2", result.flashcardId)
+        assertEquals(2L, result.repetitions)
+        assertEquals(6L, result.interval)
+        assertEquals(2.5, result.easeFactor, 0.0001)
+        assertEquals(6L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
+    }
+
+    @Test
+    fun invoke_whenEasyAfterSecondReview_increasesEaseAndRoundsInterval() {
+        val review = baseReview().copy(
+            easeFactor = 2.5,
+            repetitions = 2L,
+            interval = 6L,
+            lapses = 1L,
+        )
+
+        val result = useCase(review = review, grade = ReviewGrade.EASY, flashcardId = "card-3")
+
+        assertEquals("card-3", result.flashcardId)
+        assertEquals(3L, result.repetitions)
+        assertEquals(16L, result.interval)
+        assertEquals(2.6, result.easeFactor, 0.0001)
+        assertEquals(1L, result.lapses)
+        assertEquals(16L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
+        assertTrue(result.lastReviewedAt > 0L)
+    }
+
+    private fun baseReview(): FlashcardReview = FlashcardReview(
+        flashcardId = "base",
+        lastReviewedAt = 0L,
+        nextReviewAt = 0L,
+        easeFactor = 2.5,
+        interval = 0L,
+        repetitions = 0L,
+        lapses = 0L,
+    )
+}

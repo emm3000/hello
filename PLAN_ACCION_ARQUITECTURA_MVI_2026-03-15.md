@@ -90,8 +90,8 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [x] Mover `SpacedRepetitionScheduler` a `domain`.
 - [x] Crear `ScheduleFlashcardReviewUseCase`.
 - [x] Hacer que `StudyViewModel` use el caso de uso en lugar del objeto en `app`.
-- [ ] Extraer desde `QuoteRoute` toda la lógica de crear `CreateFlashcardInput`.
-- [ ] Decidir si `CreateFlashcardInput` sigue siendo DTO de dominio o si conviene un comando más expresivo por caso de uso.
+- [x] Extraer desde `QuoteRoute` toda la lógica de crear `CreateFlashcardInput`.
+- [x] Decidir si `CreateFlashcardInput` sigue siendo DTO de dominio o si conviene un comando más expresivo por caso de uso.
 
 ## Fase 5: Correcciones funcionales inmediatas
 
@@ -125,7 +125,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 ## Fase 8: Tests de regresión
 
-- [ ] Añadir tests unitarios para `ScheduleFlashcardReviewUseCase`.
+- [x] Añadir tests unitarios para `ScheduleFlashcardReviewUseCase`.
 - [ ] Añadir tests unitarios para `CreateDeckUseCase`.
 - [ ] Añadir tests unitarios para el flujo de pairing.
 - [ ] Añadir tests unitarios para `SaveQuoteAsFlashcardUseCase`.
