@@ -6,8 +6,10 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -20,6 +22,9 @@ class StudyViewModel(
     private val _state = MutableStateFlow(StudyUiState())
     val state = _state.asStateFlow()
 
+    private val _effect = Channel<StudyUiEffect>(Channel.BUFFERED)
+    val effect = _effect.receiveAsFlow()
+
     private val flashcardsForToday: ArrayDeque<Flashcard> = ArrayDeque()
 
     init {
@@ -31,13 +36,18 @@ class StudyViewModel(
         }
     }
 
-    private fun showNextCard() {
+    private suspend fun showNextCard() {
+        var sessionJustFinished = false
         _state.update {
             if (flashcardsForToday.isNotEmpty()) {
                 it.copy(currentFlashcard = flashcardsForToday.removeFirstOrNull())
             } else {
+                sessionJustFinished = !it.isFinished
                 it.copy(isFinished = true)
             }
+        }
+        if (sessionJustFinished) {
+            _effect.send(StudyUiEffect.SessionFinished)
         }
     }
 
@@ -47,6 +57,10 @@ class StudyViewModel(
 
     fun onIntent(intent: StudyUiIntent) {
         when (intent) {
+            StudyUiIntent.BackClicked,
+            StudyUiIntent.FinishDialogDismissed -> {
+                viewModelScope.launch { _effect.send(StudyUiEffect.NavigateBack) }
+            }
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 flashcard = intent.flashcard,
                 reviewResult = intent.reviewGrade,

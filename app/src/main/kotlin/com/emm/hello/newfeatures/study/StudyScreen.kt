@@ -63,7 +63,8 @@ import com.emm.hello.core.ui.HSeparator
 @Composable
 fun StudyScreen(
     modifier: Modifier = Modifier,
-    onNavigateBack: () -> Unit = {},
+    onBackRequested: () -> Unit = {},
+    onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (Flashcard?, ReviewGrade) -> Unit = { _, _ -> },
     state: StudyUiState = StudyUiState(),
 ) {
@@ -111,7 +112,7 @@ fun StudyScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onBackRequested) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.exit_session_desc),
@@ -227,11 +228,11 @@ fun StudyScreen(
             cancelText = null,
             onConfirm = {
                 setShowDialog(false)
-                onNavigateBack()
+                onFinishDialogDismissed()
             },
             onDismiss = {
                 setShowDialog(false)
-                onNavigateBack()
+                onFinishDialogDismissed()
             },
         )
     }
