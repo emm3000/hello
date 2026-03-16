@@ -16,6 +16,5 @@
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>ThrowsCount:AnkiResponseParses.kt$AnkiResponseParses$fun parse(raw: String, json: Json): FlashcardGenerated</ID>
   </CurrentIssues>
 </SmellBaseline>

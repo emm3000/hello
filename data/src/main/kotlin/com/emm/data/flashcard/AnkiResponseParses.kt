@@ -3,6 +3,7 @@ package com.emm.data.flashcard
 import com.emm.data.flashcard.iadto.GeminiResponse
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardGenerated
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -40,10 +41,8 @@ object AnkiResponseParses {
                 val errorMsg = response.error?.message ?: "Unknown AI error"
                 throw IllegalArgumentException(errorMsg)
             }
-        } catch (e: IllegalArgumentException) {
-            throw e
-        } catch (_: Exception) {
-            throw IllegalArgumentException("Invalid response")
+        } catch (e: SerializationException) {
+            throw IllegalArgumentException("Invalid response", e)
         }
     }
 }
