@@ -10,6 +10,7 @@ object Prompt {
      * Returns a JSON with: word, meaning, translation, phonetic, partOfSpeech, type,
      * notes, tags, examples (with level), and optional conjugation for verbs.
      */
+    @Suppress("LongMethod")
     fun buildPrompt(wordOrPhrase: String): String {
         return """
         You are a bilingual language learning assistant designed for native Spanish speakers who want to learn English using spaced repetition flashcards (Anki-style).
@@ -88,6 +89,7 @@ object Prompt {
      * Rich prompt for generating a flashcard from a category and complexity level.
      * Returns the same rich JSON structure as buildPrompt(word).
      */
+    @Suppress("LongMethod")
     fun buildPrompt(category: String, complexity: String): String {
         val now = LocalDateTime.now()
         val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
@@ -151,6 +153,7 @@ object Prompt {
         """.trimIndent()
     }
 
+    @Suppress("LongMethod")
     fun quotePrompt(): String {
         val now = LocalDateTime.now()
         val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()
@@ -220,6 +223,7 @@ object Prompt {
         """.trimIndent()
     }
 
+    @Suppress("LongMethod")
     fun quotePrompt2(): String {
         val now = LocalDateTime.now()
         val seedBase = now.truncatedTo(ChronoUnit.HOURS).toString()

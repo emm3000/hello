@@ -11,10 +11,6 @@
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcardExample(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
     <ID>CyclomaticComplexMethod:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
-    <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(category: String, complexity: String): String</ID>
-    <ID>LongMethod:Prompt.kt$Prompt$fun buildPrompt(wordOrPhrase: String): String</ID>
-    <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt(): String</ID>
-    <ID>LongMethod:Prompt.kt$Prompt$fun quotePrompt2(): String</ID>
     <ID>MaximumLineLength:ApplyRemoteOperation.kt$ApplyRemoteOperation$ </ID>
     <ID>MaximumLineLength:DefaultFlashcardRepository.kt$DefaultFlashcardRepository$ </ID>
     <ID>ReturnCount:ApplyRemoteOperation.kt$ApplyRemoteOperation$private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult</ID>
