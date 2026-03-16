@@ -1,3 +1,5 @@
+@file:Suppress("ImportOrdering")
+
 package com.emm.hello.di
 
 import android.content.Context
@@ -17,6 +19,7 @@ import com.emm.data.remote.DefaultBackupRepository
 import com.emm.data.sync.AckOperations
 import com.emm.data.sync.ApplyRemoteOperation
 import com.emm.data.sync.DefaultPairingRepository
+import com.emm.data.sync.DefaultPendingOperationsRepository
 import com.emm.data.sync.DefaultSyncDebugStateRepository
 import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
@@ -51,6 +54,8 @@ import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.GetSyncDebugStateUseCase
 import com.emm.domain.sync.ListLinkedDevicesUseCase
+import com.emm.domain.sync.ObservePendingOperationsUseCase
+import com.emm.domain.sync.PendingOperationsRepository
 import com.emm.domain.sync.PairingRepository
 import com.emm.domain.sync.RedeemPairingCodeUseCase
 import com.emm.domain.sync.RevokeLinkedDeviceUseCase
@@ -106,6 +111,7 @@ fun Module.repository() {
     factoryOf(::DefaultSyncEngine) bind SyncEngine::class
     factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
     factoryOf(::DefaultPairingRepository) bind PairingRepository::class
+    factoryOf(::DefaultPendingOperationsRepository) bind PendingOperationsRepository::class
 
     factoryOf(::DrainOutbox)
     factoryOf(::PullRemoteOperations)
@@ -140,6 +146,7 @@ fun Module.useCases() {
     factoryOf(::RedeemPairingCodeUseCase)
     factoryOf(::ListLinkedDevicesUseCase)
     factoryOf(::RevokeLinkedDeviceUseCase)
+    factoryOf(::ObservePendingOperationsUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
 }
 

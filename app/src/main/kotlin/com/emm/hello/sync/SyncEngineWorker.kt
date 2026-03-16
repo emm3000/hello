@@ -47,7 +47,7 @@ class SyncEngineWorker(
             PERIODIC_INTERVAL_MINUTES,
             TimeUnit.MINUTES
         )
-            .setConstraints(SyncConstraints)
+            .setConstraints(syncConstraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
                 PERIODIC_BACKOFF_SECONDS,
@@ -57,7 +57,7 @@ class SyncEngineWorker(
             .build()
 
         fun startUpSyncWorkOneShot(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<SyncEngineWorker>()
-            .setConstraints(SyncConstraints)
+            .setConstraints(syncConstraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
                 ONE_SHOT_BACKOFF_SECONDS,
