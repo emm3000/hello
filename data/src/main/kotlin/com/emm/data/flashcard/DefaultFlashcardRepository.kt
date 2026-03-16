@@ -14,9 +14,12 @@ import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerated
-import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.FlashcardGenerationRepository
+import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.StaticCategories
+import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.sync.OperationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +38,7 @@ class DefaultFlashcardRepository(
     private val json: Json,
     private val operationLogWriter: OperationLogWriter,
     private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
-) : FlashcardRepository {
+) : FlashcardReadRepository, FlashcardWriteRepository, StudySessionRepository, FlashcardGenerationRepository {
 
     private val dao: FlashcardQueries = db.flashcardQueries
 

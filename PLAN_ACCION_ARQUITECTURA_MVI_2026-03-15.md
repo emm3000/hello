@@ -103,12 +103,12 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 ## Fase 6: Repositorios y SOLID
 
-- [ ] Separar operaciones de generación IA fuera de `FlashcardRepository`.
-- [ ] Crear una interfaz de lectura de flashcards.
-- [ ] Crear una interfaz de escritura de flashcards.
-- [ ] Crear una interfaz específica para sesión de estudio.
-- [ ] Crear una interfaz específica para generación de contenido IA.
-- [ ] Actualizar casos de uso para depender de la interfaz mínima necesaria.
+- [x] Separar operaciones de generación IA fuera de `FlashcardRepository`.
+- [x] Crear una interfaz de lectura de flashcards.
+- [x] Crear una interfaz de escritura de flashcards.
+- [x] Crear una interfaz específica para sesión de estudio.
+- [x] Crear una interfaz específica para generación de contenido IA.
+- [x] Actualizar casos de uso para depender de la interfaz mínima necesaria.
 
 ## Fase 7: `detekt` como enforcement real
 

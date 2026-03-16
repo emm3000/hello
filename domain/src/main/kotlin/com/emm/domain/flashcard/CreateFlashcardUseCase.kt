@@ -1,7 +1,8 @@
 package com.emm.domain.flashcard
 
 class CreateFlashcardUseCase(
-    private val repository: FlashcardRepository,
+    private val writeRepository: FlashcardWriteRepository,
+    private val readRepository: FlashcardReadRepository,
 ) {
 
     suspend operator fun invoke(
@@ -19,10 +20,10 @@ class CreateFlashcardUseCase(
             note = flashcard.notes,
         )
 
-        val flashcardId: String = repository.create(input)
+        val flashcardId: String = writeRepository.create(input)
 
-        repository.upsertExamples(flashcard.examples, flashcardId)
+        writeRepository.upsertExamples(flashcard.examples, flashcardId)
 
-        return repository.fetchById(flashcardId)
+        return readRepository.fetchById(flashcardId)
     }
 }

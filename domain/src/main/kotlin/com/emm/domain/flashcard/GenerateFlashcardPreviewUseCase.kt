@@ -1,7 +1,7 @@
 package com.emm.domain.flashcard
 
 class GenerateFlashcardPreviewUseCase(
-    private val repository: FlashcardRepository,
+    private val repository: FlashcardGenerationRepository,
 ) {
     suspend operator fun invoke(
         word: String,

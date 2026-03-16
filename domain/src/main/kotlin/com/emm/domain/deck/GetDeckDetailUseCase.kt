@@ -1,14 +1,14 @@
 package com.emm.domain.deck
 
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.FlashcardReadRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class GetDeckDetailUseCase(
     private val repository: DeckRepository,
-    private val cardRepository: FlashcardRepository,
+    private val cardRepository: FlashcardReadRepository,
 ) {
 
     operator fun invoke(deckId: String): Flow<Deck> = combine(

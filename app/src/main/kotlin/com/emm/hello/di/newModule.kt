@@ -32,12 +32,15 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
-import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.FlashcardGenerationRepository
+import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.quote.GenerateQuoteUseCase
 import com.emm.domain.quote.ObserveLatestQuoteUseCase
@@ -92,7 +95,11 @@ fun Module.repository() {
 
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
-    factoryOf(::DefaultFlashcardRepository) bind FlashcardRepository::class
+    factoryOf(::DefaultFlashcardRepository)
+    factory<FlashcardReadRepository> { get<DefaultFlashcardRepository>() }
+    factory<FlashcardWriteRepository> { get<DefaultFlashcardRepository>() }
+    factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
+    factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
