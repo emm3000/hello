@@ -9,6 +9,7 @@ import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
+import com.emm.data.localfirst.OperationLogWriter
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
@@ -72,6 +73,7 @@ fun Module.repository() {
     factoryOf(::DefaultSyncEngine) bind SyncEngine::class
 
     factoryOf(::LocalDeviceIdentityProvider)
+    factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
     factoryOf(::WorkManagerSyncManager)
 }

@@ -7,9 +7,9 @@ import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
 import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.HelloDb
-import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
-import com.emm.data.localfirst.LOCAL_DEVICE_ID
+import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
+import com.emm.data.localfirst.OperationLogWriter
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -17,11 +17,14 @@ import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.StaticCategories
+import com.emm.domain.sync.OperationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.time.Instant
 import java.util.UUID
 
@@ -30,7 +33,8 @@ class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
-    private val flashcardSynchronizer: FlashcardSynchronizer,
+    private val operationLogWriter: OperationLogWriter,
+    private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
 ) : FlashcardRepository {
 
     private val dao: FlashcardQueries = db.flashcardQueries
@@ -40,23 +44,42 @@ class DefaultFlashcardRepository(
     override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
         val cardId: String = input.id ?: UUID.randomUUID().toString()
         val now: Long = Instant.now().toEpochMilli()
-        dao.create(
-            id = cardId,
-            deckId = input.deckId,
-            word = input.word,
-            meaning = input.meaning,
-            translation = input.translation,
-            phonetic = input.phonetic,
-            partOfSpeech = input.partOfSpeech,
-            type = input.type,
-            note = input.note,
-            createdAt = now,
-            updatedAt = now,
-            deletedAt = null,
-            originDeviceId = LOCAL_DEVICE_ID,
-            lastModifiedByDeviceId = LOCAL_DEVICE_ID,
-            versionLamport = INITIAL_LAMPORT_VERSION,
-        )
+        val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+
+        db.transaction {
+            val payloadJson = buildJsonObject {
+                put("entityId", cardId)
+                put("operationType", OperationType.Create.name)
+                put("deckId", input.deckId)
+                put("word", input.word)
+                put("meaning", input.meaning)
+            }.toString()
+            val lamport = operationLogWriter.appendOperation(
+                entityType = "flashcard",
+                entityId = cardId,
+                operationType = OperationType.Create,
+                payloadJson = payloadJson,
+                originDeviceId = deviceId,
+                createdAt = now,
+            )
+            dao.create(
+                id = cardId,
+                deckId = input.deckId,
+                word = input.word,
+                meaning = input.meaning,
+                translation = input.translation,
+                phonetic = input.phonetic,
+                partOfSpeech = input.partOfSpeech,
+                type = input.type,
+                note = input.note,
+                createdAt = now,
+                updatedAt = now,
+                deletedAt = null,
+                originDeviceId = deviceId,
+                lastModifiedByDeviceId = deviceId,
+                versionLamport = lamport,
+            )
+        }
         return@withContext cardId
     }
 
@@ -64,24 +87,42 @@ class DefaultFlashcardRepository(
         examples: List<Example>,
         flashcardId: String,
     ) = withContext(Dispatchers.IO) {
-        db.transaction { populate(examples, flashcardId) }
-        flashcardSynchronizer.synchronize()
+        val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+        db.transaction { populate(examples, flashcardId, deviceId) }
     }
 
-    private fun populate(examples: List<Example>, flashcardId: String) {
+    private fun populate(examples: List<Example>, flashcardId: String, deviceId: String) {
         examples.forEach {
+            val now = Instant.now().toEpochMilli()
+            val exampleId = UUID.randomUUID().toString()
+            val payloadJson = buildJsonObject {
+                put("entityId", exampleId)
+                put("operationType", OperationType.Create.name)
+                put("flashcardId", flashcardId)
+                put("text", it.text)
+                put("translation", it.translation)
+                put("type", it.type)
+            }.toString()
+            val lamport = operationLogWriter.appendOperation(
+                entityType = "flashcard_example",
+                entityId = exampleId,
+                operationType = OperationType.Create,
+                payloadJson = payloadJson,
+                originDeviceId = deviceId,
+                createdAt = now,
+            )
             exampleDao.insert(
-                id = UUID.randomUUID().toString(),
+                id = exampleId,
                 flashcardId = flashcardId,
                 text = it.text,
                 translation = it.translation,
                 type = it.type,
-                createdAt = Instant.now().toEpochMilli(),
-                updatedAt = Instant.now().toEpochMilli(),
+                createdAt = now,
+                updatedAt = now,
                 deletedAt = null,
-                originDeviceId = LOCAL_DEVICE_ID,
-                lastModifiedByDeviceId = LOCAL_DEVICE_ID,
-                versionLamport = INITIAL_LAMPORT_VERSION,
+                originDeviceId = deviceId,
+                lastModifiedByDeviceId = deviceId,
+                versionLamport = lamport,
             )
         }
     }

@@ -86,14 +86,14 @@ Decisiones cerradas:
 
 ## Fase 3. Escribir local + outbox en una sola transaccion
 
-- [ ] Refactorizar `DefaultDeckRepository` para escribir `Deck` y `OperationLog` en una misma transaccion.
-- [ ] Refactorizar `DefaultFlashcardRepository.create()` para escribir `Flashcard` y `OperationLog`.
-- [ ] Refactorizar `DefaultFlashcardRepository.upsertExamples()` para escribir `FlashcardExample` y `OperationLog`.
-- [ ] Refactorizar `DefaultQuoteRepository.generate()` para escribir `Quote` y `OperationLog`.
-- [ ] Refactorizar `DefaultFlashcardReviewRepository.update()` para crear `ReviewEvent` y recalcular `ReviewProjection`.
-- [ ] Eliminar la necesidad de disparar sync desde cada repositorio inmediatamente despues de escribir.
-- [ ] Agregar incremento monotono local de `lamport` por dispositivo.
-- [ ] Guardar cada operacion con `opId`, `entityId`, `payload`, `lamport`, `createdAt`, `status`.
+- [x] Refactorizar `DefaultDeckRepository` para escribir `Deck` y `OperationLog` en una misma transaccion.
+- [x] Refactorizar `DefaultFlashcardRepository.create()` para escribir `Flashcard` y `OperationLog`.
+- [x] Refactorizar `DefaultFlashcardRepository.upsertExamples()` para escribir `FlashcardExample` y `OperationLog`.
+- [x] Refactorizar `DefaultQuoteRepository.generate()` para escribir `Quote` y `OperationLog`.
+- [x] Refactorizar `DefaultFlashcardReviewRepository.update()` para crear `ReviewEvent` y recalcular `ReviewProjection`.
+- [x] Eliminar la necesidad de disparar sync desde cada repositorio inmediatamente despues de escribir.
+- [x] Agregar incremento monotono local de `lamport` por dispositivo.
+- [x] Guardar cada operacion con `opId`, `entityId`, `payload`, `lamport`, `createdAt`, `status`.
 
 ## Fase 4. Limpiar la estrategia actual de sync
 

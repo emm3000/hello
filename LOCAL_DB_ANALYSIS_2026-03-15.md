@@ -154,6 +154,10 @@ Si decides mantener `camelCase` local por compatibilidad de codegen:
   - `ReviewProjection` como lectura rapida para UI/listados
   - contrato de sync en dominio (`OperationType`, `SyncOperationPayload`, `SyncState`, `SyncEngine`)
   - repositorios de escritura marcados con `@LocalFirstWrite`
+- Fase 3 aplicada:
+  - escrituras de `Deck`, `Flashcard`, `FlashcardExample`, `Quote` y `ReviewEvent` en transaccion local + outbox (`OperationLog`)
+  - eliminados disparos de sync directo desde repositorios
+  - `lamport` monotono por dispositivo desde `LocalDeviceIdentity` en cada operacion
 - Schema Fase 1 agregado en SQLDelight (`LocalFirst.sq`) con:
   - `LocalDeviceIdentity`
   - `LocalAccountState`
