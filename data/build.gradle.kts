@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.core.ktx)
     testImplementation(libs.junit)
+    testImplementation("app.cash.sqldelight:sqlite-driver:${libs.versions.androidDriver.get()}")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(kotlin("test"))
