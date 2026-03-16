@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val PAIRING_CODE_LENGTH = 6
+
 class PairingViewModel(
     private val ensureLinkedIdentityUseCase: EnsureLinkedIdentityUseCase,
     private val createPairingSessionUseCase: CreatePairingSessionUseCase,
@@ -37,7 +39,9 @@ class PairingViewModel(
     fun onIntent(intent: PairingUiIntent) {
         when (intent) {
             is PairingUiIntent.JoinCodeChanged -> {
-                _state.update { it.copy(joinCode = intent.value.take(6).filter(Char::isDigit)) }
+                _state.update {
+                    it.copy(joinCode = intent.value.take(PAIRING_CODE_LENGTH).filter(Char::isDigit))
+                }
             }
             PairingUiIntent.CreateCodeClicked -> createCode()
             PairingUiIntent.JoinWithCodeClicked -> joinWithCode()
@@ -76,7 +80,7 @@ class PairingViewModel(
 
     private fun joinWithCode() {
         val code = _state.value.joinCode
-        if (code.length != 6) {
+        if (code.length != PAIRING_CODE_LENGTH) {
             viewModelScope.launch {
                 _effect.send(PairingUiEffect.ShowMessage("Ingresa un código válido de 6 dígitos"))
             }

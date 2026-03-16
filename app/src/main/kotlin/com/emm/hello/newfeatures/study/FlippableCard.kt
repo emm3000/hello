@@ -23,6 +23,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+private const val CARD_FLIP_DURATION_MS = 600
+private const val CARD_CAMERA_DISTANCE_MULTIPLIER = 12f
+private const val FRONT_FACE_MAX_ROTATION = 90f
+private const val BACK_FACE_ROTATION = 180f
+private const val GRADIENT_TRANSITION_DURATION_MS = 500
+private const val BACK_FACE_TINT_BLEND_FRACTION = 0.15f
+private const val BACK_FACE_TRANSITION_DURATION_MS = 400
+
 @Composable
 fun FlippableCard(
     modifier: Modifier = Modifier,
@@ -35,7 +43,7 @@ fun FlippableCard(
 ) {
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
-        animationSpec = tween(durationMillis = 600),
+        animationSpec = tween(durationMillis = CARD_FLIP_DURATION_MS),
         label = "cardRotation",
         finishedListener = onFinished,
     )
@@ -56,7 +64,7 @@ fun FlippableCard(
             )
             .graphicsLayer {
                 rotationY = rotation
-                cameraDistance = 12f * density
+                cameraDistance = CARD_CAMERA_DISTANCE_MULTIPLIER * density
             },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -72,13 +80,13 @@ fun FlippableCard(
                 .fillMaxSize()
                 .background(gradientBrush)
         ) {
-            if (rotation <= 90f) {
+            if (rotation <= FRONT_FACE_MAX_ROTATION) {
                 frontContent()
             } else {
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer { rotationY = 180f }
+                        .graphicsLayer { rotationY = BACK_FACE_ROTATION }
                 ) {
                     backContent()
                 }
@@ -122,12 +130,12 @@ fun rememberDynamicStudyGradient(
     // Animate the gradient colors based on progress (smooth transition per card)
     val animatedColor1 by animateColorAsState(
         targetValue = lerp(startColor1, endColor1, progress),
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = GRADIENT_TRANSITION_DURATION_MS),
         label = "gradientColor1",
     )
     val animatedColor2 by animateColorAsState(
         targetValue = lerp(startColor2, endColor2, progress),
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = GRADIENT_TRANSITION_DURATION_MS),
         label = "gradientColor2",
     )
 
@@ -140,20 +148,20 @@ fun rememberDynamicStudyGradient(
 
     val finalColor1 by animateColorAsState(
         targetValue = if (cardFace == CardFace.Back) {
-            lerp(animatedColor1, backTint, 0.15f)
+            lerp(animatedColor1, backTint, BACK_FACE_TINT_BLEND_FRACTION)
         } else {
             animatedColor1
         },
-        animationSpec = tween(durationMillis = 400),
+        animationSpec = tween(durationMillis = BACK_FACE_TRANSITION_DURATION_MS),
         label = "finalColor1",
     )
     val finalColor2 by animateColorAsState(
         targetValue = if (cardFace == CardFace.Back) {
-            lerp(animatedColor2, backTint, 0.15f)
+            lerp(animatedColor2, backTint, BACK_FACE_TINT_BLEND_FRACTION)
         } else {
             animatedColor2
         },
-        animationSpec = tween(durationMillis = 400),
+        animationSpec = tween(durationMillis = BACK_FACE_TRANSITION_DURATION_MS),
         label = "finalColor2",
     )
 

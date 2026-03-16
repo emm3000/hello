@@ -79,6 +79,11 @@ import com.emm.hello.core.ui.HSkeleton
 import java.time.LocalDateTime
 import java.util.Locale
 
+private const val SKELETON_TITLE_WIDTH = 0.5f
+private const val SKELETON_SUBTITLE_WIDTH = 0.35f
+private const val SKELETON_DETAIL_WIDTH = 0.4f
+private const val RESULT_FADE_IN_DURATION_MS = 300
+
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun NewCardScreen(
@@ -299,12 +304,12 @@ fun NewCardScreen(
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            HSkeleton(Modifier.fillMaxWidth(0.5f).height(24.dp))
-                            HSkeleton(Modifier.fillMaxWidth(0.35f).height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth(SKELETON_TITLE_WIDTH).height(24.dp))
+                            HSkeleton(Modifier.fillMaxWidth(SKELETON_SUBTITLE_WIDTH).height(14.dp))
                             HSeparator()
-                            HSkeleton(Modifier.fillMaxWidth(0.4f).height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
                             HSkeleton(Modifier.fillMaxWidth().height(14.dp))
-                            HSkeleton(Modifier.fillMaxWidth(0.4f).height(14.dp))
+                            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
                             HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                         }
                     }
@@ -316,7 +321,7 @@ fun NewCardScreen(
                 item {
                     AnimatedVisibility(
                         visible = true,
-                        enter = fadeIn(tween(300)),
+                        enter = fadeIn(tween(RESULT_FADE_IN_DURATION_MS)),
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(

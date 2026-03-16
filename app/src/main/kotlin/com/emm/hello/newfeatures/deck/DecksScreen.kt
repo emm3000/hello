@@ -30,13 +30,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
+private const val SAMPLE_ENGLISH_DECK_CARD_COUNT = 100
+private const val PERCENT_MULTIPLIER = 100
+
 // Data class to represent a deck
 data class DeckInfo(val name: String, val cardCount: Int, val completion: Float)
 
 @Composable
 fun DecksScreen(modifier: Modifier = Modifier, onDeckClick: (DeckInfo) -> Unit = {}) {
     val decks = listOf(
-        DeckInfo("Vocabulario de Inglés", 100, 0.15f),
+        DeckInfo("Vocabulario de Inglés", SAMPLE_ENGLISH_DECK_CARD_COUNT, 0.15f),
         DeckInfo("Conceptos de Kotlin", 80, 0.62f),
         DeckInfo("Historia del Arte", 150, 0.50f),
         DeckInfo("Phrasal Verbs", 50, 0.90f)
@@ -82,7 +85,10 @@ fun DeckListItem(deck: DeckInfo, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("${deck.cardCount} cards", style = MaterialTheme.typography.bodyMedium)
-                Text("${(deck.completion * 100).toInt()}% completed", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${(deck.completion * PERCENT_MULTIPLIER).toInt()}% completed",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
             Spacer(Modifier.height(8.dp))
             LinearProgressIndicator(

@@ -32,6 +32,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
+private const val SHIMMER_START_X = -400f
+private const val SHIMMER_END_X = 1200f
+private const val SHIMMER_WIDTH = 400f
+private const val SHIMMER_DURATION_MS = 1200
+private const val DECK_ITEM_TITLE_WIDTH = 0.55f
+private const val DECK_ITEM_SUBTITLE_WIDTH = 0.35f
+private const val PREVIEW_TITLE_WIDTH = 0.5f
+private const val PREVIEW_LAST_LINE_WIDTH = 0.7f
+
 // ─── Primitive ───────────────────────────────────────────────────────────────
 
 /**
@@ -50,10 +59,10 @@ fun HSkeleton(
 
     val transition = rememberInfiniteTransition(label = "skeleton_shimmer")
     val translateX by transition.animateFloat(
-        initialValue = -400f,
-        targetValue = 1200f,
+        initialValue = SHIMMER_START_X,
+        targetValue = SHIMMER_END_X,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            animation = tween(durationMillis = SHIMMER_DURATION_MS, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
         label = "skeleton_translateX",
@@ -62,7 +71,7 @@ fun HSkeleton(
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(baseColor, highlightColor, baseColor),
         start = Offset(translateX, 0f),
-        end = Offset(translateX + 400f, 0f),
+        end = Offset(translateX + SHIMMER_WIDTH, 0f),
     )
 
     Box(
@@ -86,13 +95,13 @@ fun DeckItemSkeleton(modifier: Modifier = Modifier) {
         Column(modifier = Modifier.weight(1f)) {
             HSkeleton(
                 modifier = Modifier
-                    .fillMaxWidth(0.55f)
+                    .fillMaxWidth(DECK_ITEM_TITLE_WIDTH)
                     .height(16.dp),
             )
             Spacer(Modifier.height(8.dp))
             HSkeleton(
                 modifier = Modifier
-                    .fillMaxWidth(0.35f)
+                    .fillMaxWidth(DECK_ITEM_SUBTITLE_WIDTH)
                     .height(12.dp),
             )
         }
@@ -160,11 +169,11 @@ private fun HSkeletonPreview() {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // Title line
-                HSkeleton(Modifier.fillMaxWidth(0.5f).height(20.dp))
+                HSkeleton(Modifier.fillMaxWidth(PREVIEW_TITLE_WIDTH).height(20.dp))
                 // Body lines
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
-                HSkeleton(Modifier.fillMaxWidth(0.7f).height(14.dp))
+                HSkeleton(Modifier.fillMaxWidth(PREVIEW_LAST_LINE_WIDTH).height(14.dp))
                 // Skeleton button
                 HSkeleton(Modifier.size(width = 120.dp, height = 36.dp), cornerRadius = 20.dp)
             }

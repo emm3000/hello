@@ -57,6 +57,8 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HSeparator
 
+private const val COLLAPSE_ROTATION_DEGREES = 180f
+
 @Composable
 fun QuotesScreen(
     quotes: List<Quote>,
@@ -128,7 +130,7 @@ private fun QuoteItem(quote: Quote, onClick: (Quote) -> Unit) {
                     contentDescription = expandContentDescription,
                     modifier = Modifier
                         .padding(start = 8.dp)
-                        .rotate(if (expanded) 180f else 0f),
+                        .rotate(if (expanded) COLLAPSE_ROTATION_DEGREES else 0f),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

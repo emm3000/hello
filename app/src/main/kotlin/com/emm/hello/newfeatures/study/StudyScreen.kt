@@ -61,6 +61,14 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HProgressBar
 import com.emm.hello.core.ui.HSeparator
 
+private const val CARD_TRANSITION_DURATION_MS = 350
+private const val CARD_TRANSITION_DIVISOR = 3
+private const val CARD_EXIT_FADE_DURATION_MS = 250
+private const val ANSWER_BUTTON_FADE_DURATION_MS = 200
+private const val ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP = 104
+private const val PHONETIC_SEPARATOR_WIDTH_FRACTION = 0.4f
+private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
+
 @Composable
 fun StudyScreen(
     modifier: Modifier = Modifier,
@@ -151,9 +159,16 @@ fun StudyScreen(
                 AnimatedContent(
                     targetState = state.currentFlashcard,
                     transitionSpec = {
-                        (slideInHorizontally(tween(350)) { it / 3 } + fadeIn(tween(350)))
+                        (
+                            slideInHorizontally(tween(CARD_TRANSITION_DURATION_MS)) {
+                                it / CARD_TRANSITION_DIVISOR
+                            } +
+                                fadeIn(tween(CARD_TRANSITION_DURATION_MS))
+                            )
                             .togetherWith(
-                                slideOutHorizontally(tween(350)) { -it / 3 } + fadeOut(tween(250))
+                                slideOutHorizontally(tween(CARD_TRANSITION_DURATION_MS)) {
+                                    -it / CARD_TRANSITION_DIVISOR
+                                } + fadeOut(tween(CARD_EXIT_FADE_DURATION_MS))
                             )
                     },
                     label = "card_transition",
@@ -196,7 +211,8 @@ fun StudyScreen(
                 AnimatedContent(
                     targetState = cardFace == CardFace.Back,
                     transitionSpec = {
-                        fadeIn(tween(200)) togetherWith fadeOut(tween(200))
+                        fadeIn(tween(ANSWER_BUTTON_FADE_DURATION_MS)) togetherWith
+                            fadeOut(tween(ANSWER_BUTTON_FADE_DURATION_MS))
                     },
                     label = "answer_buttons",
                     modifier = Modifier
@@ -209,7 +225,7 @@ fun StudyScreen(
                             onReviewAnswer(state.currentFlashcard, grade)
                         }
                     } else {
-                        Spacer(Modifier.height(104.dp))
+                        Spacer(Modifier.height(ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP.dp))
                     }
                 }
             }
@@ -257,7 +273,7 @@ private fun FlashcardFrontContent(
             )
             if (phonetic.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
-                HSeparator(modifier = Modifier.fillMaxWidth(0.4f))
+                HSeparator(modifier = Modifier.fillMaxWidth(PHONETIC_SEPARATOR_WIDTH_FRACTION))
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = phonetic,
@@ -297,7 +313,7 @@ private fun FlashcardBackContent(
         )
 
         Spacer(Modifier.height(12.dp))
-        HSeparator(modifier = Modifier.fillMaxWidth(0.5f))
+        HSeparator(modifier = Modifier.fillMaxWidth(MEANING_SEPARATOR_WIDTH_FRACTION))
         Spacer(Modifier.height(12.dp))
 
         // ── Meaning (secondary info) ────────────────────────────────────

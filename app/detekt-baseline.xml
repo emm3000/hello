@@ -42,26 +42,6 @@
     <ID>LongMethod:Select.kt$@Composable fun &lt;T&gt; HSelect( items: List&lt;T&gt;, itemSelected: T?, onItemSelected: (T) -&gt; Unit, label: String, modifier: Modifier = Modifier, enabled: Boolean = true, itemLabel: (T) -&gt; String = { it.toString() }, placeholder: String = "Seleccionar…", )</ID>
     <ID>LongMethod:StudyScreen.kt$@Composable fun StudyScreen( modifier: Modifier = Modifier, onNavigateBack: () -&gt; Unit = {}, onReviewAnswer: (Flashcard?, ReviewGrade) -&gt; Unit = { _, _ -&gt; }, state: StudyUiState = StudyUiState(), )</ID>
     <ID>LongParameterList:Input.kt$( value: String, onValueChange: (String) -&gt; Unit, modifier: Modifier = Modifier, label: String? = null, placeholder: String? = null, supportingText: String? = null, errorMessage: String? = null, enabled: Boolean = true, readOnly: Boolean = false, singleLine: Boolean = true, minLines: Int = 1, maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE, leadingIcon: @Composable (() -&gt; Unit)? = null, trailingIcon: @Composable (() -&gt; Unit)? = null, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, keyboardActions: KeyboardActions = KeyboardActions.Default, visualTransformation: VisualTransformation = VisualTransformation.None, interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }, )</ID>
-    <ID>MagicNumber:DecksScreen.kt$100</ID>
-    <ID>MagicNumber:FlippableCard.kt$180f</ID>
-    <ID>MagicNumber:FlippableCard.kt$90f</ID>
-    <ID>MagicNumber:NewCardScreen.kt$0.35f</ID>
-    <ID>MagicNumber:NewCardScreen.kt$0.4f</ID>
-    <ID>MagicNumber:NewCardScreen.kt$0.5f</ID>
-    <ID>MagicNumber:NewCardScreen.kt$300</ID>
-    <ID>MagicNumber:PairingViewModel.kt$PairingViewModel$6</ID>
-    <ID>MagicNumber:QuoteScreen.kt$180f</ID>
-    <ID>MagicNumber:Select.kt$180f</ID>
-    <ID>MagicNumber:Skeleton.kt$0.35f</ID>
-    <ID>MagicNumber:Skeleton.kt$0.55f</ID>
-    <ID>MagicNumber:Skeleton.kt$0.5f</ID>
-    <ID>MagicNumber:Skeleton.kt$0.7f</ID>
-    <ID>MagicNumber:StudyScreen.kt$0.4f</ID>
-    <ID>MagicNumber:StudyScreen.kt$0.5f</ID>
-    <ID>MagicNumber:StudyScreen.kt$200</ID>
-    <ID>MagicNumber:StudyScreen.kt$250</ID>
-    <ID>MagicNumber:StudyScreen.kt$3</ID>
-    <ID>MagicNumber:StudyScreen.kt$350</ID>
     <ID>MatchingDeclarationName:Alert.kt$AlertVariant</ID>
     <ID>MatchingDeclarationName:Badge.kt$BadgeVariant</ID>
     <ID>MatchingDeclarationName:Button.kt$ButtonVariant</ID>
