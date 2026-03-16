@@ -127,7 +127,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 
 - [x] Añadir tests unitarios para `ScheduleFlashcardReviewUseCase`.
 - [x] Añadir tests unitarios para `CreateDeckUseCase`.
-- [ ] Añadir tests unitarios para el flujo de pairing.
+- [x] Añadir tests unitarios para el flujo de pairing.
 - [x] Añadir tests unitarios para `SaveQuoteAsFlashcardUseCase`.
 - [ ] Añadir tests del reducer o transición de estado en `NewDeck`.
 - [ ] Añadir tests del reducer o transición de estado en `NewCard`.
