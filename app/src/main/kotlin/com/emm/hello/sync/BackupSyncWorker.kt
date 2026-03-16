@@ -58,6 +58,7 @@ class BackupSyncWorker(
 
         private const val SYNC_NOTIFICATION_ID = 1
         private const val SYNC_NOTIFICATION_CHANNEL_ID = "BackupSyncNotificationChannel"
+        private const val PERIODIC_INTERVAL_MINUTES = 15L
 
         fun startUpSyncWork(force: Boolean): OneTimeWorkRequest = OneTimeWorkRequestBuilder<BackupSyncWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -70,7 +71,7 @@ class BackupSyncWorker(
             .build()
 
         fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<BackupSyncWorker>(
-            15,
+            PERIODIC_INTERVAL_MINUTES,
             TimeUnit.MINUTES
         )
             .setConstraints(SyncConstraints)

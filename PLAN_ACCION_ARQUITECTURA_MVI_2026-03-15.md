@@ -121,7 +121,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 - [ ] Resolver los `LongMethod` en pantallas grandes empezando por `NewCardScreen`. (Regla temporalmente desactivada)
 - [ ] Resolver los `CyclomaticComplexMethod` de UI reusable (`HButton`, `HInput`) si siguen creciendo. (Regla temporalmente desactivada)
 - [ ] Extraer `MagicNumber` de scheduler, workers y animaciones a constantes con nombre.
-- [ ] Evaluar agregar una regla custom o convención revisable para forzar `*UseCase` en `domain`.
+- [x] Evaluar agregar una regla custom o convención revisable para forzar `*UseCase` en `domain`.
 
 ## Fase 8: Tests de regresión
 
