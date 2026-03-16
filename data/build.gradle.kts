@@ -34,7 +34,6 @@ configure<LibraryExtension> {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "BASE_URL", "\"${resolveProperty("BASE_URL")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${resolveProperty("SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${resolveProperty("SUPABASE_ANON_KEY")}\"")
     }
@@ -92,16 +91,6 @@ dependencies {
     // Sqldelight
     api(libs.android.driver)
     implementation(libs.coroutines.extensions)
-
-    debugImplementation(libs.library)
-    releaseImplementation(libs.library.no.op)
-    "stagingImplementation"(libs.library)
-
-    // retrofit
-    api(libs.retrofit)
-    implementation(libs.retrofit2.kotlinx.serialization.converter)
-    implementation(libs.logging.interceptor)
-    implementation(libs.kotlinx.serialization.json)
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth.kt)

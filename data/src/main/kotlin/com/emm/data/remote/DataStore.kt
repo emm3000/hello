@@ -1,19 +1,14 @@
 package com.emm.data.remote
 
 import android.content.SharedPreferences
-import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import retrofit2.HttpException
 import java.time.LocalDateTime
 
 class DataStore(
     private val sharedPreferences: SharedPreferences,
-    private val json: Json,
 ) {
 
     private val editor: SharedPreferences.Editor by lazy { sharedPreferences.edit() }
@@ -40,27 +35,11 @@ class DataStore(
         editor.putString(DATE_KEY, now.toString()).apply()
     }
 
-    fun saveError(error: HttpException) {
-        try {
-            error.response()?.errorBody()?.string()?.let {
-                val decodedErrorResponse: ExceptionResponse = json.decodeFromString<ExceptionResponse>(it)
-                val encodedErrorResponse: String = json.encodeToString(decodedErrorResponse)
-                editor.putString(ERROR_KEY, encodedErrorResponse).apply()
-            }
-        } catch (e: SerializationException) {
-            Log.w(TAG, "Could not decode error response", e)
-        } catch (e: IllegalArgumentException) {
-            Log.w(TAG, "Unexpected error response format", e)
-        }
-    }
-
     fun saveSuccess(value: String) {
         editor.putString(SUCCESS_KEY, value).apply()
     }
 
     companion object {
-        private const val TAG = "DataStore"
-
         const val ERROR_KEY = "ERROR_KEY"
         const val SUCCESS_KEY = "SUCCESS_KEY"
         const val DATE_KEY = "DATE_KEY"
