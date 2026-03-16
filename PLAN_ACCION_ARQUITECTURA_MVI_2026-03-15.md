@@ -113,7 +113,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 ## Fase 7: `detekt` como enforcement real
 
 - [x] Documentar que `./gradlew detekt` debe correr en cada PR.
-- [ ] Crear tarea para vaciar primero baseline de `domain` y mantenerla vacía.
+- [x] Crear tarea para vaciar primero baseline de `domain` y mantenerla vacía.
 - [x] Eliminar del baseline de `app` los issues de naming/filename más baratos.
 - [x] Renombrar `networkModule.kt`, `newModule.kt` y `repositoryModule.kt` para cumplir naming consistente.
 - [x] Eliminar del baseline de `data` los issues de `Filename` en `mappers.kt` y `providers.kt`.
@@ -126,7 +126,7 @@ Objetivo: llevar el proyecto desde el estado actual hacia una base consistente d
 ## Fase 8: Tests de regresión
 
 - [x] Añadir tests unitarios para `ScheduleFlashcardReviewUseCase`.
-- [ ] Añadir tests unitarios para `CreateDeckUseCase`.
+- [x] Añadir tests unitarios para `CreateDeckUseCase`.
 - [ ] Añadir tests unitarios para el flujo de pairing.
 - [ ] Añadir tests unitarios para `SaveQuoteAsFlashcardUseCase`.
 - [ ] Añadir tests del reducer o transición de estado en `NewDeck`.
