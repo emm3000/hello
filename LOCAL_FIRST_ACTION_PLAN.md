@@ -168,12 +168,12 @@ Decisiones cerradas:
 - [ ] Crear caso de uso `PullRemoteOperations`.
 - [ ] Crear caso de uso `ApplyRemoteOperation`.
 - [ ] Crear caso de uso `AckOperations`.
-- [ ] Implementar `SyncEngine.runOnce()`.
+- [x] Implementar `SyncEngine.runOnce()`.
 - [ ] Implementar backoff exponencial para errores recuperables.
 - [ ] Implementar reintento inmediato en cambio de conectividad.
-- [ ] Persistir `lastPulledCursor` en SQLite.
-- [ ] Persistir `lastSuccessfulSyncAt`.
-- [ ] Persistir `lastSyncError`.
+- [x] Persistir `lastPulledCursor` en SQLite.
+- [x] Persistir `lastSuccessfulSyncAt`.
+- [x] Persistir `lastSyncError`.
 - [ ] Exponer `SyncState` como `Flow`.
 
 ## Fase 10. Integrar WorkManager sin acoplar dominio
@@ -259,10 +259,10 @@ Si tuvieras que empezar ya, yo haria solo esto:
 
 - [ ] Crear nuevo schema local: `OperationLog`, `SyncCheckpoint`, `ReviewEvent`, `ReviewProjection`, `LocalDeviceIdentity`, `LocalAccountState`.
 - [ ] Refactorizar un solo flujo end-to-end: `Deck`.
-- [ ] Montar Supabase con `Anonymous Auth`, `app_account`, `app_device`, `sync_operation`.
+- [x] Montar Supabase con `Anonymous Auth`, `app_account`, `app_device`, `sync_operation`.
 - [x] Implementar `sync_push` y `sync_pull` solo para `Deck`.
-- [ ] Implementar pairing minimo con codigo corto de 6 caracteres.
-- [ ] Probar dos dispositivos reales con `Deck` antes de tocar `FlashcardReview`.
+- [x] Implementar pairing minimo con codigo corto de 6 caracteres.
+- [x] Probar dos dispositivos reales con `Deck` antes de tocar `FlashcardReview`.
 
 ## Decision ya tomada
 
