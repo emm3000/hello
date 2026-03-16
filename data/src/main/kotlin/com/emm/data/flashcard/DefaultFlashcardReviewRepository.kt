@@ -3,6 +3,9 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
+import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
+import com.emm.data.localfirst.LOCAL_DEVICE_ID
+import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import kotlinx.coroutines.Dispatchers
@@ -10,26 +13,41 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.util.UUID
 
-typealias FlashcardReviewEntity = com.emm.data.FlashcardReview
-
+@LocalFirstWrite
 class DefaultFlashcardReviewRepository(
     db: HelloDb,
-    private val reviewSynchronizer: FlashcardReviewSynchronizer,
 ) : FlashcardReviewRepository {
 
-    private val dao = db.flashcardReviewQueries
+    private val localFirstQueries = db.localFirstQueries
 
     override fun all(): Flow<List<FlashcardReview>> {
-        return dao
-            .all()
+        return localFirstQueries
+            .allReviewProjections()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map(List<FlashcardReviewEntity>::toDomain)
+            .map { projections -> projections.map { it.toDomainFromProjection() } }
     }
 
     override suspend fun update(flashcardReview: FlashcardReview) = withContext(Dispatchers.IO) {
-        dao.upsertFlashcardReview(
+        val now = Instant.now().toEpochMilli()
+        val eventId = UUID.randomUUID().toString()
+        localFirstQueries.insertReviewEvent(
+            eventId = eventId,
+            flashcardId = flashcardReview.flashcardId,
+            grade = "review",
+            reviewedAt = flashcardReview.lastReviewedAt,
+            nextReviewAt = flashcardReview.nextReviewAt,
+            easeFactor = flashcardReview.easeFactor,
+            interval = flashcardReview.interval,
+            repetitions = flashcardReview.repetitions,
+            lapses = flashcardReview.lapses,
+            originDeviceId = LOCAL_DEVICE_ID,
+            versionLamport = INITIAL_LAMPORT_VERSION,
+            createdAt = now,
+        )
+        localFirstQueries.upsertReviewProjection(
             flashcardId = flashcardReview.flashcardId,
             lastReviewedAt = flashcardReview.lastReviewedAt,
             nextReviewAt = flashcardReview.nextReviewAt,
@@ -37,8 +55,8 @@ class DefaultFlashcardReviewRepository(
             interval = flashcardReview.interval,
             repetitions = flashcardReview.repetitions,
             lapses = flashcardReview.lapses,
-            createdAt = Instant.now().toEpochMilli(),
-            updatedAt = Instant.now().toEpochMilli(),
+            sourceEventId = eventId,
+            updatedAt = now,
         )
         Unit
     }

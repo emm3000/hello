@@ -91,6 +91,10 @@ WHERE status = 'Pending'
 ORDER BY createdAt ASC
 LIMIT ?;
 
+countPendingOperations:
+SELECT COUNT(*) FROM OperationLog
+WHERE status = 'Pending';
+
 markOperationAcked:
 UPDATE OperationLog
 SET status = 'Acked', lastAttemptAt = ?, lastError = NULL
@@ -231,3 +235,6 @@ INSERT OR REPLACE INTO ReviewProjection (
 findReviewProjectionByFlashcardId:
 SELECT * FROM ReviewProjection
 WHERE flashcardId = ?;
+
+allReviewProjections:
+SELECT * FROM ReviewProjection;

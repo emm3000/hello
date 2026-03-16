@@ -76,13 +76,13 @@ Decisiones cerradas:
 
 ## Fase 2. Rediseñar el dominio local
 
-- [ ] Reemplazar la idea de "review sincronizable" por `ReviewEvent` como evento fuente.
-- [ ] Mantener `ReviewProjection` como lectura rapida para UI.
-- [ ] Definir `sealed class SyncOperationPayload` en Kotlin para todas las operaciones replicables.
-- [ ] Definir un `OperationType` comun: `Create`, `Update`, `Delete`, `AppendEvent`.
-- [ ] Definir una sola abstraccion `SyncEngine` en `domain` o `data`.
-- [ ] Definir un `SyncState` observable para UI y debug.
-- [ ] Marcar los repositorios para que toda escritura sea local primero.
+- [x] Reemplazar la idea de "review sincronizable" por `ReviewEvent` como evento fuente.
+- [x] Mantener `ReviewProjection` como lectura rapida para UI.
+- [x] Definir `sealed class SyncOperationPayload` en Kotlin para todas las operaciones replicables.
+- [x] Definir un `OperationType` comun: `Create`, `Update`, `Delete`, `AppendEvent`.
+- [x] Definir una sola abstraccion `SyncEngine` en `domain` o `data`.
+- [x] Definir un `SyncState` observable para UI y debug.
+- [x] Marcar los repositorios para que toda escritura sea local primero.
 
 ## Fase 3. Escribir local + outbox en una sola transaccion
 

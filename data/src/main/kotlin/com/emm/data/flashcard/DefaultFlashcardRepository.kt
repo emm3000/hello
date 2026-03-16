@@ -9,6 +9,7 @@ import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
 import com.emm.data.localfirst.LOCAL_DEVICE_ID
+import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
@@ -24,8 +25,7 @@ import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.util.UUID
 
-typealias FlashcardEntity = com.emm.data.Flashcard
-
+@LocalFirstWrite
 class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,

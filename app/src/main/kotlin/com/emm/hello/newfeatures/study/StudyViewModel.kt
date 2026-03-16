@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.emm.data.flashcard.FlashcardReviewSynchronizer
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardFetcher
 import com.emm.domain.flashcard.FlashcardReview
@@ -16,7 +15,6 @@ class StudyViewModel(
     deckId: String,
     flashcardFetcher: FlashcardFetcher,
     private val flashcardReviewUpdater: FlashcardReviewUpdater,
-    private val reviewSynchronizer: FlashcardReviewSynchronizer,
 ) : ViewModel() {
 
     var state by mutableStateOf(StudyUiState())
@@ -56,9 +54,5 @@ class StudyViewModel(
         flashcardReviewUpdater.update(newReview)
         incrementReviewed()
         showNextCard()
-    }
-
-    override fun onCleared() {
-        reviewSynchronizer.synchronize()
     }
 }

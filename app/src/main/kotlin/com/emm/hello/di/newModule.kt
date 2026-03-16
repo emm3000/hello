@@ -12,6 +12,7 @@ import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
+import com.emm.data.sync.DefaultSyncEngine
 import com.emm.domain.backup.BackupExecutor
 import com.emm.domain.backup.BackupRepository
 import com.emm.domain.deck.DeckCreator
@@ -28,6 +29,7 @@ import com.emm.domain.flashcard.FlashcardReviewUpdater
 import com.emm.domain.quote.QuoteGenerator
 import com.emm.domain.quote.QuoteLastFetcher
 import com.emm.domain.quote.QuoteRepository
+import com.emm.domain.sync.SyncEngine
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardViewModel
@@ -67,6 +69,7 @@ fun Module.repository() {
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultBackupRepository) bind BackupRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
+    factoryOf(::DefaultSyncEngine) bind SyncEngine::class
 
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::DataStore)
@@ -96,7 +99,6 @@ fun Module.viewModels() {
             deckId = it.get(),
             flashcardFetcher = get(),
             flashcardReviewUpdater = get(),
-            reviewSynchronizer = get(),
         )
     }
     viewModel {

@@ -61,13 +61,13 @@ LEFT JOIN FlashcardExample e ON f.id = e.flashcardId
 WHERE f.id = :flashcardId;
 
 flashcardsToReviewByDeck:
-SELECT f.*, r.*
+SELECT f.*, rp.*
 FROM Flashcard f
-LEFT JOIN FlashcardReview r ON f.id = r.flashcardId
-WHERE f.deckId = :deckId AND (r.nextReviewAt IS NULL OR r.nextReviewAt <= :now);
+LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
+WHERE f.deckId = :deckId AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 flashcardsWithReview:
-SELECT f.*, r.nextReviewAt
+SELECT f.*, rp.nextReviewAt
 FROM Flashcard f
-LEFT JOIN FlashcardReview r ON f.id = r.flashcardId
+LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId;

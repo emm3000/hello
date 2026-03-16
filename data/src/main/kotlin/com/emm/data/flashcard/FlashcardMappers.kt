@@ -4,6 +4,10 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import java.time.Instant
 
+typealias FlashcardEntity = com.emm.data.Flashcard
+typealias FlashcardReviewEntity = com.emm.data.FlashcardReview
+typealias ReviewProjectionEntity = com.emm.data.ReviewProjection
+
 fun FlashcardEntity.toDomain() = Flashcard(
     id = id,
     word = word,
@@ -31,3 +35,15 @@ fun FlashcardReviewEntity.toDomain() = FlashcardReview(
 )
 
 fun List<FlashcardReviewEntity>.toDomain() = map(FlashcardReviewEntity::toDomain)
+
+fun ReviewProjectionEntity.toDomainFromProjection() = FlashcardReview(
+    flashcardId = flashcardId,
+    lastReviewedAt = lastReviewedAt,
+    nextReviewAt = nextReviewAt,
+    easeFactor = easeFactor,
+    interval = interval,
+    repetitions = repetitions,
+    lapses = lapses,
+)
+
+fun List<ReviewProjectionEntity>.toDomainFromProjection() = map(ReviewProjectionEntity::toDomainFromProjection)

@@ -8,6 +8,7 @@ import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
 import com.emm.data.localfirst.LOCAL_DEVICE_ID
+import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -20,6 +21,7 @@ import java.util.UUID
 
 typealias DeckEntity = com.emm.data.Deck
 
+@LocalFirstWrite
 class DefaultDeckRepository(
     db: HelloDb,
     private val synchronizer: DeckSynchronizer,

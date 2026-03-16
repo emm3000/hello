@@ -149,6 +149,11 @@ Si decides mantener `camelCase` local por compatibilidad de codegen:
 - Metadata de replicacion agregada a entidades sincronizables (`deletedAt`, `originDeviceId`, `lastModifiedByDeviceId`, `versionLamport`) sin defaults legacy implícitos en schema.
 - `syncStatus` eliminado del modelo local principal; la sync legacy por entidad queda desactivada en favor de migrar a `OperationLog`.
 - `androidId` removido como identidad principal; se usa identidad local persistida en `LocalDeviceIdentity`.
+- Fase 2 aplicada:
+  - `ReviewEvent` como fuente en escritura de reviews
+  - `ReviewProjection` como lectura rapida para UI/listados
+  - contrato de sync en dominio (`OperationType`, `SyncOperationPayload`, `SyncState`, `SyncEngine`)
+  - repositorios de escritura marcados con `@LocalFirstWrite`
 - Schema Fase 1 agregado en SQLDelight (`LocalFirst.sq`) con:
   - `LocalDeviceIdentity`
   - `LocalAccountState`

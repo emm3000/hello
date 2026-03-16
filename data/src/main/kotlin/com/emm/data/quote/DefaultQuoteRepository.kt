@@ -8,6 +8,7 @@ import com.emm.data.flashcard.GeminiService
 import com.emm.data.flashcard.Prompt
 import com.emm.data.localfirst.INITIAL_LAMPORT_VERSION
 import com.emm.data.localfirst.LOCAL_DEVICE_ID
+import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.quote.Quote
 import com.emm.domain.quote.QuoteRepository
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import java.util.UUID
 
 typealias QuoteEntity = com.emm.data.Quote
 
+@LocalFirstWrite
 class DefaultQuoteRepository(
     db: HelloDb,
     private val geminiApi: GeminiService,
