@@ -52,7 +52,10 @@ import com.emm.hello.core.ui.DashboardSkeleton
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSeparator
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DashboardScreen(
@@ -132,6 +135,13 @@ fun DashboardScreen(
                 }
             }
 
+            item {
+                SyncDebugPanel(
+                    state = state.syncDebug,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+
             // -- Section Header -------------------------------------------------------
             item {
                 Row(
@@ -176,6 +186,83 @@ fun DashboardScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SyncDebugPanel(
+    state: SyncDebugUiState,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.sync_debug_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            DebugLine(
+                text = stringResource(R.string.sync_debug_pending, state.pendingOperations),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_running,
+                    if (state.isSyncRunning) {
+                        stringResource(R.string.sync_debug_yes)
+                    } else {
+                        stringResource(R.string.sync_debug_no)
+                    },
+                ),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_last_success,
+                    formatDebugTimestamp(state.lastSuccessfulSyncAt),
+                ),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_last_error,
+                    state.lastSyncError ?: stringResource(R.string.sync_debug_none)
+                ),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_device_id,
+                    state.deviceId ?: stringResource(R.string.sync_debug_unknown)
+                ),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_account_id,
+                    state.appAccountId ?: stringResource(R.string.sync_debug_unknown)
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun DebugLine(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+    )
+}
+
+private fun formatDebugTimestamp(raw: Long?): String {
+    if (raw == null) return "n/a"
+    return runCatching {
+        Instant.ofEpochMilli(raw)
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    }.getOrDefault("n/a")
 }
 
 // -- Component: Summary Banner ------------------------------------------------

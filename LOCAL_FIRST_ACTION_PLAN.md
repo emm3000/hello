@@ -205,11 +205,11 @@ Decisiones cerradas:
 
 ## Fase 13. UI y observabilidad
 
-- [ ] Mostrar `pending operations` en pantalla de debug.
-- [ ] Mostrar `last successful sync`.
-- [ ] Mostrar `last sync error`.
-- [ ] Mostrar `device id` y `app account id` en pantalla de debug.
-- [ ] Mostrar lista de dispositivos vinculados.
+- [x] Mostrar `pending operations` en pantalla de debug.
+- [x] Mostrar `last successful sync`.
+- [x] Mostrar `last sync error`.
+- [x] Mostrar `device id` y `app account id` en pantalla de debug.
+- [x] Mostrar lista de dispositivos vinculados.
 - [ ] Agregar logging estructurado de sync en Android.
 - [ ] Agregar tabla o vista de auditoria de operaciones en Supabase para soporte.
 
