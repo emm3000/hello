@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 
@@ -18,6 +20,9 @@ class DeckDetailViewModel(
     getDeckDetailUseCase: GetDeckDetailUseCase,
     private val observeFlashcardsWithReviewUseCase: ObserveFlashcardsWithReviewUseCase,
 ) : ViewModel() {
+
+    private val effectChannel = Channel<DeckDetailUiEffect>(Channel.BUFFERED)
+    val effect: Flow<DeckDetailUiEffect> = effectChannel.receiveAsFlow()
 
     // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
     val uiState: StateFlow<DeckDetailUiState> = combine(
@@ -42,6 +47,12 @@ class DeckDetailViewModel(
             val hasSessionEnabled = flashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
             flashcards to hasSessionEnabled
         }
+
+    fun onIntent(intent: DeckDetailUiIntent) {
+        when (intent) {
+            DeckDetailUiIntent.Refresh -> Unit
+        }
+    }
 }
 
 internal fun mergeDeckCardsById(
