@@ -12,12 +12,12 @@ object Sync {
             enqueueUniquePeriodicWork(
                 SYNC_WORK_PERIODIC_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
-                SyncWorker.startUpSyncWorkPeriodic(),
+                SyncEngineWorker.startUpSyncWorkPeriodic(),
             )
             enqueueUniqueWork(
                 SYNC_WORK_IMMEDIATE_NAME,
                 ExistingWorkPolicy.KEEP,
-                SyncWorker.startUpSyncWorkOneShot(),
+                SyncEngineWorker.startUpSyncWorkOneShot(),
             )
         }
         ConnectivitySyncTrigger.register(context.applicationContext)
@@ -27,7 +27,7 @@ object Sync {
         WorkManager.getInstance(context).enqueueUniqueWork(
             SYNC_WORK_IMMEDIATE_NAME,
             ExistingWorkPolicy.KEEP,
-            SyncWorker.startUpSyncWorkOneShot(),
+            SyncEngineWorker.startUpSyncWorkOneShot(),
         )
     }
 }

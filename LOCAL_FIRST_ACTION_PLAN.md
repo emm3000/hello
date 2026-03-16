@@ -178,12 +178,12 @@ Decisiones cerradas:
 
 ## Fase 10. Integrar WorkManager sin acoplar dominio
 
-- [ ] Crear un solo worker `SyncEngineWorker`.
-- [ ] Hacer que el worker solo invoque `SyncEngine.runOnce()`.
-- [ ] Programar sync periodico moderado.
-- [ ] Programar sync one-shot cuando haya nuevas operaciones pendientes.
-- [ ] Cancelar o deprecar los workers antiguos por entidad.
-- [ ] Mantener foreground sync solo si realmente hace falta por duracion.
+- [x] Crear un solo worker `SyncEngineWorker`.
+- [x] Hacer que el worker solo invoque `SyncEngine.runOnce()`.
+- [x] Programar sync periodico moderado.
+- [x] Programar sync one-shot cuando haya nuevas operaciones pendientes.
+- [x] Cancelar o deprecar los workers antiguos por entidad.
+- [x] Mantener foreground sync solo si realmente hace falta por duracion.
 
 ## Fase 11. Aplicacion de operaciones remotas
 

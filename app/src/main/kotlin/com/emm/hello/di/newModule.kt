@@ -13,11 +13,11 @@ import com.emm.data.localfirst.OperationLogWriter
 import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.DefaultBackupRepository
+import com.emm.data.sync.AckOperations
+import com.emm.data.sync.ApplyRemoteOperation
 import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.PullRemoteOperations
-import com.emm.data.sync.ApplyRemoteOperation
-import com.emm.data.sync.AckOperations
 import com.emm.data.sync.syncDataModule
 import com.emm.domain.backup.BackupExecutor
 import com.emm.domain.backup.BackupRepository
@@ -44,6 +44,7 @@ import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.sync.PendingOperationsSyncScheduler
 import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -89,6 +90,7 @@ fun Module.repository() {
     factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
     factoryOf(::WorkManagerSyncManager)
+    single { PendingOperationsSyncScheduler(androidContext(), get()) }
 }
 
 fun Module.useCases() {

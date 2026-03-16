@@ -5,7 +5,6 @@ package com.emm.hello.sync
 import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
@@ -20,55 +19,49 @@ import org.koin.core.component.inject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class SyncWorker(
-    private val appContext: Context,
+class SyncEngineWorker(
+    appContext: Context,
     workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
     private val syncEngine: SyncEngine by inject<SyncEngine>()
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             syncEngine.runOnce()
             Result.success()
-        } catch (e: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            if (e.isRecoverableSyncError()) Result.retry() else Result.failure()
+        } catch (error: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(error)
+            if (error.isRecoverableSyncError()) Result.retry() else Result.failure()
         }
     }
 
-    override suspend fun getForegroundInfo(): ForegroundInfo = appContext.syncForegroundInfo(
-        channelName = SyncWorker,
-        notificationId = SYNC_NOTIFICATION_ID,
-        channelId = SYNC_NOTIFICATION_CHANNEL_ID,
-    )
-
     companion object {
 
-        const val SyncWorker: String = "SyncWorker"
+        private const val PERIODIC_INTERVAL_MINUTES = 15L
+        private const val PERIODIC_BACKOFF_SECONDS = 30L
+        private const val ONE_SHOT_BACKOFF_SECONDS = 10L
 
-        private const val SYNC_NOTIFICATION_ID = 0
-        private const val SYNC_NOTIFICATION_CHANNEL_ID = "SyncNotificationChannel"
-
-        fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-            15,
+        fun startUpSyncWorkPeriodic(): PeriodicWorkRequest = PeriodicWorkRequestBuilder<SyncEngineWorker>(
+            PERIODIC_INTERVAL_MINUTES,
             TimeUnit.MINUTES
         )
             .setConstraints(SyncConstraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                30,
-                TimeUnit.SECONDS
+                PERIODIC_BACKOFF_SECONDS,
+                TimeUnit.SECONDS,
             )
             .addTag(SYNC_WORK_TAG)
             .build()
 
-        fun startUpSyncWorkOneShot(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+        fun startUpSyncWorkOneShot(): OneTimeWorkRequest = OneTimeWorkRequestBuilder<SyncEngineWorker>()
             .setConstraints(SyncConstraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                10,
-                TimeUnit.SECONDS
+                ONE_SHOT_BACKOFF_SECONDS,
+                TimeUnit.SECONDS,
             )
             .addTag(SYNC_WORK_TAG)
             .build()
@@ -76,10 +69,9 @@ class SyncWorker(
 }
 
 private fun Throwable.isRecoverableSyncError(): Boolean {
-    if (this is IOException) return true
     val raw = message?.lowercase().orEmpty()
-    if (raw.isBlank()) return true
-    return raw.contains("timeout") ||
+    val isMessageRecoverable = raw.isBlank() ||
+        raw.contains("timeout") ||
         raw.contains("temporar") ||
         raw.contains("network") ||
         raw.contains("unavailable") ||
@@ -87,4 +79,6 @@ private fun Throwable.isRecoverableSyncError(): Boolean {
         raw.contains("too many requests") ||
         raw.contains("429") ||
         raw.contains("5xx")
+
+    return this is IOException || isMessageRecoverable
 }
