@@ -16,7 +16,7 @@ class FlashcardDetailViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(Flashcard.Empty)
-    val state: StateFlow<Flashcard> = _state.asStateFlow()
+    val uiState: StateFlow<Flashcard> = _state.asStateFlow()
 
     init {
         viewModelScope.launch {

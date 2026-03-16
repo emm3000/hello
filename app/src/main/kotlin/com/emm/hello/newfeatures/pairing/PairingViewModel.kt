@@ -25,7 +25,7 @@ class PairingViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PairingUiState())
-    val state = _state.asStateFlow()
+    val uiState = _state.asStateFlow()
 
     private val _effect = Channel<PairingUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()

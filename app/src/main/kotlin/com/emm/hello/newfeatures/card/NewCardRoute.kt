@@ -16,7 +16,7 @@ data object NewCardRoute
 fun NavGraphBuilder.newCardRoute(navController: NavController) {
     composable<NewCardRoute> {
         val vm: NewCardViewModel = koinViewModel()
-        val state = vm.state.collectAsStateWithLifecycle()
+        val uiState = vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
@@ -31,7 +31,7 @@ fun NavGraphBuilder.newCardRoute(navController: NavController) {
 
         NewCardScreen(
             onNavigateBack = { navController.popBackStack() },
-            state = state.value,
+            state = uiState.value,
             onIntent = vm::onIntent,
         )
     }

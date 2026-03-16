@@ -30,7 +30,7 @@ class DashboardViewModel(
         )
     }
 
-    val state: StateFlow<DashboardUiState> = combine(
+    val uiState: StateFlow<DashboardUiState> = combine(
         getDecksUseCase(),
         syncDebugState,
     ) { decks, syncDebug ->

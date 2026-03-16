@@ -20,9 +20,9 @@ fun NavGraphBuilder.cardDetailRoute(navController: NavController) {
             parameters = { parametersOf(cardDetailRoute.cardId) }
         )
 
-        val state by vm.state.collectAsStateWithLifecycle()
+        val uiState by vm.uiState.collectAsStateWithLifecycle()
         FlashcardDetailScreen(
-            flashcard = state,
+            flashcard = uiState,
         ) { navController.popBackStack() }
     }
 }

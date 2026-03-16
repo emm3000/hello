@@ -16,7 +16,7 @@ object NewDeckRoute
 fun NavGraphBuilder.newDeckRoute(navController: NavController) {
     composable<NewDeckRoute> {
         val vm: NewDeckViewModel = koinViewModel()
-        val state = vm.state.collectAsStateWithLifecycle()
+        val uiState = vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
@@ -32,7 +32,7 @@ fun NavGraphBuilder.newDeckRoute(navController: NavController) {
 
         NewDeckScreen(
             onNavigateBack = { navController.popBackStack() },
-            state = state.value,
+            state = uiState.value,
             onIntent = vm::onIntent,
         )
     }

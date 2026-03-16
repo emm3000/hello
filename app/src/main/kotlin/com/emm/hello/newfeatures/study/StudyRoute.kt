@@ -21,7 +21,7 @@ fun NavGraphBuilder.study(navController: NavController) {
         val vm: StudyViewModel = koinViewModel(
             parameters = { parametersOf(route.deckId) }
         )
-        val state = vm.state.collectAsStateWithLifecycle()
+        val uiState = vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
@@ -46,7 +46,7 @@ fun NavGraphBuilder.study(navController: NavController) {
                     )
                 )
             },
-            state = state.value
+            state = uiState.value
         )
     }
 }

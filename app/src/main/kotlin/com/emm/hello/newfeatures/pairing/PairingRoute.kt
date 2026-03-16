@@ -16,7 +16,7 @@ object PairingRoute
 fun NavGraphBuilder.pairingRoute(navController: NavController) {
     composable<PairingRoute> {
         val vm: PairingViewModel = koinViewModel()
-        val state = vm.state.collectAsStateWithLifecycle()
+        val uiState = vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
@@ -30,7 +30,7 @@ fun NavGraphBuilder.pairingRoute(navController: NavController) {
         }
 
         PairingScreen(
-            state = state.value,
+            state = uiState.value,
             onBack = { navController.popBackStack() },
             onIntent = vm::onIntent,
         )

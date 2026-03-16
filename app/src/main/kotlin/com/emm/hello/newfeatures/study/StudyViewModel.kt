@@ -20,7 +20,7 @@ class StudyViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StudyUiState())
-    val state = _state.asStateFlow()
+    val uiState = _state.asStateFlow()
 
     private val _effect = Channel<StudyUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()

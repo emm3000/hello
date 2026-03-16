@@ -27,7 +27,7 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
     composable<DashboardRoute> {
         val vm: DashboardViewModel = koinViewModel()
 
-        val state: DashboardUiState by vm.state.collectAsStateWithLifecycle()
+        val uiState: DashboardUiState by vm.uiState.collectAsStateWithLifecycle()
 
         val ctx = LocalContext.current
 
@@ -47,7 +47,7 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
         }
 
         DashboardScreen(
-            state = state,
+            state = uiState,
             newCard = { navController.navigate(NewCardRoute) },
             onDeckDetail = { navController.navigate(DeckDetailRoute(it)) },
             onCreateDeck = { navController.navigate(NewDeckRoute) },

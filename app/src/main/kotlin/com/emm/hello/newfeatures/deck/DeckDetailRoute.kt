@@ -23,12 +23,12 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
             parameters = { parametersOf(deckDetailRoute.deckId) }
         )
 
-        val state: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
+        val uiState: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
 
         DeckDetailScreen(
             onNavigateBack = { navController.popBackStack() },
-            onReview = { navController.navigate(StudyRoute(state.deck.id)) },
-            state = state,
+            onReview = { navController.navigate(StudyRoute(uiState.deck.id)) },
+            state = uiState,
             onCardClick = { cardId -> navController.navigate(CardDetailRoute(cardId)) },
             onAddCard = { navController.navigate(NewCardRoute) },
         )

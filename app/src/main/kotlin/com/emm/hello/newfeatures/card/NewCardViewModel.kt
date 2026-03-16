@@ -25,7 +25,7 @@ class NewCardViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NewCardUiState())
-    val state = _state.asStateFlow()
+    val uiState = _state.asStateFlow()
 
     private val _effect = Channel<NewCardUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()

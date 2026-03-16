@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 class NewDeckViewModel(private val createDeckUseCase: CreateDeckUseCase) : ViewModel() {
 
     private val _state = MutableStateFlow(NewDeckUiState())
-    val state = _state.asStateFlow()
+    val uiState = _state.asStateFlow()
 
     private val _effect = Channel<NewDeckUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
