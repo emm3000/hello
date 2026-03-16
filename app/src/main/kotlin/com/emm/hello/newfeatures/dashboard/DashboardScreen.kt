@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.FloatingActionButton
@@ -60,6 +61,7 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
+    onPairDevice: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -89,6 +91,13 @@ fun DashboardScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
                     Icon(Icons.Default.BookmarkAdd, contentDescription = stringResource(R.string.new_deck_content_description))
+                }
+                SmallFloatingActionButton(
+                    onClick = onPairDevice,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    Icon(Icons.Default.Link, contentDescription = stringResource(R.string.link_device_content_description))
                 }
                 // Main FAB: new card
                 FloatingActionButton(

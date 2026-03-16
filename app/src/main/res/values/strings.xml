@@ -26,6 +26,7 @@
     <string name="create_first_deck">Crear primer mazo</string>
     <string name="new_card_content_description">Nueva tarjeta</string>
     <string name="new_deck_content_description">Nuevo mazo</string>
+    <string name="link_device_content_description">Vincular dispositivo</string>
 
     <!-- Decks Screen -->
     <string name="my_decks">Mis Mazos</string>

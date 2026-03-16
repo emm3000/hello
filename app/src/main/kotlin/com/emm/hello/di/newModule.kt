@@ -38,6 +38,7 @@ import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.sync.WorkManagerSyncManager
 import kotlinx.serialization.json.Json
@@ -98,6 +99,7 @@ fun Module.useCases() {
 fun Module.viewModels() {
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
+    viewModelOf(::PairingViewModel)
     viewModelOf(::NewCardViewModel)
     viewModel {
         StudyViewModel(

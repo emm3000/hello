@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.pairing.PairingRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,6 +51,7 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
             newCard = { navController.navigate(NewCardRoute) },
             onDeckDetail = { navController.navigate(DeckDetailRoute(it)) },
             onCreateDeck = { navController.navigate(NewDeckRoute) },
+            onPairDevice = { navController.navigate(PairingRoute) },
         )
     }
 }

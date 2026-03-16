@@ -151,16 +151,16 @@ Decisiones cerradas:
 
 ## Fase 8. Pairing multi-device
 
-- [ ] Implementar `create_pairing_session`.
-- [ ] Implementar expiracion corta de pairing code.
-- [ ] Implementar `redeem_pairing_code`.
-- [ ] Asociar el nuevo `auth_user_id` anonimo al mismo `app_account_id`.
-- [ ] Registrar el nuevo `app_device`.
-- [ ] Bloquear reutilizacion de pairing code.
-- [ ] Crear pantalla simple de `Link new device`.
-- [ ] Crear pantalla simple de `Join device`.
-- [ ] Permitir mostrar lista de dispositivos vinculados.
-- [ ] Permitir revocar un dispositivo desde otro dispositivo autorizado.
+- [x] Implementar `create_pairing_session`.
+- [x] Implementar expiracion corta de pairing code.
+- [x] Implementar `redeem_pairing_code`.
+- [x] Asociar el nuevo `auth_user_id` anonimo al mismo `app_account_id`.
+- [x] Registrar el nuevo `app_device`.
+- [x] Bloquear reutilizacion de pairing code.
+- [x] Crear pantalla simple de `Link new device`.
+- [x] Crear pantalla simple de `Join device`.
+- [x] Permitir mostrar lista de dispositivos vinculados.
+- [x] Permitir revocar un dispositivo desde otro dispositivo autorizado.
 
 ## Fase 9. Android SyncEngine
 

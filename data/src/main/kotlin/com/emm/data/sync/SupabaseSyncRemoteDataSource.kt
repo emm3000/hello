@@ -44,6 +44,50 @@ class SupabaseSyncRemoteDataSource(
         return result.decodeAs()
     }
 
+    suspend fun createPairingSession(ttlMinutes: Int = 10): PairingSessionResponse {
+        val result = supabase.postgrest.rpc(
+            function = "create_pairing_session",
+            parameters = buildJsonObject {
+                put("p_ttl_minutes", ttlMinutes)
+            }
+        )
+        return result.decodeAs()
+    }
+
+    suspend fun redeemPairingCode(
+        code: String,
+        deviceId: String? = null,
+        deviceName: String? = null,
+        platform: String = "android",
+    ): PairingRedeemResponse {
+        val result = supabase.postgrest.rpc(
+            function = "redeem_pairing_code",
+            parameters = buildJsonObject {
+                put("p_code", code)
+                put("p_device_id", deviceId?.takeIf { it.isNotBlank() })
+                put("p_device_name", deviceName?.takeIf { it.isNotBlank() })
+                put("p_platform", platform)
+            }
+        )
+        return result.decodeAs()
+    }
+
+    suspend fun listLinkedDevices(): List<LinkedDevice> {
+        val result = supabase.postgrest.rpc(function = "list_linked_devices")
+        return result.decodeList()
+    }
+
+    suspend fun revokeLinkedDevice(deviceId: String, reason: String? = null): Boolean {
+        val result = supabase.postgrest.rpc(
+            function = "revoke_linked_device",
+            parameters = buildJsonObject {
+                put("p_device_id", deviceId)
+                put("p_reason", reason?.takeIf { it.isNotBlank() })
+            }
+        )
+        return result.decodeAs()
+    }
+
     suspend fun push(operations: List<OperationLog>): SyncPushResponse {
         val batch = buildJsonArray {
             operations.forEach { operation ->
@@ -121,6 +165,44 @@ data class SyncBootstrapResponse(
     @SerialName("auth_user_id")
     val authUserId: String,
     val created: Boolean,
+)
+
+@Serializable
+data class PairingSessionResponse(
+    @SerialName("pairing_session_id")
+    val pairingSessionId: String,
+    val code: String,
+    @SerialName("expires_at")
+    val expiresAt: String,
+)
+
+@Serializable
+data class PairingRedeemResponse(
+    @SerialName("app_account_id")
+    val appAccountId: String,
+    @SerialName("app_device_id")
+    val appDeviceId: String,
+    @SerialName("auth_user_id")
+    val authUserId: String,
+    @SerialName("pairing_session_id")
+    val pairingSessionId: String,
+    val joined: Boolean,
+)
+
+@Serializable
+data class LinkedDevice(
+    val id: String,
+    @SerialName("device_name")
+    val deviceName: String? = null,
+    val platform: String? = null,
+    @SerialName("created_at")
+    val createdAt: String,
+    @SerialName("last_seen_at")
+    val lastSeenAt: String? = null,
+    @SerialName("revoked_at")
+    val revokedAt: String? = null,
+    @SerialName("is_current")
+    val isCurrent: Boolean,
 )
 
 @Serializable

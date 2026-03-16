@@ -13,6 +13,7 @@ import com.emm.hello.newfeatures.dashboard.dashboard
 import com.emm.hello.newfeatures.dashboard.quote
 import com.emm.hello.newfeatures.deck.deckDetailRoute
 import com.emm.hello.newfeatures.deck.newDeckRoute
+import com.emm.hello.newfeatures.pairing.pairingRoute
 import com.emm.hello.newfeatures.study.study
 
 @Composable
@@ -31,5 +32,6 @@ fun NewRoot() {
         newDeckRoute(navController)
         deckDetailRoute(navController)
         cardDetailRoute(navController)
+        pairingRoute(navController)
     }
 }
