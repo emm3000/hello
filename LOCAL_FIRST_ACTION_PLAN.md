@@ -223,6 +223,8 @@ Decisiones cerradas:
 
 ## Fase 15. Validacion de escenarios reales
 
+Checklist operativo recomendado: `PHASE15_MULTI_ENTITY_2DEVICES_VALIDATION_CHECKLIST.md`
+
 - [ ] Probar alta de deck en dispositivo A y replica en dispositivo B.
 - [ ] Probar alta de flashcard en dispositivo A y replica en dispositivo B.
 - [ ] Probar review en A y continuidad en B.
