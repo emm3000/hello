@@ -1,45 +1,39 @@
 package com.emm.hello.newfeatures.deck
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
-import kotlinx.coroutines.channels.Channel
+import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
 import java.time.Instant
 
 class DeckDetailViewModel(
     private val deckId: String,
     getDeckDetailUseCase: GetDeckDetailUseCase,
     private val observeFlashcardsWithReviewUseCase: ObserveFlashcardsWithReviewUseCase,
-) : ViewModel() {
+) : MviViewModel<DeckDetailUiState, DeckDetailUiIntent, DeckDetailUiEffect>(
+    initialState = DeckDetailUiState(),
+) {
 
-    private val effectChannel = Channel<DeckDetailUiEffect>(Channel.BUFFERED)
-    val effect: Flow<DeckDetailUiEffect> = effectChannel.receiveAsFlow()
-
-    // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
-    val uiState: StateFlow<DeckDetailUiState> = combine(
-        flow = getDeckDetailUseCase(deckId),
-        flow2 = fetchSessionCards(),
-        transform = { deck, (sessionCards, hasSessionEnabled) ->
-            val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
-            DeckDetailUiState(
-                deck = deck.copy(cards = mergedCards),
-                hasSessionEnabled = hasSessionEnabled,
-            )
-        }
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = DeckDetailUiState(),
-    )
+    init {
+        // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
+        combine(
+            flow = getDeckDetailUseCase(deckId),
+            flow2 = fetchSessionCards(),
+            transform = { deck, (sessionCards, hasSessionEnabled) ->
+                val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
+                mutableState.value.copy(
+                    deck = deck.copy(cards = mergedCards),
+                    hasSessionEnabled = hasSessionEnabled,
+                )
+            }
+        ).onEach { mutableState.value = it }.launchIn(viewModelScope)
+    }
 
     // Fixed typo: fetchSessionCars → fetchSessionCards
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
@@ -48,7 +42,7 @@ class DeckDetailViewModel(
             flashcards to hasSessionEnabled
         }
 
-    fun onIntent(intent: DeckDetailUiIntent) {
+    override fun onIntent(intent: DeckDetailUiIntent) {
         when (intent) {
             DeckDetailUiIntent.Refresh -> Unit
         }
