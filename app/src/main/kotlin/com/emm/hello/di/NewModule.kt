@@ -71,6 +71,7 @@ import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
@@ -104,7 +105,7 @@ fun Module.repository() {
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
-    factoryOf(::DefaultSyncEngine) bind SyncEngine::class
+    singleOf(::DefaultSyncEngine) bind SyncEngine::class
     factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
     factoryOf(::DefaultPairingRepository) bind PairingRepository::class
     factoryOf(::DefaultPendingOperationsRepository) bind PendingOperationsRepository::class
