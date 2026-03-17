@@ -1,6 +1,8 @@
 package com.emm.data.sync
 
 import com.emm.data.HelloDb
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.time.Instant
 
 class DrainOutbox(
@@ -14,29 +16,32 @@ class DrainOutbox(
         var totalAcked = 0
         var totalDead = 0
         var totalUnchanged = 0
-        var anyProcessed = false
+        var batchesProcessed = 0
 
-        while (true) {
+        while (batchesProcessed < MAX_BATCHES_PER_SYNC) {
+            currentCoroutineContext().ensureActive()
+
             val pending = localFirstQueries.pendingOperations(
                 maxRetries = MAX_RETRY_COUNT,
                 limit = batchSize,
             ).executeAsList()
             if (pending.isEmpty()) break
-            anyProcessed = true
 
+            batchesProcessed++
             val counts = pushBatch(pending)
             totalAcked += counts.acked
             totalDead += counts.dead
             totalUnchanged += counts.unchanged
         }
 
-        return if (!anyProcessed) {
+        return if (batchesProcessed == 0) {
             DrainOutboxResult.Empty
         } else {
             DrainOutboxResult.Processed(
                 ackedCount = totalAcked,
                 deadCount = totalDead,
                 unchangedCount = totalUnchanged,
+                truncated = batchesProcessed == MAX_BATCHES_PER_SYNC,
             )
         }
     }
@@ -86,6 +91,10 @@ class DrainOutbox(
     companion object {
         const val DEFAULT_PUSH_BATCH_SIZE = 100L
         const val MAX_RETRY_COUNT = 5L
+
+        // Caps the number of batches per sync cycle to avoid WorkManager timeouts (~10 min limit).
+        // At 100 ops/batch this allows up to 2000 ops per cycle; remaining ops are picked up next sync.
+        const val MAX_BATCHES_PER_SYNC = 20
     }
 }
 
@@ -98,5 +107,7 @@ sealed interface DrainOutboxResult {
         val ackedCount: Int,
         val deadCount: Int,
         val unchangedCount: Int,
+        // true if the batch limit was reached — caller should schedule another sync cycle
+        val truncated: Boolean = false,
     ) : DrainOutboxResult
 }
