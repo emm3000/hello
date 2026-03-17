@@ -105,7 +105,7 @@ class ApplyRemoteOperation(
 
         flashcardQueries.create(
             id = operation.entityId,
-            deckId = deckId.orEmpty(),
+            deckId = checkNotNull(deckId), // guaranteed non-null by missingFlashcardReason guard above
             word = values.word,
             meaning = values.meaning,
             translation = values.translation,
@@ -163,7 +163,7 @@ class ApplyRemoteOperation(
 
         flashcardExampleQueries.insert(
             id = operation.entityId,
-            flashcardId = flashcardId.orEmpty(),
+            flashcardId = checkNotNull(flashcardId), // guaranteed non-null by missingFlashcardExampleReason guard above
             text = values.text,
             translation = values.translation,
             type = values.type,
@@ -414,13 +414,9 @@ class ApplyRemoteOperation(
         }
 
         return FlashcardExampleValues(
-            text = if (operationType == "delete") existing?.text ?: text.orEmpty() else text.orEmpty(),
-            translation = if (operationType == "delete") {
-                existing?.translation ?: translation.orEmpty()
-            } else {
-                translation.orEmpty()
-            },
-            type = if (operationType == "delete") existing?.type ?: type.orEmpty() else type.orEmpty(),
+            text = resolveDeletedOrIncoming(operationType, existing?.text, text),
+            translation = resolveDeletedOrIncoming(operationType, existing?.translation, translation),
+            type = resolveDeletedOrIncoming(operationType, existing?.type, type),
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
@@ -486,7 +482,7 @@ class ApplyRemoteOperation(
 
         return ValidationResult.Ok(
             ReviewEventValues(
-                flashcardId = flashcardId.orEmpty(),
+                flashcardId = checkNotNull(flashcardId), // guaranteed non-null by missingReason check above
                 reviewedAt = reviewedAt ?: 0L,
                 nextReviewAt = nextReviewAt ?: 0L,
                 easeFactor = easeFactor ?: 0.0,
