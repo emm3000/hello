@@ -11,19 +11,15 @@ class LocalDeviceIdentityProvider(
     private val queries = db.localFirstQueries
 
     fun getOrCreateDeviceId(): String {
-        val current = queries.selectLocalDeviceIdentity().executeAsOneOrNull()
-        if (current != null) return current.deviceId
-
         val now = Instant.now().toEpochMilli()
-        val deviceId = UUID.randomUUID().toString()
-        val installId = UUID.randomUUID().toString()
-        queries.upsertLocalDeviceIdentity(
-            deviceId = deviceId,
-            installId = installId,
-            lamportCounter = 0L,
+        // INSERT OR IGNORE is atomic: if the row already exists the call is a no-op,
+        // so concurrent calls cannot produce two different device IDs.
+        queries.insertDeviceIdentityIfAbsent(
+            deviceId = UUID.randomUUID().toString(),
+            installId = UUID.randomUUID().toString(),
             createdAt = now,
             updatedAt = now,
         )
-        return deviceId
+        return queries.selectLocalDeviceIdentity().executeAsOne().deviceId
     }
 }

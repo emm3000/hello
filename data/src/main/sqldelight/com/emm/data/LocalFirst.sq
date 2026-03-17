@@ -20,6 +20,18 @@ INSERT OR REPLACE INTO LocalDeviceIdentity (
     updatedAt
 ) VALUES (1, ?, ?, ?, ?, ?);
 
+-- Inserts only if the row does not exist yet (singletonId = 1 constraint).
+-- Safe to call concurrently: a second INSERT is a no-op, preventing duplicate device IDs.
+insertDeviceIdentityIfAbsent:
+INSERT OR IGNORE INTO LocalDeviceIdentity (
+    singletonId,
+    deviceId,
+    installId,
+    lamportCounter,
+    createdAt,
+    updatedAt
+) VALUES (1, ?, ?, 0, ?, ?);
+
 incrementLamport:
 UPDATE LocalDeviceIdentity
 SET lamportCounter = lamportCounter + 1, updatedAt = ?
