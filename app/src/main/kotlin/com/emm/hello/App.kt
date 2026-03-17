@@ -27,4 +27,9 @@ class App : Application() {
         Sync.initialize(this)
         GlobalContext.get().get<PendingOperationsSyncScheduler>().start()
     }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        GlobalContext.get().get<PendingOperationsSyncScheduler>().stop()
+    }
 }
