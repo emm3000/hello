@@ -1,5 +1,6 @@
 package com.emm.data.localfirst
 
+import androidx.annotation.WorkerThread
 import com.emm.data.HelloDb
 import com.emm.domain.sync.OperationType
 import java.time.Instant
@@ -11,6 +12,7 @@ class OperationLogWriter(
 
     private val localFirstQueries = db.localFirstQueries
 
+    @WorkerThread
     fun appendOperation(
         entityType: String,
         entityId: String,
