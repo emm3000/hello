@@ -37,6 +37,14 @@ UPDATE LocalDeviceIdentity
 SET lamportCounter = lamportCounter + 1, updatedAt = ?
 WHERE singletonId = 1;
 
+-- Advances the local Lamport counter to at least `minValue`.
+-- Called after applying remote operations so local causality is maintained:
+-- any subsequent local write will have a lamport > max seen remote lamport.
+advanceLamportTo:
+UPDATE LocalDeviceIdentity
+SET lamportCounter = MAX(lamportCounter, ?), updatedAt = ?
+WHERE singletonId = 1;
+
 currentLamport:
 SELECT lamportCounter FROM LocalDeviceIdentity WHERE singletonId = 1;
 

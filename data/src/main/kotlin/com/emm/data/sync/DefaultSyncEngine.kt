@@ -126,6 +126,17 @@ class DefaultSyncEngine(
                     if (firstDeferredCursor == null) firstDeferredCursor = operation.cursor
                 }
             }
+
+            // Advance the local Lamport clock to be >= the highest lamport seen in this batch.
+            // This guarantees any subsequent local write has a lamport strictly greater than
+            // all remote operations applied here, preserving distributed causality.
+            val maxRemoteLamport = pulledResult.operations.maxOfOrNull { it.lamport }
+            if (maxRemoteLamport != null) {
+                localFirstQueries.advanceLamportTo(
+                    value = maxRemoteLamport,
+                    updatedAt = now,
+                )
+            }
         }
 
         // Never advance the checkpoint past a deferred operation
