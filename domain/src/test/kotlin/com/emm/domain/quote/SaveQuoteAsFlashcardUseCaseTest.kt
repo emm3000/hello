@@ -21,7 +21,7 @@ class SaveQuoteAsFlashcardUseCaseTest {
             flashcardWriteRepository = flashcardWriteRepository,
         )
 
-        val result = useCase(sampleQuote())
+        val result = useCase(SaveQuoteAsFlashcardCommand.fromQuote(sampleQuote()))
 
         assertEquals(SaveQuoteAsFlashcardResult.DefaultDeckRequired, result)
         assertEquals(0, flashcardWriteRepository.createCalls)
@@ -37,7 +37,7 @@ class SaveQuoteAsFlashcardUseCaseTest {
             flashcardWriteRepository = flashcardWriteRepository,
         )
 
-        val result = useCase(sampleQuote())
+        val result = useCase(SaveQuoteAsFlashcardCommand.fromQuote(sampleQuote()))
 
         assertEquals(SaveQuoteAsFlashcardResult.Saved, result)
         assertEquals(1, flashcardWriteRepository.createCalls)
