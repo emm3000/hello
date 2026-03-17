@@ -3,6 +3,7 @@
 package com.emm.hello.sync
 
 import android.content.Context
+import android.util.Log
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequest
@@ -32,13 +33,20 @@ class SyncEngineWorker(
             syncEngine.runOnce()
             Result.success()
         } catch (error: Exception) {
-            FirebaseCrashlytics.getInstance().recordException(error)
-            if (error.isRecoverableSyncError()) Result.retry() else Result.failure()
+            if (error.isRecoverableSyncError()) {
+                // Transient network/server error — retry silently, no Crashlytics noise
+                Log.w(TAG, "Recoverable sync error (attempt $runAttemptCount), scheduling retry", error)
+                Result.retry()
+            } else {
+                // Permanent failure (auth, bad request, etc.) — report and stop retrying
+                FirebaseCrashlytics.getInstance().recordException(error)
+                Result.failure()
+            }
         }
     }
 
     companion object {
-
+        private const val TAG = "SyncEngineWorker"
         private const val PERIODIC_INTERVAL_MINUTES = 15L
         private const val PERIODIC_BACKOFF_SECONDS = 30L
         private const val ONE_SHOT_BACKOFF_SECONDS = 10L
