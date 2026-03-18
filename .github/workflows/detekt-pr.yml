@@ -20,7 +20,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --ignore-garbage --decode > app/google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --ignore-garbage --decode > app/google-services.json
+          echo "=== google-services.json first 3 lines ==="
+          head -3 app/google-services.json
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
