@@ -18,6 +18,7 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
 import com.emm.hello.MainDispatcherRule
+import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -30,9 +31,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NewCardViewModelTest {
@@ -71,9 +69,9 @@ class NewCardViewModelTest {
             skipItems(1)
             viewModel.onIntent(NewCardUiIntent.WordChanged("updated"))
             val updated = awaitItem()
-            assertEquals("updated", updated.word)
-            assertNull(updated.error)
-            assertNull(updated.previewResult)
+            assertThat(updated.word).isEqualTo("updated")
+            assertThat(updated.error).isNull()
+            assertThat(updated.previewResult).isNull()
         }
     }
 
@@ -107,8 +105,8 @@ class NewCardViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(NewCardUiIntent.SaveClicked)
             val effect = awaitItem()
-            assertTrue(effect is NewCardUiEffect.ShowMessage)
-            assertEquals(NewCardUiEffect.ShowMessage("Tarjeta creada"), effect)
+            assertThat(effect).isInstanceOf(NewCardUiEffect.ShowMessage::class.java)
+            assertThat(effect).isEqualTo(NewCardUiEffect.ShowMessage("Tarjeta creada"))
         }
 
         coVerify(exactly = 1) {

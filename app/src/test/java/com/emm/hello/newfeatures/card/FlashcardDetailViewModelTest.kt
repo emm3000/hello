@@ -1,0 +1,57 @@
+package com.emm.hello.newfeatures.card
+
+import app.cash.turbine.test
+import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReadRepository
+import com.emm.domain.flashcard.GetFlashcardByIdUseCase
+import com.emm.hello.MainDispatcherRule
+import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.runTest
+import org.junit.Rule
+import org.junit.Test
+
+class FlashcardDetailViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    @Test
+    fun `init loads flashcard and state reflects id and word`() = runTest {
+        val flashcard = Flashcard.Empty.copy(id = "card-1", word = "hello")
+        val viewModel = FlashcardDetailViewModel(
+            flashcardId = "card-1",
+            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(flashcard)),
+        )
+
+        assertThat(viewModel.uiState.value.flashcard.id).isEqualTo("card-1")
+        assertThat(viewModel.uiState.value.flashcard.word).isEqualTo("hello")
+    }
+
+    @Test
+    fun `load failure emits load failed effect with message`() = runTest {
+        val viewModel = FlashcardDetailViewModel(
+            flashcardId = "card-1",
+            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(shouldFail = true)),
+        )
+
+        viewModel.effect.test {
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(FlashcardDetailUiEffect.LoadFailed::class.java)
+            assertThat((effect as FlashcardDetailUiEffect.LoadFailed).message).isEqualTo("fetch failed")
+        }
+    }
+
+    private class FakeFlashcardReadRepo(
+        private val flashcard: Flashcard = Flashcard.Empty,
+        private val shouldFail: Boolean = false,
+    ) : FlashcardReadRepository {
+        override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
+        override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = emptyFlow()
+        override suspend fun fetchById(id: String): Flashcard {
+            if (shouldFail) error("fetch failed")
+            return flashcard
+        }
+    }
+}

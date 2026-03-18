@@ -5,14 +5,12 @@ import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.hello.MainDispatcherRule
+import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,11 +31,11 @@ class NewDeckViewModelTest {
         viewModel.onIntent(NewDeckUiIntent.Submit)
 
         val effect = effectDeferred.await()
-        assertEquals(NewDeckUiEffect.NavigateBack, effect)
-        assertEquals("", viewModel.uiState.value.name)
-        assertEquals("", viewModel.uiState.value.description)
-        assertFalse(viewModel.uiState.value.isLoading)
-        assertEquals(CreateDeckInput("My deck", "Optional"), repository.lastAdded)
+        assertThat(effect).isEqualTo(NewDeckUiEffect.NavigateBack)
+        assertThat(viewModel.uiState.value.name).isEmpty()
+        assertThat(viewModel.uiState.value.description).isEmpty()
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+        assertThat(repository.lastAdded).isEqualTo(CreateDeckInput("My deck", "Optional"))
     }
 
     @Test
@@ -51,10 +49,10 @@ class NewDeckViewModelTest {
         viewModel.onIntent(NewDeckUiIntent.Submit)
 
         val effect = effectDeferred.await()
-        assertTrue(effect is NewDeckUiEffect.ShowMessage)
-        assertEquals("boom", (effect as NewDeckUiEffect.ShowMessage).message)
-        assertFalse(viewModel.uiState.value.isLoading)
-        assertEquals(1, repository.addDeckCalls)
+        assertThat(effect).isInstanceOf(NewDeckUiEffect.ShowMessage::class.java)
+        assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("boom")
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+        assertThat(repository.addDeckCalls).isEqualTo(1)
     }
 
     private class FakeDeckRepository(

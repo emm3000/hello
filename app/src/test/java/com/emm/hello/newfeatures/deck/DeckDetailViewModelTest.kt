@@ -3,8 +3,7 @@ package com.emm.hello.newfeatures.deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class DeckDetailViewModelTest {
@@ -21,9 +20,9 @@ class DeckDetailViewModelTest {
             sessionCards = listOf(flashcard(id = "a", review = updatedReview)),
         )
 
-        assertEquals(2, merged.size)
-        assertEquals(99L, merged[0].review.nextReviewAt)
-        assertSame(cardB.review, merged[1].review)
+        assertThat(merged).hasSize(2)
+        assertThat(merged[0].review.nextReviewAt).isEqualTo(99L)
+        assertThat(merged[1].review).isSameInstanceAs(cardB.review)
     }
 
     private fun flashcard(id: String, review: FlashcardReview): Flashcard = Flashcard(
@@ -31,7 +30,7 @@ class DeckDetailViewModelTest {
         word = id,
         meaning = "",
         translation = "",
-        examples = emptyList<Example>(),
+        examples = emptyList(),
         phonetic = "",
         review = review,
     )
