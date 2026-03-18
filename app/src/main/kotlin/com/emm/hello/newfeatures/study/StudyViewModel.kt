@@ -21,7 +21,6 @@ class StudyViewModel(
 ) {
 
     private val flashcardsForToday: ArrayDeque<Flashcard> = ArrayDeque()
-    private var hasEmittedSessionFinished = false
 
     init {
         viewModelScope.launch {
@@ -40,8 +39,8 @@ class StudyViewModel(
                 it.copy(currentFlashcard = null)
             }
         }
-        if (flashcardsForToday.isEmpty() && !hasEmittedSessionFinished) {
-            hasEmittedSessionFinished = true
+        if (flashcardsForToday.isEmpty() && !mutableState.value.sessionFinished) {
+            mutableState.update { it.copy(sessionFinished = true) }
             mutableEffect.send(StudyUiEffect.SessionFinished)
         }
     }

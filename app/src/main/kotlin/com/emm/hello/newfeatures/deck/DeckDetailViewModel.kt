@@ -42,11 +42,7 @@ class DeckDetailViewModel(
             flashcards to hasSessionEnabled
         }
 
-    override fun onIntent(intent: DeckDetailUiIntent) {
-        when (intent) {
-            DeckDetailUiIntent.Refresh -> Unit
-        }
-    }
+    override fun onIntent(intent: DeckDetailUiIntent) = Unit
 }
 
 internal fun mergeDeckCardsById(

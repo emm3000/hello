@@ -1,7 +1,6 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.update
@@ -10,8 +9,8 @@ import kotlinx.coroutines.launch
 class FlashcardDetailViewModel(
     private val flashcardId: String,
     private val getFlashcardByIdUseCase: GetFlashcardByIdUseCase,
-) : MviViewModel<Flashcard, FlashcardDetailUiIntent, FlashcardDetailUiEffect>(
-    initialState = Flashcard.Empty,
+) : MviViewModel<FlashcardDetailUiState, FlashcardDetailUiIntent, FlashcardDetailUiEffect>(
+    initialState = FlashcardDetailUiState(),
 ) {
 
     init {
@@ -27,7 +26,7 @@ class FlashcardDetailViewModel(
     private fun loadFlashcard() {
         viewModelScope.launch {
             runCatching { getFlashcardByIdUseCase(flashcardId) }
-                .onSuccess { flashcard -> mutableState.update { flashcard } }
+                .onSuccess { flashcard -> mutableState.update { it.copy(flashcard = flashcard) } }
                 .onFailure {
                     mutableEffect.send(FlashcardDetailUiEffect.LoadFailed(it.message ?: "load_failed"))
                 }

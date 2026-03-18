@@ -6,4 +6,5 @@ data class StudyUiState(
     val currentFlashcard: Flashcard? = null,
     val reviewedCount: Int = 0,
     val totalCount: Int = 0,
+    val sessionFinished: Boolean = false,
 )
