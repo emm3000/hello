@@ -17,6 +17,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.14.5")
     testImplementation("app.cash.turbine:turbine:1.2.1")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:2.3.10")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.3.20")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
