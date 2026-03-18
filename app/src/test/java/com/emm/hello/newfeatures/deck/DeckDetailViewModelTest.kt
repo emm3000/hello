@@ -1,6 +1,5 @@
 package com.emm.hello.newfeatures.deck
 
-import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.google.common.truth.Truth.assertThat
