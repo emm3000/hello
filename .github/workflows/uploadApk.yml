@@ -3,12 +3,12 @@ name: Android Action Generated APKs
 on:
   push:
     branches:
-      - trunk
+      - main
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/trunk' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   upload_release_apk:
@@ -27,6 +27,9 @@ jobs:
         run: |
           mkdir -p key
           echo "${{ secrets.APP_KEY }}" | base64 --decode > key/just_chill_key.p12
+
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
 
       - name: Set Up JDK 17
         uses: actions/setup-java@v5
