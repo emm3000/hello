@@ -34,4 +34,5 @@ object Sync {
 
 internal const val SYNC_WORK_PERIODIC_NAME = "SyncWorkPeriodicName"
 internal const val SYNC_WORK_IMMEDIATE_NAME = "SyncWorkImmediateName"
+internal const val SYNC_WORK_FOLLOW_UP_NAME = "SyncWorkFollowUpName"
 internal const val SYNC_WORK_TAG = "SyncWorkTag"

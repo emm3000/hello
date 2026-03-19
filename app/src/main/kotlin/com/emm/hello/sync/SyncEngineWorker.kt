@@ -6,10 +6,12 @@ import android.content.Context
 import android.util.Log
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.emm.domain.sync.SyncEngine
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -32,11 +34,16 @@ class SyncEngineWorker(
         try {
             syncEngine.runOnce()
             if (syncEngine.state.value.pendingOperations > 0L) {
-                Log.i(TAG, "Sync finished with retryable backlog remaining, scheduling next cycle")
-                Result.retry()
+                Log.i(TAG, "Sync finished with retryable backlog remaining, enqueueing follow-up cycle")
+                WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+                    SYNC_WORK_FOLLOW_UP_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    startUpSyncWorkOneShot(),
+                )
             } else {
-                Result.success()
+                WorkManager.getInstance(applicationContext).cancelUniqueWork(SYNC_WORK_FOLLOW_UP_NAME)
             }
+            Result.success()
         } catch (error: Exception) {
             if (error.isRecoverableSyncError()) {
                 // Transient network/server error — retry silently, no Crashlytics noise

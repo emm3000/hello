@@ -4,9 +4,11 @@ import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.domain.sync.SyncEngine
 import com.emm.domain.sync.SyncState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 class DefaultSyncEngine(
@@ -25,47 +27,49 @@ class DefaultSyncEngine(
     override val state: StateFlow<SyncState> = mutableState.asStateFlow()
 
     override suspend fun runOnce() {
-        val now = Instant.now().toEpochMilli()
-        mutableState.value = mutableState.value.copy(
-            isRunning = true,
-            pendingOperations = pendingCount(),
-            lastSyncError = null,
-        )
-
-        try {
-            val localDeviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-            remote.ensureAnonymousSession()
-            val bootstrap = remote.bootstrapAnonymousDevice(deviceId = localDeviceId)
-            persistLocalAccountState(
-                appAccountId = bootstrap.appAccountId,
-                authUserId = bootstrap.authUserId,
-                updatedAt = now,
-            )
-
-            drainOutbox()
-            pullApplyAndAck(localDeviceId = localDeviceId, now = now)
-
+        withContext(Dispatchers.IO) {
+            val now = Instant.now().toEpochMilli()
             mutableState.value = mutableState.value.copy(
-                isRunning = false,
+                isRunning = true,
                 pendingOperations = pendingCount(),
-                lastSuccessfulSyncAt = now,
                 lastSyncError = null,
             )
-        } catch (e: Exception) {
-            val checkpoint = localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
-            localFirstQueries.upsertSyncCheckpoint(
-                lastPulledCursor = checkpoint?.lastPulledCursor ?: 0L,
-                lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
-                lastSyncError = e.message ?: e::class.simpleName ?: "sync_failed",
-                lastSyncErrorAt = now,
-                updatedAt = now,
-            )
-            mutableState.value = mutableState.value.copy(
-                isRunning = false,
-                pendingOperations = pendingCount(),
-                lastSyncError = e.message ?: "sync_failed",
-            )
-            throw e
+
+            try {
+                val localDeviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+                remote.ensureAnonymousSession()
+                val bootstrap = remote.bootstrapAnonymousDevice(deviceId = localDeviceId)
+                persistLocalAccountState(
+                    appAccountId = bootstrap.appAccountId,
+                    authUserId = bootstrap.authUserId,
+                    updatedAt = now,
+                )
+
+                drainOutbox()
+                pullApplyAndAck(localDeviceId = localDeviceId, now = now)
+
+                mutableState.value = mutableState.value.copy(
+                    isRunning = false,
+                    pendingOperations = pendingCount(),
+                    lastSuccessfulSyncAt = now,
+                    lastSyncError = null,
+                )
+            } catch (e: Exception) {
+                val checkpoint = localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+                localFirstQueries.upsertSyncCheckpoint(
+                    lastPulledCursor = checkpoint?.lastPulledCursor ?: 0L,
+                    lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
+                    lastSyncError = e.message ?: e::class.simpleName ?: "sync_failed",
+                    lastSyncErrorAt = now,
+                    updatedAt = now,
+                )
+                mutableState.value = mutableState.value.copy(
+                    isRunning = false,
+                    pendingOperations = pendingCount(),
+                    lastSyncError = e.message ?: "sync_failed",
+                )
+                throw e
+            }
         }
     }
 
