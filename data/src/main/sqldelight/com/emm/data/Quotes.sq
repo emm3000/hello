@@ -42,6 +42,9 @@ INSERT OR REPLACE INTO Quote (
     versionLamport
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+deleteAllQuotes:
+DELETE FROM Quote;
+
 all:
 SELECT * FROM Quote ORDER BY createdAt DESC;
 

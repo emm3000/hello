@@ -18,7 +18,10 @@ class DefaultSyncDebugStateRepository(
 
     override fun observe(): Flow<SyncDebugState> {
         return combine(
-            localFirstQueries.countPendingOperations().asFlow().mapToOne(Dispatchers.IO),
+            localFirstQueries
+                .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+                .asFlow()
+                .mapToOne(Dispatchers.IO),
             localFirstQueries.selectSyncCheckpoint().asFlow().mapToOneOrNull(Dispatchers.IO),
             localFirstQueries.selectLocalDeviceIdentity().asFlow().mapToOneOrNull(Dispatchers.IO),
             localFirstQueries.selectLocalAccountState().asFlow().mapToOneOrNull(Dispatchers.IO),

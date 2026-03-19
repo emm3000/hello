@@ -13,4 +13,8 @@ class DataStore(
         set(value) {
             editor.putString("DEFAULT_DECK", value).apply()
         }
+
+    fun clearDefaultDeck() {
+        editor.remove("DEFAULT_DECK").apply()
+    }
 }

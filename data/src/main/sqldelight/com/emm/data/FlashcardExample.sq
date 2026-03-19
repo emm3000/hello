@@ -30,6 +30,9 @@ INSERT OR REPLACE INTO FlashcardExample (
     versionLamport
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+deleteAllFlashcardExamples:
+DELETE FROM FlashcardExample;
+
 all:
 SELECT * FROM FlashcardExample;
 

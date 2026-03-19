@@ -87,6 +87,87 @@ class ApplyRemoteOperationTest {
     }
 
     @Test
+    fun `equal lamport with lower device id is skipped`() {
+        subject(
+            operation = operation(
+                entityType = "deck",
+                entityId = "deck-1",
+                operationType = "create",
+                lamport = 20,
+                originDeviceId = "device-b",
+                payload = buildJsonObject {
+                    put("name", "Winner")
+                    put("createdAt", 1000)
+                    put("updatedAt", 1000)
+                }
+            ),
+            localDeviceId = "local-device"
+        )
+
+        val staleResult = subject(
+            operation = operation(
+                entityType = "deck",
+                entityId = "deck-1",
+                operationType = "update",
+                lamport = 20,
+                originDeviceId = "device-a",
+                payload = buildJsonObject {
+                    put("name", "Loser")
+                    put("updatedAt", 2000)
+                }
+            ),
+            localDeviceId = "local-device"
+        )
+
+        assertEquals(
+            ApplyRemoteOperationResult.Skipped(reason = "stale_lamport"),
+            staleResult
+        )
+        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        assertEquals("Winner", row?.name)
+        assertEquals("device-b", row?.lastModifiedByDeviceId)
+    }
+
+    @Test
+    fun `equal lamport with higher device id overwrites existing row`() {
+        subject(
+            operation = operation(
+                entityType = "deck",
+                entityId = "deck-1",
+                operationType = "create",
+                lamport = 20,
+                originDeviceId = "device-a",
+                payload = buildJsonObject {
+                    put("name", "First")
+                    put("createdAt", 1000)
+                    put("updatedAt", 1000)
+                }
+            ),
+            localDeviceId = "local-device"
+        )
+
+        val result = subject(
+            operation = operation(
+                entityType = "deck",
+                entityId = "deck-1",
+                operationType = "update",
+                lamport = 20,
+                originDeviceId = "device-b",
+                payload = buildJsonObject {
+                    put("name", "Second")
+                    put("updatedAt", 2000)
+                }
+            ),
+            localDeviceId = "local-device"
+        )
+
+        assertTrue(result is ApplyRemoteOperationResult.Applied)
+        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        assertEquals("Second", row?.name)
+        assertEquals("device-b", row?.lastModifiedByDeviceId)
+    }
+
+    @Test
     fun `flashcard create without parent deck is deferred`() {
         val result = subject(
             operation = operation(
@@ -195,6 +276,7 @@ class ApplyRemoteOperationTest {
         entityId: String,
         operationType: String,
         lamport: Long,
+        originDeviceId: String = "remote-device",
         payload: kotlinx.serialization.json.JsonObject,
     ): RemoteSyncOperation {
         return RemoteSyncOperation(
@@ -205,7 +287,7 @@ class ApplyRemoteOperationTest {
             operationType = operationType,
             payload = payload,
             lamport = lamport,
-            originDeviceId = "remote-device",
+            originDeviceId = originDeviceId,
             createdAt = "2026-03-16T10:00:00Z",
         )
     }

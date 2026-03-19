@@ -3,6 +3,7 @@ package com.emm.data.sync
 import android.os.Build
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
+import com.emm.data.remote.DataStore
 import com.emm.domain.sync.LinkedDevice
 import com.emm.domain.sync.PairingRepository
 import com.emm.domain.sync.PairingSession
@@ -12,6 +13,7 @@ class DefaultPairingRepository(
     private val remote: SupabaseSyncRemoteDataSource,
     private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
     private val db: HelloDb,
+    private val dataStore: DataStore,
 ) : PairingRepository {
 
     override suspend fun ensureLinkedIdentity() {
@@ -79,23 +81,49 @@ class DefaultPairingRepository(
         val queries = db.localFirstQueries
         val now = Instant.now().toEpochMilli()
         val current = queries.selectLocalAccountState().executeAsOneOrNull()
-        queries.upsertLocalAccountState(
-            appAccountId = appAccountId,
-            authUserId = authUserId,
-            pairingState = "Paired",
-            createdAt = current?.createdAt ?: now,
-            updatedAt = now,
-        )
+        val accountChanged = resetSyncCursor &&
+            current?.appAccountId != null &&
+            current.appAccountId != appAccountId
 
-        if (resetSyncCursor) {
-            val checkpoint = queries.selectSyncCheckpoint().executeAsOneOrNull()
-            queries.upsertSyncCheckpoint(
-                lastPulledCursor = 0L,
-                lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
-                lastSyncError = null,
-                lastSyncErrorAt = null,
+        db.transaction {
+            if (accountChanged) {
+                clearAccountScopedLocalState()
+            }
+
+            queries.upsertLocalAccountState(
+                appAccountId = appAccountId,
+                authUserId = authUserId,
+                pairingState = "Paired",
+                createdAt = current?.createdAt ?: now,
                 updatedAt = now,
             )
+
+            if (resetSyncCursor) {
+                val checkpoint = queries.selectSyncCheckpoint().executeAsOneOrNull()
+                queries.resetSyncCheckpoint()
+                queries.upsertSyncCheckpoint(
+                    lastPulledCursor = 0L,
+                    lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
+                    lastSyncError = null,
+                    lastSyncErrorAt = null,
+                    updatedAt = now,
+                )
+            }
         }
+
+        if (accountChanged) {
+            dataStore.clearDefaultDeck()
+        }
+    }
+
+    private fun clearAccountScopedLocalState() {
+        db.localFirstQueries.deleteAllReviewProjections()
+        db.localFirstQueries.deleteAllReviewEvents()
+        db.flashcardExampleQueries.deleteAllFlashcardExamples()
+        db.flashcardQueries.deleteAllFlashcards()
+        db.deckQueries.deleteAllDecks()
+        db.quotesQueries.deleteAllQuotes()
+        db.localFirstQueries.deleteAllOperations()
+        db.localFirstQueries.deleteAllAppliedRemoteOperations()
     }
 }

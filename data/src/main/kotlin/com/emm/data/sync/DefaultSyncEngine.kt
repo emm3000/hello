@@ -172,7 +172,9 @@ class DefaultSyncEngine(
         )
     }
 
-    private fun pendingCount(): Long = localFirstQueries.countPendingOperations().executeAsOne()
+    private fun pendingCount(): Long = localFirstQueries
+        .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+        .executeAsOne()
 }
 
 private data class BatchResult(

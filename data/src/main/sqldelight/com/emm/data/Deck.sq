@@ -32,6 +32,9 @@ INSERT OR REPLACE INTO Deck (
     versionLamport
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+deleteAllDecks:
+DELETE FROM Deck;
+
 deckWithFlashcardCount:
 SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount
 FROM Deck

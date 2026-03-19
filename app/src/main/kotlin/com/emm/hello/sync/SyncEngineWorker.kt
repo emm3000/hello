@@ -31,7 +31,12 @@ class SyncEngineWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             syncEngine.runOnce()
-            Result.success()
+            if (syncEngine.state.value.pendingOperations > 0L) {
+                Log.i(TAG, "Sync finished with retryable backlog remaining, scheduling next cycle")
+                Result.retry()
+            } else {
+                Result.success()
+            }
         } catch (error: Exception) {
             if (error.isRecoverableSyncError()) {
                 // Transient network/server error — retry silently, no Crashlytics noise

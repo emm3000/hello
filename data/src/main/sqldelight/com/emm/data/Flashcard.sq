@@ -43,6 +43,9 @@ INSERT OR REPLACE INTO Flashcard (
     versionLamport
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+deleteAllFlashcards:
+DELETE FROM Flashcard;
+
 all:
 SELECT * FROM Flashcard;
 

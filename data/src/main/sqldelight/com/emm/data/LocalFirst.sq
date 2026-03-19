@@ -116,6 +116,11 @@ countPendingOperations:
 SELECT COUNT(*) FROM OperationLog
 WHERE status = 'Pending';
 
+countRetryableOperations:
+SELECT COUNT(*) FROM OperationLog
+WHERE status IN ('Pending', 'Failed')
+  AND retryCount < :maxRetries;
+
 markOperationAcked:
 UPDATE OperationLog
 SET status = 'Acked', lastAttemptAt = ?, lastError = NULL
@@ -184,6 +189,21 @@ INSERT OR REPLACE INTO AppliedRemoteOperation (
 findProcessedRemoteOperation:
 SELECT * FROM AppliedRemoteOperation
 WHERE opId = ?;
+
+deleteAllOperations:
+DELETE FROM OperationLog;
+
+deleteAllAppliedRemoteOperations:
+DELETE FROM AppliedRemoteOperation;
+
+deleteAllReviewEvents:
+DELETE FROM ReviewEvent;
+
+deleteAllReviewProjections:
+DELETE FROM ReviewProjection;
+
+resetSyncCheckpoint:
+DELETE FROM SyncCheckpoint;
 
 CREATE TABLE ReviewEvent (
     eventId TEXT NOT NULL PRIMARY KEY,

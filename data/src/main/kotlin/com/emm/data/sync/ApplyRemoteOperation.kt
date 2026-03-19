@@ -37,7 +37,8 @@ class ApplyRemoteOperation(
 
     private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
         val existing = deckQueries.findById(operation.entityId).executeAsOneOrNull()
-        if (isStale(existing?.versionLamport, operation.lamport)) {
+        val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
+        if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
         }
 
@@ -64,8 +65,8 @@ class ApplyRemoteOperation(
             createdAt = values.createdAt,
             updatedAt = values.updatedAt,
             deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: operation.originDeviceId.ifBlank { localDeviceId },
-            lastModifiedByDeviceId = operation.originDeviceId.ifBlank { localDeviceId },
+            originDeviceId = existing?.originDeviceId ?: originDeviceId,
+            lastModifiedByDeviceId = originDeviceId,
             versionLamport = operation.lamport,
         )
 
@@ -74,7 +75,8 @@ class ApplyRemoteOperation(
 
     private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
         val existing = flashcardQueries.findById(operation.entityId).executeAsOneOrNull()
-        if (isStale(existing?.versionLamport, operation.lamport)) {
+        val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
+        if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
         }
 
@@ -116,8 +118,8 @@ class ApplyRemoteOperation(
             createdAt = values.createdAt,
             updatedAt = values.updatedAt,
             deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: operation.originDeviceId.ifBlank { localDeviceId },
-            lastModifiedByDeviceId = operation.originDeviceId.ifBlank { localDeviceId },
+            originDeviceId = existing?.originDeviceId ?: originDeviceId,
+            lastModifiedByDeviceId = originDeviceId,
             versionLamport = operation.lamport,
         )
 
@@ -129,7 +131,8 @@ class ApplyRemoteOperation(
         localDeviceId: String,
     ): ApplyRemoteOperationResult {
         val existing = flashcardExampleQueries.findById(operation.entityId).executeAsOneOrNull()
-        if (isStale(existing?.versionLamport, operation.lamport)) {
+        val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
+        if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
         }
 
@@ -170,8 +173,8 @@ class ApplyRemoteOperation(
             createdAt = values.createdAt,
             updatedAt = values.updatedAt,
             deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: operation.originDeviceId.ifBlank { localDeviceId },
-            lastModifiedByDeviceId = operation.originDeviceId.ifBlank { localDeviceId },
+            originDeviceId = existing?.originDeviceId ?: originDeviceId,
+            lastModifiedByDeviceId = originDeviceId,
             versionLamport = operation.lamport,
         )
 
@@ -180,7 +183,8 @@ class ApplyRemoteOperation(
 
     private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
         val existing = quotesQueries.findById(operation.entityId).executeAsOneOrNull()
-        if (isStale(existing?.versionLamport, operation.lamport)) {
+        val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
+        if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
         }
 
@@ -225,8 +229,8 @@ class ApplyRemoteOperation(
             createdAt = values.createdAt,
             updatedAt = values.updatedAt,
             deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: operation.originDeviceId.ifBlank { localDeviceId },
-            lastModifiedByDeviceId = operation.originDeviceId.ifBlank { localDeviceId },
+            originDeviceId = existing?.originDeviceId ?: originDeviceId,
+            lastModifiedByDeviceId = originDeviceId,
             versionLamport = operation.lamport,
         )
 
@@ -515,8 +519,17 @@ class ApplyRemoteOperation(
         }
     }
 
-    private fun isStale(existingLamport: Long?, incomingLamport: Long): Boolean {
-        return existingLamport != null && incomingLamport < existingLamport
+    private fun isStale(
+        existingLamport: Long?,
+        existingLastModifiedByDeviceId: String?,
+        incomingLamport: Long,
+        incomingOriginDeviceId: String,
+    ): Boolean {
+        if (existingLamport == null) return false
+        return when {
+            incomingLamport != existingLamport -> incomingLamport < existingLamport
+            else -> incomingOriginDeviceId <= existingLastModifiedByDeviceId.orEmpty()
+        }
     }
 
     private fun JsonObject.stringAny(vararg keys: String): String? {

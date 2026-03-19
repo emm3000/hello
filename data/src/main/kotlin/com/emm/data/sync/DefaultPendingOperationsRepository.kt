@@ -14,7 +14,7 @@ class DefaultPendingOperationsRepository(
 ) : PendingOperationsRepository {
 
     override fun observeHasPendingOperations(): Flow<Boolean> {
-        return db.localFirstQueries.countPendingOperations()
+        return db.localFirstQueries.countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map { count -> count > 0 }
