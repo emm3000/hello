@@ -110,6 +110,39 @@ class DefaultSyncEngineTest {
         assertEquals(4L, checkpoint?.lastPulledCursor)
     }
 
+    @Test
+    fun `already processed remote operation is acked without reapplying`() = runTest {
+        stubBootstrap()
+        db.localFirstQueries.markRemoteOperationProcessed(
+            opId = "op-9",
+            cursor = 9,
+            entityType = "deck",
+            entityId = "deck-9",
+            operationType = "create",
+            processedAt = 1,
+        )
+        coEvery { drainOutbox.invoke(any()) } returns DrainOutboxResult.Empty
+        coEvery { pullRemoteOperations.invoke(any()) } returnsMany listOf(
+            PullRemoteOperationsResult(
+                currentCursor = 9,
+                operations = listOf(remoteOperation(opId = "op-9", cursor = 9, entityId = "deck-9")),
+            ),
+            PullRemoteOperationsResult(
+                currentCursor = 9,
+                operations = emptyList(),
+            ),
+        )
+        coEvery { applyRemoteOperation.invoke(any(), any()) } answers {
+            throw AssertionError("Processed remote ops must not be reapplied")
+        }
+        coEvery { ackOperations.invoke(listOf("op-9")) } returns 1
+
+        subject.runOnce()
+
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        assertEquals(9L, checkpoint?.lastPulledCursor)
+    }
+
     private fun stubBootstrap() {
         coEvery { remote.ensureAnonymousSession() } returns Unit
         coEvery { remote.bootstrapAnonymousDevice(any(), any(), any()) } returns SyncBootstrapResponse(

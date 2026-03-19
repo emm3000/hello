@@ -59,6 +59,13 @@ configure<LibraryExtension> {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests.all {
+            it.systemProperty("kotlinx.coroutines.debug", "off")
+            it.jvmArgs("-Xmx1024m")
+        }
+    }
+
     buildFeatures {
         buildConfig = true
         resValues = true
