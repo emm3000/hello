@@ -47,9 +47,18 @@ class DefaultQuoteRepository(
             val payloadJson = buildJsonObject {
                 put("entityId", quoteId)
                 put("operationType", OperationType.Create.name)
+                put("title", quote.title)
                 put("phrase", quote.phrase)
+                put("description", quote.description)
                 put("translation", quote.translation)
+                put("example", quote.example)
+                put("context", quote.context)
+                put("pronunciation", quote.pronunciation)
+                put("formality", quote.formality)
+                put("tags", quote.tags.joinToString("|"))
                 put("category", quote.category)
+                put("createdAt", now)
+                put("updatedAt", now)
             }.toString()
             val lamport = operationLogWriter.appendOperation(
                 entityType = "quote",

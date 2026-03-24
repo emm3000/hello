@@ -56,6 +56,13 @@ class DefaultFlashcardRepository(
                 put("deckId", input.deckId)
                 put("word", input.word)
                 put("meaning", input.meaning)
+                put("translation", input.translation)
+                put("phonetic", input.phonetic)
+                put("partOfSpeech", input.partOfSpeech)
+                put("type", input.type)
+                put("note", input.note)
+                put("createdAt", now)
+                put("updatedAt", now)
             }.toString()
             val lamport = operationLogWriter.appendOperation(
                 entityType = "flashcard",
