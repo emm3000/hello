@@ -14,10 +14,17 @@ CREATE INDEX idx_Deck_createdAt ON Deck(createdAt DESC);
 CREATE INDEX idx_Deck_deletedAt ON Deck(deletedAt);
 
 all:
-SELECT * FROM Deck;
+SELECT * FROM Deck
+WHERE deletedAt IS NULL
+ORDER BY createdAt DESC;
 
 findById:
 SELECT * FROM Deck WHERE id = ?;
+
+findActiveById:
+SELECT * FROM Deck
+WHERE id = ?
+  AND deletedAt IS NULL;
 
 insert:
 INSERT OR REPLACE INTO Deck (
@@ -38,6 +45,7 @@ DELETE FROM Deck;
 deckWithFlashcardCount:
 SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount
 FROM Deck
-LEFT JOIN Flashcard ON Flashcard.deckId = Deck.id
+LEFT JOIN Flashcard ON Flashcard.deckId = Deck.id AND Flashcard.deletedAt IS NULL
+WHERE Deck.deletedAt IS NULL
 GROUP BY Deck.id
 ORDER BY Deck.createdAt DESC;

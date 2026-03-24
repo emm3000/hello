@@ -68,4 +68,42 @@ class RetryableOperationsCountTest {
 
         assertEquals(2L, count)
     }
+
+    @Test
+    fun `pendingOperations are drained in lamport order`() {
+        db.localFirstQueries.insertOperation(
+            opId = "op-lamport-2",
+            entityType = "deck",
+            entityId = "deck-2",
+            operationType = "Create",
+            payload = "{}",
+            lamport = 2,
+            originDeviceId = "device-a",
+            createdAt = 1,
+            status = "Pending",
+            retryCount = 0,
+            lastAttemptAt = null,
+            lastError = null,
+        )
+        db.localFirstQueries.insertOperation(
+            opId = "op-lamport-1",
+            entityType = "deck",
+            entityId = "deck-1",
+            operationType = "Create",
+            payload = "{}",
+            lamport = 1,
+            originDeviceId = "device-a",
+            createdAt = 2,
+            status = "Pending",
+            retryCount = 0,
+            lastAttemptAt = null,
+            lastError = null,
+        )
+
+        val pending = db.localFirstQueries
+            .pendingOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT, limit = 10)
+            .executeAsList()
+
+        assertEquals(listOf("op-lamport-1", "op-lamport-2"), pending.map { it.opId })
+    }
 }

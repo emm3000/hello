@@ -69,7 +69,7 @@ class DefaultDeckRepository(
 
     override fun findById(deckId: String): Flow<Deck> {
         return dq
-            .findById(deckId)
+            .findActiveById(deckId)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map(DeckEntity::toDomain)

@@ -47,13 +47,16 @@ deleteAllFlashcards:
 DELETE FROM Flashcard;
 
 all:
-SELECT * FROM Flashcard;
+SELECT * FROM Flashcard
+WHERE deletedAt IS NULL;
 
 findById:
 SELECT * FROM Flashcard WHERE id = ?;
 
 selectByDeck:
-SELECT * FROM Flashcard WHERE deckId = ?;
+SELECT * FROM Flashcard
+WHERE deckId = ?
+  AND deletedAt IS NULL;
 
 flashcardWithExamples:
 SELECT
@@ -63,17 +66,21 @@ SELECT
     e.translation AS exampleTranslation,
     e.type AS exampleType
 FROM Flashcard f
-LEFT JOIN FlashcardExample e ON f.id = e.flashcardId
-WHERE f.id = :flashcardId;
+LEFT JOIN FlashcardExample e ON f.id = e.flashcardId AND e.deletedAt IS NULL
+WHERE f.id = :flashcardId
+  AND f.deletedAt IS NULL;
 
 flashcardsToReviewByDeck:
 SELECT f.*, rp.*
 FROM Flashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deckId = :deckId AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
+WHERE f.deckId = :deckId
+  AND f.deletedAt IS NULL
+  AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 flashcardsWithReview:
 SELECT f.*, rp.nextReviewAt
 FROM Flashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deckId = :deckId;
+WHERE f.deckId = :deckId
+  AND f.deletedAt IS NULL;

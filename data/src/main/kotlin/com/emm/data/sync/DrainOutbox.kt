@@ -71,7 +71,16 @@ class DrainOutbox(
                         )
                         dead += 1
                     }
-                    else -> unchanged += 1
+                    else -> {
+                        // Defensive fallback: every pushed op should be either accepted or rejected by the server.
+                        // If an op is omitted from both lists, treat it as a failed attempt so retries/backoff progress.
+                        localFirstQueries.markOperationFailed(
+                            lastAttemptAt = now,
+                            lastError = "push_response_missing_status",
+                            opId = operation.opId,
+                        )
+                        unchanged += 1
+                    }
                 }
             }
         }.getOrElse { error ->

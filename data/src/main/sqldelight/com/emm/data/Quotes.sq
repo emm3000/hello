@@ -46,7 +46,9 @@ deleteAllQuotes:
 DELETE FROM Quote;
 
 all:
-SELECT * FROM Quote ORDER BY createdAt DESC;
+SELECT * FROM Quote
+WHERE deletedAt IS NULL
+ORDER BY createdAt DESC;
 
 findById:
 SELECT * FROM Quote
@@ -58,10 +60,12 @@ SELECT
     Flashcard.id IS NOT NULL AS hasCard
 FROM Quote
 LEFT JOIN Flashcard ON Flashcard.id = Quote.id
+WHERE Quote.deletedAt IS NULL
 ORDER BY Quote.createdAt DESC;
 
 lastInsertedQuote:
 SELECT *
 FROM Quote
+WHERE deletedAt IS NULL
 ORDER BY createdAt DESC
 LIMIT 1;
