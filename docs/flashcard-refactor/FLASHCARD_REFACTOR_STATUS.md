@@ -172,11 +172,12 @@ Implemented:
 - derived card prompt and expected answer can now be edited from the preview
 - preview validation is recomputed immediately after inline edits
 - example, cloze, and individual derived cards now support targeted regeneration from the preview
+- rich note fields such as `whyUseful`, `usagePattern`, and `commonMistake` now support targeted regeneration from the preview
 
 Pending focus:
 
 - richer per-card preview controls beyond prompt/answer editing
-- broader regenerate-one-field coverage beyond example/cloze
+- more localized quality guidance and actions around warnings, not just validation errors
 
 ## Phase 6
 
@@ -222,20 +223,20 @@ Pending:
 
 ## Recommended Next Step
 
-The highest-value next step is now Phase 5, not more schema work and not more basic study-mode restructuring.
+The highest-value next step is still Phase 5, but now it is about tightening preview UX rather than unlocking basic editability.
 
 Why:
 
+- Phase 5 already supports editing, inline validation, and targeted regeneration for cards and rich note fields
 - Phase 6 is already strong enough to support the new retrieval model
 - Phase 7 is mostly blocked on real-device validation rather than more code churn
-- the biggest product gap is still the inability to fix a mostly-good generated note before saving
+- the biggest remaining product gap is helping the user understand and fix generation quality issues more locally before saving
 
 Recommended task sequence:
 
-1. replace the read-only learning-note preview with editable fields
-2. support inline validation/warnings while editing
-3. allow regenerate-one-field flows for example sentence, cloze sentence, or a specific derived card
-4. only after that, run physical-device sync validation for the richer payload end-to-end
+1. make warnings and quality issues more actionable at the exact field or card they affect
+2. add richer per-card controls where the preview still feels too generic
+3. only after that, run physical-device sync validation for the richer payload end-to-end
 
 ## Phase 8
 

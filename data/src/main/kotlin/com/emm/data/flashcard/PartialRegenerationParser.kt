@@ -10,6 +10,19 @@ import kotlinx.serialization.json.Json
 
 object PartialRegenerationParser {
 
+    fun parseField(raw: String, json: Json, jsonKey: String, label: String): String {
+        val response = decode<FieldRegenerationResponseDto>(raw, json, label)
+        val data = response.data ?: throw invalidPayload(label)
+        val value = when (jsonKey) {
+            "why_useful" -> data.whyUseful
+            "usage_pattern" -> data.usagePattern
+            "common_mistake" -> data.commonMistake
+            else -> null
+        }
+        require(!value.isNullOrBlank()) { "La IA devolvio un valor vacio para $jsonKey." }
+        return value
+    }
+
     fun parseExample(raw: String, json: Json): GeneratedExampleDraft {
         val response = decode<ExampleRegenerationResponseDto>(raw, json, "ejemplo")
         val data = response.data ?: throw invalidPayload("ejemplo")
@@ -82,6 +95,19 @@ object PartialRegenerationParser {
 private data class ExampleRegenerationResponseDto(
     val success: Boolean,
     val data: ExampleRegenerationDataDto? = null,
+)
+
+@Serializable
+private data class FieldRegenerationResponseDto(
+    val success: Boolean,
+    val data: FieldRegenerationDataDto? = null,
+)
+
+@Serializable
+private data class FieldRegenerationDataDto(
+    @SerialName("why_useful") val whyUseful: String? = null,
+    @SerialName("usage_pattern") val usagePattern: String? = null,
+    @SerialName("common_mistake") val commonMistake: String? = null,
 )
 
 @Serializable

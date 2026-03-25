@@ -556,6 +556,12 @@ private fun LearningNotePreview(
                     )
                 },
             )
+            RegenerateFieldButton(
+                text = "Regenerar why useful",
+                field = EditableLearningNoteField.WhyUseful,
+                noteRegenerationTarget = noteRegenerationTarget,
+                onIntent = onIntent,
+            )
 
             if (note.usagePattern.isNotBlank()) {
                 HSeparator()
@@ -574,6 +580,12 @@ private fun LearningNotePreview(
                         )
                     },
                 )
+                RegenerateFieldButton(
+                    text = "Regenerar usage pattern",
+                    field = EditableLearningNoteField.UsagePattern,
+                    noteRegenerationTarget = noteRegenerationTarget,
+                    onIntent = onIntent,
+                )
             }
 
             if (note.commonMistake.isNotBlank()) {
@@ -590,6 +602,12 @@ private fun LearningNotePreview(
                             )
                         )
                     },
+                )
+                RegenerateFieldButton(
+                    text = "Regenerar common mistake",
+                    field = EditableLearningNoteField.CommonMistake,
+                    noteRegenerationTarget = noteRegenerationTarget,
+                    onIntent = onIntent,
                 )
             }
 
@@ -842,6 +860,24 @@ private fun EditablePreviewField(
         minLines = minLines,
         maxLines = if (minLines == 1) 1 else 4,
     )
+}
+
+@Composable
+private fun RegenerateFieldButton(
+    text: String,
+    field: EditableLearningNoteField,
+    noteRegenerationTarget: PreviewRegenerationTarget?,
+    onIntent: (NewCardUiIntent) -> Unit,
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        HButton(
+            text = text,
+            onClick = { onIntent(NewCardUiIntent.RegenerateFieldClicked(field)) },
+            variant = ButtonVariant.Ghost,
+            isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Field(field),
+            enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Field(field),
+        )
+    }
 }
 
 private fun List<GeneratedLearningNoteIssue>.noteFieldMessage(noteField: String): String? {

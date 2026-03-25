@@ -11,6 +11,7 @@ import com.emm.domain.flashcard.staticCategories
 sealed interface PreviewRegenerationTarget {
     data object Example : PreviewRegenerationTarget
     data object Cloze : PreviewRegenerationTarget
+    data class Field(val field: EditableLearningNoteField) : PreviewRegenerationTarget
     data class Card(val cardId: String) : PreviewRegenerationTarget
 }
 

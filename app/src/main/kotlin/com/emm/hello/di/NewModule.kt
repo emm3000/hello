@@ -41,6 +41,7 @@ import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
@@ -131,6 +132,7 @@ fun Module.useCases() {
     factoryOf(::GenerateLearningNotePreviewUseCase)
     factoryOf(::RegenerateLearningNoteExampleUseCase)
     factoryOf(::RegenerateLearningNoteClozeUseCase)
+    factoryOf(::RegenerateLearningNoteFieldUseCase)
     factoryOf(::RegenerateStudyCardUseCase)
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
@@ -158,6 +160,7 @@ fun Module.viewModels() {
             generateLearningNotePreviewUseCase = get(),
             regenerateLearningNoteExampleUseCase = get(),
             regenerateLearningNoteClozeUseCase = get(),
+            regenerateLearningNoteFieldUseCase = get(),
             regenerateStudyCardUseCase = get(),
             getDefaultDeckUseCase = get(),
             setDefaultDeckUseCase = get(),

@@ -29,6 +29,7 @@ import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.sync.OperationType
@@ -209,6 +210,21 @@ class DefaultFlashcardRepository(
             val response = geminiService.process(prompt)
             GeneratedLearningNoteResponseParser.parse(response, json)
         }
+
+    override suspend fun regenerateNoteField(
+        input: FlashcardGenerationInput,
+        note: GeneratedLearningNote,
+        field: RegenerableNoteField,
+    ): String = withContext(Dispatchers.IO) {
+        val prompt = Prompt.buildNoteFieldRegenerationPrompt(input, note, field)
+        val response = geminiService.process(prompt)
+        val jsonKey = when (field) {
+            RegenerableNoteField.WhyUseful -> "why_useful"
+            RegenerableNoteField.UsagePattern -> "usage_pattern"
+            RegenerableNoteField.CommonMistake -> "common_mistake"
+        }
+        PartialRegenerationParser.parseField(response, json, jsonKey = jsonKey, label = field.name)
+    }
 
     override suspend fun regenerateExample(
         input: FlashcardGenerationInput,

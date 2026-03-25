@@ -17,6 +17,8 @@ import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
+import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
@@ -54,6 +56,7 @@ class NewCardViewModel(
     private val generateLearningNotePreviewUseCase: GenerateLearningNotePreviewUseCase,
     private val regenerateLearningNoteExampleUseCase: RegenerateLearningNoteExampleUseCase,
     private val regenerateLearningNoteClozeUseCase: RegenerateLearningNoteClozeUseCase,
+    private val regenerateLearningNoteFieldUseCase: RegenerateLearningNoteFieldUseCase,
     private val regenerateStudyCardUseCase: RegenerateStudyCardUseCase,
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
@@ -192,6 +195,7 @@ class NewCardViewModel(
             }
             NewCardUiIntent.RegenerateExampleClicked -> regenerateExample()
             NewCardUiIntent.RegenerateClozeClicked -> regenerateCloze()
+            is NewCardUiIntent.RegenerateFieldClicked -> regenerateField(intent.field)
             is NewCardUiIntent.RegenerateCardClicked -> regenerateCard(intent.cardId)
         }
     }
@@ -369,6 +373,45 @@ class NewCardViewModel(
         }
     }
 
+    private fun regenerateField(field: EditableLearningNoteField) = viewModelScope.launch {
+        val regenerableField = field.toRegenerableFieldOrNull() ?: return@launch
+        val current = mutableState.value
+        val preview = current.learningNotePreview ?: return@launch
+        mutableState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                previewRegenerationTarget = PreviewRegenerationTarget.Field(field),
+            )
+        }
+        runCatching {
+            regenerateLearningNoteFieldUseCase(
+                input = current.toGenerationInput(),
+                note = preview,
+                field = regenerableField,
+            )
+        }.onSuccess { value ->
+            val updatedPreview = when (field) {
+                EditableLearningNoteField.WhyUseful -> preview.copy(whyUseful = value)
+                EditableLearningNoteField.UsagePattern -> preview.copy(usagePattern = value)
+                EditableLearningNoteField.CommonMistake -> preview.copy(commonMistake = value)
+                else -> preview
+            }
+            applyUpdatedPreview(updatedPreview)
+        }.onFailure { e ->
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Error al regenerar campo",
+                        message = e.message ?: "No se pudo regenerar el campo.",
+                    ),
+                    isLoading = false,
+                    previewRegenerationTarget = null,
+                )
+            }
+        }
+    }
+
     private fun updatePreview(transform: (GeneratedLearningNote) -> GeneratedLearningNote) {
         val currentPreview = mutableState.value.learningNotePreview ?: return
         applyUpdatedPreview(transform(currentPreview))
@@ -522,6 +565,15 @@ class NewCardViewModel(
             in socialDomainCategoryIds -> LearningDomain.Social
             else -> LearningDomain.DailyLife
         }
+    }
+}
+
+private fun EditableLearningNoteField.toRegenerableFieldOrNull(): RegenerableNoteField? {
+    return when (this) {
+        EditableLearningNoteField.WhyUseful -> RegenerableNoteField.WhyUseful
+        EditableLearningNoteField.UsagePattern -> RegenerableNoteField.UsagePattern
+        EditableLearningNoteField.CommonMistake -> RegenerableNoteField.CommonMistake
+        else -> null
     }
 }
 

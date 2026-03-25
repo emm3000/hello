@@ -145,6 +145,62 @@ object Prompt {
         """.trimIndent()
     }
 
+    fun buildNoteFieldRegenerationPrompt(
+        input: com.emm.domain.flashcard.FlashcardGenerationInput,
+        note: com.emm.domain.flashcard.GeneratedLearningNote,
+        field: com.emm.domain.flashcard.RegenerableNoteField,
+    ): String {
+        val fieldName = when (field) {
+            com.emm.domain.flashcard.RegenerableNoteField.WhyUseful -> "why_useful"
+            com.emm.domain.flashcard.RegenerableNoteField.UsagePattern -> "usage_pattern"
+            com.emm.domain.flashcard.RegenerableNoteField.CommonMistake -> "common_mistake"
+        }
+        val fieldInstructions = when (field) {
+            com.emm.domain.flashcard.RegenerableNoteField.WhyUseful ->
+                "Return a practical reason why this note helps real communication."
+            com.emm.domain.flashcard.RegenerableNoteField.UsagePattern ->
+                "Return a concise usage pattern that helps use the expression correctly."
+            com.emm.domain.flashcard.RegenerableNoteField.CommonMistake ->
+                "Return one realistic learner mistake to avoid."
+        }
+
+        return """
+        You are refining exactly one field inside an English learning note for a native Spanish speaker.
+
+        Input data:
+        - input_type: "${input.inputType.name}"
+        - user_text: "${input.userText}"
+        - intended_meaning_es: "${input.intendedMeaningEs}"
+        - context_sentence: "${input.contextSentence}"
+
+        Current note:
+        - expression: "${note.expression}"
+        - intended_meaning_es: "${note.intendedMeaningEs}"
+        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - example_sentence: "${note.exampleSentence}"
+        - usage_pattern: "${note.usagePattern}"
+        - common_mistake: "${note.commonMistake}"
+        - why_useful: "${note.whyUseful}"
+
+        Field to regenerate:
+        - field_name: "$fieldName"
+
+        Return ONLY valid JSON:
+        {
+          "success": true,
+          "data": {
+            "$fieldName": "<improved value>"
+          }
+        }
+
+        Rules:
+        - Keep the same target expression and intended meaning.
+        - $fieldInstructions
+        - Return only the requested field.
+        - Do not return markdown or extra text.
+        """.trimIndent()
+    }
+
     fun buildClozeRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
         note: com.emm.domain.flashcard.GeneratedLearningNote,

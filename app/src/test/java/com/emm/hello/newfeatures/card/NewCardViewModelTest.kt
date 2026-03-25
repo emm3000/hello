@@ -28,6 +28,8 @@ import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
+import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
@@ -82,6 +84,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -134,6 +137,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -194,6 +198,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -240,6 +245,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -294,6 +300,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -355,6 +362,7 @@ class NewCardViewModelTest {
             ),
             regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
@@ -374,6 +382,58 @@ class NewCardViewModelTest {
             .isEqualTo("Hello, how have you been lately?")
         assertThat(viewModel.uiState.value.learningNotePreview?.exampleTranslation)
             .isEqualTo("Hola, como has estado ultimamente?")
+    }
+
+    @Test
+    fun `regenerate field updates note value`() = runTest {
+        val generationRepository = mockk<FlashcardGenerationRepository>()
+        val writeRepository = mockk<FlashcardWriteRepository>()
+        val readRepository = mockk<FlashcardReadRepository>()
+        val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        val deckRepository = FakeDeckRepository()
+
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
+        coEvery {
+            generationRepository.regenerateNoteField(any(), any(), RegenerableNoteField.WhyUseful)
+        } returns "Te ayuda a sonar natural al saludar."
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+
+        val viewModel = NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
+            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
+        viewModel.onIntent(NewCardUiIntent.GenerateClicked)
+        advanceUntilIdle()
+
+        viewModel.onIntent(NewCardUiIntent.RegenerateFieldClicked(EditableLearningNoteField.WhyUseful))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.learningNotePreview?.whyUseful)
+            .isEqualTo("Te ayuda a sonar natural al saludar.")
     }
 
     private class FakeDeckRepository : DeckRepository {

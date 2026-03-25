@@ -52,6 +52,10 @@ sealed interface NewCardUiIntent {
 
     data object RegenerateClozeClicked : NewCardUiIntent
 
+    data class RegenerateFieldClicked(
+        val field: EditableLearningNoteField,
+    ) : NewCardUiIntent
+
     data class RegenerateCardClicked(
         val cardId: String,
     ) : NewCardUiIntent
