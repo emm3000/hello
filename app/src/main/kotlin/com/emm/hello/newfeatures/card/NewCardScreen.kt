@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
-import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,12 +56,19 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.flashcard.LearningDomain
+import com.emm.domain.flashcard.LearningNoteType
+import com.emm.domain.flashcard.LevelBand
+import com.emm.domain.flashcard.PartOfSpeechTag
+import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
@@ -84,8 +90,6 @@ import com.emm.hello.core.ui.HSkeleton
 import java.time.LocalDateTime
 import java.util.Locale
 
-private const val SKELETON_TITLE_WIDTH = 0.5f
-private const val SKELETON_SUBTITLE_WIDTH = 0.35f
 private const val SKELETON_DETAIL_WIDTH = 0.4f
 private const val RESULT_FADE_IN_DURATION_MS = 300
 private const val MAX_PREVIEW_COLLOCATIONS = 3
@@ -160,37 +164,17 @@ fun NewCardScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.new_card_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = when (state.typeView) {
-                                TypeView.WordOrPhase -> stringResource(R.string.new_card_mode_word)
-                                TypeView.WithCategories -> stringResource(R.string.new_card_mode_category)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.new_card_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = { onIntent(NewCardUiIntent.TypeViewSelected(state.typeView.other)) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SwitchLeft,
-                            contentDescription = stringResource(R.string.change_view_desc),
-                        )
-                    }
-                }
             )
         },
     ) { innerPadding ->
@@ -202,9 +186,27 @@ fun NewCardScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            item {
+                SectionCard(
+                    title = stringResource(R.string.creation_mode_section_title),
+                    description = stringResource(R.string.creation_mode_section_description),
+                ) {
+                    InputModeSelector(
+                        selectedMode = state.typeView,
+                        onModeSelected = { onIntent(NewCardUiIntent.TypeViewSelected(it)) },
+                    )
+                }
+            }
+
             // -- Input Section --------------------------------------------------------
             item {
-                SectionCard(title = stringResource(R.string.input_section_title)) {
+                SectionCard(
+                    title = stringResource(R.string.input_section_title),
+                    description = when (state.typeView) {
+                        TypeView.WordOrPhase -> stringResource(R.string.input_section_word_description)
+                        TypeView.WithCategories -> stringResource(R.string.input_section_category_description)
+                    },
+                ) {
                     NewCardInputSection(
                         state = state,
                         isListening = isListening,
@@ -217,7 +219,10 @@ fun NewCardScreen(
 
             // -- Destination Section --------------------------------------------------
             item {
-                SectionCard(title = stringResource(R.string.destination_section_title)) {
+                SectionCard(
+                    title = stringResource(R.string.destination_section_title),
+                    description = stringResource(R.string.destination_section_description),
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         HSelect(
                             items = state.decks,
@@ -329,6 +334,86 @@ private fun NewCardInputSection(
 }
 
 @Composable
+private fun InputModeSelector(
+    selectedMode: TypeView,
+    onModeSelected: (TypeView) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ModeOptionCard(
+            title = stringResource(R.string.new_card_mode_word),
+            description = stringResource(R.string.mode_word_description),
+            helperText = stringResource(R.string.mode_word_helper),
+            isSelected = selectedMode == TypeView.WordOrPhase,
+            onClick = { onModeSelected(TypeView.WordOrPhase) },
+        )
+        ModeOptionCard(
+            title = stringResource(R.string.new_card_mode_category),
+            description = stringResource(R.string.mode_category_description),
+            helperText = stringResource(R.string.mode_category_helper),
+            isSelected = selectedMode == TypeView.WithCategories,
+            onClick = { onModeSelected(TypeView.WithCategories) },
+        )
+    }
+}
+
+@Composable
+private fun ModeOptionCard(
+    title: String,
+    description: String,
+    helperText: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    HCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        variant = if (isSelected) CardVariant.Filled else CardVariant.Outlined,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (isSelected) {
+                    HBadge(
+                        label = stringResource(R.string.mode_selected_badge),
+                        variant = BadgeVariant.Success,
+                    )
+                }
+            }
+            Text(
+                text = helperText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
 private fun WordOrPhraseInputSection(
     state: NewCardUiState,
     isListening: Boolean,
@@ -347,6 +432,7 @@ private fun WordOrPhraseInputSection(
             } else {
                 stringResource(R.string.word_placeholder)
             },
+            supportingText = stringResource(R.string.word_supporting_text),
             trailingIcon = {
                 VoiceInputButton(
                     isListening = isListening,
@@ -363,6 +449,7 @@ private fun WordOrPhraseInputSection(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.intended_meaning_label),
             placeholder = stringResource(R.string.intended_meaning_placeholder),
+            supportingText = stringResource(R.string.intended_meaning_supporting_text),
         )
         HInput(
             value = state.contextSentence,
@@ -373,6 +460,7 @@ private fun WordOrPhraseInputSection(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.context_sentence_label),
             placeholder = stringResource(R.string.context_sentence_placeholder),
+            supportingText = stringResource(R.string.context_sentence_supporting_text),
         )
     }
 }
@@ -389,6 +477,7 @@ private fun CategoryInputSection(
             label = stringResource(R.string.category_label),
             onClick = onShowCategoryPicker,
         )
+        SupportingText(text = stringResource(R.string.category_supporting_text))
         HSelect(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.difficulty_label),
@@ -396,6 +485,7 @@ private fun CategoryInputSection(
             itemSelected = state.difficulty,
             onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
         )
+        SupportingText(text = stringResource(R.string.difficulty_supporting_text))
     }
 }
 
@@ -406,15 +496,36 @@ private fun LoadingPreviewSkeleton() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            HSkeleton(Modifier.fillMaxWidth(SKELETON_TITLE_WIDTH).height(24.dp))
-            HSkeleton(Modifier.fillMaxWidth(SKELETON_SUBTITLE_WIDTH).height(14.dp))
+            HBadge(
+                label = stringResource(R.string.loading_preview_badge),
+                variant = BadgeVariant.Secondary,
+            )
+            Text(
+                text = stringResource(R.string.loading_preview_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.loading_preview_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             HSeparator()
-            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
-            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
-            HSkeleton(Modifier.fillMaxWidth(SKELETON_DETAIL_WIDTH).height(14.dp))
-            HSkeleton(Modifier.fillMaxWidth().height(14.dp))
+            LoadingStepSkeleton(
+                title = stringResource(R.string.loading_step_understanding_input),
+                lines = 2,
+            )
+            LoadingStepSkeleton(
+                title = stringResource(R.string.loading_step_building_note),
+                lines = 3,
+            )
+            LoadingStepSkeleton(
+                title = stringResource(R.string.loading_step_building_cards),
+                lines = 2,
+            )
         }
     }
 }
@@ -432,6 +543,11 @@ private fun ResultPreviewSection(
         enter = fadeIn(tween(RESULT_FADE_IN_DURATION_MS)),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            HAlert(
+                title = stringResource(R.string.preview_summary_title, learningNotePreview.cards.size),
+                description = stringResource(R.string.preview_summary_description),
+                variant = AlertVariant.Default,
+            )
             Text(
                 stringResource(R.string.verify_result_title),
                 style = MaterialTheme.typography.titleMedium,
@@ -497,32 +613,14 @@ private fun LearningNotePreview(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = note.expression,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                HBadge(
-                    label = note.noteType.name,
-                    variant = BadgeVariant.Secondary,
-                )
-            }
-
-            if (note.ipa.isNotBlank()) {
-                Text(
-                    text = note.ipa,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            PreviewOverview(note = note)
 
             HSeparator()
+            PreviewSectionHeader(
+                step = stringResource(R.string.preview_step_note_badge),
+                title = stringResource(R.string.preview_step_note_title),
+                description = stringResource(R.string.preview_step_note_description),
+            )
 
             EditablePreviewField(
                 label = stringResource(R.string.translation_label),
@@ -669,11 +767,10 @@ private fun LearningNotePreview(
             }
 
             HSeparator()
-            Text(
-                text = stringResource(R.string.examples_label),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
+            PreviewSectionHeader(
+                step = stringResource(R.string.preview_step_example_badge),
+                title = stringResource(R.string.preview_step_example_title),
+                description = stringResource(R.string.preview_step_example_description),
             )
             EditablePreviewField(
                 label = "Example sentence",
@@ -720,17 +817,18 @@ private fun LearningNotePreview(
 
             if (note.cards.isNotEmpty()) {
                 HSeparator()
-                Text(
-                    text = stringResource(R.string.generated_cards_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                PreviewSectionHeader(
+                    step = stringResource(R.string.preview_step_cards_badge),
+                    title = stringResource(R.string.preview_step_cards_title),
+                    description = stringResource(R.string.preview_step_cards_description),
                 )
                 PreviewAlertGroup(alerts = note.cardSectionAlerts())
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    note.cards.forEach { card ->
+                    note.cards.forEachIndexed { index, card ->
                         key(card.cardId) {
                             GeneratedStudyCardItem(
+                                index = index,
+                                total = note.cards.size,
                                 card = card,
                                 validationIssues = validationIssues,
                                 warningIssues = warningIssues,
@@ -823,6 +921,8 @@ private fun LearningNotePreview(
 
 @Composable
 private fun GeneratedStudyCardItem(
+    index: Int,
+    total: Int,
     card: GeneratedStudyCard,
     validationIssues: List<GeneratedLearningNoteIssue>,
     warningIssues: List<GeneratedLearningNoteIssue>,
@@ -838,44 +938,93 @@ private fun GeneratedStudyCardItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.generated_card_title, index + 1, total),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = card.cardType.description(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                HBadge(
+                    label = if (card.isActive) {
+                        stringResource(R.string.card_active_badge)
+                    } else {
+                        stringResource(R.string.card_inactive_badge)
+                    },
+                    variant = if (card.isActive) BadgeVariant.Success else BadgeVariant.Outline,
+                )
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                HBadge(label = card.cardType.name, variant = BadgeVariant.Secondary)
-                HBadge(label = card.evaluationMode.name, variant = BadgeVariant.Outline)
+                HBadge(label = card.cardType.displayName(), variant = BadgeVariant.Secondary)
+                HBadge(label = card.evaluationMode.displayName(), variant = BadgeVariant.Outline)
             }
+
+            if (card.explanation.isNotBlank()) {
+                HAlert(
+                    title = stringResource(R.string.card_explanation_title),
+                    description = card.explanation,
+                    variant = AlertVariant.Default,
+                )
+            }
+
+            card.sourceField.takeIf(String::isNotBlank)?.let { sourceField ->
+                InfoRow(
+                    label = stringResource(R.string.card_source_label),
+                    value = sourceField.sourceFieldDisplayName(),
+                )
+            }
+
+            EditablePreviewField(
+                label = stringResource(R.string.card_front_label),
+                value = card.prompt,
+                placeholder = stringResource(R.string.card_front_placeholder),
+                minLines = 2,
+                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
+                helperText = stringResource(R.string.card_front_supporting_text),
+                supportingText = warningIssues.cardWarning(card.cardId),
+                onValueChange = onPromptChanged,
+            )
+            EditablePreviewField(
+                label = stringResource(R.string.card_answer_label),
+                value = card.expectedAnswer,
+                placeholder = stringResource(R.string.card_answer_placeholder),
+                minLines = 2,
+                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
+                helperText = stringResource(R.string.card_answer_supporting_text),
+                onValueChange = onExpectedAnswerChanged,
+            )
+            EditablePreviewField(
+                label = stringResource(R.string.card_hint_label),
+                value = card.hint,
+                placeholder = stringResource(R.string.card_hint_placeholder),
+                minLines = 2,
+                helperText = stringResource(R.string.card_hint_supporting_text),
+                onValueChange = onHintChanged,
+            )
             LabeledCheckbox(
                 label = "Incluir esta card en study",
                 checked = card.isActive,
                 isEnabled = true,
                 onCheckedChange = onActiveChanged,
-            )
-            EditablePreviewField(
-                label = stringResource(R.string.prompt_label),
-                value = card.prompt,
-                placeholder = "Prompt de la card",
-                minLines = 2,
-                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
-                supportingText = warningIssues.cardWarning(card.cardId),
-                onValueChange = onPromptChanged,
-            )
-            EditablePreviewField(
-                label = stringResource(R.string.expected_answer_label),
-                value = card.expectedAnswer,
-                placeholder = "Respuesta esperada",
-                minLines = 2,
-                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
-                onValueChange = onExpectedAnswerChanged,
-            )
-            EditablePreviewField(
-                label = stringResource(R.string.hint_label),
-                value = card.hint,
-                placeholder = "Pista opcional para esta card",
-                minLines = 2,
-                onValueChange = onHintChanged,
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 HButton(
@@ -910,6 +1059,7 @@ private fun EditablePreviewField(
     value: String,
     placeholder: String,
     minLines: Int = 1,
+    helperText: String? = null,
     errorMessage: String? = null,
     supportingText: String? = null,
     onValueChange: (String) -> Unit,
@@ -920,7 +1070,7 @@ private fun EditablePreviewField(
         label = label,
         placeholder = placeholder,
         errorMessage = errorMessage,
-        supportingText = supportingText,
+        supportingText = mergeSupportingTexts(helperText, supportingText),
         singleLine = minLines == 1,
         minLines = minLines,
         maxLines = if (minLines == 1) 1 else 4,
@@ -962,6 +1112,11 @@ private fun List<GeneratedLearningNoteIssue>.cardWarning(cardId: String): String
     return firstOrNull {
         it.cardId == cardId && it.code == com.emm.domain.flashcard.GeneratedLearningNoteIssueCode.InactiveCard
     }?.message
+}
+
+private fun mergeSupportingTexts(vararg values: String?): String? {
+    val lines = values.filterNot { it.isNullOrBlank() }
+    return if (lines.isEmpty()) null else lines.joinToString(separator = "\n")
 }
 
 private fun GeneratedLearningNote.meaningAlerts(): List<PreviewAlertModel> {
@@ -1009,6 +1164,93 @@ private fun GeneratedNoteQualityCode.toAlertTitle(): String {
         GeneratedNoteQualityCode.RequiredFieldsPresent -> "Completa la nota"
         GeneratedNoteQualityCode.ClearCardFocus -> "Enfoca mejor la card"
         GeneratedNoteQualityCode.NoteCardAlignment -> "Alinea la card con la nota"
+    }
+}
+
+@Composable
+private fun PreviewOverview(note: GeneratedLearningNote) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = note.expression,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            HBadge(
+                label = note.noteType.displayName(),
+                variant = BadgeVariant.Secondary,
+            )
+        }
+
+        if (note.ipa.isNotBlank()) {
+            Text(
+                text = note.ipa,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        InfoRow(
+            label = stringResource(R.string.preview_overview_note_label),
+            value = "${note.noteType.displayName()} · ${note.partOfSpeech.displayName()}",
+        )
+        InfoRow(
+            label = stringResource(R.string.preview_overview_focus_label),
+            value = "${note.levelBand.displayName()} · ${note.domain.displayName()} · ${note.register.displayName()}",
+        )
+        InfoRow(
+            label = stringResource(R.string.preview_overview_cards_label),
+            value = "${note.cards.count { it.isActive }} activas de ${note.cards.size}",
+        )
+    }
+}
+
+@Composable
+private fun PreviewSectionHeader(
+    step: String,
+    title: String,
+    description: String,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        HBadge(label = step, variant = BadgeVariant.Outline)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun LoadingStepSkeleton(
+    title: String,
+    lines: Int,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        repeat(lines) { index ->
+            HSkeleton(
+                Modifier
+                    .fillMaxWidth(if (index == lines - 1) SKELETON_DETAIL_WIDTH else 1f)
+                    .height(14.dp)
+            )
+        }
     }
 }
 
@@ -1065,8 +1307,18 @@ private fun LabeledCheckbox(
 }
 
 @Composable
+private fun SupportingText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
 private fun SectionCard(
     title: String,
+    description: String? = null,
     content: @Composable () -> Unit,
 ) {
     Column(
@@ -1079,6 +1331,13 @@ private fun SectionCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
         )
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         content()
         HSeparator()
     }
@@ -1149,6 +1408,100 @@ private fun ExampleItem(index: Int, example: Example) {
                 variant = ButtonVariant.Ghost,
             )
         }
+    }
+}
+
+private fun LearningNoteType.displayName(): String {
+    return when (this) {
+        LearningNoteType.Word -> "Palabra"
+        LearningNoteType.Phrase -> "Frase"
+        LearningNoteType.PhrasalVerb -> "Phrasal verb"
+        LearningNoteType.Idiom -> "Idiom"
+        LearningNoteType.SentencePattern -> "Patrón"
+    }
+}
+
+private fun PartOfSpeechTag.displayName(): String {
+    return when (this) {
+        PartOfSpeechTag.Noun -> "Sustantivo"
+        PartOfSpeechTag.Verb -> "Verbo"
+        PartOfSpeechTag.Adjective -> "Adjetivo"
+        PartOfSpeechTag.Adverb -> "Adverbio"
+        PartOfSpeechTag.Preposition -> "Preposición"
+        PartOfSpeechTag.Conjunction -> "Conjunción"
+        PartOfSpeechTag.Interjection -> "Interjección"
+        PartOfSpeechTag.PhrasalVerb -> "Phrasal verb"
+        PartOfSpeechTag.Idiom -> "Idiom"
+        PartOfSpeechTag.Chunk -> "Chunk"
+        PartOfSpeechTag.Other -> "Otro"
+    }
+}
+
+private fun RegisterPreference.displayName(): String {
+    return when (this) {
+        RegisterPreference.Casual -> "Casual"
+        RegisterPreference.Neutral -> "Neutral"
+        RegisterPreference.Formal -> "Formal"
+    }
+}
+
+private fun LevelBand.displayName(): String {
+    return when (this) {
+        LevelBand.A1_A2 -> "A1-A2"
+        LevelBand.B1_B2 -> "B1-B2"
+        LevelBand.C1_PLUS -> "C1+"
+    }
+}
+
+private fun LearningDomain.displayName(): String {
+    return when (this) {
+        LearningDomain.DailyLife -> "Vida diaria"
+        LearningDomain.Travel -> "Viajes"
+        LearningDomain.Social -> "Social"
+        LearningDomain.Work -> "Trabajo"
+        LearningDomain.Study -> "Estudio"
+        LearningDomain.Media -> "Medios"
+        LearningDomain.Mixed -> "Mixto"
+    }
+}
+
+private fun StudyCardType.displayName(): String {
+    return when (this) {
+        StudyCardType.Recognition -> "Reconocimiento"
+        StudyCardType.Production -> "Producción"
+        StudyCardType.Cloze -> "Cloze"
+        StudyCardType.Form -> "Forma"
+    }
+}
+
+private fun StudyCardType.description(): String {
+    return when (this) {
+        StudyCardType.Recognition -> "Sirve para reconocer el significado o uso correcto."
+        StudyCardType.Production -> "Sirve para producir la expresión por tu cuenta."
+        StudyCardType.Cloze -> "Sirve para completar una frase con la forma correcta."
+        StudyCardType.Form -> "Sirve para fijarte en la forma exacta de la expresión."
+    }
+}
+
+private fun EvaluationMode.displayName(): String {
+    return when (this) {
+        EvaluationMode.Exact -> "Respuesta exacta"
+        EvaluationMode.FlexibleText -> "Texto flexible"
+        EvaluationMode.ManualSelfCheck -> "Autoevaluación"
+    }
+}
+
+private fun String.sourceFieldDisplayName(): String {
+    return when (this) {
+        "intendedMeaningEs" -> "la traducción objetivo"
+        "simpleDefinitionEn" -> "la definición principal"
+        "whyUseful" -> "la explicación de uso"
+        "exampleSentence" -> "el ejemplo principal"
+        "exampleTranslation" -> "la traducción del ejemplo"
+        "usagePattern" -> "el patrón de uso"
+        "commonMistake" -> "el error común"
+        "clozeSentence" -> "la frase cloze"
+        else -> this
     }
 }
 
