@@ -193,6 +193,20 @@ class NewCardViewModel(
                     }
                 )
             }
+            is NewCardUiIntent.PreviewCardHintChanged -> updatePreview { note ->
+                note.copy(
+                    cards = note.cards.map { card ->
+                        if (card.cardId == intent.cardId) card.copy(hint = intent.hint) else card
+                    }
+                )
+            }
+            is NewCardUiIntent.PreviewCardActiveChanged -> updatePreview { note ->
+                note.copy(
+                    cards = note.cards.map { card ->
+                        if (card.cardId == intent.cardId) card.copy(isActive = intent.isActive) else card
+                    }
+                )
+            }
             NewCardUiIntent.RegenerateExampleClicked -> regenerateExample()
             NewCardUiIntent.RegenerateClozeClicked -> regenerateCloze()
             is NewCardUiIntent.RegenerateFieldClicked -> regenerateField(intent.field)

@@ -751,6 +751,22 @@ private fun LearningNotePreview(
                                         )
                                     )
                                 },
+                                onHintChanged = {
+                                    onIntent(
+                                        NewCardUiIntent.PreviewCardHintChanged(
+                                            cardId = card.cardId,
+                                            hint = it,
+                                        )
+                                    )
+                                },
+                                onActiveChanged = {
+                                    onIntent(
+                                        NewCardUiIntent.PreviewCardActiveChanged(
+                                            cardId = card.cardId,
+                                            isActive = it,
+                                        )
+                                    )
+                                },
                                 onRegenerate = {
                                     onIntent(NewCardUiIntent.RegenerateCardClicked(card.cardId))
                                 },
@@ -813,6 +829,8 @@ private fun GeneratedStudyCardItem(
     regenerationTarget: PreviewRegenerationTarget?,
     onPromptChanged: (String) -> Unit,
     onExpectedAnswerChanged: (String) -> Unit,
+    onHintChanged: (String) -> Unit,
+    onActiveChanged: (Boolean) -> Unit,
     onRegenerate: () -> Unit,
 ) {
     HCard(variant = CardVariant.Outlined) {
@@ -829,6 +847,12 @@ private fun GeneratedStudyCardItem(
                 HBadge(label = card.cardType.name, variant = BadgeVariant.Secondary)
                 HBadge(label = card.evaluationMode.name, variant = BadgeVariant.Outline)
             }
+            LabeledCheckbox(
+                label = "Incluir esta card en study",
+                checked = card.isActive,
+                isEnabled = true,
+                onCheckedChange = onActiveChanged,
+            )
             EditablePreviewField(
                 label = stringResource(R.string.prompt_label),
                 value = card.prompt,
@@ -846,9 +870,13 @@ private fun GeneratedStudyCardItem(
                 errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
                 onValueChange = onExpectedAnswerChanged,
             )
-            if (card.hint.isNotBlank()) {
-                InfoRow(label = stringResource(R.string.hint_label), value = card.hint)
-            }
+            EditablePreviewField(
+                label = stringResource(R.string.hint_label),
+                value = card.hint,
+                placeholder = "Pista opcional para esta card",
+                minLines = 2,
+                onValueChange = onHintChanged,
+            )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 HButton(
                     text = "Regenerar card",

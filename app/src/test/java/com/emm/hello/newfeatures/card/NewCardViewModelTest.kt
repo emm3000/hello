@@ -330,6 +330,70 @@ class NewCardViewModelTest {
     }
 
     @Test
+    fun `editing preview card hint and active state updates derived card in preview`() = runTest {
+        val generationRepository = mockk<FlashcardGenerationRepository>()
+        val writeRepository = mockk<FlashcardWriteRepository>()
+        val readRepository = mockk<FlashcardReadRepository>()
+        val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        val deckRepository = FakeDeckRepository()
+
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+
+        val viewModel = NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
+            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
+        viewModel.onIntent(NewCardUiIntent.GenerateClicked)
+        advanceUntilIdle()
+
+        viewModel.onIntent(
+            NewCardUiIntent.PreviewCardHintChanged(
+                cardId = "card-2",
+                hint = "Usala para saludar al empezar una conversacion.",
+            )
+        )
+        viewModel.onIntent(
+            NewCardUiIntent.PreviewCardActiveChanged(
+                cardId = "card-2",
+                isActive = false,
+            )
+        )
+        advanceUntilIdle()
+
+        val updatedCard = viewModel.uiState.value.learningNotePreview
+            ?.cards
+            ?.first { it.cardId == "card-2" }
+
+        assertThat(updatedCard?.hint).isEqualTo("Usala para saludar al empezar una conversacion.")
+        assertThat(updatedCard?.isActive).isFalse()
+    }
+
+    @Test
     fun `regenerate example updates preview fields`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val writeRepository = mockk<FlashcardWriteRepository>()

@@ -48,6 +48,16 @@ sealed interface NewCardUiIntent {
         val expectedAnswer: String,
     ) : NewCardUiIntent
 
+    data class PreviewCardHintChanged(
+        val cardId: String,
+        val hint: String,
+    ) : NewCardUiIntent
+
+    data class PreviewCardActiveChanged(
+        val cardId: String,
+        val isActive: Boolean,
+    ) : NewCardUiIntent
+
     data object RegenerateExampleClicked : NewCardUiIntent
 
     data object RegenerateClozeClicked : NewCardUiIntent

@@ -174,11 +174,12 @@ Implemented:
 - example, cloze, and individual derived cards now support targeted regeneration from the preview
 - rich note fields such as `whyUseful`, `usagePattern`, and `commonMistake` now support targeted regeneration from the preview
 - quality warnings are now surfaced closer to the affected meaning, example, or card sections in the preview instead of only as a global summary
+- derived cards now expose finer preview controls, including inline hint editing and active/inactive toggling before save
 
 Pending focus:
 
-- richer per-card preview controls beyond prompt/answer editing
 - decide whether some quality warnings should trigger direct regenerate actions from the exact affected section
+- decide whether Phase 5 needs more regenerate shortcuts or if the next highest-value work is now real-device sync validation
 
 ## Phase 6
 
