@@ -3,14 +3,14 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.CreateDeckUseCase
-import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.hello.core.mvi.MviViewModel
+import com.emm.hello.logging.logError
+import com.emm.hello.logging.logInfo
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewDeckViewModel(
     private val createDeckUseCase: CreateDeckUseCase,
-    private val ensureLinkedIdentityUseCase: EnsureLinkedIdentityUseCase,
 ) : MviViewModel<NewDeckUiState, NewDeckUiIntent, NewDeckUiEffect>(
     initialState = NewDeckUiState(),
 ) {
@@ -27,20 +27,25 @@ class NewDeckViewModel(
         val current = mutableState.value
         if (!current.isValid || current.isLoading) return@launch
 
+        logInfo(TAG, "createDeck:start name=${current.name.trim()}")
         mutableState.update { it.copy(isLoading = true) }
         runCatching {
-            ensureLinkedIdentityUseCase()
             val input = CreateDeckInput(
                 name = current.name,
                 description = current.description,
             )
+            logInfo(TAG, "createDeck:repository_call")
             createDeckUseCase(input)
         }.onSuccess {
+            logInfo(TAG, "createDeck:success")
             mutableState.update { NewDeckUiState() }
             mutableEffect.send(NewDeckUiEffect.NavigateBack)
         }.onFailure { error ->
+            logError(TAG, "createDeck:error ${error.message}", error)
             mutableState.update { it.copy(isLoading = false) }
             mutableEffect.send(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo crear el mazo"))
         }
     }
 }
+
+private const val TAG = "NewDeckViewModel"

@@ -6,6 +6,7 @@ import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
 import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
+import com.emm.data.logging.logInfo
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
@@ -41,6 +42,7 @@ class DefaultDeckRepository(
         val newId: String = UUID.randomUUID().toString()
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
         val appAccountId = db.requireCurrentAppAccountId()
+        logInfo(TAG, "addDeck:start deckId=$newId appAccountId=$appAccountId name=${deck.name}")
 
         db.transaction {
             val payloadJson = buildJsonObject {
@@ -70,6 +72,8 @@ class DefaultDeckRepository(
                 versionLamport = lamport,
             )
         }
+        logInfo(TAG, "addDeck:success deckId=$newId")
+        Unit
     }
 
     override fun findById(deckId: String): Flow<Deck> {
@@ -99,6 +103,8 @@ class DefaultDeckRepository(
             .map(::toDomain)
     }
 }
+
+private const val TAG = "DeckRepository"
 
 private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)
 

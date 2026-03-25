@@ -2,7 +2,6 @@ package com.emm.data.sync
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -19,7 +18,7 @@ class DefaultSyncEngineTest {
     private val accountId = "account-1"
 
     private lateinit var db: HelloDb
-    private lateinit var remote: SupabaseSyncRemoteDataSource
+    private lateinit var identityBootstrapper: IdentityBootstrapper
     private lateinit var drainOutbox: DrainOutbox
     private lateinit var pullRemoteOperations: PullRemoteOperations
     private lateinit var applyRemoteOperation: ApplyRemoteOperation
@@ -31,17 +30,14 @@ class DefaultSyncEngineTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
-        remote = mockk()
+        identityBootstrapper = mockk()
         drainOutbox = mockk()
         pullRemoteOperations = mockk()
         applyRemoteOperation = mockk()
         ackOperations = mockk()
-
-        val identityProvider = LocalDeviceIdentityProvider(db)
         subject = DefaultSyncEngine(
             db = db,
-            remote = remote,
-            localDeviceIdentityProvider = identityProvider,
+            identityBootstrapper = identityBootstrapper,
             drainOutbox = drainOutbox,
             pullRemoteOperations = pullRemoteOperations,
             applyRemoteOperation = applyRemoteOperation,
@@ -147,13 +143,21 @@ class DefaultSyncEngineTest {
     }
 
     private fun stubBootstrap() {
-        coEvery { remote.ensureAnonymousSession() } returns Unit
-        coEvery { remote.bootstrapAnonymousDevice(any(), any(), any()) } returns SyncBootstrapResponse(
-            appAccountId = accountId,
-            appDeviceId = "device-1",
-            authUserId = "auth-1",
-            created = false,
+        db.localFirstQueries.upsertLocalDeviceIdentity(
+            deviceId = "device-1",
+            installId = "install-1",
+            lamportCounter = 0L,
+            createdAt = 1L,
+            updatedAt = 1L,
         )
+        db.localFirstQueries.upsertLocalAccountState(
+            appAccountId = accountId,
+            authUserId = "auth-1",
+            pairingState = "Paired",
+            createdAt = 1L,
+            updatedAt = 1L,
+        )
+        coEvery { identityBootstrapper.ensureIdentityReady() } returns Unit
     }
 
     private fun remoteOperation(

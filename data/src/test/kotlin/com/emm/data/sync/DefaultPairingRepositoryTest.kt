@@ -23,6 +23,7 @@ class DefaultPairingRepositoryTest {
     private lateinit var db: HelloDb
     private lateinit var remote: SupabaseSyncRemoteDataSource
     private lateinit var dataStore: DataStore
+    private lateinit var identityBootstrapper: IdentityBootstrapper
     private lateinit var subject: DefaultPairingRepository
 
     @Before
@@ -32,9 +33,11 @@ class DefaultPairingRepositoryTest {
         db = HelloDb(driver)
         remote = mockk()
         dataStore = mockk()
+        identityBootstrapper = mockk()
         every { dataStore.clearDefaultDeck() } just runs
 
         subject = DefaultPairingRepository(
+            identityBootstrapper = identityBootstrapper,
             remote = remote,
             localDeviceIdentityProvider = LocalDeviceIdentityProvider(db),
             db = db,

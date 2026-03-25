@@ -23,6 +23,9 @@ import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.core.mvi.MviViewModel
+import com.emm.hello.logging.logError
+import com.emm.hello.logging.logInfo
+import com.emm.hello.logging.logWarn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -216,8 +219,10 @@ class NewCardViewModel(
 
     private fun generateFlashcard() = viewModelScope.launch {
         val current = mutableState.value
+        logInfo(TAG, "generateFlashcard:start typeView=${current.typeView} deckId=${current.deckSelected?.id.orEmpty()}")
         val inputValidation = validateInputUseCase(current.toGenerationInput())
         if (!inputValidation.isValid) {
+            logWarn(TAG, "generateFlashcard:invalid_input firstError=${inputValidation.errors.firstOrNull()?.message.orEmpty()}")
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -253,6 +258,10 @@ class NewCardViewModel(
             )
         }.onSuccess { preview ->
             val previewValidation = validateGeneratedLearningNoteUseCase(preview)
+            logInfo(
+                TAG,
+                "generateFlashcard:success noteId=${preview.noteId} cards=${preview.cards.size} errors=${previewValidation.errors.size} warnings=${previewValidation.warnings.size}"
+            )
             mutableState.update {
                 it.copy(
                     learningNotePreview = preview,
@@ -266,6 +275,7 @@ class NewCardViewModel(
                 )
             }
         }.onFailure { e ->
+            logError(TAG, "generateFlashcard:error ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -285,6 +295,7 @@ class NewCardViewModel(
     private fun regenerateExample() = viewModelScope.launch {
         val current = mutableState.value
         val preview = current.learningNotePreview ?: return@launch
+        logInfo(TAG, "regenerateExample:start noteId=${preview.noteId}")
         mutableState.update {
             it.copy(
                 isLoading = true,
@@ -298,6 +309,7 @@ class NewCardViewModel(
                 note = preview,
             )
         }.onSuccess { example ->
+            logInfo(TAG, "regenerateExample:success noteId=${preview.noteId}")
             applyUpdatedPreview(
                 preview.copy(
                     exampleSentence = example.sentence,
@@ -305,6 +317,7 @@ class NewCardViewModel(
                 )
             )
         }.onFailure { e ->
+            logError(TAG, "regenerateExample:error ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -321,6 +334,7 @@ class NewCardViewModel(
     private fun regenerateCloze() = viewModelScope.launch {
         val current = mutableState.value
         val preview = current.learningNotePreview ?: return@launch
+        logInfo(TAG, "regenerateCloze:start noteId=${preview.noteId}")
         mutableState.update {
             it.copy(
                 isLoading = true,
@@ -334,8 +348,10 @@ class NewCardViewModel(
                 note = preview,
             )
         }.onSuccess { cloze ->
+            logInfo(TAG, "regenerateCloze:success noteId=${preview.noteId}")
             applyUpdatedPreview(preview.copy(clozeSentence = cloze))
         }.onFailure { e ->
+            logError(TAG, "regenerateCloze:error ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -352,6 +368,7 @@ class NewCardViewModel(
     private fun regenerateCard(cardId: String) = viewModelScope.launch {
         val current = mutableState.value
         val preview = current.learningNotePreview ?: return@launch
+        logInfo(TAG, "regenerateCard:start noteId=${preview.noteId} cardId=$cardId")
         mutableState.update {
             it.copy(
                 isLoading = true,
@@ -366,6 +383,7 @@ class NewCardViewModel(
                 cardId = cardId,
             )
         }.onSuccess { regeneratedCard ->
+            logInfo(TAG, "regenerateCard:success noteId=${preview.noteId} cardId=$cardId")
             applyUpdatedPreview(
                 preview.copy(
                     cards = preview.cards.map { card ->
@@ -374,6 +392,7 @@ class NewCardViewModel(
                 )
             )
         }.onFailure { e ->
+            logError(TAG, "regenerateCard:error cardId=$cardId ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -391,6 +410,7 @@ class NewCardViewModel(
         val regenerableField = field.toRegenerableFieldOrNull() ?: return@launch
         val current = mutableState.value
         val preview = current.learningNotePreview ?: return@launch
+        logInfo(TAG, "regenerateField:start noteId=${preview.noteId} field=$field")
         mutableState.update {
             it.copy(
                 isLoading = true,
@@ -405,6 +425,7 @@ class NewCardViewModel(
                 field = regenerableField,
             )
         }.onSuccess { value ->
+            logInfo(TAG, "regenerateField:success noteId=${preview.noteId} field=$field")
             val updatedPreview = when (field) {
                 EditableLearningNoteField.WhyUseful -> preview.copy(whyUseful = value)
                 EditableLearningNoteField.UsagePattern -> preview.copy(usagePattern = value)
@@ -413,6 +434,7 @@ class NewCardViewModel(
             }
             applyUpdatedPreview(updatedPreview)
         }.onFailure { e ->
+            logError(TAG, "regenerateField:error field=$field ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -433,6 +455,10 @@ class NewCardViewModel(
 
     private fun applyUpdatedPreview(updatedPreview: GeneratedLearningNote) {
         val previewValidation = validateGeneratedLearningNoteUseCase(updatedPreview)
+        logInfo(
+            TAG,
+            "applyUpdatedPreview noteId=${updatedPreview.noteId} cards=${updatedPreview.cards.size} errors=${previewValidation.errors.size} warnings=${previewValidation.warnings.size}"
+        )
         mutableState.update {
             it.copy(
                 learningNotePreview = updatedPreview,
@@ -453,8 +479,10 @@ class NewCardViewModel(
         val deckId = current.deckSelected?.id ?: return@launch
         val learningNotePreview = current.learningNotePreview
         if (learningNotePreview == null) return@launch
+        logInfo(TAG, "saveFlashcard:start deckId=$deckId noteId=${learningNotePreview.noteId}")
         val previewValidation = validateGeneratedLearningNoteUseCase(learningNotePreview)
         if (!previewValidation.isValid) {
+            logWarn(TAG, "saveFlashcard:blocked_invalid_preview firstError=${previewValidation.errors.firstOrNull()?.message.orEmpty()}")
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -479,6 +507,7 @@ class NewCardViewModel(
                 learningNote = learningNotePreview,
             )
         }.onSuccess {
+            logInfo(TAG, "saveFlashcard:success deckId=$deckId noteId=${learningNotePreview.noteId}")
             mutableState.update {
                 it.copy(
                     word = "",
@@ -497,6 +526,7 @@ class NewCardViewModel(
             }
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
         }.onFailure { e ->
+            logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -581,6 +611,8 @@ class NewCardViewModel(
         }
     }
 }
+
+private const val TAG = "NewCardViewModel"
 
 private fun EditableLearningNoteField.toRegenerableFieldOrNull(): RegenerableNoteField? {
     return when (this) {

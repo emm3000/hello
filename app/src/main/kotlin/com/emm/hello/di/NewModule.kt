@@ -21,6 +21,7 @@ import com.emm.data.sync.DefaultPendingOperationsRepository
 import com.emm.data.sync.DefaultSyncDebugStateRepository
 import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
+import com.emm.data.sync.IdentityBootstrapper
 import com.emm.data.sync.PullRemoteOperations
 import com.emm.data.sync.syncDataModule
 import com.emm.domain.deck.CreateDeckUseCase
@@ -67,6 +68,8 @@ import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.startup.AppStartupCoordinator
+import com.emm.hello.startup.AppStartupViewModel
 import com.emm.hello.sync.PendingOperationsSyncScheduler
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -109,6 +112,7 @@ fun Module.repository() {
     factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
     factoryOf(::DefaultPairingRepository) bind PairingRepository::class
     factoryOf(::DefaultPendingOperationsRepository) bind PendingOperationsRepository::class
+    factoryOf(::IdentityBootstrapper)
 
     factoryOf(::DrainOutbox)
     factoryOf(::PullRemoteOperations)
@@ -119,6 +123,7 @@ fun Module.repository() {
     factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
     single { PendingOperationsSyncScheduler(androidContext(), get()) }
+    single { AppStartupCoordinator(androidContext(), get(), get()) }
 }
 
 fun Module.useCases() {
@@ -150,12 +155,8 @@ fun Module.useCases() {
 }
 
 fun Module.viewModels() {
-    viewModel {
-        NewDeckViewModel(
-            createDeckUseCase = get(),
-            ensureLinkedIdentityUseCase = get(),
-        )
-    }
+    viewModelOf(::AppStartupViewModel)
+    viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::PairingViewModel)
     viewModel {

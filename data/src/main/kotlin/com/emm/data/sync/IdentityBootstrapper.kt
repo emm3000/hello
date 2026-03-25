@@ -5,68 +5,37 @@ import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.logging.logInfo
 import com.emm.data.remote.DataStore
-import com.emm.domain.sync.LinkedDevice
-import com.emm.domain.sync.PairingRepository
-import com.emm.domain.sync.PairingSession
 import java.time.Instant
 
-class DefaultPairingRepository(
-    private val identityBootstrapper: IdentityBootstrapper,
+class IdentityBootstrapper(
     private val remote: SupabaseSyncRemoteDataSource,
     private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
     private val db: HelloDb,
     private val dataStore: DataStore,
-) : PairingRepository {
+) {
 
-    override suspend fun ensureLinkedIdentity() {
-        identityBootstrapper.ensureIdentityReady()
-    }
-
-    override suspend fun createPairingSession(ttlMinutes: Int): PairingSession {
-        logInfo(TAG, "createPairingSession:start ttlMinutes=$ttlMinutes")
-        val session = remote.createPairingSession(ttlMinutes = ttlMinutes)
-        logInfo(TAG, "createPairingSession:success expiresAt=${session.expiresAt}")
-        return PairingSession(
-            code = session.code,
-            expiresAt = session.expiresAt,
-        )
-    }
-
-    override suspend fun redeemPairingCode(code: String) {
-        logInfo(TAG, "redeemPairingCode:start")
+    suspend fun ensureIdentityReady() {
+        logInfo(TAG, "ensureIdentityReady:start")
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
         remote.ensureAnonymousSession()
-        val redeem = remote.redeemPairingCode(
-            code = code,
+        logInfo(TAG, "ensureIdentityReady:session_ready deviceId=$deviceId")
+
+        val bootstrap = remote.bootstrapAnonymousDevice(
             deviceId = deviceId,
             deviceName = Build.MODEL,
             platform = "android",
         )
-        logInfo(TAG, "redeemPairingCode:success deviceId=$deviceId appAccountId=${redeem.appAccountId}")
-        persistLocalAccountState(
-            appAccountId = redeem.appAccountId,
-            authUserId = redeem.authUserId,
-            resetSyncCursor = true,
+        logInfo(
+            TAG,
+            "ensureIdentityReady:bootstrap_success deviceId=$deviceId appAccountId=${bootstrap.appAccountId} created=${bootstrap.created}"
         )
-        logInfo(TAG, "redeemPairingCode:local_state_persisted")
-    }
 
-    override suspend fun listLinkedDevices(): List<LinkedDevice> {
-        return remote.listLinkedDevices().map { device ->
-            LinkedDevice(
-                id = device.id,
-                deviceName = device.deviceName,
-                platform = device.platform,
-                createdAt = device.createdAt,
-                lastSeenAt = device.lastSeenAt,
-                revokedAt = device.revokedAt,
-                isCurrent = device.isCurrent,
-            )
-        }
-    }
-
-    override suspend fun revokeLinkedDevice(deviceId: String, reason: String?): Boolean {
-        return remote.revokeLinkedDevice(deviceId = deviceId, reason = reason)
+        persistLocalAccountState(
+            appAccountId = bootstrap.appAccountId,
+            authUserId = bootstrap.authUserId,
+            resetSyncCursor = false,
+        )
+        logInfo(TAG, "ensureIdentityReady:local_state_persisted")
     }
 
     private fun persistLocalAccountState(
@@ -110,4 +79,4 @@ class DefaultPairingRepository(
     }
 }
 
-private const val TAG = "PairingRepo"
+private const val TAG = "IdentityBootstrap"

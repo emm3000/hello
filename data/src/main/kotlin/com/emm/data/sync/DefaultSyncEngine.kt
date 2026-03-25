@@ -3,7 +3,8 @@ package com.emm.data.sync
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.currentAppAccountIdOrNull
 import com.emm.data.localfirst.requireCurrentAppAccountId
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
+import com.emm.data.logging.logError
+import com.emm.data.logging.logInfo
 import com.emm.domain.sync.SyncEngine
 import com.emm.domain.sync.SyncState
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +16,7 @@ import java.time.Instant
 
 class DefaultSyncEngine(
     private val db: HelloDb,
-    private val remote: SupabaseSyncRemoteDataSource,
-    private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
+    private val identityBootstrapper: IdentityBootstrapper,
     private val drainOutbox: DrainOutbox,
     private val pullRemoteOperations: PullRemoteOperations,
     private val applyRemoteOperation: ApplyRemoteOperation,
@@ -31,6 +31,7 @@ class DefaultSyncEngine(
     override suspend fun runOnce() {
         withContext(Dispatchers.IO) {
             val now = Instant.now().toEpochMilli()
+            logInfo(TAG, "runOnce:start")
             mutableState.value = mutableState.value.copy(
                 isRunning = true,
                 pendingOperations = pendingCount(),
@@ -38,17 +39,20 @@ class DefaultSyncEngine(
             )
 
             try {
-                val localDeviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-                remote.ensureAnonymousSession()
-                val bootstrap = remote.bootstrapAnonymousDevice(deviceId = localDeviceId)
-                persistLocalAccountState(
-                    appAccountId = bootstrap.appAccountId,
-                    authUserId = bootstrap.authUserId,
-                    updatedAt = now,
-                )
+                identityBootstrapper.ensureIdentityReady()
+                val localDeviceId = db.localFirstQueries
+                    .selectLocalDeviceIdentity()
+                    .executeAsOneOrNull()
+                    ?.deviceId
+                    .orEmpty()
+                logInfo(TAG, "runOnce:identity_ready deviceId=$localDeviceId")
 
+                logInfo(TAG, "runOnce:drain_outbox:start")
                 drainOutbox()
+                logInfo(TAG, "runOnce:drain_outbox:done pendingAfterDrain=${pendingCount()}")
+                logInfo(TAG, "runOnce:pull_apply_ack:start")
                 pullApplyAndAck(localDeviceId = localDeviceId, now = now)
+                logInfo(TAG, "runOnce:pull_apply_ack:done")
 
                 mutableState.value = mutableState.value.copy(
                     isRunning = false,
@@ -56,7 +60,9 @@ class DefaultSyncEngine(
                     lastSuccessfulSyncAt = now,
                     lastSyncError = null,
                 )
+                logInfo(TAG, "runOnce:success pending=${mutableState.value.pendingOperations}")
             } catch (e: Exception) {
+                logError(TAG, "runOnce:error ${e.message}", e)
                 db.currentAppAccountIdOrNull()?.let { appAccountId ->
                     val checkpoint = localFirstQueries.selectSyncCheckpoint(appAccountId).executeAsOneOrNull()
                     localFirstQueries.upsertSyncCheckpoint(
@@ -86,12 +92,20 @@ class DefaultSyncEngine(
         var keepPulling = true
         while (keepPulling) {
             val pulledResult = pullRemoteOperations(limit = PullRemoteOperations.DEFAULT_PULL_BATCH_SIZE)
+            logInfo(
+                TAG,
+                "pullApplyAndAck:batch pulled=${pulledResult.operations.size} cursor=${pulledResult.currentCursor}"
+            )
 
             if (pulledResult.operations.isEmpty()) {
                 saveCheckpoint(cursor = pulledResult.currentCursor, now = now)
                 keepPulling = false
             } else {
                 val batchResult = applyBatch(pulledResult, localDeviceId, now)
+                logInfo(
+                    TAG,
+                    "pullApplyAndAck:apply_result acked=${batchResult.ackedOpIds.size} deferredCursor=${batchResult.firstDeferredCursor} maxCursor=${batchResult.maxCursor}"
+                )
                 ackOperations(batchResult.ackedOpIds.distinct())
                 saveCheckpoint(cursor = batchResult.maxCursor, now = now)
                 // Stop pagination if a deferred op was encountered to avoid a re-fetch loop
@@ -174,17 +188,6 @@ class DefaultSyncEngine(
         )
     }
 
-    private fun persistLocalAccountState(appAccountId: String, authUserId: String, updatedAt: Long) {
-        val current = localFirstQueries.selectLocalAccountState().executeAsOneOrNull()
-        localFirstQueries.upsertLocalAccountState(
-            appAccountId = appAccountId,
-            authUserId = authUserId,
-            pairingState = "Paired",
-            createdAt = current?.createdAt ?: updatedAt,
-            updatedAt = updatedAt,
-        )
-    }
-
     private fun pendingCount(): Long {
         val appAccountId = db.currentAppAccountIdOrNull() ?: return 0L
         return localFirstQueries
@@ -192,6 +195,8 @@ class DefaultSyncEngine(
             .executeAsOne()
     }
 }
+
+private const val TAG = "SyncEngine"
 
 private data class BatchResult(
     val ackedOpIds: List<String>,

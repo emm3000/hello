@@ -4,8 +4,7 @@ import android.app.Application
 import com.emm.hello.di.networkModule
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
-import com.emm.hello.sync.PendingOperationsSyncScheduler
-import com.emm.hello.sync.Sync
+import com.emm.hello.startup.AppStartupCoordinator
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
@@ -24,12 +23,6 @@ class App : Application() {
                 networkModule,
             )
         }
-        Sync.initialize(this)
-        GlobalContext.get().get<PendingOperationsSyncScheduler>().start()
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        GlobalContext.get().get<PendingOperationsSyncScheduler>().stop()
+        GlobalContext.get().get<AppStartupCoordinator>().start()
     }
 }
