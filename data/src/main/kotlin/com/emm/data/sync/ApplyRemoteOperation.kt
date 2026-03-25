@@ -9,6 +9,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import java.time.Instant
 
+@Suppress("LargeClass")
 class ApplyRemoteOperation(
     private val db: HelloDb,
 ) {
@@ -82,15 +83,13 @@ class ApplyRemoteOperation(
 
         val payload = operation.payload
         val operationType = operation.operationType.lowercase()
-        val deckId = payload.stringAny("deckId", "deck_id") ?: existing?.deckId
-        val word = payload.stringAny("word")
-        val meaning = payload.stringAny("meaning")
+        val seed = extractFlashcardSeed(payload, existing)
 
         val deferredReason = missingFlashcardReason(
-            deckId = deckId,
+            deckId = seed.deckId,
             operationType = operationType,
-            word = word,
-            meaning = meaning,
+            word = seed.word,
+            meaning = seed.meaning,
         )
         if (deferredReason != null) {
             return ApplyRemoteOperationResult.Deferred(reason = deferredReason)
@@ -100,14 +99,45 @@ class ApplyRemoteOperation(
             existing = existing,
             payload = payload,
             operationType = operationType,
-            word = word,
-            meaning = meaning,
+            word = seed.word,
+            meaning = seed.meaning,
             operationCreatedAt = parseIsoToEpoch(operation.createdAt) ?: Instant.now().toEpochMilli(),
         )
 
+        upsertResolvedFlashcard(
+            entityId = operation.entityId,
+            deckId = checkNotNull(seed.deckId),
+            values = values,
+            originDeviceId = existing?.originDeviceId ?: originDeviceId,
+            lastModifiedByDeviceId = originDeviceId,
+            versionLamport = operation.lamport,
+        )
+
+        return ApplyRemoteOperationResult.Applied
+    }
+
+    private fun extractFlashcardSeed(
+        payload: JsonObject,
+        existing: com.emm.data.Flashcard?,
+    ): FlashcardSeed {
+        return FlashcardSeed(
+            deckId = payload.stringAny("deckId", "deck_id") ?: existing?.deckId,
+            word = payload.stringAny("word"),
+            meaning = payload.stringAny("meaning"),
+        )
+    }
+
+    private fun upsertResolvedFlashcard(
+        entityId: String,
+        deckId: String,
+        values: FlashcardValues,
+        originDeviceId: String,
+        lastModifiedByDeviceId: String,
+        versionLamport: Long,
+    ) {
         flashcardQueries.create(
-            id = operation.entityId,
-            deckId = checkNotNull(deckId), // guaranteed non-null by missingFlashcardReason guard above
+            id = entityId,
+            deckId = deckId,
             word = values.word,
             meaning = values.meaning,
             translation = values.translation,
@@ -115,15 +145,28 @@ class ApplyRemoteOperation(
             partOfSpeech = values.partOfSpeech,
             type = values.type,
             note = values.note,
+            register = values.register,
+            levelBand = values.levelBand,
+            domain = values.domain,
+            lemma = values.lemma,
+            whyUseful = values.whyUseful,
+            usagePattern = values.usagePattern,
+            irregularFormsJson = values.irregularFormsJson,
+            collocationsJson = values.collocationsJson,
+            commonMistake = values.commonMistake,
+            confusableWithJson = values.confusableWithJson,
+            clozeSentence = values.clozeSentence,
+            sourceContext = values.sourceContext,
+            warningsJson = values.warningsJson,
+            studyCardsJson = values.studyCardsJson,
+            qualityChecksJson = values.qualityChecksJson,
             createdAt = values.createdAt,
             updatedAt = values.updatedAt,
             deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: originDeviceId,
-            lastModifiedByDeviceId = originDeviceId,
-            versionLamport = operation.lamport,
+            originDeviceId = originDeviceId,
+            lastModifiedByDeviceId = lastModifiedByDeviceId,
+            versionLamport = versionLamport,
         )
-
-        return ApplyRemoteOperationResult.Applied
     }
 
     private fun applyFlashcardExample(
@@ -383,6 +426,7 @@ class ApplyRemoteOperation(
             ?: operationCreatedAt
         val updatedAt = payload.epochAny("updatedAt", "updated_at") ?: operationCreatedAt
         val deletedAt = resolveDeletedAt(payload, operationType, updatedAt)
+        val richFields = resolveFlashcardRichFields(existing, payload)
 
         return FlashcardValues(
             word = resolveDeletedOrIncoming(operationType, existing?.word, word),
@@ -392,9 +436,66 @@ class ApplyRemoteOperation(
             partOfSpeech = payload.stringAny("partOfSpeech", "part_of_speech") ?: existing?.partOfSpeech,
             type = payload.stringAny("type") ?: existing?.type,
             note = payload.stringAny("note") ?: existing?.note,
+            register = richFields.register,
+            levelBand = richFields.levelBand,
+            domain = richFields.domain,
+            lemma = richFields.lemma,
+            whyUseful = richFields.whyUseful,
+            usagePattern = richFields.usagePattern,
+            irregularFormsJson = richFields.irregularFormsJson,
+            collocationsJson = richFields.collocationsJson,
+            commonMistake = richFields.commonMistake,
+            confusableWithJson = richFields.confusableWithJson,
+            clozeSentence = richFields.clozeSentence,
+            sourceContext = richFields.sourceContext,
+            warningsJson = richFields.warningsJson,
+            studyCardsJson = richFields.studyCardsJson,
+            qualityChecksJson = richFields.qualityChecksJson,
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
+        )
+    }
+
+    private fun resolveFlashcardRichFields(
+        existing: com.emm.data.Flashcard?,
+        payload: JsonObject,
+    ): FlashcardRichFields {
+        val jsonFields = resolveFlashcardJsonFields(existing, payload)
+        return FlashcardRichFields(
+            register = payload.stringAny("register") ?: existing?.register,
+            levelBand = payload.stringAny("levelBand", "level_band") ?: existing?.levelBand,
+            domain = payload.stringAny("domain") ?: existing?.domain,
+            lemma = payload.stringAny("lemma") ?: existing?.lemma,
+            whyUseful = payload.stringAny("whyUseful", "why_useful") ?: existing?.whyUseful,
+            usagePattern = payload.stringAny("usagePattern", "usage_pattern") ?: existing?.usagePattern,
+            irregularFormsJson = jsonFields.irregularFormsJson,
+            collocationsJson = jsonFields.collocationsJson,
+            commonMistake = payload.stringAny("commonMistake", "common_mistake") ?: existing?.commonMistake,
+            confusableWithJson = jsonFields.confusableWithJson,
+            clozeSentence = payload.stringAny("clozeSentence", "cloze_sentence") ?: existing?.clozeSentence,
+            sourceContext = payload.stringAny("sourceContext", "source_context") ?: existing?.sourceContext,
+            warningsJson = jsonFields.warningsJson,
+            studyCardsJson = jsonFields.studyCardsJson,
+            qualityChecksJson = jsonFields.qualityChecksJson,
+        )
+    }
+
+    private fun resolveFlashcardJsonFields(
+        existing: com.emm.data.Flashcard?,
+        payload: JsonObject,
+    ): FlashcardJsonFields {
+        return FlashcardJsonFields(
+            irregularFormsJson = payload.stringAny("irregularFormsJson", "irregular_forms_json")
+                ?: existing?.irregularFormsJson,
+            collocationsJson = payload.stringAny("collocationsJson", "collocations_json")
+                ?: existing?.collocationsJson,
+            confusableWithJson = payload.stringAny("confusableWithJson", "confusable_with_json")
+                ?: existing?.confusableWithJson,
+            warningsJson = payload.stringAny("warningsJson", "warnings_json") ?: existing?.warningsJson,
+            studyCardsJson = payload.stringAny("studyCardsJson", "study_cards_json") ?: existing?.studyCardsJson,
+            qualityChecksJson = payload.stringAny("qualityChecksJson", "quality_checks_json")
+                ?: existing?.qualityChecksJson,
         )
     }
 
@@ -596,9 +697,57 @@ private data class FlashcardValues(
     val partOfSpeech: String?,
     val type: String?,
     val note: String?,
+    val register: String?,
+    val levelBand: String?,
+    val domain: String?,
+    val lemma: String?,
+    val whyUseful: String?,
+    val usagePattern: String?,
+    val irregularFormsJson: String?,
+    val collocationsJson: String?,
+    val commonMistake: String?,
+    val confusableWithJson: String?,
+    val clozeSentence: String?,
+    val sourceContext: String?,
+    val warningsJson: String?,
+    val studyCardsJson: String?,
+    val qualityChecksJson: String?,
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,
+)
+
+private data class FlashcardSeed(
+    val deckId: String?,
+    val word: String?,
+    val meaning: String?,
+)
+
+private data class FlashcardRichFields(
+    val register: String?,
+    val levelBand: String?,
+    val domain: String?,
+    val lemma: String?,
+    val whyUseful: String?,
+    val usagePattern: String?,
+    val irregularFormsJson: String?,
+    val collocationsJson: String?,
+    val commonMistake: String?,
+    val confusableWithJson: String?,
+    val clozeSentence: String?,
+    val sourceContext: String?,
+    val warningsJson: String?,
+    val studyCardsJson: String?,
+    val qualityChecksJson: String?,
+)
+
+private data class FlashcardJsonFields(
+    val irregularFormsJson: String?,
+    val collocationsJson: String?,
+    val confusableWithJson: String?,
+    val warningsJson: String?,
+    val studyCardsJson: String?,
+    val qualityChecksJson: String?,
 )
 
 private data class FlashcardExampleValues(

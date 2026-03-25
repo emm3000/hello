@@ -59,25 +59,28 @@ class SoftDeleteVisibilityQueryTest {
     }
 
     private fun seedFlashcards() {
-        db.flashcardQueries.create(
+        insertFlashcard(
             id = "card-active",
-            deckId = "deck-active",
-            word = "word",
-            meaning = "meaning",
-            translation = null,
-            phonetic = null,
-            partOfSpeech = null,
-            type = null,
-            note = null,
             createdAt = 1,
             updatedAt = 1,
             deletedAt = null,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 1,
         )
-        db.flashcardQueries.create(
+        insertFlashcard(
             id = "card-deleted",
+            createdAt = 2,
+            updatedAt = 2,
+            deletedAt = 3,
+        )
+    }
+
+    private fun insertFlashcard(
+        id: String,
+        createdAt: Long,
+        updatedAt: Long,
+        deletedAt: Long?,
+    ) {
+        db.flashcardQueries.create(
+            id = id,
             deckId = "deck-active",
             word = "word",
             meaning = "meaning",
@@ -86,12 +89,27 @@ class SoftDeleteVisibilityQueryTest {
             partOfSpeech = null,
             type = null,
             note = null,
-            createdAt = 2,
-            updatedAt = 2,
-            deletedAt = 3,
+            register = null,
+            levelBand = null,
+            domain = null,
+            lemma = null,
+            whyUseful = null,
+            usagePattern = null,
+            irregularFormsJson = null,
+            collocationsJson = null,
+            commonMistake = null,
+            confusableWithJson = null,
+            clozeSentence = null,
+            sourceContext = null,
+            warningsJson = null,
+            studyCardsJson = null,
+            qualityChecksJson = null,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            deletedAt = deletedAt,
             originDeviceId = "device-1",
             lastModifiedByDeviceId = "device-1",
-            versionLamport = 2,
+            versionLamport = createdAt,
         )
     }
 

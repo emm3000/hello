@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
@@ -186,14 +187,21 @@ fun StudyScreen(
                         onFinished = { prevFlashCard.value = state.currentFlashcard },
                         modifier = Modifier.fillMaxSize(),
                         frontContent = {
+                            val studyCard = flashcard?.activeStudyCard()
                             FlashcardFrontContent(
-                                word = flashcard?.word.orEmpty(),
-                                phonetic = flashcard?.phonetic.orEmpty(),
+                                prompt = studyCard?.prompt ?: flashcard?.word.orEmpty(),
+                                phonetic = if (studyCard == null) {
+                                    flashcard?.phonetic.orEmpty()
+                                } else {
+                                    ""
+                                },
                             )
                         },
                         backContent = {
+                            val currentCard = prevFlashCard.value
                             FlashcardBackContent(
-                                card = prevFlashCard.value,
+                                card = currentCard,
+                                studyCard = currentCard?.activeStudyCard(),
                                 isSpeaking = isSpeaking,
                                 ttsReady = ttsReady,
                                 onStop = { tts.stop() },
@@ -253,7 +261,7 @@ fun StudyScreen(
 
 @Composable
 private fun FlashcardFrontContent(
-    word: String,
+    prompt: String,
     phonetic: String,
 ) {
     Box(
@@ -265,7 +273,7 @@ private fun FlashcardFrontContent(
             modifier = Modifier.padding(24.dp),
         ) {
             Text(
-                text = word,
+                text = prompt,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
@@ -291,11 +299,20 @@ private fun FlashcardFrontContent(
 @Composable
 private fun FlashcardBackContent(
     card: Flashcard?,
+    studyCard: GeneratedStudyCard?,
     isSpeaking: Boolean,
     ttsReady: Boolean,
     onStop: () -> Unit = {},
     onSpeak: () -> Unit = {},
 ) {
+    val primaryText = studyCard?.expectedAnswer ?: card?.translation.orEmpty()
+    val secondaryText = when {
+        studyCard?.hint?.isNotBlank() == true -> studyCard.hint
+        studyCard?.explanation?.isNotBlank() == true -> studyCard.explanation
+        card?.meaning?.isNotBlank() == true -> card.meaning
+        else -> ""
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -305,7 +322,7 @@ private fun FlashcardBackContent(
     ) {
         // ── Translation (primary answer) ────────────────────────────────
         Text(
-            text = card?.translation.orEmpty(),
+            text = primaryText,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
@@ -317,12 +334,14 @@ private fun FlashcardBackContent(
         Spacer(Modifier.height(12.dp))
 
         // ── Meaning (secondary info) ────────────────────────────────────
-        Text(
-            text = card?.meaning.orEmpty(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        if (secondaryText.isNotBlank()) {
+            Text(
+                text = secondaryText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         Spacer(Modifier.height(20.dp))
 
@@ -335,6 +354,10 @@ private fun FlashcardBackContent(
             leadingIcon = Icons.AutoMirrored.Filled.VolumeUp,
         )
     }
+}
+
+private fun Flashcard.activeStudyCard(): GeneratedStudyCard? {
+    return studyCards.firstOrNull { it.isActive }
 }
 
 // ── Answer buttons with icons ────────────────────────────────────────────────

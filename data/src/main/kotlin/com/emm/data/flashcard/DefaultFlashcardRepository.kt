@@ -1,3 +1,5 @@
+@file:Suppress("ImportOrdering")
+
 package com.emm.data.flashcard
 
 import app.cash.sqldelight.coroutines.asFlow
@@ -7,10 +9,13 @@ import com.emm.data.FlashcardQueries
 import com.emm.data.FlashcardWithExamples
 import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.HelloDb
+import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
+import com.emm.data.flashcard.iadto.StoredStudyCardDto
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
 import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerated
@@ -20,9 +25,15 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.GeneratedNoteQualityCheck
+import com.emm.domain.flashcard.GeneratedNoteQualityCode
+import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.StaticCategories
+import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.sync.OperationType
+import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -30,8 +41,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import java.time.Instant
-import java.util.UUID
 
 @LocalFirstWrite
 class DefaultFlashcardRepository(
@@ -50,22 +59,10 @@ class DefaultFlashcardRepository(
         val cardId: String = input.id ?: UUID.randomUUID().toString()
         val now: Long = Instant.now().toEpochMilli()
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+        val artifacts = encodeArtifacts(input)
 
         db.transaction {
-            val payloadJson = buildJsonObject {
-                put("entityId", cardId)
-                put("operationType", OperationType.Create.name)
-                put("deckId", input.deckId)
-                put("word", input.word)
-                put("meaning", input.meaning)
-                put("translation", input.translation)
-                put("phonetic", input.phonetic)
-                put("partOfSpeech", input.partOfSpeech)
-                put("type", input.type)
-                put("note", input.note)
-                put("createdAt", now)
-                put("updatedAt", now)
-            }.toString()
+            val payloadJson = buildCreatePayloadJson(cardId, input, artifacts, now)
             val lamport = operationLogWriter.appendOperation(
                 entityType = "flashcard",
                 entityId = cardId,
@@ -84,6 +81,21 @@ class DefaultFlashcardRepository(
                 partOfSpeech = input.partOfSpeech,
                 type = input.type,
                 note = input.note,
+                register = input.register,
+                levelBand = input.levelBand,
+                domain = input.domain,
+                lemma = input.lemma,
+                whyUseful = input.whyUseful,
+                usagePattern = input.usagePattern,
+                irregularFormsJson = artifacts.irregularFormsJson,
+                collocationsJson = artifacts.collocationsJson,
+                commonMistake = input.commonMistake,
+                confusableWithJson = artifacts.confusableWithJson,
+                clozeSentence = input.clozeSentence,
+                sourceContext = input.sourceContext,
+                warningsJson = artifacts.warningsJson,
+                studyCardsJson = artifacts.studyCardsJson,
+                qualityChecksJson = artifacts.qualityChecksJson,
                 createdAt = now,
                 updatedAt = now,
                 deletedAt = null,
@@ -93,6 +105,54 @@ class DefaultFlashcardRepository(
             )
         }
         return@withContext cardId
+    }
+
+    private fun buildCreatePayloadJson(
+        cardId: String,
+        input: CreateFlashcardInput,
+        artifacts: EncodedFlashcardArtifacts,
+        now: Long,
+    ): String {
+        return buildJsonObject {
+            put("entityId", cardId)
+            put("operationType", OperationType.Create.name)
+            put("deckId", input.deckId)
+            put("word", input.word)
+            put("meaning", input.meaning)
+            put("translation", input.translation)
+            put("phonetic", input.phonetic)
+            put("partOfSpeech", input.partOfSpeech)
+            put("type", input.type)
+            put("note", input.note)
+            put("register", input.register)
+            put("levelBand", input.levelBand)
+            put("domain", input.domain)
+            put("lemma", input.lemma)
+            put("whyUseful", input.whyUseful)
+            put("usagePattern", input.usagePattern)
+            put("irregularFormsJson", artifacts.irregularFormsJson)
+            put("collocationsJson", artifacts.collocationsJson)
+            put("commonMistake", input.commonMistake)
+            put("confusableWithJson", artifacts.confusableWithJson)
+            put("clozeSentence", input.clozeSentence)
+            put("sourceContext", input.sourceContext)
+            put("warningsJson", artifacts.warningsJson)
+            put("studyCardsJson", artifacts.studyCardsJson)
+            put("qualityChecksJson", artifacts.qualityChecksJson)
+            put("createdAt", now)
+            put("updatedAt", now)
+        }.toString()
+    }
+
+    private fun encodeArtifacts(input: CreateFlashcardInput): EncodedFlashcardArtifacts {
+        return EncodedFlashcardArtifacts(
+            irregularFormsJson = json.encodeToString(input.irregularForms),
+            collocationsJson = json.encodeToString(input.collocations),
+            confusableWithJson = json.encodeToString(input.confusableWith),
+            warningsJson = json.encodeToString(input.warnings),
+            studyCardsJson = json.encodeToString(input.studyCards.toStoredStudyCardDtos()),
+            qualityChecksJson = json.encodeToString(input.qualityChecks.toStoredQualityCheckDtos()),
+        )
     }
 
     override suspend fun upsertExamples(
@@ -167,13 +227,13 @@ class DefaultFlashcardRepository(
         .all()
         .asFlow()
         .mapToList(Dispatchers.IO)
-        .map(List<FlashcardEntity>::toDomain)
+        .map { entities -> entities.map(::toDomainSummary) }
 
     override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = dao
         .selectByDeck(deckId)
         .asFlow()
         .mapToList(Dispatchers.IO)
-        .map(List<FlashcardEntity>::toDomain)
+        .map { entities -> entities.map(::toDomainSummary) }
 
     override suspend fun fetchById(id: String): Flashcard = withContext(Dispatchers.IO) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
@@ -184,18 +244,7 @@ class DefaultFlashcardRepository(
             ?: throw NoSuchElementException("Flashcard not found")
 
         val examples: List<Example> = flashcardEntities.mapNotNull(::toExampleOrNull)
-        Flashcard(
-            id = first.id,
-            word = first.word,
-            meaning = first.meaning,
-            translation = first.translation.orEmpty(),
-            phonetic = first.phonetic.orEmpty(),
-            examples = examples,
-            review = FlashcardReview.Empty,
-            partOfSpeech = first.partOfSpeech.orEmpty(),
-            type = first.type.orEmpty(),
-            note = first.note.orEmpty(),
-        )
+        toDomainDetail(first, examples)
     }
 
     override suspend fun sessionToday(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
@@ -206,18 +255,7 @@ class DefaultFlashcardRepository(
 
         flashcardsToReviewByDeck.map {
             val review: FlashcardReview = mapFlashcardReview(it)
-            Flashcard(
-                id = it.id,
-                word = it.word,
-                meaning = it.meaning,
-                translation = it.translation.orEmpty(),
-                phonetic = it.phonetic.orEmpty(),
-                examples = emptyList(),
-                review = review,
-                partOfSpeech = it.partOfSpeech.orEmpty(),
-                type = it.type.orEmpty(),
-                note = it.note.orEmpty(),
-            )
+            toDomainSummary(it, review)
         }
     }
 
@@ -226,22 +264,219 @@ class DefaultFlashcardRepository(
             .mapToList(Dispatchers.IO)
             .map { list ->
                 list.map {
-                    Flashcard(
-                        id = it.id,
-                        word = it.word,
-                        meaning = it.meaning,
-                        translation = it.translation.orEmpty(),
-                        phonetic = it.phonetic.orEmpty(),
-                        examples = emptyList(),
+                    toDomainSummary(
+                        entity = it,
                         review = FlashcardReview.Empty.copy(
                             nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli()
                         ),
-                        partOfSpeech = it.partOfSpeech.orEmpty(),
-                        type = it.type.orEmpty(),
-                        note = it.note.orEmpty(),
                     )
                 }
             }
+    }
+
+    private fun toDomainSummary(
+        entity: FlashcardEntity,
+        review: FlashcardReview = FlashcardReview.Empty,
+    ): Flashcard {
+        return Flashcard(
+            id = entity.id,
+            word = entity.word,
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            phonetic = entity.phonetic.orEmpty(),
+            examples = emptyList(),
+            review = review,
+            partOfSpeech = entity.partOfSpeech.orEmpty(),
+            type = entity.type.orEmpty(),
+            note = entity.note.orEmpty(),
+            register = entity.register.orEmpty(),
+            levelBand = entity.levelBand.orEmpty(),
+            domain = entity.domain.orEmpty(),
+            lemma = entity.lemma.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            usagePattern = entity.usagePattern.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+            collocations = decodeStringList(entity.collocationsJson),
+            commonMistake = entity.commonMistake.orEmpty(),
+            confusableWith = decodeStringList(entity.confusableWithJson),
+            clozeSentence = entity.clozeSentence.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            warnings = decodeStringList(entity.warningsJson),
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
+        )
+    }
+
+    private fun toDomainSummary(
+        entity: FlashcardsToReviewByDeck,
+        review: FlashcardReview,
+    ): Flashcard {
+        return Flashcard(
+            id = entity.id,
+            word = entity.word,
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            phonetic = entity.phonetic.orEmpty(),
+            examples = emptyList(),
+            review = review,
+            partOfSpeech = entity.partOfSpeech.orEmpty(),
+            type = entity.type.orEmpty(),
+            note = entity.note.orEmpty(),
+            register = entity.register.orEmpty(),
+            levelBand = entity.levelBand.orEmpty(),
+            domain = entity.domain.orEmpty(),
+            lemma = entity.lemma.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            usagePattern = entity.usagePattern.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+            collocations = decodeStringList(entity.collocationsJson),
+            commonMistake = entity.commonMistake.orEmpty(),
+            confusableWith = decodeStringList(entity.confusableWithJson),
+            clozeSentence = entity.clozeSentence.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            warnings = decodeStringList(entity.warningsJson),
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
+        )
+    }
+
+    private fun toDomainSummary(
+        entity: com.emm.data.FlashcardsWithReview,
+        review: FlashcardReview,
+    ): Flashcard {
+        return Flashcard(
+            id = entity.id,
+            word = entity.word,
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            phonetic = entity.phonetic.orEmpty(),
+            examples = emptyList(),
+            review = review,
+            partOfSpeech = entity.partOfSpeech.orEmpty(),
+            type = entity.type.orEmpty(),
+            note = entity.note.orEmpty(),
+            register = entity.register.orEmpty(),
+            levelBand = entity.levelBand.orEmpty(),
+            domain = entity.domain.orEmpty(),
+            lemma = entity.lemma.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            usagePattern = entity.usagePattern.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+            collocations = decodeStringList(entity.collocationsJson),
+            commonMistake = entity.commonMistake.orEmpty(),
+            confusableWith = decodeStringList(entity.confusableWithJson),
+            clozeSentence = entity.clozeSentence.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            warnings = decodeStringList(entity.warningsJson),
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
+        )
+    }
+
+    private fun toDomainDetail(
+        entity: FlashcardWithExamples,
+        examples: List<Example>,
+    ): Flashcard {
+        return Flashcard(
+            id = entity.id,
+            word = entity.word,
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            phonetic = entity.phonetic.orEmpty(),
+            examples = examples,
+            review = FlashcardReview.Empty,
+            partOfSpeech = entity.partOfSpeech.orEmpty(),
+            type = entity.type.orEmpty(),
+            note = entity.note.orEmpty(),
+            register = entity.register.orEmpty(),
+            levelBand = entity.levelBand.orEmpty(),
+            domain = entity.domain.orEmpty(),
+            lemma = entity.lemma.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            usagePattern = entity.usagePattern.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+            collocations = decodeStringList(entity.collocationsJson),
+            commonMistake = entity.commonMistake.orEmpty(),
+            confusableWith = decodeStringList(entity.confusableWithJson),
+            clozeSentence = entity.clozeSentence.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            warnings = decodeStringList(entity.warningsJson),
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
+        )
+    }
+
+    private fun decodeStringList(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return runCatching { json.decodeFromString<List<String>>(raw) }.getOrDefault(emptyList())
+    }
+
+    private fun decodeStudyCards(raw: String?): List<GeneratedStudyCard> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return runCatching {
+            json.decodeFromString<List<StoredStudyCardDto>>(raw).map { dto -> dto.toDomain() }
+        }.getOrDefault(emptyList())
+    }
+
+    private fun decodeQualityChecks(raw: String?): List<GeneratedNoteQualityCheck> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return runCatching {
+            json.decodeFromString<List<StoredNoteQualityCheckDto>>(raw).map { dto -> dto.toDomain() }
+        }.getOrDefault(emptyList())
+    }
+
+    private fun List<GeneratedStudyCard>.toStoredStudyCardDtos(): List<StoredStudyCardDto> {
+        return map { card ->
+            StoredStudyCardDto(
+                cardId = card.cardId,
+                cardType = card.cardType.name,
+                prompt = card.prompt,
+                expectedAnswer = card.expectedAnswer,
+                evaluationMode = card.evaluationMode.name,
+                isActive = card.isActive,
+                acceptedAnswers = card.acceptedAnswers,
+                hint = card.hint,
+                explanation = card.explanation,
+                sourceField = card.sourceField,
+            )
+        }
+    }
+
+    private fun List<GeneratedNoteQualityCheck>.toStoredQualityCheckDtos(): List<StoredNoteQualityCheckDto> {
+        return map { check ->
+            StoredNoteQualityCheckDto(
+                code = check.code.name,
+                passed = check.passed,
+                message = check.message,
+            )
+        }
+    }
+
+    private fun StoredStudyCardDto.toDomain(): GeneratedStudyCard {
+        return GeneratedStudyCard(
+            cardId = cardId,
+            cardType = enumValueOrDefault(cardType, StudyCardType.Recognition),
+            prompt = prompt,
+            expectedAnswer = expectedAnswer,
+            evaluationMode = enumValueOrDefault(evaluationMode, EvaluationMode.ManualSelfCheck),
+            isActive = isActive,
+            acceptedAnswers = acceptedAnswers,
+            hint = hint,
+            explanation = explanation,
+            sourceField = sourceField,
+        )
+    }
+
+    private fun StoredNoteQualityCheckDto.toDomain(): GeneratedNoteQualityCheck {
+        return GeneratedNoteQualityCheck(
+            code = enumValueOrDefault(code, GeneratedNoteQualityCode.RequiredFieldsPresent),
+            passed = passed,
+            message = message,
+        )
+    }
+
+    private inline fun <reified T : Enum<T>> enumValueOrDefault(value: String, default: T): T {
+        return runCatching { enumValueOf<T>(value) }.getOrDefault(default)
     }
 
     private fun toExampleOrNull(item: FlashcardWithExamples): Example? {
@@ -286,3 +521,12 @@ class DefaultFlashcardRepository(
         )
     }
 }
+
+private data class EncodedFlashcardArtifacts(
+    val irregularFormsJson: String,
+    val collocationsJson: String,
+    val confusableWithJson: String,
+    val warningsJson: String,
+    val studyCardsJson: String,
+    val qualityChecksJson: String,
+)

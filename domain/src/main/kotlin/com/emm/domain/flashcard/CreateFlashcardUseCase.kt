@@ -54,6 +54,21 @@ class CreateFlashcardUseCase(
             partOfSpeech = partOfSpeech.name,
             type = noteType.name,
             note = buildNoteSummary(),
+            register = register.name,
+            levelBand = levelBand.name,
+            domain = domain.name,
+            lemma = lemma,
+            whyUseful = whyUseful,
+            usagePattern = usagePattern,
+            irregularForms = irregularForms,
+            collocations = collocations,
+            commonMistake = commonMistake,
+            confusableWith = confusableWith,
+            clozeSentence = clozeSentence,
+            sourceContext = sourceContext,
+            warnings = warnings,
+            studyCards = cards,
+            qualityChecks = qualityChecks,
         )
     }
 

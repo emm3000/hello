@@ -126,38 +126,218 @@ fun FlashcardDetailScreen(
                     DetailItem(label = stringResource(R.string.translation_label), value = flashcard.translation)
                     Spacer(Modifier.height(12.dp))
                     DetailItem(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
-
-                    if (flashcard.note.isNotBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        HSeparator()
-                        Spacer(Modifier.height(12.dp))
-                        DetailItem(label = stringResource(R.string.notes_label), value = flashcard.note)
-                    }
-
-                    if (flashcard.examples.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        HSeparator()
-                        Spacer(Modifier.height(12.dp))
-
-                        Text(
-                            text = stringResource(R.string.examples_label),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Spacer(Modifier.height(8.dp))
-
-                        flashcard.examples.forEachIndexed { index, example ->
-                            key(example.exampleId) {
-                                ExampleItem(index = index + 1, example = example)
-                                if (index < flashcard.examples.lastIndex) {
-                                    Spacer(Modifier.height(4.dp))
-                                }
-                            }
-                        }
-                    }
+                    FlashcardRichSections(flashcard)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FlashcardRichSections(flashcard: Flashcard) {
+    OptionalDetailSection(
+        label = stringResource(R.string.notes_label),
+        value = flashcard.note,
+    )
+    OptionalDetailSection(
+        label = stringResource(R.string.why_useful_label),
+        value = flashcard.whyUseful,
+    )
+    OptionalDetailSection(
+        label = stringResource(R.string.usage_pattern_label),
+        value = flashcard.usagePattern,
+    )
+    OptionalDetailSection(
+        label = stringResource(R.string.common_mistake_label),
+        value = flashcard.commonMistake,
+    )
+    LearningMetadataSection(flashcard)
+    RichListSection(
+        title = stringResource(R.string.collocations_label),
+        values = flashcard.collocations,
+    )
+    RichListSection(
+        title = stringResource(R.string.irregular_forms_label),
+        values = flashcard.irregularForms,
+    )
+    RichListSection(
+        title = stringResource(R.string.confusable_with_label),
+        values = flashcard.confusableWith,
+    )
+    RichListSection(
+        title = stringResource(R.string.warnings_label),
+        values = flashcard.warnings,
+    )
+    OptionalDetailSection(
+        label = stringResource(R.string.cloze_sentence_label),
+        value = flashcard.clozeSentence,
+    )
+    OptionalDetailSection(
+        label = stringResource(R.string.source_context_label),
+        value = flashcard.sourceContext,
+    )
+    ExamplesSection(flashcard.examples)
+    StudyCardsSection(flashcard)
+    QualityChecksSection(flashcard)
+}
+
+@Composable
+private fun OptionalDetailSection(label: String, value: String) {
+    if (value.isBlank()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    DetailItem(label = label, value = value)
+}
+
+@Composable
+private fun LearningMetadataSection(flashcard: Flashcard) {
+    val metadataItems = listOfNotNull(
+        flashcard.register.takeIf(String::isNotBlank)?.let {
+            stringResource(R.string.register_label) to it
+        },
+        flashcard.levelBand.takeIf(String::isNotBlank)?.let {
+            stringResource(R.string.level_label) to it
+        },
+        flashcard.domain.takeIf(String::isNotBlank)?.let {
+            stringResource(R.string.domain_label) to it
+        },
+        flashcard.lemma.takeIf(String::isNotBlank)?.let {
+            stringResource(R.string.lemma_label) to it
+        },
+    )
+    if (metadataItems.isEmpty()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = stringResource(R.string.learning_metadata_label),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Spacer(Modifier.height(8.dp))
+    metadataItems.forEach { (label, value) ->
+        DetailItem(label = label, value = value)
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun ExamplesSection(examples: List<Example>) {
+    if (examples.isEmpty()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = stringResource(R.string.examples_label),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Spacer(Modifier.height(8.dp))
+
+    examples.forEachIndexed { index, example ->
+        key(example.exampleId) {
+            ExampleItem(index = index + 1, example = example)
+            if (index < examples.lastIndex) {
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StudyCardsSection(flashcard: Flashcard) {
+    if (flashcard.studyCards.isEmpty()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = stringResource(R.string.generated_cards_label),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Spacer(Modifier.height(8.dp))
+    flashcard.studyCards.forEachIndexed { index, card ->
+        key(card.cardId) {
+            StudyCardItem(index = index + 1, card = card)
+            if (index < flashcard.studyCards.lastIndex) {
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun QualityChecksSection(flashcard: Flashcard) {
+    if (flashcard.qualityChecks.isEmpty()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = stringResource(R.string.quality_checks_label),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Spacer(Modifier.height(8.dp))
+    flashcard.qualityChecks.forEach { check ->
+        DetailItem(
+            label = check.code.name,
+            value = if (check.passed) {
+                stringResource(R.string.quality_check_passed, check.message)
+            } else {
+                stringResource(R.string.quality_check_failed, check.message)
+            }
+        )
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun RichListSection(title: String, values: List<String>) {
+    if (values.isEmpty()) return
+
+    Spacer(Modifier.height(4.dp))
+    HSeparator()
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Spacer(Modifier.height(8.dp))
+    values.forEach { value ->
+        Text(
+            text = "• $value",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(4.dp))
+    }
+}
+
+@Composable
+private fun StudyCardItem(index: Int, card: com.emm.domain.flashcard.GeneratedStudyCard) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = "$index. ${card.cardType.name}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        DetailItem(label = stringResource(R.string.prompt_label), value = card.prompt)
+        DetailItem(label = stringResource(R.string.expected_answer_label), value = card.expectedAnswer)
+        if (card.hint.isNotBlank()) {
+            DetailItem(label = stringResource(R.string.hint_label), value = card.hint)
         }
     }
 }

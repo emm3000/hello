@@ -23,23 +23,24 @@ Current reality:
 - Phase 0 is defined and closed at the contract level
 - Phase 1 is defined and implemented in `domain`
 - Phase 2 is defined and implemented in `domain`
-- `data` has started the migration path with new DTOs and a parser for `GeneratedLearningNote`
+- `data` has a working generation path, parser, and rich local persistence for `GeneratedLearningNote`
 - the app generation path now goes through `GeneratedLearningNote`
-- persistence is still stored in the old flashcard table shape
+- local persistence now stores note-rich fields and derived cards inside `Flashcard`
+- study mode and remote sync still behave as old flat flashcard consumers
 
 ## High-Level Progress
 
 Estimated qualitative progress:
 
 - Product and learning contract definition: `done`
-- Input contract: `done in domain`, `not yet integrated in app`
-- Output contract: `done in domain`, `partially started in data`
-- Prompt migration: `not started`
-- Repository integration: `not started`
-- Preview migration: `not started`
-- Persistence migration: `not started`
+- Input contract: `done and integrated in app`
+- Output contract: `done and integrated in data/app`
+- Prompt migration: `done for the new generation path`
+- Repository integration: `done for generation and save`
+- Preview migration: `done`
+- Persistence migration: `started and locally integrated`
 - Study-mode migration: `not started`
-- Quality gate before save: `partially defined`, `not integrated`
+- Quality gate before save: `defined and partially enforced through validated generation`
 
 ## Phase Status
 
@@ -103,7 +104,7 @@ Implemented:
 - `GeneratedLearningNoteResponseParser`
 - parser tests in `data`
 
-Not integrated yet:
+Integrated:
 
 - prompt output schema
 - repository generation path
@@ -118,7 +119,7 @@ Reference:
 
 Status:
 
-- `not started`
+- `started`
 
 Planned focus:
 
@@ -222,10 +223,9 @@ Completed:
 
 Pending:
 
-- full prompt migration replacing old schema
-- parser selection strategy
-- migration of generation repository methods in UI-facing flow
-- compatibility strategy between old and new generation responses
+- retire old generation methods once no longer referenced
+- add repository integration tests for rich persistence
+- decide whether to keep JSON-embedded derived cards or extract them later
 
 ## App
 
@@ -244,25 +244,26 @@ Pending:
 
 - render validation errors and warnings more explicitly
 - support editing the learning note preview before save
-- replace old flat persistence with note/card-aware persistence
+- adapt study mode to use derived cards instead of only flat front/back
 
 ## Local Database
 
 Status:
 
-- `not started`
+- `started`
 
 Pending:
 
-- define storage model for learning notes and derived cards
-- decide coexistence or replacement strategy for old flashcard tables
-- update SQLDelight queries and entities
+- local schema is already expanded to store rich note fields and derived cards
+- current persistence stores derived cards and quality checks as embedded JSON on `Flashcard`
+- examples remain in `FlashcardExample`
+- remote sync and Supabase still need the same field expansion
 
 ## Supabase
 
 Status:
 
-- `not started`
+- `not started for schema alignment`
 
 Pending:
 
@@ -282,52 +283,51 @@ Completed:
 - input validation tests
 - generated note validation tests
 - generated note parser tests
+- local persistence compile coverage
+- app creation flow tests still passing
 
 Pending:
 
 - repository integration tests
-- prompt parser compatibility tests
+- prompt/parser compatibility tests
 - UI tests for new creation flow
 
 ## Compatibility State
 
-The project currently has two parallel models:
+The project currently still contains two generation models in code:
 
-- old path: `FlashcardGenerated`
-- new path: `GeneratedLearningNote`
+- old model: `FlashcardGenerated`
+- new model: `GeneratedLearningNote`
 
-This is acceptable temporarily, but it is a controlled transition risk.
+But the `NewCard` flow already runs on the new model end to end.
 
 It becomes dangerous if:
 
 - both paths remain active too long
 - prompt output starts drifting between schemas
-- preview or save uses mismatched contracts
-- a temporary UI adapter hides missing persistence work
+- sync or read paths keep flattening rich data silently
 
 ## Known Risks
 
-- The old prompt still targets the old schema.
-- The repository still returns the old generated flashcard model.
-- The UI still assumes one flashcard, not one note plus cards.
-- The database still stores the old card structure only.
-- The longer the coexistence lasts, the more mapping glue will be needed.
+- Study mode still assumes a flat front/back card.
+- Remote sync and Supabase do not yet persist the expanded flashcard fields.
+- `FlashcardGenerated` still exists and can become dead-weight if not retired soon.
+- Rich fields are embedded as JSON in local persistence; that is pragmatic now, but may become limiting later.
 
 ## Recommended Next Step
 
 The next step should be:
 
-1. start Phase 3 at the integration edge
-2. rewrite prompt output for one safe generation path
-3. adapt repository parsing to produce `GeneratedLearningNote`
-4. keep old flow in place only as temporary compatibility
+1. finish Phase 7 for sync and remote schema
+2. start Phase 6 for actual study-card-based review
+3. remove dead compatibility paths when the new persistence is stable
 
 More concretely:
 
-- add a new prompt builder for `GeneratedLearningNote`
-- connect `DefaultFlashcardRepository` to the new parser in a parallel method
-- validate the generated note with `ValidateGeneratedLearningNoteUseCase`
-- only after that, migrate preview UI
+- expand Supabase `flashcard` schema with the same rich fields
+- update sync payload handling for rich flashcard data
+- adapt `StudyScreen` and session loading to prefer derived study cards
+- decide the retirement path for `FlashcardGenerated`
 
 ## Recent Commits
 
@@ -335,14 +335,16 @@ More concretely:
 - `2f7917c` `feat(flashcards): add generated learning note contract`
 - `430132d` `build(detekt): relax domain complexity thresholds`
 - `a816a21` `feat(data): add generated learning note parser`
+- `9c60683` `feat(flashcards): wire parallel learning note generation`
+- `c18ad76` `feat(app): preview generated learning notes`
+- `077bd61` `refactor(flashcards): unify new card generation flow`
 
 ## Current Next Action
 
 The most valuable next implementation step is:
 
-- integrate `GenerateLearningNotePreviewUseCase` into a safe preview path
-- decide whether the current `NewCardScreen` gets a parallel developer-only flow or a full replacement
-- begin replacing `FlashcardGenerated` in the preview stage before touching persistence
+- align local sync and Supabase with the expanded flashcard schema
+- then migrate study/review to consume `studyCards`
 
 ## Update Rule
 

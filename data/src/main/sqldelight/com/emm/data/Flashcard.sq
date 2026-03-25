@@ -11,6 +11,21 @@ CREATE TABLE Flashcard (
     type TEXT,                          -- word, phrase, idiom, phrasal_verb, sentence
 
     note TEXT,                          -- Nota personal / tips de gramática
+    register TEXT,
+    levelBand TEXT,
+    domain TEXT,
+    lemma TEXT,
+    whyUseful TEXT,
+    usagePattern TEXT,
+    irregularFormsJson TEXT,
+    collocationsJson TEXT,
+    commonMistake TEXT,
+    confusableWithJson TEXT,
+    clozeSentence TEXT,
+    sourceContext TEXT,
+    warningsJson TEXT,
+    studyCardsJson TEXT,
+    qualityChecksJson TEXT,
     createdAt INTEGER NOT NULL,        -- Fecha de creación
     updatedAt INTEGER NOT NULL,
     deletedAt INTEGER,
@@ -35,13 +50,28 @@ INSERT OR REPLACE INTO Flashcard (
     partOfSpeech,
     type,
     note,
+    register,
+    levelBand,
+    domain,
+    lemma,
+    whyUseful,
+    usagePattern,
+    irregularFormsJson,
+    collocationsJson,
+    commonMistake,
+    confusableWithJson,
+    clozeSentence,
+    sourceContext,
+    warningsJson,
+    studyCardsJson,
+    qualityChecksJson,
     createdAt,
     updatedAt,
     deletedAt,
     originDeviceId,
     lastModifiedByDeviceId,
     versionLamport
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllFlashcards:
 DELETE FROM Flashcard;

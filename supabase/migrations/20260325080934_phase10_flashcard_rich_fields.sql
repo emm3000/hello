@@ -1,0 +1,16 @@
+alter table public.flashcard
+    add column if not exists register text,
+    add column if not exists level_band text,
+    add column if not exists domain text,
+    add column if not exists lemma text,
+    add column if not exists why_useful text,
+    add column if not exists usage_pattern text,
+    add column if not exists irregular_forms_json text,
+    add column if not exists collocations_json text,
+    add column if not exists common_mistake text,
+    add column if not exists confusable_with_json text,
+    add column if not exists cloze_sentence text,
+    add column if not exists source_context text,
+    add column if not exists warnings_json text,
+    add column if not exists study_cards_json text,
+    add column if not exists quality_checks_json text;
