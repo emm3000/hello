@@ -17,6 +17,8 @@ import org.junit.Before
 import org.junit.Test
 
 class DefaultPairingRepositoryTest {
+    private val oldAccountId = "old-account"
+    private val sameAccountId = "same-account"
 
     private lateinit var db: HelloDb
     private lateinit var remote: SupabaseSyncRemoteDataSource
@@ -43,7 +45,7 @@ class DefaultPairingRepositoryTest {
     @Test
     fun `redeemPairingCode clears sync scoped data when account changes`() = runTest {
         seedLocalAccount(accountId = "old-account")
-        seedLocalData()
+        seedLocalData(oldAccountId)
         every { dataStore.clearDefaultDeck() } just runs
         io.mockk.coEvery { remote.ensureAnonymousSession() } returns Unit
         io.mockk.coEvery { remote.redeemPairingCode(any(), any(), any(), any()) } returns PairingRedeemResponse(
@@ -57,27 +59,27 @@ class DefaultPairingRepositoryTest {
         subject.redeemPairingCode("123456")
 
         val accountState = db.localFirstQueries.selectLocalAccountState().executeAsOneOrNull()
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint("new-account").executeAsOneOrNull()
         assertEquals("new-account", accountState?.appAccountId)
         assertEquals(0L, checkpoint?.lastPulledCursor)
-        assertNull(db.deckQueries.findById("deck-1").executeAsOneOrNull())
+        assertNotNull(db.deckQueries.findById(oldAccountId, "deck-1").executeAsOneOrNull())
         assertEquals(
             0L,
             db.localFirstQueries
-                .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+                .countRetryableOperations("new-account", maxRetries = DrainOutbox.MAX_RETRY_COUNT)
                 .executeAsOne(),
         )
-        assertNull(db.localFirstQueries.findProcessedRemoteOperation("remote-op-1").executeAsOneOrNull())
+        assertNull(db.localFirstQueries.findProcessedRemoteOperation("new-account", "remote-op-1").executeAsOneOrNull())
         verify(exactly = 1) { dataStore.clearDefaultDeck() }
     }
 
     @Test
     fun `redeemPairingCode keeps local data when account does not change`() = runTest {
-        seedLocalAccount(accountId = "same-account")
-        seedLocalData()
+        seedLocalAccount(accountId = sameAccountId)
+        seedLocalData(sameAccountId)
         io.mockk.coEvery { remote.ensureAnonymousSession() } returns Unit
         io.mockk.coEvery { remote.redeemPairingCode(any(), any(), any(), any()) } returns PairingRedeemResponse(
-            appAccountId = "same-account",
+            appAccountId = sameAccountId,
             appDeviceId = "device-1",
             authUserId = "auth-1",
             pairingSessionId = "session-1",
@@ -86,7 +88,7 @@ class DefaultPairingRepositoryTest {
 
         subject.redeemPairingCode("123456")
 
-        assertNotNull(db.deckQueries.findById("deck-1").executeAsOneOrNull())
+        assertNotNull(db.deckQueries.findById(sameAccountId, "deck-1").executeAsOneOrNull())
         verify(exactly = 0) { dataStore.clearDefaultDeck() }
     }
 
@@ -99,6 +101,7 @@ class DefaultPairingRepositoryTest {
             updatedAt = 1,
         )
         db.localFirstQueries.upsertSyncCheckpoint(
+            appAccountId = accountId,
             lastPulledCursor = 99,
             lastSuccessfulSyncAt = 100,
             lastSyncError = null,
@@ -107,8 +110,9 @@ class DefaultPairingRepositoryTest {
         )
     }
 
-    private fun seedLocalData() {
+    private fun seedLocalData(accountId: String) {
         db.deckQueries.insert(
+            appAccountId = accountId,
             id = "deck-1",
             name = "Deck",
             description = "desc",
@@ -121,6 +125,7 @@ class DefaultPairingRepositoryTest {
         )
         db.localFirstQueries.insertOperation(
             opId = "pending-op-1",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-1",
             operationType = "Create",
@@ -134,6 +139,7 @@ class DefaultPairingRepositoryTest {
             lastError = null,
         )
         db.localFirstQueries.markRemoteOperationProcessed(
+            appAccountId = accountId,
             opId = "remote-op-1",
             cursor = 1,
             entityType = "deck",

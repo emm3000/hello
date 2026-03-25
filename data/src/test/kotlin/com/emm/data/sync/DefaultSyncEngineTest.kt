@@ -16,6 +16,7 @@ import org.junit.Test
 import java.io.IOException
 
 class DefaultSyncEngineTest {
+    private val accountId = "account-1"
 
     private lateinit var db: HelloDb
     private lateinit var remote: SupabaseSyncRemoteDataSource
@@ -59,7 +60,7 @@ class DefaultSyncEngineTest {
 
         subject.runOnce()
 
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint(accountId).executeAsOneOrNull()
         val accountState = db.localFirstQueries.selectLocalAccountState().executeAsOneOrNull()
         assertEquals(42L, checkpoint?.lastPulledCursor)
         assertEquals("account-1", accountState?.appAccountId)
@@ -71,6 +72,7 @@ class DefaultSyncEngineTest {
     fun `sync failure stores last error without losing previous cursor`() = runTest {
         stubBootstrap()
         db.localFirstQueries.upsertSyncCheckpoint(
+            appAccountId = accountId,
             lastPulledCursor = 7,
             lastSuccessfulSyncAt = 100,
             lastSyncError = null,
@@ -82,7 +84,7 @@ class DefaultSyncEngineTest {
         val result = runCatching { subject.runOnce() }
 
         assertTrue(result.isFailure)
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint(accountId).executeAsOneOrNull()
         assertEquals(7L, checkpoint?.lastPulledCursor)
         assertEquals("network timeout", checkpoint?.lastSyncError)
         assertEquals("network timeout", subject.state.value.lastSyncError)
@@ -106,7 +108,7 @@ class DefaultSyncEngineTest {
 
         subject.runOnce()
 
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint(accountId).executeAsOneOrNull()
         assertEquals(4L, checkpoint?.lastPulledCursor)
     }
 
@@ -114,6 +116,7 @@ class DefaultSyncEngineTest {
     fun `already processed remote operation is acked without reapplying`() = runTest {
         stubBootstrap()
         db.localFirstQueries.markRemoteOperationProcessed(
+            appAccountId = accountId,
             opId = "op-9",
             cursor = 9,
             entityType = "deck",
@@ -139,14 +142,14 @@ class DefaultSyncEngineTest {
 
         subject.runOnce()
 
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
+        val checkpoint = db.localFirstQueries.selectSyncCheckpoint(accountId).executeAsOneOrNull()
         assertEquals(9L, checkpoint?.lastPulledCursor)
     }
 
     private fun stubBootstrap() {
         coEvery { remote.ensureAnonymousSession() } returns Unit
         coEvery { remote.bootstrapAnonymousDevice(any(), any(), any()) } returns SyncBootstrapResponse(
-            appAccountId = "account-1",
+            appAccountId = accountId,
             appDeviceId = "device-1",
             authUserId = "auth-1",
             created = false,

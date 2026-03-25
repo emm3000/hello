@@ -7,6 +7,7 @@ import org.junit.Before
 import org.junit.Test
 
 class RetryableOperationsCountTest {
+    private val accountId = "account-1"
 
     private lateinit var db: HelloDb
 
@@ -21,6 +22,7 @@ class RetryableOperationsCountTest {
     fun `countRetryableOperations includes pending and failed below retry limit`() {
         db.localFirstQueries.insertOperation(
             opId = "pending-op",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-1",
             operationType = "Create",
@@ -35,6 +37,7 @@ class RetryableOperationsCountTest {
         )
         db.localFirstQueries.insertOperation(
             opId = "failed-op",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-2",
             operationType = "Create",
@@ -49,6 +52,7 @@ class RetryableOperationsCountTest {
         )
         db.localFirstQueries.insertOperation(
             opId = "dead-op",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-3",
             operationType = "Create",
@@ -63,7 +67,7 @@ class RetryableOperationsCountTest {
         )
 
         val count = db.localFirstQueries
-            .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+            .countRetryableOperations(accountId, maxRetries = DrainOutbox.MAX_RETRY_COUNT)
             .executeAsOne()
 
         assertEquals(2L, count)
@@ -73,6 +77,7 @@ class RetryableOperationsCountTest {
     fun `pendingOperations are drained in lamport order`() {
         db.localFirstQueries.insertOperation(
             opId = "op-lamport-2",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-2",
             operationType = "Create",
@@ -87,6 +92,7 @@ class RetryableOperationsCountTest {
         )
         db.localFirstQueries.insertOperation(
             opId = "op-lamport-1",
+            appAccountId = accountId,
             entityType = "deck",
             entityId = "deck-1",
             operationType = "Create",
@@ -101,7 +107,7 @@ class RetryableOperationsCountTest {
         )
 
         val pending = db.localFirstQueries
-            .pendingOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT, limit = 10)
+            .pendingOperations(accountId, maxRetries = DrainOutbox.MAX_RETRY_COUNT, limit = 10)
             .executeAsList()
 
         assertEquals(listOf("op-lamport-1", "op-lamport-2"), pending.map { it.opId })

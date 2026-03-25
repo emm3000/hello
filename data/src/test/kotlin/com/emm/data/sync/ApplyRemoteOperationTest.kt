@@ -10,6 +10,7 @@ import org.junit.Before
 import org.junit.Test
 
 class ApplyRemoteOperationTest {
+    private val accountId = "account-1"
 
     private lateinit var db: HelloDb
     private lateinit var subject: ApplyRemoteOperation
@@ -19,6 +20,13 @@ class ApplyRemoteOperationTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
+        db.localFirstQueries.upsertLocalAccountState(
+            appAccountId = accountId,
+            authUserId = "auth-1",
+            pairingState = "Paired",
+            createdAt = 1,
+            updatedAt = 1,
+        )
         subject = ApplyRemoteOperation(db)
     }
 
@@ -41,7 +49,7 @@ class ApplyRemoteOperationTest {
         )
 
         assertTrue(result is ApplyRemoteOperationResult.Applied)
-        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        val row = db.deckQueries.findById(accountId, "deck-1").executeAsOneOrNull()
         assertEquals("Travel", row?.name)
         assertEquals(10L, row?.versionLamport)
     }
@@ -81,7 +89,7 @@ class ApplyRemoteOperationTest {
             ApplyRemoteOperationResult.Skipped(reason = "stale_lamport"),
             staleResult
         )
-        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        val row = db.deckQueries.findById(accountId, "deck-1").executeAsOneOrNull()
         assertEquals("Fresh", row?.name)
         assertEquals(20L, row?.versionLamport)
     }
@@ -123,7 +131,7 @@ class ApplyRemoteOperationTest {
             ApplyRemoteOperationResult.Skipped(reason = "stale_lamport"),
             staleResult
         )
-        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        val row = db.deckQueries.findById(accountId, "deck-1").executeAsOneOrNull()
         assertEquals("Winner", row?.name)
         assertEquals("device-b", row?.lastModifiedByDeviceId)
     }
@@ -162,7 +170,7 @@ class ApplyRemoteOperationTest {
         )
 
         assertTrue(result is ApplyRemoteOperationResult.Applied)
-        val row = db.deckQueries.findById("deck-1").executeAsOneOrNull()
+        val row = db.deckQueries.findById(accountId, "deck-1").executeAsOneOrNull()
         assertEquals("Second", row?.name)
         assertEquals("device-b", row?.lastModifiedByDeviceId)
     }
@@ -266,7 +274,7 @@ class ApplyRemoteOperationTest {
         )
 
         assertTrue(result is ApplyRemoteOperationResult.Applied)
-        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId("card-1").executeAsOneOrNull()
+        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId(accountId, "card-1").executeAsOneOrNull()
         assertEquals(2000L, projection?.lastReviewedAt)
         assertEquals(3000L, projection?.nextReviewAt)
     }

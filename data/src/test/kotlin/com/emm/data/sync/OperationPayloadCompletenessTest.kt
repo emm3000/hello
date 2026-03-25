@@ -18,6 +18,7 @@ import org.junit.Before
 import org.junit.Test
 
 class OperationPayloadCompletenessTest {
+    private val accountId = "account-1"
 
     private lateinit var db: HelloDb
     private lateinit var json: Json
@@ -29,6 +30,13 @@ class OperationPayloadCompletenessTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
+        db.localFirstQueries.upsertLocalAccountState(
+            appAccountId = accountId,
+            authUserId = "auth-1",
+            pairingState = "Paired",
+            createdAt = 1,
+            updatedAt = 1,
+        )
         json = Json
         operationLogWriter = OperationLogWriter(db)
         localDeviceIdentityProvider = LocalDeviceIdentityProvider(db)
@@ -59,7 +67,7 @@ class OperationPayloadCompletenessTest {
         )
 
         val operation = db.localFirstQueries
-            .pendingOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT, limit = 1)
+            .pendingOperations(accountId, DrainOutbox.MAX_RETRY_COUNT, 1)
             .executeAsOne()
         val payload = json.parseToJsonElement(operation.payload).jsonObject
 
@@ -77,6 +85,7 @@ class OperationPayloadCompletenessTest {
 
     private fun seedDeck(id: String) {
         db.deckQueries.insert(
+            appAccountId = accountId,
             id = id,
             name = "Deck",
             description = null,

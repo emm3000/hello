@@ -185,9 +185,12 @@ class DefaultSyncEngine(
         )
     }
 
-    private fun pendingCount(): Long = localFirstQueries
-        .countRetryableOperations(db.requireCurrentAppAccountId(), maxRetries = DrainOutbox.MAX_RETRY_COUNT)
-        .executeAsOne()
+    private fun pendingCount(): Long {
+        val appAccountId = db.currentAppAccountIdOrNull() ?: return 0L
+        return localFirstQueries
+            .countRetryableOperations(appAccountId, maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+            .executeAsOne()
+    }
 }
 
 private data class BatchResult(
