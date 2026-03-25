@@ -1,0 +1,112 @@
+package com.emm.data.flashcard
+
+import com.emm.domain.flashcard.GeneratedNoteQualityCode
+import com.emm.domain.flashcard.LearningDomain
+import com.emm.domain.flashcard.LearningNoteType
+import com.emm.domain.flashcard.LevelBand
+import com.emm.domain.flashcard.PartOfSpeechTag
+import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.flashcard.StudyCardType
+import kotlinx.serialization.json.Json
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
+
+class GeneratedLearningNoteResponseParserTest {
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
+
+    @Test
+    fun `parse returns generated learning note`() {
+        val raw = """
+            {
+              "success": true,
+              "data": {
+                "note_id": "note-1",
+                "note_type": "phrasal_verb",
+                "expression": "pick up",
+                "intended_meaning_es": "recoger",
+                "simple_definition_en": "to go somewhere and get someone or something",
+                "part_of_speech": "phrasal_verb",
+                "register": "neutral",
+                "level_band": "A1_A2",
+                "domain": "daily_life",
+                "why_useful": "Sirve para hablar de tareas y movimientos cotidianos.",
+                "example_sentence": "I'll pick you up after work.",
+                "example_translation": "Te recojo despues del trabajo.",
+                "usage_pattern": "pick someone up",
+                "cloze_sentence": "I'll ____ you up after work.",
+                "cards": [
+                  {
+                    "card_id": "card-1",
+                    "card_type": "recognition",
+                    "prompt": "pick up",
+                    "expected_answer": "recoger",
+                    "evaluation_mode": "flexible_text",
+                    "is_active": true
+                  },
+                  {
+                    "card_id": "card-2",
+                    "card_type": "cloze",
+                    "prompt": "I'll ____ you up after work.",
+                    "expected_answer": "pick",
+                    "evaluation_mode": "exact",
+                    "is_active": true
+                  }
+                ],
+                "quality_checks": [
+                  {
+                    "code": "single_meaning",
+                    "passed": true,
+                    "message": "ok"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val result = GeneratedLearningNoteResponseParser.parse(raw, json)
+
+        assertEquals("note-1", result.noteId)
+        assertEquals(LearningNoteType.PhrasalVerb, result.noteType)
+        assertEquals("pick up", result.expression)
+        assertEquals(PartOfSpeechTag.PhrasalVerb, result.partOfSpeech)
+        assertEquals(RegisterPreference.Neutral, result.register)
+        assertEquals(LevelBand.A1_A2, result.levelBand)
+        assertEquals(LearningDomain.DailyLife, result.domain)
+        assertEquals(2, result.cards.size)
+        assertEquals(StudyCardType.Cloze, result.cards[1].cardType)
+        assertEquals(GeneratedNoteQualityCode.SingleMeaning, result.qualityChecks.first().code)
+    }
+
+    @Test
+    fun `parse with unknown enum throws illegal argument exception`() {
+        val raw = """
+            {
+              "success": true,
+              "data": {
+                "note_id": "note-1",
+                "note_type": "unknown_type",
+                "expression": "pick up",
+                "intended_meaning_es": "recoger",
+                "simple_definition_en": "to get something",
+                "part_of_speech": "verb",
+                "register": "neutral",
+                "level_band": "A1_A2",
+                "domain": "daily_life",
+                "why_useful": "Sirve para situaciones cotidianas.",
+                "example_sentence": "I pick up my son at school.",
+                "example_translation": "Recojo a mi hijo en el colegio.",
+                "cards": [],
+                "quality_checks": []
+              }
+            }
+        """.trimIndent()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+    }
+}
