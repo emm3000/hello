@@ -59,6 +59,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardGenerated
+import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
@@ -84,6 +86,7 @@ private const val SKELETON_TITLE_WIDTH = 0.5f
 private const val SKELETON_SUBTITLE_WIDTH = 0.35f
 private const val SKELETON_DETAIL_WIDTH = 0.4f
 private const val RESULT_FADE_IN_DURATION_MS = 300
+private const val MAX_PREVIEW_COLLOCATIONS = 3
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
@@ -195,26 +198,48 @@ fun NewCardScreen(
                 SectionCard(title = stringResource(R.string.input_section_title)) {
                     when (state.typeView) {
                         TypeView.WordOrPhase -> {
-                            HInput(
-                                value = state.word,
-                                onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
-                                enabled = !state.isLoading,
-                                modifier = Modifier.fillMaxWidth(),
-                                label = stringResource(R.string.word_label),
-                                placeholder = if (isListening) {
-                                    stringResource(
-                                        R.string.listening_placeholder
-                                    )
-                                } else {
-                                    stringResource(R.string.word_placeholder)
-                                },
-                                trailingIcon = {
-                                    VoiceInputButton(
-                                        isListening = isListening,
-                                        onClick = toggleVoiceInput
-                                    )
-                                }
-                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                HInput(
+                                    value = state.word,
+                                    onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
+                                    enabled = !state.isLoading,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = stringResource(R.string.word_label),
+                                    placeholder = if (isListening) {
+                                        stringResource(
+                                            R.string.listening_placeholder
+                                        )
+                                    } else {
+                                        stringResource(R.string.word_placeholder)
+                                    },
+                                    trailingIcon = {
+                                        VoiceInputButton(
+                                            isListening = isListening,
+                                            onClick = toggleVoiceInput
+                                        )
+                                    }
+                                )
+                                HInput(
+                                    value = state.intendedMeaningEs,
+                                    onValueChange = {
+                                        onIntent(NewCardUiIntent.IntendedMeaningChanged(it))
+                                    },
+                                    enabled = !state.isLoading,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = stringResource(R.string.intended_meaning_label),
+                                    placeholder = stringResource(R.string.intended_meaning_placeholder),
+                                )
+                                HInput(
+                                    value = state.contextSentence,
+                                    onValueChange = {
+                                        onIntent(NewCardUiIntent.ContextSentenceChanged(it))
+                                    },
+                                    enabled = !state.isLoading,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = stringResource(R.string.context_sentence_label),
+                                    placeholder = stringResource(R.string.context_sentence_placeholder),
+                                )
+                            }
                         }
                         TypeView.WithCategories -> {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -364,7 +389,11 @@ private fun ResultPreviewSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            CardPreview(preview)
+            if (state.learningNotePreview != null) {
+                LearningNotePreview(state.learningNotePreview)
+            } else {
+                CardPreview(preview)
+            }
 
             HButton(
                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
@@ -378,6 +407,146 @@ private fun ResultPreviewSection(
                     .fillMaxWidth()
                     .height(48.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun LearningNotePreview(note: GeneratedLearningNote) {
+    HCard(variant = CardVariant.Outlined) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = note.expression,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                HBadge(
+                    label = note.noteType.name,
+                    variant = BadgeVariant.Secondary,
+                )
+            }
+
+            if (note.ipa.isNotBlank()) {
+                Text(
+                    text = note.ipa,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            HSeparator()
+
+            InfoRow(
+                label = stringResource(R.string.translation_label),
+                value = note.intendedMeaningEs
+            )
+            InfoRow(
+                label = stringResource(R.string.meaning_label),
+                value = note.simpleDefinitionEn
+            )
+            InfoRow(
+                label = stringResource(R.string.why_useful_label),
+                value = note.whyUseful
+            )
+
+            if (note.usagePattern.isNotBlank()) {
+                HSeparator()
+                InfoRow(
+                    label = stringResource(R.string.usage_pattern_label),
+                    value = note.usagePattern
+                )
+            }
+
+            if (note.commonMistake.isNotBlank()) {
+                InfoRow(
+                    label = stringResource(R.string.common_mistake_label),
+                    value = note.commonMistake
+                )
+            }
+
+            if (note.collocations.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    note.collocations.take(MAX_PREVIEW_COLLOCATIONS).forEach { collocation ->
+                        HBadge(label = collocation, variant = BadgeVariant.Outline)
+                    }
+                }
+            }
+
+            HSeparator()
+            Text(
+                text = stringResource(R.string.examples_label),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            ExampleItem(
+                index = 1,
+                example = Example(
+                    exampleId = "learning-note-example",
+                    text = note.exampleSentence,
+                    translation = note.exampleTranslation,
+                    type = "main",
+                )
+            )
+
+            if (note.cards.isNotEmpty()) {
+                HSeparator()
+                Text(
+                    text = stringResource(R.string.generated_cards_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    note.cards.forEach { card ->
+                        key(card.cardId) {
+                            GeneratedStudyCardItem(card)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneratedStudyCardItem(card: GeneratedStudyCard) {
+    HCard(variant = CardVariant.Outlined) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HBadge(label = card.cardType.name, variant = BadgeVariant.Secondary)
+                HBadge(label = card.evaluationMode.name, variant = BadgeVariant.Outline)
+            }
+            InfoRow(label = stringResource(R.string.prompt_label), value = card.prompt)
+            InfoRow(
+                label = stringResource(R.string.expected_answer_label),
+                value = card.expectedAnswer
+            )
+            if (card.hint.isNotBlank()) {
+                InfoRow(label = stringResource(R.string.hint_label), value = card.hint)
+            }
         }
     }
 }

@@ -231,21 +231,21 @@ Pending:
 
 Status:
 
-- `not started for refactor integration`
+- `started`
 
 Current situation:
 
-- UI still uses old flashcard creation flow
-- preview still expects old flat flashcard output
-- validation from Phase 1 is not surfaced yet
+- UI already captures optional disambiguation fields in the word or phrase flow
+- preview can render `GeneratedLearningNote` and derived cards
+- save still uses a temporary adapter back to the old flashcard model
+- category flow still uses the old generation path
 
 Pending:
 
-- update `NewCardUiState`
-- update intents and screen flow
-- render input validation
-- render learning note preview
-- render derived cards preview
+- render validation errors and warnings more explicitly
+- stop relying on temporary mapping to `FlashcardGenerated` for save
+- decide whether category mode will be migrated or replaced
+- support editing the learning note preview before save
 
 ## Local Database
 
@@ -304,6 +304,7 @@ It becomes dangerous if:
 - both paths remain active too long
 - prompt output starts drifting between schemas
 - preview or save uses mismatched contracts
+- a temporary UI adapter hides missing persistence work
 
 ## Known Risks
 

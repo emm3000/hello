@@ -10,13 +10,23 @@ import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.CreateFlashcardUseCase
-import com.emm.domain.flashcard.Example
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
+import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.GeneratedNoteQualityCheck
+import com.emm.domain.flashcard.GeneratedNoteQualityCode
+import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.flashcard.LearningDomain
+import com.emm.domain.flashcard.LearningNoteType
+import com.emm.domain.flashcard.LevelBand
+import com.emm.domain.flashcard.PartOfSpeechTag
+import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.flashcard.StudyCardType
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -48,7 +58,7 @@ class NewCardViewModelTest {
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
-        coEvery { generationRepository.generateFlashcard(any()) } returns sampleGeneratedFlashcard()
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery { writeRepository.create(any()) } returns "card-1"
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
         coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
@@ -57,11 +67,17 @@ class NewCardViewModelTest {
             getDecksUseCase = GetDecksUseCase(deckRepository),
             createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
             generateFlashcardPreviewUseCase = GenerateFlashcardPreviewUseCase(generationRepository),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
         )
 
         advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
@@ -85,7 +101,7 @@ class NewCardViewModelTest {
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
-        coEvery { generationRepository.generateFlashcard(any()) } returns sampleGeneratedFlashcard()
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery { writeRepository.create(any()) } returns "card-1"
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
         coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
@@ -94,11 +110,17 @@ class NewCardViewModelTest {
             getDecksUseCase = GetDecksUseCase(deckRepository),
             createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
             generateFlashcardPreviewUseCase = GenerateFlashcardPreviewUseCase(generationRepository),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
         )
 
         advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
@@ -137,25 +159,43 @@ class NewCardViewModelTest {
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(listOf(deck))
     }
 
-    private fun sampleGeneratedFlashcard(): FlashcardGenerated {
-        return FlashcardGenerated(
-            word = "hello",
-            translation = "hola",
-            phonetics = "/həˈloʊ/",
-            meaning = "a greeting",
-            language = "en",
-            examples = listOf(
-                Example(
-                    exampleId = "ex-1",
-                    text = "Hello there!",
-                    translation = "¡Hola!",
-                    type = "greeting",
+    private fun sampleGeneratedLearningNote(): GeneratedLearningNote {
+        return GeneratedLearningNote(
+            noteId = "note-1",
+            noteType = LearningNoteType.Word,
+            expression = "hello",
+            intendedMeaningEs = "hola",
+            simpleDefinitionEn = "a greeting",
+            partOfSpeech = PartOfSpeechTag.Interjection,
+            register = RegisterPreference.Neutral,
+            levelBand = LevelBand.A1_A2,
+            domain = LearningDomain.DailyLife,
+            whyUseful = "Sirve para saludar en situaciones cotidianas.",
+            exampleSentence = "Hello there!",
+            exampleTranslation = "¡Hola!",
+            cards = listOf(
+                GeneratedStudyCard(
+                    cardId = "card-1",
+                    cardType = StudyCardType.Recognition,
+                    prompt = "hello",
+                    expectedAnswer = "hola",
+                    evaluationMode = EvaluationMode.FlexibleText,
+                ),
+                GeneratedStudyCard(
+                    cardId = "card-2",
+                    cardType = StudyCardType.Production,
+                    prompt = "Como dices hola en ingles?",
+                    expectedAnswer = "hello",
+                    evaluationMode = EvaluationMode.Exact,
                 )
             ),
-            partOfSpeech = "interjection",
-            type = "word",
-            notes = "",
-            tags = listOf("basic"),
+            qualityChecks = listOf(
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.SingleMeaning,
+                    passed = true,
+                    message = "ok",
+                )
+            ),
         )
     }
 }

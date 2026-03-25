@@ -8,6 +8,10 @@ sealed interface NewCardUiIntent {
 
     data class WordChanged(val word: String) : NewCardUiIntent
 
+    data class IntendedMeaningChanged(val intendedMeaningEs: String) : NewCardUiIntent
+
+    data class ContextSentenceChanged(val contextSentence: String) : NewCardUiIntent
+
     data class DeckSelected(val deck: Deck) : NewCardUiIntent
 
     data class CheckChanged(val checked: Boolean) : NewCardUiIntent

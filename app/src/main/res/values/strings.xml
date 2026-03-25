@@ -74,6 +74,10 @@
     <string name="input_section_title">Entrada</string>
     <string name="word_label">Palabra o frase en inglés</string>
     <string name="word_placeholder">Ej: Hello, Good morning…</string>
+    <string name="intended_meaning_label">Significado deseado</string>
+    <string name="intended_meaning_placeholder">Ej: obtener, recoger, pedir prestado…</string>
+    <string name="context_sentence_label">Oración de contexto</string>
+    <string name="context_sentence_placeholder">Ej: I need to pick up my sister after class.</string>
     <string name="listening_placeholder">Escuchando…</string>
     <string name="category_label">Categoría</string>
     <string name="difficulty_label">Dificultad</string>
@@ -90,6 +94,13 @@
     <string name="meaning_label">Significado</string>
     <string name="translation_label">Traducción</string>
     <string name="examples_label">Ejemplos</string>
+    <string name="why_useful_label">Por qué sirve</string>
+    <string name="usage_pattern_label">Patrón de uso</string>
+    <string name="common_mistake_label">Error común</string>
+    <string name="generated_cards_label">Tarjetas derivadas</string>
+    <string name="prompt_label">Prompt</string>
+    <string name="expected_answer_label">Respuesta esperada</string>
+    <string name="hint_label">Pista</string>
     <string name="show_translation">Ver traducción</string>
     <string name="hide_translation">Ocultar traducción</string>
     <string name="categories_bottom_sheet_title">Categorías</string>
