@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -42,6 +44,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -61,6 +64,7 @@ import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HProgressBar
 import com.emm.hello.core.ui.HSeparator
 
@@ -71,6 +75,7 @@ private const val ANSWER_BUTTON_FADE_DURATION_MS = 200
 private const val ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP = 104
 private const val PHONETIC_SEPARATOR_WIDTH_FRACTION = 0.4f
 private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
+private const val SUPPORT_SEPARATOR_WIDTH_FRACTION = 0.7f
 
 @Composable
 fun StudyScreen(
@@ -88,6 +93,9 @@ fun StudyScreen(
 
     val prevStudyItem = remember { mutableStateOf(state.currentItem) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
+    var typedAnswer by remember { mutableStateOf("") }
+    var typedAnswerChecked by remember { mutableStateOf(false) }
+    var typedAnswerCorrect by remember { mutableStateOf(false) }
 
     val progress = if (state.totalCount > 0) {
         state.reviewedCount.toFloat() / state.totalCount.toFloat()
@@ -95,7 +103,12 @@ fun StudyScreen(
         0f
     }
 
-    LaunchedEffect(state.currentItem?.studyCard?.cardId) { cardFace = CardFace.Front }
+    LaunchedEffect(state.currentItem?.studyCard?.cardId) {
+        cardFace = CardFace.Front
+        typedAnswer = ""
+        typedAnswerChecked = false
+        typedAnswerCorrect = false
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -190,6 +203,8 @@ fun StudyScreen(
                         modifier = Modifier.fillMaxSize(),
                         frontContent = {
                             FlashcardFrontContent(
+                                card = item?.flashcard,
+                                studyCard = item?.studyCard,
                                 prompt = item?.studyCard?.prompt ?: item?.flashcard?.word.orEmpty(),
                                 phonetic = if (item?.studyCard?.sourceField == "word") {
                                     item.flashcard.phonetic
@@ -204,8 +219,25 @@ fun StudyScreen(
                             FlashcardBackContent(
                                 card = currentItem?.flashcard,
                                 studyCard = currentItem?.studyCard,
+                                typedAnswer = typedAnswer,
+                                typedAnswerChecked = typedAnswerChecked,
+                                typedAnswerCorrect = typedAnswerCorrect,
                                 isSpeaking = isSpeaking,
                                 ttsReady = ttsReady,
+                                onTypedAnswerChange = {
+                                    typedAnswer = it
+                                    typedAnswerChecked = false
+                                },
+                                onCheckTypedAnswer = {
+                                    val activeCard = currentItem?.studyCard ?: return@FlashcardBackContent
+                                    typedAnswerCorrect = matchesTypedAnswer(
+                                        evaluationMode = activeCard.evaluationMode,
+                                        typedAnswer = typedAnswer,
+                                        expectedAnswer = activeCard.expectedAnswer,
+                                        acceptedAnswers = activeCard.acceptedAnswers,
+                                    )
+                                    typedAnswerChecked = true
+                                },
                                 onStop = { tts.stop() },
                                 onSpeak = {
                                     if (ttsReady) {
@@ -230,9 +262,21 @@ fun StudyScreen(
                         .padding(top = 16.dp),
                 ) { showButtons ->
                     if (showButtons) {
-                        AnswerButtons { grade ->
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onReviewAnswer(state.currentItem, grade)
+                        val needsTypedAnswer = state.currentItem?.studyCard?.needsTypedAnswer == true
+                        val gradePolicy = state.currentItem?.studyCard?.gradePolicy(
+                            typedAnswerChecked = typedAnswerChecked,
+                            typedAnswerCorrect = typedAnswerCorrect,
+                        ) ?: ReviewGradePolicy()
+                        if (!needsTypedAnswer || typedAnswerChecked) {
+                            AnswerButtons(
+                                enabledGrades = gradePolicy.enabledGrades,
+                                guidance = gradePolicy.guidance,
+                            ) { grade ->
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onReviewAnswer(state.currentItem, grade)
+                            }
+                        } else {
+                            Spacer(Modifier.height(ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP.dp))
                         }
                     } else {
                         Spacer(Modifier.height(ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP.dp))
@@ -263,10 +307,15 @@ fun StudyScreen(
 
 @Composable
 private fun FlashcardFrontContent(
+    card: Flashcard?,
+    studyCard: GeneratedStudyCard?,
     prompt: String,
     phonetic: String,
     cardType: StudyCardType?,
 ) {
+    val frontTitle = studyCard?.frontTitle().orEmpty()
+    val frontSupport = studyCard?.frontSupportText(card).orEmpty()
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -282,6 +331,15 @@ private fun FlashcardFrontContent(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            if (frontTitle.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = frontTitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
             if (cardType != null) {
                 Spacer(Modifier.height(12.dp))
                 HBadge(
@@ -300,6 +358,17 @@ private fun FlashcardFrontContent(
                     textAlign = TextAlign.Center,
                 )
             }
+            if (frontSupport.isNotBlank()) {
+                Spacer(Modifier.height(12.dp))
+                HSeparator(modifier = Modifier.fillMaxWidth(SUPPORT_SEPARATOR_WIDTH_FRACTION))
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = frontSupport,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
@@ -310,18 +379,25 @@ private fun FlashcardFrontContent(
 private fun FlashcardBackContent(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
+    typedAnswer: String,
+    typedAnswerChecked: Boolean,
+    typedAnswerCorrect: Boolean,
     isSpeaking: Boolean,
     ttsReady: Boolean,
+    onTypedAnswerChange: (String) -> Unit = {},
+    onCheckTypedAnswer: () -> Unit = {},
     onStop: () -> Unit = {},
     onSpeak: () -> Unit = {},
 ) {
+    val needsTypedAnswer = studyCard?.needsTypedAnswer == true
+    val shouldRevealAnswer = !needsTypedAnswer || typedAnswerChecked
     val primaryText = studyCard?.expectedAnswer ?: card?.translation.orEmpty()
-    val secondaryText = when {
-        studyCard?.hint?.isNotBlank() == true -> studyCard.hint
-        studyCard?.explanation?.isNotBlank() == true -> studyCard.explanation
-        card?.meaning?.isNotBlank() == true -> card.meaning
-        else -> ""
-    }
+    val answerLabel = studyCard?.answerLabel() ?: "Respuesta"
+    val inputLabel = studyCard?.typedAnswerLabel() ?: "Tu respuesta"
+    val inputPlaceholder = studyCard?.typedAnswerPlaceholder(card) ?: "Escribe tu respuesta"
+    val checkLabel = studyCard?.typedAnswerButtonLabel() ?: "Revisar"
+    val resultMessage = studyCard?.typedAnswerResultMessage(typedAnswerCorrect).orEmpty()
+    val supportingText = studyCard?.supportingBackText(card).orEmpty()
 
     Column(
         modifier = Modifier
@@ -330,27 +406,67 @@ private fun FlashcardBackContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // ── Translation (primary answer) ────────────────────────────────
-        Text(
-            text = primaryText,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        if (needsTypedAnswer && !typedAnswerChecked) {
+            HInput(
+                value = typedAnswer,
+                onValueChange = onTypedAnswerChange,
+                label = inputLabel,
+                placeholder = inputPlaceholder,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onCheckTypedAnswer() }),
+            )
+            Spacer(Modifier.height(16.dp))
+            HButton(
+                text = checkLabel,
+                onClick = onCheckTypedAnswer,
+                variant = ButtonVariant.Default,
+                enabled = typedAnswer.isNotBlank(),
+            )
+            Spacer(Modifier.height(20.dp))
+        }
 
-        Spacer(Modifier.height(12.dp))
-        HSeparator(modifier = Modifier.fillMaxWidth(MEANING_SEPARATOR_WIDTH_FRACTION))
-        Spacer(Modifier.height(12.dp))
-
-        // ── Meaning (secondary info) ────────────────────────────────────
-        if (secondaryText.isNotBlank()) {
+        if (shouldRevealAnswer) {
             Text(
-                text = secondaryText,
-                style = MaterialTheme.typography.bodyMedium,
+                text = answerLabel,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = primaryText,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            if (needsTypedAnswer) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = resultMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (typedAnswerCorrect) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            if (supportingText.isNotBlank()) {
+                Spacer(Modifier.height(12.dp))
+                HSeparator(modifier = Modifier.fillMaxWidth(MEANING_SEPARATOR_WIDTH_FRACTION))
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = supportingText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
 
         Spacer(Modifier.height(20.dp))
@@ -366,17 +482,144 @@ private fun FlashcardBackContent(
     }
 }
 
+private fun GeneratedStudyCard.frontTitle(): String {
+    return when (cardType) {
+        StudyCardType.Recognition -> "Reconoce el significado o la idea principal"
+        StudyCardType.Production -> "Recupera la expresion en ingles"
+        StudyCardType.Cloze -> "Completa el hueco con la expresion correcta"
+        StudyCardType.Form -> "Recupera la forma exacta"
+    }
+}
+
+private fun GeneratedStudyCard.frontSupportText(card: Flashcard?): String {
+    return when (cardType) {
+        StudyCardType.Recognition -> {
+            when {
+                hint.isNotBlank() -> hint
+                explanation.isNotBlank() -> explanation
+                card?.meaning?.isNotBlank() == true -> card.meaning
+                else -> ""
+            }
+        }
+
+        StudyCardType.Production -> {
+            when {
+                hint.isNotBlank() -> hint
+                card?.sourceContext?.isNotBlank() == true -> card.sourceContext
+                card?.whyUseful?.isNotBlank() == true -> card.whyUseful
+                else -> ""
+            }
+        }
+
+        StudyCardType.Cloze -> {
+            when {
+                card?.sourceContext?.isNotBlank() == true -> card.sourceContext
+                hint.isNotBlank() -> hint
+                explanation.isNotBlank() -> explanation
+                else -> ""
+            }
+        }
+
+        StudyCardType.Form -> {
+            when {
+                card?.irregularForms?.isNotEmpty() == true -> "Formas relacionadas: ${card.irregularForms.joinToString()}"
+                card?.usagePattern?.isNotBlank() == true -> card.usagePattern
+                hint.isNotBlank() -> hint
+                else -> ""
+            }
+        }
+    }
+}
+
+private fun GeneratedStudyCard.answerLabel(): String {
+    return when (cardType) {
+        StudyCardType.Recognition -> "Significado esperado"
+        StudyCardType.Production -> "Respuesta esperada"
+        StudyCardType.Cloze -> "Expresion que completa la frase"
+        StudyCardType.Form -> "Forma esperada"
+    }
+}
+
+private fun GeneratedStudyCard.supportingBackText(card: Flashcard?): String {
+    return when {
+        explanation.isNotBlank() -> explanation
+        hint.isNotBlank() -> hint
+        cardType == StudyCardType.Cloze && card?.meaning?.isNotBlank() == true -> card.meaning
+        cardType == StudyCardType.Form && card?.usagePattern?.isNotBlank() == true -> card.usagePattern
+        card?.whyUseful?.isNotBlank() == true -> card.whyUseful
+        card?.meaning?.isNotBlank() == true -> card.meaning
+        else -> ""
+    }
+}
+
+private fun GeneratedStudyCard.typedAnswerLabel(): String {
+    return when (cardType) {
+        StudyCardType.Recognition -> "Significado"
+        StudyCardType.Production -> "Expresion en ingles"
+        StudyCardType.Cloze -> "Completa la frase"
+        StudyCardType.Form -> "Forma exacta"
+    }
+}
+
+private fun GeneratedStudyCard.typedAnswerPlaceholder(card: Flashcard?): String {
+    return when (cardType) {
+        StudyCardType.Recognition -> "Escribe el significado esperado"
+        StudyCardType.Production -> "Escribe la expresion en ingles"
+        StudyCardType.Cloze -> "Escribe la palabra o frase faltante"
+        StudyCardType.Form -> {
+            if (card?.irregularForms?.isNotEmpty() == true) {
+                "Escribe la forma pedida"
+            } else {
+                "Escribe la forma correcta"
+            }
+        }
+    }
+}
+
+private fun GeneratedStudyCard.typedAnswerButtonLabel(): String {
+    return when (evaluationMode) {
+        EvaluationMode.Exact -> "Comprobar"
+        EvaluationMode.FlexibleText -> "Comparar"
+        EvaluationMode.ManualSelfCheck -> "Revisar"
+    }
+}
+
+private fun GeneratedStudyCard.typedAnswerResultMessage(isCorrect: Boolean): String {
+    if (isCorrect) {
+        return when (evaluationMode) {
+            EvaluationMode.Exact -> "Tu respuesta coincide exactamente con la esperada"
+            EvaluationMode.FlexibleText -> "Tu respuesta coincide de forma aceptable"
+            EvaluationMode.ManualSelfCheck -> ""
+        }
+    }
+
+    return when (evaluationMode) {
+        EvaluationMode.Exact -> "No coincide exactamente con la respuesta esperada"
+        EvaluationMode.FlexibleText -> "No se parece lo suficiente a la respuesta esperada"
+        EvaluationMode.ManualSelfCheck -> ""
+    }
+}
+
 // ── Answer buttons with icons ────────────────────────────────────────────────
 
 @Composable
 private fun AnswerButtons(
     modifier: Modifier = Modifier,
+    enabledGrades: Set<ReviewGrade> = ReviewGrade.entries.toSet(),
+    guidance: String = "",
     onReviewAnswer: (ReviewGrade) -> Unit = {},
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (guidance.isNotBlank()) {
+            Text(
+                text = guidance,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -385,6 +628,7 @@ private fun AnswerButtons(
                 text = stringResource(R.string.grade_again),
                 onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
                 variant = ButtonVariant.Destructive,
+                enabled = ReviewGrade.AGAIN in enabledGrades,
                 modifier = Modifier.weight(1f),
                 leadingIcon = Icons.Outlined.Refresh,
             )
@@ -392,6 +636,7 @@ private fun AnswerButtons(
                 text = stringResource(R.string.grade_hard),
                 onClick = { onReviewAnswer(ReviewGrade.HARD) },
                 variant = ButtonVariant.Secondary,
+                enabled = ReviewGrade.HARD in enabledGrades,
                 modifier = Modifier.weight(1f),
                 leadingIcon = Icons.Outlined.Warning,
             )
@@ -404,6 +649,7 @@ private fun AnswerButtons(
                 text = stringResource(R.string.grade_good),
                 onClick = { onReviewAnswer(ReviewGrade.GOOD) },
                 variant = ButtonVariant.Default,
+                enabled = ReviewGrade.GOOD in enabledGrades,
                 modifier = Modifier.weight(1f),
                 leadingIcon = Icons.Rounded.CheckCircle,
             )
@@ -411,6 +657,7 @@ private fun AnswerButtons(
                 text = stringResource(R.string.grade_easy),
                 onClick = { onReviewAnswer(ReviewGrade.EASY) },
                 variant = ButtonVariant.Outline,
+                enabled = ReviewGrade.EASY in enabledGrades,
                 modifier = Modifier.weight(1f),
                 leadingIcon = Icons.Rounded.Bolt,
             )

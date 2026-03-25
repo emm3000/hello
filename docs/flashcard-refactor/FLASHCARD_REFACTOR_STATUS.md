@@ -30,6 +30,8 @@ Current reality:
 - remote sync is aligned with the rich flashcard payload
 - local schema cleanup removed unused legacy tables
 - study mode now expands one learning note into multiple derived review items
+- study mode now supports typed answers for exact and flexible-text cards
+- study mode now renders better guidance and support text by derived card type
 - the old `FlashcardGenerated` generation path is being retired
 
 ## Pre-Development Operating Rule
@@ -57,7 +59,7 @@ Estimated qualitative progress:
 - Repository integration: `done for generation and save`
 - Preview migration: `done`
 - Persistence migration: `substantially complete locally`
-- Study-mode migration: `started and integrated around derived cards`
+- Study-mode migration: `started and materially advanced around derived cards`
 - Quality gate before save: `defined and partially enforced through validated generation`
 
 ## Phase Status
@@ -172,18 +174,22 @@ Planned focus:
 
 Status:
 
-- `started`
+- `started and materially advanced`
 
 Implemented:
 
 - session queue now expands a flashcard into multiple `StudySessionItem`s
 - review scheduling runs once per note after its derived cards are answered
 - study UI renders the active derived card instead of flattening to a single front/back pair
+- typed-answer flow exists for `Exact` and `FlexibleText` cards
+- answer reveal is now gated until typed-answer checking completes
+- front and back study UI now adapt support copy based on `StudyCardType`
 
 Pending:
 
-- typed-answer flow for production cards
-- stronger card-type-specific rendering for cloze and form cards
+- better grading policy after typed-answer evaluation
+- stronger visual treatment for cloze/form cards beyond text-level differentiation
+- focused UI tests for derived-card study flows
 
 ## Phase 7
 
@@ -202,8 +208,7 @@ Implemented:
 
 Pending:
 
-- apply the latest remote index migration to the linked Supabase project
-- validate end-to-end sync on multiple devices after the local schema reshape
+- validate end-to-end sync on multiple physical devices after the local schema reshape
 - decide whether some rich JSON fields remain embedded or get extracted later
 
 ## Phase 8
