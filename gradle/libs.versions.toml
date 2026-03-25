@@ -1,7 +1,6 @@
 [versions]
 agp = "9.1.0"
 firebaseBom = "34.11.0"
-jsoup = "1.22.1"
 koinBom = "4.2.0"
 kotlin = "2.3.20"
 coreKtx = "1.18.0"
@@ -21,7 +20,6 @@ mockk = "1.14.9"
 navigationCompose = "2.9.7"
 appcompat = "1.7.1"
 material = "1.13.0"
-kspVersion = "2.3.6"
 coreKtxVersion = "1.7.0"
 androidDriver = "2.3.2"
 truth = "1.4.5"
@@ -40,7 +38,6 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-ai = { module = "com.google.firebase:firebase-ai" }
-jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -81,13 +78,11 @@ ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "k
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
-
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesVersion" }
 google-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleCrashlyticsVersion" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

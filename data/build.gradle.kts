@@ -4,7 +4,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
-    id("com.google.devtools.ksp")
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("app.cash.sqldelight") version libs.versions.androidDriver
 }
