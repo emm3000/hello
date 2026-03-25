@@ -24,8 +24,8 @@ Current reality:
 - Phase 1 is defined and implemented in `domain`
 - Phase 2 is defined and implemented in `domain`
 - `data` has started the migration path with new DTOs and a parser for `GeneratedLearningNote`
-- the old generation flow is still active in the app
-- persistence and UI are still based on the old flashcard model
+- the app generation path now goes through `GeneratedLearningNote`
+- persistence is still stored in the old flashcard table shape
 
 ## High-Level Progress
 
@@ -237,15 +237,14 @@ Current situation:
 
 - UI already captures optional disambiguation fields in the word or phrase flow
 - preview can render `GeneratedLearningNote` and derived cards
-- save still uses a temporary adapter back to the old flashcard model
-- category flow still uses the old generation path
+- word or phrase save now persists directly from `GeneratedLearningNote`
+- category flow also uses the new generation contract through mapped communicative intent
 
 Pending:
 
 - render validation errors and warnings more explicitly
-- stop relying on temporary mapping to `FlashcardGenerated` for save
-- decide whether category mode will be migrated or replaced
 - support editing the learning note preview before save
+- replace old flat persistence with note/card-aware persistence
 
 ## Local Database
 

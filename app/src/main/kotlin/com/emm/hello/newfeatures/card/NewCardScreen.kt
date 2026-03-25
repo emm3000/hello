@@ -128,6 +128,7 @@ fun NewCardScreen(
     val showBottomSheet = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val hasPreview = state.learningNotePreview != null || state.previewResult != null
 
     val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         val hasWord = state.word.isNotBlank()
@@ -139,8 +140,8 @@ fun NewCardScreen(
         }
     }
 
-    LaunchedEffect(state.previewResult) {
-        if (state.previewResult != null) {
+    LaunchedEffect(hasPreview) {
+        if (hasPreview) {
             // Scroll to last item (result preview) after a brief delay for layout
             listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
         }
@@ -196,68 +197,13 @@ fun NewCardScreen(
             // -- Input Section --------------------------------------------------------
             item {
                 SectionCard(title = stringResource(R.string.input_section_title)) {
-                    when (state.typeView) {
-                        TypeView.WordOrPhase -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                HInput(
-                                    value = state.word,
-                                    onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
-                                    enabled = !state.isLoading,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = stringResource(R.string.word_label),
-                                    placeholder = if (isListening) {
-                                        stringResource(
-                                            R.string.listening_placeholder
-                                        )
-                                    } else {
-                                        stringResource(R.string.word_placeholder)
-                                    },
-                                    trailingIcon = {
-                                        VoiceInputButton(
-                                            isListening = isListening,
-                                            onClick = toggleVoiceInput
-                                        )
-                                    }
-                                )
-                                HInput(
-                                    value = state.intendedMeaningEs,
-                                    onValueChange = {
-                                        onIntent(NewCardUiIntent.IntendedMeaningChanged(it))
-                                    },
-                                    enabled = !state.isLoading,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = stringResource(R.string.intended_meaning_label),
-                                    placeholder = stringResource(R.string.intended_meaning_placeholder),
-                                )
-                                HInput(
-                                    value = state.contextSentence,
-                                    onValueChange = {
-                                        onIntent(NewCardUiIntent.ContextSentenceChanged(it))
-                                    },
-                                    enabled = !state.isLoading,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = stringResource(R.string.context_sentence_label),
-                                    placeholder = stringResource(R.string.context_sentence_placeholder),
-                                )
-                            }
-                        }
-                        TypeView.WithCategories -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                JustClickableInput(
-                                    value = state.category.name,
-                                    label = stringResource(R.string.category_label),
-                                    onClick = { showBottomSheet.value = true },
-                                )
-                                HSelect(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = stringResource(R.string.difficulty_label),
-                                    items = difficult,
-                                    itemSelected = state.difficulty,
-                                    onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
-                                )
-                            }
-                        }
-                    }
+                    NewCardInputSection(
+                        state = state,
+                        isListening = isListening,
+                        onIntent = onIntent,
+                        onToggleVoiceInput = toggleVoiceInput,
+                        onShowCategoryPicker = { showBottomSheet.value = true },
+                    )
                 }
             }
 
@@ -292,7 +238,7 @@ fun NewCardScreen(
             }
 
             // -- Generate Button ------------------------------------------------------
-            if (state.previewResult == null) {
+            if (!hasPreview) {
                 item {
                     HButton(
                         text = stringResource(R.string.generate_card),
@@ -328,7 +274,7 @@ fun NewCardScreen(
             }
 
             // -- Result Preview -------------------------------------------------------
-            if (state.previewResult != null) {
+            if (hasPreview) {
                 item {
                     ResultPreviewSection(
                         state = state,
@@ -348,6 +294,101 @@ fun NewCardScreen(
         selectedCategory = state.category,
         onAction = { onIntent(NewCardUiIntent.CategorySelected(it)) },
     )
+}
+
+@Composable
+private fun NewCardInputSection(
+    state: NewCardUiState,
+    isListening: Boolean,
+    onIntent: (NewCardUiIntent) -> Unit,
+    onToggleVoiceInput: () -> Unit,
+    onShowCategoryPicker: () -> Unit,
+) {
+    when (state.typeView) {
+        TypeView.WordOrPhase -> WordOrPhraseInputSection(
+            state = state,
+            isListening = isListening,
+            onIntent = onIntent,
+            onToggleVoiceInput = onToggleVoiceInput,
+        )
+
+        TypeView.WithCategories -> CategoryInputSection(
+            state = state,
+            onIntent = onIntent,
+            onShowCategoryPicker = onShowCategoryPicker,
+        )
+    }
+}
+
+@Composable
+private fun WordOrPhraseInputSection(
+    state: NewCardUiState,
+    isListening: Boolean,
+    onIntent: (NewCardUiIntent) -> Unit,
+    onToggleVoiceInput: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        HInput(
+            value = state.word,
+            onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
+            enabled = !state.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.word_label),
+            placeholder = if (isListening) {
+                stringResource(R.string.listening_placeholder)
+            } else {
+                stringResource(R.string.word_placeholder)
+            },
+            trailingIcon = {
+                VoiceInputButton(
+                    isListening = isListening,
+                    onClick = onToggleVoiceInput
+                )
+            }
+        )
+        HInput(
+            value = state.intendedMeaningEs,
+            onValueChange = {
+                onIntent(NewCardUiIntent.IntendedMeaningChanged(it))
+            },
+            enabled = !state.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.intended_meaning_label),
+            placeholder = stringResource(R.string.intended_meaning_placeholder),
+        )
+        HInput(
+            value = state.contextSentence,
+            onValueChange = {
+                onIntent(NewCardUiIntent.ContextSentenceChanged(it))
+            },
+            enabled = !state.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.context_sentence_label),
+            placeholder = stringResource(R.string.context_sentence_placeholder),
+        )
+    }
+}
+
+@Composable
+private fun CategoryInputSection(
+    state: NewCardUiState,
+    onIntent: (NewCardUiIntent) -> Unit,
+    onShowCategoryPicker: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        JustClickableInput(
+            value = state.category.name,
+            label = stringResource(R.string.category_label),
+            onClick = onShowCategoryPicker,
+        )
+        HSelect(
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.difficulty_label),
+            items = difficult,
+            itemSelected = state.difficulty,
+            onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
+        )
+    }
 }
 
 @Composable
@@ -376,7 +417,8 @@ private fun ResultPreviewSection(
     keyboardController: SoftwareKeyboardController?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
-    val preview = state.previewResult ?: return
+    val learningNotePreview = state.learningNotePreview
+    val preview = state.previewResult
 
     AnimatedVisibility(
         visible = true,
@@ -389,10 +431,11 @@ private fun ResultPreviewSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            if (state.learningNotePreview != null) {
-                LearningNotePreview(state.learningNotePreview)
+            if (learningNotePreview != null) {
+                LearningNotePreview(learningNotePreview)
             } else {
-                CardPreview(preview)
+                val legacyPreview = preview ?: return@Column
+                CardPreview(legacyPreview)
             }
 
             HButton(

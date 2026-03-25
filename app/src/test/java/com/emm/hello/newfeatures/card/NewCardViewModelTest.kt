@@ -15,7 +15,6 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
-import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
@@ -66,7 +65,6 @@ class NewCardViewModelTest {
         val viewModel = NewCardViewModel(
             getDecksUseCase = GetDecksUseCase(deckRepository),
             createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
-            generateFlashcardPreviewUseCase = GenerateFlashcardPreviewUseCase(generationRepository),
             generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                 repository = generationRepository,
                 validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
@@ -109,7 +107,6 @@ class NewCardViewModelTest {
         val viewModel = NewCardViewModel(
             getDecksUseCase = GetDecksUseCase(deckRepository),
             createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
-            generateFlashcardPreviewUseCase = GenerateFlashcardPreviewUseCase(generationRepository),
             generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                 repository = generationRepository,
                 validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
