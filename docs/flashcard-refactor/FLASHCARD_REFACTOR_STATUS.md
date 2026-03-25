@@ -16,7 +16,7 @@ This file exists to answer:
 
 ## Current Summary
 
-The refactor has completed the contract-definition stage and has started the migration stage.
+The refactor has completed the contract-definition stage and is now in the replacement stage.
 
 Current reality:
 
@@ -29,6 +29,20 @@ Current reality:
 - remote sync is aligned with the rich flashcard payload
 - study mode now expands one learning note into multiple derived review items
 - the old `FlashcardGenerated` generation path is being retired
+
+## Pre-Development Operating Rule
+
+This refactor is happening before production users and before any real backward-compatibility promise exists.
+
+For this stage:
+
+- compatibility is not a deliverable
+- legacy support is not a deliverable
+- preserving old local persistence is not a deliverable
+- preserving old remote schema is not a deliverable
+- destructive schema changes are allowed if they improve the flashcard core
+
+The main goal is to make the flashcard creation core correct and strong. If old structures interfere with that goal, they should be removed or replaced, not maintained.
 
 ## High-Level Progress
 
@@ -314,25 +328,27 @@ Pending:
 
 ## Compatibility State
 
-The project currently still contains two generation models in code:
+The desired end state is no compatibility layer.
 
-- old model: `FlashcardGenerated`
-- new model: `GeneratedLearningNote`
+Current reality:
 
-But the `NewCard` flow already runs on the new model end to end.
+- old model remnants may still exist in code
+- the active `NewCard` flow already runs on `GeneratedLearningNote`
+- any remaining legacy path should be treated as temporary debt to delete
 
 It becomes dangerous if:
 
 - both paths remain active too long
 - prompt output starts drifting between schemas
 - sync or read paths keep flattening rich data silently
+- legacy code is preserved only to avoid changing local or remote schema
 
 ## Known Risks
 
-- Study mode still assumes a flat front/back card.
-- Remote sync and Supabase do not yet persist the expanded flashcard fields.
-- `FlashcardGenerated` still exists and can become dead-weight if not retired soon.
-- Rich fields are embedded as JSON in local persistence; that is pragmatic now, but may become limiting later.
+- legacy structures survive longer than necessary and dilute the new core
+- study mode still assumes a flat front/back card in some places
+- schema rewrites may be frequent while the product loop is still being discovered
+- rich fields are embedded as JSON in local persistence; that is pragmatic now, but may become limiting later
 
 ## Recommended Next Step
 
@@ -340,14 +356,14 @@ The next step should be:
 
 1. finish Phase 7 for sync and remote schema
 2. start Phase 6 for actual study-card-based review
-3. remove dead compatibility paths when the new persistence is stable
+3. remove dead compatibility paths aggressively instead of maintaining them
 
 More concretely:
 
 - expand Supabase `flashcard` schema with the same rich fields
 - update sync payload handling for rich flashcard data
 - adapt `StudyScreen` and session loading to prefer derived study cards
-- decide the retirement path for `FlashcardGenerated`
+- delete the remaining `FlashcardGenerated` path instead of supporting coexistence
 
 ## Recent Commits
 

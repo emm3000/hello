@@ -35,20 +35,26 @@ The refactor needs:
 - explicit quality checks
 - typed note and card categories
 
-## Coexistence Strategy
+## Replacement Strategy
 
-For now, the new Phase 2 contract coexists with the old `FlashcardGenerated` model.
+The target state is full replacement, not long-term coexistence.
 
-This is intentional.
+Any temporary overlap with `FlashcardGenerated` should be treated as short-lived implementation debt, not as a compatibility commitment.
 
-The migration path is:
+Because this refactor is still in pre-development:
+
+- the old output model does not need to be preserved
+- downstream layers may be rewritten directly
+- local and remote schemas may be changed destructively if needed
+
+The replacement path is:
 
 1. define the new output contract in `domain`
 2. adapt prompt output in `data`
 3. adapt parsers and repository mapping
 4. adapt preview UI
 5. adapt persistence
-6. retire or convert `FlashcardGenerated`
+6. delete `FlashcardGenerated` and any remaining legacy assumptions
 
 ## New Output Model
 
@@ -273,4 +279,4 @@ The next implementation step after this phase should be:
 1. redesign the prompt output schema to match `GeneratedLearningNote`
 2. create DTOs and parsers in `data` for the new output contract
 3. map old preview flow to the new note and card structure
-4. decide how long `FlashcardGenerated` remains as a compatibility type
+4. remove `FlashcardGenerated` as soon as the active path no longer needs it

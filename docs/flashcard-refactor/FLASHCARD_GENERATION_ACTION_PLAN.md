@@ -12,6 +12,26 @@ Redesign the flashcard generation flow so the app creates high-value Anki-style 
 
 This plan is intentionally staged for trial-and-error development. During experimentation, local database and Supabase schema may be changed directly without formal migrations if needed. However, every schema change must be reflected consistently in models, queries, parsers, sync payloads, and UI contracts.
 
+## Pre-Development Policy
+
+This refactor is happening before real users exist in the system.
+
+That means:
+
+- backward compatibility is not a goal
+- legacy support is not a goal
+- preserving old local database shapes is not a goal
+- preserving old Supabase shapes is not a goal
+- compatibility shims should be avoided unless they unblock a short-lived implementation step
+
+The priority is to sharpen the core product loop:
+
+- create better flashcards
+- persist the right learning data
+- review the right derived cards
+
+If the current local or remote schema gets in the way of that goal, it should be changed directly. The cost of rewriting now is acceptable. The cost of carrying weak legacy structure into the core flashcard system is not.
+
 ## Product Direction
 
 The target is not "one rich flashcard with too much text". The target is:
@@ -131,6 +151,17 @@ Each derived card should have a single retrieval target.
 ## Data and Schema Rule During Experimentation
 
 Formal migrations are not required for this phase, but schema changes are never isolated.
+
+Because the project is still in pre-development, schema changes may be destructive.
+
+It is acceptable in this phase to:
+
+- reset the local database
+- replace SQLDelight tables instead of preserving old ones
+- reset the remote Supabase database
+- rewrite remote tables, RPC payloads, and sync contracts
+
+What is not acceptable is silent drift between layers.
 
 Every database change must update all of the following, if applicable:
 

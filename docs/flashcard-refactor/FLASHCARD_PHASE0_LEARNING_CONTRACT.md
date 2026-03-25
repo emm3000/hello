@@ -595,3 +595,14 @@ Because schema changes are allowed without formal migrations during this stage, 
 - Supabase structure
 
 No field should exist in only one layer for long. Temporary drift should be treated as a bug, not as an acceptable state.
+
+This also means Phase 0 does not impose any backward-compatibility obligation.
+
+During this pre-development stage:
+
+- local schema can be rewritten
+- remote Supabase schema can be rewritten
+- old structures can be removed without preservation
+- legacy support should not be carried forward just because it already exists
+
+The contract is more important than preserving any earlier implementation.
