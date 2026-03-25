@@ -3,12 +3,14 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.CreateDeckUseCase
+import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewDeckViewModel(
     private val createDeckUseCase: CreateDeckUseCase,
+    private val ensureLinkedIdentityUseCase: EnsureLinkedIdentityUseCase,
 ) : MviViewModel<NewDeckUiState, NewDeckUiIntent, NewDeckUiEffect>(
     initialState = NewDeckUiState(),
 ) {
@@ -27,6 +29,7 @@ class NewDeckViewModel(
 
         mutableState.update { it.copy(isLoading = true) }
         runCatching {
+            ensureLinkedIdentityUseCase()
             val input = CreateDeckInput(
                 name = current.name,
                 description = current.description,

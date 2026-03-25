@@ -150,7 +150,12 @@ fun Module.useCases() {
 }
 
 fun Module.viewModels() {
-    viewModelOf(::NewDeckViewModel)
+    viewModel {
+        NewDeckViewModel(
+            createDeckUseCase = get(),
+            ensureLinkedIdentityUseCase = get(),
+        )
+    }
     viewModelOf(::DashboardViewModel)
     viewModelOf(::PairingViewModel)
     viewModel {
