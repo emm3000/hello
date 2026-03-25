@@ -48,7 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
@@ -75,7 +77,7 @@ fun StudyScreen(
     modifier: Modifier = Modifier,
     onBackRequested: () -> Unit = {},
     onFinishDialogDismissed: () -> Unit = {},
-    onReviewAnswer: (Flashcard?, ReviewGrade) -> Unit = { _, _ -> },
+    onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
@@ -84,7 +86,7 @@ fun StudyScreen(
     val ttsReady by tts.isReady.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
 
-    val prevFlashCard = remember { mutableStateOf(state.currentFlashcard) }
+    val prevStudyItem = remember { mutableStateOf(state.currentItem) }
     var cardFace by remember { mutableStateOf(CardFace.Front) }
 
     val progress = if (state.totalCount > 0) {
@@ -93,7 +95,7 @@ fun StudyScreen(
         0f
     }
 
-    LaunchedEffect(state.currentFlashcard?.id) { cardFace = CardFace.Front }
+    LaunchedEffect(state.currentItem?.studyCard?.cardId) { cardFace = CardFace.Front }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -158,7 +160,7 @@ fun StudyScreen(
 
                 // ── Animated card with slide transition between flashcards ──
                 AnimatedContent(
-                    targetState = state.currentFlashcard,
+                    targetState = state.currentItem,
                     transitionSpec = {
                         (
                             slideInHorizontally(tween(CARD_TRANSITION_DURATION_MS)) {
@@ -176,7 +178,7 @@ fun StudyScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                ) { flashcard ->
+                ) { item ->
                     FlippableCard(
                         cardFace = cardFace,
                         onClick = {
@@ -184,30 +186,30 @@ fun StudyScreen(
                             cardFace = it.next
                         },
                         progress = progress,
-                        onFinished = { prevFlashCard.value = state.currentFlashcard },
+                        onFinished = { prevStudyItem.value = state.currentItem },
                         modifier = Modifier.fillMaxSize(),
                         frontContent = {
-                            val studyCard = flashcard?.activeStudyCard()
                             FlashcardFrontContent(
-                                prompt = studyCard?.prompt ?: flashcard?.word.orEmpty(),
-                                phonetic = if (studyCard == null) {
-                                    flashcard?.phonetic.orEmpty()
+                                prompt = item?.studyCard?.prompt ?: item?.flashcard?.word.orEmpty(),
+                                phonetic = if (item?.studyCard?.sourceField == "word") {
+                                    item.flashcard.phonetic
                                 } else {
                                     ""
                                 },
+                                cardType = item?.studyCard?.cardType,
                             )
                         },
                         backContent = {
-                            val currentCard = prevFlashCard.value
+                            val currentItem = prevStudyItem.value
                             FlashcardBackContent(
-                                card = currentCard,
-                                studyCard = currentCard?.activeStudyCard(),
+                                card = currentItem?.flashcard,
+                                studyCard = currentItem?.studyCard,
                                 isSpeaking = isSpeaking,
                                 ttsReady = ttsReady,
                                 onStop = { tts.stop() },
                                 onSpeak = {
                                     if (ttsReady) {
-                                        tts.speak(state.currentFlashcard?.word.orEmpty())
+                                        tts.speak(state.currentItem?.flashcard?.word.orEmpty())
                                     }
                                 },
                             )
@@ -230,7 +232,7 @@ fun StudyScreen(
                     if (showButtons) {
                         AnswerButtons { grade ->
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onReviewAnswer(state.currentFlashcard, grade)
+                            onReviewAnswer(state.currentItem, grade)
                         }
                     } else {
                         Spacer(Modifier.height(ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP.dp))
@@ -263,6 +265,7 @@ fun StudyScreen(
 private fun FlashcardFrontContent(
     prompt: String,
     phonetic: String,
+    cardType: StudyCardType?,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -279,6 +282,13 @@ private fun FlashcardFrontContent(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            if (cardType != null) {
+                Spacer(Modifier.height(12.dp))
+                HBadge(
+                    label = cardType.label,
+                    variant = BadgeVariant.Outline,
+                )
+            }
             if (phonetic.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
                 HSeparator(modifier = Modifier.fillMaxWidth(PHONETIC_SEPARATOR_WIDTH_FRACTION))
@@ -356,10 +366,6 @@ private fun FlashcardBackContent(
     }
 }
 
-private fun Flashcard.activeStudyCard(): GeneratedStudyCard? {
-    return studyCards.firstOrNull { it.isActive }
-}
-
 // ── Answer buttons with icons ────────────────────────────────────────────────
 
 @Composable
@@ -420,14 +426,23 @@ private fun StudyScreenPreview() {
     HelloTheme {
         StudyScreen(
             state = StudyUiState(
-                currentFlashcard = Flashcard(
-                    id = "1",
-                    word = "Serendipity",
-                    meaning = "The occurrence of events by chance in a happy way",
-                    translation = "Casualidad afortunada",
-                    examples = listOf(),
-                    phonetic = "/ˌserənˈdɪpɪti/",
-                    review = FlashcardReview.Empty,
+                currentItem = StudySessionItem(
+                    flashcard = Flashcard(
+                        id = "1",
+                        word = "Serendipity",
+                        meaning = "The occurrence of events by chance in a happy way",
+                        translation = "Casualidad afortunada",
+                        examples = listOf(),
+                        phonetic = "/ˌserənˈdɪpɪti/",
+                        review = FlashcardReview.Empty,
+                    ),
+                    studyCard = GeneratedStudyCard(
+                        cardId = "study-card-1",
+                        cardType = StudyCardType.Recognition,
+                        prompt = "Serendipity",
+                        expectedAnswer = "Casualidad afortunada",
+                        evaluationMode = EvaluationMode.ManualSelfCheck,
+                    ),
                 ),
                 reviewedCount = 3,
                 totalCount = 10,
@@ -435,3 +450,11 @@ private fun StudyScreenPreview() {
         )
     }
 }
+
+private val StudyCardType.label: String
+    get() = when (this) {
+        StudyCardType.Recognition -> "Recognition"
+        StudyCardType.Production -> "Production"
+        StudyCardType.Cloze -> "Cloze"
+        StudyCardType.Form -> "Form"
+    }

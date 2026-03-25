@@ -1,10 +1,13 @@
 package com.emm.hello.newfeatures.study
 
 import app.cash.turbine.test
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.GetStudySessionUseCase
+import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.study.ReviewGrade
@@ -31,7 +34,7 @@ class StudyViewModelTest {
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentFlashcard?.id).isEqualTo("a")
+        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id).isEqualTo("a")
         assertThat(viewModel.uiState.value.totalCount).isEqualTo(3)
     }
 
@@ -63,10 +66,15 @@ class StudyViewModelTest {
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        viewModel.onIntent(StudyUiIntent.ReviewAnswered(flashcard("a"), ReviewGrade.GOOD))
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.uiState.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentFlashcard?.id).isEqualTo("b")
+        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id).isEqualTo("b")
         assertThat(viewModel.uiState.value.reviewedCount).isEqualTo(1)
     }
 
@@ -77,7 +85,12 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.ReviewAnswered(flashcard("a"), ReviewGrade.GOOD))
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.uiState.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
         }
     }
@@ -89,10 +102,20 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.ReviewAnswered(flashcard("a"), ReviewGrade.GOOD))
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.uiState.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
 
-            viewModel.onIntent(StudyUiIntent.ReviewAnswered(flashcard("b"), ReviewGrade.GOOD))
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.uiState.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
             advanceUntilIdle()
             expectNoEvents()
         }
@@ -107,6 +130,55 @@ class StudyViewModelTest {
         }
     }
 
+    @Test
+    fun `flashcard with multiple study cards expands session and schedules once`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            getStudySessionUseCase = GetStudySessionUseCase(
+                FakeStudySessionRepo(
+                    listOf(
+                        flashcard(
+                            id = "a",
+                            studyCards = listOf(
+                                studyCard("a-1", StudyCardType.Recognition),
+                                studyCard("a-2", StudyCardType.Production),
+                            ),
+                        )
+                    )
+                )
+            ),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(),
+            updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(reviewRepo),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.totalCount).isEqualTo(2)
+        assertThat(viewModel.uiState.value.currentItem?.studyCard?.cardId).isEqualTo("a-1")
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.uiState.value.currentItem,
+                reviewGrade = ReviewGrade.EASY,
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(reviewRepo.updates).isEmpty()
+        assertThat(viewModel.uiState.value.currentItem?.studyCard?.cardId).isEqualTo("a-2")
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.uiState.value.currentItem,
+                reviewGrade = ReviewGrade.HARD,
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(reviewRepo.updates).hasSize(1)
+        assertThat(reviewRepo.updates.single().flashcardId).isEqualTo("a")
+    }
+
     private fun makeViewModel(cards: List<Flashcard>): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         getStudySessionUseCase = GetStudySessionUseCase(FakeStudySessionRepo(cards)),
@@ -114,7 +186,10 @@ class StudyViewModelTest {
         updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(FakeFlashcardReviewRepo()),
     )
 
-    private fun flashcard(id: String): Flashcard = Flashcard(
+    private fun flashcard(
+        id: String,
+        studyCards: List<GeneratedStudyCard> = emptyList(),
+    ): Flashcard = Flashcard(
         id = id,
         word = id,
         meaning = "",
@@ -122,6 +197,15 @@ class StudyViewModelTest {
         examples = emptyList(),
         phonetic = "",
         review = FlashcardReview.Empty,
+        studyCards = studyCards,
+    )
+
+    private fun studyCard(id: String, type: StudyCardType) = GeneratedStudyCard(
+        cardId = id,
+        cardType = type,
+        prompt = id,
+        expectedAnswer = id,
+        evaluationMode = EvaluationMode.ManualSelfCheck,
     )
 
     private class FakeStudySessionRepo(private val flashcards: List<Flashcard>) : StudySessionRepository {

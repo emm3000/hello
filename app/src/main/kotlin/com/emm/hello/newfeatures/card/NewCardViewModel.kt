@@ -81,7 +81,6 @@ class NewCardViewModel(
                     word = intent.word,
                     error = null,
                     learningNotePreview = null,
-                    previewResult = null
                 )
             }
             is NewCardUiIntent.IntendedMeaningChanged -> mutableState.update {
@@ -89,7 +88,6 @@ class NewCardViewModel(
                     intendedMeaningEs = intent.intendedMeaningEs,
                     error = null,
                     learningNotePreview = null,
-                    previewResult = null,
                 )
             }
             is NewCardUiIntent.ContextSentenceChanged -> mutableState.update {
@@ -97,7 +95,6 @@ class NewCardViewModel(
                     contextSentence = intent.contextSentence,
                     error = null,
                     learningNotePreview = null,
-                    previewResult = null,
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
@@ -112,7 +109,6 @@ class NewCardViewModel(
                     category = intent.category,
                     error = null,
                     learningNotePreview = null,
-                    previewResult = null
                 )
             }
             is NewCardUiIntent.DifficultySelected -> mutableState.update {
@@ -120,14 +116,12 @@ class NewCardViewModel(
                     difficulty = intent.difficulty,
                     error = null,
                     learningNotePreview = null,
-                    previewResult = null,
                 )
             }
             is NewCardUiIntent.TypeViewSelected -> mutableState.update {
                 it.copy(
                     typeView = intent.typeView,
                     learningNotePreview = null,
-                    previewResult = null
                 )
             }
         }
@@ -140,7 +134,6 @@ class NewCardViewModel(
                 isLoading = true,
                 error = null,
                 learningNotePreview = null,
-                previewResult = null,
             )
         }
         runCatching {
@@ -151,7 +144,6 @@ class NewCardViewModel(
             mutableState.update {
                 it.copy(
                     learningNotePreview = preview,
-                    previewResult = null,
                     isLoading = false,
                 )
             }
@@ -178,7 +170,6 @@ class NewCardViewModel(
                     intendedMeaningEs = "",
                     contextSentence = "",
                     learningNotePreview = null,
-                    previewResult = null,
                     isLoading = false,
                     error = null,
                 )

@@ -7,19 +7,6 @@ class CreateFlashcardUseCase(
 
     suspend operator fun invoke(
         deckId: String,
-        flashcard: FlashcardGenerated,
-    ): Flashcard {
-        val input = flashcard.toCreateFlashcardInput(deckId)
-
-        val flashcardId: String = writeRepository.create(input)
-
-        writeRepository.upsertExamples(flashcard.examples, flashcardId)
-
-        return readRepository.fetchById(flashcardId)
-    }
-
-    suspend operator fun invoke(
-        deckId: String,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
         val input = learningNote.toCreateFlashcardInput(deckId)
@@ -29,19 +16,6 @@ class CreateFlashcardUseCase(
         writeRepository.upsertExamples(learningNote.toExamples(), flashcardId)
 
         return readRepository.fetchById(flashcardId)
-    }
-
-    private fun FlashcardGenerated.toCreateFlashcardInput(deckId: String): CreateFlashcardInput {
-        return CreateFlashcardInput(
-            deckId = deckId,
-            word = word,
-            meaning = meaning,
-            translation = translation,
-            phonetic = phonetics,
-            partOfSpeech = partOfSpeech,
-            type = type,
-            note = notes,
-        )
     }
 
     private fun GeneratedLearningNote.toCreateFlashcardInput(deckId: String): CreateFlashcardInput {

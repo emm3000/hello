@@ -18,7 +18,6 @@ import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
@@ -28,7 +27,6 @@ import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.sync.OperationType
@@ -197,23 +195,6 @@ class DefaultFlashcardRepository(
                 versionLamport = lamport,
             )
         }
-    }
-
-    override suspend fun generateFlashcard(word: String): FlashcardGenerated = withContext(Dispatchers.IO) {
-        val prompt: String = Prompt.buildPrompt(word)
-        val response: String = geminiService.process(prompt)
-        val flashcardGenerated: FlashcardGenerated = FlashcardResponseParses.parse(response, json)
-        return@withContext flashcardGenerated
-    }
-
-    override suspend fun generatedFlashcard(
-        categories: StaticCategories,
-        difficulty: String
-    ): FlashcardGenerated = withContext(Dispatchers.IO) {
-        val prompt: String = Prompt.buildPrompt(categories.name, difficulty)
-        val response: String = geminiService.process(prompt)
-        val flashcardGenerated: FlashcardGenerated = AnkiResponseParses.parse(response, json)
-        return@withContext flashcardGenerated
     }
 
     override suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote =

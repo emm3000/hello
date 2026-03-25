@@ -85,7 +85,7 @@ class NewCardViewModelTest {
             val updated = awaitItem()
             assertThat(updated.word).isEqualTo("updated")
             assertThat(updated.error).isNull()
-            assertThat(updated.previewResult).isNull()
+            assertThat(updated.learningNotePreview).isNull()
         }
     }
 

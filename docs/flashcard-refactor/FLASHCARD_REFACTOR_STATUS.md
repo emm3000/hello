@@ -26,7 +26,9 @@ Current reality:
 - `data` has a working generation path, parser, and rich local persistence for `GeneratedLearningNote`
 - the app generation path now goes through `GeneratedLearningNote`
 - local persistence now stores note-rich fields and derived cards inside `Flashcard`
-- study mode and remote sync still behave as old flat flashcard consumers
+- remote sync is aligned with the rich flashcard payload
+- study mode now expands one learning note into multiple derived review items
+- the old `FlashcardGenerated` generation path is being retired
 
 ## High-Level Progress
 
@@ -39,7 +41,7 @@ Estimated qualitative progress:
 - Repository integration: `done for generation and save`
 - Preview migration: `done`
 - Persistence migration: `started and locally integrated`
-- Study-mode migration: `not started`
+- Study-mode migration: `started and integrated around derived cards`
 - Quality gate before save: `defined and partially enforced through validated generation`
 
 ## Phase Status
@@ -119,19 +121,19 @@ Reference:
 
 Status:
 
-- `started`
+- `substantially complete`
 
-Planned focus:
+Completed focus:
 
-- rewrite prompts to generate `GeneratedLearningNote`
-- remove artificial randomness constraints
-- align prompt output exactly with DTOs and parser expectations
+- prompts now generate `GeneratedLearningNote`
+- artificial randomness constraints were removed from the main generation path
+- prompt output is aligned with parser and DTO expectations
 
 ## Phase 4
 
 Status:
 
-- `not started`
+- `started`
 
 Planned focus:
 
@@ -156,10 +158,16 @@ Status:
 
 - `not started`
 
-Planned focus:
+Implemented:
 
-- new study card types
-- cloze and production review
+- session queue now expands a flashcard into multiple `StudySessionItem`s
+- review scheduling runs once per note after its derived cards are answered
+- study UI renders the active derived card instead of flattening to a single front/back pair
+
+Pending:
+
+- typed-answer flow for production cards
+- stronger card-type-specific rendering for cloze and form cards
 
 ## Phase 7
 
@@ -204,14 +212,13 @@ Completed:
 
 Pending:
 
-- use cases that bridge validated input to generated output
-- retirement or conversion strategy for `FlashcardGenerated`
+- stronger app-level handling of validation warnings before save
 
 ## Data
 
 Status:
 
-- `started and connected for parallel generation path`
+- `migrated to the new generation path`
 
 Completed:
 
@@ -220,10 +227,10 @@ Completed:
 - parser tests
 - repository method for generated learning note
 - prompt builder for generated learning note
+- old `FlashcardGenerated` generation path removed from repository/domain
 
 Pending:
 
-- retire old generation methods once no longer referenced
 - add repository integration tests for rich persistence
 - decide whether to keep JSON-embedded derived cards or extract them later
 
@@ -244,7 +251,7 @@ Pending:
 
 - render validation errors and warnings more explicitly
 - support editing the learning note preview before save
-- adapt study mode to use derived cards instead of only flat front/back
+- typed answer / richer study interactions for production cards
 
 ## Local Database
 

@@ -58,7 +58,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
-import com.emm.domain.flashcard.FlashcardGenerated
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.TypeView
@@ -128,7 +127,7 @@ fun NewCardScreen(
     val showBottomSheet = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val hasPreview = state.learningNotePreview != null || state.previewResult != null
+    val hasPreview = state.learningNotePreview != null
 
     val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
         val hasWord = state.word.isNotBlank()
@@ -417,8 +416,7 @@ private fun ResultPreviewSection(
     keyboardController: SoftwareKeyboardController?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
-    val learningNotePreview = state.learningNotePreview
-    val preview = state.previewResult
+    val learningNotePreview = state.learningNotePreview ?: return
 
     AnimatedVisibility(
         visible = true,
@@ -431,12 +429,7 @@ private fun ResultPreviewSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            if (learningNotePreview != null) {
-                LearningNotePreview(learningNotePreview)
-            } else {
-                val legacyPreview = preview ?: return@Column
-                CardPreview(legacyPreview)
-            }
+            LearningNotePreview(learningNotePreview)
 
             HButton(
                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
@@ -647,80 +640,6 @@ private fun LabeledCheckbox(
 }
 
 @Composable
-private fun CardPreview(flashcard: FlashcardGenerated) {
-    HCard(variant = CardVariant.Outlined) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = flashcard.word,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                if (flashcard.partOfSpeech.isNotBlank()) {
-                    HBadge(
-                        label = flashcard.partOfSpeech,
-                        variant = BadgeVariant.Secondary,
-                    )
-                }
-            }
-            Text(
-                text = flashcard.phonetics,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            HSeparator()
-
-            InfoRow(label = stringResource(R.string.translation_label), value = flashcard.translation)
-            InfoRow(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
-
-            if (flashcard.notes.isNotBlank()) {
-                HSeparator()
-                InfoRow(label = stringResource(R.string.notes_label), value = flashcard.notes)
-            }
-
-            if (flashcard.tags.isNotEmpty()) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    flashcard.tags.forEach { tag ->
-                        HBadge(label = tag, variant = BadgeVariant.Outline)
-                    }
-                }
-            }
-
-            if (flashcard.examples.isNotEmpty()) {
-                HSeparator()
-                Text(
-                    text = stringResource(R.string.examples_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    flashcard.examples.forEachIndexed { index, example ->
-                        key(example.exampleId) {
-                            ExampleItem(index = index + 1, example = example)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SectionCard(
     title: String,
     content: @Composable () -> Unit,
@@ -824,22 +743,6 @@ fun NewCardScreenPreview() {
                         cards = listOf(),
                         cardsCount = 24,
                     )
-                ),
-                previewResult = FlashcardGenerated(
-                    word = "Serendipity",
-                    meaning = "The occurrence of events by chance in a happy way",
-                    translation = "Casualidad afortunada",
-                    examples = listOf(
-                        Example(
-                            "ex1",
-                            "Finding that book was pure serendipity",
-                            "Encontrar ese libro fue pura casualidad afortunada",
-                            ""
-                        ),
-                        Example("ex2", "She called it serendipity", "Ella lo llamó serendipia", ""),
-                    ),
-                    phonetics = "/ˌserənˈdɪpɪti/",
-                    language = "en",
                 )
             )
         )

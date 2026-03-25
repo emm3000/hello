@@ -20,26 +20,33 @@ class StudyViewModel(
     initialState = StudyUiState(),
 ) {
 
-    private val flashcardsForToday: ArrayDeque<Flashcard> = ArrayDeque()
+    private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
+    private val pendingItemsByFlashcardId = mutableMapOf<String, Int>()
+    private val aggregatedGradesByFlashcardId = mutableMapOf<String, ReviewGrade>()
+    private val flashcardsById = mutableMapOf<String, Flashcard>()
 
     init {
         viewModelScope.launch {
             val flashcards: List<Flashcard> = getStudySessionUseCase(deckId)
-            flashcardsForToday.addAll(flashcards)
-            mutableState.update { it.copy(totalCount = flashcards.size) }
+            val items = flashcards.flatMap { flashcard ->
+                flashcardsById[flashcard.id] = flashcard
+                flashcard.toStudySessionItems().also { pendingItemsByFlashcardId[flashcard.id] = it.size }
+            }
+            studyItemsForToday.addAll(items)
+            mutableState.update { it.copy(totalCount = items.size) }
             showNextCard()
         }
     }
 
     private suspend fun showNextCard() {
         mutableState.update {
-            if (flashcardsForToday.isNotEmpty()) {
-                it.copy(currentFlashcard = flashcardsForToday.removeFirstOrNull())
+            if (studyItemsForToday.isNotEmpty()) {
+                it.copy(currentItem = studyItemsForToday.removeFirstOrNull())
             } else {
-                it.copy(currentFlashcard = null)
+                it.copy(currentItem = null)
             }
         }
-        if (flashcardsForToday.isEmpty() && !mutableState.value.sessionFinished) {
+        if (studyItemsForToday.isEmpty() && !mutableState.value.sessionFinished) {
             mutableState.update { it.copy(sessionFinished = true) }
             mutableEffect.send(StudyUiEffect.SessionFinished)
         }
@@ -56,22 +63,50 @@ class StudyViewModel(
                 viewModelScope.launch { mutableEffect.send(StudyUiEffect.NavigateBack) }
             }
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
-                flashcard = intent.flashcard,
+                item = intent.item,
                 reviewResult = intent.reviewGrade,
             )
         }
     }
 
-    private fun processReviewAnswer(flashcard: Flashcard?, reviewResult: ReviewGrade) = viewModelScope.launch {
-        if (flashcard == null) return@launch
-
-        val newReview: FlashcardReview = scheduleFlashcardReviewUseCase(
-            review = flashcard.review,
-            grade = reviewResult,
-            flashcardId = flashcard.id,
+    private fun processReviewAnswer(item: StudySessionItem?, reviewResult: ReviewGrade) = viewModelScope.launch {
+        val flashcard = item?.flashcard ?: return@launch
+        val flashcardId = flashcard.id
+        aggregatedGradesByFlashcardId[flashcardId] = moreConservativeGrade(
+            current = aggregatedGradesByFlashcardId[flashcardId],
+            incoming = reviewResult,
         )
-        updateFlashcardReviewUseCase(newReview)
+
+        val remainingItems = pendingItemsByFlashcardId.getValue(flashcardId) - 1
+        pendingItemsByFlashcardId[flashcardId] = remainingItems
+
+        if (remainingItems == 0) {
+            val finalGrade = aggregatedGradesByFlashcardId.remove(flashcardId) ?: reviewResult
+            val persistedFlashcard = flashcardsById.getValue(flashcardId)
+            val newReview: FlashcardReview = scheduleFlashcardReviewUseCase(
+                review = persistedFlashcard.review,
+                grade = finalGrade,
+                flashcardId = flashcardId,
+            )
+            updateFlashcardReviewUseCase(newReview)
+            pendingItemsByFlashcardId.remove(flashcardId)
+            flashcardsById.remove(flashcardId)
+        }
+
         incrementReviewed()
         showNextCard()
     }
+
+    private fun moreConservativeGrade(current: ReviewGrade?, incoming: ReviewGrade): ReviewGrade {
+        val currentScore = current?.priority ?: Int.MAX_VALUE
+        return if (incoming.priority < currentScore) incoming else current ?: incoming
+    }
 }
+
+private val ReviewGrade.priority: Int
+    get() = when (this) {
+        ReviewGrade.AGAIN -> 0
+        ReviewGrade.HARD -> 1
+        ReviewGrade.GOOD -> 2
+        ReviewGrade.EASY -> 3
+    }

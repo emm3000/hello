@@ -47,10 +47,10 @@ fun NavGraphBuilder.study(navController: NavController) {
                 showFinishDialog = false
                 vm.onIntent(StudyUiIntent.FinishDialogDismissed)
             },
-            onReviewAnswer = { flashcard, reviewGrade ->
+            onReviewAnswer = { item, reviewGrade ->
                 vm.onIntent(
                     StudyUiIntent.ReviewAnswered(
-                        flashcard = flashcard,
+                        item = item,
                         reviewGrade = reviewGrade,
                     )
                 )
