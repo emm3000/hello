@@ -14,10 +14,12 @@ import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerated
+import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.sync.OperationType
@@ -153,6 +155,13 @@ class DefaultFlashcardRepository(
         val flashcardGenerated: FlashcardGenerated = AnkiResponseParses.parse(response, json)
         return@withContext flashcardGenerated
     }
+
+    override suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote =
+        withContext(Dispatchers.IO) {
+            val prompt = Prompt.buildLearningNotePrompt(input)
+            val response = geminiService.process(prompt)
+            GeneratedLearningNoteResponseParser.parse(response, json)
+        }
 
     override fun fetchAll(): Flow<List<Flashcard>> = dao
         .all()

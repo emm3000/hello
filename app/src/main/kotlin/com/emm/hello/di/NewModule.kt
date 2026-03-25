@@ -37,11 +37,14 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateFlashcardPreviewUseCase
+import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
+import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.quote.GenerateQuoteUseCase
 import com.emm.domain.quote.ObserveLatestQuoteUseCase
 import com.emm.domain.quote.QuoteRepository
@@ -128,6 +131,9 @@ fun Module.useCases() {
     factoryOf(::SetDefaultDeckUseCase)
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::GenerateFlashcardPreviewUseCase)
+    factoryOf(::ValidateFlashcardGenerationInputUseCase)
+    factoryOf(::ValidateGeneratedLearningNoteUseCase)
+    factoryOf(::GenerateLearningNotePreviewUseCase)
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::GetFlashcardByIdUseCase)
