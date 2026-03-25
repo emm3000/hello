@@ -9,23 +9,29 @@ import com.emm.domain.sync.SyncDebugStateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 
 class DefaultSyncDebugStateRepository(
-    db: HelloDb,
+    private val db: HelloDb,
 ) : SyncDebugStateRepository {
 
     private val localFirstQueries = db.localFirstQueries
 
     override fun observe(): Flow<SyncDebugState> {
+        val accountStateFlow = localFirstQueries.selectLocalAccountState().asFlow().mapToOneOrNull(Dispatchers.IO)
+        val checkpointFlow = accountStateFlow
+        val pendingFlow = accountStateFlow
         return combine(
-            localFirstQueries
-                .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
-                .asFlow()
-                .mapToOne(Dispatchers.IO),
-            localFirstQueries.selectSyncCheckpoint().asFlow().mapToOneOrNull(Dispatchers.IO),
+            accountStateFlow,
             localFirstQueries.selectLocalDeviceIdentity().asFlow().mapToOneOrNull(Dispatchers.IO),
-            localFirstQueries.selectLocalAccountState().asFlow().mapToOneOrNull(Dispatchers.IO),
-        ) { pendingOps, checkpoint, deviceIdentity, accountState ->
+        ) { accountState, deviceIdentity ->
+            val appAccountId = accountState?.appAccountId?.takeIf(String::isNotBlank)
+            val pendingOps = appAccountId?.let {
+                localFirstQueries.countRetryableOperations(it, DrainOutbox.MAX_RETRY_COUNT).executeAsOne()
+            } ?: 0L
+            val checkpoint = appAccountId?.let {
+                localFirstQueries.selectSyncCheckpoint(it).executeAsOneOrNull()
+            }
             SyncDebugState(
                 pendingOperations = pendingOps,
                 lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,

@@ -72,6 +72,7 @@ INSERT OR REPLACE INTO LocalAccountState (
 
 CREATE TABLE OperationLog (
     opId TEXT NOT NULL PRIMARY KEY,
+    appAccountId TEXT NOT NULL,
     entityType TEXT NOT NULL,
     entityId TEXT NOT NULL,
     operationType TEXT NOT NULL,
@@ -85,13 +86,15 @@ CREATE TABLE OperationLog (
     lastError TEXT
 );
 
-CREATE INDEX idx_OperationLog_status_createdAt ON OperationLog(status, createdAt);
-CREATE INDEX idx_OperationLog_entityType_entityId ON OperationLog(entityType, entityId);
-CREATE INDEX idx_OperationLog_lamport ON OperationLog(lamport);
+CREATE INDEX idx_OperationLog_account_status_lamport_createdAt
+ON OperationLog(appAccountId, status, lamport, createdAt);
+CREATE INDEX idx_OperationLog_account_entityType_entityId
+ON OperationLog(appAccountId, entityType, entityId);
 
 insertOperation:
 INSERT INTO OperationLog (
     opId,
+    appAccountId,
     entityType,
     entityId,
     operationType,
@@ -103,22 +106,25 @@ INSERT INTO OperationLog (
     retryCount,
     lastAttemptAt,
     lastError
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 pendingOperations:
 SELECT * FROM OperationLog
-WHERE status IN ('Pending', 'Failed')
+WHERE appAccountId = :appAccountId
+  AND status IN ('Pending', 'Failed')
   AND retryCount < :maxRetries
 ORDER BY lamport ASC, createdAt ASC
 LIMIT :limit;
 
 countPendingOperations:
 SELECT COUNT(*) FROM OperationLog
-WHERE status = 'Pending';
+WHERE appAccountId = :appAccountId
+  AND status = 'Pending';
 
 countRetryableOperations:
 SELECT COUNT(*) FROM OperationLog
-WHERE status IN ('Pending', 'Failed')
+WHERE appAccountId = :appAccountId
+  AND status IN ('Pending', 'Failed')
   AND retryCount < :maxRetries;
 
 markOperationAcked:
@@ -144,7 +150,7 @@ SET
 WHERE opId = ?;
 
 CREATE TABLE SyncCheckpoint (
-    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    appAccountId TEXT NOT NULL PRIMARY KEY,
     lastPulledCursor INTEGER NOT NULL DEFAULT 0,
     lastSuccessfulSyncAt INTEGER,
     lastSyncError TEXT,
@@ -153,42 +159,47 @@ CREATE TABLE SyncCheckpoint (
 );
 
 selectSyncCheckpoint:
-SELECT * FROM SyncCheckpoint WHERE singletonId = 1;
+SELECT * FROM SyncCheckpoint WHERE appAccountId = ?;
 
 upsertSyncCheckpoint:
 INSERT OR REPLACE INTO SyncCheckpoint (
-    singletonId,
+    appAccountId,
     lastPulledCursor,
     lastSuccessfulSyncAt,
     lastSyncError,
     lastSyncErrorAt,
     updatedAt
-) VALUES (1, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?);
 
 CREATE TABLE AppliedRemoteOperation (
-    opId TEXT NOT NULL PRIMARY KEY,
+    appAccountId TEXT NOT NULL,
+    opId TEXT NOT NULL,
     cursor INTEGER NOT NULL,
     entityType TEXT NOT NULL,
     entityId TEXT NOT NULL,
     operationType TEXT NOT NULL,
-    processedAt INTEGER NOT NULL
+    processedAt INTEGER NOT NULL,
+    PRIMARY KEY (appAccountId, opId)
 );
 
-CREATE INDEX idx_AppliedRemoteOperation_cursor ON AppliedRemoteOperation(cursor DESC);
+CREATE INDEX idx_AppliedRemoteOperation_account_cursor
+ON AppliedRemoteOperation(appAccountId, cursor DESC);
 
 markRemoteOperationProcessed:
 INSERT OR REPLACE INTO AppliedRemoteOperation (
+    appAccountId,
     opId,
     cursor,
     entityType,
     entityId,
     operationType,
     processedAt
-) VALUES (?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?);
 
 findProcessedRemoteOperation:
 SELECT * FROM AppliedRemoteOperation
-WHERE opId = ?;
+WHERE appAccountId = ?
+  AND opId = ?;
 
 deleteAllOperations:
 DELETE FROM OperationLog;
@@ -206,8 +217,9 @@ resetSyncCheckpoint:
 DELETE FROM SyncCheckpoint;
 
 CREATE TABLE ReviewEvent (
-    eventId TEXT NOT NULL PRIMARY KEY,
-    flashcardId TEXT NOT NULL REFERENCES Flashcard(id) ON DELETE CASCADE,
+    appAccountId TEXT NOT NULL,
+    eventId TEXT NOT NULL,
+    flashcardId TEXT NOT NULL,
     grade TEXT NOT NULL,
     reviewedAt INTEGER NOT NULL,
     nextReviewAt INTEGER NOT NULL,
@@ -217,14 +229,18 @@ CREATE TABLE ReviewEvent (
     lapses INTEGER NOT NULL,
     originDeviceId TEXT NOT NULL,
     versionLamport INTEGER NOT NULL,
-    createdAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL,
+    PRIMARY KEY (appAccountId, eventId),
+    FOREIGN KEY (appAccountId, flashcardId) REFERENCES Flashcard(appAccountId, id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_ReviewEvent_flashcardId_reviewedAt ON ReviewEvent(flashcardId, reviewedAt DESC);
-CREATE INDEX idx_ReviewEvent_createdAt ON ReviewEvent(createdAt DESC);
+CREATE INDEX idx_ReviewEvent_account_flashcard_reviewedAt
+ON ReviewEvent(appAccountId, flashcardId, reviewedAt DESC);
+CREATE INDEX idx_ReviewEvent_account_createdAt ON ReviewEvent(appAccountId, createdAt DESC);
 
 insertReviewEvent:
 INSERT INTO ReviewEvent (
+    appAccountId,
     eventId,
     flashcardId,
     grade,
@@ -237,19 +253,22 @@ INSERT INTO ReviewEvent (
     originDeviceId,
     versionLamport,
     createdAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewEventById:
 SELECT * FROM ReviewEvent
-WHERE eventId = ?;
+WHERE appAccountId = ?
+  AND eventId = ?;
 
 findReviewEventsByFlashcardId:
 SELECT * FROM ReviewEvent
-WHERE flashcardId = ?
+WHERE appAccountId = ?
+  AND flashcardId = ?
 ORDER BY reviewedAt DESC;
 
 CREATE TABLE ReviewProjection (
-    flashcardId TEXT NOT NULL PRIMARY KEY REFERENCES Flashcard(id) ON DELETE CASCADE,
+    appAccountId TEXT NOT NULL,
+    flashcardId TEXT NOT NULL,
     lastReviewedAt INTEGER NOT NULL,
     nextReviewAt INTEGER NOT NULL,
     easeFactor REAL NOT NULL,
@@ -257,13 +276,18 @@ CREATE TABLE ReviewProjection (
     repetitions INTEGER NOT NULL,
     lapses INTEGER NOT NULL,
     sourceEventId TEXT NOT NULL,
-    updatedAt INTEGER NOT NULL
+    updatedAt INTEGER NOT NULL,
+    PRIMARY KEY (appAccountId, flashcardId),
+    FOREIGN KEY (appAccountId, flashcardId) REFERENCES Flashcard(appAccountId, id) ON DELETE CASCADE,
+    FOREIGN KEY (appAccountId, sourceEventId) REFERENCES ReviewEvent(appAccountId, eventId) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_ReviewProjection_nextReviewAt ON ReviewProjection(nextReviewAt);
+CREATE INDEX idx_ReviewProjection_account_nextReviewAt
+ON ReviewProjection(appAccountId, nextReviewAt);
 
 upsertReviewProjection:
 INSERT OR REPLACE INTO ReviewProjection (
+    appAccountId,
     flashcardId,
     lastReviewedAt,
     nextReviewAt,
@@ -273,11 +297,13 @@ INSERT OR REPLACE INTO ReviewProjection (
     lapses,
     sourceEventId,
     updatedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewProjectionByFlashcardId:
 SELECT * FROM ReviewProjection
-WHERE flashcardId = ?;
+WHERE appAccountId = ?
+  AND flashcardId = ?;
 
 allReviewProjections:
-SELECT * FROM ReviewProjection;
+SELECT * FROM ReviewProjection
+WHERE appAccountId = ?;

@@ -1,5 +1,6 @@
 CREATE TABLE Deck (
-    id TEXT NOT NULL PRIMARY KEY, -- UUID
+    appAccountId TEXT NOT NULL,
+    id TEXT NOT NULL,             -- UUID
     name TEXT NOT NULL,           -- Ej: "Frases de viaje", "Nivel A1"
     description TEXT,             -- Explicación opcional
     createdAt INTEGER NOT NULL,   -- Timestamp (Unix epoch millis)
@@ -7,27 +8,33 @@ CREATE TABLE Deck (
     deletedAt INTEGER,
     originDeviceId TEXT NOT NULL,
     lastModifiedByDeviceId TEXT NOT NULL,
-    versionLamport INTEGER NOT NULL
+    versionLamport INTEGER NOT NULL,
+    PRIMARY KEY (appAccountId, id)
 );
 
-CREATE INDEX idx_Deck_createdAt ON Deck(createdAt DESC);
-CREATE INDEX idx_Deck_deletedAt ON Deck(deletedAt);
+CREATE INDEX idx_Deck_account_createdAt ON Deck(appAccountId, createdAt DESC);
+CREATE INDEX idx_Deck_account_deletedAt ON Deck(appAccountId, deletedAt);
 
 all:
 SELECT * FROM Deck
-WHERE deletedAt IS NULL
+WHERE appAccountId = ?
+  AND deletedAt IS NULL
 ORDER BY createdAt DESC;
 
 findById:
-SELECT * FROM Deck WHERE id = ?;
+SELECT * FROM Deck
+WHERE appAccountId = ?
+  AND id = ?;
 
 findActiveById:
 SELECT * FROM Deck
-WHERE id = ?
+WHERE appAccountId = ?
+  AND id = ?
   AND deletedAt IS NULL;
 
 insert:
 INSERT OR REPLACE INTO Deck (
+    appAccountId,
     id,
     name,
     description,
@@ -37,7 +44,7 @@ INSERT OR REPLACE INTO Deck (
     originDeviceId,
     lastModifiedByDeviceId,
     versionLamport
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllDecks:
 DELETE FROM Deck;
@@ -45,7 +52,11 @@ DELETE FROM Deck;
 deckWithFlashcardCount:
 SELECT Deck.*, COUNT(Flashcard.id) AS flashcardCount
 FROM Deck
-LEFT JOIN Flashcard ON Flashcard.deckId = Deck.id AND Flashcard.deletedAt IS NULL
-WHERE Deck.deletedAt IS NULL
-GROUP BY Deck.id
+LEFT JOIN Flashcard
+  ON Flashcard.appAccountId = Deck.appAccountId
+ AND Flashcard.deckId = Deck.id
+ AND Flashcard.deletedAt IS NULL
+WHERE Deck.appAccountId = ?
+  AND Deck.deletedAt IS NULL
+GROUP BY Deck.appAccountId, Deck.id
 ORDER BY Deck.createdAt DESC;

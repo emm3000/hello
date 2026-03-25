@@ -11,6 +11,7 @@ import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.HelloDb
 import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
@@ -57,6 +58,7 @@ class DefaultFlashcardRepository(
         val cardId: String = input.id ?: UUID.randomUUID().toString()
         val now: Long = Instant.now().toEpochMilli()
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+        val appAccountId = db.requireCurrentAppAccountId()
         val artifacts = encodeArtifacts(input)
 
         db.transaction {
@@ -70,6 +72,7 @@ class DefaultFlashcardRepository(
                 createdAt = now,
             )
             dao.create(
+                appAccountId = appAccountId,
                 id = cardId,
                 deckId = input.deckId,
                 word = input.word,
@@ -158,10 +161,11 @@ class DefaultFlashcardRepository(
         flashcardId: String,
     ) = withContext(Dispatchers.IO) {
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-        db.transaction { populate(examples, flashcardId, deviceId) }
+        val appAccountId = db.requireCurrentAppAccountId()
+        db.transaction { populate(examples, flashcardId, deviceId, appAccountId) }
     }
 
-    private fun populate(examples: List<Example>, flashcardId: String, deviceId: String) {
+    private fun populate(examples: List<Example>, flashcardId: String, deviceId: String, appAccountId: String) {
         examples.forEach {
             val now = Instant.now().toEpochMilli()
             val exampleId = UUID.randomUUID().toString()
@@ -182,6 +186,7 @@ class DefaultFlashcardRepository(
                 createdAt = now,
             )
             exampleDao.insert(
+                appAccountId = appAccountId,
                 id = exampleId,
                 flashcardId = flashcardId,
                 text = it.text,
@@ -204,21 +209,28 @@ class DefaultFlashcardRepository(
             GeneratedLearningNoteResponseParser.parse(response, json)
         }
 
-    override fun fetchAll(): Flow<List<Flashcard>> = dao
-        .all()
-        .asFlow()
-        .mapToList(Dispatchers.IO)
-        .map { entities -> entities.map(::toDomainSummary) }
+    override fun fetchAll(): Flow<List<Flashcard>> {
+        val appAccountId = db.requireCurrentAppAccountId()
+        return dao
+            .all(appAccountId)
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { entities -> entities.map(::toDomainSummary) }
+    }
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = dao
-        .selectByDeck(deckId)
-        .asFlow()
-        .mapToList(Dispatchers.IO)
-        .map { entities -> entities.map(::toDomainSummary) }
+    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> {
+        val appAccountId = db.requireCurrentAppAccountId()
+        return dao
+            .selectByDeck(appAccountId, deckId)
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { entities -> entities.map(::toDomainSummary) }
+    }
 
     override suspend fun fetchById(id: String): Flashcard = withContext(Dispatchers.IO) {
+        val appAccountId = db.requireCurrentAppAccountId()
         val flashcardEntities: List<FlashcardWithExamples> = dao
-            .flashcardWithExamples(id)
+            .flashcardWithExamples(appAccountId, id)
             .executeAsList()
 
         val first: FlashcardWithExamples = flashcardEntities.firstOrNull()
@@ -229,7 +241,9 @@ class DefaultFlashcardRepository(
     }
 
     override suspend fun sessionToday(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
+        val appAccountId = db.requireCurrentAppAccountId()
         val flashcardsToReviewByDeck: List<FlashcardsToReviewByDeck> = dao.flashcardsToReviewByDeck(
+            appAccountId = appAccountId,
             deckId = deckId,
             now = Instant.now().toEpochMilli(),
         ).executeAsList()
@@ -241,7 +255,8 @@ class DefaultFlashcardRepository(
     }
 
     override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> {
-        return dao.flashcardsWithReview(deckId).asFlow()
+        val appAccountId = db.requireCurrentAppAccountId()
+        return dao.flashcardsWithReview(appAccountId, deckId).asFlow()
             .mapToList(Dispatchers.IO)
             .map { list ->
                 list.map {

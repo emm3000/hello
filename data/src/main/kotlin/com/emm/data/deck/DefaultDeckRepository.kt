@@ -9,6 +9,7 @@ import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -37,6 +38,7 @@ class DefaultDeckRepository(
         val now: Long = Instant.now().toEpochMilli()
         val newId: String = UUID.randomUUID().toString()
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+        val appAccountId = db.requireCurrentAppAccountId()
 
         db.transaction {
             val payloadJson = buildJsonObject {
@@ -54,6 +56,7 @@ class DefaultDeckRepository(
                 createdAt = now,
             )
             dq.insert(
+                appAccountId = appAccountId,
                 id = newId,
                 name = deck.name,
                 description = deck.description,
@@ -68,24 +71,31 @@ class DefaultDeckRepository(
     }
 
     override fun findById(deckId: String): Flow<Deck> {
+        val appAccountId = db.requireCurrentAppAccountId()
         return dq
-            .findActiveById(deckId)
+            .findActiveById(appAccountId, deckId)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map(DeckEntity::toDomain)
     }
 
-    override fun fetchAll(): Flow<List<Deck>> = dq
-        .all()
-        .asFlow()
-        .mapToList(Dispatchers.IO)
-        .map(List<DeckEntity>::toDomain)
+    override fun fetchAll(): Flow<List<Deck>> {
+        val appAccountId = db.requireCurrentAppAccountId()
+        return dq
+            .all(appAccountId)
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map(List<DeckEntity>::toDomain)
+    }
 
-    override fun deckWithFlashcardCount(): Flow<List<Deck>> = dq
-        .deckWithFlashcardCount()
-        .asFlow()
-        .mapToList(Dispatchers.IO)
-        .map(::toDomain)
+    override fun deckWithFlashcardCount(): Flow<List<Deck>> {
+        val appAccountId = db.requireCurrentAppAccountId()
+        return dq
+            .deckWithFlashcardCount(appAccountId)
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map(::toDomain)
+    }
 }
 
 private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)

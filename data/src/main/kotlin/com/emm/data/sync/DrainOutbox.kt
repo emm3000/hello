@@ -1,6 +1,7 @@
 package com.emm.data.sync
 
 import com.emm.data.HelloDb
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import java.time.Instant
@@ -13,6 +14,7 @@ class DrainOutbox(
     private val localFirstQueries = db.localFirstQueries
 
     suspend operator fun invoke(batchSize: Long = DEFAULT_PUSH_BATCH_SIZE): DrainOutboxResult {
+        val appAccountId = db.requireCurrentAppAccountId()
         var totalAcked = 0
         var totalDead = 0
         var totalUnchanged = 0
@@ -22,6 +24,7 @@ class DrainOutbox(
             currentCoroutineContext().ensureActive()
 
             val pending = localFirstQueries.pendingOperations(
+                appAccountId = appAccountId,
                 maxRetries = MAX_RETRY_COUNT,
                 limit = batchSize,
             ).executeAsList()

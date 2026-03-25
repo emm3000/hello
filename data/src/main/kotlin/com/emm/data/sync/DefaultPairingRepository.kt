@@ -86,10 +86,6 @@ class DefaultPairingRepository(
             current.appAccountId != appAccountId
 
         db.transaction {
-            if (accountChanged) {
-                clearAccountScopedLocalState()
-            }
-
             queries.upsertLocalAccountState(
                 appAccountId = appAccountId,
                 authUserId = authUserId,
@@ -99,9 +95,9 @@ class DefaultPairingRepository(
             )
 
             if (resetSyncCursor) {
-                val checkpoint = queries.selectSyncCheckpoint().executeAsOneOrNull()
-                queries.resetSyncCheckpoint()
+                val checkpoint = queries.selectSyncCheckpoint(appAccountId).executeAsOneOrNull()
                 queries.upsertSyncCheckpoint(
+                    appAccountId = appAccountId,
                     lastPulledCursor = 0L,
                     lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
                     lastSyncError = null,
@@ -114,15 +110,5 @@ class DefaultPairingRepository(
         if (accountChanged) {
             dataStore.clearDefaultDeck()
         }
-    }
-
-    private fun clearAccountScopedLocalState() {
-        db.localFirstQueries.deleteAllReviewProjections()
-        db.localFirstQueries.deleteAllReviewEvents()
-        db.flashcardExampleQueries.deleteAllFlashcardExamples()
-        db.flashcardQueries.deleteAllFlashcards()
-        db.deckQueries.deleteAllDecks()
-        db.localFirstQueries.deleteAllOperations()
-        db.localFirstQueries.deleteAllAppliedRemoteOperations()
     }
 }

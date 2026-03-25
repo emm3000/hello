@@ -1,6 +1,7 @@
 CREATE TABLE Flashcard (
-    id TEXT NOT NULL PRIMARY KEY,       -- UUID
-    deckId TEXT NOT NULL,              -- FK → Decks.id
+    appAccountId TEXT NOT NULL,
+    id TEXT NOT NULL,                   -- UUID
+    deckId TEXT NOT NULL,               -- FK → Decks.id
 
     word TEXT NOT NULL,                 -- Palabra clave ("compelling")
     meaning TEXT NOT NULL,              -- Explicación en inglés ("convincing")
@@ -33,14 +34,17 @@ CREATE TABLE Flashcard (
     lastModifiedByDeviceId TEXT NOT NULL,
     versionLamport INTEGER NOT NULL,
 
-    FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
+    PRIMARY KEY (appAccountId, id),
+    FOREIGN KEY (appAccountId, deckId) REFERENCES Deck(appAccountId, id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_Flashcard_deckId ON Flashcard(deckId);
-CREATE INDEX idx_Flashcard_deletedAt ON Flashcard(deletedAt);
+CREATE INDEX idx_Flashcard_account_deck_deleted ON Flashcard(appAccountId, deckId, deletedAt);
+CREATE INDEX idx_Flashcard_account_deleted ON Flashcard(appAccountId, deletedAt);
+CREATE INDEX idx_Flashcard_account_createdAt ON Flashcard(appAccountId, createdAt DESC);
 
 create:
 INSERT OR REPLACE INTO Flashcard (
+    appAccountId,
     id,
     deckId,
     word,
@@ -71,21 +75,25 @@ INSERT OR REPLACE INTO Flashcard (
     originDeviceId,
     lastModifiedByDeviceId,
     versionLamport
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllFlashcards:
 DELETE FROM Flashcard;
 
 all:
 SELECT * FROM Flashcard
-WHERE deletedAt IS NULL;
+WHERE appAccountId = ?
+  AND deletedAt IS NULL;
 
 findById:
-SELECT * FROM Flashcard WHERE id = ?;
+SELECT * FROM Flashcard
+WHERE appAccountId = ?
+  AND id = ?;
 
 selectByDeck:
 SELECT * FROM Flashcard
-WHERE deckId = ?
+WHERE appAccountId = ?
+  AND deckId = ?
   AND deletedAt IS NULL;
 
 flashcardWithExamples:
@@ -96,21 +104,31 @@ SELECT
     e.translation AS exampleTranslation,
     e.type AS exampleType
 FROM Flashcard f
-LEFT JOIN FlashcardExample e ON f.id = e.flashcardId AND e.deletedAt IS NULL
-WHERE f.id = :flashcardId
+LEFT JOIN FlashcardExample e
+  ON f.appAccountId = e.appAccountId
+ AND f.id = e.flashcardId
+ AND e.deletedAt IS NULL
+WHERE f.appAccountId = :appAccountId
+  AND f.id = :flashcardId
   AND f.deletedAt IS NULL;
 
 flashcardsToReviewByDeck:
 SELECT f.*, rp.*
 FROM Flashcard f
-LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deckId = :deckId
+LEFT JOIN ReviewProjection rp
+  ON f.appAccountId = rp.appAccountId
+ AND f.id = rp.flashcardId
+WHERE f.appAccountId = :appAccountId
+  AND f.deckId = :deckId
   AND f.deletedAt IS NULL
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 flashcardsWithReview:
 SELECT f.*, rp.nextReviewAt
 FROM Flashcard f
-LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deckId = :deckId
+LEFT JOIN ReviewProjection rp
+  ON f.appAccountId = rp.appAccountId
+ AND f.id = rp.flashcardId
+WHERE f.appAccountId = :appAccountId
+  AND f.deckId = :deckId
   AND f.deletedAt IS NULL;

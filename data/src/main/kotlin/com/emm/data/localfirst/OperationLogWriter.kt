@@ -21,10 +21,12 @@ class OperationLogWriter(
         originDeviceId: String,
         createdAt: Long = Instant.now().toEpochMilli(),
     ): Long {
+        val appAccountId = db.requireCurrentAppAccountId()
         localFirstQueries.incrementLamport(updatedAt = createdAt)
         val lamport = localFirstQueries.currentLamport().executeAsOne()
         localFirstQueries.insertOperation(
             opId = UUID.randomUUID().toString(),
+            appAccountId = appAccountId,
             entityType = entityType,
             entityId = entityId,
             operationType = operationType.name,

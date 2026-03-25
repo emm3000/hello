@@ -26,7 +26,9 @@ Current reality:
 - `data` has a working generation path, parser, and rich local persistence for `GeneratedLearningNote`
 - the app generation path now goes through `GeneratedLearningNote`
 - local persistence now stores note-rich fields and derived cards inside `Flashcard`
+- local storage is now aligned with the account-scoped sync model
 - remote sync is aligned with the rich flashcard payload
+- local schema cleanup removed unused legacy tables
 - study mode now expands one learning note into multiple derived review items
 - the old `FlashcardGenerated` generation path is being retired
 
@@ -54,7 +56,7 @@ Estimated qualitative progress:
 - Prompt migration: `done for the new generation path`
 - Repository integration: `done for generation and save`
 - Preview migration: `done`
-- Persistence migration: `started and locally integrated`
+- Persistence migration: `substantially complete locally`
 - Study-mode migration: `started and integrated around derived cards`
 - Quality gate before save: `defined and partially enforced through validated generation`
 
@@ -147,7 +149,7 @@ Completed focus:
 
 Status:
 
-- `started`
+- `partially integrated`
 
 Planned focus:
 
@@ -170,7 +172,7 @@ Planned focus:
 
 Status:
 
-- `not started`
+- `started`
 
 Implemented:
 
@@ -187,14 +189,22 @@ Pending:
 
 Status:
 
-- `not started`
+- `started and structurally advanced`
 
-Planned focus:
+Implemented:
 
-- persistence migration
-- local DB changes
-- sync payload changes
-- Supabase alignment
+- rich flashcard persistence in local storage
+- local schema cleanup of unused tables
+- local storage alignment with account-scoped sync model
+- account-scoped keys in local SQLDelight entities
+- stronger local foreign keys for review projection and event linkage
+- remote hot-path indexes added for account/deck/sync reads
+
+Pending:
+
+- apply the latest remote index migration to the linked Supabase project
+- validate end-to-end sync on multiple devices after the local schema reshape
+- decide whether some rich JSON fields remain embedded or get extracted later
 
 ## Phase 8
 
@@ -244,11 +254,14 @@ Completed:
 - old `FlashcardGenerated` generation path removed from repository/domain
 - parser now rejects learning notes that fail domain validation
 - `cards` and `quality_checks` are required in the AI response DTO contract
+- local SQLDelight schema is now account-scoped where data belongs to an app account
+- local-first review state now has tighter relational guarantees
 
 Pending:
 
 - add repository integration tests for rich persistence
 - decide whether to keep JSON-embedded derived cards or extract them later
+- run multi-device sync validation after the schema reshape
 
 ## App
 

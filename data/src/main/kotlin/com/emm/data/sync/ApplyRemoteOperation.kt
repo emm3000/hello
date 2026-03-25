@@ -1,6 +1,7 @@
 package com.emm.data.sync
 
 import com.emm.data.HelloDb
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -23,19 +24,20 @@ class ApplyRemoteOperation(
         operation: RemoteSyncOperation,
         localDeviceId: String,
     ): ApplyRemoteOperationResult {
+        val appAccountId = db.requireCurrentAppAccountId()
         return when (operation.entityType.lowercase()) {
-            "deck" -> applyDeck(operation, localDeviceId)
-            "flashcard" -> applyFlashcard(operation, localDeviceId)
-            "flashcard_example" -> applyFlashcardExample(operation, localDeviceId)
-            "review_event" -> applyReviewEvent(operation, localDeviceId)
+            "deck" -> applyDeck(appAccountId, operation, localDeviceId)
+            "flashcard" -> applyFlashcard(appAccountId, operation, localDeviceId)
+            "flashcard_example" -> applyFlashcardExample(appAccountId, operation, localDeviceId)
+            "review_event" -> applyReviewEvent(appAccountId, operation, localDeviceId)
             else -> ApplyRemoteOperationResult.Skipped(
                 reason = "unsupported_entity_type:${operation.entityType}"
             )
         }
     }
 
-    private fun applyDeck(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
-        val existing = deckQueries.findById(operation.entityId).executeAsOneOrNull()
+    private fun applyDeck(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+        val existing = deckQueries.findById(appAccountId, operation.entityId).executeAsOneOrNull()
         val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
         if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
@@ -58,6 +60,7 @@ class ApplyRemoteOperation(
         )
 
         deckQueries.insert(
+            appAccountId = appAccountId,
             id = operation.entityId,
             name = values.name,
             description = values.description,
@@ -72,8 +75,8 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyFlashcard(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
-        val existing = flashcardQueries.findById(operation.entityId).executeAsOneOrNull()
+    private fun applyFlashcard(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+        val existing = flashcardQueries.findById(appAccountId, operation.entityId).executeAsOneOrNull()
         val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
         if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
@@ -84,6 +87,7 @@ class ApplyRemoteOperation(
         val seed = extractFlashcardSeed(payload, existing)
 
         val deferredReason = missingFlashcardReason(
+            appAccountId = appAccountId,
             deckId = seed.deckId,
             operationType = operationType,
             word = seed.word,
@@ -104,6 +108,7 @@ class ApplyRemoteOperation(
 
         upsertResolvedFlashcard(
             entityId = operation.entityId,
+            appAccountId = appAccountId,
             deckId = checkNotNull(seed.deckId),
             values = values,
             originDeviceId = existing?.originDeviceId ?: originDeviceId,
@@ -127,6 +132,7 @@ class ApplyRemoteOperation(
 
     private fun upsertResolvedFlashcard(
         entityId: String,
+        appAccountId: String,
         deckId: String,
         values: FlashcardValues,
         originDeviceId: String,
@@ -134,6 +140,7 @@ class ApplyRemoteOperation(
         versionLamport: Long,
     ) {
         flashcardQueries.create(
+            appAccountId = appAccountId,
             id = entityId,
             deckId = deckId,
             word = values.word,
@@ -168,10 +175,11 @@ class ApplyRemoteOperation(
     }
 
     private fun applyFlashcardExample(
+        appAccountId: String,
         operation: RemoteSyncOperation,
         localDeviceId: String,
     ): ApplyRemoteOperationResult {
-        val existing = flashcardExampleQueries.findById(operation.entityId).executeAsOneOrNull()
+        val existing = flashcardExampleQueries.findById(appAccountId, operation.entityId).executeAsOneOrNull()
         val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
         if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
             return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
@@ -186,6 +194,7 @@ class ApplyRemoteOperation(
 
         val deferredReason = missingFlashcardExampleReason(
             flashcardId = flashcardId,
+            appAccountId = appAccountId,
             operationType = operationType,
             text = text,
             translation = translation,
@@ -206,6 +215,7 @@ class ApplyRemoteOperation(
         )
 
         flashcardExampleQueries.insert(
+            appAccountId = appAccountId,
             id = operation.entityId,
             flashcardId = checkNotNull(flashcardId), // guaranteed non-null by missingFlashcardExampleReason guard above
             text = values.text,
@@ -222,19 +232,19 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+    private fun applyReviewEvent(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
         val eventId = operation.entityId
         val payload = operation.payload
         val validation = validateReviewEvent(payload = payload, operationCreatedAt = operation.createdAt)
         val reviewEvent = (validation as? ValidationResult.Ok)?.value
         val earlyResult = when {
-            localFirstQueries.findReviewEventById(eventId).executeAsOneOrNull() != null -> {
+            localFirstQueries.findReviewEventById(appAccountId, eventId).executeAsOneOrNull() != null -> {
                 ApplyRemoteOperationResult.Skipped(reason = "review_event_exists")
             }
             validation is ValidationResult.Error -> {
                 ApplyRemoteOperationResult.Deferred(reason = validation.reason)
             }
-            reviewEvent != null && flashcardQueries.findById(reviewEvent.flashcardId).executeAsOneOrNull() == null -> {
+            reviewEvent != null && flashcardQueries.findById(appAccountId, reviewEvent.flashcardId).executeAsOneOrNull() == null -> {
                 ApplyRemoteOperationResult.Deferred(reason = "missing_parent_flashcard")
             }
             else -> null
@@ -245,6 +255,7 @@ class ApplyRemoteOperation(
         val values = checkNotNull(reviewEvent)
 
         localFirstQueries.insertReviewEvent(
+            appAccountId = appAccountId,
             eventId = eventId,
             flashcardId = values.flashcardId,
             grade = payload.stringAny("grade") ?: "review",
@@ -260,10 +271,11 @@ class ApplyRemoteOperation(
         )
 
         val existingProjection = localFirstQueries
-            .findReviewProjectionByFlashcardId(values.flashcardId)
+            .findReviewProjectionByFlashcardId(appAccountId, values.flashcardId)
             .executeAsOneOrNull()
         if (existingProjection == null || values.reviewedAt >= existingProjection.lastReviewedAt) {
             localFirstQueries.upsertReviewProjection(
+                appAccountId = appAccountId,
                 flashcardId = values.flashcardId,
                 lastReviewedAt = values.reviewedAt,
                 nextReviewAt = values.nextReviewAt,
@@ -285,6 +297,7 @@ class ApplyRemoteOperation(
     }
 
     private fun missingFlashcardReason(
+        appAccountId: String,
         deckId: String?,
         operationType: String,
         word: String?,
@@ -294,11 +307,12 @@ class ApplyRemoteOperation(
         operationType != "delete" && (word.isNullOrBlank() || meaning.isNullOrBlank()) -> {
             "missing_required_field:word_or_meaning"
         }
-        deckQueries.findById(deckId).executeAsOneOrNull() == null -> "missing_parent_deck"
+        deckQueries.findById(appAccountId, deckId).executeAsOneOrNull() == null -> "missing_parent_deck"
         else -> null
     }
 
     private fun missingFlashcardExampleReason(
+        appAccountId: String,
         flashcardId: String?,
         operationType: String,
         text: String?,
@@ -306,7 +320,7 @@ class ApplyRemoteOperation(
         type: String?,
     ): String? = when {
         flashcardId.isNullOrBlank() -> "missing_required_field:flashcard_id"
-        flashcardQueries.findById(flashcardId).executeAsOneOrNull() == null -> "missing_parent_flashcard"
+        flashcardQueries.findById(appAccountId, flashcardId).executeAsOneOrNull() == null -> "missing_parent_flashcard"
         operationType != "delete" && listOf(text, translation, type).any { it.isNullOrBlank() } -> {
             "missing_required_field:example_payload"
         }

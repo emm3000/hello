@@ -1,6 +1,8 @@
 package com.emm.data.sync
 
 import com.emm.data.HelloDb
+import com.emm.data.localfirst.currentAppAccountIdOrNull
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.domain.sync.SyncEngine
 import com.emm.domain.sync.SyncState
@@ -55,14 +57,17 @@ class DefaultSyncEngine(
                     lastSyncError = null,
                 )
             } catch (e: Exception) {
-                val checkpoint = localFirstQueries.selectSyncCheckpoint().executeAsOneOrNull()
-                localFirstQueries.upsertSyncCheckpoint(
-                    lastPulledCursor = checkpoint?.lastPulledCursor ?: 0L,
-                    lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
-                    lastSyncError = e.message ?: e::class.simpleName ?: "sync_failed",
-                    lastSyncErrorAt = now,
-                    updatedAt = now,
-                )
+                db.currentAppAccountIdOrNull()?.let { appAccountId ->
+                    val checkpoint = localFirstQueries.selectSyncCheckpoint(appAccountId).executeAsOneOrNull()
+                    localFirstQueries.upsertSyncCheckpoint(
+                        appAccountId = appAccountId,
+                        lastPulledCursor = checkpoint?.lastPulledCursor ?: 0L,
+                        lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
+                        lastSyncError = e.message ?: e::class.simpleName ?: "sync_failed",
+                        lastSyncErrorAt = now,
+                        updatedAt = now,
+                    )
+                }
                 mutableState.value = mutableState.value.copy(
                     isRunning = false,
                     pendingOperations = pendingCount(),
@@ -100,13 +105,14 @@ class DefaultSyncEngine(
         localDeviceId: String,
         now: Long,
     ): BatchResult {
+        val appAccountId = db.requireCurrentAppAccountId()
         var maxCursor = pulledResult.currentCursor
         var firstDeferredCursor: Long? = null
         val ackedOpIds = mutableListOf<String>()
 
         db.transaction {
             pulledResult.operations.forEach { operation ->
-                val existing = localFirstQueries.findProcessedRemoteOperation(operation.opId).executeAsOneOrNull()
+                val existing = localFirstQueries.findProcessedRemoteOperation(appAccountId, operation.opId).executeAsOneOrNull()
                 if (existing != null) {
                     ackedOpIds += operation.opId
                     if (operation.cursor > maxCursor) maxCursor = operation.cursor
@@ -117,6 +123,7 @@ class DefaultSyncEngine(
 
                 if (result.shouldAck) {
                     localFirstQueries.markRemoteOperationProcessed(
+                        appAccountId = appAccountId,
                         opId = operation.opId,
                         cursor = operation.cursor,
                         entityType = operation.entityType,
@@ -156,7 +163,9 @@ class DefaultSyncEngine(
     }
 
     private fun saveCheckpoint(cursor: Long, now: Long) {
+        val appAccountId = db.requireCurrentAppAccountId()
         localFirstQueries.upsertSyncCheckpoint(
+            appAccountId = appAccountId,
             lastPulledCursor = cursor,
             lastSuccessfulSyncAt = now,
             lastSyncError = null,
@@ -177,7 +186,7 @@ class DefaultSyncEngine(
     }
 
     private fun pendingCount(): Long = localFirstQueries
-        .countRetryableOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT)
+        .countRetryableOperations(db.requireCurrentAppAccountId(), maxRetries = DrainOutbox.MAX_RETRY_COUNT)
         .executeAsOne()
 }
 

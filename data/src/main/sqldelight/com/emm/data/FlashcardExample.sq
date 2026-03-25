@@ -1,6 +1,7 @@
 CREATE TABLE FlashcardExample (
-    id TEXT PRIMARY KEY,
-    flashcardId TEXT NOT NULL REFERENCES Flashcard(id) ON DELETE CASCADE,
+    appAccountId TEXT NOT NULL,
+    id TEXT NOT NULL,
+    flashcardId TEXT NOT NULL,
     text TEXT NOT NULL,
     translation TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -9,14 +10,17 @@ CREATE TABLE FlashcardExample (
     deletedAt INTEGER,
     originDeviceId TEXT NOT NULL,
     lastModifiedByDeviceId TEXT NOT NULL,
-    versionLamport INTEGER NOT NULL
+    versionLamport INTEGER NOT NULL,
+    PRIMARY KEY (appAccountId, id),
+    FOREIGN KEY (appAccountId, flashcardId) REFERENCES Flashcard(appAccountId, id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_FlashcardExample_flashcardId ON FlashcardExample(flashcardId);
-CREATE INDEX idx_FlashcardExample_deletedAt ON FlashcardExample(deletedAt);
+CREATE INDEX idx_FlashcardExample_account_flashcard_deleted
+ON FlashcardExample(appAccountId, flashcardId, deletedAt);
 
 insert:
 INSERT OR REPLACE INTO FlashcardExample (
+    appAccountId,
     id,
     flashcardId,
     text,
@@ -28,7 +32,7 @@ INSERT OR REPLACE INTO FlashcardExample (
     originDeviceId,
     lastModifiedByDeviceId,
     versionLamport
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllFlashcardExamples:
 DELETE FROM FlashcardExample;
@@ -38,4 +42,5 @@ SELECT * FROM FlashcardExample;
 
 findById:
 SELECT * FROM FlashcardExample
-WHERE id = ?;
+WHERE appAccountId = ?
+  AND id = ?;

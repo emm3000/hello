@@ -3,6 +3,7 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
@@ -28,8 +29,9 @@ class DefaultFlashcardReviewRepository(
     private val localFirstQueries = db.localFirstQueries
 
     override fun all(): Flow<List<FlashcardReview>> {
+        val appAccountId = db.requireCurrentAppAccountId()
         return localFirstQueries
-            .allReviewProjections()
+            .allReviewProjections(appAccountId)
             .asFlow()
             .mapToList(Dispatchers.IO)
             .map { projections -> projections.map { it.toDomainFromProjection() } }
@@ -39,6 +41,7 @@ class DefaultFlashcardReviewRepository(
         val now = Instant.now().toEpochMilli()
         val eventId = UUID.randomUUID().toString()
         val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
+        val appAccountId = db.requireCurrentAppAccountId()
 
         db.transaction {
             val payloadJson = buildJsonObject {
@@ -61,6 +64,7 @@ class DefaultFlashcardReviewRepository(
                 createdAt = now,
             )
             localFirstQueries.insertReviewEvent(
+                appAccountId = appAccountId,
                 eventId = eventId,
                 flashcardId = flashcardReview.flashcardId,
                 grade = "review",
@@ -75,6 +79,7 @@ class DefaultFlashcardReviewRepository(
                 createdAt = now,
             )
             localFirstQueries.upsertReviewProjection(
+                appAccountId = appAccountId,
                 flashcardId = flashcardReview.flashcardId,
                 lastReviewedAt = flashcardReview.lastReviewedAt,
                 nextReviewAt = flashcardReview.nextReviewAt,
