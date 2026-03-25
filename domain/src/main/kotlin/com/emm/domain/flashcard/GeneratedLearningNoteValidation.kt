@@ -11,6 +11,8 @@ data class GeneratedLearningNoteValidation(
 data class GeneratedLearningNoteIssue(
     val code: GeneratedLearningNoteIssueCode,
     val message: String,
+    val noteField: String? = null,
+    val cardId: String? = null,
 )
 
 enum class GeneratedLearningNoteIssueCode {

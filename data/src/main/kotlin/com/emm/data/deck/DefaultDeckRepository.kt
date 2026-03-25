@@ -9,6 +9,7 @@ import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
+import com.emm.data.localfirst.currentAppAccountIdOrNull
 import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
@@ -16,6 +17,7 @@ import com.emm.domain.deck.DeckRepository
 import com.emm.domain.sync.OperationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
@@ -80,7 +82,7 @@ class DefaultDeckRepository(
     }
 
     override fun fetchAll(): Flow<List<Deck>> {
-        val appAccountId = db.requireCurrentAppAccountId()
+        val appAccountId = db.currentAppAccountIdOrNull() ?: return flowOf(emptyList())
         return dq
             .all(appAccountId)
             .asFlow()
@@ -89,7 +91,7 @@ class DefaultDeckRepository(
     }
 
     override fun deckWithFlashcardCount(): Flow<List<Deck>> {
-        val appAccountId = db.requireCurrentAppAccountId()
+        val appAccountId = db.currentAppAccountIdOrNull() ?: return flowOf(emptyList())
         return dq
             .deckWithFlashcardCount(appAccountId)
             .asFlow()

@@ -94,6 +94,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -104,6 +106,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -114,6 +118,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -131,6 +137,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -141,6 +149,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -151,6 +161,8 @@ class NewCardViewModel(
                     error = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -198,6 +210,8 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                 )
             }
@@ -210,6 +224,8 @@ class NewCardViewModel(
                 learningNotePreview = null,
                 previewValidationErrors = emptyList(),
                 previewWarnings = emptyList(),
+                previewValidationIssues = emptyList(),
+                previewWarningIssues = emptyList(),
                 canSavePreview = false,
             )
         }
@@ -224,6 +240,8 @@ class NewCardViewModel(
                     learningNotePreview = preview,
                     previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
                     previewWarnings = previewValidation.warnings.map { issue -> issue.message } + preview.warnings,
+                    previewValidationIssues = previewValidation.errors,
+                    previewWarningIssues = previewValidation.warnings,
                     canSavePreview = previewValidation.isValid,
                     isLoading = false,
                     previewRegenerationTarget = null,
@@ -238,6 +256,8 @@ class NewCardViewModel(
                     ),
                     isLoading = false,
                     canSavePreview = false,
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     previewRegenerationTarget = null,
                 )
             }
@@ -362,6 +382,8 @@ class NewCardViewModel(
                 error = null,
                 previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
                 previewWarnings = previewValidation.warnings.map { issue -> issue.message } + updatedPreview.warnings,
+                previewValidationIssues = previewValidation.errors,
+                previewWarningIssues = previewValidation.warnings,
                 canSavePreview = previewValidation.isValid,
                 isLoading = false,
                 previewRegenerationTarget = null,
@@ -385,6 +407,8 @@ class NewCardViewModel(
                     ),
                     previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
                     previewWarnings = previewValidation.warnings.map { issue -> issue.message } + learningNotePreview.warnings,
+                    previewValidationIssues = previewValidation.errors,
+                    previewWarningIssues = previewValidation.warnings,
                     canSavePreview = false,
                     previewRegenerationTarget = null,
                 )
@@ -408,6 +432,8 @@ class NewCardViewModel(
                     error = null,
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
                     canSavePreview = false,
                     previewRegenerationTarget = null,
                 )

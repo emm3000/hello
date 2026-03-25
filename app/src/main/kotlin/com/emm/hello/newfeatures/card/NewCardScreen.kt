@@ -59,6 +59,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
@@ -431,6 +432,8 @@ private fun ResultPreviewSection(
             )
             LearningNotePreview(
                 note = learningNotePreview,
+                validationIssues = state.previewValidationIssues,
+                warningIssues = state.previewWarningIssues,
                 noteRegenerationTarget = state.previewRegenerationTarget,
                 onIntent = onIntent,
             )
@@ -470,6 +473,8 @@ private fun ResultPreviewSection(
 @Composable
 private fun LearningNotePreview(
     note: GeneratedLearningNote,
+    validationIssues: List<GeneratedLearningNoteIssue>,
+    warningIssues: List<GeneratedLearningNoteIssue>,
     noteRegenerationTarget: PreviewRegenerationTarget?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
@@ -511,6 +516,7 @@ private fun LearningNotePreview(
                 label = stringResource(R.string.translation_label),
                 value = note.intendedMeaningEs,
                 placeholder = "Significado intencional en espanol",
+                errorMessage = validationIssues.noteFieldMessage("intendedMeaningEs"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -525,6 +531,7 @@ private fun LearningNotePreview(
                 value = note.simpleDefinitionEn,
                 placeholder = "Define el significado en ingles simple",
                 minLines = 2,
+                errorMessage = validationIssues.noteFieldMessage("simpleDefinitionEn"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -539,6 +546,7 @@ private fun LearningNotePreview(
                 value = note.whyUseful,
                 placeholder = "Por que vale la pena aprender esta nota",
                 minLines = 2,
+                errorMessage = validationIssues.noteFieldMessage("whyUseful"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -556,6 +564,7 @@ private fun LearningNotePreview(
                     value = note.usagePattern,
                     placeholder = "Patron de uso",
                     minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("usagePattern"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -590,6 +599,7 @@ private fun LearningNotePreview(
                     value = note.clozeSentence,
                     placeholder = "Frase cloze",
                     minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("clozeSentence"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -633,6 +643,7 @@ private fun LearningNotePreview(
                 value = note.exampleSentence,
                 placeholder = "Ejemplo principal",
                 minLines = 2,
+                errorMessage = validationIssues.noteFieldMessage("exampleSentence"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -647,6 +658,7 @@ private fun LearningNotePreview(
                 value = note.exampleTranslation,
                 placeholder = "Traduccion del ejemplo",
                 minLines = 2,
+                errorMessage = validationIssues.noteFieldMessage("exampleTranslation"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -679,6 +691,8 @@ private fun LearningNotePreview(
                         key(card.cardId) {
                             GeneratedStudyCardItem(
                                 card = card,
+                                validationIssues = validationIssues,
+                                warningIssues = warningIssues,
                                 regenerationTarget = noteRegenerationTarget,
                                 onPromptChanged = {
                                     onIntent(
@@ -753,6 +767,8 @@ private fun LearningNotePreview(
 @Composable
 private fun GeneratedStudyCardItem(
     card: GeneratedStudyCard,
+    validationIssues: List<GeneratedLearningNoteIssue>,
+    warningIssues: List<GeneratedLearningNoteIssue>,
     regenerationTarget: PreviewRegenerationTarget?,
     onPromptChanged: (String) -> Unit,
     onExpectedAnswerChanged: (String) -> Unit,
@@ -777,6 +793,8 @@ private fun GeneratedStudyCardItem(
                 value = card.prompt,
                 placeholder = "Prompt de la card",
                 minLines = 2,
+                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
+                supportingText = warningIssues.cardWarning(card.cardId),
                 onValueChange = onPromptChanged,
             )
             EditablePreviewField(
@@ -784,6 +802,7 @@ private fun GeneratedStudyCardItem(
                 value = card.expectedAnswer,
                 placeholder = "Respuesta esperada",
                 minLines = 2,
+                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
                 onValueChange = onExpectedAnswerChanged,
             )
             if (card.hint.isNotBlank()) {
@@ -808,6 +827,8 @@ private fun EditablePreviewField(
     value: String,
     placeholder: String,
     minLines: Int = 1,
+    errorMessage: String? = null,
+    supportingText: String? = null,
     onValueChange: (String) -> Unit,
 ) {
     HInput(
@@ -815,10 +836,31 @@ private fun EditablePreviewField(
         onValueChange = onValueChange,
         label = label,
         placeholder = placeholder,
+        errorMessage = errorMessage,
+        supportingText = supportingText,
         singleLine = minLines == 1,
         minLines = minLines,
         maxLines = if (minLines == 1) 1 else 4,
     )
+}
+
+private fun List<GeneratedLearningNoteIssue>.noteFieldMessage(noteField: String): String? {
+    return firstOrNull { it.noteField == noteField }?.message
+}
+
+private fun List<GeneratedLearningNoteIssue>.cardMessage(cardId: String, isAnswer: Boolean): String? {
+    val expectedCode = if (isAnswer) {
+        com.emm.domain.flashcard.GeneratedLearningNoteIssueCode.EmptyCardAnswer
+    } else {
+        com.emm.domain.flashcard.GeneratedLearningNoteIssueCode.EmptyCardPrompt
+    }
+    return firstOrNull { it.cardId == cardId && it.code == expectedCode }?.message
+}
+
+private fun List<GeneratedLearningNoteIssue>.cardWarning(cardId: String): String? {
+    return firstOrNull {
+        it.cardId == cardId && it.code == com.emm.domain.flashcard.GeneratedLearningNoteIssueCode.InactiveCard
+    }?.message
 }
 
 // -- Voice Components ---------------------------------------------------------

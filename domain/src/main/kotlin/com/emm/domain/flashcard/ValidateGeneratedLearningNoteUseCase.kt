@@ -49,12 +49,14 @@ class ValidateGeneratedLearningNoteUseCase {
             GeneratedLearningNoteIssueCode.MissingNoteId,
             "La nota generada debe tener un id.",
             errors,
+            noteField = "noteId",
         )
         requireNonBlank(
             note.expression,
             GeneratedLearningNoteIssueCode.MissingExpression,
             "La nota generada debe tener una expresion objetivo.",
             errors,
+            noteField = "expression",
         )
     }
 
@@ -67,18 +69,21 @@ class ValidateGeneratedLearningNoteUseCase {
             GeneratedLearningNoteIssueCode.MissingIntendedMeaning,
             "La nota generada debe tener un significado intencional en espanol.",
             errors,
+            noteField = "intendedMeaningEs",
         )
         requireNonBlank(
             note.simpleDefinitionEn,
             GeneratedLearningNoteIssueCode.MissingDefinition,
             "La nota generada debe tener una definicion simple en ingles.",
             errors,
+            noteField = "simpleDefinitionEn",
         )
         requireNonBlank(
             note.whyUseful,
             GeneratedLearningNoteIssueCode.MissingWhyUseful,
             "La nota generada debe explicar por que vale la pena estudiarla.",
             errors,
+            noteField = "whyUseful",
         )
     }
 
@@ -91,12 +96,14 @@ class ValidateGeneratedLearningNoteUseCase {
             GeneratedLearningNoteIssueCode.MissingExampleSentence,
             "La nota generada debe incluir un ejemplo principal.",
             errors,
+            noteField = "exampleSentence",
         )
         requireNonBlank(
             note.exampleTranslation,
             GeneratedLearningNoteIssueCode.MissingExampleTranslation,
             "La nota generada debe incluir la traduccion del ejemplo.",
             errors,
+            noteField = "exampleTranslation",
         )
     }
 
@@ -168,6 +175,7 @@ class ValidateGeneratedLearningNoteUseCase {
             GeneratedLearningNoteIssueCode.MissingClozeSentence,
             "Los sentence patterns deben incluir una oracion cloze.",
             errors,
+            noteField = "clozeSentence",
         )
         requireExpectedCard(note, StudyCardType.Production, errors)
         requireExpectedCard(note, StudyCardType.Cloze, errors)
@@ -183,6 +191,7 @@ class ValidateGeneratedLearningNoteUseCase {
             GeneratedLearningNoteIssueCode.MissingUsagePattern,
             message,
             errors,
+            noteField = "usagePattern",
         )
     }
 
@@ -202,19 +211,22 @@ class ValidateGeneratedLearningNoteUseCase {
             if (card.prompt.isBlank()) {
                 errors += issue(
                     GeneratedLearningNoteIssueCode.EmptyCardPrompt,
-                    "Cada tarjeta derivada debe tener un prompt."
+                    "Cada tarjeta derivada debe tener un prompt.",
+                    cardId = card.cardId,
                 )
             }
             if (card.expectedAnswer.isBlank()) {
                 errors += issue(
                     GeneratedLearningNoteIssueCode.EmptyCardAnswer,
-                    "Cada tarjeta derivada debe tener una respuesta esperada."
+                    "Cada tarjeta derivada debe tener una respuesta esperada.",
+                    cardId = card.cardId,
                 )
             }
             if (!card.isActive) {
                 warnings += issue(
                     GeneratedLearningNoteIssueCode.InactiveCard,
-                    "La nota contiene una tarjeta inactiva; revisa si debe persistirse."
+                    "La nota contiene una tarjeta inactiva; revisa si debe persistirse.",
+                    cardId = card.cardId,
                 )
             }
         }
@@ -261,16 +273,24 @@ class ValidateGeneratedLearningNoteUseCase {
         code: GeneratedLearningNoteIssueCode,
         message: String,
         errors: MutableList<GeneratedLearningNoteIssue>,
+        noteField: String? = null,
     ) {
         if (value.isBlank()) {
-            errors += issue(code, message)
+            errors += issue(code, message, noteField = noteField)
         }
     }
 
     private fun issue(
         code: GeneratedLearningNoteIssueCode,
         message: String,
+        noteField: String? = null,
+        cardId: String? = null,
     ): GeneratedLearningNoteIssue {
-        return GeneratedLearningNoteIssue(code = code, message = message)
+        return GeneratedLearningNoteIssue(
+            code = code,
+            message = message,
+            noteField = noteField,
+            cardId = cardId,
+        )
     }
 }

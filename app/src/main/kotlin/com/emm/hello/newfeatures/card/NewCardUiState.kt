@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
@@ -28,6 +29,8 @@ data class NewCardUiState(
     val learningNotePreview: GeneratedLearningNote? = null,
     val previewValidationErrors: List<String> = emptyList(),
     val previewWarnings: List<String> = emptyList(),
+    val previewValidationIssues: List<GeneratedLearningNoteIssue> = emptyList(),
+    val previewWarningIssues: List<GeneratedLearningNoteIssue> = emptyList(),
     val canSavePreview: Boolean = false,
     val previewRegenerationTarget: PreviewRegenerationTarget? = null,
 )

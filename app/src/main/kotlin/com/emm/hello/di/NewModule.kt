@@ -151,7 +151,20 @@ fun Module.viewModels() {
     viewModelOf(::NewDeckViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::PairingViewModel)
-    viewModelOf(::NewCardViewModel)
+    viewModel {
+        NewCardViewModel(
+            getDecksUseCase = get(),
+            createFlashcardUseCase = get(),
+            generateLearningNotePreviewUseCase = get(),
+            regenerateLearningNoteExampleUseCase = get(),
+            regenerateLearningNoteClozeUseCase = get(),
+            regenerateStudyCardUseCase = get(),
+            getDefaultDeckUseCase = get(),
+            setDefaultDeckUseCase = get(),
+            validateInputUseCase = get(),
+            validateGeneratedLearningNoteUseCase = get(),
+        )
+    }
     viewModel {
         StudyViewModel(
             deckId = it.get(),
