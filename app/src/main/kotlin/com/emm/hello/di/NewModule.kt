@@ -39,6 +39,9 @@ import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
+import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
@@ -126,6 +129,9 @@ fun Module.useCases() {
     factoryOf(::ValidateFlashcardGenerationInputUseCase)
     factoryOf(::ValidateGeneratedLearningNoteUseCase)
     factoryOf(::GenerateLearningNotePreviewUseCase)
+    factoryOf(::RegenerateLearningNoteExampleUseCase)
+    factoryOf(::RegenerateLearningNoteClozeUseCase)
+    factoryOf(::RegenerateStudyCardUseCase)
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::GetFlashcardByIdUseCase)

@@ -171,12 +171,12 @@ Implemented:
 - learning-note preview now supports inline editing of key note fields before save
 - derived card prompt and expected answer can now be edited from the preview
 - preview validation is recomputed immediately after inline edits
+- example, cloze, and individual derived cards now support targeted regeneration from the preview
 
 Pending focus:
 
 - richer per-card preview controls beyond prompt/answer editing
-- regenerate-one-field flows
-- regenerate-one-card flows
+- broader regenerate-one-field coverage beyond example/cloze
 
 ## Phase 6
 

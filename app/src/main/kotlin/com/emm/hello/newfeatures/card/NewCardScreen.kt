@@ -431,6 +431,7 @@ private fun ResultPreviewSection(
             )
             LearningNotePreview(
                 note = learningNotePreview,
+                noteRegenerationTarget = state.previewRegenerationTarget,
                 onIntent = onIntent,
             )
 
@@ -469,6 +470,7 @@ private fun ResultPreviewSection(
 @Composable
 private fun LearningNotePreview(
     note: GeneratedLearningNote,
+    noteRegenerationTarget: PreviewRegenerationTarget?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
     HCard(variant = CardVariant.Outlined) {
@@ -597,6 +599,15 @@ private fun LearningNotePreview(
                         )
                     },
                 )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    HButton(
+                        text = "Regenerar cloze",
+                        onClick = { onIntent(NewCardUiIntent.RegenerateClozeClicked) },
+                        variant = ButtonVariant.Ghost,
+                        isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
+                        enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
+                    )
+                }
             }
 
             if (note.collocations.isNotEmpty()) {
@@ -645,6 +656,15 @@ private fun LearningNotePreview(
                     )
                 },
             )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                HButton(
+                    text = "Regenerar ejemplo",
+                    onClick = { onIntent(NewCardUiIntent.RegenerateExampleClicked) },
+                    variant = ButtonVariant.Ghost,
+                    isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Example,
+                    enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Example,
+                )
+            }
 
             if (note.cards.isNotEmpty()) {
                 HSeparator()
@@ -659,6 +679,7 @@ private fun LearningNotePreview(
                         key(card.cardId) {
                             GeneratedStudyCardItem(
                                 card = card,
+                                regenerationTarget = noteRegenerationTarget,
                                 onPromptChanged = {
                                     onIntent(
                                         NewCardUiIntent.PreviewCardPromptChanged(
@@ -674,6 +695,9 @@ private fun LearningNotePreview(
                                             expectedAnswer = it,
                                         )
                                     )
+                                },
+                                onRegenerate = {
+                                    onIntent(NewCardUiIntent.RegenerateCardClicked(card.cardId))
                                 },
                             )
                         }
@@ -729,8 +753,10 @@ private fun LearningNotePreview(
 @Composable
 private fun GeneratedStudyCardItem(
     card: GeneratedStudyCard,
+    regenerationTarget: PreviewRegenerationTarget?,
     onPromptChanged: (String) -> Unit,
     onExpectedAnswerChanged: (String) -> Unit,
+    onRegenerate: () -> Unit,
 ) {
     HCard(variant = CardVariant.Outlined) {
         Column(
@@ -762,6 +788,15 @@ private fun GeneratedStudyCardItem(
             )
             if (card.hint.isNotBlank()) {
                 InfoRow(label = stringResource(R.string.hint_label), value = card.hint)
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                HButton(
+                    text = "Regenerar card",
+                    onClick = onRegenerate,
+                    variant = ButtonVariant.Ghost,
+                    isLoading = regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
+                    enabled = regenerationTarget == null || regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
+                )
             }
         }
     }

@@ -104,4 +104,141 @@ object Prompt {
         }
         """.trimIndent()
     }
+
+    fun buildExampleRegenerationPrompt(
+        input: com.emm.domain.flashcard.FlashcardGenerationInput,
+        note: com.emm.domain.flashcard.GeneratedLearningNote,
+    ): String {
+        return """
+        You are refining one field inside an English learning note for a native Spanish speaker.
+
+        Keep the same learning note and intended meaning.
+
+        Input data:
+        - input_type: "${input.inputType.name}"
+        - user_text: "${input.userText}"
+        - intended_meaning_es: "${input.intendedMeaningEs}"
+        - context_sentence: "${input.contextSentence}"
+
+        Current note:
+        - expression: "${note.expression}"
+        - intended_meaning_es: "${note.intendedMeaningEs}"
+        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - why_useful: "${note.whyUseful}"
+        - current_example_sentence: "${note.exampleSentence}"
+        - current_example_translation: "${note.exampleTranslation}"
+
+        Return ONLY valid JSON:
+        {
+          "success": true,
+          "data": {
+            "example_sentence": "<new natural example sentence>",
+            "example_translation": "<Spanish translation of that sentence>"
+          }
+        }
+
+        Rules:
+        - Keep the same intended meaning and same target expression.
+        - The sentence must sound natural.
+        - The sentence must support the meaning clearly.
+        - Do not return markdown or extra text.
+        """.trimIndent()
+    }
+
+    fun buildClozeRegenerationPrompt(
+        input: com.emm.domain.flashcard.FlashcardGenerationInput,
+        note: com.emm.domain.flashcard.GeneratedLearningNote,
+    ): String {
+        return """
+        You are refining one cloze sentence inside an English learning note for a native Spanish speaker.
+
+        Input data:
+        - input_type: "${input.inputType.name}"
+        - user_text: "${input.userText}"
+        - intended_meaning_es: "${input.intendedMeaningEs}"
+        - context_sentence: "${input.contextSentence}"
+
+        Current note:
+        - expression: "${note.expression}"
+        - intended_meaning_es: "${note.intendedMeaningEs}"
+        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - example_sentence: "${note.exampleSentence}"
+        - current_cloze_sentence: "${note.clozeSentence}"
+
+        Return ONLY valid JSON:
+        {
+          "success": true,
+          "data": {
+            "cloze_sentence": "<natural cloze sentence with one clear blank for the target expression>"
+          }
+        }
+
+        Rules:
+        - Keep the same target expression and intended meaning.
+        - Make the sentence natural and useful.
+        - The cloze must test one clear retrieval.
+        - Do not return markdown or extra text.
+        """.trimIndent()
+    }
+
+    fun buildStudyCardRegenerationPrompt(
+        input: com.emm.domain.flashcard.FlashcardGenerationInput,
+        note: com.emm.domain.flashcard.GeneratedLearningNote,
+        card: com.emm.domain.flashcard.GeneratedStudyCard,
+    ): String {
+        val evaluationMode = when (card.evaluationMode) {
+            com.emm.domain.flashcard.EvaluationMode.Exact -> "exact"
+            com.emm.domain.flashcard.EvaluationMode.FlexibleText -> "flexible_text"
+            com.emm.domain.flashcard.EvaluationMode.ManualSelfCheck -> "manual_self_check"
+        }
+        return """
+        You are refining one derived study card inside an English learning note for a native Spanish speaker.
+
+        Input data:
+        - input_type: "${input.inputType.name}"
+        - user_text: "${input.userText}"
+        - intended_meaning_es: "${input.intendedMeaningEs}"
+        - context_sentence: "${input.contextSentence}"
+
+        Current note:
+        - expression: "${note.expression}"
+        - intended_meaning_es: "${note.intendedMeaningEs}"
+        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - example_sentence: "${note.exampleSentence}"
+        - cloze_sentence: "${note.clozeSentence}"
+
+        Card to regenerate:
+        - card_id: "${card.cardId}"
+        - card_type: "${card.cardType.name.lowercase()}"
+        - evaluation_mode: "$evaluationMode"
+        - current_prompt: "${card.prompt}"
+        - current_expected_answer: "${card.expectedAnswer}"
+        - source_field: "${card.sourceField}"
+
+        Return ONLY valid JSON:
+        {
+          "success": true,
+          "data": {
+            "card": {
+              "card_id": "${card.cardId}",
+              "card_type": "${card.cardType.name.lowercase()}",
+              "prompt": "<improved retrieval prompt>",
+              "expected_answer": "<single expected answer>",
+              "evaluation_mode": "$evaluationMode",
+              "is_active": true,
+              "accepted_answers": ["<optional accepted answer>"],
+              "hint": "<optional hint>",
+              "explanation": "<optional explanation>",
+              "source_field": "${card.sourceField}"
+            }
+          }
+        }
+
+        Rules:
+        - Keep the same card type and evaluation mode.
+        - Keep the card aligned with the same note meaning.
+        - Test one thing only.
+        - Do not return markdown or extra text.
+        """.trimIndent()
+    }
 }

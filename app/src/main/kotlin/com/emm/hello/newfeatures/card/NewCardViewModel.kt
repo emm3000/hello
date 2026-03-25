@@ -15,6 +15,9 @@ import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
+import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
+import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.core.mvi.MviViewModel
@@ -49,6 +52,9 @@ class NewCardViewModel(
     getDecksUseCase: GetDecksUseCase,
     private val createFlashcardUseCase: CreateFlashcardUseCase,
     private val generateLearningNotePreviewUseCase: GenerateLearningNotePreviewUseCase,
+    private val regenerateLearningNoteExampleUseCase: RegenerateLearningNoteExampleUseCase,
+    private val regenerateLearningNoteClozeUseCase: RegenerateLearningNoteClozeUseCase,
+    private val regenerateStudyCardUseCase: RegenerateStudyCardUseCase,
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
     private val validateInputUseCase: ValidateFlashcardGenerationInputUseCase,
@@ -172,6 +178,9 @@ class NewCardViewModel(
                     }
                 )
             }
+            NewCardUiIntent.RegenerateExampleClicked -> regenerateExample()
+            NewCardUiIntent.RegenerateClozeClicked -> regenerateCloze()
+            is NewCardUiIntent.RegenerateCardClicked -> regenerateCard(intent.cardId)
         }
     }
 
@@ -217,6 +226,7 @@ class NewCardViewModel(
                     previewWarnings = previewValidation.warnings.map { issue -> issue.message } + preview.warnings,
                     canSavePreview = previewValidation.isValid,
                     isLoading = false,
+                    previewRegenerationTarget = null,
                 )
             }
         }.onFailure { e ->
@@ -228,6 +238,112 @@ class NewCardViewModel(
                     ),
                     isLoading = false,
                     canSavePreview = false,
+                    previewRegenerationTarget = null,
+                )
+            }
+        }
+    }
+
+    private fun regenerateExample() = viewModelScope.launch {
+        val current = mutableState.value
+        val preview = current.learningNotePreview ?: return@launch
+        mutableState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                previewRegenerationTarget = PreviewRegenerationTarget.Example,
+            )
+        }
+        runCatching {
+            regenerateLearningNoteExampleUseCase(
+                input = current.toGenerationInput(),
+                note = preview,
+            )
+        }.onSuccess { example ->
+            applyUpdatedPreview(
+                preview.copy(
+                    exampleSentence = example.sentence,
+                    exampleTranslation = example.translation,
+                )
+            )
+        }.onFailure { e ->
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Error al regenerar ejemplo",
+                        message = e.message ?: "No se pudo regenerar el ejemplo.",
+                    ),
+                    isLoading = false,
+                    previewRegenerationTarget = null,
+                )
+            }
+        }
+    }
+
+    private fun regenerateCloze() = viewModelScope.launch {
+        val current = mutableState.value
+        val preview = current.learningNotePreview ?: return@launch
+        mutableState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                previewRegenerationTarget = PreviewRegenerationTarget.Cloze,
+            )
+        }
+        runCatching {
+            regenerateLearningNoteClozeUseCase(
+                input = current.toGenerationInput(),
+                note = preview,
+            )
+        }.onSuccess { cloze ->
+            applyUpdatedPreview(preview.copy(clozeSentence = cloze))
+        }.onFailure { e ->
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Error al regenerar cloze",
+                        message = e.message ?: "No se pudo regenerar el cloze.",
+                    ),
+                    isLoading = false,
+                    previewRegenerationTarget = null,
+                )
+            }
+        }
+    }
+
+    private fun regenerateCard(cardId: String) = viewModelScope.launch {
+        val current = mutableState.value
+        val preview = current.learningNotePreview ?: return@launch
+        mutableState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                previewRegenerationTarget = PreviewRegenerationTarget.Card(cardId),
+            )
+        }
+        runCatching {
+            regenerateStudyCardUseCase(
+                input = current.toGenerationInput(),
+                note = preview,
+                cardId = cardId,
+            )
+        }.onSuccess { regeneratedCard ->
+            applyUpdatedPreview(
+                preview.copy(
+                    cards = preview.cards.map { card ->
+                        if (card.cardId == cardId) regeneratedCard else card
+                    }
+                )
+            )
+        }.onFailure { e ->
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Error al regenerar card",
+                        message = e.message ?: "No se pudo regenerar la card.",
+                    ),
+                    isLoading = false,
+                    previewRegenerationTarget = null,
                 )
             }
         }
@@ -235,7 +351,10 @@ class NewCardViewModel(
 
     private fun updatePreview(transform: (GeneratedLearningNote) -> GeneratedLearningNote) {
         val currentPreview = mutableState.value.learningNotePreview ?: return
-        val updatedPreview = transform(currentPreview)
+        applyUpdatedPreview(transform(currentPreview))
+    }
+
+    private fun applyUpdatedPreview(updatedPreview: GeneratedLearningNote) {
         val previewValidation = validateGeneratedLearningNoteUseCase(updatedPreview)
         mutableState.update {
             it.copy(
@@ -244,6 +363,8 @@ class NewCardViewModel(
                 previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
                 previewWarnings = previewValidation.warnings.map { issue -> issue.message } + updatedPreview.warnings,
                 canSavePreview = previewValidation.isValid,
+                isLoading = false,
+                previewRegenerationTarget = null,
             )
         }
     }
@@ -265,6 +386,7 @@ class NewCardViewModel(
                     previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
                     previewWarnings = previewValidation.warnings.map { issue -> issue.message } + learningNotePreview.warnings,
                     canSavePreview = false,
+                    previewRegenerationTarget = null,
                 )
             }
             return@launch
@@ -287,6 +409,7 @@ class NewCardViewModel(
                     previewValidationErrors = emptyList(),
                     previewWarnings = emptyList(),
                     canSavePreview = false,
+                    previewRegenerationTarget = null,
                 )
             }
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))

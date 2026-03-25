@@ -7,6 +7,12 @@ import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.domain.flashcard.staticCategories
 
+sealed interface PreviewRegenerationTarget {
+    data object Example : PreviewRegenerationTarget
+    data object Cloze : PreviewRegenerationTarget
+    data class Card(val cardId: String) : PreviewRegenerationTarget
+}
+
 data class NewCardUiState(
     val word: String = "",
     val intendedMeaningEs: String = "",
@@ -23,4 +29,5 @@ data class NewCardUiState(
     val previewValidationErrors: List<String> = emptyList(),
     val previewWarnings: List<String> = emptyList(),
     val canSavePreview: Boolean = false,
+    val previewRegenerationTarget: PreviewRegenerationTarget? = null,
 )

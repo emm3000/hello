@@ -24,6 +24,7 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.GeneratedExampleDraft
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
@@ -208,6 +209,36 @@ class DefaultFlashcardRepository(
             val response = geminiService.process(prompt)
             GeneratedLearningNoteResponseParser.parse(response, json)
         }
+
+    override suspend fun regenerateExample(
+        input: FlashcardGenerationInput,
+        note: GeneratedLearningNote,
+    ): GeneratedExampleDraft = withContext(Dispatchers.IO) {
+        val prompt = Prompt.buildExampleRegenerationPrompt(input, note)
+        val response = geminiService.process(prompt)
+        PartialRegenerationParser.parseExample(response, json)
+    }
+
+    override suspend fun regenerateClozeSentence(
+        input: FlashcardGenerationInput,
+        note: GeneratedLearningNote,
+    ): String = withContext(Dispatchers.IO) {
+        val prompt = Prompt.buildClozeRegenerationPrompt(input, note)
+        val response = geminiService.process(prompt)
+        PartialRegenerationParser.parseCloze(response, json)
+    }
+
+    override suspend fun regenerateStudyCard(
+        input: FlashcardGenerationInput,
+        note: GeneratedLearningNote,
+        cardId: String,
+    ): GeneratedStudyCard = withContext(Dispatchers.IO) {
+        val card = note.cards.firstOrNull { it.cardId == cardId }
+            ?: throw IllegalArgumentException("Study card no encontrada para regenerar.")
+        val prompt = Prompt.buildStudyCardRegenerationPrompt(input, note, card)
+        val response = geminiService.process(prompt)
+        PartialRegenerationParser.parseStudyCard(response, json)
+    }
 
     override fun fetchAll(): Flow<List<Flashcard>> {
         val appAccountId = db.requireCurrentAppAccountId()
