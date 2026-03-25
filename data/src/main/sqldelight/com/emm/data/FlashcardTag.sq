@@ -1,8 +1,0 @@
-CREATE TABLE FlashcardTag (
-    flashcardId TEXT NOT NULL,
-    tagId TEXT NOT NULL,
-
-    PRIMARY KEY (flashcardId, tagId),
-    FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE,
-    FOREIGN KEY (tagId) REFERENCES Tag(id) ON DELETE CASCADE
-);

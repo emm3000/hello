@@ -1,8 +1,0 @@
-CREATE TABLE IARequest (
-    id TEXT NOT NULL PRIMARY KEY,          -- UUID
-    input TEXT NOT NULL,                   -- Lo que el usuario escribió
-    flashcardId TEXT NOT NULL,            -- Tarjeta generada
-    createdAt INTEGER NOT NULL,
-
-    FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
-);
