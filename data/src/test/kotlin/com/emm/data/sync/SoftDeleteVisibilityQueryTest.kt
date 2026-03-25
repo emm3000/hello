@@ -21,7 +21,6 @@ class SoftDeleteVisibilityQueryTest {
     fun `read queries hide soft deleted rows`() {
         seedDecks()
         seedFlashcards()
-        seedQuotes()
 
         assertEquals(listOf("deck-active"), db.deckQueries.all().executeAsList().map { it.id })
         assertEquals(1, db.deckQueries.deckWithFlashcardCount().executeAsOne().flashcardCount)
@@ -29,8 +28,6 @@ class SoftDeleteVisibilityQueryTest {
             listOf("card-active"),
             db.flashcardQueries.selectByDeck("deck-active").executeAsList().map { it.id },
         )
-        assertEquals(listOf("quote-active"), db.quotesQueries.all().executeAsList().map { it.id })
-        assertEquals("quote-active", db.quotesQueries.lastInsertedQuote().executeAsOne().id)
     }
 
     private fun seedDecks() {
@@ -113,44 +110,4 @@ class SoftDeleteVisibilityQueryTest {
         )
     }
 
-    private fun seedQuotes() {
-        db.quotesQueries.insert(
-            id = "quote-active",
-            title = "Title",
-            phrase = "Phrase",
-            description = "Desc",
-            translation = "Tr",
-            example = "Ex",
-            context = "Ctx",
-            pronunciation = "Pron",
-            formality = "Formal",
-            tags = "tag",
-            category = "cat",
-            createdAt = 1,
-            updatedAt = 1,
-            deletedAt = null,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 1,
-        )
-        db.quotesQueries.insert(
-            id = "quote-deleted",
-            title = "Title",
-            phrase = "Phrase",
-            description = "Desc",
-            translation = "Tr",
-            example = "Ex",
-            context = "Ctx",
-            pronunciation = "Pron",
-            formality = "Formal",
-            tags = "tag",
-            category = "cat",
-            createdAt = 2,
-            updatedAt = 2,
-            deletedAt = 3,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 2,
-        )
-    }
 }

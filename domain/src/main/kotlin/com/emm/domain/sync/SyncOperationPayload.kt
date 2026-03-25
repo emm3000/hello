@@ -29,14 +29,6 @@ data class FlashcardExampleSyncPayload(
     val type: String,
 ) : SyncOperationPayload
 
-data class QuoteSyncPayload(
-    override val entityId: String,
-    override val operationType: OperationType,
-    val phrase: String,
-    val translation: String,
-    val category: String,
-) : SyncOperationPayload
-
 data class ReviewEventSyncPayload(
     override val entityId: String,
     override val operationType: OperationType = OperationType.AppendEvent,

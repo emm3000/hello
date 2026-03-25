@@ -59,7 +59,6 @@ alter table public.deck enable row level security;
 alter table public.flashcard enable row level security;
 alter table public.flashcard_example enable row level security;
 alter table public.review_event enable row level security;
-alter table public.quote enable row level security;
 alter table public.sync_operation enable row level security;
 alter table public.sync_ack enable row level security;
 alter table public.sync_cursor enable row level security;
@@ -71,7 +70,6 @@ revoke all on table public.deck from anon, authenticated;
 revoke all on table public.flashcard from anon, authenticated;
 revoke all on table public.flashcard_example from anon, authenticated;
 revoke all on table public.review_event from anon, authenticated;
-revoke all on table public.quote from anon, authenticated;
 revoke all on table public.sync_operation from anon, authenticated;
 revoke all on table public.sync_ack from anon, authenticated;
 revoke all on table public.sync_cursor from anon, authenticated;
@@ -84,7 +82,6 @@ grant select on table public.deck to authenticated;
 grant select on table public.flashcard to authenticated;
 grant select on table public.flashcard_example to authenticated;
 grant select on table public.review_event to authenticated;
-grant select on table public.quote to authenticated;
 grant select on table public.sync_operation to authenticated;
 grant select on table public.sync_ack to authenticated;
 grant select on table public.sync_cursor to authenticated;
@@ -142,13 +139,6 @@ create policy flashcard_example_select_member
 drop policy if exists review_event_select_member on public.review_event;
 create policy review_event_select_member
     on public.review_event
-    for select
-    to authenticated
-    using (public.is_account_member(app_account_id));
-
-drop policy if exists quote_select_member on public.quote;
-create policy quote_select_member
-    on public.quote
     for select
     to authenticated
     using (public.is_account_member(app_account_id));

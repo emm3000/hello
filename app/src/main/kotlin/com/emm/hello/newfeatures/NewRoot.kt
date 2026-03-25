@@ -10,7 +10,6 @@ import com.emm.hello.newfeatures.card.cardDetailRoute
 import com.emm.hello.newfeatures.card.newCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.dashboard
-import com.emm.hello.newfeatures.dashboard.quote
 import com.emm.hello.newfeatures.deck.deckDetailRoute
 import com.emm.hello.newfeatures.deck.newDeckRoute
 import com.emm.hello.newfeatures.pairing.pairingRoute
@@ -26,7 +25,6 @@ fun NewRoot() {
         modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
         dashboard(navController)
-        quote()
         study(navController)
         newCardRoute(navController)
         newDeckRoute(navController)

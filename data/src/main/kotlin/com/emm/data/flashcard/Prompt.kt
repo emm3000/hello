@@ -104,46 +104,4 @@ object Prompt {
         }
         """.trimIndent()
     }
-
-    @Suppress("LongMethod")
-    fun quotePrompt2(): String {
-        return """
-        You are a bilingual assistant for native Spanish speakers learning English.
-
-        Generate one useful everyday English phrase suitable for spaced repetition learning.
-
-        Return ONLY this JSON structure:
-
-        {
-          "success": true,
-          "data": {
-            "title": "<short title>",
-            "phrase": "<the phrase>",
-            "description": "<what it means and when to use it>",
-            "translation": "<Spanish translation>",
-            "example": "<natural sentence using the phrase>",
-            "context": "<realistic situation>",
-            "pronunciation": "<IPA transcription>",
-            "formality": "<casual | neutral>",
-            "tags": ["tag1", "tag2"],
-            "category": "<home, friends, errands, phone, restaurant, etc.>"
-          }
-        }
-
-        If a valid phrase cannot be generated, return:
-
-        {
-          "success": false,
-          "error": {
-            "message": "Unable to generate a valid everyday English phrase."
-          }
-        }
-
-        Rules:
-        - The phrase must be specific, natural, and useful in real conversation.
-        - Avoid motivational or philosophical statements.
-        - Favor understandable everyday English over obscure slang.
-        - Do not include markdown, explanations, or text outside the JSON.
-        """.trimIndent()
-    }
 }

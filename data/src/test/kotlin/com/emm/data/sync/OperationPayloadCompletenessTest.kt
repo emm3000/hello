@@ -6,9 +6,7 @@ import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.GeminiService
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.OperationLogWriter
-import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
-import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -73,57 +71,6 @@ class OperationPayloadCompletenessTest {
         assertEquals("noun", payload["partOfSpeech"]?.jsonPrimitive?.content)
         assertEquals("word", payload["type"]?.jsonPrimitive?.content)
         assertEquals("common noun", payload["note"]?.jsonPrimitive?.content)
-        assertNotNull(payload["createdAt"])
-        assertNotNull(payload["updatedAt"])
-    }
-
-    @Test
-    fun `quote operation payload includes full entity snapshot`() = runTest {
-        val gemini = mockk<GeminiService>()
-        coEvery {
-            gemini.process(any())
-        } returns """
-            {
-              "success": true,
-              "data": {
-                "category": "travel",
-                "context": "airport",
-                "description": "useful phrase",
-                "example": "I need a taxi",
-                "formality": "neutral",
-                "phrase": "I need a taxi",
-                "pronunciation": "ai niid a taksi",
-                "tags": ["transport", "basic"],
-                "title": "Taxi phrase",
-                "translation": "Necesito un taxi"
-              }
-            }
-        """.trimIndent()
-        val repo = DefaultQuoteRepository(
-            db = db,
-            geminiApi = gemini,
-            json = json,
-            operationLogWriter = operationLogWriter,
-            localDeviceIdentityProvider = localDeviceIdentityProvider,
-        )
-
-        repo.generate()
-
-        val operation = db.localFirstQueries
-            .pendingOperations(maxRetries = DrainOutbox.MAX_RETRY_COUNT, limit = 1)
-            .executeAsOne()
-        val payload = json.parseToJsonElement(operation.payload).jsonObject
-
-        assertEquals("Taxi phrase", payload["title"]?.jsonPrimitive?.content)
-        assertEquals("I need a taxi", payload["phrase"]?.jsonPrimitive?.content)
-        assertEquals("useful phrase", payload["description"]?.jsonPrimitive?.content)
-        assertEquals("Necesito un taxi", payload["translation"]?.jsonPrimitive?.content)
-        assertEquals("I need a taxi", payload["example"]?.jsonPrimitive?.content)
-        assertEquals("airport", payload["context"]?.jsonPrimitive?.content)
-        assertEquals("ai niid a taksi", payload["pronunciation"]?.jsonPrimitive?.content)
-        assertEquals("neutral", payload["formality"]?.jsonPrimitive?.content)
-        assertEquals("transport|basic", payload["tags"]?.jsonPrimitive?.content)
-        assertEquals("travel", payload["category"]?.jsonPrimitive?.content)
         assertNotNull(payload["createdAt"])
         assertNotNull(payload["updatedAt"])
     }

@@ -13,7 +13,6 @@ import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.OperationLogWriter
-import com.emm.data.quote.DefaultQuoteRepository
 import com.emm.data.remote.DataStore
 import com.emm.data.sync.AckOperations
 import com.emm.data.sync.ApplyRemoteOperation
@@ -44,10 +43,6 @@ import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
-import com.emm.domain.quote.GenerateQuoteUseCase
-import com.emm.domain.quote.ObserveLatestQuoteUseCase
-import com.emm.domain.quote.QuoteRepository
-import com.emm.domain.quote.SaveQuoteAsFlashcardUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
@@ -105,7 +100,6 @@ fun Module.repository() {
     factory<FlashcardWriteRepository> { get<DefaultFlashcardRepository>() }
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
-    factoryOf(::DefaultQuoteRepository) bind QuoteRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     singleOf(::DefaultSyncEngine) bind SyncEngine::class
     factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
@@ -135,9 +129,6 @@ fun Module.useCases() {
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::GetFlashcardByIdUseCase)
-    factoryOf(::GenerateQuoteUseCase)
-    factoryOf(::ObserveLatestQuoteUseCase)
-    factoryOf(::SaveQuoteAsFlashcardUseCase)
     factoryOf(::UpdateFlashcardReviewUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::GetSyncDebugStateUseCase)

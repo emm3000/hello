@@ -138,11 +138,4 @@
     <!-- Notes -->
     <string name="notes_label">Notas</string>
 
-    <!-- Quotes -->
-    <string name="already_has_flashcard">Ya tiene flashcard</string>
-    <string name="expand_quote">Expandir</string>
-    <string name="collapse_quote">Contraer</string>
-    <string name="quote_translated_label">Flashcard ya creada</string>
-    <string name="quote_saved_default_deck">Guardado en tu mazo por defecto</string>
-    <string name="quote_default_deck_required">Configura un mazo por defecto al crear una tarjeta</string>
 </resources>

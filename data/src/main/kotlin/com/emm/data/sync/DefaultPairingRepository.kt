@@ -122,7 +122,6 @@ class DefaultPairingRepository(
         db.flashcardExampleQueries.deleteAllFlashcardExamples()
         db.flashcardQueries.deleteAllFlashcards()
         db.deckQueries.deleteAllDecks()
-        db.quotesQueries.deleteAllQuotes()
         db.localFirstQueries.deleteAllOperations()
         db.localFirstQueries.deleteAllAppliedRemoteOperations()
     }

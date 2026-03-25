@@ -13,7 +13,7 @@ private const val DEFAULT_TOP_P = 0.95f
 
 /**
  * Provee dependencias de infraestructura compartidas.
- * GeminiService es usado por DefaultFlashcardRepository y DefaultQuoteRepository.
+ * GeminiService es usado por DefaultFlashcardRepository.
  */
 val repositoryModule = module {
     single {

@@ -1,4 +1,4 @@
--- Extend sync_push_internal to handle flashcard, flashcard_example, quote, review_event
+-- Extend sync_push_internal to handle flashcard, flashcard_example, review_event
 create or replace function public.sync_push_internal(
     p_account_id text,
     p_device_id text,
@@ -107,20 +107,6 @@ begin
                 nullif(v_payload->>'type', '') is null
             ) then
                 v_rejected := v_rejected || jsonb_build_object('op_id', v_op_id, 'reason', 'missing_example_fields');
-                continue;
-            end if;
-
-        elsif v_entity_type = 'quote' then
-            if v_operation_type not in ('create', 'update', 'upsert', 'delete') then
-                v_rejected := v_rejected || jsonb_build_object('op_id', v_op_id, 'reason', 'unsupported_operation_type');
-                continue;
-            end if;
-            if v_operation_type <> 'delete' and (
-                nullif(v_payload->>'phrase', '') is null or
-                nullif(v_payload->>'translation', '') is null or
-                nullif(v_payload->>'category', '') is null
-            ) then
-                v_rejected := v_rejected || jsonb_build_object('op_id', v_op_id, 'reason', 'missing_quote_fields');
                 continue;
             end if;
 
@@ -320,51 +306,6 @@ begin
                 last_modified_by_device_id = excluded.last_modified_by_device_id,
                 version_lamport = excluded.version_lamport
             where excluded.version_lamport >= public.flashcard_example.version_lamport;
-
-        elsif v_entity_type = 'quote' then
-            insert into public.quote (
-                app_account_id, id,
-                title, phrase, description, translation,
-                example, context, pronunciation, formality, tags, category,
-                created_at, updated_at, deleted_at,
-                origin_device_id, last_modified_by_device_id, version_lamport
-            ) values (
-                p_account_id,
-                v_entity_id,
-                coalesce(nullif(v_payload->>'title', ''), v_payload->>'phrase', '[deleted]'),
-                coalesce(nullif(v_payload->>'phrase', ''), '[deleted]'),
-                coalesce(v_payload->>'description', ''),
-                coalesce(nullif(v_payload->>'translation', ''), '[deleted]'),
-                coalesce(v_payload->>'example', ''),
-                coalesce(v_payload->>'context', ''),
-                coalesce(v_payload->>'pronunciation', ''),
-                coalesce(v_payload->>'formality', ''),
-                coalesce(v_payload->>'tags', ''),
-                coalesce(nullif(v_payload->>'category', ''), '[deleted]'),
-                now(),
-                now(),
-                null,
-                p_device_id,
-                p_device_id,
-                v_lamport
-            )
-            on conflict (app_account_id, id) do update
-            set
-                title = excluded.title,
-                phrase = excluded.phrase,
-                description = excluded.description,
-                translation = excluded.translation,
-                example = excluded.example,
-                context = excluded.context,
-                pronunciation = excluded.pronunciation,
-                formality = excluded.formality,
-                tags = excluded.tags,
-                category = excluded.category,
-                updated_at = excluded.updated_at,
-                deleted_at = excluded.deleted_at,
-                last_modified_by_device_id = excluded.last_modified_by_device_id,
-                version_lamport = excluded.version_lamport
-            where excluded.version_lamport >= public.quote.version_lamport;
 
         elsif v_entity_type = 'review_event' then
             -- review_event is append-only (event sourcing): INSERT ... ON CONFLICT DO NOTHING

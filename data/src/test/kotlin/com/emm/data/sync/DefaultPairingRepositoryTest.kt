@@ -61,7 +61,6 @@ class DefaultPairingRepositoryTest {
         assertEquals("new-account", accountState?.appAccountId)
         assertEquals(0L, checkpoint?.lastPulledCursor)
         assertNull(db.deckQueries.findById("deck-1").executeAsOneOrNull())
-        assertNull(db.quotesQueries.findById("quote-1").executeAsOneOrNull())
         assertEquals(
             0L,
             db.localFirstQueries
@@ -88,7 +87,6 @@ class DefaultPairingRepositoryTest {
         subject.redeemPairingCode("123456")
 
         assertNotNull(db.deckQueries.findById("deck-1").executeAsOneOrNull())
-        assertNotNull(db.quotesQueries.findById("quote-1").executeAsOneOrNull())
         verify(exactly = 0) { dataStore.clearDefaultDeck() }
     }
 
@@ -114,25 +112,6 @@ class DefaultPairingRepositoryTest {
             id = "deck-1",
             name = "Deck",
             description = "desc",
-            createdAt = 1,
-            updatedAt = 1,
-            deletedAt = null,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 1,
-        )
-        db.quotesQueries.insert(
-            id = "quote-1",
-            title = "Title",
-            phrase = "Phrase",
-            description = "Desc",
-            translation = "Tr",
-            example = "Ex",
-            context = "Ctx",
-            pronunciation = "Pron",
-            formality = "Formal",
-            tags = "tag",
-            category = "cat",
             createdAt = 1,
             updatedAt = 1,
             deletedAt = null,

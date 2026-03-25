@@ -17,7 +17,6 @@ class ApplyRemoteOperation(
     private val deckQueries = db.deckQueries
     private val flashcardQueries = db.flashcardQueries
     private val flashcardExampleQueries = db.flashcardExampleQueries
-    private val quotesQueries = db.quotesQueries
     private val localFirstQueries = db.localFirstQueries
 
     operator fun invoke(
@@ -28,7 +27,6 @@ class ApplyRemoteOperation(
             "deck" -> applyDeck(operation, localDeviceId)
             "flashcard" -> applyFlashcard(operation, localDeviceId)
             "flashcard_example" -> applyFlashcardExample(operation, localDeviceId)
-            "quote" -> applyQuote(operation, localDeviceId)
             "review_event" -> applyReviewEvent(operation, localDeviceId)
             else -> ApplyRemoteOperationResult.Skipped(
                 reason = "unsupported_entity_type:${operation.entityType}"
@@ -224,62 +222,6 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyQuote(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
-        val existing = quotesQueries.findById(operation.entityId).executeAsOneOrNull()
-        val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
-        if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
-            return ApplyRemoteOperationResult.Skipped(reason = "stale_lamport")
-        }
-
-        val payload = operation.payload
-        val operationType = operation.operationType.lowercase()
-        val phrase = payload.stringAny("phrase")
-        val translation = payload.stringAny("translation")
-        val category = payload.stringAny("category")
-
-        val deferredReason = missingQuoteReason(
-            operationType = operationType,
-            phrase = phrase,
-            translation = translation,
-            category = category,
-        )
-        if (deferredReason != null) {
-            return ApplyRemoteOperationResult.Deferred(reason = deferredReason)
-        }
-
-        val values = resolveQuoteValues(
-            existing = existing,
-            payload = payload,
-            operationType = operationType,
-            phrase = phrase,
-            translation = translation,
-            category = category,
-            operationCreatedAt = parseIsoToEpoch(operation.createdAt) ?: Instant.now().toEpochMilli(),
-        )
-
-        quotesQueries.insert(
-            id = operation.entityId,
-            title = values.title,
-            phrase = values.phrase,
-            description = values.description,
-            translation = values.translation,
-            example = values.example,
-            context = values.context,
-            pronunciation = values.pronunciation,
-            formality = values.formality,
-            tags = values.tags,
-            category = values.category,
-            createdAt = values.createdAt,
-            updatedAt = values.updatedAt,
-            deletedAt = values.deletedAt,
-            originDeviceId = existing?.originDeviceId ?: originDeviceId,
-            lastModifiedByDeviceId = originDeviceId,
-            versionLamport = operation.lamport,
-        )
-
-        return ApplyRemoteOperationResult.Applied
-    }
-
     private fun applyReviewEvent(operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
         val eventId = operation.entityId
         val payload = operation.payload
@@ -367,18 +309,6 @@ class ApplyRemoteOperation(
         flashcardQueries.findById(flashcardId).executeAsOneOrNull() == null -> "missing_parent_flashcard"
         operationType != "delete" && listOf(text, translation, type).any { it.isNullOrBlank() } -> {
             "missing_required_field:example_payload"
-        }
-        else -> null
-    }
-
-    private fun missingQuoteReason(
-        operationType: String,
-        phrase: String?,
-        translation: String?,
-        category: String?,
-    ): String? = when {
-        operationType != "delete" && listOf(phrase, translation, category).any { it.isNullOrBlank() } -> {
-            "missing_required_field:quote_payload"
         }
         else -> null
     }
@@ -522,36 +452,6 @@ class ApplyRemoteOperation(
             text = resolveDeletedOrIncoming(operationType, existing?.text, text),
             translation = resolveDeletedOrIncoming(operationType, existing?.translation, translation),
             type = resolveDeletedOrIncoming(operationType, existing?.type, type),
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-            deletedAt = deletedAt,
-        )
-    }
-
-    private fun resolveQuoteValues(
-        existing: com.emm.data.Quote?,
-        payload: JsonObject,
-        operationType: String,
-        phrase: String?,
-        translation: String?,
-        category: String?,
-        operationCreatedAt: Long,
-    ): QuoteValues {
-        val createdAt = existing?.createdAt ?: payload.epochAny("createdAt", "created_at") ?: operationCreatedAt
-        val updatedAt = payload.epochAny("updatedAt", "updated_at") ?: operationCreatedAt
-        val deletedAt = resolveDeletedAt(payload, operationType, updatedAt)
-
-        return QuoteValues(
-            title = payload.stringAny("title") ?: existing?.title ?: (phrase ?: "[deleted]"),
-            phrase = resolveDeletedOrIncoming(operationType, existing?.phrase, phrase, "[deleted]"),
-            description = payload.stringAny("description") ?: existing?.description.orEmpty(),
-            translation = resolveDeletedOrIncoming(operationType, existing?.translation, translation),
-            example = payload.stringAny("example") ?: existing?.example.orEmpty(),
-            context = payload.stringAny("context") ?: existing?.context.orEmpty(),
-            pronunciation = payload.stringAny("pronunciation") ?: existing?.pronunciation.orEmpty(),
-            formality = payload.stringAny("formality") ?: existing?.formality.orEmpty(),
-            tags = payload.stringAny("tags") ?: existing?.tags.orEmpty(),
-            category = resolveDeletedOrIncoming(operationType, existing?.category, category),
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
@@ -754,22 +654,6 @@ private data class FlashcardExampleValues(
     val text: String,
     val translation: String,
     val type: String,
-    val createdAt: Long,
-    val updatedAt: Long,
-    val deletedAt: Long?,
-)
-
-private data class QuoteValues(
-    val title: String,
-    val phrase: String,
-    val description: String,
-    val translation: String,
-    val example: String,
-    val context: String,
-    val pronunciation: String,
-    val formality: String,
-    val tags: String,
-    val category: String,
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,
