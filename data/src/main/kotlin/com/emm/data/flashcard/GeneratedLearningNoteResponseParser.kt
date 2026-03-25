@@ -15,10 +15,13 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 object GeneratedLearningNoteResponseParser {
+
+    private val validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase()
 
     fun parse(raw: String, json: Json): GeneratedLearningNote {
         return try {
@@ -28,7 +31,7 @@ object GeneratedLearningNoteResponseParser {
                 val message = response.error?.message ?: "Unknown AI error"
                 throw IllegalArgumentException(message)
             }
-            data.toDomain()
+            data.toValidatedDomain()
         } catch (error: SerializationException) {
             throw IllegalArgumentException(
                 "La respuesta de la IA no coincide con el formato esperado para learning note",
@@ -37,8 +40,8 @@ object GeneratedLearningNoteResponseParser {
         }
     }
 
-    private fun GeneratedLearningNoteDto.toDomain(): GeneratedLearningNote {
-        return GeneratedLearningNote(
+    private fun GeneratedLearningNoteDto.toValidatedDomain(): GeneratedLearningNote {
+        val note = GeneratedLearningNote(
             noteId = noteId,
             noteType = noteType.toLearningNoteType(),
             expression = expression,
@@ -64,6 +67,12 @@ object GeneratedLearningNoteResponseParser {
             sourceContext = sourceContext,
             warnings = warnings,
         )
+        val validation = validateGeneratedLearningNoteUseCase(note)
+        require(validation.isValid) {
+            val messages = validation.errors.joinToString(separator = " | ") { it.message }
+            "La respuesta de la IA produjo una learning note invalida: $messages"
+        }
+        return note
     }
 
     private fun GeneratedStudyCardDto.toDomain(): GeneratedStudyCard {

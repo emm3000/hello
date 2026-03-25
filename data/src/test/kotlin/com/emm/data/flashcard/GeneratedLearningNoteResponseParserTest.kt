@@ -49,6 +49,14 @@ class GeneratedLearningNoteResponseParserTest {
                   },
                   {
                     "card_id": "card-2",
+                    "card_type": "production",
+                    "prompt": "Como dices 'recoger' en ingles?",
+                    "expected_answer": "pick up",
+                    "evaluation_mode": "exact",
+                    "is_active": true
+                  },
+                  {
+                    "card_id": "card-3",
                     "card_type": "cloze",
                     "prompt": "I'll ____ you up after work.",
                     "expected_answer": "pick",
@@ -76,8 +84,8 @@ class GeneratedLearningNoteResponseParserTest {
         assertEquals(RegisterPreference.Neutral, result.register)
         assertEquals(LevelBand.A1_A2, result.levelBand)
         assertEquals(LearningDomain.DailyLife, result.domain)
-        assertEquals(2, result.cards.size)
-        assertEquals(StudyCardType.Cloze, result.cards[1].cardType)
+        assertEquals(3, result.cards.size)
+        assertEquals(StudyCardType.Cloze, result.cards[2].cardType)
         assertEquals(GeneratedNoteQualityCode.SingleMeaning, result.qualityChecks.first().code)
     }
 
@@ -101,6 +109,95 @@ class GeneratedLearningNoteResponseParserTest {
                 "example_translation": "Recojo a mi hijo en el colegio.",
                 "cards": [],
                 "quality_checks": []
+              }
+            }
+        """.trimIndent()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+    }
+
+    @Test
+    fun `parse with failed quality check throws illegal argument exception`() {
+        val raw = """
+            {
+              "success": true,
+              "data": {
+                "note_id": "note-1",
+                "note_type": "word",
+                "expression": "borrow",
+                "intended_meaning_es": "pedir prestado",
+                "simple_definition_en": "to take something and return it later",
+                "part_of_speech": "verb",
+                "register": "neutral",
+                "level_band": "A1_A2",
+                "domain": "daily_life",
+                "why_useful": "Sirve para hablar de prestamos.",
+                "example_sentence": "Can I borrow your pen?",
+                "example_translation": "Puedo pedirte prestado tu lapicero?",
+                "cards": [
+                  {
+                    "card_id": "card-1",
+                    "card_type": "recognition",
+                    "prompt": "borrow",
+                    "expected_answer": "pedir prestado",
+                    "evaluation_mode": "flexible_text"
+                  },
+                  {
+                    "card_id": "card-2",
+                    "card_type": "production",
+                    "prompt": "Como dices pedir prestado en ingles?",
+                    "expected_answer": "borrow",
+                    "evaluation_mode": "exact"
+                  }
+                ],
+                "quality_checks": [
+                  {
+                    "code": "single_meaning",
+                    "passed": true,
+                    "message": "ok"
+                  },
+                  {
+                    "code": "non_ambiguous_answers",
+                    "passed": false,
+                    "message": "La respuesta sigue siendo ambigua."
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+    }
+
+    @Test
+    fun `parse without cards field throws illegal argument exception`() {
+        val raw = """
+            {
+              "success": true,
+              "data": {
+                "note_id": "note-1",
+                "note_type": "word",
+                "expression": "borrow",
+                "intended_meaning_es": "pedir prestado",
+                "simple_definition_en": "to take something and return it later",
+                "part_of_speech": "verb",
+                "register": "neutral",
+                "level_band": "A1_A2",
+                "domain": "daily_life",
+                "why_useful": "Sirve para hablar de prestamos.",
+                "example_sentence": "Can I borrow your pen?",
+                "example_translation": "Puedo pedirte prestado tu lapicero?",
+                "quality_checks": [
+                  {
+                    "code": "single_meaning",
+                    "passed": true,
+                    "message": "ok"
+                  }
+                ]
               }
             }
         """.trimIndent()

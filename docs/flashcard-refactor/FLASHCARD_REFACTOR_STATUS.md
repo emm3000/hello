@@ -228,6 +228,8 @@ Completed:
 - repository method for generated learning note
 - prompt builder for generated learning note
 - old `FlashcardGenerated` generation path removed from repository/domain
+- parser now rejects learning notes that fail domain validation
+- `cards` and `quality_checks` are required in the AI response DTO contract
 
 Pending:
 
@@ -252,6 +254,15 @@ Pending:
 - render validation errors and warnings more explicitly
 - support editing the learning note preview before save
 - typed answer / richer study interactions for production cards
+
+## Validation Boundary
+
+Current hard validation layers:
+
+- `data`: the AI response parser rejects malformed or pedagogically invalid learning notes
+- `domain`: the generated note validator rejects missing active cards and failed quality checks
+- `save`: `CreateFlashcardUseCase` refuses to persist invalid generated notes
+- `study`: session generation no longer invents fallback study cards
 
 ## Local Database
 

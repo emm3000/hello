@@ -30,4 +30,6 @@ enum class GeneratedLearningNoteIssueCode {
     EmptyCardAnswer,
     InactiveCard,
     MissingSingleMeaningQualityCheck,
+    NoActiveCards,
+    FailedQualityCheck,
 }

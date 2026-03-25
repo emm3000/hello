@@ -1,0 +1,110 @@
+package com.emm.domain.flashcard
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.runTest
+
+class CreateFlashcardUseCaseTest {
+
+    @Test
+    fun `invoke rejects invalid learning note`() = runTest {
+        val useCase = CreateFlashcardUseCase(
+            writeRepository = FakeWriteRepository(),
+            readRepository = FakeReadRepository(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            useCase(
+                deckId = "deck-1",
+                learningNote = sampleWordNote().copy(cards = emptyList()),
+            )
+        }
+
+        assert(error.message?.contains("invalida") == true)
+    }
+
+    @Test
+    fun `invoke persists valid learning note`() = runTest {
+        val writeRepository = FakeWriteRepository()
+        val useCase = CreateFlashcardUseCase(
+            writeRepository = writeRepository,
+            readRepository = FakeReadRepository(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        useCase(deckId = "deck-1", learningNote = sampleWordNote())
+
+        assertEquals(1, writeRepository.createCalls)
+        assertEquals(1, writeRepository.upsertExamplesCalls)
+    }
+
+    private fun sampleWordNote(): GeneratedLearningNote {
+        return GeneratedLearningNote(
+            noteId = "note-1",
+            noteType = LearningNoteType.Word,
+            expression = "borrow",
+            intendedMeaningEs = "pedir prestado",
+            simpleDefinitionEn = "to take something and return it later",
+            partOfSpeech = PartOfSpeechTag.Verb,
+            register = RegisterPreference.Neutral,
+            levelBand = LevelBand.A1_A2,
+            domain = LearningDomain.DailyLife,
+            whyUseful = "Sirve para hablar de prestamos.",
+            exampleSentence = "Can I borrow your pen?",
+            exampleTranslation = "Puedo pedirte prestado tu lapicero?",
+            cards = listOf(
+                GeneratedStudyCard(
+                    cardId = "card-1",
+                    cardType = StudyCardType.Recognition,
+                    prompt = "borrow",
+                    expectedAnswer = "pedir prestado",
+                    evaluationMode = EvaluationMode.FlexibleText,
+                ),
+                GeneratedStudyCard(
+                    cardId = "card-2",
+                    cardType = StudyCardType.Production,
+                    prompt = "Como dices pedir prestado en ingles?",
+                    expectedAnswer = "borrow",
+                    evaluationMode = EvaluationMode.Exact,
+                ),
+            ),
+            qualityChecks = listOf(
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.SingleMeaning,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.NaturalExample,
+                    passed = true,
+                    message = "ok",
+                ),
+            ),
+        )
+    }
+}
+
+private class FakeWriteRepository : FlashcardWriteRepository {
+    var createCalls = 0
+    var upsertExamplesCalls = 0
+
+    override suspend fun create(input: CreateFlashcardInput): String {
+        createCalls += 1
+        return "flashcard-1"
+    }
+
+    override suspend fun upsertExamples(examples: List<Example>, flashcardId: String) {
+        upsertExamplesCalls += 1
+    }
+}
+
+private class FakeReadRepository : FlashcardReadRepository {
+    override fun fetchAll() = throw UnsupportedOperationException()
+    override fun fetchByDeckId(deckId: String) = throw UnsupportedOperationException()
+
+    override suspend fun fetchById(id: String): Flashcard {
+        return Flashcard.Empty.copy(id = id)
+    }
+}

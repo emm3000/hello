@@ -26,9 +26,9 @@ data class GeneratedLearningNoteDto(
     val exampleSentence: String,
     @SerialName("example_translation")
     val exampleTranslation: String,
-    val cards: List<GeneratedStudyCardDto> = emptyList(),
+    val cards: List<GeneratedStudyCardDto>,
     @SerialName("quality_checks")
-    val qualityChecks: List<GeneratedNoteQualityCheckDto> = emptyList(),
+    val qualityChecks: List<GeneratedNoteQualityCheckDto>,
     val lemma: String = "",
     val ipa: String = "",
     @SerialName("usage_pattern")

@@ -188,7 +188,9 @@ class StudyViewModelTest {
 
     private fun flashcard(
         id: String,
-        studyCards: List<GeneratedStudyCard> = emptyList(),
+        studyCards: List<GeneratedStudyCard> = listOf(
+            studyCard("$id-rec", StudyCardType.Recognition)
+        ),
     ): Flashcard = Flashcard(
         id = id,
         word = id,

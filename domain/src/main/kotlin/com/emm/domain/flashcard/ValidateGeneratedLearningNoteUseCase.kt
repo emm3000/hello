@@ -191,6 +191,13 @@ class ValidateGeneratedLearningNoteUseCase {
         errors: MutableList<GeneratedLearningNoteIssue>,
         warnings: MutableList<GeneratedLearningNoteIssue>,
     ) {
+        val activeCards = note.cards.filter { it.isActive }
+        if (activeCards.isEmpty()) {
+            errors += issue(
+                GeneratedLearningNoteIssueCode.NoActiveCards,
+                "La nota generada debe incluir al menos una tarjeta activa."
+            )
+        }
         note.cards.forEach { card ->
             if (card.prompt.isBlank()) {
                 errors += issue(
@@ -224,6 +231,13 @@ class ValidateGeneratedLearningNoteUseCase {
             errors += issue(
                 GeneratedLearningNoteIssueCode.MissingSingleMeaningQualityCheck,
                 "La nota debe incluir la verificacion de significado unico."
+            )
+        }
+        val failedChecks = note.qualityChecks.filterNot { it.passed }
+        if (failedChecks.isNotEmpty()) {
+            errors += issue(
+                GeneratedLearningNoteIssueCode.FailedQualityCheck,
+                "La nota no puede guardarse si algun quality check falla."
             )
         }
     }

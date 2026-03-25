@@ -89,6 +89,44 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.EmptyCardPrompt })
     }
 
+    @Test
+    fun `invoke with all cards inactive returns error`() {
+        val result = useCase(
+            sampleWordNote().copy(
+                cards = listOf(
+                    recognitionCard().copy(isActive = false),
+                    productionCard().copy(isActive = false),
+                )
+            )
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.NoActiveCards })
+    }
+
+    @Test
+    fun `invoke with failed quality check returns error`() {
+        val result = useCase(
+            sampleWordNote().copy(
+                qualityChecks = listOf(
+                    GeneratedNoteQualityCheck(
+                        code = GeneratedNoteQualityCode.SingleMeaning,
+                        passed = true,
+                        message = "ok",
+                    ),
+                    GeneratedNoteQualityCheck(
+                        code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
+                        passed = false,
+                        message = "La respuesta sigue siendo ambigua.",
+                    ),
+                )
+            )
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.FailedQualityCheck })
+    }
+
     private fun sampleWordNote(): GeneratedLearningNote {
         return GeneratedLearningNote(
             noteId = "note-1",

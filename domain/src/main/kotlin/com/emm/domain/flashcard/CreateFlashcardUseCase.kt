@@ -3,12 +3,19 @@ package com.emm.domain.flashcard
 class CreateFlashcardUseCase(
     private val writeRepository: FlashcardWriteRepository,
     private val readRepository: FlashcardReadRepository,
+    private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
 ) {
 
     suspend operator fun invoke(
         deckId: String,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
+        val validation = validateGeneratedLearningNoteUseCase(learningNote)
+        require(validation.isValid) {
+            val messages = validation.errors.joinToString(separator = " | ") { it.message }
+            "GeneratedLearningNote invalida: $messages"
+        }
+
         val input = learningNote.toCreateFlashcardInput(deckId)
 
         val flashcardId: String = writeRepository.create(input)

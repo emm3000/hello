@@ -26,6 +26,7 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -64,7 +65,11 @@ class NewCardViewModelTest {
 
         val viewModel = NewCardViewModel(
             getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
             generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                 repository = generationRepository,
                 validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
@@ -106,7 +111,11 @@ class NewCardViewModelTest {
 
         val viewModel = NewCardViewModel(
             getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(writeRepository, readRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
             generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                 repository = generationRepository,
                 validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
