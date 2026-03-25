@@ -198,6 +198,111 @@ class NewCardViewModelTest {
         assertThat(viewModel.uiState.value.previewValidationErrors).isEmpty()
     }
 
+    @Test
+    fun `editing required preview field revalidates and can disable save`() = runTest {
+        val generationRepository = mockk<FlashcardGenerationRepository>()
+        val writeRepository = mockk<FlashcardWriteRepository>()
+        val readRepository = mockk<FlashcardReadRepository>()
+        val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        val deckRepository = FakeDeckRepository()
+
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+
+        val viewModel = NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
+        viewModel.onIntent(NewCardUiIntent.GenerateClicked)
+        advanceUntilIdle()
+
+        viewModel.onIntent(
+            NewCardUiIntent.PreviewFieldChanged(
+                field = EditableLearningNoteField.ExampleSentence,
+                value = "",
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.learningNotePreview?.exampleSentence).isEmpty()
+        assertThat(viewModel.uiState.value.canSavePreview).isFalse()
+        assertThat(viewModel.uiState.value.previewValidationErrors).isNotEmpty()
+    }
+
+    @Test
+    fun `editing preview card updates derived card in preview`() = runTest {
+        val generationRepository = mockk<FlashcardGenerationRepository>()
+        val writeRepository = mockk<FlashcardWriteRepository>()
+        val readRepository = mockk<FlashcardReadRepository>()
+        val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        val deckRepository = FakeDeckRepository()
+
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+
+        val viewModel = NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.WordChanged("hello"))
+        viewModel.onIntent(NewCardUiIntent.GenerateClicked)
+        advanceUntilIdle()
+
+        viewModel.onIntent(
+            NewCardUiIntent.PreviewCardExpectedAnswerChanged(
+                cardId = "card-2",
+                expectedAnswer = "hi",
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(
+            viewModel.uiState.value.learningNotePreview
+                ?.cards
+                ?.first { it.cardId == "card-2" }
+                ?.expectedAnswer
+        ).isEqualTo("hi")
+    }
+
     private class FakeDeckRepository : DeckRepository {
         private val deck = Deck(
             id = "deck-1",

@@ -14,6 +14,7 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
+import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.core.mvi.MviViewModel
@@ -147,6 +148,30 @@ class NewCardViewModel(
                     canSavePreview = false,
                 )
             }
+            is NewCardUiIntent.PreviewFieldChanged -> updatePreview { note ->
+                note.withEditedField(
+                    field = intent.field,
+                    value = intent.value,
+                )
+            }
+            is NewCardUiIntent.PreviewCardPromptChanged -> updatePreview { note ->
+                note.copy(
+                    cards = note.cards.map { card ->
+                        if (card.cardId == intent.cardId) card.copy(prompt = intent.prompt) else card
+                    }
+                )
+            }
+            is NewCardUiIntent.PreviewCardExpectedAnswerChanged -> updatePreview { note ->
+                note.copy(
+                    cards = note.cards.map { card ->
+                        if (card.cardId == intent.cardId) {
+                            card.copy(expectedAnswer = intent.expectedAnswer)
+                        } else {
+                            card
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -205,6 +230,21 @@ class NewCardViewModel(
                     canSavePreview = false,
                 )
             }
+        }
+    }
+
+    private fun updatePreview(transform: (GeneratedLearningNote) -> GeneratedLearningNote) {
+        val currentPreview = mutableState.value.learningNotePreview ?: return
+        val updatedPreview = transform(currentPreview)
+        val previewValidation = validateGeneratedLearningNoteUseCase(updatedPreview)
+        mutableState.update {
+            it.copy(
+                learningNotePreview = updatedPreview,
+                error = null,
+                previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
+                previewWarnings = previewValidation.warnings.map { issue -> issue.message } + updatedPreview.warnings,
+                canSavePreview = previewValidation.isValid,
+            )
         }
     }
 
@@ -333,5 +373,21 @@ class NewCardViewModel(
             in socialDomainCategoryIds -> LearningDomain.Social
             else -> LearningDomain.DailyLife
         }
+    }
+}
+
+private fun GeneratedLearningNote.withEditedField(
+    field: EditableLearningNoteField,
+    value: String,
+): GeneratedLearningNote {
+    return when (field) {
+        EditableLearningNoteField.IntendedMeaningEs -> copy(intendedMeaningEs = value)
+        EditableLearningNoteField.SimpleDefinitionEn -> copy(simpleDefinitionEn = value)
+        EditableLearningNoteField.WhyUseful -> copy(whyUseful = value)
+        EditableLearningNoteField.ExampleSentence -> copy(exampleSentence = value)
+        EditableLearningNoteField.ExampleTranslation -> copy(exampleTranslation = value)
+        EditableLearningNoteField.UsagePattern -> copy(usagePattern = value)
+        EditableLearningNoteField.CommonMistake -> copy(commonMistake = value)
+        EditableLearningNoteField.ClozeSentence -> copy(clozeSentence = value)
     }
 }

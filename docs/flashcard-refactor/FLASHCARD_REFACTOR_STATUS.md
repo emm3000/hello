@@ -32,6 +32,8 @@ Current reality:
 - study mode now expands one learning note into multiple derived review items
 - study mode now supports typed answers for exact and flexible-text cards
 - study mode now renders better guidance and support text by derived card type
+- study mode now restricts grading options after typed-answer evaluation
+- cloze and form cards now have dedicated support blocks aligned with core UI components
 - the old `FlashcardGenerated` generation path is being retired
 
 ## Pre-Development Operating Rule
@@ -162,19 +164,25 @@ Planned focus:
 
 Status:
 
-- `not started`
+- `started`
 
-Planned focus:
+Implemented:
 
-- editable preview
-- per-card preview
+- learning-note preview now supports inline editing of key note fields before save
+- derived card prompt and expected answer can now be edited from the preview
+- preview validation is recomputed immediately after inline edits
+
+Pending focus:
+
+- richer per-card preview controls beyond prompt/answer editing
 - regenerate-one-field flows
+- regenerate-one-card flows
 
 ## Phase 6
 
 Status:
 
-- `started and materially advanced`
+- `substantially complete`
 
 Implemented:
 
@@ -184,12 +192,13 @@ Implemented:
 - typed-answer flow exists for `Exact` and `FlexibleText` cards
 - answer reveal is now gated until typed-answer checking completes
 - front and back study UI now adapt support copy based on `StudyCardType`
+- typed-answer grading is now constrained to avoid obviously incoherent outcomes
+- cloze and form cards now render dedicated support blocks using shared UI components
 
 Pending:
 
-- better grading policy after typed-answer evaluation
-- stronger visual treatment for cloze/form cards beyond text-level differentiation
 - focused UI tests for derived-card study flows
+- decide whether sibling derived cards should stay adjacent or be buried/interleaved later
 
 ## Phase 7
 
@@ -210,6 +219,23 @@ Pending:
 
 - validate end-to-end sync on multiple physical devices after the local schema reshape
 - decide whether some rich JSON fields remain embedded or get extracted later
+
+## Recommended Next Step
+
+The highest-value next step is now Phase 5, not more schema work and not more basic study-mode restructuring.
+
+Why:
+
+- Phase 6 is already strong enough to support the new retrieval model
+- Phase 7 is mostly blocked on real-device validation rather than more code churn
+- the biggest product gap is still the inability to fix a mostly-good generated note before saving
+
+Recommended task sequence:
+
+1. replace the read-only learning-note preview with editable fields
+2. support inline validation/warnings while editing
+3. allow regenerate-one-field flows for example sentence, cloze sentence, or a specific derived card
+4. only after that, run physical-device sync validation for the richer payload end-to-end
 
 ## Phase 8
 

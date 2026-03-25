@@ -429,7 +429,10 @@ private fun ResultPreviewSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            LearningNotePreview(learningNotePreview)
+            LearningNotePreview(
+                note = learningNotePreview,
+                onIntent = onIntent,
+            )
 
             HButton(
                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
@@ -464,7 +467,10 @@ private fun ResultPreviewSection(
 }
 
 @Composable
-private fun LearningNotePreview(note: GeneratedLearningNote) {
+private fun LearningNotePreview(
+    note: GeneratedLearningNote,
+    onIntent: (NewCardUiIntent) -> Unit,
+) {
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -499,31 +505,97 @@ private fun LearningNotePreview(note: GeneratedLearningNote) {
 
             HSeparator()
 
-            InfoRow(
+            EditablePreviewField(
                 label = stringResource(R.string.translation_label),
-                value = note.intendedMeaningEs
+                value = note.intendedMeaningEs,
+                placeholder = "Significado intencional en espanol",
+                onValueChange = {
+                    onIntent(
+                        NewCardUiIntent.PreviewFieldChanged(
+                            field = EditableLearningNoteField.IntendedMeaningEs,
+                            value = it,
+                        )
+                    )
+                },
             )
-            InfoRow(
+            EditablePreviewField(
                 label = stringResource(R.string.meaning_label),
-                value = note.simpleDefinitionEn
+                value = note.simpleDefinitionEn,
+                placeholder = "Define el significado en ingles simple",
+                minLines = 2,
+                onValueChange = {
+                    onIntent(
+                        NewCardUiIntent.PreviewFieldChanged(
+                            field = EditableLearningNoteField.SimpleDefinitionEn,
+                            value = it,
+                        )
+                    )
+                },
             )
-            InfoRow(
+            EditablePreviewField(
                 label = stringResource(R.string.why_useful_label),
-                value = note.whyUseful
+                value = note.whyUseful,
+                placeholder = "Por que vale la pena aprender esta nota",
+                minLines = 2,
+                onValueChange = {
+                    onIntent(
+                        NewCardUiIntent.PreviewFieldChanged(
+                            field = EditableLearningNoteField.WhyUseful,
+                            value = it,
+                        )
+                    )
+                },
             )
 
             if (note.usagePattern.isNotBlank()) {
                 HSeparator()
-                InfoRow(
+                EditablePreviewField(
                     label = stringResource(R.string.usage_pattern_label),
-                    value = note.usagePattern
+                    value = note.usagePattern,
+                    placeholder = "Patron de uso",
+                    minLines = 2,
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.UsagePattern,
+                                value = it,
+                            )
+                        )
+                    },
                 )
             }
 
             if (note.commonMistake.isNotBlank()) {
-                InfoRow(
+                EditablePreviewField(
                     label = stringResource(R.string.common_mistake_label),
-                    value = note.commonMistake
+                    value = note.commonMistake,
+                    placeholder = "Error comun a evitar",
+                    minLines = 2,
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.CommonMistake,
+                                value = it,
+                            )
+                        )
+                    },
+                )
+            }
+
+            if (note.clozeSentence.isNotBlank()) {
+                EditablePreviewField(
+                    label = "Cloze",
+                    value = note.clozeSentence,
+                    placeholder = "Frase cloze",
+                    minLines = 2,
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.ClozeSentence,
+                                value = it,
+                            )
+                        )
+                    },
                 )
             }
 
@@ -545,14 +617,33 @@ private fun LearningNotePreview(note: GeneratedLearningNote) {
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            ExampleItem(
-                index = 1,
-                example = Example(
-                    exampleId = "learning-note-example",
-                    text = note.exampleSentence,
-                    translation = note.exampleTranslation,
-                    type = "main",
-                )
+            EditablePreviewField(
+                label = "Example sentence",
+                value = note.exampleSentence,
+                placeholder = "Ejemplo principal",
+                minLines = 2,
+                onValueChange = {
+                    onIntent(
+                        NewCardUiIntent.PreviewFieldChanged(
+                            field = EditableLearningNoteField.ExampleSentence,
+                            value = it,
+                        )
+                    )
+                },
+            )
+            EditablePreviewField(
+                label = "Example translation",
+                value = note.exampleTranslation,
+                placeholder = "Traduccion del ejemplo",
+                minLines = 2,
+                onValueChange = {
+                    onIntent(
+                        NewCardUiIntent.PreviewFieldChanged(
+                            field = EditableLearningNoteField.ExampleTranslation,
+                            value = it,
+                        )
+                    )
+                },
             )
 
             if (note.cards.isNotEmpty()) {
@@ -566,7 +657,25 @@ private fun LearningNotePreview(note: GeneratedLearningNote) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     note.cards.forEach { card ->
                         key(card.cardId) {
-                            GeneratedStudyCardItem(card)
+                            GeneratedStudyCardItem(
+                                card = card,
+                                onPromptChanged = {
+                                    onIntent(
+                                        NewCardUiIntent.PreviewCardPromptChanged(
+                                            cardId = card.cardId,
+                                            prompt = it,
+                                        )
+                                    )
+                                },
+                                onExpectedAnswerChanged = {
+                                    onIntent(
+                                        NewCardUiIntent.PreviewCardExpectedAnswerChanged(
+                                            cardId = card.cardId,
+                                            expectedAnswer = it,
+                                        )
+                                    )
+                                },
+                            )
                         }
                     }
                 }
@@ -618,7 +727,11 @@ private fun LearningNotePreview(note: GeneratedLearningNote) {
 }
 
 @Composable
-private fun GeneratedStudyCardItem(card: GeneratedStudyCard) {
+private fun GeneratedStudyCardItem(
+    card: GeneratedStudyCard,
+    onPromptChanged: (String) -> Unit,
+    onExpectedAnswerChanged: (String) -> Unit,
+) {
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -633,16 +746,44 @@ private fun GeneratedStudyCardItem(card: GeneratedStudyCard) {
                 HBadge(label = card.cardType.name, variant = BadgeVariant.Secondary)
                 HBadge(label = card.evaluationMode.name, variant = BadgeVariant.Outline)
             }
-            InfoRow(label = stringResource(R.string.prompt_label), value = card.prompt)
-            InfoRow(
+            EditablePreviewField(
+                label = stringResource(R.string.prompt_label),
+                value = card.prompt,
+                placeholder = "Prompt de la card",
+                minLines = 2,
+                onValueChange = onPromptChanged,
+            )
+            EditablePreviewField(
                 label = stringResource(R.string.expected_answer_label),
-                value = card.expectedAnswer
+                value = card.expectedAnswer,
+                placeholder = "Respuesta esperada",
+                minLines = 2,
+                onValueChange = onExpectedAnswerChanged,
             )
             if (card.hint.isNotBlank()) {
                 InfoRow(label = stringResource(R.string.hint_label), value = card.hint)
             }
         }
     }
+}
+
+@Composable
+private fun EditablePreviewField(
+    label: String,
+    value: String,
+    placeholder: String,
+    minLines: Int = 1,
+    onValueChange: (String) -> Unit,
+) {
+    HInput(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        placeholder = placeholder,
+        singleLine = minLines == 1,
+        minLines = minLines,
+        maxLines = if (minLines == 1) 1 else 4,
+    )
 }
 
 // -- Voice Components ---------------------------------------------------------

@@ -4,6 +4,17 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
 
+enum class EditableLearningNoteField {
+    IntendedMeaningEs,
+    SimpleDefinitionEn,
+    WhyUseful,
+    ExampleSentence,
+    ExampleTranslation,
+    UsagePattern,
+    CommonMistake,
+    ClozeSentence,
+}
+
 sealed interface NewCardUiIntent {
 
     data class WordChanged(val word: String) : NewCardUiIntent
@@ -21,6 +32,21 @@ sealed interface NewCardUiIntent {
     data class DifficultySelected(val difficulty: String) : NewCardUiIntent
 
     data class TypeViewSelected(val typeView: TypeView) : NewCardUiIntent
+
+    data class PreviewFieldChanged(
+        val field: EditableLearningNoteField,
+        val value: String,
+    ) : NewCardUiIntent
+
+    data class PreviewCardPromptChanged(
+        val cardId: String,
+        val prompt: String,
+    ) : NewCardUiIntent
+
+    data class PreviewCardExpectedAnswerChanged(
+        val cardId: String,
+        val expectedAnswer: String,
+    ) : NewCardUiIntent
 
     data object GenerateClicked : NewCardUiIntent
 
