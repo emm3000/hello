@@ -60,6 +60,8 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedLearningNoteIssue
+import com.emm.domain.flashcard.GeneratedNoteQualityCheck
+import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
@@ -87,6 +89,12 @@ private const val SKELETON_SUBTITLE_WIDTH = 0.35f
 private const val SKELETON_DETAIL_WIDTH = 0.4f
 private const val RESULT_FADE_IN_DURATION_MS = 300
 private const val MAX_PREVIEW_COLLOCATIONS = 3
+
+private data class PreviewAlertModel(
+    val title: String,
+    val description: String,
+    val variant: AlertVariant,
+)
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
@@ -462,7 +470,11 @@ private fun ResultPreviewSection(
             if (state.previewWarnings.isNotEmpty()) {
                 HAlert(
                     title = stringResource(R.string.preview_warnings_title),
-                    description = state.previewWarnings.joinToString(separator = "\n"),
+                    description = if (state.previewWarningIssues.isNotEmpty()) {
+                        "Revisa los warnings resaltados dentro del preview antes de guardar."
+                    } else {
+                        state.previewWarnings.joinToString(separator = "\n")
+                    },
                     variant = AlertVariant.Warning,
                 )
             }
@@ -517,6 +529,7 @@ private fun LearningNotePreview(
                 value = note.intendedMeaningEs,
                 placeholder = "Significado intencional en espanol",
                 errorMessage = validationIssues.noteFieldMessage("intendedMeaningEs"),
+                supportingText = warningIssues.noteFieldMessage("intendedMeaningEs"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -532,6 +545,7 @@ private fun LearningNotePreview(
                 placeholder = "Define el significado en ingles simple",
                 minLines = 2,
                 errorMessage = validationIssues.noteFieldMessage("simpleDefinitionEn"),
+                supportingText = warningIssues.noteFieldMessage("simpleDefinitionEn"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -541,12 +555,14 @@ private fun LearningNotePreview(
                     )
                 },
             )
+            PreviewAlertGroup(alerts = note.meaningAlerts())
             EditablePreviewField(
                 label = stringResource(R.string.why_useful_label),
                 value = note.whyUseful,
                 placeholder = "Por que vale la pena aprender esta nota",
                 minLines = 2,
                 errorMessage = validationIssues.noteFieldMessage("whyUseful"),
+                supportingText = warningIssues.noteFieldMessage("whyUseful"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -571,6 +587,7 @@ private fun LearningNotePreview(
                     placeholder = "Patron de uso",
                     minLines = 2,
                     errorMessage = validationIssues.noteFieldMessage("usagePattern"),
+                    supportingText = warningIssues.noteFieldMessage("usagePattern"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -594,6 +611,7 @@ private fun LearningNotePreview(
                     value = note.commonMistake,
                     placeholder = "Error comun a evitar",
                     minLines = 2,
+                    supportingText = warningIssues.noteFieldMessage("commonMistake"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -618,6 +636,7 @@ private fun LearningNotePreview(
                     placeholder = "Frase cloze",
                     minLines = 2,
                     errorMessage = validationIssues.noteFieldMessage("clozeSentence"),
+                    supportingText = warningIssues.noteFieldMessage("clozeSentence"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -662,6 +681,7 @@ private fun LearningNotePreview(
                 placeholder = "Ejemplo principal",
                 minLines = 2,
                 errorMessage = validationIssues.noteFieldMessage("exampleSentence"),
+                supportingText = warningIssues.noteFieldMessage("exampleSentence"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -677,6 +697,7 @@ private fun LearningNotePreview(
                 placeholder = "Traduccion del ejemplo",
                 minLines = 2,
                 errorMessage = validationIssues.noteFieldMessage("exampleTranslation"),
+                supportingText = warningIssues.noteFieldMessage("exampleTranslation"),
                 onValueChange = {
                     onIntent(
                         NewCardUiIntent.PreviewFieldChanged(
@@ -686,6 +707,7 @@ private fun LearningNotePreview(
                     )
                 },
             )
+            PreviewAlertGroup(alerts = note.exampleAlerts())
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 HButton(
                     text = "Regenerar ejemplo",
@@ -704,6 +726,7 @@ private fun LearningNotePreview(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
+                PreviewAlertGroup(alerts = note.cardSectionAlerts())
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     note.cards.forEach { card ->
                         key(card.cardId) {
@@ -840,6 +863,20 @@ private fun GeneratedStudyCardItem(
 }
 
 @Composable
+private fun PreviewAlertGroup(alerts: List<PreviewAlertModel>) {
+    if (alerts.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        alerts.forEach { alert ->
+            HAlert(
+                title = alert.title,
+                description = alert.description,
+                variant = alert.variant,
+            )
+        }
+    }
+}
+
+@Composable
 private fun EditablePreviewField(
     label: String,
     value: String,
@@ -897,6 +934,54 @@ private fun List<GeneratedLearningNoteIssue>.cardWarning(cardId: String): String
     return firstOrNull {
         it.cardId == cardId && it.code == com.emm.domain.flashcard.GeneratedLearningNoteIssueCode.InactiveCard
     }?.message
+}
+
+private fun GeneratedLearningNote.meaningAlerts(): List<PreviewAlertModel> {
+    return qualityChecks.failedAlertsFor(
+        GeneratedNoteQualityCode.SingleMeaning,
+        GeneratedNoteQualityCode.RequiredFieldsPresent,
+    )
+}
+
+private fun GeneratedLearningNote.exampleAlerts(): List<PreviewAlertModel> {
+    return qualityChecks.failedAlertsFor(
+        GeneratedNoteQualityCode.NaturalExample,
+        GeneratedNoteQualityCode.ExampleSupportsMeaning,
+    )
+}
+
+private fun GeneratedLearningNote.cardSectionAlerts(): List<PreviewAlertModel> {
+    return qualityChecks.failedAlertsFor(
+        GeneratedNoteQualityCode.ClearCardFocus,
+        GeneratedNoteQualityCode.NonAmbiguousAnswers,
+        GeneratedNoteQualityCode.NoteCardAlignment,
+    )
+}
+
+private fun List<GeneratedNoteQualityCheck>.failedAlertsFor(
+    vararg codes: GeneratedNoteQualityCode,
+): List<PreviewAlertModel> {
+    val expectedCodes = codes.toSet()
+    return filter { !it.passed && it.code in expectedCodes }
+        .map { check ->
+            PreviewAlertModel(
+                title = check.code.toAlertTitle(),
+                description = check.message,
+                variant = AlertVariant.Warning,
+            )
+        }
+}
+
+private fun GeneratedNoteQualityCode.toAlertTitle(): String {
+    return when (this) {
+        GeneratedNoteQualityCode.SingleMeaning -> "Revisa el significado"
+        GeneratedNoteQualityCode.NaturalExample -> "Revisa el ejemplo"
+        GeneratedNoteQualityCode.ExampleSupportsMeaning -> "Ajusta ejemplo y significado"
+        GeneratedNoteQualityCode.NonAmbiguousAnswers -> "Aclara la respuesta esperada"
+        GeneratedNoteQualityCode.RequiredFieldsPresent -> "Completa la nota"
+        GeneratedNoteQualityCode.ClearCardFocus -> "Enfoca mejor la card"
+        GeneratedNoteQualityCode.NoteCardAlignment -> "Alinea la card con la nota"
+    }
 }
 
 // -- Voice Components ---------------------------------------------------------

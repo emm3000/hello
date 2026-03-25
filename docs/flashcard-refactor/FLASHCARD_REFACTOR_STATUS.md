@@ -173,11 +173,12 @@ Implemented:
 - preview validation is recomputed immediately after inline edits
 - example, cloze, and individual derived cards now support targeted regeneration from the preview
 - rich note fields such as `whyUseful`, `usagePattern`, and `commonMistake` now support targeted regeneration from the preview
+- quality warnings are now surfaced closer to the affected meaning, example, or card sections in the preview instead of only as a global summary
 
 Pending focus:
 
 - richer per-card preview controls beyond prompt/answer editing
-- more localized quality guidance and actions around warnings, not just validation errors
+- decide whether some quality warnings should trigger direct regenerate actions from the exact affected section
 
 ## Phase 6
 
