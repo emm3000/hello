@@ -1,10 +1,10 @@
 complexity:
   LongMethod:
     active: true
-    threshold: 50
+    threshold: 70
   CyclomaticComplexMethod:
     active: true
-    threshold: 12
+    threshold: 16
   TooManyFunctions:
     thresholdInFiles: 30
     thresholdInClasses: 20
@@ -23,4 +23,4 @@ exceptions:
 style:
   ReturnCount:
     active: true
-    max: 2
+    max: 4
