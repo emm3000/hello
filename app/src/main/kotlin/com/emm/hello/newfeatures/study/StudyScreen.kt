@@ -59,10 +59,13 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
+import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
+import com.emm.hello.core.ui.HBadgeGroup
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HProgressBar
@@ -324,6 +327,12 @@ private fun FlashcardFrontContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(24.dp),
         ) {
+            CardTypePromptBlock(
+                card = card,
+                studyCard = studyCard,
+                prompt = prompt,
+            )
+            Spacer(Modifier.height(12.dp))
             Text(
                 text = prompt,
                 style = MaterialTheme.typography.headlineMedium,
@@ -467,6 +476,13 @@ private fun FlashcardBackContent(
                     textAlign = TextAlign.Center,
                 )
             }
+
+            studyCard?.let {
+                CardTypeAnswerSupport(
+                    card = card,
+                    studyCard = it,
+                )
+            }
         }
 
         Spacer(Modifier.height(20.dp))
@@ -479,6 +495,104 @@ private fun FlashcardBackContent(
             variant = ButtonVariant.Ghost,
             leadingIcon = Icons.AutoMirrored.Filled.VolumeUp,
         )
+    }
+}
+
+@Composable
+private fun CardTypePromptBlock(
+    card: Flashcard?,
+    studyCard: GeneratedStudyCard?,
+    prompt: String,
+) {
+    when (studyCard?.cardType) {
+        StudyCardType.Cloze -> {
+            HAlert(
+                title = "Completa el hueco",
+                description = prompt,
+                variant = AlertVariant.Warning,
+            )
+        }
+
+        StudyCardType.Form -> {
+            val formHints = buildList {
+                addAll(card?.irregularForms.orEmpty())
+                if (card?.usagePattern?.isNotBlank() == true) {
+                    add(card.usagePattern)
+                }
+            }.distinct()
+
+            if (formHints.isNotEmpty()) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Pistas de forma",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    HBadgeGroup {
+                        formHints.take(2).forEach { hint ->
+                            HBadge(
+                                label = hint,
+                                variant = BadgeVariant.Secondary,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        else -> Unit
+    }
+}
+
+@Composable
+private fun CardTypeAnswerSupport(
+    card: Flashcard?,
+    studyCard: GeneratedStudyCard,
+) {
+    when (studyCard.cardType) {
+        StudyCardType.Cloze -> {
+            val context = card?.clozeSentence
+                ?.takeIf(String::isNotBlank)
+                ?: card?.sourceContext.orEmpty()
+            if (context.isNotBlank()) {
+                Spacer(Modifier.height(16.dp))
+                HAlert(
+                    title = "Contexto de apoyo",
+                    description = context,
+                    variant = AlertVariant.Default,
+                )
+            }
+        }
+
+        StudyCardType.Form -> {
+            val forms = card?.irregularForms.orEmpty()
+            if (forms.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Formas relacionadas",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    HBadgeGroup {
+                        forms.take(3).forEach { form ->
+                            HBadge(
+                                label = form,
+                                variant = BadgeVariant.Outline,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        else -> Unit
     }
 }
 
