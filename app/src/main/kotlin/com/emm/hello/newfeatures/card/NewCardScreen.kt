@@ -258,8 +258,8 @@ fun NewCardScreen(
             if (state.error != null) {
                 item {
                     HAlert(
-                        title = stringResource(R.string.generate_error_title),
-                        description = state.error,
+                        title = state.error.title,
+                        description = state.error.message,
                         variant = AlertVariant.Destructive,
                     )
                 }
@@ -437,12 +437,28 @@ private fun ResultPreviewSection(
                     keyboardController?.hide()
                     onIntent(NewCardUiIntent.SaveClicked)
                 },
-                enabled = !state.isLoading,
+                enabled = !state.isLoading && state.canSavePreview,
                 isLoading = state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
             )
+
+            if (state.previewValidationErrors.isNotEmpty()) {
+                HAlert(
+                    title = stringResource(R.string.preview_not_saveable_title),
+                    description = state.previewValidationErrors.joinToString(separator = "\n"),
+                    variant = AlertVariant.Destructive,
+                )
+            }
+
+            if (state.previewWarnings.isNotEmpty()) {
+                HAlert(
+                    title = stringResource(R.string.preview_warnings_title),
+                    description = state.previewWarnings.joinToString(separator = "\n"),
+                    variant = AlertVariant.Warning,
+                )
+            }
         }
     }
 }
@@ -552,6 +568,48 @@ private fun LearningNotePreview(note: GeneratedLearningNote) {
                         key(card.cardId) {
                             GeneratedStudyCardItem(card)
                         }
+                    }
+                }
+            }
+
+            if (note.qualityChecks.isNotEmpty()) {
+                HSeparator()
+                Text(
+                    text = stringResource(R.string.quality_checks_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    note.qualityChecks.forEach { check ->
+                        HAlert(
+                            title = if (check.passed) {
+                                stringResource(R.string.quality_check_passed, check.code.name)
+                            } else {
+                                stringResource(R.string.quality_check_failed, check.code.name)
+                            },
+                            description = check.message,
+                            variant = if (check.passed) AlertVariant.Success else AlertVariant.Destructive,
+                        )
+                    }
+                }
+            }
+
+            if (note.warnings.isNotEmpty()) {
+                HSeparator()
+                Text(
+                    text = stringResource(R.string.warnings_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    note.warnings.forEach { warning ->
+                        HAlert(
+                            title = stringResource(R.string.preview_warning_item_title),
+                            description = warning,
+                            variant = AlertVariant.Warning,
+                        )
                     }
                 }
             }

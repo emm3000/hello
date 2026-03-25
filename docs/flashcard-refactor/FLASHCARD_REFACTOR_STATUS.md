@@ -248,10 +248,12 @@ Current situation:
 - preview can render `GeneratedLearningNote` and derived cards
 - word or phrase save now persists directly from `GeneratedLearningNote`
 - category flow also uses the new generation contract through mapped communicative intent
+- UI now distinguishes invalid input, invalid AI output, and save failures
+- save is now gated by explicit `canSavePreview` state instead of implicit assumptions
+- preview shows quality checks and warnings before save
 
 Pending:
 
-- render validation errors and warnings more explicitly
 - support editing the learning note preview before save
 - typed answer / richer study interactions for production cards
 

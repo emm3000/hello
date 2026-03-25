@@ -112,6 +112,9 @@
     <string name="quality_checks_label">Validaciones de calidad</string>
     <string name="quality_check_passed">Cumple: %1$s</string>
     <string name="quality_check_failed">No cumple: %1$s</string>
+    <string name="preview_not_saveable_title">Preview no guardable</string>
+    <string name="preview_warnings_title">Advertencias del preview</string>
+    <string name="preview_warning_item_title">Advertencia</string>
     <string name="prompt_label">Prompt</string>
     <string name="expected_answer_label">Respuesta esperada</string>
     <string name="hint_label">Pista</string>

@@ -14,6 +14,8 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StaticCategories
 import com.emm.domain.flashcard.TypeView
+import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
+import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -48,6 +50,8 @@ class NewCardViewModel(
     private val generateLearningNotePreviewUseCase: GenerateLearningNotePreviewUseCase,
     private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
     private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
+    private val validateInputUseCase: ValidateFlashcardGenerationInputUseCase,
+    private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
 ) : MviViewModel<NewCardUiState, NewCardUiIntent, NewCardUiEffect>(
     initialState = NewCardUiState(),
 ) {
@@ -81,6 +85,9 @@ class NewCardViewModel(
                     word = intent.word,
                     error = null,
                     learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             is NewCardUiIntent.IntendedMeaningChanged -> mutableState.update {
@@ -88,6 +95,9 @@ class NewCardViewModel(
                     intendedMeaningEs = intent.intendedMeaningEs,
                     error = null,
                     learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             is NewCardUiIntent.ContextSentenceChanged -> mutableState.update {
@@ -95,6 +105,9 @@ class NewCardViewModel(
                     contextSentence = intent.contextSentence,
                     error = null,
                     learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
@@ -109,6 +122,9 @@ class NewCardViewModel(
                     category = intent.category,
                     error = null,
                     learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             is NewCardUiIntent.DifficultySelected -> mutableState.update {
@@ -116,12 +132,19 @@ class NewCardViewModel(
                     difficulty = intent.difficulty,
                     error = null,
                     learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             is NewCardUiIntent.TypeViewSelected -> mutableState.update {
                 it.copy(
                     typeView = intent.typeView,
                     learningNotePreview = null,
+                    error = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
         }
@@ -129,26 +152,59 @@ class NewCardViewModel(
 
     private fun generateFlashcard() = viewModelScope.launch {
         val current = mutableState.value
+        val inputValidation = validateInputUseCase(current.toGenerationInput())
+        if (!inputValidation.isValid) {
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Entrada inválida",
+                        message = inputValidation.errors.firstOrNull()?.message
+                            ?: "Corrige la entrada antes de generar.",
+                    ),
+                    learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
+                )
+            }
+            return@launch
+        }
         mutableState.update {
             it.copy(
                 isLoading = true,
                 error = null,
                 learningNotePreview = null,
+                previewValidationErrors = emptyList(),
+                previewWarnings = emptyList(),
+                canSavePreview = false,
             )
         }
         runCatching {
             generateLearningNotePreviewUseCase(
-                input = current.toGenerationInput()
+                input = inputValidation.normalizedInput
             )
         }.onSuccess { preview ->
+            val previewValidation = validateGeneratedLearningNoteUseCase(preview)
             mutableState.update {
                 it.copy(
                     learningNotePreview = preview,
+                    previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
+                    previewWarnings = previewValidation.warnings.map { issue -> issue.message } + preview.warnings,
+                    canSavePreview = previewValidation.isValid,
                     isLoading = false,
                 )
             }
         }.onFailure { e ->
-            mutableState.update { it.copy(error = e.message, isLoading = false) }
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Respuesta inválida de IA",
+                        message = e.message ?: "No se pudo generar una learning note válida.",
+                    ),
+                    isLoading = false,
+                    canSavePreview = false,
+                )
+            }
         }
     }
 
@@ -157,6 +213,22 @@ class NewCardViewModel(
         val deckId = current.deckSelected?.id ?: return@launch
         val learningNotePreview = current.learningNotePreview
         if (learningNotePreview == null) return@launch
+        val previewValidation = validateGeneratedLearningNoteUseCase(learningNotePreview)
+        if (!previewValidation.isValid) {
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Preview no guardable",
+                        message = previewValidation.errors.firstOrNull()?.message
+                            ?: "La learning note no cumple las validaciones necesarias.",
+                    ),
+                    previewValidationErrors = previewValidation.errors.map { issue -> issue.message },
+                    previewWarnings = previewValidation.warnings.map { issue -> issue.message } + learningNotePreview.warnings,
+                    canSavePreview = false,
+                )
+            }
+            return@launch
+        }
         mutableState.update { it.copy(isLoading = true, error = null) }
         runCatching {
             createFlashcardUseCase(
@@ -172,11 +244,22 @@ class NewCardViewModel(
                     learningNotePreview = null,
                     isLoading = false,
                     error = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    canSavePreview = false,
                 )
             }
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
         }.onFailure { e ->
-            mutableState.update { it.copy(error = e.message, isLoading = false) }
+            mutableState.update {
+                it.copy(
+                    error = NewCardErrorUi(
+                        title = "Error al guardar",
+                        message = e.message ?: "No se pudo guardar la tarjeta",
+                    ),
+                    isLoading = false,
+                )
+            }
             mutableEffect.send(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
         }
     }

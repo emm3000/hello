@@ -18,6 +18,9 @@ data class NewCardUiState(
     val category: StaticCategories = staticCategories.first(),
     val typeView: TypeView = TypeView.WordOrPhase,
     val difficulty: String = difficult.first(),
-    val error: String? = null,
+    val error: NewCardErrorUi? = null,
     val learningNotePreview: GeneratedLearningNote? = null,
+    val previewValidationErrors: List<String> = emptyList(),
+    val previewWarnings: List<String> = emptyList(),
+    val canSavePreview: Boolean = false,
 )
