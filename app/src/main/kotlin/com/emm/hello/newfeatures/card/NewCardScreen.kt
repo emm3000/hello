@@ -27,12 +27,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -554,6 +556,12 @@ internal fun ResultPreviewSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            ReviewStatusSummary(
+                validationErrors = state.previewValidationErrors,
+                warnings = state.previewWarnings,
+                totalCards = learningNotePreview.cards.size,
+                activeCards = learningNotePreview.cards.count { it.isActive },
+            )
             LearningNotePreview(
                 note = learningNotePreview,
                 validationIssues = state.previewValidationIssues,
@@ -562,6 +570,14 @@ internal fun ResultPreviewSection(
                 onIntent = onIntent,
             )
 
+            if (!state.canSavePreview && state.previewValidationErrors.isNotEmpty()) {
+                SupportingText(
+                    text = stringResource(
+                        R.string.save_blocked_summary,
+                        state.previewValidationErrors.size,
+                    )
+                )
+            }
             HButton(
                 text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
                 onClick = {
@@ -587,11 +603,69 @@ internal fun ResultPreviewSection(
                 HAlert(
                     title = stringResource(R.string.preview_warnings_title),
                     description = if (state.previewWarningIssues.isNotEmpty()) {
-                        "Revisa los warnings resaltados dentro del preview antes de guardar."
+                        stringResource(R.string.preview_warnings_inline_summary)
                     } else {
                         state.previewWarnings.joinToString(separator = "\n")
                     },
                     variant = AlertVariant.Warning,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewStatusSummary(
+    validationErrors: List<String>,
+    warnings: List<String>,
+    totalCards: Int,
+    activeCards: Int,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HBadge(
+                label = stringResource(R.string.review_active_cards_badge, activeCards, totalCards),
+                variant = BadgeVariant.Secondary,
+            )
+            if (validationErrors.isNotEmpty()) {
+                HBadge(
+                    label = stringResource(R.string.review_error_badge, validationErrors.size),
+                    variant = BadgeVariant.Destructive,
+                )
+            }
+            if (warnings.isNotEmpty()) {
+                HBadge(
+                    label = stringResource(R.string.review_warning_badge, warnings.size),
+                    variant = BadgeVariant.Outline,
+                )
+            }
+        }
+
+        when {
+            validationErrors.isNotEmpty() -> {
+                HAlert(
+                    title = stringResource(R.string.review_status_fix_title),
+                    description = validationErrors.first(),
+                    variant = AlertVariant.Destructive,
+                )
+            }
+
+            warnings.isNotEmpty() -> {
+                HAlert(
+                    title = stringResource(R.string.review_status_warning_title),
+                    description = warnings.first(),
+                    variant = AlertVariant.Warning,
+                )
+            }
+
+            else -> {
+                HAlert(
+                    title = stringResource(R.string.review_status_ready_title),
+                    description = stringResource(R.string.review_status_ready_description),
+                    variant = AlertVariant.Success,
                 )
             }
         }
@@ -606,6 +680,17 @@ private fun LearningNotePreview(
     noteRegenerationTarget: PreviewRegenerationTarget?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
+    var selectedCardId by remember(note.noteId) { mutableStateOf<String?>(null) }
+    var showPassedChecks by remember(note.noteId) { mutableStateOf(false) }
+    var noteSectionExpanded by remember(note.noteId) { mutableStateOf(true) }
+    var exampleSectionExpanded by remember(note.noteId) { mutableStateOf(false) }
+    var cardsSectionExpanded by remember(note.noteId) { mutableStateOf(false) }
+    val selectedCard = remember(note.cards, selectedCardId) {
+        note.cards.firstOrNull { it.cardId == selectedCardId }
+    }
+    val failedChecks = remember(note.qualityChecks) { note.qualityChecks.filterNot(GeneratedNoteQualityCheck::passed) }
+    val passedChecks = remember(note.qualityChecks) { note.qualityChecks.filter(GeneratedNoteQualityCheck::passed) }
+
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -616,265 +701,241 @@ private fun LearningNotePreview(
             PreviewOverview(note = note)
 
             HSeparator()
-            PreviewSectionHeader(
+            CollapsiblePreviewSection(
                 step = stringResource(R.string.preview_step_note_badge),
                 title = stringResource(R.string.preview_step_note_title),
                 description = stringResource(R.string.preview_step_note_description),
-            )
-
-            EditablePreviewField(
-                label = stringResource(R.string.translation_label),
-                value = note.intendedMeaningEs,
-                placeholder = "Significado intencional en espanol",
-                errorMessage = validationIssues.noteFieldMessage("intendedMeaningEs"),
-                supportingText = warningIssues.noteFieldMessage("intendedMeaningEs"),
-                onValueChange = {
-                    onIntent(
-                        NewCardUiIntent.PreviewFieldChanged(
-                            field = EditableLearningNoteField.IntendedMeaningEs,
-                            value = it,
-                        )
-                    )
-                },
-            )
-            EditablePreviewField(
-                label = stringResource(R.string.meaning_label),
-                value = note.simpleDefinitionEn,
-                placeholder = "Define el significado en ingles simple",
-                minLines = 2,
-                errorMessage = validationIssues.noteFieldMessage("simpleDefinitionEn"),
-                supportingText = warningIssues.noteFieldMessage("simpleDefinitionEn"),
-                onValueChange = {
-                    onIntent(
-                        NewCardUiIntent.PreviewFieldChanged(
-                            field = EditableLearningNoteField.SimpleDefinitionEn,
-                            value = it,
-                        )
-                    )
-                },
-            )
-            PreviewAlertGroup(alerts = note.meaningAlerts())
-            EditablePreviewField(
-                label = stringResource(R.string.why_useful_label),
-                value = note.whyUseful,
-                placeholder = "Por que vale la pena aprender esta nota",
-                minLines = 2,
-                errorMessage = validationIssues.noteFieldMessage("whyUseful"),
-                supportingText = warningIssues.noteFieldMessage("whyUseful"),
-                onValueChange = {
-                    onIntent(
-                        NewCardUiIntent.PreviewFieldChanged(
-                            field = EditableLearningNoteField.WhyUseful,
-                            value = it,
-                        )
-                    )
-                },
-            )
-            RegenerateFieldButton(
-                text = "Regenerar why useful",
-                field = EditableLearningNoteField.WhyUseful,
-                noteRegenerationTarget = noteRegenerationTarget,
-                onIntent = onIntent,
-            )
-
-            if (note.usagePattern.isNotBlank()) {
-                HSeparator()
+                collapsedSummary = note.noteSectionSummary(),
+                expanded = noteSectionExpanded,
+                onExpandedChange = { noteSectionExpanded = it },
+            ) {
                 EditablePreviewField(
-                    label = stringResource(R.string.usage_pattern_label),
-                    value = note.usagePattern,
-                    placeholder = "Patron de uso",
-                    minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("usagePattern"),
-                    supportingText = warningIssues.noteFieldMessage("usagePattern"),
+                    label = stringResource(R.string.translation_label),
+                    value = note.intendedMeaningEs,
+                    placeholder = "Significado intencional en espanol",
+                    errorMessage = validationIssues.noteFieldMessage("intendedMeaningEs"),
+                    supportingText = warningIssues.noteFieldMessage("intendedMeaningEs"),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
-                                field = EditableLearningNoteField.UsagePattern,
+                                field = EditableLearningNoteField.IntendedMeaningEs,
+                                value = it,
+                            )
+                        )
+                    },
+                )
+                EditablePreviewField(
+                    label = stringResource(R.string.meaning_label),
+                    value = note.simpleDefinitionEn,
+                    placeholder = "Define el significado en ingles simple",
+                    minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("simpleDefinitionEn"),
+                    supportingText = warningIssues.noteFieldMessage("simpleDefinitionEn"),
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.SimpleDefinitionEn,
+                                value = it,
+                            )
+                        )
+                    },
+                )
+                PreviewAlertGroup(alerts = note.meaningAlerts())
+                EditablePreviewField(
+                    label = stringResource(R.string.why_useful_label),
+                    value = note.whyUseful,
+                    placeholder = "Por que vale la pena aprender esta nota",
+                    minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("whyUseful"),
+                    supportingText = warningIssues.noteFieldMessage("whyUseful"),
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.WhyUseful,
                                 value = it,
                             )
                         )
                     },
                 )
                 RegenerateFieldButton(
-                    text = "Regenerar usage pattern",
-                    field = EditableLearningNoteField.UsagePattern,
+                    text = stringResource(R.string.regenerate_why_useful),
+                    field = EditableLearningNoteField.WhyUseful,
                     noteRegenerationTarget = noteRegenerationTarget,
                     onIntent = onIntent,
                 )
-            }
 
-            if (note.commonMistake.isNotBlank()) {
-                EditablePreviewField(
-                    label = stringResource(R.string.common_mistake_label),
-                    value = note.commonMistake,
-                    placeholder = "Error comun a evitar",
-                    minLines = 2,
-                    supportingText = warningIssues.noteFieldMessage("commonMistake"),
-                    onValueChange = {
-                        onIntent(
-                            NewCardUiIntent.PreviewFieldChanged(
-                                field = EditableLearningNoteField.CommonMistake,
-                                value = it,
+                if (note.usagePattern.isNotBlank()) {
+                    HSeparator()
+                    EditablePreviewField(
+                        label = stringResource(R.string.usage_pattern_label),
+                        value = note.usagePattern,
+                        placeholder = "Patron de uso",
+                        minLines = 2,
+                        errorMessage = validationIssues.noteFieldMessage("usagePattern"),
+                        supportingText = warningIssues.noteFieldMessage("usagePattern"),
+                        onValueChange = {
+                            onIntent(
+                                NewCardUiIntent.PreviewFieldChanged(
+                                    field = EditableLearningNoteField.UsagePattern,
+                                    value = it,
+                                )
                             )
-                        )
-                    },
-                )
-                RegenerateFieldButton(
-                    text = "Regenerar common mistake",
-                    field = EditableLearningNoteField.CommonMistake,
-                    noteRegenerationTarget = noteRegenerationTarget,
-                    onIntent = onIntent,
-                )
-            }
-
-            if (note.clozeSentence.isNotBlank()) {
-                EditablePreviewField(
-                    label = "Cloze",
-                    value = note.clozeSentence,
-                    placeholder = "Frase cloze",
-                    minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("clozeSentence"),
-                    supportingText = warningIssues.noteFieldMessage("clozeSentence"),
-                    onValueChange = {
-                        onIntent(
-                            NewCardUiIntent.PreviewFieldChanged(
-                                field = EditableLearningNoteField.ClozeSentence,
-                                value = it,
-                            )
-                        )
-                    },
-                )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    HButton(
-                        text = "Regenerar cloze",
-                        onClick = { onIntent(NewCardUiIntent.RegenerateClozeClicked) },
-                        variant = ButtonVariant.Ghost,
-                        isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
-                        enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
+                        },
+                    )
+                    RegenerateFieldButton(
+                        text = stringResource(R.string.regenerate_usage_pattern),
+                        field = EditableLearningNoteField.UsagePattern,
+                        noteRegenerationTarget = noteRegenerationTarget,
+                        onIntent = onIntent,
                     )
                 }
-            }
 
-            if (note.collocations.isNotEmpty()) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    note.collocations.take(MAX_PREVIEW_COLLOCATIONS).forEach { collocation ->
-                        HBadge(label = collocation, variant = BadgeVariant.Outline)
+                if (note.commonMistake.isNotBlank()) {
+                    EditablePreviewField(
+                        label = stringResource(R.string.common_mistake_label),
+                        value = note.commonMistake,
+                        placeholder = "Error comun a evitar",
+                        minLines = 2,
+                        supportingText = warningIssues.noteFieldMessage("commonMistake"),
+                        onValueChange = {
+                            onIntent(
+                                NewCardUiIntent.PreviewFieldChanged(
+                                    field = EditableLearningNoteField.CommonMistake,
+                                    value = it,
+                                )
+                            )
+                        },
+                    )
+                    RegenerateFieldButton(
+                        text = stringResource(R.string.regenerate_common_mistake),
+                        field = EditableLearningNoteField.CommonMistake,
+                        noteRegenerationTarget = noteRegenerationTarget,
+                        onIntent = onIntent,
+                    )
+                }
+
+                if (note.clozeSentence.isNotBlank()) {
+                    EditablePreviewField(
+                        label = "Cloze",
+                        value = note.clozeSentence,
+                        placeholder = "Frase cloze",
+                        minLines = 2,
+                        errorMessage = validationIssues.noteFieldMessage("clozeSentence"),
+                        supportingText = warningIssues.noteFieldMessage("clozeSentence"),
+                        onValueChange = {
+                            onIntent(
+                                NewCardUiIntent.PreviewFieldChanged(
+                                    field = EditableLearningNoteField.ClozeSentence,
+                                    value = it,
+                                )
+                            )
+                        },
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        HButton(
+                            text = "Regenerar cloze",
+                            onClick = { onIntent(NewCardUiIntent.RegenerateClozeClicked) },
+                            variant = ButtonVariant.Ghost,
+                            isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
+                            enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Cloze,
+                        )
                     }
                 }
-            }
 
-            HSeparator()
-            PreviewSectionHeader(
-                step = stringResource(R.string.preview_step_example_badge),
-                title = stringResource(R.string.preview_step_example_title),
-                description = stringResource(R.string.preview_step_example_description),
-            )
-            EditablePreviewField(
-                label = "Example sentence",
-                value = note.exampleSentence,
-                placeholder = "Ejemplo principal",
-                minLines = 2,
-                errorMessage = validationIssues.noteFieldMessage("exampleSentence"),
-                supportingText = warningIssues.noteFieldMessage("exampleSentence"),
-                onValueChange = {
-                    onIntent(
-                        NewCardUiIntent.PreviewFieldChanged(
-                            field = EditableLearningNoteField.ExampleSentence,
-                            value = it,
-                        )
-                    )
-                },
-            )
-            EditablePreviewField(
-                label = "Example translation",
-                value = note.exampleTranslation,
-                placeholder = "Traduccion del ejemplo",
-                minLines = 2,
-                errorMessage = validationIssues.noteFieldMessage("exampleTranslation"),
-                supportingText = warningIssues.noteFieldMessage("exampleTranslation"),
-                onValueChange = {
-                    onIntent(
-                        NewCardUiIntent.PreviewFieldChanged(
-                            field = EditableLearningNoteField.ExampleTranslation,
-                            value = it,
-                        )
-                    )
-                },
-            )
-            PreviewAlertGroup(alerts = note.exampleAlerts())
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                HButton(
-                    text = "Regenerar ejemplo",
-                    onClick = { onIntent(NewCardUiIntent.RegenerateExampleClicked) },
-                    variant = ButtonVariant.Ghost,
-                    isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Example,
-                    enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Example,
-                )
-            }
-
-            if (note.cards.isNotEmpty()) {
-                HSeparator()
-                PreviewSectionHeader(
-                    step = stringResource(R.string.preview_step_cards_badge),
-                    title = stringResource(R.string.preview_step_cards_title),
-                    description = stringResource(R.string.preview_step_cards_description),
-                )
-                PreviewAlertGroup(alerts = note.cardSectionAlerts())
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    note.cards.forEachIndexed { index, card ->
-                        key(card.cardId) {
-                            GeneratedStudyCardItem(
-                                index = index,
-                                total = note.cards.size,
-                                card = card,
-                                validationIssues = validationIssues,
-                                warningIssues = warningIssues,
-                                regenerationTarget = noteRegenerationTarget,
-                                onPromptChanged = {
-                                    onIntent(
-                                        NewCardUiIntent.PreviewCardPromptChanged(
-                                            cardId = card.cardId,
-                                            prompt = it,
-                                        )
-                                    )
-                                },
-                                onExpectedAnswerChanged = {
-                                    onIntent(
-                                        NewCardUiIntent.PreviewCardExpectedAnswerChanged(
-                                            cardId = card.cardId,
-                                            expectedAnswer = it,
-                                        )
-                                    )
-                                },
-                                onHintChanged = {
-                                    onIntent(
-                                        NewCardUiIntent.PreviewCardHintChanged(
-                                            cardId = card.cardId,
-                                            hint = it,
-                                        )
-                                    )
-                                },
-                                onActiveChanged = {
-                                    onIntent(
-                                        NewCardUiIntent.PreviewCardActiveChanged(
-                                            cardId = card.cardId,
-                                            isActive = it,
-                                        )
-                                    )
-                                },
-                                onRegenerate = {
-                                    onIntent(NewCardUiIntent.RegenerateCardClicked(card.cardId))
-                                },
-                            )
+                if (note.collocations.isNotEmpty()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        note.collocations.take(MAX_PREVIEW_COLLOCATIONS).forEach { collocation ->
+                            HBadge(label = collocation, variant = BadgeVariant.Outline)
                         }
                     }
                 }
             }
 
-            if (note.qualityChecks.isNotEmpty()) {
+            HSeparator()
+            CollapsiblePreviewSection(
+                step = stringResource(R.string.preview_step_example_badge),
+                title = stringResource(R.string.preview_step_example_title),
+                description = stringResource(R.string.preview_step_example_description),
+                collapsedSummary = note.exampleSectionSummary(),
+                expanded = exampleSectionExpanded,
+                onExpandedChange = { exampleSectionExpanded = it },
+            ) {
+                EditablePreviewField(
+                    label = stringResource(R.string.example_sentence_label),
+                    value = note.exampleSentence,
+                    placeholder = "Ejemplo principal",
+                    minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("exampleSentence"),
+                    supportingText = warningIssues.noteFieldMessage("exampleSentence"),
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.ExampleSentence,
+                                value = it,
+                            )
+                        )
+                    },
+                )
+                EditablePreviewField(
+                    label = stringResource(R.string.example_translation_label),
+                    value = note.exampleTranslation,
+                    placeholder = "Traduccion del ejemplo",
+                    minLines = 2,
+                    errorMessage = validationIssues.noteFieldMessage("exampleTranslation"),
+                    supportingText = warningIssues.noteFieldMessage("exampleTranslation"),
+                    onValueChange = {
+                        onIntent(
+                            NewCardUiIntent.PreviewFieldChanged(
+                                field = EditableLearningNoteField.ExampleTranslation,
+                                value = it,
+                            )
+                        )
+                    },
+                )
+                PreviewAlertGroup(alerts = note.exampleAlerts())
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    HButton(
+                        text = "Regenerar ejemplo",
+                        onClick = { onIntent(NewCardUiIntent.RegenerateExampleClicked) },
+                        variant = ButtonVariant.Ghost,
+                        isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Example,
+                        enabled = noteRegenerationTarget == null || noteRegenerationTarget == PreviewRegenerationTarget.Example,
+                    )
+                }
+            }
+
+            if (note.cards.isNotEmpty()) {
+                HSeparator()
+                CollapsiblePreviewSection(
+                    step = stringResource(R.string.preview_step_cards_badge),
+                    title = stringResource(R.string.preview_step_cards_title),
+                    description = stringResource(R.string.preview_step_cards_description),
+                    collapsedSummary = note.cardsSectionSummary(),
+                    expanded = cardsSectionExpanded,
+                    onExpandedChange = { cardsSectionExpanded = it },
+                ) {
+                    PreviewAlertGroup(alerts = note.cardSectionAlerts())
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        note.cards.forEachIndexed { index, card ->
+                            key(card.cardId) {
+                                GeneratedStudyCardSummaryItem(
+                                    index = index,
+                                    total = note.cards.size,
+                                    card = card,
+                                    validationIssues = validationIssues,
+                                    warningIssues = warningIssues,
+                                    onClick = { selectedCardId = card.cardId },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (failedChecks.isNotEmpty() || passedChecks.isNotEmpty()) {
                 HSeparator()
                 Text(
                     text = stringResource(R.string.quality_checks_label),
@@ -883,16 +944,34 @@ private fun LearningNotePreview(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    note.qualityChecks.forEach { check ->
+                    failedChecks.forEach { check ->
                         HAlert(
-                            title = if (check.passed) {
-                                stringResource(R.string.quality_check_passed, check.code.name)
-                            } else {
-                                stringResource(R.string.quality_check_failed, check.code.name)
-                            },
+                            title = stringResource(R.string.quality_check_failed, check.code.name),
                             description = check.message,
-                            variant = if (check.passed) AlertVariant.Success else AlertVariant.Destructive,
+                            variant = AlertVariant.Destructive,
                         )
+                    }
+
+                    if (passedChecks.isNotEmpty()) {
+                        HButton(
+                            text = if (showPassedChecks) {
+                                stringResource(R.string.hide_passed_checks, passedChecks.size)
+                            } else {
+                                stringResource(R.string.show_passed_checks, passedChecks.size)
+                            },
+                            onClick = { showPassedChecks = !showPassedChecks },
+                            variant = ButtonVariant.Link,
+                        )
+                    }
+
+                    if (showPassedChecks) {
+                        passedChecks.forEach { check ->
+                            HAlert(
+                                title = stringResource(R.string.quality_check_passed, check.code.name),
+                                description = check.message,
+                                variant = AlertVariant.Success,
+                            )
+                        }
                     }
                 }
             }
@@ -917,22 +996,119 @@ private fun LearningNotePreview(
             }
         }
     }
+
+    if (selectedCard != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedCardId = null },
+        ) {
+            GeneratedStudyCardEditorSheet(
+                card = selectedCard,
+                validationIssues = validationIssues,
+                warningIssues = warningIssues,
+                regenerationTarget = noteRegenerationTarget,
+                onPromptChanged = {
+                    onIntent(
+                        NewCardUiIntent.PreviewCardPromptChanged(
+                            cardId = selectedCard.cardId,
+                            prompt = it,
+                        )
+                    )
+                },
+                onExpectedAnswerChanged = {
+                    onIntent(
+                        NewCardUiIntent.PreviewCardExpectedAnswerChanged(
+                            cardId = selectedCard.cardId,
+                            expectedAnswer = it,
+                        )
+                    )
+                },
+                onHintChanged = {
+                    onIntent(
+                        NewCardUiIntent.PreviewCardHintChanged(
+                            cardId = selectedCard.cardId,
+                            hint = it,
+                        )
+                    )
+                },
+                onActiveChanged = {
+                    onIntent(
+                        NewCardUiIntent.PreviewCardActiveChanged(
+                            cardId = selectedCard.cardId,
+                            isActive = it,
+                        )
+                    )
+                },
+                onRegenerate = {
+                    onIntent(NewCardUiIntent.RegenerateCardClicked(selectedCard.cardId))
+                },
+            )
+        }
+    }
 }
 
 @Composable
-private fun GeneratedStudyCardItem(
+private fun CollapsiblePreviewSection(
+    step: String,
+    title: String,
+    description: String,
+    collapsedSummary: String,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onExpandedChange(!expanded) },
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            PreviewSectionHeader(
+                step = step,
+                title = title,
+                description = description,
+            )
+            Text(
+                text = if (expanded) {
+                    stringResource(R.string.preview_section_hide)
+                } else {
+                    stringResource(R.string.preview_section_show)
+                },
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            if (!expanded) {
+                Text(
+                    text = collapsedSummary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        AnimatedVisibility(visible = expanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneratedStudyCardSummaryItem(
     index: Int,
     total: Int,
     card: GeneratedStudyCard,
     validationIssues: List<GeneratedLearningNoteIssue>,
     warningIssues: List<GeneratedLearningNoteIssue>,
-    regenerationTarget: PreviewRegenerationTarget?,
-    onPromptChanged: (String) -> Unit,
-    onExpectedAnswerChanged: (String) -> Unit,
-    onHintChanged: (String) -> Unit,
-    onActiveChanged: (Boolean) -> Unit,
-    onRegenerate: () -> Unit,
+    onClick: () -> Unit,
 ) {
+    val issuesCount = listOfNotNull(
+        validationIssues.cardMessage(card.cardId, isAnswer = false),
+        validationIssues.cardMessage(card.cardId, isAnswer = true),
+        warningIssues.cardWarning(card.cardId),
+    ).size
+
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -977,23 +1153,100 @@ private fun GeneratedStudyCardItem(
                 HBadge(label = card.cardType.displayName(), variant = BadgeVariant.Secondary)
                 HBadge(label = card.evaluationMode.displayName(), variant = BadgeVariant.Outline)
             }
-
             if (card.explanation.isNotBlank()) {
-                HAlert(
-                    title = stringResource(R.string.card_explanation_title),
-                    description = card.explanation,
-                    variant = AlertVariant.Default,
+                Text(
+                    text = card.explanation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
-            card.sourceField.takeIf(String::isNotBlank)?.let { sourceField ->
-                InfoRow(
-                    label = stringResource(R.string.card_source_label),
-                    value = sourceField.sourceFieldDisplayName(),
+            Text(
+                text = card.prompt,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val badgeLabel = if (issuesCount > 0) {
+                    stringResource(R.string.card_issue_count, issuesCount)
+                } else {
+                    stringResource(R.string.card_ready_badge)
+                }
+                HBadge(
+                    label = badgeLabel,
+                    variant = if (issuesCount > 0) BadgeVariant.Destructive else BadgeVariant.Outline,
+                )
+                HButton(
+                    text = stringResource(R.string.edit_card_action),
+                    onClick = onClick,
+                    variant = ButtonVariant.Ghost,
+                    leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 )
             }
+        }
+    }
+}
 
-            EditablePreviewField(
+@Composable
+private fun GeneratedStudyCardEditorSheet(
+    card: GeneratedStudyCard,
+    validationIssues: List<GeneratedLearningNoteIssue>,
+    warningIssues: List<GeneratedLearningNoteIssue>,
+    regenerationTarget: PreviewRegenerationTarget?,
+    onPromptChanged: (String) -> Unit,
+    onExpectedAnswerChanged: (String) -> Unit,
+    onHintChanged: (String) -> Unit,
+    onActiveChanged: (Boolean) -> Unit,
+    onRegenerate: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = card.cardType.displayName(),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = card.cardType.description(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HBadge(label = card.cardType.displayName(), variant = BadgeVariant.Secondary)
+            HBadge(label = card.evaluationMode.displayName(), variant = BadgeVariant.Outline)
+        }
+        if (card.explanation.isNotBlank()) {
+            HAlert(
+                title = stringResource(R.string.card_explanation_title),
+                description = card.explanation,
+                variant = AlertVariant.Default,
+            )
+        }
+        card.sourceField.takeIf(String::isNotBlank)?.let { sourceField ->
+            InfoRow(
+                label = stringResource(R.string.card_source_label),
+                value = sourceField.sourceFieldDisplayName(),
+            )
+        }
+        LabeledCheckbox(
+            label = stringResource(R.string.include_card_in_study_label),
+            checked = card.isActive,
+            isEnabled = true,
+            onCheckedChange = onActiveChanged,
+        )
+        EditablePreviewField(
                 label = stringResource(R.string.card_front_label),
                 value = card.prompt,
                 placeholder = stringResource(R.string.card_front_placeholder),
@@ -1002,39 +1255,32 @@ private fun GeneratedStudyCardItem(
                 helperText = stringResource(R.string.card_front_supporting_text),
                 supportingText = warningIssues.cardWarning(card.cardId),
                 onValueChange = onPromptChanged,
+        )
+        EditablePreviewField(
+            label = stringResource(R.string.card_answer_label),
+            value = card.expectedAnswer,
+            placeholder = stringResource(R.string.card_answer_placeholder),
+            minLines = 2,
+            errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
+            helperText = stringResource(R.string.card_answer_supporting_text),
+            onValueChange = onExpectedAnswerChanged,
+        )
+        EditablePreviewField(
+            label = stringResource(R.string.card_hint_label),
+            value = card.hint,
+            placeholder = stringResource(R.string.card_hint_placeholder),
+            minLines = 2,
+            helperText = stringResource(R.string.card_hint_supporting_text),
+            onValueChange = onHintChanged,
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            HButton(
+                text = stringResource(R.string.regenerate_card_action),
+                onClick = onRegenerate,
+                variant = ButtonVariant.Ghost,
+                isLoading = regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
+                enabled = regenerationTarget == null || regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
             )
-            EditablePreviewField(
-                label = stringResource(R.string.card_answer_label),
-                value = card.expectedAnswer,
-                placeholder = stringResource(R.string.card_answer_placeholder),
-                minLines = 2,
-                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
-                helperText = stringResource(R.string.card_answer_supporting_text),
-                onValueChange = onExpectedAnswerChanged,
-            )
-            EditablePreviewField(
-                label = stringResource(R.string.card_hint_label),
-                value = card.hint,
-                placeholder = stringResource(R.string.card_hint_placeholder),
-                minLines = 2,
-                helperText = stringResource(R.string.card_hint_supporting_text),
-                onValueChange = onHintChanged,
-            )
-            LabeledCheckbox(
-                label = "Incluir esta card en study",
-                checked = card.isActive,
-                isEnabled = true,
-                onCheckedChange = onActiveChanged,
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                HButton(
-                    text = "Regenerar card",
-                    onClick = onRegenerate,
-                    variant = ButtonVariant.Ghost,
-                    isLoading = regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
-                    enabled = regenerationTarget == null || regenerationTarget == PreviewRegenerationTarget.Card(card.cardId),
-                )
-            }
         }
     }
 }
@@ -1164,6 +1410,28 @@ private fun GeneratedNoteQualityCode.toAlertTitle(): String {
         GeneratedNoteQualityCode.RequiredFieldsPresent -> "Completa la nota"
         GeneratedNoteQualityCode.ClearCardFocus -> "Enfoca mejor la card"
         GeneratedNoteQualityCode.NoteCardAlignment -> "Alinea la card con la nota"
+    }
+}
+
+private fun GeneratedLearningNote.noteSectionSummary(): String {
+    val meaning = simpleDefinitionEn.ifBlank { intendedMeaningEs }
+    val useful = whyUseful.ifBlank { "Sin explicación adicional todavía." }
+    return "$meaning\n$useful"
+}
+
+private fun GeneratedLearningNote.exampleSectionSummary(): String {
+    val sentence = exampleSentence.ifBlank { "Sin ejemplo principal." }
+    val translation = exampleTranslation.ifBlank { "Sin traducción del ejemplo." }
+    return "$sentence\n$translation"
+}
+
+private fun GeneratedLearningNote.cardsSectionSummary(): String {
+    val activeCount = cards.count { it.isActive }
+    val firstCard = cards.firstOrNull()
+    return if (firstCard == null) {
+        "No hay tarjetas derivadas."
+    } else {
+        "$activeCount de ${cards.size} activas. Primera tarjeta: ${firstCard.cardType.displayName()}."
     }
 }
 
