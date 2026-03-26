@@ -71,11 +71,17 @@
     <string name="new_card_mode_category">Por categoría</string>
     <string name="creation_mode_section_title">Cómo quieres crearla</string>
     <string name="creation_mode_section_description">Elige el tipo de entrada. Esto cambia el formulario y lo que la IA va a generar.</string>
+    <string name="mode_screen_title">Crea una tarjeta con ayuda de IA</string>
+    <string name="mode_screen_description">Empieza eligiendo cómo quieres crearla. Después te pediremos solo la información necesaria.</string>
     <string name="mode_word_description">Partes de una palabra, frase o ejemplo concreto.</string>
     <string name="mode_word_helper">Ideal si ya sabes qué expresión quieres aprender.</string>
     <string name="mode_category_description">Partes de una situación y la IA propone una expresión útil.</string>
     <string name="mode_category_helper">Útil cuando sabes el tema, pero no la frase exacta.</string>
     <string name="mode_selected_badge">Actual</string>
+    <string name="continue_action">Continuar</string>
+    <string name="step_counter">Paso %1$d de %2$d</string>
+    <string name="input_screen_title">Define tu solicitud</string>
+    <string name="review_screen_title">Revisa el resultado</string>
     <string name="generate_card">Generar vista previa con IA</string>
     <string name="input_section_title">Entrada</string>
     <string name="input_section_word_description">Dale a la IA la expresión exacta. Puedes añadir significado o contexto para que el resultado sea más preciso.</string>
@@ -109,6 +115,8 @@
     <string name="loading_step_building_cards">3. Derivando las cards de estudio</string>
     <string name="preview_summary_title">La IA generó 1 nota y %1$d cards de estudio</string>
     <string name="preview_summary_description">Revísalo de arriba hacia abajo: primero la nota base, luego el ejemplo y al final cada card.</string>
+    <string name="review_empty_title">Todavía no hay resultado para revisar</string>
+    <string name="review_empty_description">Vuelve al paso anterior y genera una vista previa con IA.</string>
     <string name="save_in_deck">Guardar en %1$s</string>
     <string name="voice_input_desc">Entrada de voz</string>
     <string name="card_created_feedback">Tarjeta creada ✅</string>

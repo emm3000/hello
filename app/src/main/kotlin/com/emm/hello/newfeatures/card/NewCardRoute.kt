@@ -1,7 +1,12 @@
 package com.emm.hello.newfeatures.card
 
 import android.widget.Toast
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -13,11 +18,18 @@ import org.koin.androidx.compose.koinViewModel
 @Serializable
 data object NewCardRoute
 
+private enum class NewCardFlowStep {
+    Mode,
+    Input,
+    Review,
+}
+
 fun NavGraphBuilder.newCardRoute(navController: NavController) {
     composable<NewCardRoute> {
         val vm: NewCardViewModel = koinViewModel()
-        val uiState = vm.uiState.collectAsStateWithLifecycle()
+        val uiState by vm.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
+        var currentStep by rememberSaveable { mutableStateOf(NewCardFlowStep.Mode) }
 
         LaunchedEffect(Unit) {
             vm.effect.collect { effect ->
@@ -25,14 +37,44 @@ fun NavGraphBuilder.newCardRoute(navController: NavController) {
                     is NewCardUiEffect.ShowMessage -> {
                         Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                     }
+
+                    NewCardUiEffect.OpenReview -> {
+                        currentStep = NewCardFlowStep.Review
+                    }
+
+                    NewCardUiEffect.CloseFlow -> {
+                        navController.popBackStack()
+                    }
                 }
             }
         }
 
-        NewCardScreen(
-            onNavigateBack = { navController.popBackStack() },
-            state = uiState.value,
-            onIntent = vm::onIntent,
-        )
+        when (currentStep) {
+            NewCardFlowStep.Mode -> {
+                NewCardModeScreen(
+                    selectedMode = uiState.typeView,
+                    onModeSelected = { vm.onIntent(NewCardUiIntent.TypeViewSelected(it)) },
+                    onContinue = { currentStep = NewCardFlowStep.Input },
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            NewCardFlowStep.Input -> {
+                NewCardInputStepScreen(
+                    state = uiState,
+                    onIntent = vm::onIntent,
+                    onGenerate = { vm.onIntent(NewCardUiIntent.GenerateClicked) },
+                    onNavigateBack = { currentStep = NewCardFlowStep.Mode },
+                )
+            }
+
+            NewCardFlowStep.Review -> {
+                NewCardReviewScreen(
+                    state = uiState,
+                    onIntent = vm::onIntent,
+                    onNavigateBack = { currentStep = NewCardFlowStep.Input },
+                )
+            }
+        }
     }
 }

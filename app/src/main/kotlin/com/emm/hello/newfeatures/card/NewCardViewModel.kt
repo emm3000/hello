@@ -252,6 +252,7 @@ class NewCardViewModel(
                 canSavePreview = false,
             )
         }
+        mutableEffect.send(NewCardUiEffect.OpenReview)
         runCatching {
             generateLearningNotePreviewUseCase(
                 input = inputValidation.normalizedInput
@@ -525,6 +526,7 @@ class NewCardViewModel(
                 )
             }
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
+            mutableEffect.send(NewCardUiEffect.CloseFlow)
         }.onFailure { e ->
             logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
             mutableState.update {

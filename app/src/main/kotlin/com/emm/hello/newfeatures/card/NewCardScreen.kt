@@ -310,7 +310,7 @@ fun NewCardScreen(
 }
 
 @Composable
-private fun NewCardInputSection(
+internal fun NewCardInputSection(
     state: NewCardUiState,
     isListening: Boolean,
     onIntent: (NewCardUiIntent) -> Unit,
@@ -334,7 +334,7 @@ private fun NewCardInputSection(
 }
 
 @Composable
-private fun InputModeSelector(
+internal fun InputModeSelector(
     selectedMode: TypeView,
     onModeSelected: (TypeView) -> Unit,
 ) {
@@ -490,7 +490,7 @@ private fun CategoryInputSection(
 }
 
 @Composable
-private fun LoadingPreviewSkeleton() {
+internal fun LoadingPreviewSkeleton() {
     HCard(variant = CardVariant.Outlined) {
         Column(
             modifier = Modifier
@@ -531,7 +531,7 @@ private fun LoadingPreviewSkeleton() {
 }
 
 @Composable
-private fun ResultPreviewSection(
+internal fun ResultPreviewSection(
     state: NewCardUiState,
     keyboardController: SoftwareKeyboardController?,
     onIntent: (NewCardUiIntent) -> Unit,
@@ -1287,7 +1287,7 @@ private fun VoiceInputButton(
 // -- Internal Composables -----------------------------------------------------
 
 @Composable
-private fun LabeledCheckbox(
+internal fun LabeledCheckbox(
     label: String,
     checked: Boolean,
     isEnabled: Boolean,
@@ -1307,7 +1307,7 @@ private fun LabeledCheckbox(
 }
 
 @Composable
-private fun SupportingText(text: String) {
+internal fun SupportingText(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
@@ -1316,7 +1316,7 @@ private fun SupportingText(text: String) {
 }
 
 @Composable
-private fun SectionCard(
+internal fun SectionCard(
     title: String,
     description: String? = null,
     content: @Composable () -> Unit,
