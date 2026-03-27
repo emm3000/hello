@@ -19,6 +19,8 @@ sealed interface NewCardUiIntent {
 
     data class WordChanged(val word: String) : NewCardUiIntent
 
+    data class AiRequestChanged(val aiRequest: String) : NewCardUiIntent
+
     data class IntendedMeaningChanged(val intendedMeaningEs: String) : NewCardUiIntent
 
     data class ContextSentenceChanged(val contextSentence: String) : NewCardUiIntent

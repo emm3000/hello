@@ -61,13 +61,15 @@ fun NewCardInputStepScreen(
         }
     )
 
-    val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
+    val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.aiRequest, state.typeView) {
         val hasWord = state.word.isNotBlank()
+        val hasAiRequest = state.aiRequest.isNotBlank()
         val hasDeck = state.deckSelected != null
         val notLoading = !state.isLoading
         when (state.typeView) {
             TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
             TypeView.WithCategories -> notLoading && hasDeck
+            TypeView.WithAiHelp -> notLoading && hasDeck && hasAiRequest
         }
     }
 
@@ -134,6 +136,7 @@ fun NewCardInputStepScreen(
                     description = when (state.typeView) {
                         TypeView.WordOrPhase -> stringResource(R.string.input_section_word_description)
                         TypeView.WithCategories -> stringResource(R.string.input_section_category_description)
+                        TypeView.WithAiHelp -> stringResource(R.string.input_section_ai_description)
                     },
                 ) {
                     NewCardInputSection(

@@ -17,6 +17,7 @@ sealed interface PreviewRegenerationTarget {
 
 data class NewCardUiState(
     val word: String = "",
+    val aiRequest: String = "",
     val intendedMeaningEs: String = "",
     val contextSentence: String = "",
     val decks: List<Deck> = emptyList(),

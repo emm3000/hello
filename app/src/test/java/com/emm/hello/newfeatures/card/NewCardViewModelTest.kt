@@ -12,7 +12,9 @@ import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
+import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
@@ -32,6 +34,7 @@ import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.MainDispatcherRule
@@ -40,6 +43,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -151,10 +155,12 @@ class NewCardViewModelTest {
         advanceUntilIdle()
 
         viewModel.effect.test {
+            assertThat(awaitItem()).isEqualTo(NewCardUiEffect.OpenReview)
             viewModel.onIntent(NewCardUiIntent.SaveClicked)
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(NewCardUiEffect.ShowMessage::class.java)
             assertThat(effect).isEqualTo(NewCardUiEffect.ShowMessage("Tarjeta creada"))
+            assertThat(awaitItem()).isEqualTo(NewCardUiEffect.CloseFlow)
         }
 
         assertThat(viewModel.uiState.value.error).isNull()
@@ -214,6 +220,59 @@ class NewCardViewModelTest {
         assertThat(viewModel.uiState.value.learningNotePreview).isNotNull()
         assertThat(viewModel.uiState.value.canSavePreview).isTrue()
         assertThat(viewModel.uiState.value.previewValidationErrors).isEmpty()
+    }
+
+    @Test
+    fun `generate clicked with ai help builds communicative goal input`() = runTest {
+        val generationRepository = mockk<FlashcardGenerationRepository>()
+        val writeRepository = mockk<FlashcardWriteRepository>()
+        val readRepository = mockk<FlashcardReadRepository>()
+        val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        val deckRepository = FakeDeckRepository()
+        val inputSlot = slot<FlashcardGenerationInput>()
+
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { generationRepository.generateLearningNote(capture(inputSlot)) } returns sampleGeneratedLearningNote()
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+
+        val viewModel = NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            createFlashcardUseCase = CreateFlashcardUseCase(
+                writeRepository,
+                readRepository,
+                ValidateGeneratedLearningNoteUseCase(),
+            ),
+            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                repository = generationRepository,
+                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
+                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
+            ),
+            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        )
+
+        advanceUntilIdle()
+        viewModel.onIntent(NewCardUiIntent.TypeViewSelected(TypeView.WithAiHelp))
+        viewModel.onIntent(NewCardUiIntent.AiRequestChanged("Quiero aprender frases para pedir comida en un restaurante"))
+        viewModel.onIntent(NewCardUiIntent.GenerateClicked)
+        advanceUntilIdle()
+
+        assertThat(inputSlot.isCaptured).isTrue()
+        assertThat(inputSlot.captured.inputType).isEqualTo(FlashcardInputType.CommunicativeGoal)
+        assertThat(inputSlot.captured.userText)
+            .isEqualTo("Quiero aprender frases para pedir comida en un restaurante")
+        assertThat(inputSlot.captured.communicativeIntentId).isEqualTo("order_food")
+        assertThat(inputSlot.captured.domain).isEqualTo(LearningDomain.DailyLife)
+        assertThat(viewModel.uiState.value.canSavePreview).isTrue()
     }
 
     @Test

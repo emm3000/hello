@@ -144,13 +144,15 @@ fun NewCardScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val hasPreview = state.learningNotePreview != null
 
-    val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.typeView) {
+    val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.aiRequest, state.typeView) {
         val hasWord = state.word.isNotBlank()
+        val hasAiRequest = state.aiRequest.isNotBlank()
         val hasDeck = state.deckSelected != null
         val notLoading = !state.isLoading
         when (state.typeView) {
             TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
             TypeView.WithCategories -> notLoading && hasDeck
+            TypeView.WithAiHelp -> notLoading && hasDeck && hasAiRequest
         }
     }
 
@@ -207,6 +209,7 @@ fun NewCardScreen(
                     description = when (state.typeView) {
                         TypeView.WordOrPhase -> stringResource(R.string.input_section_word_description)
                         TypeView.WithCategories -> stringResource(R.string.input_section_category_description)
+                        TypeView.WithAiHelp -> stringResource(R.string.input_section_ai_description)
                     },
                 ) {
                     NewCardInputSection(
@@ -332,6 +335,11 @@ internal fun NewCardInputSection(
             onIntent = onIntent,
             onShowCategoryPicker = onShowCategoryPicker,
         )
+
+        TypeView.WithAiHelp -> AiHelpInputSection(
+            state = state,
+            onIntent = onIntent,
+        )
     }
 }
 
@@ -354,6 +362,13 @@ internal fun InputModeSelector(
             helperText = stringResource(R.string.mode_category_helper),
             isSelected = selectedMode == TypeView.WithCategories,
             onClick = { onModeSelected(TypeView.WithCategories) },
+        )
+        ModeOptionCard(
+            title = stringResource(R.string.new_card_mode_ai),
+            description = stringResource(R.string.mode_ai_description),
+            helperText = stringResource(R.string.mode_ai_helper),
+            isSelected = selectedMode == TypeView.WithAiHelp,
+            onClick = { onModeSelected(TypeView.WithAiHelp) },
         )
     }
 }
@@ -488,6 +503,32 @@ private fun CategoryInputSection(
             onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
         )
         SupportingText(text = stringResource(R.string.difficulty_supporting_text))
+    }
+}
+
+@Composable
+private fun AiHelpInputSection(
+    state: NewCardUiState,
+    onIntent: (NewCardUiIntent) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        HInput(
+            value = state.aiRequest,
+            onValueChange = { onIntent(NewCardUiIntent.AiRequestChanged(it)) },
+            enabled = !state.isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.ai_request_label),
+            placeholder = stringResource(R.string.ai_request_placeholder),
+            supportingText = stringResource(R.string.ai_request_supporting_text),
+        )
+        HSelect(
+            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.difficulty_label),
+            items = difficult,
+            itemSelected = state.difficulty,
+            onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
+        )
+        SupportingText(text = stringResource(R.string.ai_difficulty_supporting_text))
     }
 }
 

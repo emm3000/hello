@@ -69,6 +69,7 @@
     <string name="new_card_title">Nueva tarjeta</string>
     <string name="new_card_mode_word">Palabra o frase</string>
     <string name="new_card_mode_category">Por categoría</string>
+    <string name="new_card_mode_ai">Con ayuda de IA</string>
     <string name="creation_mode_section_title">Cómo quieres crearla</string>
     <string name="creation_mode_section_description">Elige el tipo de entrada. Esto cambia el formulario y lo que la IA va a generar.</string>
     <string name="mode_screen_title">Crea una tarjeta con ayuda de IA</string>
@@ -77,6 +78,8 @@
     <string name="mode_word_helper">Ideal si ya sabes qué expresión quieres aprender.</string>
     <string name="mode_category_description">Partes de una situación y la IA propone una expresión útil.</string>
     <string name="mode_category_helper">Útil cuando sabes el tema, pero no la frase exacta.</string>
+    <string name="mode_ai_description">Describe con tus palabras qué quieres aprender y la IA te propone una flash card.</string>
+    <string name="mode_ai_helper">Puedes escribir en español o en inglés situaciones como restaurante, aeropuerto o trabajo.</string>
     <string name="mode_selected_badge">Actual</string>
     <string name="continue_action">Continuar</string>
     <string name="step_counter">Paso %1$d de %2$d</string>
@@ -86,6 +89,7 @@
     <string name="input_section_title">Entrada</string>
     <string name="input_section_word_description">Dale a la IA la expresión exacta. Puedes añadir significado o contexto para que el resultado sea más preciso.</string>
     <string name="input_section_category_description">Pide una tarjeta por tema o situación. La IA propondrá una nota útil dentro de esa categoría.</string>
+    <string name="input_section_ai_description">Cuéntale a la IA qué situación quieres practicar. Puede ser en español o en inglés y la app propondrá una tarjeta útil.</string>
     <string name="word_label">Palabra o frase en inglés</string>
     <string name="word_placeholder">Ej: Hello, Good morning…</string>
     <string name="word_supporting_text">Campo principal. Escribe la palabra o frase que quieres estudiar.</string>
@@ -98,8 +102,12 @@
     <string name="listening_placeholder">Escuchando…</string>
     <string name="category_label">Categoría</string>
     <string name="category_supporting_text">Selecciona la situación o el tema desde el que quieres que la IA cree la tarjeta.</string>
+    <string name="ai_request_label">Qué quieres aprender</string>
+    <string name="ai_request_placeholder">Ej: Quiero aprender frases para pedir comida en un restaurante</string>
+    <string name="ai_request_supporting_text">Escribe en español o inglés el tema, situación o necesidad. La IA elegirá una expresión útil para tu flash card.</string>
     <string name="difficulty_label">Dificultad</string>
     <string name="difficulty_supporting_text">Ajusta el nivel esperado del vocabulario, ejemplo y cards derivadas.</string>
+    <string name="ai_difficulty_supporting_text">El nivel ayuda a que la IA ajuste vocabulario, ejemplo y tarjetas derivadas.</string>
     <string name="destination_section_title">Destino</string>
     <string name="destination_section_description">Elige el mazo donde se guardará la tarjeta cuando apruebes el preview.</string>
     <string name="deck_label">Mazo</string>

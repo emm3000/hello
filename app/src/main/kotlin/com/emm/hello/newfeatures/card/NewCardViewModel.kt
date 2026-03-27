@@ -26,6 +26,7 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.logging.logInfo
 import com.emm.hello.logging.logWarn
+import java.text.Normalizer
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -36,7 +37,9 @@ private const val DESCRIBE_PAST_EVENTS_INTENT_ID = "describe_past_events"
 private const val TALK_ABOUT_PLANS_INTENT_ID = "talk_about_plans"
 private const val MAKE_POLITE_REQUESTS_INTENT_ID = "make_polite_requests"
 private const val EXPRESS_EMOTIONS_INTENT_ID = "express_emotions"
+private const val ORDER_FOOD_INTENT_ID = "order_food"
 private const val ASK_FOR_DIRECTIONS_INTENT_ID = "ask_for_directions"
+private const val HANDLE_COMPLAINTS_INTENT_ID = "handle_complaints"
 private const val WORK_INTENT_ID = "work"
 private const val SOLVE_DAILY_PROBLEMS_INTENT_ID = "solve_daily_problems"
 private const val STUDY_INTENT_ID = "study"
@@ -96,6 +99,18 @@ class NewCardViewModel(
             is NewCardUiIntent.WordChanged -> mutableState.update {
                 it.copy(
                     word = intent.word,
+                    error = null,
+                    learningNotePreview = null,
+                    previewValidationErrors = emptyList(),
+                    previewWarnings = emptyList(),
+                    previewValidationIssues = emptyList(),
+                    previewWarningIssues = emptyList(),
+                    canSavePreview = false,
+                )
+            }
+            is NewCardUiIntent.AiRequestChanged -> mutableState.update {
+                it.copy(
+                    aiRequest = intent.aiRequest,
                     error = null,
                     learningNotePreview = null,
                     previewValidationErrors = emptyList(),
@@ -478,8 +493,7 @@ class NewCardViewModel(
     private fun saveFlashcard() = viewModelScope.launch {
         val current = mutableState.value
         val deckId = current.deckSelected?.id ?: return@launch
-        val learningNotePreview = current.learningNotePreview
-        if (learningNotePreview == null) return@launch
+        val learningNotePreview = current.learningNotePreview ?: return@launch
         logInfo(TAG, "saveFlashcard:start deckId=$deckId noteId=${learningNotePreview.noteId}")
         val previewValidation = validateGeneratedLearningNoteUseCase(learningNotePreview)
         if (!previewValidation.isValid) {
@@ -512,6 +526,7 @@ class NewCardViewModel(
             mutableState.update {
                 it.copy(
                     word = "",
+                    aiRequest = "",
                     intendedMeaningEs = "",
                     contextSentence = "",
                     learningNotePreview = null,
@@ -564,6 +579,16 @@ class NewCardViewModel(
                 domain = category.toLearningDomain(),
                 communicativeIntentId = category.toCommunicativeIntentId(),
             )
+
+            TypeView.WithAiHelp -> FlashcardGenerationInput(
+                inputType = FlashcardInputType.CommunicativeGoal,
+                userText = aiRequest,
+                learningGoal = LearningGoal.Both,
+                levelBand = difficulty.toLevelBand(),
+                register = RegisterPreference.Neutral,
+                domain = aiRequest.toLearningDomain(),
+                communicativeIntentId = aiRequest.toCommunicativeIntentId(),
+            )
         }
     }
 
@@ -612,9 +637,176 @@ class NewCardViewModel(
             else -> LearningDomain.DailyLife
         }
     }
+
+    private fun String.toCommunicativeIntentId(): String {
+        val normalized = normalizeForInference()
+        return when {
+            normalized.hasAnyKeyword(
+                "restaurante",
+                "restaurant",
+                "comida",
+                "food",
+                "menu",
+                "cafeteria",
+                "cafe",
+                "delivery",
+                "ordenar",
+                "pedir",
+                "order",
+            ) -> ORDER_FOOD_INTENT_ID
+            normalized.hasAnyKeyword(
+                "aeropuerto",
+                "airport",
+                "vuelo",
+                "flight",
+                "hotel",
+                "taxi",
+                "check in",
+                "boarding",
+                "gate",
+                "travel",
+                "viaje",
+            ) -> ASK_FOR_DIRECTIONS_INTENT_ID
+            normalized.hasAnyKeyword(
+                "trabajo",
+                "work",
+                "oficina",
+                "office",
+                "negocio",
+                "business",
+                "reunion",
+                "meeting",
+                "entrevista",
+                "interview",
+                "email",
+                "correo",
+            ) -> WORK_INTENT_ID
+            normalized.hasAnyKeyword(
+                "estudio",
+                "study",
+                "clase",
+                "class",
+                "escuela",
+                "school",
+                "universidad",
+                "university",
+                "examen",
+                "exam",
+            ) -> STUDY_INTENT_ID
+            normalized.hasAnyKeyword(
+                "queja",
+                "complaint",
+                "reclamo",
+                "refund",
+                "devolucion",
+                "customer service",
+                "servicio al cliente",
+            ) -> HANDLE_COMPLAINTS_INTENT_ID
+            normalized.hasAnyKeyword(
+                "ayuda",
+                "help",
+                "please",
+                "favor",
+                "request",
+                "solicitar",
+                "pedir ayuda",
+            ) -> MAKE_POLITE_REQUESTS_INTENT_ID
+            normalized.hasAnyKeyword(
+                "emocion",
+                "emotion",
+                "sentimiento",
+                "feeling",
+                "feliz",
+                "happy",
+                "triste",
+                "sad",
+                "frustrado",
+                "angry",
+            ) -> EXPRESS_EMOTIONS_INTENT_ID
+            normalized.hasAnyKeyword(
+                "pasado",
+                "past",
+                "ayer",
+                "experiencia",
+                "experience",
+                "historia",
+                "story",
+            ) -> DESCRIBE_PAST_EVENTS_INTENT_ID
+            normalized.hasAnyKeyword(
+                "planes",
+                "future",
+                "futuro",
+                "mañana",
+                "tomorrow",
+                "plan",
+                "going to",
+                "next week",
+            ) -> TALK_ABOUT_PLANS_INTENT_ID
+            else -> DEFAULT_COMMUNICATIVE_INTENT_ID
+        }
+    }
+
+    private fun String.toLearningDomain(): LearningDomain {
+        val normalized = normalizeForInference()
+        return when {
+            normalized.hasAnyKeyword(
+                "aeropuerto",
+                "airport",
+                "hotel",
+                "taxi",
+                "travel",
+                "viaje",
+                "vacaciones",
+                "vacation",
+                "boarding",
+                "flight",
+            ) -> LearningDomain.Travel
+            normalized.hasAnyKeyword(
+                "trabajo",
+                "work",
+                "oficina",
+                "office",
+                "negocio",
+                "business",
+                "cliente",
+                "client",
+            ) -> LearningDomain.Work
+            normalized.hasAnyKeyword(
+                "amigos",
+                "friends",
+                "social",
+                "party",
+                "cita",
+                "date",
+                "conversation",
+                "conversacion",
+            ) -> LearningDomain.Social
+            normalized.hasAnyKeyword(
+                "estudio",
+                "study",
+                "escuela",
+                "school",
+                "universidad",
+                "university",
+                "exam",
+                "examen",
+            ) -> LearningDomain.Study
+            else -> LearningDomain.DailyLife
+        }
+    }
 }
 
 private const val TAG = "NewCardViewModel"
+
+private fun String.normalizeForInference(): String {
+    return Normalizer
+        .normalize(trim().lowercase(), Normalizer.Form.NFD)
+        .replace("\\p{Mn}+".toRegex(), "")
+}
+
+private fun String.hasAnyKeyword(vararg keywords: String): Boolean {
+    return keywords.any { keyword -> contains(keyword) }
+}
 
 private fun EditableLearningNoteField.toRegenerableFieldOrNull(): RegenerableNoteField? {
     return when (this) {

@@ -8,6 +8,10 @@ enum class TypeView {
     WithCategories {
         override val other: TypeView
             get() = WordOrPhase
+    },
+    WithAiHelp {
+        override val other: TypeView
+            get() = WordOrPhase
     };
 
     abstract val other: TypeView
