@@ -1,7 +1,9 @@
 package com.emm.hello.newfeatures.card
 
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,13 +18,15 @@ fun NewCardBottomBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 6.dp,
     ) {
-        androidx.compose.foundation.layout.Column {
+        Column(
+            modifier = Modifier.navigationBarsPadding()
+        ) {
             HSeparator()
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.padding(PaddingValues(horizontal = 16.dp, vertical = 12.dp))
+            Box(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 content()
             }

@@ -105,21 +105,51 @@ class ValidateGeneratedLearningNoteUseCaseTest {
     }
 
     @Test
+    fun `invoke with prompt equal to answer returns error`() {
+        val result = useCase(
+            sampleWordNote().copy(
+                cards = listOf(
+                    recognitionCard().copy(
+                        prompt = "borrow",
+                        expectedAnswer = "borrow",
+                    ),
+                    productionCard(),
+                )
+            )
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer })
+    }
+
+    @Test
+    fun `invoke with duplicate active cards returns warning`() {
+        val duplicate = productionCard().copy(cardId = "card-prod-2")
+        val result = useCase(
+            sampleWordNote().copy(
+                cards = listOf(
+                    recognitionCard(),
+                    productionCard(),
+                    duplicate,
+                )
+            )
+        )
+
+        assertTrue(result.isValid)
+        assertTrue(result.warnings.any { it.code == GeneratedLearningNoteIssueCode.DuplicateActiveCard })
+    }
+
+    @Test
     fun `invoke with failed quality check returns error`() {
         val result = useCase(
             sampleWordNote().copy(
-                qualityChecks = listOf(
-                    GeneratedNoteQualityCheck(
-                        code = GeneratedNoteQualityCode.SingleMeaning,
-                        passed = true,
-                        message = "ok",
-                    ),
-                    GeneratedNoteQualityCheck(
-                        code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
-                        passed = false,
-                        message = "La respuesta sigue siendo ambigua.",
-                    ),
-                )
+                qualityChecks = fullQualityChecks().map { check ->
+                    if (check.code == GeneratedNoteQualityCode.NonAmbiguousAnswers) {
+                        check.copy(passed = false, message = "La respuesta sigue siendo ambigua.")
+                    } else {
+                        check
+                    }
+                }
             )
         )
 
@@ -145,19 +175,48 @@ class ValidateGeneratedLearningNoteUseCaseTest {
                 recognitionCard(),
                 productionCard(),
             ),
-            qualityChecks = listOf(
-                GeneratedNoteQualityCheck(
-                    code = GeneratedNoteQualityCode.SingleMeaning,
-                    passed = true,
-                    message = "La nota trabaja un solo significado.",
-                ),
-                GeneratedNoteQualityCheck(
-                    code = GeneratedNoteQualityCode.NaturalExample,
-                    passed = true,
-                    message = "El ejemplo suena natural.",
-                ),
-            ),
+            qualityChecks = fullQualityChecks(),
             collocations = listOf("borrow money", "borrow a book"),
+        )
+    }
+
+    private fun fullQualityChecks(): List<GeneratedNoteQualityCheck> {
+        return listOf(
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.SingleMeaning,
+                passed = true,
+                message = "La nota trabaja un solo significado.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.NaturalExample,
+                passed = true,
+                message = "El ejemplo suena natural.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.ExampleSupportsMeaning,
+                passed = true,
+                message = "El ejemplo sostiene bien el significado.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
+                passed = true,
+                message = "Las respuestas esperadas son claras.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.RequiredFieldsPresent,
+                passed = true,
+                message = "Los campos clave estan completos.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.ClearCardFocus,
+                passed = true,
+                message = "Cada card tiene un foco claro.",
+            ),
+            GeneratedNoteQualityCheck(
+                code = GeneratedNoteQualityCode.NoteCardAlignment,
+                passed = true,
+                message = "Las cards estan alineadas con la nota.",
+            ),
         )
     }
 

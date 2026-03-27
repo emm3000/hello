@@ -207,6 +207,20 @@ class ValidateGeneratedLearningNoteUseCase {
                 "La nota generada debe incluir al menos una tarjeta activa."
             )
         }
+        if (activeCards.size > MAX_RECOMMENDED_ACTIVE_CARDS) {
+            warnings += issue(
+                GeneratedLearningNoteIssueCode.TooManyActiveCards,
+                "La nota tiene demasiadas tarjetas activas; conviene mantener entre 2 y 4 para una recuperacion mas clara."
+            )
+        }
+
+        val duplicatedActiveCards: Map<String, GeneratedStudyCard> = activeCards
+            .groupBy { "${it.prompt.normalizeForComparison()}::${it.expectedAnswer.normalizeForComparison()}" }
+            .filterValues { it.size > 1 }
+            .values
+            .flatten()
+            .associateBy { it.cardId }
+
         note.cards.forEach { card ->
             if (card.prompt.isBlank()) {
                 errors += issue(
@@ -219,6 +233,31 @@ class ValidateGeneratedLearningNoteUseCase {
                 errors += issue(
                     GeneratedLearningNoteIssueCode.EmptyCardAnswer,
                     "Cada tarjeta derivada debe tener una respuesta esperada.",
+                    cardId = card.cardId,
+                )
+            }
+            if (
+                card.prompt.isNotBlank() &&
+                card.expectedAnswer.isNotBlank() &&
+                card.prompt.normalizeForComparison() == card.expectedAnswer.normalizeForComparison()
+            ) {
+                errors += issue(
+                    GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer,
+                    "La tarjeta no genera recuperacion real porque el prompt coincide con la respuesta esperada.",
+                    cardId = card.cardId,
+                )
+            }
+            if (card.isActive && duplicatedActiveCards.containsKey(card.cardId)) {
+                warnings += issue(
+                    GeneratedLearningNoteIssueCode.DuplicateActiveCard,
+                    "Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.",
+                    cardId = card.cardId,
+                )
+            }
+            if (card.expectedAnswer.wordCountForRecall() > MAX_RECOMMENDED_ANSWER_WORDS) {
+                warnings += issue(
+                    GeneratedLearningNoteIssueCode.AnswerTooLongForRecall,
+                    "La respuesta esperada es larga; intenta que la recuperacion apunte a una expresion mas concreta.",
                     cardId = card.cardId,
                 )
             }
@@ -236,15 +275,24 @@ class ValidateGeneratedLearningNoteUseCase {
         note: GeneratedLearningNote,
         errors: MutableList<GeneratedLearningNoteIssue>,
     ) {
-        val hasSingleMeaningCheck = note.qualityChecks.any {
-            it.code == GeneratedNoteQualityCode.SingleMeaning
-        }
+        val presentCodes = note.qualityChecks.map { it.code }.toSet()
+        val hasSingleMeaningCheck = presentCodes.contains(GeneratedNoteQualityCode.SingleMeaning)
         if (!hasSingleMeaningCheck) {
             errors += issue(
                 GeneratedLearningNoteIssueCode.MissingSingleMeaningQualityCheck,
                 "La nota debe incluir la verificacion de significado unico."
             )
         }
+
+        GeneratedNoteQualityCode.entries
+            .filterNot(presentCodes::contains)
+            .forEach { missingCode ->
+                errors += issue(
+                    GeneratedLearningNoteIssueCode.MissingRequiredQualityCheck,
+                    "Falta el quality check requerido: ${missingCode.name}.",
+                )
+            }
+
         val failedChecks = note.qualityChecks.filterNot { it.passed }
         if (failedChecks.isNotEmpty()) {
             errors += issue(
@@ -293,4 +341,18 @@ class ValidateGeneratedLearningNoteUseCase {
             cardId = cardId,
         )
     }
+
+    private companion object {
+        const val MAX_RECOMMENDED_ACTIVE_CARDS = 4
+        const val MAX_RECOMMENDED_ANSWER_WORDS = 8
+    }
+}
+
+private fun String.normalizeForComparison(): String {
+    return trim().lowercase().replace("\\s+".toRegex(), " ")
+}
+
+private fun String.wordCountForRecall(): Int {
+    if (isBlank()) return 0
+    return trim().split("\\s+".toRegex()).size
 }

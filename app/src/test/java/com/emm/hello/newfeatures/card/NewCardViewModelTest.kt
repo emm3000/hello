@@ -613,7 +613,37 @@ class NewCardViewModelTest {
                     code = GeneratedNoteQualityCode.SingleMeaning,
                     passed = true,
                     message = "ok",
-                )
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.NaturalExample,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.ExampleSupportsMeaning,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.RequiredFieldsPresent,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.ClearCardFocus,
+                    passed = true,
+                    message = "ok",
+                ),
+                GeneratedNoteQualityCheck(
+                    code = GeneratedNoteQualityCode.NoteCardAlignment,
+                    passed = true,
+                    message = "ok",
+                ),
             ),
         )
     }

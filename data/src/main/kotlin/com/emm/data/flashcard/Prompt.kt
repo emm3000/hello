@@ -12,6 +12,16 @@ object Prompt {
 
         Your task is to generate exactly one structured learning note for spaced repetition.
 
+        Design it like a high-value Anki/SRS note, not like a generic lesson or vocabulary dump.
+
+        Apply these principles:
+        - Minimum information principle: teach one meaning, one expression, one communicative purpose at a time.
+        - High utility first: prefer the most useful next expression for real communication, not the most impressive one.
+        - Retrieval before recognition overload: each card must create one clear recall task.
+        - No laundry lists: never return multiple target expressions, mini-lessons, grouped phrases, or category overviews.
+        - Concrete context beats abstract explanation: examples should sound like something a person would actually say.
+        - Reduce interference: cards should not be near-duplicates of each other.
+
         The output must represent:
         - one intended meaning only
         - one target English expression only
@@ -29,6 +39,13 @@ object Prompt {
         - communicative_intent_id: "${input.communicativeIntentId}"
         - communicative_intent_label: "${communicativeIntent?.label.orEmpty()}"
         - communicative_intent_description: "${communicativeIntent?.description.orEmpty()}"
+
+        Decision policy:
+        - If the user gives a broad communicative goal or situation, infer the single highest-value English expression to learn next.
+        - For beginners, prefer natural chunks that unlock real interaction quickly.
+        - For intermediate/advanced learners, prefer expressions with strong communicative payoff, nuance, or common learner confusion.
+        - If several options are possible, choose the one that is most frequent, reusable, and easy to practice with retrieval.
+        - Use source_context to briefly capture the user's situation in your own words.
 
         Return ONLY a valid JSON object using this schema:
 
@@ -84,14 +101,23 @@ object Prompt {
         Rules:
         - Return one note only.
         - The note must target one intended meaning only.
-        - The English expression must be natural and useful.
+        - The English expression must be natural, useful, and narrow enough to study on one note.
         - The example sentence must sound natural, not textbook-like.
         - The example must support the chosen intended meaning.
         - Every card must test one clear thing only.
+        - Do not generate list-style notes such as "phrases for restaurants" or "useful airport vocabulary"; choose one best expression from that request.
+        - Prefer 2 to 4 active cards total.
+        - Include a recognition card and a production card whenever they are useful.
+        - Add a cloze card only if it gives distinct retrieval value instead of repeating another card.
+        - Prompts must be specific and unambiguous, never broad discussion questions.
+        - Expected answers must be short, objective, and ideally a single expression.
+        - accepted_answers may include only genuine equivalent answers, not loose paraphrases.
+        - why_useful must explain the real communicative payoff, not generic statements like "it helps you learn English."
+        - common_mistake should highlight a realistic learner confusion only when it adds value.
         - If the note_type is phrase or phrasal_verb, include usage_pattern.
         - If the note_type is sentence_pattern, include usage_pattern and cloze_sentence.
         - Include at least the required cards for the note type.
-        - Include a quality check for single_meaning.
+        - Include all of these quality checks exactly once: single_meaning, natural_example, example_supports_meaning, non_ambiguous_answers, required_fields_present, clear_card_focus, note_card_alignment.
         - Do not include markdown, explanations, or text outside the JSON.
 
         If the input is too ambiguous or unusable, return:
