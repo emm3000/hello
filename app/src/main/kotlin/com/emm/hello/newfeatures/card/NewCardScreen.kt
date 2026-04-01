@@ -59,7 +59,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
@@ -1288,14 +1287,14 @@ private fun GeneratedStudyCardEditorSheet(
             onCheckedChange = onActiveChanged,
         )
         EditablePreviewField(
-                label = stringResource(R.string.card_front_label),
-                value = card.prompt,
-                placeholder = stringResource(R.string.card_front_placeholder),
-                minLines = 2,
-                errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
-                helperText = stringResource(R.string.card_front_supporting_text),
-                supportingText = warningIssues.cardWarning(card.cardId),
-                onValueChange = onPromptChanged,
+            label = stringResource(R.string.card_front_label),
+            value = card.prompt,
+            placeholder = stringResource(R.string.card_front_placeholder),
+            minLines = 2,
+            errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
+            helperText = stringResource(R.string.card_front_supporting_text),
+            supportingText = warningIssues.cardWarning(card.cardId),
+            onValueChange = onPromptChanged,
         )
         EditablePreviewField(
             label = stringResource(R.string.card_answer_label),
@@ -1666,57 +1665,6 @@ private fun InfoRow(label: String, value: String) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
-    }
-}
-
-@Composable
-private fun ExampleItem(index: Int, example: Example) {
-    var showTranslation by remember(example.exampleId) { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = "$index.",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = example.text,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        AnimatedVisibility(visible = showTranslation) {
-            Text(
-                text = example.translation,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 24.dp),
-            )
-        }
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            HButton(
-                text = if (showTranslation) {
-                    stringResource(
-                        R.string.hide_translation
-                    )
-                } else {
-                    stringResource(R.string.show_translation)
-                },
-                onClick = { showTranslation = !showTranslation },
-                variant = ButtonVariant.Ghost,
-            )
-        }
     }
 }
 

@@ -17,65 +17,94 @@ class GeneratedLearningNoteResponseParserTest {
     private val json = Json {
         ignoreUnknownKeys = true
     }
+    private val validLearningNoteRaw = """
+        {
+          "success": true,
+          "data": {
+            "note_id": "note-1",
+            "note_type": "phrasal_verb",
+            "expression": "pick up",
+            "intended_meaning_es": "recoger",
+            "simple_definition_en": "to go somewhere and get someone or something",
+            "part_of_speech": "phrasal_verb",
+            "register": "neutral",
+            "level_band": "A1_A2",
+            "domain": "daily_life",
+            "why_useful": "Sirve para hablar de tareas y movimientos cotidianos.",
+            "example_sentence": "I'll pick you up after work.",
+            "example_translation": "Te recojo despues del trabajo.",
+            "usage_pattern": "pick someone up",
+            "cloze_sentence": "I'll ____ you up after work.",
+            "cards": [
+              {
+                "card_id": "card-1",
+                "card_type": "recognition",
+                "prompt": "pick up",
+                "expected_answer": "recoger",
+                "evaluation_mode": "flexible_text",
+                "is_active": true
+              },
+              {
+                "card_id": "card-2",
+                "card_type": "production",
+                "prompt": "Como dices 'recoger' en ingles?",
+                "expected_answer": "pick up",
+                "evaluation_mode": "exact",
+                "is_active": true
+              },
+              {
+                "card_id": "card-3",
+                "card_type": "cloze",
+                "prompt": "I'll ____ you up after work.",
+                "expected_answer": "pick",
+                "evaluation_mode": "exact",
+                "is_active": true
+              }
+            ],
+            "quality_checks": [
+              {
+                "code": "single_meaning",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "natural_example",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "example_supports_meaning",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "non_ambiguous_answers",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "required_fields_present",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "clear_card_focus",
+                "passed": true,
+                "message": "ok"
+              },
+              {
+                "code": "note_card_alignment",
+                "passed": true,
+                "message": "ok"
+              }
+            ]
+          }
+        }
+    """.trimIndent()
 
     @Test
     fun `parse returns generated learning note`() {
-        val raw = """
-            {
-              "success": true,
-              "data": {
-                "note_id": "note-1",
-                "note_type": "phrasal_verb",
-                "expression": "pick up",
-                "intended_meaning_es": "recoger",
-                "simple_definition_en": "to go somewhere and get someone or something",
-                "part_of_speech": "phrasal_verb",
-                "register": "neutral",
-                "level_band": "A1_A2",
-                "domain": "daily_life",
-                "why_useful": "Sirve para hablar de tareas y movimientos cotidianos.",
-                "example_sentence": "I'll pick you up after work.",
-                "example_translation": "Te recojo despues del trabajo.",
-                "usage_pattern": "pick someone up",
-                "cloze_sentence": "I'll ____ you up after work.",
-                "cards": [
-                  {
-                    "card_id": "card-1",
-                    "card_type": "recognition",
-                    "prompt": "pick up",
-                    "expected_answer": "recoger",
-                    "evaluation_mode": "flexible_text",
-                    "is_active": true
-                  },
-                  {
-                    "card_id": "card-2",
-                    "card_type": "production",
-                    "prompt": "Como dices 'recoger' en ingles?",
-                    "expected_answer": "pick up",
-                    "evaluation_mode": "exact",
-                    "is_active": true
-                  },
-                  {
-                    "card_id": "card-3",
-                    "card_type": "cloze",
-                    "prompt": "I'll ____ you up after work.",
-                    "expected_answer": "pick",
-                    "evaluation_mode": "exact",
-                    "is_active": true
-                  }
-                ],
-                "quality_checks": [
-                  {
-                    "code": "single_meaning",
-                    "passed": true,
-                    "message": "ok"
-                  }
-                ]
-              }
-            }
-        """.trimIndent()
-
-        val result = GeneratedLearningNoteResponseParser.parse(raw, json)
+        val result = GeneratedLearningNoteResponseParser.parse(validLearningNoteRaw, json)
 
         assertEquals("note-1", result.noteId)
         assertEquals(LearningNoteType.PhrasalVerb, result.noteType)

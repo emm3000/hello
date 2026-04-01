@@ -104,7 +104,10 @@ class DefaultSyncEngine(
                 val batchResult = applyBatch(pulledResult, localDeviceId, now)
                 logInfo(
                     TAG,
-                    "pullApplyAndAck:apply_result acked=${batchResult.ackedOpIds.size} deferredCursor=${batchResult.firstDeferredCursor} maxCursor=${batchResult.maxCursor}"
+                    "pullApplyAndAck:apply_result " +
+                        "acked=${batchResult.ackedOpIds.size} " +
+                        "deferredCursor=${batchResult.firstDeferredCursor} " +
+                        "maxCursor=${batchResult.maxCursor}"
                 )
                 ackOperations(batchResult.ackedOpIds.distinct())
                 saveCheckpoint(cursor = batchResult.maxCursor, now = now)
@@ -126,7 +129,9 @@ class DefaultSyncEngine(
 
         db.transaction {
             pulledResult.operations.forEach { operation ->
-                val existing = localFirstQueries.findProcessedRemoteOperation(appAccountId, operation.opId).executeAsOneOrNull()
+                val existing = localFirstQueries
+                    .findProcessedRemoteOperation(appAccountId, operation.opId)
+                    .executeAsOneOrNull()
                 if (existing != null) {
                     ackedOpIds += operation.opId
                     if (operation.cursor > maxCursor) maxCursor = operation.cursor

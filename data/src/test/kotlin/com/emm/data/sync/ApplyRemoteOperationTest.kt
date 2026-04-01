@@ -274,7 +274,9 @@ class ApplyRemoteOperationTest {
         )
 
         assertTrue(result is ApplyRemoteOperationResult.Applied)
-        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId(accountId, "card-1").executeAsOneOrNull()
+        val projection = db.localFirstQueries
+            .findReviewProjectionByFlashcardId(accountId, "card-1")
+            .executeAsOneOrNull()
         assertEquals(2000L, projection?.lastReviewedAt)
         assertEquals(3000L, projection?.nextReviewAt)
     }

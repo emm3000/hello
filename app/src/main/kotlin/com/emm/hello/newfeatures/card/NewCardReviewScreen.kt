@@ -1,9 +1,9 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -24,6 +24,9 @@ import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 
+private const val REVIEW_STEP_NUMBER = 3
+private const val TOTAL_STEP_COUNT = 3
+
 @Composable
 fun NewCardReviewScreen(
     state: NewCardUiState,
@@ -37,14 +40,18 @@ fun NewCardReviewScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = stringResource(R.string.review_screen_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = stringResource(R.string.step_counter, 3, 3),
+                            text = stringResource(
+                                R.string.step_counter,
+                                REVIEW_STEP_NUMBER,
+                                TOTAL_STEP_COUNT,
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

@@ -44,11 +44,13 @@ configure<ApplicationExtension> {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs["config"]
+            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "false")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             signingConfig = signingConfigs["config"]
+            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             manifestPlaceholders["usesCleartextTraffic"] = "true"
             matchingFallbacks += listOf("release")
         }
@@ -58,6 +60,7 @@ configure<ApplicationExtension> {
             isMinifyEnabled = true
             isShrinkResources = false
             signingConfig = signingConfigs["config"]
+            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             matchingFallbacks += listOf("release")
             proguardFiles(
                 //noinspection ProguardAndroidTxtUsage

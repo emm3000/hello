@@ -210,7 +210,8 @@ class ValidateGeneratedLearningNoteUseCase {
         if (activeCards.size > MAX_RECOMMENDED_ACTIVE_CARDS) {
             warnings += issue(
                 GeneratedLearningNoteIssueCode.TooManyActiveCards,
-                "La nota tiene demasiadas tarjetas activas; conviene mantener entre 2 y 4 para una recuperacion mas clara."
+                "La nota tiene demasiadas tarjetas activas; " +
+                    "conviene mantener entre 2 y 4 para una recuperacion mas clara."
             )
         }
 
@@ -222,52 +223,61 @@ class ValidateGeneratedLearningNoteUseCase {
             .associateBy { it.cardId }
 
         note.cards.forEach { card ->
-            if (card.prompt.isBlank()) {
-                errors += issue(
-                    GeneratedLearningNoteIssueCode.EmptyCardPrompt,
-                    "Cada tarjeta derivada debe tener un prompt.",
-                    cardId = card.cardId,
-                )
-            }
-            if (card.expectedAnswer.isBlank()) {
-                errors += issue(
-                    GeneratedLearningNoteIssueCode.EmptyCardAnswer,
-                    "Cada tarjeta derivada debe tener una respuesta esperada.",
-                    cardId = card.cardId,
-                )
-            }
-            if (
-                card.prompt.isNotBlank() &&
-                card.expectedAnswer.isNotBlank() &&
-                card.prompt.normalizeForComparison() == card.expectedAnswer.normalizeForComparison()
-            ) {
-                errors += issue(
-                    GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer,
-                    "La tarjeta no genera recuperacion real porque el prompt coincide con la respuesta esperada.",
-                    cardId = card.cardId,
-                )
-            }
-            if (card.isActive && duplicatedActiveCards.containsKey(card.cardId)) {
-                warnings += issue(
-                    GeneratedLearningNoteIssueCode.DuplicateActiveCard,
-                    "Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.",
-                    cardId = card.cardId,
-                )
-            }
-            if (card.expectedAnswer.wordCountForRecall() > MAX_RECOMMENDED_ANSWER_WORDS) {
-                warnings += issue(
-                    GeneratedLearningNoteIssueCode.AnswerTooLongForRecall,
-                    "La respuesta esperada es larga; intenta que la recuperacion apunte a una expresion mas concreta.",
-                    cardId = card.cardId,
-                )
-            }
-            if (!card.isActive) {
-                warnings += issue(
-                    GeneratedLearningNoteIssueCode.InactiveCard,
-                    "La nota contiene una tarjeta inactiva; revisa si debe persistirse.",
-                    cardId = card.cardId,
-                )
-            }
+            validateCard(card, duplicatedActiveCards, errors, warnings)
+        }
+    }
+
+    private fun validateCard(
+        card: GeneratedStudyCard,
+        duplicatedActiveCards: Map<String, GeneratedStudyCard>,
+        errors: MutableList<GeneratedLearningNoteIssue>,
+        warnings: MutableList<GeneratedLearningNoteIssue>,
+    ) {
+        if (card.prompt.isBlank()) {
+            errors += issue(
+                GeneratedLearningNoteIssueCode.EmptyCardPrompt,
+                "Cada tarjeta derivada debe tener un prompt.",
+                cardId = card.cardId,
+            )
+        }
+        if (card.expectedAnswer.isBlank()) {
+            errors += issue(
+                GeneratedLearningNoteIssueCode.EmptyCardAnswer,
+                "Cada tarjeta derivada debe tener una respuesta esperada.",
+                cardId = card.cardId,
+            )
+        }
+        if (
+            card.prompt.isNotBlank() &&
+            card.expectedAnswer.isNotBlank() &&
+            card.prompt.normalizeForComparison() == card.expectedAnswer.normalizeForComparison()
+        ) {
+            errors += issue(
+                GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer,
+                "La tarjeta no genera recuperacion real porque el prompt coincide con la respuesta esperada.",
+                cardId = card.cardId,
+            )
+        }
+        if (card.isActive && duplicatedActiveCards.containsKey(card.cardId)) {
+            warnings += issue(
+                GeneratedLearningNoteIssueCode.DuplicateActiveCard,
+                "Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.",
+                cardId = card.cardId,
+            )
+        }
+        if (card.expectedAnswer.wordCountForRecall() > MAX_RECOMMENDED_ANSWER_WORDS) {
+            warnings += issue(
+                GeneratedLearningNoteIssueCode.AnswerTooLongForRecall,
+                "La respuesta esperada es larga; intenta que la recuperacion apunte a una expresion mas concreta.",
+                cardId = card.cardId,
+            )
+        }
+        if (!card.isActive) {
+            warnings += issue(
+                GeneratedLearningNoteIssueCode.InactiveCard,
+                "La nota contiene una tarjeta inactiva; revisa si debe persistirse.",
+                cardId = card.cardId,
+            )
         }
     }
 

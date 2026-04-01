@@ -8,29 +8,29 @@ import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.LearningDomain
 import com.emm.domain.flashcard.LearningGoal
 import com.emm.domain.flashcard.LevelBand
-import com.emm.domain.flashcard.RegisterPreference
-import com.emm.domain.flashcard.StaticCategories
-import com.emm.domain.flashcard.TypeView
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
-import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
+import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.flashcard.StaticCategories
+import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.logging.logInfo
 import com.emm.hello.logging.logWarn
-import java.text.Normalizer
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 
 private const val DEFAULT_COMMUNICATIVE_INTENT_ID = "social_small_talk"
 private const val DESCRIBE_PAST_EVENTS_INTENT_ID = "describe_past_events"
@@ -234,10 +234,18 @@ class NewCardViewModel(
 
     private fun generateFlashcard() = viewModelScope.launch {
         val current = mutableState.value
-        logInfo(TAG, "generateFlashcard:start typeView=${current.typeView} deckId=${current.deckSelected?.id.orEmpty()}")
+        logInfo(
+            TAG,
+            "generateFlashcard:start typeView=${current.typeView} " +
+                "deckId=${current.deckSelected?.id.orEmpty()}",
+        )
         val inputValidation = validateInputUseCase(current.toGenerationInput())
         if (!inputValidation.isValid) {
-            logWarn(TAG, "generateFlashcard:invalid_input firstError=${inputValidation.errors.firstOrNull()?.message.orEmpty()}")
+            logWarn(
+                TAG,
+                "generateFlashcard:invalid_input " +
+                    "firstError=${inputValidation.errors.firstOrNull()?.message.orEmpty()}",
+            )
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(
@@ -497,7 +505,11 @@ class NewCardViewModel(
         logInfo(TAG, "saveFlashcard:start deckId=$deckId noteId=${learningNotePreview.noteId}")
         val previewValidation = validateGeneratedLearningNoteUseCase(learningNotePreview)
         if (!previewValidation.isValid) {
-            logWarn(TAG, "saveFlashcard:blocked_invalid_preview firstError=${previewValidation.errors.firstOrNull()?.message.orEmpty()}")
+            logWarn(
+                TAG,
+                "saveFlashcard:blocked_invalid_preview " +
+                    "firstError=${previewValidation.errors.firstOrNull()?.message.orEmpty()}",
+            )
             mutableState.update {
                 it.copy(
                     error = NewCardErrorUi(

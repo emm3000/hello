@@ -7,8 +7,11 @@ import com.emm.data.HelloDb
 import com.emm.domain.sync.SyncDebugState
 import com.emm.domain.sync.SyncDebugStateRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
 class DefaultSyncDebugStateRepository(
@@ -17,21 +20,38 @@ class DefaultSyncDebugStateRepository(
 
     private val localFirstQueries = db.localFirstQueries
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observe(): Flow<SyncDebugState> {
-        val accountStateFlow = localFirstQueries.selectLocalAccountState().asFlow().mapToOneOrNull(Dispatchers.IO)
-        val checkpointFlow = accountStateFlow
-        val pendingFlow = accountStateFlow
+        val accountStateFlow = localFirstQueries
+            .selectLocalAccountState()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.IO)
+        val deviceIdentityFlow = localFirstQueries
+            .selectLocalDeviceIdentity()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.IO)
+        val checkpointFlow = accountStateFlow.flatMapLatest { accountState ->
+            val appAccountId = accountState?.appAccountId?.takeIf(String::isNotBlank)
+                ?: return@flatMapLatest flowOf(null)
+            localFirstQueries
+                .selectSyncCheckpoint(appAccountId)
+                .asFlow()
+                .mapToOneOrNull(Dispatchers.IO)
+        }
+        val pendingFlow = accountStateFlow.flatMapLatest { accountState ->
+            val appAccountId = accountState?.appAccountId?.takeIf(String::isNotBlank)
+                ?: return@flatMapLatest flowOf(0L)
+            localFirstQueries
+                .countRetryableOperations(appAccountId, DrainOutbox.MAX_RETRY_COUNT)
+                .asFlow()
+                .mapToOne(Dispatchers.IO)
+        }
         return combine(
             accountStateFlow,
-            localFirstQueries.selectLocalDeviceIdentity().asFlow().mapToOneOrNull(Dispatchers.IO),
-        ) { accountState, deviceIdentity ->
-            val appAccountId = accountState?.appAccountId?.takeIf(String::isNotBlank)
-            val pendingOps = appAccountId?.let {
-                localFirstQueries.countRetryableOperations(it, DrainOutbox.MAX_RETRY_COUNT).executeAsOne()
-            } ?: 0L
-            val checkpoint = appAccountId?.let {
-                localFirstQueries.selectSyncCheckpoint(it).executeAsOneOrNull()
-            }
+            deviceIdentityFlow,
+            checkpointFlow,
+            pendingFlow,
+        ) { accountState, deviceIdentity, checkpoint, pendingOps ->
             SyncDebugState(
                 pendingOperations = pendingOps,
                 lastSuccessfulSyncAt = checkpoint?.lastSuccessfulSyncAt,
@@ -40,5 +60,6 @@ class DefaultSyncDebugStateRepository(
                 appAccountId = accountState?.appAccountId,
             )
         }
+            .distinctUntilChanged()
     }
 }
