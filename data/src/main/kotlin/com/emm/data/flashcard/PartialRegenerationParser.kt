@@ -64,7 +64,12 @@ object PartialRegenerationParser {
 
     private inline fun <reified T> decode(raw: String, json: Json, label: String): T {
         return runCatching { json.decodeFromString<T>(raw) }
-            .getOrElse { throw IllegalArgumentException("La respuesta de la IA no coincide con el formato esperado para $label", it) }
+            .getOrElse {
+                throw IllegalArgumentException(
+                    "La respuesta de la IA no coincide con el formato esperado para $label",
+                    it,
+                )
+            }
     }
 
     private fun invalidPayload(label: String): IllegalArgumentException {

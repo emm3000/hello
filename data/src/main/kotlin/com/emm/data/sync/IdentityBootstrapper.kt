@@ -27,7 +27,8 @@ class IdentityBootstrapper(
         )
         logInfo(
             TAG,
-            "ensureIdentityReady:bootstrap_success deviceId=$deviceId appAccountId=${bootstrap.appAccountId} created=${bootstrap.created}"
+            "ensureIdentityReady:bootstrap_success " +
+                "deviceId=$deviceId appAccountId=${bootstrap.appAccountId} created=${bootstrap.created}"
         )
 
         persistLocalAccountState(

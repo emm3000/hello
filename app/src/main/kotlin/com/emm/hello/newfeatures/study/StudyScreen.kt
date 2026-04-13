@@ -49,9 +49,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.study.ReviewGrade
@@ -61,8 +61,8 @@ import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
-import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HBadgeGroup
@@ -79,6 +79,7 @@ private const val ANSWER_BUTTONS_PLACEHOLDER_HEIGHT_DP = 104
 private const val PHONETIC_SEPARATOR_WIDTH_FRACTION = 0.4f
 private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val SUPPORT_SEPARATOR_WIDTH_FRACTION = 0.7f
+private const val MAX_RELATED_FORMS = 3
 
 @Composable
 fun StudyScreen(
@@ -581,7 +582,7 @@ private fun CardTypeAnswerSupport(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     HBadgeGroup {
-                        forms.take(3).forEach { form ->
+                        forms.take(MAX_RELATED_FORMS).forEach { form ->
                             HBadge(
                                 label = form,
                                 variant = BadgeVariant.Outline,
@@ -607,41 +608,48 @@ private fun GeneratedStudyCard.frontTitle(): String {
 
 private fun GeneratedStudyCard.frontSupportText(card: Flashcard?): String {
     return when (cardType) {
-        StudyCardType.Recognition -> {
-            when {
-                hint.isNotBlank() -> hint
-                explanation.isNotBlank() -> explanation
-                card?.meaning?.isNotBlank() == true -> card.meaning
-                else -> ""
-            }
-        }
+        StudyCardType.Recognition -> recognitionSupportText(card)
+        StudyCardType.Production -> productionSupportText(card)
+        StudyCardType.Cloze -> clozeSupportText(card)
+        StudyCardType.Form -> formSupportText(card)
+    }
+}
 
-        StudyCardType.Production -> {
-            when {
-                hint.isNotBlank() -> hint
-                card?.sourceContext?.isNotBlank() == true -> card.sourceContext
-                card?.whyUseful?.isNotBlank() == true -> card.whyUseful
-                else -> ""
-            }
-        }
+private fun GeneratedStudyCard.recognitionSupportText(card: Flashcard?): String {
+    return when {
+        hint.isNotBlank() -> hint
+        explanation.isNotBlank() -> explanation
+        card?.meaning?.isNotBlank() == true -> card.meaning
+        else -> ""
+    }
+}
 
-        StudyCardType.Cloze -> {
-            when {
-                card?.sourceContext?.isNotBlank() == true -> card.sourceContext
-                hint.isNotBlank() -> hint
-                explanation.isNotBlank() -> explanation
-                else -> ""
-            }
-        }
+private fun GeneratedStudyCard.productionSupportText(card: Flashcard?): String {
+    return when {
+        hint.isNotBlank() -> hint
+        card?.sourceContext?.isNotBlank() == true -> card.sourceContext
+        card?.whyUseful?.isNotBlank() == true -> card.whyUseful
+        else -> ""
+    }
+}
 
-        StudyCardType.Form -> {
-            when {
-                card?.irregularForms?.isNotEmpty() == true -> "Formas relacionadas: ${card.irregularForms.joinToString()}"
-                card?.usagePattern?.isNotBlank() == true -> card.usagePattern
-                hint.isNotBlank() -> hint
-                else -> ""
-            }
+private fun GeneratedStudyCard.clozeSupportText(card: Flashcard?): String {
+    return when {
+        card?.sourceContext?.isNotBlank() == true -> card.sourceContext
+        hint.isNotBlank() -> hint
+        explanation.isNotBlank() -> explanation
+        else -> ""
+    }
+}
+
+private fun GeneratedStudyCard.formSupportText(card: Flashcard?): String {
+    return when {
+        card?.irregularForms?.isNotEmpty() == true -> {
+            "Formas relacionadas: ${card.irregularForms.joinToString()}"
         }
+        card?.usagePattern?.isNotBlank() == true -> card.usagePattern
+        hint.isNotBlank() -> hint
+        else -> ""
     }
 }
 

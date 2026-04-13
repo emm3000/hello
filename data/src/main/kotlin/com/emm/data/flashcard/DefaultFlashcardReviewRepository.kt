@@ -3,10 +3,10 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
-import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.data.localfirst.OperationLogWriter
+import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.sync.OperationType
@@ -18,7 +18,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.time.Instant
 import java.util.UUID
-
 @LocalFirstWrite
 class DefaultFlashcardReviewRepository(
     private val db: HelloDb,

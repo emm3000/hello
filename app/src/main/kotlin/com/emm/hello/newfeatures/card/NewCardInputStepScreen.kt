@@ -40,6 +40,9 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSelect
 import java.util.Locale
 
+private const val INPUT_STEP_NUMBER = 2
+private const val TOTAL_STEP_COUNT = 3
+
 @Composable
 fun NewCardInputStepScreen(
     state: NewCardUiState,
@@ -85,7 +88,11 @@ fun NewCardInputStepScreen(
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = stringResource(R.string.step_counter, 2, 3),
+                            text = stringResource(
+                                R.string.step_counter,
+                                INPUT_STEP_NUMBER,
+                                TOTAL_STEP_COUNT,
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

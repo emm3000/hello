@@ -1,5 +1,3 @@
-@file:Suppress("ImportOrdering")
-
 package com.emm.hello.di
 
 import android.content.Context
@@ -54,14 +52,15 @@ import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.GetSyncDebugStateUseCase
 import com.emm.domain.sync.ListLinkedDevicesUseCase
 import com.emm.domain.sync.ObservePendingOperationsUseCase
-import com.emm.domain.sync.PendingOperationsRepository
 import com.emm.domain.sync.PairingRepository
+import com.emm.domain.sync.PendingOperationsRepository
 import com.emm.domain.sync.RedeemPairingCodeUseCase
 import com.emm.domain.sync.RevokeLinkedDeviceUseCase
 import com.emm.domain.sync.SyncDebugStateRepository
 import com.emm.domain.sync.SyncEngine
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
+import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
@@ -139,6 +138,18 @@ fun Module.useCases() {
     factoryOf(::RegenerateLearningNoteClozeUseCase)
     factoryOf(::RegenerateLearningNoteFieldUseCase)
     factoryOf(::RegenerateStudyCardUseCase)
+    factory {
+        NewCardGenerationDependencies(
+            createFlashcardUseCase = get(),
+            generateLearningNotePreviewUseCase = get(),
+            regenerateLearningNoteExampleUseCase = get(),
+            regenerateLearningNoteClozeUseCase = get(),
+            regenerateLearningNoteFieldUseCase = get(),
+            regenerateStudyCardUseCase = get(),
+            validateInputUseCase = get(),
+            validateGeneratedLearningNoteUseCase = get(),
+        )
+    }
     factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::GetFlashcardByIdUseCase)
@@ -162,16 +173,9 @@ fun Module.viewModels() {
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),
-            createFlashcardUseCase = get(),
-            generateLearningNotePreviewUseCase = get(),
-            regenerateLearningNoteExampleUseCase = get(),
-            regenerateLearningNoteClozeUseCase = get(),
-            regenerateLearningNoteFieldUseCase = get(),
-            regenerateStudyCardUseCase = get(),
+            generationDependencies = get(),
             getDefaultDeckUseCase = get(),
             setDefaultDeckUseCase = get(),
-            validateInputUseCase = get(),
-            validateGeneratedLearningNoteUseCase = get(),
         )
     }
     viewModel {

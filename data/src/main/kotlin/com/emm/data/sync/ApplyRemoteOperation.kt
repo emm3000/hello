@@ -36,7 +36,11 @@ class ApplyRemoteOperation(
         }
     }
 
-    private fun applyDeck(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+    private fun applyDeck(
+        appAccountId: String,
+        operation: RemoteSyncOperation,
+        localDeviceId: String,
+    ): ApplyRemoteOperationResult {
         val existing = deckQueries.findById(appAccountId, operation.entityId).executeAsOneOrNull()
         val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
         if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
@@ -75,7 +79,11 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyFlashcard(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+    private fun applyFlashcard(
+        appAccountId: String,
+        operation: RemoteSyncOperation,
+        localDeviceId: String,
+    ): ApplyRemoteOperationResult {
         val existing = flashcardQueries.findById(appAccountId, operation.entityId).executeAsOneOrNull()
         val originDeviceId = operation.originDeviceId.ifBlank { localDeviceId }
         if (isStale(existing?.versionLamport, existing?.lastModifiedByDeviceId, operation.lamport, originDeviceId)) {
@@ -232,7 +240,11 @@ class ApplyRemoteOperation(
         return ApplyRemoteOperationResult.Applied
     }
 
-    private fun applyReviewEvent(appAccountId: String, operation: RemoteSyncOperation, localDeviceId: String): ApplyRemoteOperationResult {
+    private fun applyReviewEvent(
+        appAccountId: String,
+        operation: RemoteSyncOperation,
+        localDeviceId: String,
+    ): ApplyRemoteOperationResult {
         val eventId = operation.entityId
         val payload = operation.payload
         val validation = validateReviewEvent(payload = payload, operationCreatedAt = operation.createdAt)
@@ -244,7 +256,8 @@ class ApplyRemoteOperation(
             validation is ValidationResult.Error -> {
                 ApplyRemoteOperationResult.Deferred(reason = validation.reason)
             }
-            reviewEvent != null && flashcardQueries.findById(appAccountId, reviewEvent.flashcardId).executeAsOneOrNull() == null -> {
+            reviewEvent != null &&
+                flashcardQueries.findById(appAccountId, reviewEvent.flashcardId).executeAsOneOrNull() == null -> {
                 ApplyRemoteOperationResult.Deferred(reason = "missing_parent_flashcard")
             }
             else -> null

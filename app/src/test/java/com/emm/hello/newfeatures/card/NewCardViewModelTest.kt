@@ -18,8 +18,8 @@ import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
-import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedExampleDraft
+import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
@@ -27,12 +27,12 @@ import com.emm.domain.flashcard.LearningDomain
 import com.emm.domain.flashcard.LearningNoteType
 import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.PartOfSpeechTag
-import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
-import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
+import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
@@ -68,32 +68,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -121,32 +104,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -184,32 +150,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -232,37 +181,24 @@ class NewCardViewModelTest {
         val inputSlot = slot<FlashcardGenerationInput>()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(capture(inputSlot)) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
         viewModel.onIntent(NewCardUiIntent.TypeViewSelected(TypeView.WithAiHelp))
-        viewModel.onIntent(NewCardUiIntent.AiRequestChanged("Quiero aprender frases para pedir comida en un restaurante"))
+        viewModel.onIntent(
+            NewCardUiIntent.AiRequestChanged(
+                "Quiero aprender frases para pedir comida en un restaurante",
+            )
+        )
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
@@ -284,32 +220,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -339,32 +258,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -397,32 +299,15 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -461,36 +346,19 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery { generationRepository.regenerateExample(any(), any()) } returns GeneratedExampleDraft(
             sentence = "Hello, how have you been lately?",
             translation = "Hola, como has estado ultimamente?",
         )
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -516,35 +384,18 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
-        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery {
             generationRepository.regenerateNoteField(any(), any(), RegenerableNoteField.WhyUseful)
         } returns "Te ayuda a sonar natural al saludar."
-        coEvery { writeRepository.create(any()) } returns "card-1"
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
-        val viewModel = NewCardViewModel(
-            getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                ValidateGeneratedLearningNoteUseCase(),
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
-                validateInputUseCase = com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase(),
-                validateGeneratedLearningNoteUseCase = com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase(),
-            ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(generationRepository, ValidateFlashcardGenerationInputUseCase()),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = ValidateFlashcardGenerationInputUseCase(),
-            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+        val viewModel = buildViewModel(
+            generationRepository = generationRepository,
+            writeRepository = writeRepository,
+            readRepository = readRepository,
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            deckRepository = deckRepository,
         )
 
         advanceUntilIdle()
@@ -576,6 +427,63 @@ class NewCardViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = flowOf(listOf(deck))
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(listOf(deck))
+    }
+
+    private fun buildViewModel(
+        generationRepository: FlashcardGenerationRepository,
+        writeRepository: FlashcardWriteRepository,
+        readRepository: FlashcardReadRepository,
+        defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+        deckRepository: DeckRepository,
+    ): NewCardViewModel {
+        val validateInputUseCase = ValidateFlashcardGenerationInputUseCase()
+        val validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase()
+        return NewCardViewModel(
+            getDecksUseCase = GetDecksUseCase(deckRepository),
+            generationDependencies = NewCardGenerationDependencies(
+                createFlashcardUseCase = CreateFlashcardUseCase(
+                    writeRepository,
+                    readRepository,
+                    validateGeneratedLearningNoteUseCase,
+                ),
+                generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                    repository = generationRepository,
+                    validateInputUseCase = validateInputUseCase,
+                    validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
+                ),
+                regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateStudyCardUseCase = RegenerateStudyCardUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                validateInputUseCase = validateInputUseCase,
+                validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
+            ),
+            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+        )
+    }
+
+    private fun stubDefaultRepositories(
+        defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+        writeRepository: FlashcardWriteRepository,
+        readRepository: FlashcardReadRepository,
+    ) {
+        every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
+        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {

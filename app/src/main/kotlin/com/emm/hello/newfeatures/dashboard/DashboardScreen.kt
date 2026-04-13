@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.hello.BuildConfig
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
@@ -141,11 +142,13 @@ fun DashboardScreen(
                 }
             }
 
-            item {
-                SyncDebugPanel(
-                    state = state.syncDebug,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
+            if (BuildConfig.SHOW_SYNC_DEBUG_PANEL) {
+                item {
+                    SyncDebugPanel(
+                        state = state.syncDebug,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
 
             // -- Section Header -------------------------------------------------------
