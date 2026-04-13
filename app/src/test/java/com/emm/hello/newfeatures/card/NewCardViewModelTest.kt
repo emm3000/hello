@@ -194,7 +194,11 @@ class NewCardViewModelTest {
 
         advanceUntilIdle()
         viewModel.onIntent(NewCardUiIntent.TypeViewSelected(TypeView.WithAiHelp))
-        viewModel.onIntent(NewCardUiIntent.AiRequestChanged("Quiero aprender frases para pedir comida en un restaurante"))
+        viewModel.onIntent(
+            NewCardUiIntent.AiRequestChanged(
+                "Quiero aprender frases para pedir comida en un restaurante",
+            )
+        )
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
@@ -436,36 +440,38 @@ class NewCardViewModelTest {
         val validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase()
         return NewCardViewModel(
             getDecksUseCase = GetDecksUseCase(deckRepository),
-            createFlashcardUseCase = CreateFlashcardUseCase(
-                writeRepository,
-                readRepository,
-                validateGeneratedLearningNoteUseCase,
-            ),
-            generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
-                repository = generationRepository,
+            generationDependencies = NewCardGenerationDependencies(
+                createFlashcardUseCase = CreateFlashcardUseCase(
+                    writeRepository,
+                    readRepository,
+                    validateGeneratedLearningNoteUseCase,
+                ),
+                generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
+                    repository = generationRepository,
+                    validateInputUseCase = validateInputUseCase,
+                    validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
+                ),
+                regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
+                regenerateStudyCardUseCase = RegenerateStudyCardUseCase(
+                    generationRepository,
+                    validateInputUseCase,
+                ),
                 validateInputUseCase = validateInputUseCase,
                 validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
             ),
-            regenerateLearningNoteExampleUseCase = RegenerateLearningNoteExampleUseCase(
-                generationRepository,
-                validateInputUseCase,
-            ),
-            regenerateLearningNoteClozeUseCase = RegenerateLearningNoteClozeUseCase(
-                generationRepository,
-                validateInputUseCase,
-            ),
-            regenerateLearningNoteFieldUseCase = RegenerateLearningNoteFieldUseCase(
-                generationRepository,
-                validateInputUseCase,
-            ),
-            regenerateStudyCardUseCase = RegenerateStudyCardUseCase(
-                generationRepository,
-                validateInputUseCase,
-            ),
             getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
             setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            validateInputUseCase = validateInputUseCase,
-            validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
         )
     }
 

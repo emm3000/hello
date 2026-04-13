@@ -81,10 +81,6 @@ fun NewCardReviewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when {
-                state.isLoading -> {
-                    item { LoadingPreviewSkeleton() }
-                }
-
                 state.learningNotePreview != null -> {
                     item {
                         ResultPreviewSection(
@@ -93,6 +89,10 @@ fun NewCardReviewScreen(
                             onIntent = onIntent,
                         )
                     }
+                }
+
+                state.isLoading -> {
+                    item { LoadingPreviewSkeleton() }
                 }
 
                 state.error != null -> {
