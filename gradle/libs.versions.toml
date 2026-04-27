@@ -26,7 +26,7 @@ truth = "1.4.5"
 turbine = "1.2.1"
 workRuntimeKtx = "2.11.2"
 detekt = "1.23.8"
-detektComposeRules = "0.5.7"
+detektComposeRules = "0.5.8"
 supabaseBom = "3.5.0"
 ktor = "3.4.2"
 
