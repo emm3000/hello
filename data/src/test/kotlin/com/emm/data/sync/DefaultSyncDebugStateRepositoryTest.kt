@@ -23,7 +23,13 @@ class DefaultSyncDebugStateRepositoryTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
-        subject = DefaultSyncDebugStateRepository(db)
+        subject = DefaultSyncDebugStateRepository(
+            db = db,
+            syncRuntimePolicy = object : SyncRuntimePolicy {
+                override val remoteEnabled: Boolean = false
+                override val modeLabel: String = "local-only"
+            },
+        )
     }
 
     @Test
@@ -42,9 +48,12 @@ class DefaultSyncDebugStateRepositoryTest {
                 state.deviceId == "device-1" &&
                 state.pendingOperations == 0L &&
                 state.lastSuccessfulSyncAt == null &&
-                state.lastSyncError == null
+                state.lastSyncError == null &&
+                state.modeLabel == "local-only" &&
+                state.remoteAvailable == false
         }
         assertEquals("account-1", initial.appAccountId)
+        assertEquals("local-only", initial.modeLabel)
 
         db.localFirstQueries.upsertSyncCheckpoint(
             appAccountId = "account-1",

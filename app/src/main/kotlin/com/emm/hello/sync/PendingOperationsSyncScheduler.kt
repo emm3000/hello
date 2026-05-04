@@ -1,6 +1,5 @@
 package com.emm.hello.sync
 
-import android.content.Context
 import android.util.Log
 import com.emm.domain.sync.ObservePendingOperationsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 class PendingOperationsSyncScheduler(
-    private val appContext: Context,
+    private val syncWorkScheduler: SyncWorkScheduler,
     private val observePendingOperationsUseCase: ObservePendingOperationsUseCase,
 ) {
 
@@ -28,7 +27,7 @@ class PendingOperationsSyncScheduler(
                 observePendingOperationsUseCase()
                     .filter { hasPending -> hasPending }
                     .catch { error -> Log.e(TAG, "Error observing pending operations", error) }
-                    .collect { Sync.requestImmediate(context = appContext) }
+                    .collect { syncWorkScheduler.requestImmediate() }
             }
         }
     }

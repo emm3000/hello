@@ -16,6 +16,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Temporary runtime gate for the stacked local-only rollout.
+// Default stays false so regular builds keep remote startup enabled.
+val localOnlyMode: Boolean = providers.gradleProperty("hello.localOnlyMode")
+    .orNull
+    ?.toBooleanStrictOrNull()
+    ?: false
+
 configure<ApplicationExtension> {
     namespace = "com.emm.hello"
     compileSdk = 36
@@ -28,6 +35,7 @@ configure<ApplicationExtension> {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("Boolean", "LOCAL_ONLY_MODE", localOnlyMode.toString())
     }
 
     signingConfigs {

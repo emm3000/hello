@@ -10,4 +10,6 @@ data class PairingUiState(
     val generatedCodeExpiresAt: String? = null,
     val joinCode: String = "",
     val devices: List<LinkedDevice> = emptyList(),
+    val modeLabel: String = "remote",
+    val remoteAvailable: Boolean = true,
 )

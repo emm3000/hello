@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 
 class DefaultSyncDebugStateRepository(
     private val db: HelloDb,
+    private val syncRuntimePolicy: SyncRuntimePolicy,
 ) : SyncDebugStateRepository {
 
     private val localFirstQueries = db.localFirstQueries
@@ -58,6 +59,8 @@ class DefaultSyncDebugStateRepository(
                 lastSyncError = checkpoint?.lastSyncError,
                 deviceId = deviceIdentity?.deviceId,
                 appAccountId = accountState?.appAccountId,
+                modeLabel = syncRuntimePolicy.modeLabel,
+                remoteAvailable = syncRuntimePolicy.remoteEnabled,
             )
         }
             .distinctUntilChanged()

@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.pairing
 
 import app.cash.turbine.test
+import com.emm.data.sync.SyncRuntimePolicy
 import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.LinkedDevice
@@ -64,6 +65,20 @@ class PairingViewModelTest {
     }
 
     @Test
+    fun `local only mode skips initial remote refresh and marks remote unavailable`() = runTest {
+        val pairingRepo = FakePairingRepo(devices = listOf(LinkedDevice(id = "d1", createdAt = "2026-01-01", isCurrent = false)))
+        val viewModel = makeViewModel(
+            pairingRepo = pairingRepo,
+            syncRuntimePolicy = FakeSyncRuntimePolicy(remoteEnabled = false, modeLabel = "local-only"),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.remoteAvailable).isFalse()
+        assertThat(viewModel.uiState.value.modeLabel).isEqualTo("local-only")
+        assertThat(pairingRepo.listDevicesCalls).isEqualTo(0)
+    }
+
+    @Test
     fun `create code success sets generated code in state and emits message`() = runTest {
         val session = PairingSession("654321", "2026-03-18T11:00:00")
         val viewModel = makeViewModel(pairingRepo = FakePairingRepo(session = session))
@@ -118,9 +133,105 @@ class PairingViewModelTest {
         }
     }
 
+    @Test
+    fun `create code in local only emits unavailable message without remote calls`() = runTest {
+        val pairingRepo = FakePairingRepo()
+        val syncEngine = FakeSyncEngine()
+        val viewModel = makeViewModel(
+            pairingRepo = pairingRepo,
+            syncEngine = syncEngine,
+            syncRuntimePolicy = FakeSyncRuntimePolicy(remoteEnabled = false, modeLabel = "local-only"),
+        )
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(PairingUiIntent.CreateCodeClicked)
+            assertThat(awaitItem()).isEqualTo(
+                PairingUiEffect.ShowMessage(
+                    "La vinculación remota está temporalmente fuera de servicio en modo local-only"
+                )
+            )
+        }
+
+        assertThat(pairingRepo.ensureLinkedIdentityCalls).isEqualTo(0)
+        assertThat(pairingRepo.createPairingSessionCalls).isEqualTo(0)
+        assertThat(syncEngine.runOnceCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `refresh devices in local only emits unavailable message without remote calls`() = runTest {
+        val pairingRepo = FakePairingRepo()
+        val viewModel = makeViewModel(
+            pairingRepo = pairingRepo,
+            syncRuntimePolicy = FakeSyncRuntimePolicy(remoteEnabled = false, modeLabel = "local-only"),
+        )
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(PairingUiIntent.RefreshDevicesClicked)
+            assertThat(awaitItem()).isEqualTo(
+                PairingUiEffect.ShowMessage(
+                    "La vinculación remota está temporalmente fuera de servicio en modo local-only"
+                )
+            )
+        }
+
+        assertThat(pairingRepo.listDevicesCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `join with code in local only emits unavailable message without remote calls`() = runTest {
+        val pairingRepo = FakePairingRepo()
+        val syncEngine = FakeSyncEngine()
+        val viewModel = makeViewModel(
+            pairingRepo = pairingRepo,
+            syncEngine = syncEngine,
+            syncRuntimePolicy = FakeSyncRuntimePolicy(remoteEnabled = false, modeLabel = "local-only"),
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(PairingUiIntent.JoinCodeChanged("123456"))
+
+        viewModel.effect.test {
+            viewModel.onIntent(PairingUiIntent.JoinWithCodeClicked)
+            assertThat(awaitItem()).isEqualTo(
+                PairingUiEffect.ShowMessage(
+                    "La vinculación remota está temporalmente fuera de servicio en modo local-only"
+                )
+            )
+        }
+
+        assertThat(pairingRepo.redeemPairingCodeCalls).isEqualTo(0)
+        assertThat(pairingRepo.ensureLinkedIdentityCalls).isEqualTo(0)
+        assertThat(syncEngine.runOnceCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `revoke device in local only emits unavailable message without remote calls`() = runTest {
+        val pairingRepo = FakePairingRepo()
+        val viewModel = makeViewModel(
+            pairingRepo = pairingRepo,
+            syncRuntimePolicy = FakeSyncRuntimePolicy(remoteEnabled = false, modeLabel = "local-only"),
+        )
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(PairingUiIntent.RevokeDeviceClicked("device-1"))
+            assertThat(awaitItem()).isEqualTo(
+                PairingUiEffect.ShowMessage(
+                    "La vinculación remota está temporalmente fuera de servicio en modo local-only"
+                )
+            )
+        }
+
+        assertThat(pairingRepo.ensureLinkedIdentityCalls).isEqualTo(0)
+        assertThat(pairingRepo.revokeLinkedDeviceCalls).isEqualTo(0)
+    }
+
     private fun makeViewModel(
         pairingRepo: FakePairingRepo = FakePairingRepo(),
         syncEngine: FakeSyncEngine = FakeSyncEngine(),
+        syncRuntimePolicy: SyncRuntimePolicy = FakeSyncRuntimePolicy(),
     ): PairingViewModel = PairingViewModel(
         ensureLinkedIdentityUseCase = EnsureLinkedIdentityUseCase(pairingRepo),
         createPairingSessionUseCase = CreatePairingSessionUseCase(pairingRepo),
@@ -128,6 +239,7 @@ class PairingViewModelTest {
         listLinkedDevicesUseCase = ListLinkedDevicesUseCase(pairingRepo),
         revokeLinkedDeviceUseCase = RevokeLinkedDeviceUseCase(pairingRepo),
         syncEngine = syncEngine,
+        syncRuntimePolicy = syncRuntimePolicy,
     )
 
     private class FakePairingRepo(
@@ -135,25 +247,45 @@ class PairingViewModelTest {
         private val devices: List<LinkedDevice> = emptyList(),
         private val shouldFail: Boolean = false,
     ) : PairingRepository {
-        override suspend fun ensureLinkedIdentity() = Unit
+        var ensureLinkedIdentityCalls: Int = 0
+        var createPairingSessionCalls: Int = 0
+        var redeemPairingCodeCalls: Int = 0
+        var listDevicesCalls: Int = 0
+        var revokeLinkedDeviceCalls: Int = 0
+        override suspend fun ensureLinkedIdentity() {
+            ensureLinkedIdentityCalls += 1
+        }
         override suspend fun createPairingSession(ttlMinutes: Int): PairingSession {
+            createPairingSessionCalls += 1
             if (shouldFail) error("create error")
             return session
         }
         override suspend fun redeemPairingCode(code: String) {
+            redeemPairingCodeCalls += 1
             if (shouldFail) error("redeem error")
         }
-        override suspend fun listLinkedDevices(): List<LinkedDevice> = devices
+        override suspend fun listLinkedDevices(): List<LinkedDevice> {
+            listDevicesCalls += 1
+            return devices
+        }
         override suspend fun revokeLinkedDevice(deviceId: String, reason: String?): Boolean {
+            revokeLinkedDeviceCalls += 1
             if (shouldFail) error("revoke error")
             return true
         }
     }
 
     private class FakeSyncEngine(private val shouldFail: Boolean = false) : SyncEngine {
+        var runOnceCalls: Int = 0
         override val state = MutableStateFlow(SyncState())
         override suspend fun runOnce() {
+            runOnceCalls += 1
             if (shouldFail) error("sync error")
         }
     }
+
+    private class FakeSyncRuntimePolicy(
+        override val remoteEnabled: Boolean = true,
+        override val modeLabel: String = "remote",
+    ) : SyncRuntimePolicy
 }

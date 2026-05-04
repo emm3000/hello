@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.pairing
 
 import androidx.lifecycle.viewModelScope
+import com.emm.data.sync.SyncRuntimePolicy
 import com.emm.domain.sync.CreatePairingSessionUseCase
 import com.emm.domain.sync.EnsureLinkedIdentityUseCase
 import com.emm.domain.sync.ListLinkedDevicesUseCase
@@ -20,12 +21,18 @@ class PairingViewModel(
     private val listLinkedDevicesUseCase: ListLinkedDevicesUseCase,
     private val revokeLinkedDeviceUseCase: RevokeLinkedDeviceUseCase,
     private val syncEngine: SyncEngine,
+    private val syncRuntimePolicy: SyncRuntimePolicy,
 ) : MviViewModel<PairingUiState, PairingUiIntent, PairingUiEffect>(
-    initialState = PairingUiState(),
+    initialState = PairingUiState(
+        modeLabel = syncRuntimePolicy.modeLabel,
+        remoteAvailable = syncRuntimePolicy.remoteEnabled,
+    ),
 ) {
 
     init {
-        onIntent(PairingUiIntent.RefreshDevicesClicked)
+        if (syncRuntimePolicy.remoteEnabled) {
+            onIntent(PairingUiIntent.RefreshDevicesClicked)
+        }
     }
 
     override fun onIntent(intent: PairingUiIntent) {
@@ -43,6 +50,7 @@ class PairingViewModel(
     }
 
     private fun createCode() {
+        if (!guardRemoteAction()) return
         viewModelScope.launch {
             mutableState.update { it.copy(isGeneratingCode = true) }
             runCatching {
@@ -67,6 +75,7 @@ class PairingViewModel(
     }
 
     private fun joinWithCode() {
+        if (!guardRemoteAction()) return
         val code = mutableState.value.joinCode
         if (code.length != PAIRING_CODE_LENGTH) {
             viewModelScope.launch {
@@ -96,6 +105,7 @@ class PairingViewModel(
     }
 
     private fun revokeDevice(deviceId: String) {
+        if (!guardRemoteAction()) return
         viewModelScope.launch {
             mutableState.update { it.copy(isLoading = true) }
             runCatching {
@@ -117,6 +127,25 @@ class PairingViewModel(
     }
 
     private fun refreshDevices() {
+        refreshDevices(showUnavailableMessage = true)
+    }
+
+    private fun refreshDevices(showUnavailableMessage: Boolean) {
+        if (!syncRuntimePolicy.remoteEnabled) {
+            mutableState.update {
+                it.copy(
+                    isLoading = false,
+                    modeLabel = syncRuntimePolicy.modeLabel,
+                    remoteAvailable = false,
+                )
+            }
+            if (showUnavailableMessage) {
+                viewModelScope.launch {
+                    mutableEffect.send(PairingUiEffect.ShowMessage(LOCAL_ONLY_MESSAGE))
+                }
+            }
+            return
+        }
         viewModelScope.launch {
             mutableState.update { it.copy(isLoading = true) }
             runCatching {
@@ -130,4 +159,14 @@ class PairingViewModel(
             }
         }
     }
+
+    private fun guardRemoteAction(): Boolean {
+        if (syncRuntimePolicy.remoteEnabled) return true
+        viewModelScope.launch {
+            mutableEffect.send(PairingUiEffect.ShowMessage(LOCAL_ONLY_MESSAGE))
+        }
+        return false
+    }
 }
+
+private const val LOCAL_ONLY_MESSAGE = "La vinculación remota está temporalmente fuera de servicio en modo local-only"

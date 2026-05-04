@@ -15,4 +15,6 @@ data class SyncDebugUiState(
     val lastSyncError: String? = null,
     val deviceId: String? = null,
     val appAccountId: String? = null,
+    val modeLabel: String = "remote",
+    val remoteAvailable: Boolean = true,
 )

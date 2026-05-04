@@ -16,7 +16,7 @@ object ConnectivitySyncTrigger {
 
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
-    fun register(context: Context) {
+    fun register(context: Context, onNetworkAvailable: () -> Unit) {
         if (isRegistered || registrationFailed) return
         synchronized(this) {
             if (isRegistered || registrationFailed) return
@@ -26,7 +26,7 @@ object ConnectivitySyncTrigger {
 
             val callback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
-                    Sync.requestImmediate(context)
+                    onNetworkAvailable()
                 }
             }
 
@@ -40,6 +40,25 @@ object ConnectivitySyncTrigger {
 
             networkCallback = callback
             isRegistered = true
+        }
+    }
+
+    fun unregister(context: Context) {
+        synchronized(this) {
+            val callback = networkCallback ?: run {
+                isRegistered = false
+                registrationFailed = false
+                return
+            }
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            runCatching {
+                connectivityManager?.unregisterNetworkCallback(callback)
+            }.onFailure { error ->
+                Log.w("ConnectivitySync", "Network callback unregister failed: ${error.message}")
+            }
+            networkCallback = null
+            isRegistered = false
+            registrationFailed = false
         }
     }
 }

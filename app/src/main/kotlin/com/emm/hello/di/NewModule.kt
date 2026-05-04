@@ -15,12 +15,16 @@ import com.emm.data.remote.DataStore
 import com.emm.data.sync.AckOperations
 import com.emm.data.sync.ApplyRemoteOperation
 import com.emm.data.sync.DefaultPairingRepository
+import com.emm.data.sync.DefaultLocalIdentityInitializer
 import com.emm.data.sync.DefaultPendingOperationsRepository
 import com.emm.data.sync.DefaultSyncDebugStateRepository
 import com.emm.data.sync.DefaultSyncEngine
 import com.emm.data.sync.DrainOutbox
 import com.emm.data.sync.IdentityBootstrapper
+import com.emm.data.sync.LocalIdentityInitializer
 import com.emm.data.sync.PullRemoteOperations
+import com.emm.data.sync.RuntimeAwareSyncEngine
+import com.emm.data.sync.SyncRuntimePolicy
 import com.emm.data.sync.syncDataModule
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
@@ -69,7 +73,12 @@ import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
+import com.emm.hello.startup.DefaultSyncRuntimeController
+import com.emm.hello.startup.SyncRuntimeController
+import com.emm.hello.sync.AppBuildSyncRuntimePolicy
 import com.emm.hello.sync.PendingOperationsSyncScheduler
+import com.emm.hello.sync.RuntimeAwareSyncWorkScheduler
+import com.emm.hello.sync.SyncWorkScheduler
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -107,11 +116,14 @@ fun Module.repository() {
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
-    singleOf(::DefaultSyncEngine) bind SyncEngine::class
-    factoryOf(::DefaultSyncDebugStateRepository) bind SyncDebugStateRepository::class
+    singleOf(::DefaultSyncEngine)
+    single<SyncEngine> { RuntimeAwareSyncEngine(get(), get()) }
+    factory<SyncDebugStateRepository> { DefaultSyncDebugStateRepository(get(), get()) }
     factoryOf(::DefaultPairingRepository) bind PairingRepository::class
     factoryOf(::DefaultPendingOperationsRepository) bind PendingOperationsRepository::class
     factoryOf(::IdentityBootstrapper)
+    single<SyncRuntimePolicy> { AppBuildSyncRuntimePolicy(BuildConfig.LOCAL_ONLY_MODE) }
+    factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
 
     factoryOf(::DrainOutbox)
     factoryOf(::PullRemoteOperations)
@@ -121,8 +133,10 @@ fun Module.repository() {
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
-    single { PendingOperationsSyncScheduler(androidContext(), get()) }
-    single { AppStartupCoordinator(androidContext(), get(), get()) }
+    single<SyncWorkScheduler> { RuntimeAwareSyncWorkScheduler(androidContext(), get()) }
+    single { PendingOperationsSyncScheduler(get(), get()) }
+    single<SyncRuntimeController> { DefaultSyncRuntimeController(get(), get()) }
+    single { AppStartupCoordinator(get(), get(), get(), get()) }
 }
 
 fun Module.useCases() {
@@ -166,10 +180,10 @@ fun Module.useCases() {
 }
 
 fun Module.viewModels() {
-    viewModelOf(::AppStartupViewModel)
-    viewModelOf(::NewDeckViewModel)
-    viewModelOf(::DashboardViewModel)
-    viewModelOf(::PairingViewModel)
+    viewModel { AppStartupViewModel(get()) }
+    viewModel { NewDeckViewModel(get()) }
+    viewModel { DashboardViewModel(get(), get(), get()) }
+    viewModel { PairingViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),

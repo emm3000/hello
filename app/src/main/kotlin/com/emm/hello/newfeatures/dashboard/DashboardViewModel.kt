@@ -34,6 +34,8 @@ class DashboardViewModel(
                     lastSyncError = syncDebug.lastSyncError ?: syncState.lastSyncError,
                     deviceId = syncDebug.deviceId,
                     appAccountId = syncDebug.appAccountId,
+                    modeLabel = syncDebug.modeLabel,
+                    remoteAvailable = syncDebug.remoteAvailable,
                 ),
             )
         }.onEach { mutableState.value = it }.launchIn(viewModelScope)
@@ -46,6 +48,16 @@ class DashboardViewModel(
     }
 
     private fun refreshSync() {
+        if (!uiState.value.syncDebug.remoteAvailable) {
+            viewModelScope.launch {
+                mutableEffect.send(
+                    DashboardUiEffect.ShowMessage(
+                        "La sincronización remota está pausada mientras el modo local-only está activo"
+                    )
+                )
+            }
+            return
+        }
         viewModelScope.launch {
             runCatching { syncEngine.runOnce() }
                 .onFailure {

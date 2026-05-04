@@ -40,7 +40,7 @@ fun NewRoot() {
             message = startupState.message,
             onRetry = startupViewModel::retry,
         )
-        AppStartupState.Ready -> AppNavigation()
+        is AppStartupState.Ready -> AppNavigation()
     }
 }
 

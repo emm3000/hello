@@ -13,6 +13,7 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.emm.data.sync.SyncRuntimePolicy
 import com.emm.domain.sync.SyncEngine
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
@@ -28,9 +29,13 @@ class SyncEngineWorker(
 ) : CoroutineWorker(appContext, workerParameters), KoinComponent {
 
     private val syncEngine: SyncEngine by inject<SyncEngine>()
+    private val syncRuntimePolicy: SyncRuntimePolicy by inject<SyncRuntimePolicy>()
 
     @Suppress("TooGenericExceptionCaught")
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        if (!syncRuntimePolicy.remoteEnabled) {
+            return@withContext Result.success()
+        }
         try {
             syncEngine.runOnce()
             if (syncEngine.state.value.pendingOperations > 0L) {

@@ -55,12 +55,42 @@ class DashboardViewModelTest {
 
     @Test
     fun `sync debug state is reflected in syncDebug field`() = runTest {
-        val syncDebug = SyncDebugState(pendingOperations = 5L, deviceId = "device-abc")
+        val syncDebug = SyncDebugState(
+            pendingOperations = 5L,
+            deviceId = "device-abc",
+            modeLabel = "local-only",
+            remoteAvailable = false,
+        )
         val viewModel = makeViewModel(syncDebugRepo = FakeSyncDebugRepo(syncDebug))
         advanceUntilIdle()
 
         assertThat(viewModel.uiState.value.syncDebug.pendingOperations).isEqualTo(5L)
         assertThat(viewModel.uiState.value.syncDebug.deviceId).isEqualTo("device-abc")
+        assertThat(viewModel.uiState.value.syncDebug.modeLabel).isEqualTo("local-only")
+        assertThat(viewModel.uiState.value.syncDebug.remoteAvailable).isFalse()
+    }
+
+    @Test
+    fun `refresh sync in local only emits explanatory message without running sync`() = runTest {
+        val syncEngine = FakeSyncEngine()
+        val viewModel = makeViewModel(
+            syncDebugRepo = FakeSyncDebugRepo(
+                SyncDebugState(modeLabel = "local-only", remoteAvailable = false)
+            ),
+            syncEngine = syncEngine,
+        )
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(DashboardUiIntent.RefreshSync)
+            assertThat(awaitItem()).isEqualTo(
+                DashboardUiEffect.ShowMessage(
+                    "La sincronización remota está pausada mientras el modo local-only está activo"
+                )
+            )
+        }
+
+        assertThat(syncEngine.runOnceCalls).isEqualTo(0)
     }
 
     @Test
@@ -115,8 +145,10 @@ class DashboardViewModelTest {
     }
 
     private class FakeSyncEngine(private val shouldFail: Boolean = false) : SyncEngine {
+        var runOnceCalls: Int = 0
         override val state = MutableStateFlow(SyncState())
         override suspend fun runOnce() {
+            runOnceCalls += 1
             if (shouldFail) error("sync error")
         }
     }
