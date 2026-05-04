@@ -47,9 +47,11 @@ import com.emm.domain.deck.Deck
 import com.emm.hello.BuildConfig
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.DashboardSkeleton
+import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSeparator
@@ -142,6 +144,17 @@ fun DashboardScreen(
                 }
             }
 
+            if (!state.syncDebug.remoteAvailable) {
+                item {
+                    HAlert(
+                        title = stringResource(R.string.local_only_dashboard_title),
+                        description = stringResource(R.string.local_only_dashboard_description),
+                        variant = AlertVariant.Warning,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+
             if (BuildConfig.SHOW_SYNC_DEBUG_PANEL) {
                 item {
                     SyncDebugPanel(
@@ -215,6 +228,19 @@ private fun SyncDebugPanel(
                 text = stringResource(R.string.sync_debug_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
+            )
+            DebugLine(
+                text = stringResource(R.string.sync_debug_mode, state.modeLabel),
+            )
+            DebugLine(
+                text = stringResource(
+                    R.string.sync_debug_remote_available,
+                    if (state.remoteAvailable) {
+                        stringResource(R.string.sync_debug_yes)
+                    } else {
+                        stringResource(R.string.sync_debug_no)
+                    },
+                ),
             )
             DebugLine(
                 text = stringResource(R.string.sync_debug_pending, state.pendingOperations),

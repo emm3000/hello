@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.sync.LinkedDevice
+import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
 
 @Composable
@@ -48,6 +50,16 @@ fun PairingScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (!state.remoteAvailable) {
+                item {
+                    HAlert(
+                        title = "Modo local-only activo",
+                        description = "La vinculación remota está pausada temporalmente. Podés seguir usando la app y guardando cambios locales.",
+                        variant = AlertVariant.Warning,
+                    )
+                }
+            }
+
             item {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
                     Column(
@@ -60,6 +72,7 @@ fun PairingScreen(
                         HButton(
                             text = "Crear código (6 dígitos)",
                             onClick = { onIntent(PairingUiIntent.CreateCodeClicked) },
+                            enabled = state.remoteAvailable,
                             isLoading = state.isGeneratingCode,
                         )
                         state.generatedCode?.let { code ->
@@ -86,11 +99,13 @@ fun PairingScreen(
                             onValueChange = { onIntent(PairingUiIntent.JoinCodeChanged(it)) },
                             label = { Text("Código de 6 dígitos") },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = state.remoteAvailable,
                             singleLine = true,
                         )
                         HButton(
                             text = "Vincular dispositivo",
                             onClick = { onIntent(PairingUiIntent.JoinWithCodeClicked) },
+                            enabled = state.remoteAvailable,
                             isLoading = state.isSubmittingJoin,
                         )
                     }
@@ -107,6 +122,7 @@ fun PairingScreen(
                         text = "Refrescar",
                         onClick = { onIntent(PairingUiIntent.RefreshDevicesClicked) },
                         variant = ButtonVariant.Ghost,
+                        enabled = state.remoteAvailable,
                         isLoading = state.isLoading,
                     )
                 }
@@ -115,6 +131,7 @@ fun PairingScreen(
             items(state.devices, key = { it.id }) { device ->
                 DeviceRow(
                     device = device,
+                    remoteAvailable = state.remoteAvailable,
                     onRevoke = { onIntent(PairingUiIntent.RevokeDeviceClicked(it)) },
                 )
             }
@@ -133,6 +150,7 @@ fun PairingScreen(
 @Composable
 private fun DeviceRow(
     device: LinkedDevice,
+    remoteAvailable: Boolean,
     onRevoke: (String) -> Unit,
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)) {
@@ -156,6 +174,7 @@ private fun DeviceRow(
                     text = "Revocar",
                     onClick = { onRevoke(device.id) },
                     variant = ButtonVariant.Destructive,
+                    enabled = remoteAvailable,
                 )
             }
             if (device.isCurrent) {

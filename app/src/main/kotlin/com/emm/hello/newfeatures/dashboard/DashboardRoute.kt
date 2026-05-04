@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.dashboard
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +43,19 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
                 val hasPermission: Boolean = checkSelfPermission == PackageManager.PERMISSION_GRANTED
                 if (hasPermission.not()) {
                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            vm.effect.collect { effect ->
+                when (effect) {
+                    is DashboardUiEffect.ShowMessage -> {
+                        Toast.makeText(ctx, effect.message, Toast.LENGTH_LONG).show()
+                    }
+                    is DashboardUiEffect.SyncFailed -> {
+                        Toast.makeText(ctx, effect.message, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
