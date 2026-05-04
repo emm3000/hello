@@ -1,5 +1,6 @@
 package com.emm.domain.deck
 
+import com.emm.domain.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,7 @@ class CreateDeckUseCaseTest {
             lastAddedDeck = deck
         }
 
-        override fun findById(deckId: String): Flow<Deck> = flowOf(Deck.Empty)
+        override fun findById(deckId: String): Flow<Deck> = flowOf(Deck.empty(Clock { java.time.Instant.EPOCH }))
 
         override fun fetchAll(): Flow<List<Deck>> = flowOf(emptyList())
 

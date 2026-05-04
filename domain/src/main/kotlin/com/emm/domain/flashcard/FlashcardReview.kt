@@ -1,6 +1,7 @@
 package com.emm.domain.flashcard
 
-import java.time.Instant
+import com.emm.domain.time.Clock
+import com.emm.domain.time.SystemClock
 
 data class FlashcardReview(
     val flashcardId: String,
@@ -14,14 +15,27 @@ data class FlashcardReview(
 
     companion object {
 
-        val Empty get() = FlashcardReview(
-            flashcardId = "",
-            lastReviewedAt = Instant.now().toEpochMilli(),
-            nextReviewAt = Instant.now().toEpochMilli(),
-            easeFactor = 2.5,
-            interval = 0L,
-            repetitions = 0L,
-            lapses = 0L
+        fun empty(clock: Clock): FlashcardReview {
+            val now = clock.now().toEpochMilli()
+
+            return FlashcardReview(
+                flashcardId = "",
+                lastReviewedAt = now,
+                nextReviewAt = now,
+                easeFactor = 2.5,
+                interval = 0L,
+                repetitions = 0L,
+                lapses = 0L,
+            )
+        }
+
+        @Deprecated(
+            message = "Use empty(clock) for deterministic time.",
+            replaceWith = ReplaceWith(
+                expression = "empty(SystemClock)",
+                imports = ["com.emm.domain.time.SystemClock"],
+            ),
         )
+        val Empty get() = empty(SystemClock)
     }
 }

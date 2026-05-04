@@ -1,13 +1,15 @@
 package com.emm.domain.study
 
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.time.Clock
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class ScheduleFlashcardReviewUseCaseTest {
 
-    private val useCase = ScheduleFlashcardReviewUseCase()
+    private val fixedNow = Instant.parse("2026-05-04T12:30:45Z")
+    private val useCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow })
 
     @Test
     fun `invoke when again resets repetitions and sets one day interval`() {
@@ -25,6 +27,7 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(0L, result.repetitions)
         assertEquals(1L, result.interval)
         assertEquals(3L, result.lapses)
+        assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
         assertEquals(86_400_000L, result.nextReviewAt - result.lastReviewedAt)
     }
 
@@ -42,6 +45,7 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(2L, result.repetitions)
         assertEquals(6L, result.interval)
         assertEquals(2.5, result.easeFactor, 0.0001)
+        assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
         assertEquals(6L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
     }
 
@@ -61,8 +65,8 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(16L, result.interval)
         assertEquals(2.6, result.easeFactor, 0.0001)
         assertEquals(1L, result.lapses)
+        assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
         assertEquals(16L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
-        assertTrue(result.lastReviewedAt > 0L)
     }
 
     private fun baseReview(): FlashcardReview = FlashcardReview(

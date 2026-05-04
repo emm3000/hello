@@ -12,6 +12,7 @@ import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,9 +22,12 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudyViewModelTest {
+
+    private val fixedClock = Clock { Instant.parse("2026-05-04T12:30:45Z") }
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -148,7 +152,7 @@ class StudyViewModelTest {
                     )
                 )
             ),
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(reviewRepo),
         )
         advanceUntilIdle()
@@ -182,7 +186,7 @@ class StudyViewModelTest {
     private fun makeViewModel(cards: List<Flashcard>): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         getStudySessionUseCase = GetStudySessionUseCase(FakeStudySessionRepo(cards)),
-        scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(),
+        scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(FakeFlashcardReviewRepo()),
     )
 

@@ -1,7 +1,7 @@
 package com.emm.domain.study
 
 import com.emm.domain.flashcard.FlashcardReview
-import java.time.Instant
+import com.emm.domain.time.Clock
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
 import kotlin.math.roundToLong
@@ -18,7 +18,12 @@ object SpacedRepetitionScheduler {
     private const val EASE_DELTA_PENALTY = 0.02
     private const val SECOND_REVIEW_INTERVAL_DAYS = 6L
 
-    fun schedule(review: FlashcardReview, grade: ReviewGrade, flashcardId: String): FlashcardReview {
+    fun schedule(
+        review: FlashcardReview,
+        grade: ReviewGrade,
+        flashcardId: String,
+        clock: Clock,
+    ): FlashcardReview {
         val quality = when (grade) {
             ReviewGrade.AGAIN -> 1
             ReviewGrade.HARD -> 3
@@ -26,7 +31,7 @@ object SpacedRepetitionScheduler {
             ReviewGrade.EASY -> 5
         }
 
-        val now = Instant.now()
+        val now = clock.now()
         val newEaseFactor: Double
         val newRepetitions: Long
         val newInterval: Long

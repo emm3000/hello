@@ -40,6 +40,8 @@ import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.domain.time.Clock
+import com.emm.domain.time.SystemClock
 import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
@@ -91,6 +93,7 @@ fun Module.repository() {
 }
 
 fun Module.useCases() {
+    single<Clock> { SystemClock }
     factoryOf(::CreateDeckUseCase)
     factoryOf(::GetDecksUseCase)
     factoryOf(::GetDefaultDeckUseCase)
