@@ -19,3 +19,4 @@ keystore.properties
 .kotlin
 domain/bin/
 google-services.json
+.atl/
