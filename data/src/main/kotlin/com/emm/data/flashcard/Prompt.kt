@@ -42,7 +42,7 @@ object Prompt {
 
         Decision policy:
         - If the user gives a broad communicative goal or situation, infer the single highest-value English expression to learn next.
-        - For beginners, prefer natural chunks that unlock real interaction quickly.
+        - For beginners, prefer high-frequency expressions that unlock real interaction quickly.
         - For intermediate/advanced learners, prefer expressions with strong communicative payoff, nuance, or common learner confusion.
         - If several options are possible, choose the one that is most frequent, reusable, and easy to practice with retrieval.
         - Use source_context to briefly capture the user's situation in your own words.

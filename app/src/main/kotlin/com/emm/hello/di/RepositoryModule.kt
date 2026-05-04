@@ -26,7 +26,7 @@ val repositoryModule = module {
 private fun provideGenerativeModel(): GenerativeModel = Firebase.ai(
     backend = GenerativeBackend.googleAI()
 ).generativeModel(
-    modelName = "gemini-2.5-flash",
+    modelName = "gemini-2.5-flash-lite",
     generationConfig = generationConfig {
         responseMimeType = "application/json"
         temperature = DEFAULT_TEMPERATURE

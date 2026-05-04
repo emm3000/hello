@@ -105,6 +105,7 @@ object GeneratedLearningNoteResponseParser {
             "phrasal_verb" -> LearningNoteType.PhrasalVerb
             "idiom" -> LearningNoteType.Idiom
             "sentence_pattern" -> LearningNoteType.SentencePattern
+            "chunk" -> LearningNoteType.Phrase // AI sometimes confuses chunk (part_of_speech) with note_type
             else -> throw invalidEnum("LearningNoteType")
         }
     }
@@ -190,7 +191,9 @@ object GeneratedLearningNoteResponseParser {
     }
 
     private fun String.normalizedEnum(): String {
-        return trim().lowercase()
+        return trim()
+            .replace(Regex("([a-z])([A-Z])"), "$1_$2")
+            .lowercase()
     }
 
     private fun String.invalidEnum(typeName: String): IllegalArgumentException {
