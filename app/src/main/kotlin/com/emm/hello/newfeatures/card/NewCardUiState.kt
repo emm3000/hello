@@ -3,10 +3,9 @@ package com.emm.hello.newfeatures.card
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedLearningNoteIssue
-import com.emm.domain.flashcard.StaticCategories
-import com.emm.domain.flashcard.TypeView
-import com.emm.domain.flashcard.difficult
-import com.emm.domain.flashcard.staticCategories
+import com.emm.data.catalog.StaticCategories
+import com.emm.data.catalog.difficult
+import com.emm.data.catalog.staticCategories
 
 sealed interface PreviewRegenerationTarget {
     data object Example : PreviewRegenerationTarget

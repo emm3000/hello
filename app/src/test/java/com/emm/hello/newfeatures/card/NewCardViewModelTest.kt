@@ -34,7 +34,6 @@ import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
-import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.hello.MainDispatcherRule

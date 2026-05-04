@@ -1,10 +1,12 @@
 package com.emm.data.flashcard
 
+import com.emm.data.catalog.communicativeIntents
+
 object Prompt {
 
     @Suppress("LongMethod")
     fun buildLearningNotePrompt(input: com.emm.domain.flashcard.FlashcardGenerationInput): String {
-        val communicativeIntent = com.emm.domain.flashcard.communicativeIntents
+        val communicativeIntent = communicativeIntents
             .firstOrNull { it.id == input.communicativeIntentId }
 
         return """

@@ -44,8 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
-import com.emm.domain.flashcard.TypeView
-import com.emm.domain.flashcard.staticCategories
+import com.emm.data.catalog.staticCategories
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme

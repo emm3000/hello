@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
-import com.emm.domain.flashcard.StaticCategories
+import com.emm.data.catalog.StaticCategories
 import com.emm.hello.R
 import kotlinx.coroutines.launch
 

@@ -8,8 +8,7 @@ import com.emm.domain.flashcard.LearningGoal
 import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegisterPreference
-import com.emm.domain.flashcard.StaticCategories
-import com.emm.domain.flashcard.TypeView
+import com.emm.data.catalog.StaticCategories
 import java.text.Normalizer
 
 private const val DEFAULT_COMMUNICATIVE_INTENT_ID = "social_small_talk"

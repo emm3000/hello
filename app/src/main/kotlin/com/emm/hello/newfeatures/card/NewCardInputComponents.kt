@@ -25,8 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import com.emm.domain.flashcard.TypeView
-import com.emm.domain.flashcard.difficult
+import com.emm.data.catalog.difficult
 import com.emm.hello.R
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.BadgeVariant

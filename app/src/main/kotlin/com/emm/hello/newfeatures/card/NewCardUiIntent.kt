@@ -1,8 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
-import com.emm.domain.flashcard.StaticCategories
-import com.emm.domain.flashcard.TypeView
+import com.emm.data.catalog.StaticCategories
 
 enum class EditableLearningNoteField {
     IntendedMeaningEs,

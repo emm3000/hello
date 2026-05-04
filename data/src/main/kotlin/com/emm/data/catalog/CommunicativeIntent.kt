@@ -1,4 +1,4 @@
-package com.emm.domain.flashcard
+package com.emm.data.catalog
 
 data class CommunicativeIntent(
     val id: String,
@@ -6,7 +6,7 @@ data class CommunicativeIntent(
     val description: String,
 )
 
-val communicativeIntents = listOf(
+val communicativeIntents: List<CommunicativeIntent> = listOf(
     CommunicativeIntent(
         id = "introduce_yourself",
         label = "Presentarte",

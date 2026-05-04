@@ -1,4 +1,4 @@
-package com.emm.domain.flashcard
+package com.emm.hello.newfeatures.card
 
 enum class TypeView {
     WordOrPhase {
