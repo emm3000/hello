@@ -2,7 +2,6 @@ package com.emm.hello.startup
 
 import com.emm.data.localfirst.LocalIdentityInitializer
 import com.emm.hello.logging.logError
-import com.emm.hello.logging.logInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,10 +27,8 @@ class AppStartupCoordinator(
                 if (mutableState.value is AppStartupState.Ready) return@withLock
                 mutableState.value = AppStartupState.Initializing
                 runCatching {
-                    logInfo(TAG, "start:prepare_local_identity")
                     localIdentityInitializer.ensureReady()
                 }.onSuccess {
-                    logInfo(TAG, "start:ready")
                     mutableState.value = AppStartupState.Ready
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)

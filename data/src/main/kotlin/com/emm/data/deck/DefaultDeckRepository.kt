@@ -7,7 +7,6 @@ import com.emm.data.DeckQueries
 import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
-import com.emm.data.logging.logInfo
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -30,7 +29,6 @@ class DefaultDeckRepository(
     override suspend fun addDeck(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
         val newId: String = UUID.randomUUID().toString()
-        logInfo(TAG, "addDeck:start deckId=$newId name=${deck.name}")
 
         db.transaction {
             dq.insert(
@@ -42,7 +40,6 @@ class DefaultDeckRepository(
                 deletedAt = null,
             )
         }
-        logInfo(TAG, "addDeck:success deckId=$newId")
         Unit
     }
 
@@ -70,8 +67,6 @@ class DefaultDeckRepository(
             .map(::toDomain)
     }
 }
-
-private const val TAG = "DeckRepository"
 
 private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)
 

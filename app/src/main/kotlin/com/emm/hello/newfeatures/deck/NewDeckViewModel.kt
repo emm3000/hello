@@ -5,7 +5,6 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
-import com.emm.hello.logging.logInfo
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,17 +26,14 @@ class NewDeckViewModel(
         val current = mutableState.value
         if (!current.isValid || current.isLoading) return@launch
 
-        logInfo(TAG, "createDeck:start name=${current.name.trim()}")
         mutableState.update { it.copy(isLoading = true) }
         runCatching {
             val input = CreateDeckInput(
                 name = current.name,
                 description = current.description,
             )
-            logInfo(TAG, "createDeck:repository_call")
             createDeckUseCase(input)
         }.onSuccess {
-            logInfo(TAG, "createDeck:success")
             mutableState.update { NewDeckUiState() }
             mutableEffect.send(NewDeckUiEffect.NavigateBack)
         }.onFailure { error ->

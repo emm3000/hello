@@ -12,12 +12,12 @@ import com.emm.domain.flashcard.FlashcardReview
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import java.nio.file.Files
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import java.nio.file.Files
 
 class LocalOnlyLocalWritesIntegrationTest {
 
@@ -95,16 +95,29 @@ class LocalOnlyLocalWritesIntegrationTest {
     fun `local-only reopen loads previously persisted data without remote rehydration`() = runTest {
         val dbFile = Files.createTempFile("local-only-reopen", ".db")
         val jdbcUrl = "jdbc:sqlite:${dbFile.toAbsolutePath()}"
-        lateinit var persistedFlashcardId: String
-
-        val firstDriver = JdbcSqliteDriver(jdbcUrl)
-        HelloDb.Schema.create(firstDriver)
-        val firstDb = HelloDb(firstDriver)
         try {
-            val firstLocalDeviceIdentityProvider = LocalDeviceIdentityProvider(firstDb)
+            val persistedFlashcardId = persistDataForReopenScenario(jdbcUrl)
+            val reopenedData = loadReopenedData(jdbcUrl, persistedFlashcardId)
+
+            assertEquals("device-reopen", reopenedData.deviceId)
+            assertFalse(reopenedData.createdInstallation)
+            assertEquals("Reopen deck", reopenedData.deckName)
+            assertEquals("bye", reopenedData.flashcardWord)
+            assertEquals(20L, reopenedData.nextReviewAt)
+        } finally {
+            Files.deleteIfExists(dbFile)
+        }
+    }
+
+    private suspend fun persistDataForReopenScenario(jdbcUrl: String): String {
+        val firstDriver = JdbcSqliteDriver(jdbcUrl)
+        val firstDb = HelloDb(firstDriver)
+        HelloDb.Schema.create(firstDriver)
+
+        return try {
             val firstInitializer = DefaultLocalIdentityInitializer(
                 db = firstDb,
-                localDeviceIdentityProvider = firstLocalDeviceIdentityProvider,
+                localDeviceIdentityProvider = LocalDeviceIdentityProvider(firstDb),
             )
 
             seedDeviceIdentity(firstDb, deviceId = "device-reopen")
@@ -121,7 +134,7 @@ class LocalOnlyLocalWritesIntegrationTest {
             deckRepository.addDeck(CreateDeckInput(name = "Reopen deck", description = "available after reopen"))
             assertFalse(identity.createdInstallation)
             val persistedDeck = firstDb.deckQueries.all().executeAsOne()
-            persistedFlashcardId = flashcardRepository.create(
+            val persistedFlashcardId = flashcardRepository.create(
                 CreateFlashcardInput(
                     deckId = persistedDeck.id,
                     word = "bye",
@@ -141,13 +154,17 @@ class LocalOnlyLocalWritesIntegrationTest {
                     lapses = 0L,
                 )
             )
+            persistedFlashcardId
         } finally {
             firstDriver.close()
         }
+    }
 
+    private suspend fun loadReopenedData(jdbcUrl: String, persistedFlashcardId: String): ReopenedData {
         val reopenedDriver = JdbcSqliteDriver(jdbcUrl)
         val reopenedDb = HelloDb(reopenedDriver)
-        try {
+
+        return try {
             val reopenedInitializer = DefaultLocalIdentityInitializer(
                 db = reopenedDb,
                 localDeviceIdentityProvider = LocalDeviceIdentityProvider(reopenedDb),
@@ -162,17 +179,25 @@ class LocalOnlyLocalWritesIntegrationTest {
                 .findReviewProjectionByFlashcardId(reopenedFlashcard.id)
                 .executeAsOne()
 
-            assertEquals("device-reopen", reopenedIdentity.deviceId)
-            assertFalse(reopenedIdentity.createdInstallation)
-            assertEquals("Reopen deck", reopenedDeck.name)
-            assertEquals("bye", reopenedFlashcard.word)
-            assertEquals(20L, reopenedReview.nextReviewAt)
+            ReopenedData(
+                deviceId = reopenedIdentity.deviceId,
+                createdInstallation = reopenedIdentity.createdInstallation,
+                deckName = reopenedDeck.name,
+                flashcardWord = reopenedFlashcard.word,
+                nextReviewAt = reopenedReview.nextReviewAt,
+            )
         } finally {
             reopenedDriver.close()
         }
-
-        Files.deleteIfExists(dbFile)
     }
+
+    private data class ReopenedData(
+        val deviceId: String,
+        val createdInstallation: Boolean,
+        val deckName: String,
+        val flashcardWord: String,
+        val nextReviewAt: Long,
+    )
 
     private fun seedDeviceIdentity(db: HelloDb = this.db, deviceId: String) {
         db.localFirstQueries.upsertLocalDeviceIdentity(

@@ -10,8 +10,8 @@ import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
+import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalIdentityInitializer
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
@@ -40,6 +40,7 @@ import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
@@ -49,7 +50,6 @@ import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
-import com.emm.hello.BuildConfig
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module

@@ -8,8 +8,6 @@ import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
-import com.emm.hello.logging.logInfo
-import com.emm.hello.logging.logWarn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -136,18 +134,8 @@ class NewCardViewModel(
 
     private fun generateFlashcard() = viewModelScope.launch {
         val current = mutableState.value
-        logInfo(
-            TAG,
-            "generateFlashcard:start typeView=${current.typeView} " +
-                "deckId=${current.deckSelected?.id.orEmpty()}",
-        )
         val inputValidation = generationDependencies.validateInputUseCase(current.toGenerationInput())
         if (!inputValidation.isValid) {
-            logWarn(
-                TAG,
-                "generateFlashcard:invalid_input " +
-                    "firstError=${inputValidation.errors.firstOrNull()?.message.orEmpty()}",
-            )
             mutableState.update {
                 it.clearPreviewState(
                     error = NewCardErrorUi(
@@ -167,14 +155,6 @@ class NewCardViewModel(
             )
         }.onSuccess { preview ->
             val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(preview)
-            logInfo(
-                TAG,
-                "generateFlashcard:success " +
-                    "noteId=${preview.noteId} " +
-                    "cards=${preview.cards.size} " +
-                    "errors=${previewValidation.errors.size} " +
-                    "warnings=${previewValidation.warnings.size}",
-            )
             mutableState.update { it.withPreviewValidation(preview, previewValidation) }
         }.onFailure { e ->
             logError(TAG, "generateFlashcard:error ${e.message}", e)
@@ -285,7 +265,6 @@ class NewCardViewModel(
             append("noteId=${preview.noteId}")
             if (metadata.isNotBlank()) append(" $metadata")
         }
-        logInfo(TAG, "$actionName:start $logContext")
         mutableState.update {
             it.copy(
                 isLoading = true,
@@ -296,7 +275,6 @@ class NewCardViewModel(
         runCatching {
             transform(current, preview)
         }.onSuccess { updatedPreview ->
-            logInfo(TAG, "$actionName:success $logContext")
             applyUpdatedPreview(updatedPreview)
         }.onFailure { e ->
             logError(TAG, "$actionName:error $logContext ${e.message}", e)
@@ -333,14 +311,6 @@ class NewCardViewModel(
 
     private fun applyUpdatedPreview(updatedPreview: GeneratedLearningNote) {
         val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(updatedPreview)
-        logInfo(
-            TAG,
-            "applyUpdatedPreview " +
-                "noteId=${updatedPreview.noteId} " +
-                "cards=${updatedPreview.cards.size} " +
-                "errors=${previewValidation.errors.size} " +
-                "warnings=${previewValidation.warnings.size}",
-        )
         mutableState.update { it.withPreviewValidation(updatedPreview, previewValidation) }
     }
 
@@ -348,14 +318,8 @@ class NewCardViewModel(
         val current = mutableState.value
         val deckId = current.deckSelected?.id ?: return@launch
         val learningNotePreview = current.learningNotePreview ?: return@launch
-        logInfo(TAG, "saveFlashcard:start deckId=$deckId noteId=${learningNotePreview.noteId}")
         val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(learningNotePreview)
         if (!previewValidation.isValid) {
-            logWarn(
-                TAG,
-                "saveFlashcard:blocked_invalid_preview " +
-                    "firstError=${previewValidation.errors.firstOrNull()?.message.orEmpty()}",
-            )
             mutableState.update {
                 it.withPreviewValidation(
                     preview = learningNotePreview,
@@ -376,7 +340,6 @@ class NewCardViewModel(
                 learningNote = learningNotePreview,
             )
         }.onSuccess {
-            logInfo(TAG, "saveFlashcard:success deckId=$deckId noteId=${learningNotePreview.noteId}")
             mutableState.update(NewCardUiState::resetAfterSave)
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
             mutableEffect.send(NewCardUiEffect.CloseFlow)
