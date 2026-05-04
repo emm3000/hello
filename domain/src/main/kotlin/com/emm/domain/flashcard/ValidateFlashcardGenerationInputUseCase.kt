@@ -1,13 +1,16 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.text.lowercaseRoot
+import com.emm.domain.validation.IssueCode
+import com.emm.domain.validation.ValidationIssue
+import com.emm.domain.validation.ValidationResult
 
 class ValidateFlashcardGenerationInputUseCase {
 
-    operator fun invoke(input: FlashcardGenerationInput): FlashcardGenerationInputValidation {
+    operator fun invoke(input: FlashcardGenerationInput): ValidationResult<FlashcardGenerationInput> {
         val normalized = input.normalized()
-        val errors = mutableListOf<FlashcardGenerationInputIssue>()
-        val warnings = mutableListOf<FlashcardGenerationInputIssue>()
+        val errors = mutableListOf<ValidationIssue.Error>()
+        val warnings = mutableListOf<ValidationIssue.Warning>()
         val userText = normalized.userText
         val wordCount = wordCount(userText)
 
@@ -16,21 +19,21 @@ class ValidateFlashcardGenerationInputUseCase {
         validateDisambiguation(normalized, wordCount, errors)
         validateContextSentence(normalized.contextSentence, warnings)
 
-        return FlashcardGenerationInputValidation(
-            normalizedInput = normalized,
-            errors = errors,
-            warnings = warnings,
-        )
+        return if (errors.isEmpty()) {
+            ValidationResult.valid(value = normalized, warnings = warnings)
+        } else {
+            ValidationResult.invalid(value = normalized, errors = errors, warnings = warnings)
+        }
     }
 
     private fun validateRequiredUserText(
         userText: String,
-        errors: MutableList<FlashcardGenerationInputIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         if (userText.isBlank()) {
-            errors += issue(
-                code = FlashcardGenerationInputIssueCode.EmptyUserText,
-                message = "Debes ingresar el texto que quieres aprender."
+            errors += ValidationIssue.Error(
+                code = IssueCode.EmptyUserText,
+                field = "userText",
             )
         }
     }
@@ -39,8 +42,8 @@ class ValidateFlashcardGenerationInputUseCase {
         input: FlashcardGenerationInput,
         userText: String,
         wordCount: Int,
-        errors: MutableList<FlashcardGenerationInputIssue>,
-        warnings: MutableList<FlashcardGenerationInputIssue>,
+        errors: MutableList<ValidationIssue.Error>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         when (input.inputType) {
             FlashcardInputType.Word -> validateWordInput(wordCount, warnings)
@@ -54,12 +57,12 @@ class ValidateFlashcardGenerationInputUseCase {
 
     private fun validateWordInput(
         wordCount: Int,
-        warnings: MutableList<FlashcardGenerationInputIssue>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         if (wordCount > 1) {
-            warnings += issue(
-                code = FlashcardGenerationInputIssueCode.WordInputContainsWhitespace,
-                message = "El input parece contener varias palabras; tal vez deberia tratarse como frase."
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.WordInputContainsWhitespace,
+                field = "userText",
             )
         }
     }
@@ -67,12 +70,12 @@ class ValidateFlashcardGenerationInputUseCase {
     private fun validatePhraseInput(
         userText: String,
         wordCount: Int,
-        warnings: MutableList<FlashcardGenerationInputIssue>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         if (userText.isNotBlank() && wordCount < 2) {
-            warnings += issue(
-                code = FlashcardGenerationInputIssueCode.PhraseInputTooShort,
-                message = "La frase parece demasiado corta; revisa si en realidad es una palabra."
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.PhraseInputTooShort,
+                field = "userText",
             )
         }
     }
@@ -80,12 +83,12 @@ class ValidateFlashcardGenerationInputUseCase {
     private fun validateSentenceInput(
         userText: String,
         wordCount: Int,
-        errors: MutableList<FlashcardGenerationInputIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         if (userText.isNotBlank() && wordCount < MIN_SENTENCE_WORD_COUNT) {
-            errors += issue(
-                code = FlashcardGenerationInputIssueCode.SentenceInputTooShort,
-                message = "Una entrada tipo oracion necesita mas contexto para generar una nota util."
+            errors += ValidationIssue.Error(
+                code = IssueCode.SentenceInputTooShort,
+                field = "userText",
             )
         }
     }
@@ -93,19 +96,19 @@ class ValidateFlashcardGenerationInputUseCase {
     private fun validateCommunicativeGoalInput(
         input: FlashcardGenerationInput,
         userText: String,
-        errors: MutableList<FlashcardGenerationInputIssue>,
-        warnings: MutableList<FlashcardGenerationInputIssue>,
+        errors: MutableList<ValidationIssue.Error>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         if (input.communicativeIntentId.isBlank()) {
-            errors += issue(
-                code = FlashcardGenerationInputIssueCode.MissingCommunicativeIntent,
-                message = "Debes indicar una intencion comunicativa para este tipo de entrada."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingCommunicativeIntent,
+                field = "communicativeIntentId",
             )
         }
         if (userText.isNotBlank() && userText.length < MIN_COMMUNICATIVE_GOAL_LENGTH) {
-            warnings += issue(
-                code = FlashcardGenerationInputIssueCode.CommunicativeGoalTooShort,
-                message = "Describe mejor el objetivo comunicativo para obtener contenido mas util."
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.CommunicativeGoalTooShort,
+                field = "userText",
             )
         }
     }
@@ -113,7 +116,7 @@ class ValidateFlashcardGenerationInputUseCase {
     private fun validateDisambiguation(
         input: FlashcardGenerationInput,
         wordCount: Int,
-        errors: MutableList<FlashcardGenerationInputIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         val needsDisambiguation = requiresDisambiguation(
             inputType = input.inputType,
@@ -122,21 +125,21 @@ class ValidateFlashcardGenerationInputUseCase {
         )
         val hasDisambiguation = input.intendedMeaningEs.isNotBlank() || input.contextSentence.isNotBlank()
         if (needsDisambiguation && !hasDisambiguation) {
-            errors += issue(
-                code = FlashcardGenerationInputIssueCode.MissingDisambiguation,
-                message = "Este termino es ambiguo; agrega el significado deseado o una oracion de contexto."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingDisambiguation,
+                field = "disambiguation",
             )
         }
     }
 
     private fun validateContextSentence(
         contextSentence: String,
-        warnings: MutableList<FlashcardGenerationInputIssue>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         if (contextSentence.isNotBlank() && wordCount(contextSentence) < MIN_CONTEXT_WORD_COUNT) {
-            warnings += issue(
-                code = FlashcardGenerationInputIssueCode.ContextSentenceTooShort,
-                message = "La oracion de contexto es muy corta; intenta dar mas informacion de uso real."
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.ContextSentenceTooShort,
+                field = "contextSentence",
             )
         }
     }
@@ -161,13 +164,6 @@ class ValidateFlashcardGenerationInputUseCase {
     private fun wordCount(text: String): Int {
         if (text.isBlank()) return 0
         return text.trim().split(WHITESPACE_REGEX).size
-    }
-
-    private fun issue(
-        code: FlashcardGenerationInputIssueCode,
-        message: String,
-    ): FlashcardGenerationInputIssue {
-        return FlashcardGenerationInputIssue(code = code, message = message)
     }
 
     private companion object {

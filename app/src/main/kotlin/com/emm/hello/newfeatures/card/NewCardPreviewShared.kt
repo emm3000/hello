@@ -14,8 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedLearningNoteIssue
-import com.emm.domain.flashcard.GeneratedLearningNoteIssueCode
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
 import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.LearningDomain
@@ -24,6 +22,7 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
@@ -33,6 +32,10 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSkeleton
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import com.emm.hello.newfeatures.card.validation.IssueUiTarget
+import com.emm.hello.newfeatures.card.validation.PreviewCardField
+import com.emm.hello.newfeatures.card.validation.PreviewField
 
 private const val MAX_PREVIEW_COLLOCATIONS = 3
 private const val SKELETON_DETAIL_WIDTH = 0.4f
@@ -100,23 +103,38 @@ internal fun RegenerateFieldButton(
     }
 }
 
-internal fun List<GeneratedLearningNoteIssue>.noteFieldMessage(noteField: String): String? {
-    return firstOrNull { it.noteField == noteField }?.message
+@Composable
+internal fun List<ValidationIssue>.noteFieldMessage(
+    noteField: PreviewField,
+    issueTextMapper: IssueTextMapper,
+): String? {
+    val issue = firstOrNull {
+        issueTextMapper.map(it).target == IssueUiTarget.PreviewFieldTarget(noteField)
+    } ?: return null
+    return stringResource(issueTextMapper.map(issue).textResId)
 }
 
-internal fun List<GeneratedLearningNoteIssue>.cardMessage(cardId: String, isAnswer: Boolean): String? {
-    val expectedCode = if (isAnswer) {
-        GeneratedLearningNoteIssueCode.EmptyCardAnswer
-    } else {
-        GeneratedLearningNoteIssueCode.EmptyCardPrompt
-    }
-    return firstOrNull { it.cardId == cardId && it.code == expectedCode }?.message
+@Composable
+internal fun List<ValidationIssue>.cardMessage(
+    cardId: String,
+    field: PreviewCardField,
+    issueTextMapper: IssueTextMapper,
+): String? {
+    val issue = firstOrNull {
+        issueTextMapper.map(it).target == IssueUiTarget.PreviewCard(cardId = cardId, field = field)
+    } ?: return null
+    return stringResource(issueTextMapper.map(issue).textResId)
 }
 
-internal fun List<GeneratedLearningNoteIssue>.cardWarning(cardId: String): String? {
-    return firstOrNull {
-        it.cardId == cardId && it.code == GeneratedLearningNoteIssueCode.InactiveCard
-    }?.message
+@Composable
+internal fun List<ValidationIssue>.cardWarning(cardId: String, issueTextMapper: IssueTextMapper): String? {
+    val issue = firstOrNull {
+        issueTextMapper.map(it).target == IssueUiTarget.PreviewCard(
+            cardId = cardId,
+            field = PreviewCardField.Active,
+        )
+    } ?: return null
+    return stringResource(issueTextMapper.map(issue).textResId)
 }
 
 internal fun GeneratedLearningNote.meaningAlerts(): List<PreviewAlertModel> {

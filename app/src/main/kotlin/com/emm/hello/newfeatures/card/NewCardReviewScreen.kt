@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 
@@ -34,6 +35,7 @@ fun NewCardReviewScreen(
     onNavigateBack: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val issueTextMapper = IssueTextMapper()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -99,7 +101,7 @@ fun NewCardReviewScreen(
                     item {
                         HAlert(
                             title = state.error.title,
-                            description = state.error.message,
+                            description = state.error.localizedDescription(issueTextMapper),
                             variant = AlertVariant.Destructive,
                         )
                     }

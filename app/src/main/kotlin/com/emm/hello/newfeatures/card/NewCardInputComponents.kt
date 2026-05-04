@@ -26,7 +26,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.emm.data.catalog.difficult
+import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
+import com.emm.hello.newfeatures.card.validation.InputField
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import com.emm.hello.newfeatures.card.validation.IssueUiTarget
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.CardVariant
@@ -44,23 +48,27 @@ internal fun NewCardInputSection(
     onToggleVoiceInput: () -> Unit,
     onShowCategoryPicker: () -> Unit,
 ) {
+    val issueTextMapper = IssueTextMapper()
     when (state.typeView) {
         TypeView.WordOrPhase -> WordOrPhraseInputSection(
             state = state,
             isListening = isListening,
             onIntent = onIntent,
             onToggleVoiceInput = onToggleVoiceInput,
+            issueTextMapper = issueTextMapper,
         )
 
         TypeView.WithCategories -> CategoryInputSection(
             state = state,
             onIntent = onIntent,
             onShowCategoryPicker = onShowCategoryPicker,
+            issueTextMapper = issueTextMapper,
         )
 
         TypeView.WithAiHelp -> AiHelpInputSection(
             state = state,
             onIntent = onIntent,
+            issueTextMapper = issueTextMapper,
         )
     }
 }
@@ -158,6 +166,7 @@ private fun WordOrPhraseInputSection(
     isListening: Boolean,
     onIntent: (NewCardUiIntent) -> Unit,
     onToggleVoiceInput: () -> Unit,
+    issueTextMapper: IssueTextMapper,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         HInput(
@@ -171,7 +180,14 @@ private fun WordOrPhraseInputSection(
             } else {
                 stringResource(R.string.word_placeholder)
             },
-            supportingText = stringResource(R.string.word_supporting_text),
+            supportingText = state.inputWarningIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.PrimaryText,
+            ) ?: stringResource(R.string.word_supporting_text),
+            errorMessage = state.inputValidationIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.PrimaryText,
+            ),
             trailingIcon = {
                 VoiceInputButton(
                     isListening = isListening,
@@ -186,7 +202,14 @@ private fun WordOrPhraseInputSection(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.intended_meaning_label),
             placeholder = stringResource(R.string.intended_meaning_placeholder),
-            supportingText = stringResource(R.string.intended_meaning_supporting_text),
+            supportingText = state.inputWarningIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.Disambiguation,
+            ) ?: stringResource(R.string.intended_meaning_supporting_text),
+            errorMessage = state.inputValidationIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.Disambiguation,
+            ),
         )
         HInput(
             value = state.contextSentence,
@@ -195,7 +218,14 @@ private fun WordOrPhraseInputSection(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.context_sentence_label),
             placeholder = stringResource(R.string.context_sentence_placeholder),
-            supportingText = stringResource(R.string.context_sentence_supporting_text),
+            supportingText = state.inputWarningIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.ContextSentence,
+            ) ?: stringResource(R.string.context_sentence_supporting_text),
+            errorMessage = state.inputValidationIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.ContextSentence,
+            ),
         )
     }
 }
@@ -205,6 +235,7 @@ private fun CategoryInputSection(
     state: NewCardUiState,
     onIntent: (NewCardUiIntent) -> Unit,
     onShowCategoryPicker: () -> Unit,
+    issueTextMapper: IssueTextMapper,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         HSelectTrigger(
@@ -212,6 +243,10 @@ private fun CategoryInputSection(
             label = stringResource(R.string.category_label),
             onClick = onShowCategoryPicker,
             supportingText = stringResource(R.string.category_supporting_text),
+            errorMessage = state.inputValidationIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.Category,
+            ),
         )
         HSelect(
             modifier = Modifier.fillMaxWidth(),
@@ -228,6 +263,7 @@ private fun CategoryInputSection(
 private fun AiHelpInputSection(
     state: NewCardUiState,
     onIntent: (NewCardUiIntent) -> Unit,
+    issueTextMapper: IssueTextMapper,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         HInput(
@@ -237,7 +273,14 @@ private fun AiHelpInputSection(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.ai_request_label),
             placeholder = stringResource(R.string.ai_request_placeholder),
-            supportingText = stringResource(R.string.ai_request_supporting_text),
+            supportingText = state.inputWarningIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.PrimaryText,
+            ) ?: stringResource(R.string.ai_request_supporting_text),
+            errorMessage = state.inputValidationIssues.inputMessageOrNull(
+                issueTextMapper = issueTextMapper,
+                target = InputField.PrimaryText,
+            ),
         )
         HSelect(
             modifier = Modifier.fillMaxWidth(),
@@ -248,6 +291,15 @@ private fun AiHelpInputSection(
             supportingText = stringResource(R.string.ai_difficulty_supporting_text),
         )
     }
+}
+
+@Composable
+private fun List<ValidationIssue>.inputMessageOrNull(
+    issueTextMapper: IssueTextMapper,
+    target: InputField,
+): String? {
+    val issue = firstOrNull { issueTextMapper.map(it).target == IssueUiTarget.Input(target) } ?: return null
+    return stringResource(issueTextMapper.map(issue).textResId)
 }
 
 @Composable

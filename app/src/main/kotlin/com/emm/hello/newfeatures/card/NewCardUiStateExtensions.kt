@@ -1,8 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedLearningNoteIssue
-import com.emm.domain.flashcard.GeneratedLearningNoteValidation
+import com.emm.domain.validation.ValidationResult
 
 internal fun NewCardUiState.clearPreviewState(
     error: NewCardErrorUi? = null,
@@ -10,9 +9,10 @@ internal fun NewCardUiState.clearPreviewState(
 ): NewCardUiState {
     return copy(
         error = error,
+        inputValidationIssues = emptyList(),
+        inputWarningIssues = emptyList(),
         learningNotePreview = null,
-        previewValidationErrors = emptyList(),
-        previewWarnings = emptyList(),
+        previewGeneratedWarnings = emptyList(),
         previewValidationIssues = emptyList(),
         previewWarningIssues = emptyList(),
         canSavePreview = false,
@@ -23,15 +23,16 @@ internal fun NewCardUiState.clearPreviewState(
 
 internal fun NewCardUiState.withPreviewValidation(
     preview: GeneratedLearningNote,
-    validation: GeneratedLearningNoteValidation,
+    validation: ValidationResult<GeneratedLearningNote>,
     error: NewCardErrorUi? = null,
     isLoading: Boolean = false,
 ): NewCardUiState {
     return copy(
         learningNotePreview = preview,
         error = error,
-        previewValidationErrors = validation.errors.messages(),
-        previewWarnings = validation.warnings.messages() + preview.warnings,
+        inputValidationIssues = emptyList(),
+        inputWarningIssues = emptyList(),
+        previewGeneratedWarnings = preview.warnings,
         previewValidationIssues = validation.errors,
         previewWarningIssues = validation.warnings,
         canSavePreview = validation.isValid,
@@ -47,8 +48,4 @@ internal fun NewCardUiState.resetAfterSave(): NewCardUiState {
         intendedMeaningEs = "",
         contextSentence = "",
     )
-}
-
-private fun List<GeneratedLearningNoteIssue>.messages(): List<String> {
-    return map(GeneratedLearningNoteIssue::message)
 }

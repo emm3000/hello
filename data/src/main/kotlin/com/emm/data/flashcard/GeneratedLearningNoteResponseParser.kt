@@ -16,6 +16,7 @@ import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
+import com.emm.domain.validation.DomainValidationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -68,9 +69,8 @@ object GeneratedLearningNoteResponseParser {
             warnings = warnings,
         )
         val validation = validateGeneratedLearningNoteUseCase(note)
-        require(validation.isValid) {
-            val messages = validation.errors.joinToString(separator = " | ") { it.message }
-            "La respuesta de la IA produjo una learning note invalida: $messages"
+        if (!validation.isValid) {
+            throw DomainValidationException(validation.errors)
         }
         return note
     }

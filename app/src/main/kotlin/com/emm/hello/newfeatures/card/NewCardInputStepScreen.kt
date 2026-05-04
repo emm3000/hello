@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.data.catalog.staticCategories
 import com.emm.hello.R
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
@@ -54,6 +55,7 @@ fun NewCardInputStepScreen(
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val showBottomSheet = remember { mutableStateOf(false) }
+    val issueTextMapper = remember { IssueTextMapper() }
     val sttManager = rememberSpeechToTextManager { voiceText ->
         onIntent(NewCardUiIntent.WordChanged(voiceText))
     }
@@ -198,7 +200,7 @@ fun NewCardInputStepScreen(
                 item {
                     com.emm.hello.core.ui.HAlert(
                         title = state.error.title,
-                        description = state.error.message,
+                        description = state.error.localizedDescription(issueTextMapper),
                         variant = com.emm.hello.core.ui.AlertVariant.Destructive,
                     )
                 }

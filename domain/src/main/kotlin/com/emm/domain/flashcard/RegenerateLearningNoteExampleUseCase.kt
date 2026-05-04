@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.validation.DomainValidationException
+
 class RegenerateLearningNoteExampleUseCase(
     private val repository: FlashcardGenerationRepository,
     private val validateInputUseCase: ValidateFlashcardGenerationInputUseCase,
@@ -11,12 +13,11 @@ class RegenerateLearningNoteExampleUseCase(
     ): GeneratedExampleDraft {
         val inputValidation = validateInputUseCase(input)
         if (!inputValidation.isValid) {
-            val message = inputValidation.errors.firstOrNull()?.message ?: "Input invalido para regenerar ejemplo."
-            throw IllegalArgumentException(message)
+            throw DomainValidationException(inputValidation.errors)
         }
 
         return repository.regenerateExample(
-            input = inputValidation.normalizedInput,
+            input = inputValidation.value,
             note = note,
         )
     }

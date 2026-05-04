@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class CreateFlashcardUseCaseTest {
 
@@ -15,14 +16,14 @@ class CreateFlashcardUseCaseTest {
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
+        val error = assertFailsWith<com.emm.domain.validation.DomainValidationException> {
             useCase(
                 deckId = "deck-1",
                 learningNote = sampleWordNote().copy(cards = emptyList()),
             )
         }
 
-        assert(error.message?.contains("invalida") == true)
+        assertTrue(error.issues.isNotEmpty())
     }
 
     @Test

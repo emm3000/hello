@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.validation.IssueCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -19,7 +20,7 @@ class ValidateFlashcardGenerationInputUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == FlashcardGenerationInputIssueCode.EmptyUserText })
+        assertTrue(result.errors.any { it.code == IssueCode.EmptyUserText })
     }
 
     @Test
@@ -32,7 +33,7 @@ class ValidateFlashcardGenerationInputUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == FlashcardGenerationInputIssueCode.MissingDisambiguation })
+        assertTrue(result.errors.any { it.code == IssueCode.MissingDisambiguation })
     }
 
     @Test
@@ -59,7 +60,7 @@ class ValidateFlashcardGenerationInputUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == FlashcardGenerationInputIssueCode.SentenceInputTooShort })
+        assertTrue(result.errors.any { it.code == IssueCode.SentenceInputTooShort })
     }
 
     @Test
@@ -72,7 +73,7 @@ class ValidateFlashcardGenerationInputUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == FlashcardGenerationInputIssueCode.MissingCommunicativeIntent })
+        assertTrue(result.errors.any { it.code == IssueCode.MissingCommunicativeIntent })
     }
 
     @Test
@@ -86,8 +87,8 @@ class ValidateFlashcardGenerationInputUseCaseTest {
             )
         )
 
-        assertEquals("look up", result.normalizedInput.userText)
-        assertEquals("buscar informacion", result.normalizedInput.intendedMeaningEs)
-        assertEquals("I looked it up yesterday", result.normalizedInput.contextSentence)
+        assertEquals("look up", result.value.userText)
+        assertEquals("buscar informacion", result.value.intendedMeaningEs)
+        assertEquals("I looked it up yesterday", result.value.contextSentence)
     }
 }

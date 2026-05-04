@@ -26,8 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
+import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
@@ -38,6 +38,8 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import com.emm.hello.newfeatures.card.validation.PreviewField
 
 private const val RESULT_FADE_IN_DURATION_MS = 300
 
@@ -89,6 +91,9 @@ internal fun ResultPreviewSection(
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
     val learningNotePreview = state.learningNotePreview ?: return
+    val issueTextMapper = IssueTextMapper()
+    val previewErrors = state.previewValidationIssues.localized(issueTextMapper)
+    val previewWarnings = state.previewWarningIssues.localized(issueTextMapper) + state.previewGeneratedWarnings
 
     AnimatedVisibility(
         visible = true,
@@ -107,8 +112,8 @@ internal fun ResultPreviewSection(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             ReviewStatusSummary(
-                validationErrors = state.previewValidationErrors,
-                warnings = state.previewWarnings,
+                validationErrors = previewErrors,
+                warnings = previewWarnings,
                 totalCards = learningNotePreview.cards.size,
                 activeCards = learningNotePreview.cards.count { it.isActive },
             )
@@ -120,11 +125,11 @@ internal fun ResultPreviewSection(
                 onIntent = onIntent,
             )
 
-            if (!state.canSavePreview && state.previewValidationErrors.isNotEmpty()) {
+            if (!state.canSavePreview && previewErrors.isNotEmpty()) {
                 SupportingText(
                     text = stringResource(
                         R.string.save_blocked_summary,
-                        state.previewValidationErrors.size,
+                        previewErrors.size,
                     ),
                 )
             }
@@ -141,21 +146,21 @@ internal fun ResultPreviewSection(
                     .height(48.dp),
             )
 
-            if (state.previewValidationErrors.isNotEmpty()) {
+            if (previewErrors.isNotEmpty()) {
                 HAlert(
                     title = stringResource(R.string.preview_not_saveable_title),
-                    description = state.previewValidationErrors.joinToString(separator = "\n"),
+                    description = previewErrors.joinToString(separator = "\n"),
                     variant = AlertVariant.Destructive,
                 )
             }
 
-            if (state.previewWarnings.isNotEmpty()) {
+            if (previewWarnings.isNotEmpty()) {
                 HAlert(
                     title = stringResource(R.string.preview_warnings_title),
                     description = if (state.previewWarningIssues.isNotEmpty()) {
                         stringResource(R.string.preview_warnings_inline_summary)
                     } else {
-                        state.previewWarnings.joinToString(separator = "\n")
+                        previewWarnings.joinToString(separator = "\n")
                     },
                     variant = AlertVariant.Warning,
                 )
@@ -217,11 +222,12 @@ private fun ReviewStatusSummary(
 @Composable
 private fun LearningNotePreview(
     note: GeneratedLearningNote,
-    validationIssues: List<GeneratedLearningNoteIssue>,
-    warningIssues: List<GeneratedLearningNoteIssue>,
+    validationIssues: List<ValidationIssue>,
+    warningIssues: List<ValidationIssue>,
     noteRegenerationTarget: PreviewRegenerationTarget?,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
+    val issueTextMapper = IssueTextMapper()
     var selectedCardId by remember(note.noteId) { mutableStateOf<String?>(null) }
     var showPassedChecks by remember(note.noteId) { mutableStateOf(false) }
     var noteSectionExpanded by remember(note.noteId) { mutableStateOf(true) }
@@ -259,8 +265,8 @@ private fun LearningNotePreview(
                     label = stringResource(R.string.translation_label),
                     value = note.intendedMeaningEs,
                     placeholder = "Significado intencional en espanol",
-                    errorMessage = validationIssues.noteFieldMessage("intendedMeaningEs"),
-                    supportingText = warningIssues.noteFieldMessage("intendedMeaningEs"),
+                    errorMessage = validationIssues.noteFieldMessage(PreviewField.IntendedMeaning, issueTextMapper),
+                    supportingText = warningIssues.noteFieldMessage(PreviewField.IntendedMeaning, issueTextMapper),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -275,8 +281,8 @@ private fun LearningNotePreview(
                     value = note.simpleDefinitionEn,
                     placeholder = "Define el significado en ingles simple",
                     minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("simpleDefinitionEn"),
-                    supportingText = warningIssues.noteFieldMessage("simpleDefinitionEn"),
+                    errorMessage = validationIssues.noteFieldMessage(PreviewField.SimpleDefinition, issueTextMapper),
+                    supportingText = warningIssues.noteFieldMessage(PreviewField.SimpleDefinition, issueTextMapper),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -292,8 +298,8 @@ private fun LearningNotePreview(
                     value = note.whyUseful,
                     placeholder = "Por que vale la pena aprender esta nota",
                     minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("whyUseful"),
-                    supportingText = warningIssues.noteFieldMessage("whyUseful"),
+                    errorMessage = validationIssues.noteFieldMessage(PreviewField.WhyUseful, issueTextMapper),
+                    supportingText = warningIssues.noteFieldMessage(PreviewField.WhyUseful, issueTextMapper),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -317,8 +323,8 @@ private fun LearningNotePreview(
                         value = note.usagePattern,
                         placeholder = "Patron de uso",
                         minLines = 2,
-                        errorMessage = validationIssues.noteFieldMessage("usagePattern"),
-                        supportingText = warningIssues.noteFieldMessage("usagePattern"),
+                        errorMessage = validationIssues.noteFieldMessage(PreviewField.UsagePattern, issueTextMapper),
+                        supportingText = warningIssues.noteFieldMessage(PreviewField.UsagePattern, issueTextMapper),
                         onValueChange = {
                             onIntent(
                                 NewCardUiIntent.PreviewFieldChanged(
@@ -342,7 +348,6 @@ private fun LearningNotePreview(
                         value = note.commonMistake,
                         placeholder = "Error comun a evitar",
                         minLines = 2,
-                        supportingText = warningIssues.noteFieldMessage("commonMistake"),
                         onValueChange = {
                             onIntent(
                                 NewCardUiIntent.PreviewFieldChanged(
@@ -366,8 +371,8 @@ private fun LearningNotePreview(
                         value = note.clozeSentence,
                         placeholder = "Frase cloze",
                         minLines = 2,
-                        errorMessage = validationIssues.noteFieldMessage("clozeSentence"),
-                        supportingText = warningIssues.noteFieldMessage("clozeSentence"),
+                        errorMessage = validationIssues.noteFieldMessage(PreviewField.ClozeSentence, issueTextMapper),
+                        supportingText = warningIssues.noteFieldMessage(PreviewField.ClozeSentence, issueTextMapper),
                         onValueChange = {
                             onIntent(
                                 NewCardUiIntent.PreviewFieldChanged(
@@ -418,8 +423,8 @@ private fun LearningNotePreview(
                     value = note.exampleSentence,
                     placeholder = "Ejemplo principal",
                     minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("exampleSentence"),
-                    supportingText = warningIssues.noteFieldMessage("exampleSentence"),
+                    errorMessage = validationIssues.noteFieldMessage(PreviewField.ExampleSentence, issueTextMapper),
+                    supportingText = warningIssues.noteFieldMessage(PreviewField.ExampleSentence, issueTextMapper),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -434,8 +439,8 @@ private fun LearningNotePreview(
                     value = note.exampleTranslation,
                     placeholder = "Traduccion del ejemplo",
                     minLines = 2,
-                    errorMessage = validationIssues.noteFieldMessage("exampleTranslation"),
-                    supportingText = warningIssues.noteFieldMessage("exampleTranslation"),
+                    errorMessage = validationIssues.noteFieldMessage(PreviewField.ExampleTranslation, issueTextMapper),
+                    supportingText = warningIssues.noteFieldMessage(PreviewField.ExampleTranslation, issueTextMapper),
                     onValueChange = {
                         onIntent(
                             NewCardUiIntent.PreviewFieldChanged(
@@ -593,6 +598,11 @@ private fun LearningNotePreview(
             )
         }
     }
+}
+
+@Composable
+private fun List<ValidationIssue>.localized(issueTextMapper: IssueTextMapper): List<String> {
+    return map { stringResource(issueTextMapper.map(it).textResId) }
 }
 
 @Composable

@@ -167,7 +167,7 @@ class NewCardViewModelTest {
 
         assertThat(viewModel.uiState.value.learningNotePreview).isNotNull()
         assertThat(viewModel.uiState.value.canSavePreview).isTrue()
-        assertThat(viewModel.uiState.value.previewValidationErrors).isEmpty()
+        assertThat(viewModel.uiState.value.previewValidationIssues).isEmpty()
     }
 
     @Test
@@ -245,7 +245,7 @@ class NewCardViewModelTest {
 
         assertThat(viewModel.uiState.value.learningNotePreview?.exampleSentence).isEmpty()
         assertThat(viewModel.uiState.value.canSavePreview).isFalse()
-        assertThat(viewModel.uiState.value.previewValidationErrors).isNotEmpty()
+        assertThat(viewModel.uiState.value.previewValidationIssues).isNotEmpty()
     }
 
     @Test

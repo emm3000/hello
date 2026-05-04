@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.emm.domain.flashcard.GeneratedLearningNoteIssue
 import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
@@ -26,20 +26,23 @@ import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import com.emm.hello.newfeatures.card.validation.PreviewCardField
 
 @Composable
 internal fun GeneratedStudyCardSummaryItem(
     index: Int,
     total: Int,
     card: GeneratedStudyCard,
-    validationIssues: List<GeneratedLearningNoteIssue>,
-    warningIssues: List<GeneratedLearningNoteIssue>,
+    validationIssues: List<ValidationIssue>,
+    warningIssues: List<ValidationIssue>,
     onClick: () -> Unit,
 ) {
+    val issueTextMapper = IssueTextMapper()
     val issuesCount = listOfNotNull(
-        validationIssues.cardMessage(card.cardId, isAnswer = false),
-        validationIssues.cardMessage(card.cardId, isAnswer = true),
-        warningIssues.cardWarning(card.cardId),
+        validationIssues.cardMessage(card.cardId, PreviewCardField.Prompt, issueTextMapper),
+        validationIssues.cardMessage(card.cardId, PreviewCardField.ExpectedAnswer, issueTextMapper),
+        warningIssues.cardWarning(card.cardId, issueTextMapper),
     ).size
 
     HCard(variant = CardVariant.Outlined) {
@@ -127,8 +130,8 @@ internal fun GeneratedStudyCardSummaryItem(
 @Composable
 internal fun GeneratedStudyCardEditorSheet(
     card: GeneratedStudyCard,
-    validationIssues: List<GeneratedLearningNoteIssue>,
-    warningIssues: List<GeneratedLearningNoteIssue>,
+    validationIssues: List<ValidationIssue>,
+    warningIssues: List<ValidationIssue>,
     regenerationTarget: PreviewRegenerationTarget?,
     onPromptChanged: (String) -> Unit,
     onExpectedAnswerChanged: (String) -> Unit,
@@ -136,6 +139,7 @@ internal fun GeneratedStudyCardEditorSheet(
     onActiveChanged: (Boolean) -> Unit,
     onRegenerate: () -> Unit,
 ) {
+    val issueTextMapper = IssueTextMapper()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,9 +188,9 @@ internal fun GeneratedStudyCardEditorSheet(
             value = card.prompt,
             placeholder = stringResource(R.string.card_front_placeholder),
             minLines = 2,
-            errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = false),
+            errorMessage = validationIssues.cardMessage(card.cardId, PreviewCardField.Prompt, issueTextMapper),
             helperText = stringResource(R.string.card_front_supporting_text),
-            supportingText = warningIssues.cardWarning(card.cardId),
+            supportingText = warningIssues.cardWarning(card.cardId, issueTextMapper),
             onValueChange = onPromptChanged,
         )
         EditablePreviewField(
@@ -194,7 +198,7 @@ internal fun GeneratedStudyCardEditorSheet(
             value = card.expectedAnswer,
             placeholder = stringResource(R.string.card_answer_placeholder),
             minLines = 2,
-            errorMessage = validationIssues.cardMessage(card.cardId, isAnswer = true),
+            errorMessage = validationIssues.cardMessage(card.cardId, PreviewCardField.ExpectedAnswer, issueTextMapper),
             helperText = stringResource(R.string.card_answer_supporting_text),
             onValueChange = onExpectedAnswerChanged,
         )

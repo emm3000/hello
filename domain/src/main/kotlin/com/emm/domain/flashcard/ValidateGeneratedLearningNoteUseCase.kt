@@ -1,27 +1,31 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.text.lowercaseRoot
+import com.emm.domain.validation.IssueCode
+import com.emm.domain.validation.ValidationIssue
+import com.emm.domain.validation.ValidationResult
 
 class ValidateGeneratedLearningNoteUseCase {
 
-    operator fun invoke(note: GeneratedLearningNote): GeneratedLearningNoteValidation {
-        val errors = mutableListOf<GeneratedLearningNoteIssue>()
-        val warnings = mutableListOf<GeneratedLearningNoteIssue>()
+    operator fun invoke(note: GeneratedLearningNote): ValidationResult<GeneratedLearningNote> {
+        val errors = mutableListOf<ValidationIssue.Error>()
+        val warnings = mutableListOf<ValidationIssue.Warning>()
 
         validateCoreFields(note, errors)
         validateNoteTypeRequirements(note, errors)
         validateCards(note, errors, warnings)
         validateQualityChecks(note, errors)
 
-        return GeneratedLearningNoteValidation(
-            errors = errors,
-            warnings = warnings,
-        )
+        return if (errors.isEmpty()) {
+            ValidationResult.valid(value = note, warnings = warnings)
+        } else {
+            ValidationResult.invalid(value = note, errors = errors, warnings = warnings)
+        }
     }
 
     private fun validateCoreFields(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         validateIdentityFields(note, errors)
         validateMeaningFields(note, errors)
@@ -31,7 +35,7 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validateNoteTypeRequirements(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         when (note.noteType) {
             LearningNoteType.Word -> validateWordNote(note, errors)
@@ -44,92 +48,85 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validateIdentityFields(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireNonBlank(
             note.noteId,
-            GeneratedLearningNoteIssueCode.MissingNoteId,
-            "La nota generada debe tener un id.",
+            IssueCode.MissingNoteId,
             errors,
-            noteField = "noteId",
+            field = "noteId",
         )
         requireNonBlank(
             note.expression,
-            GeneratedLearningNoteIssueCode.MissingExpression,
-            "La nota generada debe tener una expresion objetivo.",
+            IssueCode.MissingExpression,
             errors,
-            noteField = "expression",
+            field = "expression",
         )
     }
 
     private fun validateMeaningFields(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireNonBlank(
             note.intendedMeaningEs,
-            GeneratedLearningNoteIssueCode.MissingIntendedMeaning,
-            "La nota generada debe tener un significado intencional en espanol.",
+            IssueCode.MissingIntendedMeaning,
             errors,
-            noteField = "intendedMeaningEs",
+            field = "intendedMeaningEs",
         )
         requireNonBlank(
             note.simpleDefinitionEn,
-            GeneratedLearningNoteIssueCode.MissingDefinition,
-            "La nota generada debe tener una definicion simple en ingles.",
+            IssueCode.MissingDefinition,
             errors,
-            noteField = "simpleDefinitionEn",
+            field = "simpleDefinitionEn",
         )
         requireNonBlank(
             note.whyUseful,
-            GeneratedLearningNoteIssueCode.MissingWhyUseful,
-            "La nota generada debe explicar por que vale la pena estudiarla.",
+            IssueCode.MissingWhyUseful,
             errors,
-            noteField = "whyUseful",
+            field = "whyUseful",
         )
     }
 
     private fun validateExampleFields(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireNonBlank(
             note.exampleSentence,
-            GeneratedLearningNoteIssueCode.MissingExampleSentence,
-            "La nota generada debe incluir un ejemplo principal.",
+            IssueCode.MissingExampleSentence,
             errors,
-            noteField = "exampleSentence",
+            field = "exampleSentence",
         )
         requireNonBlank(
             note.exampleTranslation,
-            GeneratedLearningNoteIssueCode.MissingExampleTranslation,
-            "La nota generada debe incluir la traduccion del ejemplo.",
+            IssueCode.MissingExampleTranslation,
             errors,
-            noteField = "exampleTranslation",
+            field = "exampleTranslation",
         )
     }
 
     private fun validateCollections(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         if (note.cards.isEmpty()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.MissingCards,
-                "La nota generada debe incluir tarjetas derivadas."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingCards,
+                field = "cards",
             )
         }
         if (note.qualityChecks.isEmpty()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.MissingQualityChecks,
-                "La nota generada debe incluir verificaciones de calidad."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingQualityChecks,
+                field = "qualityChecks",
             )
         }
     }
 
     private fun validateWordNote(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireExpectedCard(note, StudyCardType.Recognition, errors)
         requireExpectedCard(note, StudyCardType.Production, errors)
@@ -137,9 +134,9 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validatePhraseNote(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
-        requireUsagePattern(note, "Las frases deben incluir un patron de uso.", errors)
+        requireUsagePattern(note, errors)
         requireExpectedCard(note, StudyCardType.Recognition, errors)
         requireExpectedCard(note, StudyCardType.Production, errors)
         requireExpectedCard(note, StudyCardType.Cloze, errors)
@@ -147,13 +144,9 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validatePhrasalVerbNote(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
-        requireUsagePattern(
-            note,
-            "Los phrasal verbs deben incluir patron de uso o separabilidad.",
-            errors,
-        )
+        requireUsagePattern(note, errors)
         requireExpectedCard(note, StudyCardType.Recognition, errors)
         requireExpectedCard(note, StudyCardType.Production, errors)
         requireExpectedCard(note, StudyCardType.Cloze, errors)
@@ -161,7 +154,7 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validateIdiomNote(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireExpectedCard(note, StudyCardType.Recognition, errors)
         requireExpectedCard(note, StudyCardType.Production, errors)
@@ -169,15 +162,14 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun validateSentencePatternNote(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
-        requireUsagePattern(note, "Los sentence patterns deben incluir patron de uso.", errors)
+        requireUsagePattern(note, errors)
         requireNonBlank(
             note.clozeSentence,
-            GeneratedLearningNoteIssueCode.MissingClozeSentence,
-            "Los sentence patterns deben incluir una oracion cloze.",
+            IssueCode.MissingClozeSentence,
             errors,
-            noteField = "clozeSentence",
+            field = "clozeSentence",
         )
         requireExpectedCard(note, StudyCardType.Production, errors)
         requireExpectedCard(note, StudyCardType.Cloze, errors)
@@ -185,35 +177,32 @@ class ValidateGeneratedLearningNoteUseCase {
 
     private fun requireUsagePattern(
         note: GeneratedLearningNote,
-        message: String,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         requireNonBlank(
             note.usagePattern,
-            GeneratedLearningNoteIssueCode.MissingUsagePattern,
-            message,
+            IssueCode.MissingUsagePattern,
             errors,
-            noteField = "usagePattern",
+            field = "usagePattern",
         )
     }
 
     private fun validateCards(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
-        warnings: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         val activeCards = note.cards.filter { it.isActive }
         if (activeCards.isEmpty()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.NoActiveCards,
-                "La nota generada debe incluir al menos una tarjeta activa."
+            errors += ValidationIssue.Error(
+                code = IssueCode.NoActiveCards,
+                field = "cards",
             )
         }
         if (activeCards.size > MAX_RECOMMENDED_ACTIVE_CARDS) {
-            warnings += issue(
-                GeneratedLearningNoteIssueCode.TooManyActiveCards,
-                "La nota tiene demasiadas tarjetas activas; " +
-                    "conviene mantener entre 2 y 4 para una recuperacion mas clara."
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.TooManyActiveCards,
+                field = "cards",
             )
         }
 
@@ -232,21 +221,19 @@ class ValidateGeneratedLearningNoteUseCase {
     private fun validateCard(
         card: GeneratedStudyCard,
         duplicatedActiveCards: Map<String, GeneratedStudyCard>,
-        errors: MutableList<GeneratedLearningNoteIssue>,
-        warnings: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
+        warnings: MutableList<ValidationIssue.Warning>,
     ) {
         if (card.prompt.isBlank()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.EmptyCardPrompt,
-                "Cada tarjeta derivada debe tener un prompt.",
-                cardId = card.cardId,
+            errors += ValidationIssue.Error(
+                code = IssueCode.EmptyCardPrompt,
+                field = "cards[${card.cardId}].prompt",
             )
         }
         if (card.expectedAnswer.isBlank()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.EmptyCardAnswer,
-                "Cada tarjeta derivada debe tener una respuesta esperada.",
-                cardId = card.cardId,
+            errors += ValidationIssue.Error(
+                code = IssueCode.EmptyCardAnswer,
+                field = "cards[${card.cardId}].expectedAnswer",
             )
         }
         if (
@@ -254,62 +241,58 @@ class ValidateGeneratedLearningNoteUseCase {
             card.expectedAnswer.isNotBlank() &&
             card.prompt.normalizeForComparison() == card.expectedAnswer.normalizeForComparison()
         ) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer,
-                "La tarjeta no genera recuperacion real porque el prompt coincide con la respuesta esperada.",
-                cardId = card.cardId,
+            errors += ValidationIssue.Error(
+                code = IssueCode.CardPromptMatchesAnswer,
+                field = "cards[${card.cardId}].expectedAnswer",
             )
         }
         if (card.isActive && duplicatedActiveCards.containsKey(card.cardId)) {
-            warnings += issue(
-                GeneratedLearningNoteIssueCode.DuplicateActiveCard,
-                "Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.",
-                cardId = card.cardId,
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.DuplicateActiveCard,
+                field = "cards[${card.cardId}].duplicate",
             )
         }
         if (card.expectedAnswer.wordCountForRecall() > MAX_RECOMMENDED_ANSWER_WORDS) {
-            warnings += issue(
-                GeneratedLearningNoteIssueCode.AnswerTooLongForRecall,
-                "La respuesta esperada es larga; intenta que la recuperacion apunte a una expresion mas concreta.",
-                cardId = card.cardId,
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.AnswerTooLongForRecall,
+                field = "cards[${card.cardId}].expectedAnswer",
             )
         }
         if (!card.isActive) {
-            warnings += issue(
-                GeneratedLearningNoteIssueCode.InactiveCard,
-                "La nota contiene una tarjeta inactiva; revisa si debe persistirse.",
-                cardId = card.cardId,
+            warnings += ValidationIssue.Warning(
+                code = IssueCode.InactiveCard,
+                field = "cards[${card.cardId}].active",
             )
         }
     }
 
     private fun validateQualityChecks(
         note: GeneratedLearningNote,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         val presentCodes = note.qualityChecks.map { it.code }.toSet()
         val hasSingleMeaningCheck = presentCodes.contains(GeneratedNoteQualityCode.SingleMeaning)
         if (!hasSingleMeaningCheck) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.MissingSingleMeaningQualityCheck,
-                "La nota debe incluir la verificacion de significado unico."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingSingleMeaningQualityCheck,
+                field = "qualityChecks.singleMeaning",
             )
         }
 
         GeneratedNoteQualityCode.entries
             .filterNot(presentCodes::contains)
             .forEach { missingCode ->
-                errors += issue(
-                    GeneratedLearningNoteIssueCode.MissingRequiredQualityCheck,
-                    "Falta el quality check requerido: ${missingCode.name}.",
+                errors += ValidationIssue.Error(
+                    code = IssueCode.MissingRequiredQualityCheck,
+                    field = "qualityChecks.${missingCode.name.lowercaseRoot()}",
                 )
             }
 
         val failedChecks = note.qualityChecks.filterNot { it.passed }
         if (failedChecks.isNotEmpty()) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.FailedQualityCheck,
-                "La nota no puede guardarse si algun quality check falla."
+            errors += ValidationIssue.Error(
+                code = IssueCode.FailedQualityCheck,
+                field = "qualityChecks.failed",
             )
         }
     }
@@ -317,41 +300,26 @@ class ValidateGeneratedLearningNoteUseCase {
     private fun requireExpectedCard(
         note: GeneratedLearningNote,
         cardType: StudyCardType,
-        errors: MutableList<GeneratedLearningNoteIssue>,
+        errors: MutableList<ValidationIssue.Error>,
     ) {
         val hasCard = note.cards.any { it.cardType == cardType && it.isActive }
         if (!hasCard) {
-            errors += issue(
-                GeneratedLearningNoteIssueCode.MissingExpectedCardType,
-                "La nota ${note.noteType} debe incluir una tarjeta activa de tipo $cardType."
+            errors += ValidationIssue.Error(
+                code = IssueCode.MissingExpectedCardType,
+                field = "cards.expected.${cardType.name.lowercaseRoot()}",
             )
         }
     }
 
     private fun requireNonBlank(
         value: String,
-        code: GeneratedLearningNoteIssueCode,
-        message: String,
-        errors: MutableList<GeneratedLearningNoteIssue>,
-        noteField: String? = null,
+        code: IssueCode,
+        errors: MutableList<ValidationIssue.Error>,
+        field: String,
     ) {
         if (value.isBlank()) {
-            errors += issue(code, message, noteField = noteField)
+            errors += ValidationIssue.Error(code = code, field = field)
         }
-    }
-
-    private fun issue(
-        code: GeneratedLearningNoteIssueCode,
-        message: String,
-        noteField: String? = null,
-        cardId: String? = null,
-    ): GeneratedLearningNoteIssue {
-        return GeneratedLearningNoteIssue(
-            code = code,
-            message = message,
-            noteField = noteField,
-            cardId = cardId,
-        )
     }
 
     private companion object {

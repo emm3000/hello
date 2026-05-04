@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.validation.DomainValidationException
+
 class CreateFlashcardUseCase(
     private val writeRepository: FlashcardWriteRepository,
     private val readRepository: FlashcardReadRepository,
@@ -11,9 +13,8 @@ class CreateFlashcardUseCase(
         learningNote: GeneratedLearningNote,
     ): Flashcard {
         val validation = validateGeneratedLearningNoteUseCase(learningNote)
-        require(validation.isValid) {
-            val messages = validation.errors.joinToString(separator = " | ") { it.message }
-            "GeneratedLearningNote invalida: $messages"
+        if (!validation.isValid) {
+            throw DomainValidationException(validation.errors)
         }
 
         val input = learningNote.toCreateFlashcardInput(deckId)

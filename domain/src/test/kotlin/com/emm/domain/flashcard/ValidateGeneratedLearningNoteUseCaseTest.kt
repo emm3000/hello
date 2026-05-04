@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.validation.IssueCode
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -31,7 +32,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.MissingUsagePattern })
+        assertTrue(result.errors.any { it.code == IssueCode.MissingUsagePattern })
     }
 
     @Test
@@ -51,7 +52,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         assertFalse(result.isValid)
         assertTrue(
             result.errors.any {
-                it.code == GeneratedLearningNoteIssueCode.MissingSingleMeaningQualityCheck
+                it.code == IssueCode.MissingSingleMeaningQualityCheck
             }
         )
     }
@@ -70,8 +71,8 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.MissingClozeSentence })
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.MissingExpectedCardType })
+        assertTrue(result.errors.any { it.code == IssueCode.MissingClozeSentence })
+        assertTrue(result.errors.any { it.code == IssueCode.MissingExpectedCardType })
     }
 
     @Test
@@ -86,7 +87,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.EmptyCardPrompt })
+        assertTrue(result.errors.any { it.code == IssueCode.EmptyCardPrompt })
     }
 
     @Test
@@ -101,7 +102,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.NoActiveCards })
+        assertTrue(result.errors.any { it.code == IssueCode.NoActiveCards })
     }
 
     @Test
@@ -119,7 +120,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.CardPromptMatchesAnswer })
+        assertTrue(result.errors.any { it.code == IssueCode.CardPromptMatchesAnswer })
     }
 
     @Test
@@ -136,7 +137,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertTrue(result.isValid)
-        assertTrue(result.warnings.any { it.code == GeneratedLearningNoteIssueCode.DuplicateActiveCard })
+        assertTrue(result.warnings.any { it.code == IssueCode.DuplicateActiveCard })
     }
 
     @Test
@@ -154,7 +155,7 @@ class ValidateGeneratedLearningNoteUseCaseTest {
         )
 
         assertFalse(result.isValid)
-        assertTrue(result.errors.any { it.code == GeneratedLearningNoteIssueCode.FailedQualityCheck })
+        assertTrue(result.errors.any { it.code == IssueCode.FailedQualityCheck })
     }
 
     private fun sampleWordNote(): GeneratedLearningNote {

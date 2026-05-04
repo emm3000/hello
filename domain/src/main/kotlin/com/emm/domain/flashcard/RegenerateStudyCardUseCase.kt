@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.validation.DomainValidationException
+
 class RegenerateStudyCardUseCase(
     private val repository: FlashcardGenerationRepository,
     private val validateInputUseCase: ValidateFlashcardGenerationInputUseCase,
@@ -12,12 +14,11 @@ class RegenerateStudyCardUseCase(
     ): GeneratedStudyCard {
         val inputValidation = validateInputUseCase(input)
         if (!inputValidation.isValid) {
-            val message = inputValidation.errors.firstOrNull()?.message ?: "Input invalido para regenerar card."
-            throw IllegalArgumentException(message)
+            throw DomainValidationException(inputValidation.errors)
         }
 
         return repository.regenerateStudyCard(
-            input = inputValidation.normalizedInput,
+            input = inputValidation.value,
             note = note,
             cardId = cardId,
         )

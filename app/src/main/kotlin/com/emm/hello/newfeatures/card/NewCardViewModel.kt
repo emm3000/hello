@@ -6,6 +6,7 @@ import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.validation.DomainValidationException
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.launchIn
@@ -138,11 +139,10 @@ class NewCardViewModel(
         if (!inputValidation.isValid) {
             mutableState.update {
                 it.clearPreviewState(
-                    error = NewCardErrorUi(
-                        title = "Entrada inválida",
-                        message = inputValidation.errors.firstOrNull()?.message
-                            ?: "Corrige la entrada antes de generar.",
-                    ),
+                    error = null,
+                ).copy(
+                    inputValidationIssues = inputValidation.errors,
+                    inputWarningIssues = inputValidation.warnings,
                 )
             }
             return@launch
@@ -151,25 +151,40 @@ class NewCardViewModel(
         mutableEffect.send(NewCardUiEffect.OpenReview)
         runCatching {
             generationDependencies.generateLearningNotePreviewUseCase(
-                input = inputValidation.normalizedInput
+                input = inputValidation.value
             )
         }.onSuccess { preview ->
             val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(preview)
             mutableState.update { it.withPreviewValidation(preview, previewValidation) }
         }.onFailure { e ->
-            logError(TAG, "generateFlashcard:error ${e.message}", e)
-            mutableState.update {
-                it.copy(
-                    error = NewCardErrorUi(
-                        title = "Respuesta inválida de IA",
-                        message = e.message ?: "No se pudo generar una learning note válida.",
-                    ),
-                    isLoading = false,
-                    canSavePreview = false,
-                    previewValidationIssues = emptyList(),
-                    previewWarningIssues = emptyList(),
-                    previewRegenerationTarget = null,
-                )
+            when (e) {
+                is DomainValidationException -> {
+                    mutableState.update {
+                        it.clearPreviewState(
+                            error = NewCardErrorUi(
+                                title = "Respuesta inválida de IA",
+                                validationIssues = e.issues,
+                            ),
+                        )
+                    }
+                }
+                else -> {
+                    logError(TAG, "generateFlashcard:error ${e.message}", e)
+                    mutableState.update {
+                        it.copy(
+                            error = NewCardErrorUi(
+                                title = "Respuesta inválida de IA",
+                                message = e.message ?: "No se pudo generar una learning note válida.",
+                            ),
+                            isLoading = false,
+                            canSavePreview = false,
+                            previewGeneratedWarnings = emptyList(),
+                            previewValidationIssues = emptyList(),
+                            previewWarningIssues = emptyList(),
+                            previewRegenerationTarget = null,
+                        )
+                    }
+                }
             }
         }
     }
@@ -277,16 +292,29 @@ class NewCardViewModel(
         }.onSuccess { updatedPreview ->
             applyUpdatedPreview(updatedPreview)
         }.onFailure { e ->
-            logError(TAG, "$actionName:error $logContext ${e.message}", e)
-            mutableState.update {
-                it.copy(
-                    error = NewCardErrorUi(
-                        title = failureTitle,
-                        message = e.message ?: fallbackMessage,
-                    ),
-                    isLoading = false,
-                    previewRegenerationTarget = null,
-                )
+            if (e is DomainValidationException) {
+                mutableState.update {
+                    it.copy(
+                        error = NewCardErrorUi(
+                            title = failureTitle,
+                            validationIssues = e.issues,
+                        ),
+                        isLoading = false,
+                        previewRegenerationTarget = null,
+                    )
+                }
+            } else {
+                logError(TAG, "$actionName:error $logContext ${e.message}", e)
+                mutableState.update {
+                    it.copy(
+                        error = NewCardErrorUi(
+                            title = failureTitle,
+                            message = e.message ?: fallbackMessage,
+                        ),
+                        isLoading = false,
+                        previewRegenerationTarget = null,
+                    )
+                }
             }
         }
     }
@@ -324,11 +352,7 @@ class NewCardViewModel(
                 it.withPreviewValidation(
                     preview = learningNotePreview,
                     validation = previewValidation,
-                    error = NewCardErrorUi(
-                        title = "Preview no guardable",
-                        message = previewValidation.errors.firstOrNull()?.message
-                            ?: "La learning note no cumple las validaciones necesarias.",
-                    ),
+                    error = null,
                 )
             }
             return@launch
@@ -344,17 +368,30 @@ class NewCardViewModel(
             mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
             mutableEffect.send(NewCardUiEffect.CloseFlow)
         }.onFailure { e ->
-            logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
-            mutableState.update {
-                it.copy(
-                    error = NewCardErrorUi(
-                        title = "Error al guardar",
-                        message = e.message ?: "No se pudo guardar la tarjeta",
-                    ),
-                    isLoading = false,
-                )
+            if (e is DomainValidationException) {
+                mutableState.update {
+                    it.withPreviewValidation(
+                        preview = learningNotePreview,
+                        validation = previewValidation,
+                        error = NewCardErrorUi(
+                            title = "Preview no guardable",
+                            validationIssues = e.issues,
+                        ),
+                    )
+                }
+            } else {
+                logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
+                mutableState.update {
+                    it.copy(
+                        error = NewCardErrorUi(
+                            title = "Error al guardar",
+                            message = e.message ?: "No se pudo guardar la tarjeta",
+                        ),
+                        isLoading = false,
+                    )
+                }
+                mutableEffect.send(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
             }
-            mutableEffect.send(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
         }
     }
 }

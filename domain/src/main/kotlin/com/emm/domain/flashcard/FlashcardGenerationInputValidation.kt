@@ -1,26 +1,16 @@
 package com.emm.domain.flashcard
 
-data class FlashcardGenerationInputValidation(
-    val normalizedInput: FlashcardGenerationInput,
-    val errors: List<FlashcardGenerationInputIssue>,
-    val warnings: List<FlashcardGenerationInputIssue>,
-) {
-    val isValid: Boolean
-        get() = errors.isEmpty()
-}
+import com.emm.domain.validation.ValidationIssue
+import com.emm.domain.validation.ValidationResult
 
-data class FlashcardGenerationInputIssue(
-    val code: FlashcardGenerationInputIssueCode,
-    val message: String,
+@Deprecated(
+    message = "Use ValidationResult<FlashcardGenerationInput> directly.",
+    replaceWith = ReplaceWith("ValidationResult<FlashcardGenerationInput>"),
 )
+typealias FlashcardGenerationInputValidation = ValidationResult<FlashcardGenerationInput>
 
-enum class FlashcardGenerationInputIssueCode {
-    EmptyUserText,
-    WordInputContainsWhitespace,
-    PhraseInputTooShort,
-    SentenceInputTooShort,
-    MissingDisambiguation,
-    MissingCommunicativeIntent,
-    CommunicativeGoalTooShort,
-    ContextSentenceTooShort,
-}
+@Deprecated(
+    message = "Use ValidationIssue directly.",
+    replaceWith = ReplaceWith("ValidationIssue"),
+)
+typealias FlashcardGenerationInputIssue = ValidationIssue
