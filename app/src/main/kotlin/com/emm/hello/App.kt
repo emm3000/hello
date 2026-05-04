@@ -1,7 +1,6 @@
 package com.emm.hello
 
 import android.app.Application
-import com.emm.hello.di.networkModule
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
 import com.emm.hello.startup.AppStartupCoordinator
@@ -20,7 +19,6 @@ class App : Application() {
             modules(
                 repositoryModule,
                 newModule,
-                networkModule,
             )
         }
         GlobalContext.get().get<AppStartupCoordinator>().start()

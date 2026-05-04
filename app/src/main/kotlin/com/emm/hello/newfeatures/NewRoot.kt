@@ -25,7 +25,6 @@ import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.dashboard
 import com.emm.hello.newfeatures.deck.deckDetailRoute
 import com.emm.hello.newfeatures.deck.newDeckRoute
-import com.emm.hello.newfeatures.pairing.pairingRoute
 import com.emm.hello.newfeatures.study.study
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
@@ -59,7 +58,6 @@ private fun AppNavigation() {
         newDeckRoute(navController)
         deckDetailRoute(navController)
         cardDetailRoute(navController)
-        pairingRoute(navController)
     }
 }
 
@@ -77,12 +75,12 @@ private fun StartupLoadingScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Inicializando identidad y sincronización...",
+                text = "Preparando tus datos locales...",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = "Esperando que la app quede lista antes de abrir el dashboard.",
+                text = "Enseguida abrimos tu dashboard local.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

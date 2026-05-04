@@ -5,16 +5,10 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.GetDecksUseCase
-import com.emm.domain.sync.GetSyncDebugStateUseCase
-import com.emm.domain.sync.SyncDebugState
-import com.emm.domain.sync.SyncDebugStateRepository
-import com.emm.domain.sync.SyncEngine
-import com.emm.domain.sync.SyncState
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -54,77 +48,19 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `sync debug state is reflected in syncDebug field`() = runTest {
-        val syncDebug = SyncDebugState(
-            pendingOperations = 5L,
-            deviceId = "device-abc",
-            modeLabel = "local-only",
-            remoteAvailable = false,
-        )
-        val viewModel = makeViewModel(syncDebugRepo = FakeSyncDebugRepo(syncDebug))
-        advanceUntilIdle()
-
-        assertThat(viewModel.uiState.value.syncDebug.pendingOperations).isEqualTo(5L)
-        assertThat(viewModel.uiState.value.syncDebug.deviceId).isEqualTo("device-abc")
-        assertThat(viewModel.uiState.value.syncDebug.modeLabel).isEqualTo("local-only")
-        assertThat(viewModel.uiState.value.syncDebug.remoteAvailable).isFalse()
-    }
-
-    @Test
-    fun `refresh sync in local only emits explanatory message without running sync`() = runTest {
-        val syncEngine = FakeSyncEngine()
-        val viewModel = makeViewModel(
-            syncDebugRepo = FakeSyncDebugRepo(
-                SyncDebugState(modeLabel = "local-only", remoteAvailable = false)
-            ),
-            syncEngine = syncEngine,
-        )
+    fun `view model emits no effects during deck loading`() = runTest {
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
         advanceUntilIdle()
 
         viewModel.effect.test {
-            viewModel.onIntent(DashboardUiIntent.RefreshSync)
-            assertThat(awaitItem()).isEqualTo(
-                DashboardUiEffect.ShowMessage(
-                    "La sincronización remota está pausada mientras el modo local-only está activo"
-                )
-            )
-        }
-
-        assertThat(syncEngine.runOnceCalls).isEqualTo(0)
-    }
-
-    @Test
-    fun `refresh sync failure emits sync failed effect with message`() = runTest {
-        val viewModel = makeViewModel(syncEngine = FakeSyncEngine(shouldFail = true))
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(DashboardUiIntent.RefreshSync)
-            val effect = awaitItem()
-            assertThat(effect).isInstanceOf(DashboardUiEffect.SyncFailed::class.java)
-            assertThat((effect as DashboardUiEffect.SyncFailed).message).isEqualTo("sync error")
-        }
-    }
-
-    @Test
-    fun `refresh sync success does not emit any effect`() = runTest {
-        val viewModel = makeViewModel()
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(DashboardUiIntent.RefreshSync)
             expectNoEvents()
         }
     }
 
     private fun makeViewModel(
         deckRepo: FakeDeckRepo = FakeDeckRepo(),
-        syncDebugRepo: FakeSyncDebugRepo = FakeSyncDebugRepo(),
-        syncEngine: FakeSyncEngine = FakeSyncEngine(),
     ): DashboardViewModel = DashboardViewModel(
         getDecksUseCase = GetDecksUseCase(deckRepo),
-        getSyncDebugStateUseCase = GetSyncDebugStateUseCase(syncDebugRepo),
-        syncEngine = syncEngine,
     )
 
     private class FakeDeckRepo(
@@ -136,20 +72,5 @@ class DashboardViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> =
             if (emitImmediately) flowOf(decks) else emptyFlow()
-    }
-
-    private class FakeSyncDebugRepo(
-        private val state: SyncDebugState = SyncDebugState(),
-    ) : SyncDebugStateRepository {
-        override fun observe(): Flow<SyncDebugState> = flowOf(state)
-    }
-
-    private class FakeSyncEngine(private val shouldFail: Boolean = false) : SyncEngine {
-        var runOnceCalls: Int = 0
-        override val state = MutableStateFlow(SyncState())
-        override suspend fun runOnce() {
-            runOnceCalls += 1
-            if (shouldFail) error("sync error")
-        }
     }
 }

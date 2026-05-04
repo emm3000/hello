@@ -26,22 +26,6 @@
     <string name="create_first_deck">Crear primer mazo</string>
     <string name="new_card_content_description">Nueva tarjeta</string>
     <string name="new_deck_content_description">Nuevo mazo</string>
-    <string name="link_device_content_description">Vincular dispositivo</string>
-    <string name="sync_debug_title">Sync Debug</string>
-    <string name="sync_debug_mode">Modo: %1$s</string>
-    <string name="sync_debug_remote_available">Remoto disponible: %1$s</string>
-    <string name="sync_debug_pending">Pendientes: %1$d</string>
-    <string name="sync_debug_running">Sincronizando: %1$s</string>
-    <string name="sync_debug_last_success">Último sync ok: %1$s</string>
-    <string name="sync_debug_last_error">Último error: %1$s</string>
-    <string name="sync_debug_device_id">Device ID: %1$s</string>
-    <string name="sync_debug_account_id">Account ID: %1$s</string>
-    <string name="sync_debug_yes">Sí</string>
-    <string name="sync_debug_no">No</string>
-    <string name="sync_debug_none">Ninguno</string>
-    <string name="sync_debug_unknown">Desconocido</string>
-    <string name="local_only_dashboard_title">Modo local-only activo</string>
-    <string name="local_only_dashboard_description">La sincronización remota y el pairing están pausados temporalmente. Tus cambios siguen guardándose en local.</string>
 
     <!-- Decks Screen -->
     <string name="my_decks">Mis Mazos</string>

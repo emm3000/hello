@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.FloatingActionButton
@@ -44,21 +43,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
-import com.emm.hello.BuildConfig
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.DashboardSkeleton
-import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSeparator
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun DashboardScreen(
@@ -67,7 +60,6 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
-    onPairDevice: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -101,16 +93,6 @@ fun DashboardScreen(
                         contentDescription = stringResource(R.string.new_deck_content_description)
                     )
                 }
-                SmallFloatingActionButton(
-                    onClick = onPairDevice,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ) {
-                    Icon(
-                        Icons.Default.Link,
-                        contentDescription = stringResource(R.string.link_device_content_description)
-                    )
-                }
                 // Main FAB: new card
                 FloatingActionButton(
                     onClick = newCard,
@@ -140,26 +122,6 @@ fun DashboardScreen(
                         totalDecks = state.decks.size,
                         totalCards = totalPending,
                         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                    )
-                }
-            }
-
-            if (!state.syncDebug.remoteAvailable) {
-                item {
-                    HAlert(
-                        title = stringResource(R.string.local_only_dashboard_title),
-                        description = stringResource(R.string.local_only_dashboard_description),
-                        variant = AlertVariant.Warning,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            }
-
-            if (BuildConfig.SHOW_SYNC_DEBUG_PANEL) {
-                item {
-                    SyncDebugPanel(
-                        state = state.syncDebug,
-                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             }
@@ -208,96 +170,6 @@ fun DashboardScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SyncDebugPanel(
-    state: SyncDebugUiState,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.sync_debug_title),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            DebugLine(
-                text = stringResource(R.string.sync_debug_mode, state.modeLabel),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_remote_available,
-                    if (state.remoteAvailable) {
-                        stringResource(R.string.sync_debug_yes)
-                    } else {
-                        stringResource(R.string.sync_debug_no)
-                    },
-                ),
-            )
-            DebugLine(
-                text = stringResource(R.string.sync_debug_pending, state.pendingOperations),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_running,
-                    if (state.isSyncRunning) {
-                        stringResource(R.string.sync_debug_yes)
-                    } else {
-                        stringResource(R.string.sync_debug_no)
-                    },
-                ),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_last_success,
-                    formatDebugTimestamp(state.lastSuccessfulSyncAt),
-                ),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_last_error,
-                    state.lastSyncError ?: stringResource(R.string.sync_debug_none)
-                ),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_device_id,
-                    state.deviceId ?: stringResource(R.string.sync_debug_unknown)
-                ),
-            )
-            DebugLine(
-                text = stringResource(
-                    R.string.sync_debug_account_id,
-                    state.appAccountId ?: stringResource(R.string.sync_debug_unknown)
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DebugLine(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-    )
-}
-
-private fun formatDebugTimestamp(raw: Long?): String {
-    if (raw == null) return "n/a"
-    return runCatching {
-        Instant.ofEpochMilli(raw)
-            .atZone(ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-    }.getOrDefault("n/a")
 }
 
 // -- Component: Summary Banner ------------------------------------------------

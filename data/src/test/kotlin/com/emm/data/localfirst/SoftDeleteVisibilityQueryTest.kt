@@ -1,4 +1,4 @@
-package com.emm.data.sync
+package com.emm.data.localfirst
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
@@ -7,8 +7,6 @@ import org.junit.Before
 import org.junit.Test
 
 class SoftDeleteVisibilityQueryTest {
-    private val accountId = "account-1"
-
     private lateinit var db: HelloDb
 
     @Before
@@ -23,38 +21,30 @@ class SoftDeleteVisibilityQueryTest {
         seedDecks()
         seedFlashcards()
 
-        assertEquals(listOf("deck-active"), db.deckQueries.all(accountId).executeAsList().map { it.id })
-        assertEquals(1, db.deckQueries.deckWithFlashcardCount(accountId).executeAsOne().flashcardCount)
+        assertEquals(listOf("deck-active"), db.deckQueries.all().executeAsList().map { it.id })
+        assertEquals(1, db.deckQueries.deckWithFlashcardCount().executeAsOne().flashcardCount)
         assertEquals(
             listOf("card-active"),
-            db.flashcardQueries.selectByDeck(accountId, "deck-active").executeAsList().map { it.id },
+            db.flashcardQueries.selectByDeck("deck-active").executeAsList().map { it.id },
         )
     }
 
     private fun seedDecks() {
         db.deckQueries.insert(
-            appAccountId = accountId,
             id = "deck-active",
             name = "Active",
             description = null,
             createdAt = 1,
             updatedAt = 1,
             deletedAt = null,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 1,
         )
         db.deckQueries.insert(
-            appAccountId = accountId,
             id = "deck-deleted",
             name = "Deleted",
             description = null,
             createdAt = 2,
             updatedAt = 2,
             deletedAt = 3,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = 2,
         )
     }
 
@@ -80,7 +70,6 @@ class SoftDeleteVisibilityQueryTest {
         deletedAt: Long?,
     ) {
         db.flashcardQueries.create(
-            appAccountId = accountId,
             id = id,
             deckId = "deck-active",
             word = "word",
@@ -108,9 +97,6 @@ class SoftDeleteVisibilityQueryTest {
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
-            originDeviceId = "device-1",
-            lastModifiedByDeviceId = "device-1",
-            versionLamport = createdAt,
         )
     }
 }

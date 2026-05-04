@@ -1,13 +1,11 @@
-package com.emm.data.sync
+package com.emm.data.localfirst
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
+import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.GeminiService
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
-import com.emm.data.localfirst.OperationLogWriter
-import com.emm.data.deck.DefaultDeckRepository
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.FlashcardReview
@@ -16,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +23,6 @@ class LocalOnlyLocalWritesIntegrationTest {
 
     private lateinit var db: HelloDb
     private lateinit var localDeviceIdentityProvider: LocalDeviceIdentityProvider
-    private lateinit var operationLogWriter: OperationLogWriter
     private lateinit var localIdentityInitializer: DefaultLocalIdentityInitializer
 
     @Before
@@ -33,7 +31,6 @@ class LocalOnlyLocalWritesIntegrationTest {
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
         localDeviceIdentityProvider = LocalDeviceIdentityProvider(db)
-        operationLogWriter = OperationLogWriter(db)
         localIdentityInitializer = DefaultLocalIdentityInitializer(
             db = db,
             localDeviceIdentityProvider = localDeviceIdentityProvider,
@@ -45,35 +42,17 @@ class LocalOnlyLocalWritesIntegrationTest {
         seedDeviceIdentity(deviceId = "device-local-only")
 
         val identity = localIdentityInitializer.ensureReady()
-        db.localFirstQueries.upsertSyncCheckpoint(
-            appAccountId = identity.appAccountId,
-            lastPulledCursor = 88L,
-            lastSuccessfulSyncAt = 99L,
-            lastSyncError = "offline",
-            lastSyncErrorAt = 111L,
-            updatedAt = 122L,
-        )
 
-        val deckRepository = DefaultDeckRepository(
-            db = db,
-            operationLogWriter = operationLogWriter,
-            localDeviceIdentityProvider = localDeviceIdentityProvider,
-        )
+        val deckRepository = DefaultDeckRepository(db = db)
         val flashcardRepository = DefaultFlashcardRepository(
             db = db,
             geminiService = mockk<GeminiService>(),
             json = Json,
-            operationLogWriter = operationLogWriter,
-            localDeviceIdentityProvider = localDeviceIdentityProvider,
         )
-        val reviewRepository = DefaultFlashcardReviewRepository(
-            db = db,
-            operationLogWriter = operationLogWriter,
-            localDeviceIdentityProvider = localDeviceIdentityProvider,
-        )
+        val reviewRepository = DefaultFlashcardReviewRepository(db = db)
 
         deckRepository.addDeck(CreateDeckInput(name = "Travel", description = "Trip phrases"))
-        val deck = db.deckQueries.all(identity.appAccountId).executeAsOne()
+        val deck = db.deckQueries.all().executeAsOne()
 
         val flashcardId = flashcardRepository.create(
             CreateFlashcardInput(
@@ -97,23 +76,11 @@ class LocalOnlyLocalWritesIntegrationTest {
         reviewRepository.update(review)
 
         val storedFlashcard = flashcardRepository.fetchById(flashcardId)
-        val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(
-            identity.appAccountId,
-            flashcardId,
-        ).executeAsOne()
-        val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(
-            identity.appAccountId,
-            flashcardId,
-        ).executeAsOne()
-        val pendingOperations = db.localFirstQueries
-            .pendingOperations(identity.appAccountId, DrainOutbox.MAX_RETRY_COUNT, 10)
-            .executeAsList()
-        val checkpoint = db.localFirstQueries.selectSyncCheckpoint(identity.appAccountId).executeAsOne()
-        val localAccountState = db.localFirstQueries.selectLocalAccountState().executeAsOne()
+        val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId).executeAsOne()
+        val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(flashcardId).executeAsOne()
 
-        assertEquals("local-only:device-local-only", identity.appAccountId)
-        assertEquals(LOCAL_ONLY_PAIRING_STATE, identity.pairingState)
-        assertEquals(identity.appAccountId, deck.appAccountId)
+        assertEquals("device-local-only", identity.deviceId)
+        assertFalse(identity.createdInstallation)
         assertEquals("Travel", deck.name)
         assertEquals(flashcardId, storedFlashcard.id)
         assertEquals("hello", storedFlashcard.word)
@@ -121,16 +88,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals(flashcardId, reviewProjection.flashcardId)
         assertEquals(300L, reviewProjection.nextReviewAt)
         assertEquals(flashcardId, reviewEvent.flashcardId)
-        assertEquals(listOf("deck", "flashcard", "review_event"), pendingOperations.map { it.entityType })
-        assertEquals(3, pendingOperations.size)
-        assertEquals(88L, checkpoint.lastPulledCursor)
-        assertEquals(99L, checkpoint.lastSuccessfulSyncAt)
-        assertEquals("offline", checkpoint.lastSyncError)
-        assertEquals(111L, checkpoint.lastSyncErrorAt)
-        assertEquals(122L, checkpoint.updatedAt)
-        assertEquals(identity.appAccountId, localAccountState.appAccountId)
-        assertEquals(LOCAL_ONLY_PAIRING_STATE, localAccountState.pairingState)
-        assertNotNull(db.flashcardQueries.findById(identity.appAccountId, flashcardId).executeAsOneOrNull())
+        assertNotNull(db.flashcardQueries.findById(flashcardId).executeAsOneOrNull())
     }
 
     @Test
@@ -144,7 +102,6 @@ class LocalOnlyLocalWritesIntegrationTest {
         val firstDb = HelloDb(firstDriver)
         try {
             val firstLocalDeviceIdentityProvider = LocalDeviceIdentityProvider(firstDb)
-            val firstOperationLogWriter = OperationLogWriter(firstDb)
             val firstInitializer = DefaultLocalIdentityInitializer(
                 db = firstDb,
                 localDeviceIdentityProvider = firstLocalDeviceIdentityProvider,
@@ -153,26 +110,17 @@ class LocalOnlyLocalWritesIntegrationTest {
             seedDeviceIdentity(firstDb, deviceId = "device-reopen")
             val identity = firstInitializer.ensureReady()
 
-            val deckRepository = DefaultDeckRepository(
-                db = firstDb,
-                operationLogWriter = firstOperationLogWriter,
-                localDeviceIdentityProvider = firstLocalDeviceIdentityProvider,
-            )
+            val deckRepository = DefaultDeckRepository(db = firstDb)
             val flashcardRepository = DefaultFlashcardRepository(
                 db = firstDb,
                 geminiService = mockk<GeminiService>(),
                 json = Json,
-                operationLogWriter = firstOperationLogWriter,
-                localDeviceIdentityProvider = firstLocalDeviceIdentityProvider,
             )
-            val reviewRepository = DefaultFlashcardReviewRepository(
-                db = firstDb,
-                operationLogWriter = firstOperationLogWriter,
-                localDeviceIdentityProvider = firstLocalDeviceIdentityProvider,
-            )
+            val reviewRepository = DefaultFlashcardReviewRepository(db = firstDb)
 
             deckRepository.addDeck(CreateDeckInput(name = "Reopen deck", description = "available after reopen"))
-            val persistedDeck = firstDb.deckQueries.all(identity.appAccountId).executeAsOne()
+            assertFalse(identity.createdInstallation)
+            val persistedDeck = firstDb.deckQueries.all().executeAsOne()
             persistedFlashcardId = flashcardRepository.create(
                 CreateFlashcardInput(
                     deckId = persistedDeck.id,
@@ -206,16 +154,16 @@ class LocalOnlyLocalWritesIntegrationTest {
             )
 
             val reopenedIdentity = reopenedInitializer.ensureReady()
-            val reopenedDeck = reopenedDb.deckQueries.all(reopenedIdentity.appAccountId).executeAsOne()
+            val reopenedDeck = reopenedDb.deckQueries.all().executeAsOne()
             val reopenedFlashcard = reopenedDb.flashcardQueries
-                .findById(reopenedIdentity.appAccountId, persistedFlashcardId)
+                .findById(persistedFlashcardId)
                 .executeAsOne()
             val reopenedReview = reopenedDb.localFirstQueries
-                .findReviewProjectionByFlashcardId(reopenedIdentity.appAccountId, reopenedFlashcard.id)
+                .findReviewProjectionByFlashcardId(reopenedFlashcard.id)
                 .executeAsOne()
 
-            assertEquals("local-only:device-reopen", reopenedIdentity.appAccountId)
-            assertEquals(LOCAL_ONLY_PAIRING_STATE, reopenedIdentity.pairingState)
+            assertEquals("device-reopen", reopenedIdentity.deviceId)
+            assertFalse(reopenedIdentity.createdInstallation)
             assertEquals("Reopen deck", reopenedDeck.name)
             assertEquals("bye", reopenedFlashcard.word)
             assertEquals(20L, reopenedReview.nextReviewAt)

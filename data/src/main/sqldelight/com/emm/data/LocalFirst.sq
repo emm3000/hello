@@ -217,7 +217,6 @@ resetSyncCheckpoint:
 DELETE FROM SyncCheckpoint;
 
 CREATE TABLE ReviewEvent (
-    appAccountId TEXT NOT NULL,
     eventId TEXT NOT NULL,
     flashcardId TEXT NOT NULL,
     grade TEXT NOT NULL,
@@ -227,20 +226,17 @@ CREATE TABLE ReviewEvent (
     interval INTEGER NOT NULL,
     repetitions INTEGER NOT NULL,
     lapses INTEGER NOT NULL,
-    originDeviceId TEXT NOT NULL,
-    versionLamport INTEGER NOT NULL,
     createdAt INTEGER NOT NULL,
-    PRIMARY KEY (appAccountId, eventId),
-    FOREIGN KEY (appAccountId, flashcardId) REFERENCES Flashcard(appAccountId, id) ON DELETE CASCADE
+    PRIMARY KEY (eventId),
+    FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_ReviewEvent_account_flashcard_reviewedAt
-ON ReviewEvent(appAccountId, flashcardId, reviewedAt DESC);
-CREATE INDEX idx_ReviewEvent_account_createdAt ON ReviewEvent(appAccountId, createdAt DESC);
+CREATE INDEX idx_ReviewEvent_flashcard_reviewedAt
+ON ReviewEvent(flashcardId, reviewedAt DESC);
+CREATE INDEX idx_ReviewEvent_createdAt ON ReviewEvent(createdAt DESC);
 
 insertReviewEvent:
 INSERT INTO ReviewEvent (
-    appAccountId,
     eventId,
     flashcardId,
     grade,
@@ -250,24 +246,19 @@ INSERT INTO ReviewEvent (
     interval,
     repetitions,
     lapses,
-    originDeviceId,
-    versionLamport,
     createdAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewEventById:
 SELECT * FROM ReviewEvent
-WHERE appAccountId = ?
-  AND eventId = ?;
+WHERE eventId = ?;
 
 findReviewEventsByFlashcardId:
 SELECT * FROM ReviewEvent
-WHERE appAccountId = ?
-  AND flashcardId = ?
+WHERE flashcardId = ?
 ORDER BY reviewedAt DESC;
 
 CREATE TABLE ReviewProjection (
-    appAccountId TEXT NOT NULL,
     flashcardId TEXT NOT NULL,
     lastReviewedAt INTEGER NOT NULL,
     nextReviewAt INTEGER NOT NULL,
@@ -277,17 +268,16 @@ CREATE TABLE ReviewProjection (
     lapses INTEGER NOT NULL,
     sourceEventId TEXT NOT NULL,
     updatedAt INTEGER NOT NULL,
-    PRIMARY KEY (appAccountId, flashcardId),
-    FOREIGN KEY (appAccountId, flashcardId) REFERENCES Flashcard(appAccountId, id) ON DELETE CASCADE,
-    FOREIGN KEY (appAccountId, sourceEventId) REFERENCES ReviewEvent(appAccountId, eventId) ON DELETE CASCADE
+    PRIMARY KEY (flashcardId),
+    FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE,
+    FOREIGN KEY (sourceEventId) REFERENCES ReviewEvent(eventId) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_ReviewProjection_account_nextReviewAt
-ON ReviewProjection(appAccountId, nextReviewAt);
+CREATE INDEX idx_ReviewProjection_nextReviewAt
+ON ReviewProjection(nextReviewAt);
 
 upsertReviewProjection:
 INSERT OR REPLACE INTO ReviewProjection (
-    appAccountId,
     flashcardId,
     lastReviewedAt,
     nextReviewAt,
@@ -297,13 +287,11 @@ INSERT OR REPLACE INTO ReviewProjection (
     lapses,
     sourceEventId,
     updatedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewProjectionByFlashcardId:
 SELECT * FROM ReviewProjection
-WHERE appAccountId = ?
-  AND flashcardId = ?;
+WHERE flashcardId = ?;
 
 allReviewProjections:
-SELECT * FROM ReviewProjection
-WHERE appAccountId = ?;
+SELECT * FROM ReviewProjection;

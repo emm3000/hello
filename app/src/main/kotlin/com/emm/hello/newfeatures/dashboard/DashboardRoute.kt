@@ -3,7 +3,6 @@ package com.emm.hello.newfeatures.dashboard
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +16,6 @@ import androidx.navigation.compose.composable
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
-import com.emm.hello.newfeatures.pairing.PairingRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -47,25 +45,11 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
             }
         }
 
-        LaunchedEffect(Unit) {
-            vm.effect.collect { effect ->
-                when (effect) {
-                    is DashboardUiEffect.ShowMessage -> {
-                        Toast.makeText(ctx, effect.message, Toast.LENGTH_LONG).show()
-                    }
-                    is DashboardUiEffect.SyncFailed -> {
-                        Toast.makeText(ctx, effect.message, Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
-
         DashboardScreen(
             state = uiState,
             newCard = { navController.navigate(NewCardRoute) },
             onDeckDetail = { navController.navigate(DeckDetailRoute(it)) },
             onCreateDeck = { navController.navigate(NewDeckRoute) },
-            onPairDevice = { navController.navigate(PairingRoute) },
         )
     }
 }

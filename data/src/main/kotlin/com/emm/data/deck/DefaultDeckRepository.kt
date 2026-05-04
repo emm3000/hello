@@ -6,23 +6,15 @@ import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
 import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
-import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalFirstWrite
-import com.emm.data.localfirst.OperationLogWriter
-import com.emm.data.localfirst.currentAppAccountIdOrNull
-import com.emm.data.localfirst.requireCurrentAppAccountId
 import com.emm.data.logging.logInfo
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
-import com.emm.domain.sync.OperationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import java.time.Instant
 import java.util.UUID
 
@@ -31,8 +23,6 @@ typealias DeckEntity = com.emm.data.Deck
 @LocalFirstWrite
 class DefaultDeckRepository(
     private val db: HelloDb,
-    private val operationLogWriter: OperationLogWriter,
-    private val localDeviceIdentityProvider: LocalDeviceIdentityProvider,
 ) : DeckRepository {
 
     private val dq: DeckQueries = db.deckQueries
@@ -40,36 +30,16 @@ class DefaultDeckRepository(
     override suspend fun addDeck(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
         val newId: String = UUID.randomUUID().toString()
-        val deviceId = localDeviceIdentityProvider.getOrCreateDeviceId()
-        val appAccountId = db.requireCurrentAppAccountId()
-        logInfo(TAG, "addDeck:start deckId=$newId appAccountId=$appAccountId name=${deck.name}")
+        logInfo(TAG, "addDeck:start deckId=$newId name=${deck.name}")
 
         db.transaction {
-            val payloadJson = buildJsonObject {
-                put("entityId", newId)
-                put("operationType", OperationType.Create.name)
-                put("name", deck.name)
-                put("description", deck.description)
-            }.toString()
-            val lamport = operationLogWriter.appendOperation(
-                entityType = "deck",
-                entityId = newId,
-                operationType = OperationType.Create,
-                payloadJson = payloadJson,
-                originDeviceId = deviceId,
-                createdAt = now,
-            )
             dq.insert(
-                appAccountId = appAccountId,
                 id = newId,
                 name = deck.name,
                 description = deck.description,
                 createdAt = now,
                 updatedAt = now,
                 deletedAt = null,
-                originDeviceId = deviceId,
-                lastModifiedByDeviceId = deviceId,
-                versionLamport = lamport,
             )
         }
         logInfo(TAG, "addDeck:success deckId=$newId")
@@ -77,27 +47,24 @@ class DefaultDeckRepository(
     }
 
     override fun findById(deckId: String): Flow<Deck> {
-        val appAccountId = db.requireCurrentAppAccountId()
         return dq
-            .findActiveById(appAccountId, deckId)
+            .findActiveById(deckId)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map(DeckEntity::toDomain)
     }
 
     override fun fetchAll(): Flow<List<Deck>> {
-        val appAccountId = db.currentAppAccountIdOrNull() ?: return flowOf(emptyList())
         return dq
-            .all(appAccountId)
+            .all()
             .asFlow()
             .mapToList(Dispatchers.IO)
             .map(List<DeckEntity>::toDomain)
     }
 
     override fun deckWithFlashcardCount(): Flow<List<Deck>> {
-        val appAccountId = db.currentAppAccountIdOrNull() ?: return flowOf(emptyList())
         return dq
-            .deckWithFlashcardCount(appAccountId)
+            .deckWithFlashcardCount()
             .asFlow()
             .mapToList(Dispatchers.IO)
             .map(::toDomain)

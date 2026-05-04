@@ -1,6 +1,7 @@
 package com.emm.hello.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -10,22 +11,10 @@ import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
-import com.emm.data.localfirst.OperationLogWriter
+import com.emm.data.localfirst.DefaultLocalIdentityInitializer
+import com.emm.data.localfirst.LocalIdentityInitializer
 import com.emm.data.remote.DataStore
-import com.emm.data.sync.AckOperations
-import com.emm.data.sync.ApplyRemoteOperation
-import com.emm.data.sync.DefaultPairingRepository
-import com.emm.data.sync.DefaultLocalIdentityInitializer
-import com.emm.data.sync.DefaultPendingOperationsRepository
-import com.emm.data.sync.DefaultSyncDebugStateRepository
-import com.emm.data.sync.DefaultSyncEngine
-import com.emm.data.sync.DrainOutbox
-import com.emm.data.sync.IdentityBootstrapper
-import com.emm.data.sync.LocalIdentityInitializer
-import com.emm.data.sync.PullRemoteOperations
-import com.emm.data.sync.RuntimeAwareSyncEngine
-import com.emm.data.sync.SyncRuntimePolicy
-import com.emm.data.sync.syncDataModule
+import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
@@ -51,47 +40,25 @@ import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
-import com.emm.domain.sync.CreatePairingSessionUseCase
-import com.emm.domain.sync.EnsureLinkedIdentityUseCase
-import com.emm.domain.sync.GetSyncDebugStateUseCase
-import com.emm.domain.sync.ListLinkedDevicesUseCase
-import com.emm.domain.sync.ObservePendingOperationsUseCase
-import com.emm.domain.sync.PairingRepository
-import com.emm.domain.sync.PendingOperationsRepository
-import com.emm.domain.sync.RedeemPairingCodeUseCase
-import com.emm.domain.sync.RevokeLinkedDeviceUseCase
-import com.emm.domain.sync.SyncDebugStateRepository
-import com.emm.domain.sync.SyncEngine
-import com.emm.hello.BuildConfig
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
-import com.emm.hello.newfeatures.pairing.PairingViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
-import com.emm.hello.startup.DefaultSyncRuntimeController
-import com.emm.hello.startup.SyncRuntimeController
-import com.emm.hello.sync.AppBuildSyncRuntimePolicy
-import com.emm.hello.sync.PendingOperationsSyncScheduler
-import com.emm.hello.sync.RuntimeAwareSyncWorkScheduler
-import com.emm.hello.sync.SyncWorkScheduler
+import com.emm.hello.BuildConfig
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
-import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val newModule = module {
-    includes(syncDataModule)
-
     single { provideSqlDriver(androidContext()) }
     single<HelloDb> { provideDb(get()) }
 
@@ -107,6 +74,7 @@ fun Module.repository() {
             prettyPrint = true
         }
     }
+    single<SharedPreferences> { provideSharedPreferences(androidContext()) }
 
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
@@ -116,27 +84,10 @@ fun Module.repository() {
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
-    singleOf(::DefaultSyncEngine)
-    single<SyncEngine> { RuntimeAwareSyncEngine(get(), get()) }
-    factory<SyncDebugStateRepository> { DefaultSyncDebugStateRepository(get(), get()) }
-    factoryOf(::DefaultPairingRepository) bind PairingRepository::class
-    factoryOf(::DefaultPendingOperationsRepository) bind PendingOperationsRepository::class
-    factoryOf(::IdentityBootstrapper)
-    single<SyncRuntimePolicy> { AppBuildSyncRuntimePolicy(BuildConfig.LOCAL_ONLY_MODE) }
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
-
-    factoryOf(::DrainOutbox)
-    factoryOf(::PullRemoteOperations)
-    factoryOf(::ApplyRemoteOperation)
-    factoryOf(::AckOperations)
-
     factoryOf(::LocalDeviceIdentityProvider)
-    factoryOf(::OperationLogWriter)
     factoryOf(::DataStore)
-    single<SyncWorkScheduler> { RuntimeAwareSyncWorkScheduler(androidContext(), get()) }
-    single { PendingOperationsSyncScheduler(get(), get()) }
-    single<SyncRuntimeController> { DefaultSyncRuntimeController(get(), get()) }
-    single { AppStartupCoordinator(get(), get(), get(), get()) }
+    single { AppStartupCoordinator(get()) }
 }
 
 fun Module.useCases() {
@@ -169,21 +120,13 @@ fun Module.useCases() {
     factoryOf(::GetFlashcardByIdUseCase)
     factoryOf(::UpdateFlashcardReviewUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
-    factoryOf(::GetSyncDebugStateUseCase)
-    factoryOf(::EnsureLinkedIdentityUseCase)
-    factoryOf(::CreatePairingSessionUseCase)
-    factoryOf(::RedeemPairingCodeUseCase)
-    factoryOf(::ListLinkedDevicesUseCase)
-    factoryOf(::RevokeLinkedDeviceUseCase)
-    factoryOf(::ObservePendingOperationsUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
 }
 
 fun Module.viewModels() {
     viewModel { AppStartupViewModel(get()) }
     viewModel { NewDeckViewModel(get()) }
-    viewModel { DashboardViewModel(get(), get(), get()) }
-    viewModel { PairingViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { DashboardViewModel(get()) }
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),
