@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
@@ -50,11 +49,13 @@ import com.emm.domain.flashcard.staticCategories
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSelect
-import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.SectionBlock
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -131,11 +132,11 @@ fun NewCardScreen(
             contentPadding = innerPadding,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .padding(horizontal = MaterialTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg + MaterialTheme.spacing.xs),
         ) {
             item {
-                SectionCard(
+                SectionBlock(
                     title = stringResource(R.string.creation_mode_section_title),
                     description = stringResource(R.string.creation_mode_section_description),
                 ) {
@@ -147,7 +148,7 @@ fun NewCardScreen(
             }
 
             item {
-                SectionCard(
+                SectionBlock(
                     title = stringResource(R.string.input_section_title),
                     description = stringResource(state.typeView.inputSectionDescriptionResId()),
                 ) {
@@ -162,11 +163,11 @@ fun NewCardScreen(
             }
 
             item {
-                SectionCard(
+                SectionBlock(
                     title = stringResource(R.string.destination_section_title),
                     description = stringResource(R.string.destination_section_description),
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
                         HSelect(
                             items = state.decks,
                             itemSelected = state.deckSelected,
@@ -203,9 +204,7 @@ fun NewCardScreen(
                         },
                         enabled = isGenerateEnabled,
                         isLoading = state.isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -232,7 +231,7 @@ fun NewCardScreen(
                         onIntent = onIntent,
                     )
                 }
-                item { Spacer(modifier = Modifier.height(20.dp)) }
+                item { Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg + MaterialTheme.spacing.xs)) }
             }
         }
     }
@@ -258,10 +257,10 @@ internal fun LabeledCheckbox(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { onCheckedChange(!checked) }, enabled = isEnabled)
-            .padding(8.dp),
+            .padding(MaterialTheme.spacing.sm),
     ) {
         Checkbox(checked = checked, onCheckedChange = null)
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -270,37 +269,9 @@ internal fun LabeledCheckbox(
 internal fun SupportingText(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.metadata,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-}
-
-@Composable
-internal fun SectionCard(
-    title: String,
-    description: String? = null,
-    content: @Composable () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-        )
-        if (description != null) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        content()
-        HSeparator()
-    }
 }
 
 private fun NewCardUiState.isGenerateEnabled(): Boolean {

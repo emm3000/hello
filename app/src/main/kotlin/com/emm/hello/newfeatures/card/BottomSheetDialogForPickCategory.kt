@@ -141,6 +141,7 @@ fun CategoryChip(
     isSelected: Boolean = false,
     onCardClick: (StaticCategories) -> Unit,
 ) {
+    // Intencionalmente local: hoy solo expresa la selección dentro del sheet de categorías.
     Surface(
         shape = RoundedCornerShape(100.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,

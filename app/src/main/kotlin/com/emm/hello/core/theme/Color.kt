@@ -119,3 +119,51 @@ val shadcnWarning = Color(0xFFCA8A04) // Tailwind yellow-600
 val shadcnDarkWarningContainer = Color(0xFF713F12) // Tailwind yellow-900
 val shadcnDarkOnWarningContainer = Color(0xFFFEF08A) // Tailwind yellow-200
 val shadcnDarkWarning = Color(0xFFFACC15) // Tailwind yellow-400
+
+internal val LightSuccessSemanticColor = HelloSemanticColor(
+    container = shadcnSuccessContainer,
+    content = shadcnOnSuccessContainer,
+    accent = shadcnSuccess,
+)
+
+internal val LightWarningSemanticColor = HelloSemanticColor(
+    container = shadcnWarningContainer,
+    content = shadcnOnWarningContainer,
+    accent = shadcnWarning,
+)
+
+internal val LightDestructiveSemanticColor = HelloSemanticColor(
+    container = shadcnErrorContainer,
+    content = shadcnOnErrorContainer,
+    accent = shadcnDestructive,
+)
+
+internal val DarkSuccessSemanticColor = HelloSemanticColor(
+    container = shadcnDarkSuccessContainer,
+    content = shadcnDarkOnSuccessContainer,
+    accent = shadcnDarkSuccess,
+)
+
+internal val DarkWarningSemanticColor = HelloSemanticColor(
+    container = shadcnDarkWarningContainer,
+    content = shadcnDarkOnWarningContainer,
+    accent = shadcnDarkWarning,
+)
+
+internal val DarkDestructiveSemanticColor = HelloSemanticColor(
+    container = shadcnDarkErrorContainer,
+    content = shadcnDarkOnErrorContainer,
+    accent = shadcnDarkDestructive,
+)
+
+internal fun lightSemanticColors(): HelloSemanticColors = HelloSemanticColors(
+    success = LightSuccessSemanticColor,
+    warning = LightWarningSemanticColor,
+    destructive = LightDestructiveSemanticColor,
+)
+
+internal fun darkSemanticColors(): HelloSemanticColors = HelloSemanticColors(
+    success = DarkSuccessSemanticColor,
+    warning = DarkWarningSemanticColor,
+    destructive = DarkDestructiveSemanticColor,
+)

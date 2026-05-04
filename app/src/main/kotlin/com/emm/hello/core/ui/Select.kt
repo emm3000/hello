@@ -1,23 +1,17 @@
 package com.emm.hello.core.ui
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,24 +23,100 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.spacing
 
-private const val SELECT_BORDER_ANIMATION_MS = 150
 private const val COLLAPSED_ARROW_ROTATION_DEGREES = 180f
-private const val DISABLED_TEXT_ALPHA = 0.38f
-private const val PLACEHOLDER_TEXT_ALPHA = 0.6f
+
+@Composable
+fun HSelectTrigger(
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    supportingText: String? = null,
+    errorMessage: String? = null,
+    placeholder: String = "Seleccionar…",
+) {
+    val displayText = value.ifBlank { null }
+    val borderColor = fieldShellBorderColor(
+        isError = errorMessage != null,
+        enabled = enabled,
+        isActive = false,
+    )
+
+    FieldShell(
+        modifier = modifier,
+        label = label,
+        supportingText = supportingText,
+        errorMessage = errorMessage,
+        enabled = enabled,
+    ) {
+        Box(
+            modifier = fieldShellContainerModifier(borderColor = borderColor)
+                .semantics {
+                    contentDescription = label
+                    role = Role.Button
+                    if (!enabled) {
+                        disabled()
+                    }
+                    if (errorMessage != null) {
+                        error(errorMessage)
+                    }
+                }
+                .let {
+                    if (enabled) {
+                        it.then(Modifier.clickable(onClick = onClick))
+                    } else {
+                        it
+                    }
+                }
+                .padding(fieldShellContentPadding()),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = displayText ?: placeholder,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (displayText != null) {
+                        fieldShellContentColor(enabled)
+                    } else {
+                        fieldShellPlaceholderColor(enabled)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = fieldShellSupportingColor(isError = false, enabled = enabled),
+                )
+            }
+        }
+    }
+}
 
 /**
  * Dropdown selector inspired by shadcn/ui `<Select />`.
  *
  * Uses an external label like [HInput], with the same visual language:
  * - 1dp outlineVariant border → animated outline on focus/open
- * - Transparent background, minimum height 40dp
+ * - Transparent background, minimum height 48dp
  * - Rotated chevron when expanded
  */
 @Composable
@@ -57,42 +127,47 @@ fun <T> HSelect(
     label: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    supportingText: String? = null,
+    errorMessage: String? = null,
     itemLabel: (T) -> String = { it.toString() },
     placeholder: String = "Seleccionar…",
 ) {
-    val (isExpanded, setIsExpanded) = remember { mutableStateOf(false) }
-    val cs = MaterialTheme.colorScheme
-
-    val borderColor by animateColorAsState(
-        targetValue = if (isExpanded) cs.outline else cs.outlineVariant,
-        animationSpec = tween(SELECT_BORDER_ANIMATION_MS),
-        label = "select_border",
+    var isExpanded by remember { mutableStateOf(false) }
+    val displayText = itemSelected?.let { itemLabel(it) }
+    val borderColor = fieldShellBorderColor(
+        isError = errorMessage != null,
+        enabled = enabled,
+        isActive = isExpanded,
     )
 
-    Column(modifier = modifier) {
-        // ── Label ─────────────────────────────────────────────────────────────
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-            color = cs.onSurface,
-        )
-        Spacer(Modifier.height(6.dp))
-
-        // ── Dropdown ──────────────────────────────────────────────────────────
-        ExposedDropdownMenuBox(
-            expanded = isExpanded,
-            onExpandedChange = { if (enabled) setIsExpanded(it) },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            // Custom trigger row — same visual as HInput
+    FieldShell(
+        modifier = modifier,
+        label = label,
+        supportingText = supportingText,
+        errorMessage = errorMessage,
+        enabled = enabled,
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             Box(
-                modifier = Modifier
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 40.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .border(1.dp, borderColor, MaterialTheme.shapes.small)
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                modifier = fieldShellContainerModifier(borderColor = borderColor)
+                    .semantics {
+                        contentDescription = label
+                        role = Role.Button
+                        if (!enabled) {
+                            disabled()
+                        }
+                        if (errorMessage != null) {
+                            error(errorMessage)
+                        }
+                    }
+                    .let {
+                        if (enabled) {
+                            it.then(Modifier.clickable { isExpanded = true })
+                        } else {
+                            it
+                        }
+                    }
+                    .padding(fieldShellContentPadding()),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Row(
@@ -100,14 +175,13 @@ fun <T> HSelect(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    val displayText = itemSelected?.let { itemLabel(it) }
                     Text(
                         text = displayText ?: placeholder,
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (displayText != null) {
-                            if (enabled) cs.onSurface else cs.onSurface.copy(alpha = DISABLED_TEXT_ALPHA)
+                            fieldShellContentColor(enabled)
                         } else {
-                            cs.onSurfaceVariant.copy(alpha = PLACEHOLDER_TEXT_ALPHA)
+                            fieldShellPlaceholderColor(enabled)
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -117,14 +191,14 @@ fun <T> HSelect(
                         modifier = Modifier
                             .size(18.dp)
                             .rotate(if (isExpanded) COLLAPSED_ARROW_ROTATION_DEGREES else 0f),
-                        tint = cs.onSurfaceVariant,
+                        tint = fieldShellSupportingColor(isError = false, enabled = enabled),
                     )
                 }
             }
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = isExpanded,
-                onDismissRequest = { setIsExpanded(false) },
+                onDismissRequest = { isExpanded = false },
             ) {
                 items.forEach { option ->
                     DropdownMenuItem(
@@ -132,13 +206,17 @@ fun <T> HSelect(
                             Text(
                                 text = itemLabel(option),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (itemSelected == option) cs.primary else cs.onSurface,
+                                color = if (itemSelected == option) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
                                 fontWeight = if (itemSelected == option) FontWeight.SemiBold else FontWeight.Normal,
                             )
                         },
                         onClick = {
                             onItemSelected(option)
-                            setIsExpanded(false)
+                            isExpanded = false
                         },
                     )
                 }
@@ -179,7 +257,7 @@ private fun HSelectWithValuePreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
             ) {
                 var selected1 by remember { mutableStateOf<String?>(demoItems.first()) }
                 HSelect(
@@ -197,6 +275,14 @@ private fun HSelectWithValuePreview() {
                     label = "Dificultad",
                     enabled = false,
                     placeholder = "Desactivado",
+                )
+
+                HSelect(
+                    items = demoItems,
+                    itemSelected = null,
+                    onItemSelected = {},
+                    label = "Estado accesible",
+                    errorMessage = "Seleccioná una opción válida",
                 )
             }
         }

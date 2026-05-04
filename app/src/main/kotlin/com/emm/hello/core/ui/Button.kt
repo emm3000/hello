@@ -32,6 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.spacing
 
 // ─── Variants ──────────────────────────────────────────────────────────────
 
@@ -53,62 +55,73 @@ fun HButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
     leadingIcon: ImageVector? = null,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+    contentPadding: PaddingValues? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     val colors = buttonColorsFor(variant)
     val border = buttonBorderFor(variant)
     val buttonEnabled = enabled && !isLoading
+    val resolvedContentPadding = contentPadding ?: buttonContentPadding()
 
     when (variant) {
         ButtonVariant.Ghost -> TextButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = 40.dp),
+            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
             enabled = buttonEnabled,
+            shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
-            contentPadding = contentPadding,
+            contentPadding = resolvedContentPadding,
         ) {
             ButtonContent(leadingIcon = leadingIcon, isLoading = isLoading, content = content)
         }
         ButtonVariant.Link -> TextButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = 40.dp),
+            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
             enabled = buttonEnabled,
+            shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.primary,
                 disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
-            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.xs, vertical = 0.dp),
         ) {
             ButtonContent(leadingIcon = leadingIcon, isLoading = isLoading, content = content)
         }
         ButtonVariant.Outline -> OutlinedButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = 40.dp),
+            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
             enabled = buttonEnabled,
+            shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
             ),
             border = border,
-            contentPadding = contentPadding,
+            contentPadding = resolvedContentPadding,
         ) {
             ButtonContent(leadingIcon = leadingIcon, isLoading = isLoading, content = content)
         }
         else -> Button(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = 40.dp),
+            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
             enabled = buttonEnabled,
+            shape = MaterialTheme.helloShapes.control,
             colors = colors,
-            contentPadding = contentPadding,
+            contentPadding = resolvedContentPadding,
         ) {
             ButtonContent(leadingIcon = leadingIcon, isLoading = isLoading, content = content)
         }
     }
 }
+
+@Composable
+private fun buttonContentPadding(): PaddingValues = PaddingValues(
+    horizontal = MaterialTheme.spacing.lg,
+    vertical = MaterialTheme.spacing.sm,
+)
 
 @Composable
 private fun buttonColorsFor(variant: ButtonVariant): ButtonColors {
@@ -214,7 +227,7 @@ private fun HButtonVariantsPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
             ) {
                 ButtonVariant.entries.forEach { variant ->
                     HButton(

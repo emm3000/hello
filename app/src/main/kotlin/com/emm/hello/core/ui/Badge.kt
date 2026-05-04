@@ -5,21 +5,28 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.semanticColors
+import com.emm.hello.core.theme.spacing
 
 // ─── Variants ──────────────────────────────────────────────────────────────
 
-enum class BadgeVariant { Default, Secondary, Destructive, Outline, Success }
+enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success }
 
 /**
  * Status badge/chip inspired by shadcn/ui.
@@ -34,10 +41,15 @@ fun HBadge(
     variant: BadgeVariant = BadgeVariant.Default,
 ) {
     val (containerColor, contentColor) = badgeColors(variant)
+    val stateDescription = badgeStateDescription(variant)
 
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(100.dp),
+        modifier = modifier.semantics {
+            if (stateDescription != null) {
+                this.stateDescription = stateDescription
+            }
+        },
+        shape = MaterialTheme.helloShapes.pill,
         color = containerColor,
         contentColor = contentColor,
         border = if (variant == BadgeVariant.Outline) {
@@ -51,8 +63,11 @@ fun HBadge(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.metadata.copy(fontWeight = FontWeight.SemiBold),
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.md,
+                vertical = MaterialTheme.spacing.xs,
+            ),
         )
     }
 }
@@ -69,8 +84,21 @@ private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
         BadgeVariant.Destructive -> cs.errorContainer to cs.onErrorContainer
         // Outline → transparent + foreground text
         BadgeVariant.Outline -> Color.Transparent to cs.onSurface
+        BadgeVariant.Warning -> MaterialTheme.semanticColors.warning.container to MaterialTheme.semanticColors.warning.content
         // Success → tertiary (green in new theme)
         BadgeVariant.Success -> cs.tertiaryContainer to cs.onTertiaryContainer
+    }
+}
+
+@Composable
+private fun badgeStateDescription(variant: BadgeVariant): String? {
+    return when (variant) {
+        BadgeVariant.Default,
+        BadgeVariant.Secondary,
+        BadgeVariant.Outline -> null
+        BadgeVariant.Destructive -> stringResource(R.string.error_label)
+        BadgeVariant.Warning -> stringResource(R.string.warning_label)
+        BadgeVariant.Success -> stringResource(R.string.success_label)
     }
 }
 
@@ -85,7 +113,7 @@ private fun HBadgeVariantsPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
             ) {
                 BadgeVariant.entries.forEach { variant ->
                     HBadge(

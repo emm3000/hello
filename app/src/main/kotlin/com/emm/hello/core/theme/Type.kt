@@ -40,11 +40,22 @@ private val appFontFamily: FontFamily = FontFamily.Default
  * | titleSmall        | text-sm medium       | Labels de sección (SectionCard)   |
  * | bodyLarge         | text-base normal     | Cuerpo principal de flashcard     |
  * | bodyMedium        | text-sm normal       | Textos secundarios / onSurfaceVariant |
- * | bodySmall         | text-xs normal       | Helper / supporting text          |
+ * | bodySmall         | text-xs normal       | Texto secundario compacto         |
  * | labelLarge        | text-sm medium       | Texto de botones                  |
  * | labelMedium       | text-xs medium       | Badges, chips, conteos            |
- * | labelSmall        | text-[10px] medium   | Micro-labels, fechas de review    |
+ * | labelSmall        | text-[10px] medium   | Legacy micro-label; evitar para metadata funcional |
  */
+internal val metadataTextStyle = TextStyle(
+    fontFamily = appFontFamily,
+    fontWeight = FontWeight.Medium,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+    letterSpacing = 0.sp,
+)
+
+val Typography.metadata: TextStyle
+    get() = metadataTextStyle
+
 val appTypography = Typography(
     headlineLarge = TextStyle(
         fontFamily = appFontFamily,

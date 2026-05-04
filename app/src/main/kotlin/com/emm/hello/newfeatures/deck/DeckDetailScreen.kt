@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +25,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,11 +42,17 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.SectionBlock
+import com.emm.hello.core.ui.StatCard
+import com.emm.hello.core.ui.StatCardStatus
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -69,7 +72,7 @@ fun DeckDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
                         Text(
                             text = state.deck.name.ifBlank { stringResource(R.string.deck_detail_title_fallback) },
                             style = MaterialTheme.typography.titleLarge,
@@ -80,7 +83,7 @@ fun DeckDetailScreen(
                         if (state.deck.description.isNotBlank()) {
                             Text(
                                 text = state.deck.description,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.metadata,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -110,12 +113,13 @@ fun DeckDetailScreen(
     ) { innerPadding ->
         LazyColumn(
             contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 8.dp,
+                start = MaterialTheme.spacing.lg,
+                end = MaterialTheme.spacing.lg,
+                top = MaterialTheme.spacing.sm,
                 bottom = 88.dp,
             ),
             modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
             // ── Header with statistics ──────────────────────────────────────
             item {
@@ -136,21 +140,17 @@ fun DeckDetailScreen(
             // ── Cards ─────────────────────────────────────────────────────
             if (state.deck.cards.isNotEmpty()) {
                 item {
-                    Row(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cards_section_label),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        HBadge(
-                            label = "${state.deck.cards.size}",
-                            variant = BadgeVariant.Secondary,
-                        )
-                    }
+                    SectionBlock(
+                        title = stringResource(R.string.cards_section_label),
+                        modifier = Modifier.padding(vertical = MaterialTheme.spacing.sm),
+                        trailingContent = {
+                            HBadge(
+                                label = "${state.deck.cards.size}",
+                                variant = BadgeVariant.Secondary,
+                            )
+                        },
+                        showDivider = false,
+                    )
                 }
 
                 items(state.deck.cards, key = Flashcard::id) { card ->
@@ -185,83 +185,54 @@ private fun DeckStatsHeader(
     } else {
         stringResource(R.string.no_pending_cards)
     }
+    val reviewBadgeVariant = if (hasSessionEnabled) BadgeVariant.Success else BadgeVariant.Secondary
+    val reviewAlertVariant = if (hasSessionEnabled) com.emm.hello.core.ui.AlertVariant.Success else com.emm.hello.core.ui.AlertVariant.Default
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // Stats row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            StatCard(
-                value = "$cardCount",
-                label = deckPluralLabel,
-                modifier = Modifier.weight(1f),
+    SectionBlock(
+        title = stringResource(R.string.review_status_label),
+        description = reviewButtonText,
+        trailingContent = {
+            HBadge(
+                label = reviewStatusValue,
+                variant = reviewBadgeVariant,
             )
-            StatCard(
-                value = reviewStatusValue,
-                label = stringResource(R.string.review_status_label),
-                highlight = hasSessionEnabled,
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        // Botón de repaso
-        HButton(
-            text = reviewButtonText,
-            onClick = onReview,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            enabled = hasSessionEnabled,
-            leadingIcon = Icons.Filled.PlayArrow,
-            variant = if (hasSessionEnabled) ButtonVariant.Default else ButtonVariant.Secondary,
-        )
-    }
-}
-
-@Composable
-private fun StatCard(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    highlight: Boolean = false,
-) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = if (highlight) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
         },
+        showDivider = false,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (highlight) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+            ) {
+                StatCard(
+                    value = "$cardCount",
+                    label = deckPluralLabel,
+                    modifier = Modifier.weight(1f),
+                )
+                StatCard(
+                    value = reviewStatusValue,
+                    label = stringResource(R.string.review_status_label),
+                    status = if (hasSessionEnabled) StatCardStatus.Success else StatCardStatus.Default,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            HButton(
+                text = reviewButtonText,
+                onClick = onReview,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = hasSessionEnabled,
+                leadingIcon = Icons.Filled.PlayArrow,
+                variant = if (hasSessionEnabled) ButtonVariant.Default else ButtonVariant.Secondary,
             )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (highlight) {
-                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+
+            HAlert(
+                title = reviewStatusValue,
+                description = reviewButtonText,
+                variant = reviewAlertVariant,
             )
         }
     }
@@ -274,36 +245,30 @@ private fun EmptyCards(onAddCard: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp),
+            .padding(vertical = MaterialTheme.spacing.xxl),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        SectionBlock(
+            title = stringResource(R.string.empty_cards_title),
+            description = stringResource(R.string.empty_cards_description),
+            showDivider = false,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.HistoryEdu,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                stringResource(R.string.empty_cards_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                stringResource(R.string.empty_cards_description),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(Modifier.height(4.dp))
-            HButton(
-                text = stringResource(R.string.add_card),
-                onClick = onAddCard,
-                variant = ButtonVariant.Outline,
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.HistoryEdu,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                HButton(
+                    text = stringResource(R.string.add_card),
+                    onClick = onAddCard,
+                    variant = ButtonVariant.Outline,
+                )
+            }
         }
     }
 }
@@ -338,14 +303,14 @@ private fun DeckCardItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.metadata,
                 )
             }
         },
         trailingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.CalendarToday,
@@ -355,7 +320,7 @@ private fun DeckCardItem(
                 )
                 Text(
                     text = reviewDate.format(formatter),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.metadata,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

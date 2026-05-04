@@ -3,10 +3,10 @@ package com.emm.hello.core.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
@@ -26,6 +26,12 @@ import androidx.compose.ui.platform.LocalContext
 // ─────────────────────────────────────────────────────────────────────────────
 
 private val lightScheme = lightColorScheme(
+    semanticColors = lightSemanticColors()
+)
+
+private fun lightColorScheme(
+    semanticColors: HelloSemanticColors,
+) = materialLightColorScheme(
     // ── Primary (black button in shadcn) ──────────────────────────────────────
     primary = shadcnPrimary,
     onPrimary = shadcnPrimaryFg,
@@ -39,16 +45,16 @@ private val lightScheme = lightColorScheme(
     onSecondaryContainer = shadcnSecondaryFg,
 
     // ── Tertiary → success green ───────────────────────────────────────────────
-    tertiary = shadcnSuccess,
+    tertiary = semanticColors.success.accent,
     onTertiary = shadcnWhite,
-    tertiaryContainer = shadcnSuccessContainer,
-    onTertiaryContainer = shadcnOnSuccessContainer,
+    tertiaryContainer = semanticColors.success.container,
+    onTertiaryContainer = semanticColors.success.content,
 
     // ── Error → destructive red ───────────────────────────────────────────────
-    error = shadcnDestructive,
+    error = semanticColors.destructive.accent,
     onError = shadcnDestructiveFg,
-    errorContainer = shadcnErrorContainer,
-    onErrorContainer = shadcnOnErrorContainer,
+    errorContainer = semanticColors.destructive.container,
+    onErrorContainer = semanticColors.destructive.content,
 
     // ── Background & Surface ──────────────────────────────────────────────────
     background = shadcnBackground,
@@ -82,6 +88,12 @@ private val lightScheme = lightColorScheme(
 )
 
 private val darkScheme = darkColorScheme(
+    semanticColors = darkSemanticColors()
+)
+
+private fun darkColorScheme(
+    semanticColors: HelloSemanticColors,
+) = materialDarkColorScheme(
     // ── Primary (near-white in dark mode) ─────────────────────────────────────
     primary = shadcnDarkPrimary,
     onPrimary = shadcnDarkPrimaryFg,
@@ -95,16 +107,16 @@ private val darkScheme = darkColorScheme(
     onSecondaryContainer = shadcnDarkSecondaryFg,
 
     // ── Tertiary → success green ───────────────────────────────────────────────
-    tertiary = shadcnDarkSuccess,
+    tertiary = semanticColors.success.accent,
     onTertiary = shadcnBlack,
-    tertiaryContainer = shadcnDarkSuccessContainer,
-    onTertiaryContainer = shadcnDarkOnSuccessContainer,
+    tertiaryContainer = semanticColors.success.container,
+    onTertiaryContainer = semanticColors.success.content,
 
     // ── Error → destructive red ───────────────────────────────────────────────
-    error = shadcnDarkDestructive,
+    error = semanticColors.destructive.accent,
     onError = shadcnDarkDestructiveFg,
-    errorContainer = shadcnDarkErrorContainer,
-    onErrorContainer = shadcnDarkOnErrorContainer,
+    errorContainer = semanticColors.destructive.container,
+    onErrorContainer = semanticColors.destructive.content,
 
     // ── Background & Surface ──────────────────────────────────────────────────
     background = shadcnDarkBackground,
@@ -144,6 +156,7 @@ fun HelloTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
+    val semanticColors = if (darkTheme) darkSemanticColors() else lightSemanticColors()
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -156,6 +169,11 @@ fun HelloTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = appTypography,
-        content = content,
-    )
+        shapes = HelloMaterialShapes,
+    ) {
+        ProvideHelloFoundations(
+            semanticColors = semanticColors,
+            content = content,
+        )
+    }
 }

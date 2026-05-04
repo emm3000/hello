@@ -36,8 +36,11 @@ import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.staticCategories
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSelect
+import com.emm.hello.core.ui.SectionBlock
 import java.util.Locale
 
 private const val INPUT_STEP_NUMBER = 2
@@ -81,7 +84,7 @@ fun NewCardInputStepScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
                         Text(
                             text = stringResource(R.string.input_screen_title),
                             style = MaterialTheme.typography.titleLarge,
@@ -93,7 +96,7 @@ fun NewCardInputStepScreen(
                                 INPUT_STEP_NUMBER,
                                 TOTAL_STEP_COUNT,
                             ),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.metadata,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -118,9 +121,7 @@ fun NewCardInputStepScreen(
                     },
                     enabled = isGenerateEnabled,
                     isLoading = state.isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
@@ -128,17 +129,17 @@ fun NewCardInputStepScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = MaterialTheme.spacing.lg),
             contentPadding = PaddingValues(
                 start = 0.dp,
                 top = innerPadding.calculateTopPadding(),
                 end = 0.dp,
                 bottom = innerPadding.calculateBottomPadding() + 96.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg + MaterialTheme.spacing.xs),
         ) {
             item {
-                SectionCard(
+                SectionBlock(
                     title = stringResource(R.string.input_section_title),
                     description = when (state.typeView) {
                         TypeView.WordOrPhase -> stringResource(R.string.input_section_word_description)
@@ -171,11 +172,11 @@ fun NewCardInputStepScreen(
             }
 
             item {
-                SectionCard(
+                SectionBlock(
                     title = stringResource(R.string.destination_section_title),
                     description = stringResource(R.string.destination_section_description),
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
                         HSelect(
                             items = state.decks,
                             itemSelected = state.deckSelected,

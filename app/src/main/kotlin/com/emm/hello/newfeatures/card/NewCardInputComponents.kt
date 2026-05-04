@@ -25,16 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.TypeView
 import com.emm.domain.flashcard.difficult
 import com.emm.hello.R
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.CardVariant
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSelect
+import com.emm.hello.core.ui.HSelectTrigger
 
 @Composable
 internal fun NewCardInputSection(
@@ -70,7 +71,7 @@ internal fun InputModeSelector(
     selectedMode: TypeView,
     onModeSelected: (TypeView) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         ModeOptionCard(
             title = stringResource(R.string.new_card_mode_word),
             description = stringResource(R.string.mode_word_description),
@@ -112,8 +113,8 @@ private fun ModeOptionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(MaterialTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -122,7 +123,7 @@ private fun ModeOptionCard(
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
                 ) {
                     Text(
                         text = title,
@@ -159,7 +160,7 @@ private fun WordOrPhraseInputSection(
     onIntent: (NewCardUiIntent) -> Unit,
     onToggleVoiceInput: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         HInput(
             value = state.word,
             onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
@@ -206,21 +207,21 @@ private fun CategoryInputSection(
     onIntent: (NewCardUiIntent) -> Unit,
     onShowCategoryPicker: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        JustClickableInput(
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
+        HSelectTrigger(
             value = state.category.name,
             label = stringResource(R.string.category_label),
             onClick = onShowCategoryPicker,
+            supportingText = stringResource(R.string.category_supporting_text),
         )
-        SupportingText(text = stringResource(R.string.category_supporting_text))
         HSelect(
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.difficulty_label),
             items = difficult,
             itemSelected = state.difficulty,
             onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
+            supportingText = stringResource(R.string.difficulty_supporting_text),
         )
-        SupportingText(text = stringResource(R.string.difficulty_supporting_text))
     }
 }
 
@@ -229,7 +230,7 @@ private fun AiHelpInputSection(
     state: NewCardUiState,
     onIntent: (NewCardUiIntent) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
         HInput(
             value = state.aiRequest,
             onValueChange = { onIntent(NewCardUiIntent.AiRequestChanged(it)) },
@@ -245,8 +246,8 @@ private fun AiHelpInputSection(
             items = difficult,
             itemSelected = state.difficulty,
             onItemSelected = { onIntent(NewCardUiIntent.DifficultySelected(it)) },
+            supportingText = stringResource(R.string.ai_difficulty_supporting_text),
         )
-        SupportingText(text = stringResource(R.string.ai_difficulty_supporting_text))
     }
 }
 

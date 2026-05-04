@@ -1,9 +1,7 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
@@ -24,13 +21,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.semanticColors
+import com.emm.hello.core.theme.spacing
 
 // ─── Variants ──────────────────────────────────────────────────────────────
 
@@ -51,17 +55,29 @@ fun HAlert(
     icon: ImageVector? = null,
 ) {
     val (bg, contentColor, iconColor) = alertTokens(variant)
+    val stateDescription = alertStateDescription(variant)
 
     val animBg by animateColorAsState(targetValue = bg, label = "alert_bg")
 
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(animBg)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .semantics {
+                if (stateDescription != null) {
+                    this.stateDescription = stateDescription
+                }
+            },
+        shape = MaterialTheme.helloShapes.container,
+        color = animBg,
+        contentColor = contentColor,
     ) {
-        Row(verticalAlignment = Alignment.Top) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.lg,
+                vertical = MaterialTheme.spacing.md,
+            ),
+            verticalAlignment = Alignment.Top,
+        ) {
             val resolvedIcon = icon ?: when (variant) {
                 AlertVariant.Destructive -> Icons.Default.Warning
                 AlertVariant.Warning -> Icons.Default.Warning
@@ -75,7 +91,7 @@ fun HAlert(
                     .size(16.dp)
                     .padding(top = 1.dp),
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(MaterialTheme.spacing.md))
             Column {
                 Text(
                     text = title,
@@ -83,10 +99,10 @@ fun HAlert(
                     color = contentColor,
                 )
                 if (description != null) {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(MaterialTheme.spacing.xs))
                     Text(
                         text = description,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.metadata,
                         color = contentColor.copy(alpha = 0.85f),
                     )
                 }
@@ -110,15 +126,25 @@ private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
             cs.error,
         )
         AlertVariant.Warning -> Triple(
-            com.emm.hello.core.theme.shadcnWarningContainer,
-            com.emm.hello.core.theme.shadcnOnWarningContainer,
-            com.emm.hello.core.theme.shadcnWarning,
+            MaterialTheme.semanticColors.warning.container,
+            MaterialTheme.semanticColors.warning.content,
+            MaterialTheme.semanticColors.warning.accent,
         )
         AlertVariant.Success -> Triple(
             cs.tertiaryContainer,
             cs.onTertiaryContainer,
             cs.tertiary,
         )
+    }
+}
+
+@Composable
+private fun alertStateDescription(variant: AlertVariant): String? {
+    return when (variant) {
+        AlertVariant.Default -> null
+        AlertVariant.Destructive -> stringResource(R.string.error_label)
+        AlertVariant.Warning -> stringResource(R.string.warning_label)
+        AlertVariant.Success -> stringResource(R.string.success_label)
     }
 }
 
@@ -133,7 +159,7 @@ private fun HAlertVariantsPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
                 HAlert(
                     title = "Información",

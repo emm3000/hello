@@ -8,6 +8,7 @@
     <string name="loading">Cargando...</string>
     <string name="error_label">Error</string>
     <string name="success_label">Éxito</string>
+    <string name="warning_label">Advertencia</string>
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
     <string name="close">Cerrar</string>

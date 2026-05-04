@@ -1,0 +1,138 @@
+package com.emm.hello.core.ui
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.spacing
+
+internal const val FieldShellBorderAnimationMs = 150
+internal const val FieldShellDisabledAlpha = 0.38f
+internal const val FieldShellPlaceholderAlpha = 0.6f
+internal val FieldShellMinHeight = 48.dp
+
+@Composable
+internal fun FieldShell(
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    supportingText: String? = null,
+    errorMessage: String? = null,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    val helperText = errorMessage ?: supportingText
+    val isError = errorMessage != null
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+    ) {
+        if (label != null) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                color = fieldShellLabelColor(isError = isError, enabled = enabled),
+            )
+        }
+
+        content()
+
+        if (helperText != null) {
+            Text(
+                text = helperText,
+                style = MaterialTheme.typography.metadata,
+                color = fieldShellSupportingColor(isError = isError, enabled = enabled),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun fieldShellContainerModifier(
+    modifier: Modifier = Modifier,
+    borderColor: Color,
+): Modifier = modifier
+    .fillMaxWidth()
+    .defaultMinSize(minHeight = FieldShellMinHeight)
+    .clip(MaterialTheme.helloShapes.control)
+    .border(
+        width = 1.dp,
+        color = borderColor,
+        shape = MaterialTheme.helloShapes.control,
+    )
+
+@Composable
+internal fun fieldShellBorderColor(
+    isError: Boolean,
+    enabled: Boolean,
+    isActive: Boolean,
+): Color {
+    val colorScheme = MaterialTheme.colorScheme
+    val targetColor = when {
+        isError -> colorScheme.error
+        isActive -> colorScheme.outline
+        else -> colorScheme.outlineVariant
+    }.let { color ->
+        if (enabled) color else color.copy(alpha = FieldShellDisabledAlpha)
+    }
+
+    val animatedColor by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = tween(durationMillis = FieldShellBorderAnimationMs),
+        label = "field_shell_border",
+    )
+
+    return animatedColor
+}
+
+@Composable
+internal fun fieldShellContentColor(enabled: Boolean): Color {
+    val colorScheme = MaterialTheme.colorScheme
+    return if (enabled) {
+        colorScheme.onSurface
+    } else {
+        colorScheme.onSurface.copy(alpha = FieldShellDisabledAlpha)
+    }
+}
+
+@Composable
+internal fun fieldShellPlaceholderColor(enabled: Boolean): Color {
+    val colorScheme = MaterialTheme.colorScheme
+    val baseColor = colorScheme.onSurfaceVariant.copy(alpha = FieldShellPlaceholderAlpha)
+    return if (enabled) baseColor else baseColor.copy(alpha = FieldShellDisabledAlpha)
+}
+
+@Composable
+internal fun fieldShellLabelColor(isError: Boolean, enabled: Boolean): Color {
+    val colorScheme = MaterialTheme.colorScheme
+    val baseColor = if (isError) colorScheme.error else colorScheme.onSurface
+    return if (enabled) baseColor else colorScheme.onSurface.copy(alpha = FieldShellDisabledAlpha)
+}
+
+@Composable
+internal fun fieldShellSupportingColor(isError: Boolean, enabled: Boolean): Color {
+    val colorScheme = MaterialTheme.colorScheme
+    val baseColor = if (isError) colorScheme.error else colorScheme.onSurfaceVariant
+    return if (enabled) baseColor else baseColor.copy(alpha = FieldShellDisabledAlpha)
+}
+
+@Composable
+internal fun fieldShellContentPadding(): PaddingValues = PaddingValues(
+    horizontal = MaterialTheme.spacing.md,
+    vertical = MaterialTheme.spacing.sm,
+)

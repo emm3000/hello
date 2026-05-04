@@ -1,0 +1,127 @@
+package com.emm.hello.core.ui
+
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.dp
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.emm.hello.core.theme.HelloTheme
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalTestApi::class)
+class SharedControlsTest {
+
+    @get:Rule
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun input_exposes_label_error_and_min_touch_target() {
+        composeRule.setContent {
+            HelloTheme {
+                HInput(
+                    value = "",
+                    onValueChange = {},
+                    label = "Nombre",
+                    errorMessage = "Campo obligatorio",
+                )
+            }
+        }
+
+        composeRule.waitUntilAtLeastOneExists(
+            hasSetTextAction()
+                .and(hasContentDescription("Nombre"))
+                .and(hasError("Campo obligatorio")),
+        )
+        composeRule.onNode(
+            hasSetTextAction()
+                .and(hasContentDescription("Nombre"))
+                .and(hasError("Campo obligatorio")),
+        )
+            .assertHeightIsAtLeast(48.dp)
+    }
+
+    @Test
+    fun select_exposes_disabled_state_and_min_touch_target() {
+        composeRule.setContent {
+            HelloTheme {
+                HSelect(
+                    items = listOf("Uno", "Dos"),
+                    itemSelected = null,
+                    onItemSelected = {},
+                    label = "Mazo",
+                    enabled = false,
+                )
+            }
+        }
+
+        composeRule.waitUntilAtLeastOneExists(hasContentDescription("Mazo"))
+        composeRule.onNode(hasContentDescription("Mazo"))
+            .assertIsNotEnabled()
+            .assertHeightIsAtLeast(48.dp)
+    }
+
+    @Test
+    fun warning_components_expose_warning_semantics() {
+        composeRule.setContent {
+            HelloTheme {
+                Column {
+                    HAlert(
+                        title = "Atención",
+                        description = "Necesita revisión",
+                        variant = AlertVariant.Warning,
+                    )
+                    HBadge(
+                        label = "Requiere revisión",
+                        variant = BadgeVariant.Warning,
+                    )
+                }
+            }
+        }
+
+        composeRule.waitUntilAtLeastOneExists(
+            hasWarningState().and(hasAnyDescendant(hasText("Atención"))),
+        )
+
+        composeRule.waitUntilAtLeastOneExists(
+            hasWarningState().and(hasAnyDescendant(hasText("Requiere revisión"))),
+        )
+    }
+
+    @Test
+    fun button_uses_min_touch_target() {
+        composeRule.setContent {
+            HelloTheme {
+                HButton(
+                    text = "Guardar",
+                    onClick = {},
+                )
+            }
+        }
+
+        composeRule.waitUntilAtLeastOneExists(hasClickAction().and(hasText("Guardar")))
+        composeRule.onNode(hasClickAction().and(hasText("Guardar")))
+            .assertHeightIsAtLeast(48.dp)
+    }
+}
+
+private fun hasError(message: String): SemanticsMatcher = SemanticsMatcher("Has error '$message'") { node ->
+    node.config.getOrNull(SemanticsProperties.Error) == message
+}
+
+private fun hasWarningState(): SemanticsMatcher = SemanticsMatcher("Has warning state") { node ->
+    node.config.getOrNull(SemanticsProperties.StateDescription) == "Advertencia"
+}
