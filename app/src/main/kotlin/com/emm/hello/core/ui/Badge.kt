@@ -84,7 +84,8 @@ private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
         BadgeVariant.Destructive -> cs.errorContainer to cs.onErrorContainer
         // Outline → transparent + foreground text
         BadgeVariant.Outline -> Color.Transparent to cs.onSurface
-        BadgeVariant.Warning -> MaterialTheme.semanticColors.warning.container to MaterialTheme.semanticColors.warning.content
+        BadgeVariant.Warning ->
+            MaterialTheme.semanticColors.warning.container to MaterialTheme.semanticColors.warning.content
         // Success → tertiary (green in new theme)
         BadgeVariant.Success -> cs.tertiaryContainer to cs.onTertiaryContainer
     }

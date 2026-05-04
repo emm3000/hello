@@ -56,7 +56,7 @@ data class HelloShapes(
     val pill: RoundedCornerShape,
 )
 
-internal val DefaultHelloSpacing = HelloSpacing(
+internal val defaultHelloSpacing = HelloSpacing(
     xs = 4.dp,
     sm = 8.dp,
     md = 12.dp,
@@ -65,36 +65,36 @@ internal val DefaultHelloSpacing = HelloSpacing(
     xxl = 32.dp,
 )
 
-internal val DefaultHelloShapes = HelloShapes(
+internal val defaultHelloShapes = HelloShapes(
     control = RoundedCornerShape(8.dp),
     container = RoundedCornerShape(12.dp),
     pill = RoundedCornerShape(100.dp),
 )
 
-internal val HelloMaterialShapes = Shapes(
-    small = DefaultHelloShapes.control,
-    medium = DefaultHelloShapes.container,
+internal val helloMaterialShapes = Shapes(
+    small = defaultHelloShapes.control,
+    medium = defaultHelloShapes.container,
     large = RoundedCornerShape(16.dp),
 )
 
-internal val LocalHelloSpacing = staticCompositionLocalOf { DefaultHelloSpacing }
-internal val LocalHelloSemanticColors = staticCompositionLocalOf { lightSemanticColors() }
-internal val LocalHelloShapes = staticCompositionLocalOf { DefaultHelloShapes }
+internal val localHelloSpacing = staticCompositionLocalOf { defaultHelloSpacing }
+internal val localHelloSemanticColors = staticCompositionLocalOf { lightSemanticColors() }
+internal val localHelloShapes = staticCompositionLocalOf { defaultHelloShapes }
 
 val MaterialTheme.spacing: HelloSpacing
     @Composable
     @ReadOnlyComposable
-    get() = LocalHelloSpacing.current
+    get() = localHelloSpacing.current
 
 val MaterialTheme.semanticColors: HelloSemanticColors
     @Composable
     @ReadOnlyComposable
-    get() = LocalHelloSemanticColors.current
+    get() = localHelloSemanticColors.current
 
 val MaterialTheme.helloShapes: HelloShapes
     @Composable
     @ReadOnlyComposable
-    get() = LocalHelloShapes.current
+    get() = localHelloShapes.current
 
 @Composable
 internal fun ProvideHelloFoundations(
@@ -102,9 +102,9 @@ internal fun ProvideHelloFoundations(
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalHelloSpacing provides DefaultHelloSpacing,
-        LocalHelloSemanticColors provides semanticColors,
-        LocalHelloShapes provides DefaultHelloShapes,
+        localHelloSpacing provides defaultHelloSpacing,
+        localHelloSemanticColors provides semanticColors,
+        localHelloShapes provides defaultHelloShapes,
         content = content,
     )
 }

@@ -9,27 +9,27 @@ class FoundationTest {
     fun `light semantic colors map named roles`() {
         val colors = lightSemanticColors()
 
-        assertThat(colors.success).isEqualTo(LightSuccessSemanticColor)
-        assertThat(colors.warning).isEqualTo(LightWarningSemanticColor)
-        assertThat(colors.destructive).isEqualTo(LightDestructiveSemanticColor)
+        assertThat(colors.success).isEqualTo(lightSuccessSemanticColor)
+        assertThat(colors.warning).isEqualTo(lightWarningSemanticColor)
+        assertThat(colors.destructive).isEqualTo(lightDestructiveSemanticColor)
     }
 
     @Test
     fun `dark semantic colors map named roles`() {
         val colors = darkSemanticColors()
 
-        assertThat(colors.success).isEqualTo(DarkSuccessSemanticColor)
-        assertThat(colors.warning).isEqualTo(DarkWarningSemanticColor)
-        assertThat(colors.destructive).isEqualTo(DarkDestructiveSemanticColor)
+        assertThat(colors.success).isEqualTo(darkSuccessSemanticColor)
+        assertThat(colors.warning).isEqualTo(darkWarningSemanticColor)
+        assertThat(colors.destructive).isEqualTo(darkDestructiveSemanticColor)
     }
 
     @Test
     fun `default spacing tokens stay ordered`() {
-        assertThat(DefaultHelloSpacing.xs.value).isLessThan(DefaultHelloSpacing.sm.value)
-        assertThat(DefaultHelloSpacing.sm.value).isLessThan(DefaultHelloSpacing.md.value)
-        assertThat(DefaultHelloSpacing.md.value).isLessThan(DefaultHelloSpacing.lg.value)
-        assertThat(DefaultHelloSpacing.lg.value).isLessThan(DefaultHelloSpacing.xl.value)
-        assertThat(DefaultHelloSpacing.xl.value).isLessThan(DefaultHelloSpacing.xxl.value)
+        assertThat(defaultHelloSpacing.xs.value).isLessThan(defaultHelloSpacing.sm.value)
+        assertThat(defaultHelloSpacing.sm.value).isLessThan(defaultHelloSpacing.md.value)
+        assertThat(defaultHelloSpacing.md.value).isLessThan(defaultHelloSpacing.lg.value)
+        assertThat(defaultHelloSpacing.lg.value).isLessThan(defaultHelloSpacing.xl.value)
+        assertThat(defaultHelloSpacing.xl.value).isLessThan(defaultHelloSpacing.xxl.value)
     }
 
     @Test

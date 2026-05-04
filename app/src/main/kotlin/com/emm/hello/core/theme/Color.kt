@@ -120,50 +120,50 @@ val shadcnDarkWarningContainer = Color(0xFF713F12) // Tailwind yellow-900
 val shadcnDarkOnWarningContainer = Color(0xFFFEF08A) // Tailwind yellow-200
 val shadcnDarkWarning = Color(0xFFFACC15) // Tailwind yellow-400
 
-internal val LightSuccessSemanticColor = HelloSemanticColor(
+internal val lightSuccessSemanticColor = HelloSemanticColor(
     container = shadcnSuccessContainer,
     content = shadcnOnSuccessContainer,
     accent = shadcnSuccess,
 )
 
-internal val LightWarningSemanticColor = HelloSemanticColor(
+internal val lightWarningSemanticColor = HelloSemanticColor(
     container = shadcnWarningContainer,
     content = shadcnOnWarningContainer,
     accent = shadcnWarning,
 )
 
-internal val LightDestructiveSemanticColor = HelloSemanticColor(
+internal val lightDestructiveSemanticColor = HelloSemanticColor(
     container = shadcnErrorContainer,
     content = shadcnOnErrorContainer,
     accent = shadcnDestructive,
 )
 
-internal val DarkSuccessSemanticColor = HelloSemanticColor(
+internal val darkSuccessSemanticColor = HelloSemanticColor(
     container = shadcnDarkSuccessContainer,
     content = shadcnDarkOnSuccessContainer,
     accent = shadcnDarkSuccess,
 )
 
-internal val DarkWarningSemanticColor = HelloSemanticColor(
+internal val darkWarningSemanticColor = HelloSemanticColor(
     container = shadcnDarkWarningContainer,
     content = shadcnDarkOnWarningContainer,
     accent = shadcnDarkWarning,
 )
 
-internal val DarkDestructiveSemanticColor = HelloSemanticColor(
+internal val darkDestructiveSemanticColor = HelloSemanticColor(
     container = shadcnDarkErrorContainer,
     content = shadcnDarkOnErrorContainer,
     accent = shadcnDarkDestructive,
 )
 
 internal fun lightSemanticColors(): HelloSemanticColors = HelloSemanticColors(
-    success = LightSuccessSemanticColor,
-    warning = LightWarningSemanticColor,
-    destructive = LightDestructiveSemanticColor,
+    success = lightSuccessSemanticColor,
+    warning = lightWarningSemanticColor,
+    destructive = lightDestructiveSemanticColor,
 )
 
 internal fun darkSemanticColors(): HelloSemanticColors = HelloSemanticColors(
-    success = DarkSuccessSemanticColor,
-    warning = DarkWarningSemanticColor,
-    destructive = DarkDestructiveSemanticColor,
+    success = darkSuccessSemanticColor,
+    warning = darkWarningSemanticColor,
+    destructive = darkDestructiveSemanticColor,
 )

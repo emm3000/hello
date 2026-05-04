@@ -186,7 +186,11 @@ private fun DeckStatsHeader(
         stringResource(R.string.no_pending_cards)
     }
     val reviewBadgeVariant = if (hasSessionEnabled) BadgeVariant.Success else BadgeVariant.Secondary
-    val reviewAlertVariant = if (hasSessionEnabled) com.emm.hello.core.ui.AlertVariant.Success else com.emm.hello.core.ui.AlertVariant.Default
+    val reviewAlertVariant = if (hasSessionEnabled) {
+        com.emm.hello.core.ui.AlertVariant.Success
+    } else {
+        com.emm.hello.core.ui.AlertVariant.Default
+    }
 
     SectionBlock(
         title = stringResource(R.string.review_status_label),

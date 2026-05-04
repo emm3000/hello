@@ -66,7 +66,7 @@ fun HButton(
     when (variant) {
         ButtonVariant.Ghost -> TextButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
+            modifier = modifier.defaultMinSize(minHeight = fieldShellMinHeight),
             enabled = buttonEnabled,
             shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.textButtonColors(
@@ -79,7 +79,7 @@ fun HButton(
         }
         ButtonVariant.Link -> TextButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
+            modifier = modifier.defaultMinSize(minHeight = fieldShellMinHeight),
             enabled = buttonEnabled,
             shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.textButtonColors(
@@ -92,7 +92,7 @@ fun HButton(
         }
         ButtonVariant.Outline -> OutlinedButton(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
+            modifier = modifier.defaultMinSize(minHeight = fieldShellMinHeight),
             enabled = buttonEnabled,
             shape = MaterialTheme.helloShapes.control,
             colors = ButtonDefaults.outlinedButtonColors(
@@ -106,7 +106,7 @@ fun HButton(
         }
         else -> Button(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = FieldShellMinHeight),
+            modifier = modifier.defaultMinSize(minHeight = fieldShellMinHeight),
             enabled = buttonEnabled,
             shape = MaterialTheme.helloShapes.control,
             colors = colors,
