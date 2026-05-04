@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.text.lowercaseRoot
+
 class ValidateGeneratedLearningNoteUseCase {
 
     operator fun invoke(note: GeneratedLearningNote): GeneratedLearningNoteValidation {
@@ -359,7 +361,7 @@ class ValidateGeneratedLearningNoteUseCase {
 }
 
 private fun String.normalizeForComparison(): String {
-    return trim().lowercase().replace("\\s+".toRegex(), " ")
+    return trim().lowercaseRoot().replace("\\s+".toRegex(), " ")
 }
 
 private fun String.wordCountForRecall(): Int {

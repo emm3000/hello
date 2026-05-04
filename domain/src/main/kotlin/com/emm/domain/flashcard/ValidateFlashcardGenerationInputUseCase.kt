@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.text.lowercaseRoot
+
 class ValidateFlashcardGenerationInputUseCase {
 
     operator fun invoke(input: FlashcardGenerationInput): FlashcardGenerationInputValidation {
@@ -115,7 +117,7 @@ class ValidateFlashcardGenerationInputUseCase {
     ) {
         val needsDisambiguation = requiresDisambiguation(
             inputType = input.inputType,
-            normalizedUserText = input.userText.lowercase(),
+            normalizedUserText = input.userText.lowercaseRoot(),
             wordCount = wordCount,
         )
         val hasDisambiguation = input.intendedMeaningEs.isNotBlank() || input.contextSentence.isNotBlank()

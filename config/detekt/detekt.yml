@@ -106,6 +106,8 @@ formatting:
   active: true
   android: true
   autoCorrect: false
+  ImportOrdering:
+    active: false
   MaximumLineLength:
     active: true
     maxLineLength: 120
