@@ -1,9 +1,12 @@
 package com.emm.domain.deck
 
+import com.emm.domain.ids.toDeckId
+
 class SetDefaultDeckUseCase(
     private val repository: DefaultDeckSelectionRepository,
 ) {
     operator fun invoke(deckId: String) {
-        repository.setDefaultDeckId(deckId)
+        val typedDeckId = deckId.toDeckId()
+        repository.setDefaultDeckId(typedDeckId.value)
     }
 }
