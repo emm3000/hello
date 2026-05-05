@@ -14,4 +14,8 @@ class DefaultDeckSelectionPreferencesRepository(
     override fun setDefaultDeckId(deckId: DeckId) {
         dataStore.defaultDeck = deckId.value
     }
+
+    override fun clearDefaultDeckId() {
+        dataStore.clearDefaultDeck()
+    }
 }

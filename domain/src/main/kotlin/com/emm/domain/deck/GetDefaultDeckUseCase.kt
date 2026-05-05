@@ -6,7 +6,10 @@ class GetDefaultDeckUseCase(
     private val repository: DefaultDeckSelectionRepository,
 ) {
     operator fun invoke(): String {
-        val typedDeckId = repository.getDefaultDeckId().toDeckId()
+        val rawDeckId = repository.getDefaultDeckId()
+        if (rawDeckId.isBlank()) return ""
+
+        val typedDeckId = rawDeckId.toDeckId()
         return typedDeckId.value
     }
 }

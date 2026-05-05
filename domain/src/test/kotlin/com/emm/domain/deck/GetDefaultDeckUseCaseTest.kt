@@ -16,13 +16,15 @@ class GetDefaultDeckUseCaseTest {
         assertEquals("deck-1", result)
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `invoke rejects blank deck id from repository`() {
+    @Test
+    fun `invoke returns empty when repository has blank deck id`() {
         val useCase = GetDefaultDeckUseCase(
             FakeDefaultDeckSelectionRepository(defaultDeckId = "   ")
         )
 
-        useCase()
+        val result = useCase()
+
+        assertEquals("", result)
     }
 }
 
@@ -32,4 +34,6 @@ private class FakeDefaultDeckSelectionRepository(
     override fun getDefaultDeckId(): String = defaultDeckId
 
     override fun setDefaultDeckId(deckId: DeckId) = Unit
+
+    override fun clearDefaultDeckId() = Unit
 }

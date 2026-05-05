@@ -29,8 +29,16 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
+import com.emm.domain.flashcard.FlashcardGenerationDisambiguationPolicy
+import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.GeneratedLearningNoteMapper
+import com.emm.domain.flashcard.GeneratedLearningNoteCardsPolicy
+import com.emm.domain.flashcard.GeneratedLearningNoteCoreFieldsPolicy
+import com.emm.domain.flashcard.GeneratedLearningNoteQualityChecksPolicy
+import com.emm.domain.flashcard.GeneratedLearningNoteTypeRequirementsPolicy
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.IsExactDuplicateGeneratedNoteUseCase
@@ -99,6 +107,14 @@ fun Module.repository() {
 
 fun Module.useCases() {
     single<Clock> { SystemClock }
+    factoryOf(::FlashcardGenerationDisambiguationPolicy)
+    factoryOf(::FlashcardGenerationInputTypeRulesPolicy)
+    factoryOf(::FlashcardGenerationContextSentencePolicy)
+    factoryOf(::GeneratedLearningNoteCoreFieldsPolicy)
+    factoryOf(::GeneratedLearningNoteTypeRequirementsPolicy)
+    factoryOf(::GeneratedLearningNoteCardsPolicy)
+    factoryOf(::GeneratedLearningNoteQualityChecksPolicy)
+    factoryOf(::GeneratedLearningNoteMapper)
     factoryOf(::CreateDeckUseCase)
     factoryOf(::GetDecksUseCase)
     factoryOf(::GetDefaultDeckUseCase)
