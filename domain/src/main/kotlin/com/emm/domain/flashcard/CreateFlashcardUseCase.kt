@@ -9,16 +9,13 @@ class CreateFlashcardUseCase(
     private val readRepository: FlashcardReadRepository,
     private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
     private val isExactDuplicateGeneratedNoteUseCase: IsExactDuplicateGeneratedNoteUseCase,
+    private val generatedLearningNoteMapper: GeneratedLearningNoteMapper = GeneratedLearningNoteMapper(),
 ) {
 
     suspend operator fun invoke(
         deckId: String,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
-        val normalizedExpression = learningNote.expression.toExpression()
-        val normalizedMeaning = learningNote.intendedMeaningEs.toIntendedMeaningEs()
-        val normalizedDefinition = learningNote.simpleDefinitionEn.toDefinitionEn()
-
         val validation = validateGeneratedLearningNoteUseCase(learningNote)
         if (!validation.isValid) {
             throw DomainValidationException(validation.errors)
@@ -36,73 +33,15 @@ class CreateFlashcardUseCase(
             )
         }
 
-        val input = learningNote.toCreateFlashcardInput(
+        val input = generatedLearningNoteMapper.toCreateFlashcardInput(
             deckId = deckId,
-            expression = normalizedExpression,
-            intendedMeaningEs = normalizedMeaning,
-            definitionEn = normalizedDefinition,
+            note = learningNote,
         )
 
         val flashcardId: String = writeRepository.create(input)
 
-        writeRepository.upsertExamples(learningNote.toExamples(), flashcardId)
+        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
 
         return readRepository.fetchById(flashcardId)
-    }
-
-    private fun GeneratedLearningNote.toCreateFlashcardInput(
-        deckId: String,
-        expression: Expression,
-        intendedMeaningEs: IntendedMeaningEs,
-        definitionEn: DefinitionEn,
-    ): CreateFlashcardInput {
-        return CreateFlashcardInput(
-            deckId = deckId,
-            word = expression.value,
-            meaning = definitionEn.value,
-            translation = intendedMeaningEs.value,
-            phonetic = ipa,
-            partOfSpeech = partOfSpeech.name,
-            type = noteType.name,
-            note = buildNoteSummary(),
-            register = register.name,
-            levelBand = levelBand.name,
-            domain = domain.name,
-            lemma = lemma,
-            whyUseful = whyUseful,
-            usagePattern = usagePattern,
-            irregularForms = irregularForms,
-            collocations = collocations,
-            commonMistake = commonMistake,
-            confusableWith = confusableWith,
-            clozeSentence = clozeSentence,
-            sourceContext = sourceContext,
-            warnings = warnings,
-            studyCards = cards,
-            qualityChecks = qualityChecks,
-        )
-    }
-
-    private fun GeneratedLearningNote.toExamples(): List<Example> {
-        return buildList {
-            if (exampleSentence.isNotBlank()) {
-                add(
-                    Example(
-                        exampleId = "learning-note-example",
-                        text = exampleSentence,
-                        translation = exampleTranslation,
-                        type = "main",
-                    )
-                )
-            }
-        }
-    }
-
-    private fun GeneratedLearningNote.buildNoteSummary(): String {
-        return listOfNotNull(
-            whyUseful.takeIf { it.isNotBlank() },
-            usagePattern.takeIf { it.isNotBlank() },
-            commonMistake.takeIf { it.isNotBlank() },
-        ).joinToString(separator = " | ")
     }
 }
