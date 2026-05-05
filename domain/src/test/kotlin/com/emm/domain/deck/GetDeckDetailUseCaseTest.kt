@@ -1,13 +1,14 @@
 package com.emm.domain.deck
 
+import app.cash.turbine.test
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,32 +17,94 @@ class GetDeckDetailUseCaseTest {
 
     @Test
     fun `invoke combines deck and cards without re-fetching each card`() = runTest {
-        val deckRepository = FakeDeckRepository()
-        val flashcardRepository = FakeFlashcardReadRepository()
+        val deckRepository = FakeDeckRepository(
+            deckFlow = MutableStateFlow(
+                Deck(
+                    id = "deck-1",
+                    name = "Main",
+                    description = "",
+                    createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
+                    cards = emptyList(),
+                    cardsCount = 0L,
+                )
+            )
+        )
+        val flashcardRepository = FakeFlashcardReadRepository(
+            cardsFlow = MutableStateFlow(
+                listOf(
+                    sampleCard(id = "card-1"),
+                    sampleCard(id = "card-2"),
+                )
+            )
+        )
         val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
 
-        val result = useCase("deck-1").first()
-
-        assertEquals(2, result.cards.size)
-        assertEquals(0, flashcardRepository.fetchByIdCalls)
+        useCase("deck-1").test {
+            val result = awaitItem()
+            assertEquals(2, result.cards.size)
+            assertEquals(0, flashcardRepository.fetchByIdCalls)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
-}
 
-private class FakeDeckRepository : DeckRepository {
-    override suspend fun addDeck(deck: CreateDeckInput) = Unit
-
-    override fun findById(deckId: String): Flow<Deck> {
-        return flowOf(
+    @Test
+    fun `invoke emits updated deck detail when cards flow changes`() = runTest {
+        val deckFlow = MutableStateFlow(
             Deck(
-                id = deckId,
+                id = "deck-1",
                 name = "Main",
-                description = "",
+                description = "Core deck",
                 createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
                 cards = emptyList(),
                 cardsCount = 0L,
             )
         )
+        val cardsFlow = MutableStateFlow(listOf(sampleCard(id = "card-1")))
+
+        val deckRepository = FakeDeckRepository(deckFlow = deckFlow)
+        val flashcardRepository = FakeFlashcardReadRepository(cardsFlow = cardsFlow)
+        val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
+
+        useCase("deck-1").test {
+            val first = awaitItem()
+            assertEquals("deck-1", first.id)
+            assertEquals("Main", first.name)
+            assertEquals(1, first.cards.size)
+
+            cardsFlow.value = listOf(
+                sampleCard(id = "card-1"),
+                sampleCard(id = "card-2"),
+            )
+
+            val second = awaitItem()
+            assertEquals("deck-1", second.id)
+            assertEquals("Main", second.name)
+            assertEquals(2, second.cards.size)
+            assertEquals(0, flashcardRepository.fetchByIdCalls)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
+}
+
+private class FakeDeckRepository : DeckRepository {
+    constructor(deckFlow: MutableStateFlow<Deck>) {
+        this.deckFlow = deckFlow
+    }
+
+    private var deckFlow: MutableStateFlow<Deck> = MutableStateFlow(
+        Deck(
+            id = "deck-1",
+            name = "Main",
+            description = "",
+            createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
+            cards = emptyList(),
+            cardsCount = 0L,
+        )
+    )
+
+    override suspend fun addDeck(deck: CreateDeckInput) = Unit
+
+    override fun findById(deckId: String): Flow<Deck> = deckFlow
 
     override fun fetchAll(): Flow<List<Deck>> = flowOf(emptyList())
 
@@ -49,33 +112,38 @@ private class FakeDeckRepository : DeckRepository {
 }
 
 private class FakeFlashcardReadRepository : FlashcardReadRepository {
+    constructor(cardsFlow: MutableStateFlow<List<Flashcard>>) {
+        this.cardsFlow = cardsFlow
+    }
+
+    private var cardsFlow: MutableStateFlow<List<Flashcard>> = MutableStateFlow(
+        listOf(
+            sampleCard(id = "card-1"),
+            sampleCard(id = "card-2"),
+        )
+    )
+
     var fetchByIdCalls: Int = 0
 
     override fun fetchAll(): Flow<List<Flashcard>> = flowOf(emptyList())
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> {
-        return flowOf(
-            listOf(
-                sampleCard(id = "card-1"),
-                sampleCard(id = "card-2"),
-            )
-        )
-    }
+    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = cardsFlow
 
     override suspend fun fetchById(id: String): Flashcard {
         fetchByIdCalls += 1
         return sampleCard(id = id)
     }
 
-    private fun sampleCard(id: String): Flashcard {
-        return Flashcard(
-            id = id,
-            word = "borrow",
-            meaning = "to take and return",
-            translation = "pedir prestado",
-            examples = emptyList(),
-            phonetic = "",
-            review = FlashcardReview.empty(Clock { Instant.EPOCH }),
-        )
-    }
+}
+
+private fun sampleCard(id: String): Flashcard {
+    return Flashcard(
+        id = id,
+        word = "borrow",
+        meaning = "to take and return",
+        translation = "pedir prestado",
+        examples = emptyList(),
+        phonetic = "",
+        review = FlashcardReview.empty(Clock { Instant.EPOCH }),
+    )
 }
