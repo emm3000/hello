@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,8 @@ class GetDeckDetailUseCaseTest {
         useCase("deck-1").test {
             val result = awaitItem()
             assertEquals(2, result.cards.size)
+            assertEquals("deck-1", deckRepository.lastFindByIdArg?.value)
+            assertEquals("deck-1", flashcardRepository.lastFetchByDeckIdArg?.value)
             assertEquals(0, flashcardRepository.fetchByIdCalls)
             cancelAndIgnoreRemainingEvents()
         }
@@ -80,9 +83,33 @@ class GetDeckDetailUseCaseTest {
             assertEquals("deck-1", second.id)
             assertEquals("Main", second.name)
             assertEquals(2, second.cards.size)
+            assertEquals("deck-1", deckRepository.lastFindByIdArg?.value)
+            assertEquals("deck-1", flashcardRepository.lastFetchByDeckIdArg?.value)
             assertEquals(0, flashcardRepository.fetchByIdCalls)
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `invoke rejects blank deck id`() = runTest {
+        val deckRepository = FakeDeckRepository(
+            deckFlow = MutableStateFlow(
+                Deck(
+                    id = "deck-1",
+                    name = "Main",
+                    description = "",
+                    createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
+                    cards = emptyList(),
+                    cardsCount = 0L,
+                )
+            )
+        )
+        val flashcardRepository = FakeFlashcardReadRepository(
+            cardsFlow = MutableStateFlow(listOf(sampleCard(id = "card-1")))
+        )
+        val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
+
+        useCase("   ")
     }
 }
 
@@ -102,9 +129,14 @@ private class FakeDeckRepository : DeckRepository {
         )
     )
 
+    var lastFindByIdArg: com.emm.domain.ids.DeckId? = null
+
     override suspend fun addDeck(deck: CreateDeckInput) = Unit
 
-    override fun findById(deckId: String): Flow<Deck> = deckFlow
+    override fun findById(deckId: String): Flow<Deck> {
+        lastFindByIdArg = deckId.toDeckId()
+        return deckFlow
+    }
 
     override fun fetchAll(): Flow<List<Deck>> = flowOf(emptyList())
 
@@ -123,11 +155,16 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
         )
     )
 
+    var lastFetchByDeckIdArg: com.emm.domain.ids.DeckId? = null
+
     var fetchByIdCalls: Int = 0
 
     override fun fetchAll(): Flow<List<Flashcard>> = flowOf(emptyList())
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = cardsFlow
+    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> {
+        lastFetchByDeckIdArg = deckId.toDeckId()
+        return cardsFlow
+    }
 
     override suspend fun fetchById(id: String): Flashcard {
         fetchByIdCalls += 1
