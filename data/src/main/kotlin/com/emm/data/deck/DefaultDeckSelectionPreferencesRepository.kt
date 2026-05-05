@@ -2,6 +2,7 @@ package com.emm.data.deck
 
 import com.emm.data.remote.DataStore
 import com.emm.domain.deck.DefaultDeckSelectionRepository
+import com.emm.domain.ids.DeckId
 
 class DefaultDeckSelectionPreferencesRepository(
     private val dataStore: DataStore,
@@ -10,7 +11,7 @@ class DefaultDeckSelectionPreferencesRepository(
         return dataStore.defaultDeck
     }
 
-    override fun setDefaultDeckId(deckId: String) {
-        dataStore.defaultDeck = deckId
+    override fun setDefaultDeckId(deckId: DeckId) {
+        dataStore.defaultDeck = deckId.value
     }
 }

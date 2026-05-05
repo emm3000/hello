@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -31,10 +33,10 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
     override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = emptyFlow()
+    override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
 
-    override suspend fun fetchById(id: String): Flashcard {
-        lastFetchByIdArg = id
-        return Flashcard.Empty.copy(id = id)
+    override suspend fun fetchById(id: FlashcardId): Flashcard {
+        lastFetchByIdArg = id.value
+        return Flashcard.Empty.copy(id = id.value)
     }
 }

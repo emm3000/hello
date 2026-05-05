@@ -39,6 +39,7 @@ import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
+import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -424,7 +425,7 @@ class NewCardViewModelTest {
 
         override suspend fun addDeck(deck: CreateDeckInput) = Unit
 
-        override fun findById(deckId: String): Flow<Deck> = flowOf(deck)
+        override fun findById(deckId: DeckId): Flow<Deck> = flowOf(deck)
 
         override fun fetchAll(): Flow<List<Deck>> = flowOf(listOf(deck))
 

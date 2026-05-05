@@ -4,6 +4,7 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.async
@@ -67,7 +68,7 @@ class NewDeckViewModelTest {
             if (shouldFail) error("boom")
         }
 
-        override fun findById(deckId: String): Flow<Deck> = emptyFlow()
+        override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
 
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 

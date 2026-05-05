@@ -1,5 +1,6 @@
 package com.emm.domain.deck
 
+import com.emm.domain.ids.DeckId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -30,5 +31,5 @@ private class FakeDefaultDeckSelectionRepository(
 ) : DefaultDeckSelectionRepository {
     override fun getDefaultDeckId(): String = defaultDeckId
 
-    override fun setDefaultDeckId(deckId: String) = Unit
+    override fun setDefaultDeckId(deckId: DeckId) = Unit
 }

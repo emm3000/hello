@@ -9,6 +9,7 @@ import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -75,7 +76,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         )
         reviewRepository.update(review)
 
-        val storedFlashcard = flashcardRepository.fetchById(flashcardId)
+        val storedFlashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId())
         val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId).executeAsOne()
         val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(flashcardId).executeAsOne()
 

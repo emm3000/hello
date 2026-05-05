@@ -30,6 +30,7 @@ import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -104,9 +105,9 @@ class DefaultFlashcardRepository(
 
     override suspend fun upsertExamples(
         examples: List<Example>,
-        flashcardId: String,
+        flashcardId: FlashcardId,
     ) = withContext(Dispatchers.IO) {
-        db.transaction { populate(examples, flashcardId) }
+        db.transaction { populate(examples, flashcardId.value) }
     }
 
     private fun populate(examples: List<Example>, flashcardId: String) {
@@ -186,17 +187,17 @@ class DefaultFlashcardRepository(
             .map { entities -> entities.map(::toDomainSummary) }
     }
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> {
+    override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> {
         return dao
-            .selectByDeck(deckId)
+            .selectByDeck(deckId.value)
             .asFlow()
             .mapToList(Dispatchers.IO)
             .map { entities -> entities.map(::toDomainSummary) }
     }
 
-    override suspend fun fetchById(id: String): Flashcard = withContext(Dispatchers.IO) {
+    override suspend fun fetchById(id: FlashcardId): Flashcard = withContext(Dispatchers.IO) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
-            .flashcardWithExamples(id)
+            .flashcardWithExamples(id.value)
             .executeAsList()
 
         val first: FlashcardWithExamples = flashcardEntities.firstOrNull()

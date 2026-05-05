@@ -1,12 +1,13 @@
 package com.emm.domain.deck
 
+import com.emm.domain.ids.DeckId
 import kotlinx.coroutines.flow.Flow
 
 interface DeckRepository {
 
     suspend fun addDeck(deck: CreateDeckInput)
 
-    fun findById(deckId: String): Flow<Deck>
+    fun findById(deckId: DeckId): Flow<Deck>
 
     fun fetchAll(): Flow<List<Deck>>
 

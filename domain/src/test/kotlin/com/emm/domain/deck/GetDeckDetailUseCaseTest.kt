@@ -4,7 +4,8 @@ import app.cash.turbine.test
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -133,8 +134,8 @@ private class FakeDeckRepository : DeckRepository {
 
     override suspend fun addDeck(deck: CreateDeckInput) = Unit
 
-    override fun findById(deckId: String): Flow<Deck> {
-        lastFindByIdArg = deckId.toDeckId()
+    override fun findById(deckId: DeckId): Flow<Deck> {
+        lastFindByIdArg = deckId
         return deckFlow
     }
 
@@ -161,14 +162,14 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
     override fun fetchAll(): Flow<List<Flashcard>> = flowOf(emptyList())
 
-    override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> {
-        lastFetchByDeckIdArg = deckId.toDeckId()
+    override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> {
+        lastFetchByDeckIdArg = deckId
         return cardsFlow
     }
 
-    override suspend fun fetchById(id: String): Flashcard {
+    override suspend fun fetchById(id: FlashcardId): Flashcard {
         fetchByIdCalls += 1
-        return sampleCard(id = id)
+        return sampleCard(id = id.value)
     }
 
 }

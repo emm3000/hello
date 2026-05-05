@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.Flow
@@ -48,8 +50,8 @@ class FlashcardDetailViewModelTest {
         private val shouldFail: Boolean = false,
     ) : FlashcardReadRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
-        override fun fetchByDeckId(deckId: String): Flow<List<Flashcard>> = emptyFlow()
-        override suspend fun fetchById(id: String): Flashcard {
+        override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
+        override suspend fun fetchById(id: FlashcardId): Flashcard {
             if (shouldFail) error("fetch failed")
             return flashcard
         }

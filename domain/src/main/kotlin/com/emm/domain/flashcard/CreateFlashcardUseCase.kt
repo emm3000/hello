@@ -1,6 +1,7 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.requireValid
 
@@ -28,9 +29,10 @@ class CreateFlashcardUseCase(
         )
 
         val flashcardId: String = writeRepository.create(input)
+        val typedFlashcardId = flashcardId.toFlashcardId()
 
-        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
+        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), typedFlashcardId)
 
-        return readRepository.fetchById(flashcardId)
+        return readRepository.fetchById(typedFlashcardId)
     }
 }

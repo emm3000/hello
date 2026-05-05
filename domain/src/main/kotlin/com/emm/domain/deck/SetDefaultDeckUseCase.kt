@@ -7,6 +7,6 @@ class SetDefaultDeckUseCase(
 ) {
     operator fun invoke(deckId: String) {
         val typedDeckId = deckId.toDeckId()
-        repository.setDefaultDeckId(typedDeckId.value)
+        repository.setDefaultDeckId(typedDeckId)
     }
 }

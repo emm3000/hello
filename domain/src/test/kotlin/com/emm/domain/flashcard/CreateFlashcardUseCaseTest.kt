@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -151,17 +153,17 @@ private class FakeWriteRepository : FlashcardWriteRepository {
         return "flashcard-1"
     }
 
-    override suspend fun upsertExamples(examples: List<Example>, flashcardId: String) {
+    override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) {
         upsertExamplesCalls += 1
     }
 }
 
 private class FakeReadRepository : FlashcardReadRepository {
     override fun fetchAll() = throw UnsupportedOperationException()
-    override fun fetchByDeckId(deckId: String) = throw UnsupportedOperationException()
+    override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
-    override suspend fun fetchById(id: String): Flashcard {
-        return Flashcard.Empty.copy(id = id)
+    override suspend fun fetchById(id: FlashcardId): Flashcard {
+        return Flashcard.Empty.copy(id = id.value)
     }
 }
 

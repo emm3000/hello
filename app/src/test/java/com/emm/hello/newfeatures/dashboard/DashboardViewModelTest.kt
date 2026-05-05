@@ -5,6 +5,7 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -68,7 +69,7 @@ class DashboardViewModelTest {
         private val emitImmediately: Boolean = true,
     ) : DeckRepository {
         override suspend fun addDeck(deck: CreateDeckInput) = Unit
-        override fun findById(deckId: String): Flow<Deck> = emptyFlow()
+        override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> =
             if (emitImmediately) flowOf(decks) else emptyFlow()

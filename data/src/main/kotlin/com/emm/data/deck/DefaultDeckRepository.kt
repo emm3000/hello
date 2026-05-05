@@ -10,6 +10,7 @@ import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.ids.DeckId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -43,9 +44,9 @@ class DefaultDeckRepository(
         Unit
     }
 
-    override fun findById(deckId: String): Flow<Deck> {
+    override fun findById(deckId: DeckId): Flow<Deck> {
         return dq
-            .findActiveById(deckId)
+            .findActiveById(deckId.value)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map(DeckEntity::toDomain)

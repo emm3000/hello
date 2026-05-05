@@ -1,5 +1,6 @@
 package com.emm.domain.deck
 
+import com.emm.domain.ids.DeckId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -28,7 +29,7 @@ private class FakeDefaultDeckSelectionForSetRepository : DefaultDeckSelectionRep
 
     override fun getDefaultDeckId(): String = ""
 
-    override fun setDefaultDeckId(deckId: String) {
-        lastSetDefaultDeckId = deckId
+    override fun setDefaultDeckId(deckId: DeckId) {
+        lastSetDefaultDeckId = deckId.value
     }
 }
