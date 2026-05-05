@@ -4,9 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
-import com.emm.domain.ids.toDeckId
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.validation.DomainValidationException
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
@@ -23,6 +20,9 @@ class NewCardViewModel(
 ) : MviViewModel<NewCardUiState, NewCardUiIntent, NewCardUiEffect>(
     initialState = NewCardUiState(),
 ) {
+
+    private val draftEditor = NewCardDraftEditor(generationDependencies.validateGeneratedLearningNoteUseCase)
+    private val previewWorkflow = NewCardPreviewWorkflow(generationDependencies)
 
     init {
         getDecksUseCase()
@@ -101,20 +101,20 @@ class NewCardViewModel(
 
     private fun handlePreviewEditIntent(intent: NewCardUiIntent) {
         when (intent) {
-            is NewCardUiIntent.PreviewFieldChanged -> updatePreview { note ->
-                note.withEditedField(field = intent.field, value = intent.value)
+            is NewCardUiIntent.PreviewFieldChanged -> mutableState.update {
+                draftEditor.editField(it, intent.field, intent.value)
             }
-            is NewCardUiIntent.PreviewCardPromptChanged -> updatePreviewCard(intent.cardId) {
-                copy(prompt = intent.prompt)
+            is NewCardUiIntent.PreviewCardPromptChanged -> mutableState.update {
+                draftEditor.editCardPrompt(it, intent.cardId, intent.prompt)
             }
-            is NewCardUiIntent.PreviewCardExpectedAnswerChanged -> updatePreviewCard(intent.cardId) {
-                copy(expectedAnswer = intent.expectedAnswer)
+            is NewCardUiIntent.PreviewCardExpectedAnswerChanged -> mutableState.update {
+                draftEditor.editCardExpectedAnswer(it, intent.cardId, intent.expectedAnswer)
             }
-            is NewCardUiIntent.PreviewCardHintChanged -> updatePreviewCard(intent.cardId) {
-                copy(hint = intent.hint)
+            is NewCardUiIntent.PreviewCardHintChanged -> mutableState.update {
+                draftEditor.editCardHint(it, intent.cardId, intent.hint)
             }
-            is NewCardUiIntent.PreviewCardActiveChanged -> updatePreviewCard(intent.cardId) {
-                copy(isActive = intent.isActive)
+            is NewCardUiIntent.PreviewCardActiveChanged -> mutableState.update {
+                draftEditor.editCardActive(it, intent.cardId, intent.isActive)
             }
             else -> Unit
         }
@@ -135,148 +135,100 @@ class NewCardViewModel(
     }
 
     private fun generateFlashcard() = viewModelScope.launch {
-        val current = mutableState.value
-        val inputValidation = generationDependencies.validateInputUseCase(current.toGenerationInput())
-        if (!inputValidation.isValid) {
-            mutableState.update {
-                it.clearPreviewState(
-                    error = null,
-                ).copy(
-                    inputValidationIssues = inputValidation.errors,
-                    inputWarningIssues = inputValidation.warnings,
-                )
-            }
-            return@launch
-        }
         mutableState.update { it.clearPreviewState(error = null, isLoading = true) }
         mutableEffect.send(NewCardUiEffect.OpenReview)
-        runCatching {
-            generationDependencies.generateLearningNotePreviewUseCase(
-                input = inputValidation.value
-            )
-        }.onSuccess { preview ->
-            val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(preview)
-            mutableState.update { it.withPreviewValidation(preview, previewValidation) }
-        }.onFailure { e ->
-            when (e) {
-                is DomainValidationException -> {
-                    mutableState.update {
-                        it.clearPreviewState(
-                            error = NewCardErrorUi(
-                                title = "Respuesta inválida de IA",
-                                validationIssues = e.issues,
-                            ),
-                        )
-                    }
+
+        when (val result = previewWorkflow.generate(mutableState.value)) {
+            is NewCardPreviewResult.InputInvalid -> {
+                mutableState.update {
+                    it.clearPreviewState(error = null).copy(
+                        inputValidationIssues = result.errors,
+                        inputWarningIssues = result.warnings,
+                    )
                 }
-                else -> {
-                    logError(TAG, "generateFlashcard:error ${e.message}", e)
-                    mutableState.update {
-                        it.copy(
-                            error = NewCardErrorUi(
-                                title = "Respuesta inválida de IA",
-                                message = e.message ?: "No se pudo generar una learning note válida.",
-                            ),
-                            isLoading = false,
-                            canSavePreview = false,
-                            previewGeneratedWarnings = emptyList(),
-                            previewValidationIssues = emptyList(),
-                            previewWarningIssues = emptyList(),
-                            previewRegenerationTarget = null,
-                        )
-                    }
+            }
+            is NewCardPreviewResult.PreviewReady -> {
+                mutableState.update { it.withPreviewValidation(result.preview, result.validation) }
+            }
+            is NewCardPreviewResult.DomainError -> {
+                mutableState.update {
+                    it.clearPreviewState(
+                        error = NewCardErrorUi(
+                            title = "Respuesta inválida de IA",
+                            validationIssues = result.issues,
+                        ),
+                    )
+                }
+            }
+            is NewCardPreviewResult.UnexpectedError -> {
+                val error = result.error
+                logError(TAG, "generateFlashcard:error ${error.message}", error)
+                mutableState.update {
+                    it.copy(
+                        error = NewCardErrorUi(
+                            title = "Respuesta inválida de IA",
+                            message = error.message ?: "No se pudo generar una learning note válida.",
+                        ),
+                        isLoading = false,
+                        canSavePreview = false,
+                        previewGeneratedWarnings = emptyList(),
+                        previewValidationIssues = emptyList(),
+                        previewWarningIssues = emptyList(),
+                        previewRegenerationTarget = null,
+                    )
                 }
             }
         }
     }
 
     private fun regenerateExample() = viewModelScope.launch {
-        runPreviewUpdate(
+        runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Example,
             actionName = "regenerateExample",
             failureTitle = "Error al regenerar ejemplo",
             fallbackMessage = "No se pudo regenerar el ejemplo.",
-        ) { current, preview ->
-            val example = generationDependencies.regenerateLearningNoteExampleUseCase(
-                input = current.toGenerationInput(),
-                note = preview,
-            )
-            preview.copy(
-                exampleSentence = example.sentence,
-                exampleTranslation = example.translation,
-            )
-        }
+        ) { previewWorkflow.regenerateExample(mutableState.value) }
     }
 
     private fun regenerateCloze() = viewModelScope.launch {
-        runPreviewUpdate(
+        runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Cloze,
             actionName = "regenerateCloze",
             failureTitle = "Error al regenerar cloze",
             fallbackMessage = "No se pudo regenerar el cloze.",
-        ) { current, preview ->
-            val cloze = generationDependencies.regenerateLearningNoteClozeUseCase(
-                input = current.toGenerationInput(),
-                note = preview,
-            )
-            preview.copy(clozeSentence = cloze)
-        }
+        ) { previewWorkflow.regenerateCloze(mutableState.value) }
     }
 
     private fun regenerateCard(cardId: String) = viewModelScope.launch {
-        runPreviewUpdate(
+        runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Card(cardId),
             actionName = "regenerateCard",
             failureTitle = "Error al regenerar card",
             fallbackMessage = "No se pudo regenerar la card.",
             metadata = "cardId=$cardId",
-        ) { current, preview ->
-            val regeneratedCard = generationDependencies.regenerateStudyCardUseCase(
-                input = current.toGenerationInput(),
-                note = preview,
-                cardId = cardId,
-            )
-            preview.copy(
-                cards = preview.cards.map { card ->
-                    if (card.cardId == cardId) regeneratedCard else card
-                }
-            )
-        }
+        ) { previewWorkflow.regenerateCard(mutableState.value, cardId) }
     }
 
     private fun regenerateField(field: EditableLearningNoteField) = viewModelScope.launch {
-        val regenerableField = field.toRegenerableFieldOrNull() ?: return@launch
-        runPreviewUpdate(
+        runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Field(field),
             actionName = "regenerateField",
             failureTitle = "Error al regenerar campo",
             fallbackMessage = "No se pudo regenerar el campo.",
             metadata = "field=$field",
-        ) { current, preview ->
-            val value = generationDependencies.regenerateLearningNoteFieldUseCase(
-                input = current.toGenerationInput(),
-                note = preview,
-                field = regenerableField,
-            )
-            when (field) {
-                EditableLearningNoteField.WhyUseful -> preview.copy(whyUseful = value)
-                EditableLearningNoteField.UsagePattern -> preview.copy(usagePattern = value)
-                EditableLearningNoteField.CommonMistake -> preview.copy(commonMistake = value)
-                else -> preview
-            }
-        }
+        ) { previewWorkflow.regenerateField(mutableState.value, field) }
     }
 
-    private fun runPreviewUpdate(
+    private suspend fun runPreviewWorkflowUpdate(
         target: PreviewRegenerationTarget,
         actionName: String,
         failureTitle: String,
         fallbackMessage: String,
         metadata: String = "",
-        transform: suspend (current: NewCardUiState, preview: GeneratedLearningNote) -> GeneratedLearningNote,
-    ) = viewModelScope.launch {
+        action: suspend () -> NewCardPreviewUpdateResult,
+    ) {
         val current = mutableState.value
-        val preview = current.learningNotePreview ?: return@launch
+        val preview = current.learningNotePreview ?: return
         val logContext = buildString {
             append("noteId=${preview.noteId}")
             if (metadata.isNotBlank()) append(" $metadata")
@@ -288,59 +240,44 @@ class NewCardViewModel(
                 previewRegenerationTarget = target,
             )
         }
-        runCatching {
-            transform(current, preview)
-        }.onSuccess { updatedPreview ->
-            applyUpdatedPreview(updatedPreview)
-        }.onFailure { e ->
-            if (e is DomainValidationException) {
+        when (val result = action()) {
+            is NewCardPreviewUpdateResult.Updated -> {
                 mutableState.update {
-                    it.copy(
-                        error = NewCardErrorUi(
-                            title = failureTitle,
-                            validationIssues = e.issues,
-                        ),
-                        isLoading = false,
-                        previewRegenerationTarget = null,
-                    )
+                    draftEditor.applyUpdatedPreview(it, result.preview)
                 }
-            } else {
-                logError(TAG, "$actionName:error $logContext ${e.message}", e)
+            }
+            is NewCardPreviewUpdateResult.DomainError -> {
                 mutableState.update {
                     it.copy(
                         error = NewCardErrorUi(
                             title = failureTitle,
-                            message = e.message ?: fallbackMessage,
+                            validationIssues = result.issues,
                         ),
                         isLoading = false,
                         previewRegenerationTarget = null,
                     )
                 }
             }
-        }
-    }
-
-    private fun updatePreview(transform: (GeneratedLearningNote) -> GeneratedLearningNote) {
-        val currentPreview = mutableState.value.learningNotePreview ?: return
-        applyUpdatedPreview(transform(currentPreview))
-    }
-
-    private fun updatePreviewCard(
-        cardId: String,
-        transform: GeneratedStudyCard.() -> GeneratedStudyCard,
-    ) {
-        updatePreview { note ->
-            note.copy(
-                cards = note.cards.map { card ->
-                    if (card.cardId == cardId) card.transform() else card
+            is NewCardPreviewUpdateResult.UnexpectedError -> {
+                val error = result.error
+                logError(TAG, "$actionName:error $logContext ${error.message}", error)
+                mutableState.update {
+                    it.copy(
+                        error = NewCardErrorUi(
+                            title = failureTitle,
+                            message = error.message ?: fallbackMessage,
+                        ),
+                        isLoading = false,
+                        previewRegenerationTarget = null,
+                    )
                 }
-            )
+            }
+            NewCardPreviewUpdateResult.NoPreview -> {
+                mutableState.update {
+                    it.copy(isLoading = false, previewRegenerationTarget = null)
+                }
+            }
         }
-    }
-
-    private fun applyUpdatedPreview(updatedPreview: GeneratedLearningNote) {
-        val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(updatedPreview)
-        mutableState.update { it.withPreviewValidation(updatedPreview, previewValidation) }
     }
 
     private fun saveFlashcard() = viewModelScope.launch {

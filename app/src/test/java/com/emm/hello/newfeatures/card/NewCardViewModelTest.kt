@@ -490,12 +490,11 @@ class NewCardViewModelTest {
         writeRepository: FlashcardWriteRepository,
         readRepository: FlashcardReadRepository,
     ) {
+        val createdFlashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId())
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { writeRepository.create(any()) } returns "card-1".toFlashcardId()
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery {
-            readRepository.fetchById(any())
-        } answers { Flashcard.empty(SystemClock).copy(id = firstArg<FlashcardId>()) }
+        coEvery { readRepository.fetchById(any()) } returns createdFlashcard
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {
