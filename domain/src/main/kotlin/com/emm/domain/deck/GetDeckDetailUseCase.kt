@@ -4,7 +4,6 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 
 class GetDeckDetailUseCase(
     private val repository: DeckRepository,
@@ -16,10 +15,5 @@ class GetDeckDetailUseCase(
         flow2 = cardRepository.fetchByDeckId(deckId)
     ) { deck: Deck, cards: List<Flashcard> ->
         deck.copy(cards = cards)
-    }.map { deck ->
-        val newFlashcards: List<Flashcard> = deck.cards.map { flashcard ->
-            cardRepository.fetchById(flashcard.id)
-        }
-        deck.copy(cards = newFlashcards)
     }
 }
