@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,10 +109,17 @@ fun rememberTextToSpeechManager(
 ): TextToSpeechManager {
     val context = LocalContext.current
     val manager = remember { TextToSpeechManager(context) }
+    val isInspectionMode = LocalInspectionMode.current
 
     DisposableEffect(Unit) {
-        manager.init(locale, speed, pitch)
-        onDispose { manager.shutdown() }
+        if (!isInspectionMode) {
+            manager.init(locale, speed, pitch)
+        }
+        onDispose {
+            if (!isInspectionMode) {
+                manager.shutdown()
+            }
+        }
     }
 
     return manager
