@@ -1,14 +1,12 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.validation.DomainValidationException
-import com.emm.domain.validation.IssueCode
-import com.emm.domain.validation.ValidationIssue
 
 class CreateFlashcardUseCase(
     private val writeRepository: FlashcardWriteRepository,
     private val readRepository: FlashcardReadRepository,
     private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
-    private val isExactDuplicateGeneratedNoteUseCase: IsExactDuplicateGeneratedNoteUseCase,
+    private val ensureUniqueFlashcardInDeckUseCase: EnsureUniqueFlashcardInDeckUseCase,
     private val generatedLearningNoteMapper: GeneratedLearningNoteMapper = GeneratedLearningNoteMapper(),
 ) {
 
@@ -21,17 +19,7 @@ class CreateFlashcardUseCase(
             throw DomainValidationException(validation.errors)
         }
 
-        val isDuplicate = isExactDuplicateGeneratedNoteUseCase(deckId = deckId, note = learningNote)
-        if (isDuplicate) {
-            throw DomainValidationException(
-                issues = listOf(
-                    ValidationIssue.Error(
-                        code = IssueCode.DuplicateExactCardInDeck,
-                        field = "deckId",
-                    )
-                )
-            )
-        }
+        ensureUniqueFlashcardInDeckUseCase(deckId = deckId, note = learningNote)
 
         val input = generatedLearningNoteMapper.toCreateFlashcardInput(
             deckId = deckId,

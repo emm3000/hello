@@ -14,8 +14,10 @@ class CreateFlashcardUseCaseTest {
             writeRepository = FakeWriteRepository(),
             readRepository = FakeReadRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
-            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
-                repository = DuplicateRepoStub(exists = false),
+            ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
+                isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                    repository = DuplicateRepoStub(exists = false),
+                ),
             ),
         )
 
@@ -36,8 +38,10 @@ class CreateFlashcardUseCaseTest {
             writeRepository = writeRepository,
             readRepository = FakeReadRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
-            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
-                repository = DuplicateRepoStub(exists = false),
+            ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
+                isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                    repository = DuplicateRepoStub(exists = false),
+                ),
             ),
         )
 
@@ -53,8 +57,10 @@ class CreateFlashcardUseCaseTest {
             writeRepository = FakeWriteRepository(),
             readRepository = FakeReadRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
-            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
-                repository = DuplicateRepoStub(exists = true),
+            ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
+                isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                    repository = DuplicateRepoStub(exists = true),
+                ),
             ),
         )
 

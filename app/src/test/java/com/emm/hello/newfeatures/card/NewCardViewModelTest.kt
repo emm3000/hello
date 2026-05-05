@@ -18,6 +18,7 @@ import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.flashcard.GeneratedExampleDraft
@@ -446,7 +447,9 @@ class NewCardViewModelTest {
                     writeRepository,
                     readRepository,
                     validateGeneratedLearningNoteUseCase,
-                    IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository()),
+                    EnsureUniqueFlashcardInDeckUseCase(
+                        IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository())
+                    ),
                 ),
                 generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                     repository = generationRepository,
