@@ -13,6 +13,7 @@ import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.time.Clock
+import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -215,8 +216,8 @@ class StudyViewModelTest {
     )
 
     private class FakeStudySessionRepo(private val flashcards: List<Flashcard>) : StudySessionRepository {
-        override suspend fun sessionToday(deckId: String): List<Flashcard> = flashcards
-        override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> = emptyFlow()
+        override suspend fun sessionToday(deckId: DeckId): List<Flashcard> = flashcards
+        override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
     }
 
     private class FakeFlashcardReviewRepo : FlashcardReviewRepository {

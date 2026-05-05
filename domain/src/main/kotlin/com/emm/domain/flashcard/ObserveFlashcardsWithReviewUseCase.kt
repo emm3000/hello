@@ -7,6 +7,6 @@ class ObserveFlashcardsWithReviewUseCase(private val repository: StudySessionRep
 
     operator fun invoke(deckId: String): Flow<List<Flashcard>> {
         val typedDeckId = deckId.toDeckId()
-        return repository.flashcardWithReview(typedDeckId.value)
+        return repository.flashcardWithReview(typedDeckId)
     }
 }

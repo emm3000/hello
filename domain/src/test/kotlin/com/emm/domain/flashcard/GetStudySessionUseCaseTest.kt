@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -15,7 +16,7 @@ class GetStudySessionUseCaseTest {
 
         useCase("  deck-1  ")
 
-        assertEquals("deck-1", repository.lastSessionTodayDeckId)
+        assertEquals("deck-1", repository.lastSessionTodayDeckId?.value)
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -27,12 +28,12 @@ class GetStudySessionUseCaseTest {
 }
 
 private class FakeStudySessionForGetRepository : StudySessionRepository {
-    var lastSessionTodayDeckId: String? = null
+    var lastSessionTodayDeckId: DeckId? = null
 
-    override suspend fun sessionToday(deckId: String): List<Flashcard> {
+    override suspend fun sessionToday(deckId: DeckId): List<Flashcard> {
         lastSessionTodayDeckId = deckId
         return emptyList()
     }
 
-    override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> = emptyFlow()
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
 }

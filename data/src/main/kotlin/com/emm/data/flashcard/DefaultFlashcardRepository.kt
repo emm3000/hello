@@ -29,6 +29,7 @@ import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
+import com.emm.domain.ids.DeckId
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -205,9 +206,9 @@ class DefaultFlashcardRepository(
         toDomainDetail(first, examples)
     }
 
-    override suspend fun sessionToday(deckId: String): List<Flashcard> = withContext(Dispatchers.IO) {
+    override suspend fun sessionToday(deckId: DeckId): List<Flashcard> = withContext(Dispatchers.IO) {
         val flashcardsToReviewByDeck: List<FlashcardsToReviewByDeck> = dao.flashcardsToReviewByDeck(
-            deckId = deckId,
+            deckId = deckId.value,
             now = Instant.now().toEpochMilli(),
         ).executeAsList()
 
@@ -217,8 +218,8 @@ class DefaultFlashcardRepository(
         }
     }
 
-    override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> {
-        return dao.flashcardsWithReview(deckId).asFlow()
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> {
+        return dao.flashcardsWithReview(deckId.value).asFlow()
             .mapToList(Dispatchers.IO)
             .map { list ->
                 list.map {

@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Assert.assertEquals
@@ -14,7 +15,7 @@ class ObserveFlashcardsWithReviewUseCaseTest {
 
         useCase("  deck-1  ")
 
-        assertEquals("deck-1", repository.lastFlashcardWithReviewDeckId)
+        assertEquals("deck-1", repository.lastFlashcardWithReviewDeckId?.value)
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -26,11 +27,11 @@ class ObserveFlashcardsWithReviewUseCaseTest {
 }
 
 private class FakeStudySessionForObserveRepository : StudySessionRepository {
-    var lastFlashcardWithReviewDeckId: String? = null
+    var lastFlashcardWithReviewDeckId: DeckId? = null
 
-    override suspend fun sessionToday(deckId: String): List<Flashcard> = emptyList()
+    override suspend fun sessionToday(deckId: DeckId): List<Flashcard> = emptyList()
 
-    override fun flashcardWithReview(deckId: String): Flow<List<Flashcard>> {
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> {
         lastFlashcardWithReviewDeckId = deckId
         return emptyFlow()
     }
