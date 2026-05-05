@@ -6,6 +6,8 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +24,7 @@ class GetDeckDetailUseCaseTest {
         val deckRepository = FakeDeckRepository(
             deckFlow = MutableStateFlow(
                 Deck(
-                    id = "deck-1",
+                    id = "deck-1".toDeckId(),
                     name = "Main",
                     description = "",
                     createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
@@ -55,7 +57,7 @@ class GetDeckDetailUseCaseTest {
     fun `invoke emits updated deck detail when cards flow changes`() = runTest {
         val deckFlow = MutableStateFlow(
             Deck(
-                id = "deck-1",
+                id = "deck-1".toDeckId(),
                 name = "Main",
                 description = "Core deck",
                 createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
@@ -71,7 +73,7 @@ class GetDeckDetailUseCaseTest {
 
         useCase("deck-1").test {
             val first = awaitItem()
-            assertEquals("deck-1", first.id)
+            assertEquals("deck-1", first.id.value)
             assertEquals("Main", first.name)
             assertEquals(1, first.cards.size)
 
@@ -81,7 +83,7 @@ class GetDeckDetailUseCaseTest {
             )
 
             val second = awaitItem()
-            assertEquals("deck-1", second.id)
+            assertEquals("deck-1", second.id.value)
             assertEquals("Main", second.name)
             assertEquals(2, second.cards.size)
             assertEquals("deck-1", deckRepository.lastFindByIdArg?.value)
@@ -96,7 +98,7 @@ class GetDeckDetailUseCaseTest {
         val deckRepository = FakeDeckRepository(
             deckFlow = MutableStateFlow(
                 Deck(
-                    id = "deck-1",
+                    id = "deck-1".toDeckId(),
                     name = "Main",
                     description = "",
                     createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
@@ -121,7 +123,7 @@ private class FakeDeckRepository : DeckRepository {
 
     private var deckFlow: MutableStateFlow<Deck> = MutableStateFlow(
         Deck(
-            id = "deck-1",
+            id = "deck-1".toDeckId(),
             name = "Main",
             description = "",
             createdAt = Deck.empty(Clock { Instant.EPOCH }).createdAt,
@@ -176,7 +178,7 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
 private fun sampleCard(id: String): Flashcard {
     return Flashcard(
-        id = id,
+        id = id.toFlashcardId(),
         word = "borrow",
         meaning = "to take and return",
         translation = "pedir prestado",

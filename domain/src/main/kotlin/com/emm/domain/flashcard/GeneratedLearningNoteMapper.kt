@@ -8,22 +8,22 @@ class GeneratedLearningNoteMapper {
         deckId: DeckId,
         note: GeneratedLearningNote,
     ): CreateFlashcardInput {
-        val expression = note.expression.toExpression()
-        val intendedMeaningEs = note.intendedMeaningEs.toIntendedMeaningEs()
-        val definitionEn = note.simpleDefinitionEn.toDefinitionEn()
+        val expression = note.requireExpression()
+        val intendedMeaningEs = note.requireIntendedMeaningEs()
+        val definitionEn = note.requireSimpleDefinitionEn()
 
         return CreateFlashcardInput(
-            deckId = deckId.value,
+            deckId = deckId,
             word = expression.value,
             meaning = definitionEn.value,
             translation = intendedMeaningEs.value,
             phonetic = note.ipa,
             partOfSpeech = note.partOfSpeech.name,
-            type = note.noteType.name,
-            note = buildNoteSummary(note),
+            noteType = note.noteType.name,
+            noteSummary = buildNoteSummary(note),
             register = note.register.name,
             levelBand = note.levelBand.name,
-            domain = note.domain.name,
+            learningDomain = note.domain.name,
             lemma = note.lemma,
             whyUseful = note.whyUseful,
             usagePattern = note.usagePattern,

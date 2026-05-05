@@ -15,6 +15,9 @@ import com.emm.domain.flashcard.LevelBand
 import com.emm.domain.flashcard.PartOfSpeechTag
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.flashcard.toDefinitionEn
+import com.emm.domain.flashcard.toExpression
+import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.validation.DomainValidationException
 import kotlinx.serialization.SerializationException
@@ -42,12 +45,12 @@ object GeneratedLearningNoteResponseParser {
     }
 
     private fun GeneratedLearningNoteDto.toValidatedDomain(): GeneratedLearningNote {
-        val note = GeneratedLearningNote(
+        val note = GeneratedLearningNote.fromSemanticCore(
             noteId = noteId,
             noteType = noteType.toLearningNoteType(),
-            expression = expression,
-            intendedMeaningEs = intendedMeaningEs,
-            simpleDefinitionEn = simpleDefinitionEn,
+            expression = expression.toExpression(),
+            intendedMeaningEs = intendedMeaningEs.toIntendedMeaningEs(),
+            simpleDefinitionEn = simpleDefinitionEn.toDefinitionEn(),
             partOfSpeech = partOfSpeech.toPartOfSpeechTag(),
             register = register.toRegisterPreference(),
             levelBand = levelBand.toLevelBand(),

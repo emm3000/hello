@@ -1,10 +1,11 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.domain.time.Clock
 
 data class Flashcard(
-    val id: String,
+    val id: FlashcardId,
     val word: String,
     val meaning: String,
     val translation: String,
@@ -12,11 +13,11 @@ data class Flashcard(
     val phonetic: String,
     val review: FlashcardReview,
     val partOfSpeech: String = "",
-    val type: String = "",
-    val note: String = "",
+    val noteType: String = "",
+    val noteSummary: String = "",
     val register: String = "",
     val levelBand: String = "",
-    val domain: String = "",
+    val learningDomain: String = "",
     val lemma: String = "",
     val whyUseful: String = "",
     val usagePattern: String = "",
@@ -34,7 +35,7 @@ data class Flashcard(
     companion object {
 
         fun empty(clock: Clock): Flashcard = Flashcard(
-            id = "",
+            id = FlashcardId.from("empty-flashcard"),
             word = "",
             meaning = "",
             translation = "",

@@ -1,7 +1,6 @@
 package com.emm.domain.flashcard
 
-import com.emm.domain.ids.toDeckId
-import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.ids.DeckId
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.requireValid
 
@@ -14,25 +13,22 @@ class CreateFlashcardUseCase(
 ) {
 
     suspend operator fun invoke(
-        deckId: String,
+        deckId: DeckId,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
-        val typedDeckId = deckId.toDeckId()
-
         validateGeneratedLearningNoteUseCase(learningNote).requireValid()
 
-        ensureUniqueFlashcardInDeckUseCase(deckId = typedDeckId, note = learningNote)
+        ensureUniqueFlashcardInDeckUseCase(deckId = deckId, note = learningNote)
 
         val input = generatedLearningNoteMapper.toCreateFlashcardInput(
-            deckId = typedDeckId,
+            deckId = deckId,
             note = learningNote,
         )
 
-        val flashcardId: String = writeRepository.create(input)
-        val typedFlashcardId = flashcardId.toFlashcardId()
+        val flashcardId = writeRepository.create(input)
 
-        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), typedFlashcardId)
+        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
 
-        return readRepository.fetchById(typedFlashcardId)
+        return readRepository.fetchById(flashcardId)
     }
 }

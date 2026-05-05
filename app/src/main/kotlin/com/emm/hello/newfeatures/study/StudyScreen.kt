@@ -54,6 +54,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
@@ -798,7 +799,7 @@ private fun StudyScreenPreview() {
             state = StudyUiState(
                 currentItem = StudySessionItem(
                     flashcard = Flashcard(
-                        id = "1",
+                        id = "1".toFlashcardId(),
                         word = "Serendipity",
                         meaning = "The occurrence of events by chance in a happy way",
                         translation = "Casualidad afortunada",

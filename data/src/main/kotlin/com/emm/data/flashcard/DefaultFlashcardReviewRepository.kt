@@ -34,7 +34,7 @@ class DefaultFlashcardReviewRepository(
         db.transaction {
             localFirstQueries.insertReviewEvent(
                 eventId = eventId,
-                flashcardId = flashcardReview.flashcardId,
+                flashcardId = flashcardReview.flashcardId.value,
                 grade = "review",
                 reviewedAt = flashcardReview.lastReviewedAt,
                 nextReviewAt = flashcardReview.nextReviewAt,
@@ -45,7 +45,7 @@ class DefaultFlashcardReviewRepository(
                 createdAt = now,
             )
             localFirstQueries.upsertReviewProjection(
-                flashcardId = flashcardReview.flashcardId,
+                flashcardId = flashcardReview.flashcardId.value,
                 lastReviewedAt = flashcardReview.lastReviewedAt,
                 nextReviewAt = flashcardReview.nextReviewAt,
                 easeFactor = flashcardReview.easeFactor,

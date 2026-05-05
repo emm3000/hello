@@ -21,6 +21,20 @@ class ExactDuplicateKey private constructor(
 
     companion object {
         fun from(
+            deckId: DeckId,
+            expression: Expression,
+            intendedMeaningEs: IntendedMeaningEs,
+            noteType: LearningNoteType,
+        ): ExactDuplicateKey {
+            return ExactDuplicateKey(
+                deckId = deckId,
+                expression = expression,
+                intendedMeaningEs = intendedMeaningEs,
+                noteType = noteType,
+            )
+        }
+
+        fun from(
             deckId: String,
             expression: String,
             intendedMeaningEs: String,

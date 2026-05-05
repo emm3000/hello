@@ -2,13 +2,14 @@ package com.emm.data.flashcard
 
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 
 typealias FlashcardEntity = com.emm.data.Flashcard
 typealias ReviewProjectionEntity = com.emm.data.ReviewProjection
 
 fun FlashcardEntity.toDomain() = Flashcard(
-    id = id,
+    id = id.toFlashcardId(),
     word = word,
     meaning = meaning,
     translation = translation.orEmpty(),
@@ -16,15 +17,15 @@ fun FlashcardEntity.toDomain() = Flashcard(
     phonetic = phonetic.orEmpty(),
     review = FlashcardReview.empty(SystemClock),
     partOfSpeech = partOfSpeech.orEmpty(),
-    type = type.orEmpty(),
-    note = note.orEmpty(),
+    noteType = type.orEmpty(),
+    noteSummary = note.orEmpty(),
 )
 
 @JvmName("toDomainFlashcardEntity")
 fun List<FlashcardEntity>.toDomain() = map(FlashcardEntity::toDomain)
 
 fun ReviewProjectionEntity.toDomainFromProjection() = FlashcardReview(
-    flashcardId = flashcardId,
+    flashcardId = flashcardId.toFlashcardId(),
     lastReviewedAt = lastReviewedAt,
     nextReviewAt = nextReviewAt,
     easeFactor = easeFactor,

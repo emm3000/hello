@@ -1,6 +1,7 @@
 package com.emm.domain.deck
 
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toDeckId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -11,35 +12,28 @@ class SetDefaultDeckUseCaseTest {
         val repository = FakeDefaultDeckSelectionForSetRepository()
         val useCase = SetDefaultDeckUseCase(repository)
 
-        useCase("  deck-1  ")
+        useCase("deck-1".toDeckId())
 
         assertEquals("deck-1", repository.lastSetDefaultDeckId)
-        assertEquals(0, repository.clearDefaultDeckIdCalls)
     }
 
     @Test
-    fun `invoke clears default deck when id is blank`() {
+    fun `invoke clears default deck when id is null`() {
         val repository = FakeDefaultDeckSelectionForSetRepository()
         val useCase = SetDefaultDeckUseCase(repository)
 
-        useCase("   ")
+        useCase(null)
 
         assertEquals(null, repository.lastSetDefaultDeckId)
-        assertEquals(1, repository.clearDefaultDeckIdCalls)
     }
 }
 
 private class FakeDefaultDeckSelectionForSetRepository : DefaultDeckSelectionRepository {
     var lastSetDefaultDeckId: String? = null
-    var clearDefaultDeckIdCalls: Int = 0
 
-    override fun getDefaultDeckId(): String = ""
+    override fun getDefaultDeckId(): DeckId? = null
 
-    override fun setDefaultDeckId(deckId: DeckId) {
-        lastSetDefaultDeckId = deckId.value
-    }
-
-    override fun clearDefaultDeckId() {
-        clearDefaultDeckIdCalls += 1
+    override fun setDefaultDeckId(deckId: DeckId?) {
+        lastSetDefaultDeckId = deckId?.value
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.validation.DomainValidationException
@@ -32,7 +33,7 @@ class NewCardViewModel(
                     it.copy(
                         decks = decks,
                         deckSelected = selectedDeck,
-                        isCheck = defaultDeckId.isNotEmpty() && selectedDeck?.id == defaultDeckId
+                        isCheck = defaultDeckId != null && selectedDeck?.id == defaultDeckId
                     )
                 }
             }
@@ -73,7 +74,7 @@ class NewCardViewModel(
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
-                val newDeckId = if (intent.checked) mutableState.value.deckSelected?.id.orEmpty() else ""
+                val newDeckId = if (intent.checked) mutableState.value.deckSelected?.id else null
                 setDefaultDeckUseCase(newDeckId)
                 mutableState.update { it.copy(isCheck = intent.checked) }
             }

@@ -45,6 +45,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.deck.Deck
 import com.emm.data.catalog.staticCategories
+import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.core.audio.rememberSpeechToTextManager
@@ -302,7 +303,7 @@ fun NewCardScreenPreview() {
                 word = "Serendipity",
                 decks = listOf(
                     Deck(
-                        id = "1",
+                        id = "1".toDeckId(),
                         name = "Vocabulario Inglés",
                         description = "",
                         createdAt = LocalDateTime.now(),

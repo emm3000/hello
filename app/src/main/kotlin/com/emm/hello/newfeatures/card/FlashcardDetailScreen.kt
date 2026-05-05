@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
@@ -50,15 +51,7 @@ import com.emm.hello.core.ui.HSeparator
 @Composable
 fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
-    flashcard: Flashcard = Flashcard(
-        id = "",
-        word = "",
-        meaning = "",
-        translation = "",
-        examples = emptyList(),
-        phonetic = "",
-        review = FlashcardReview.empty(SystemClock),
-    ),
+    flashcard: Flashcard = Flashcard.empty(SystemClock),
     onNavigateBack: () -> Unit = {},
 ) {
     Scaffold(
@@ -146,7 +139,7 @@ fun FlashcardDetailScreen(
 private fun FlashcardRichSections(flashcard: Flashcard) {
     OptionalDetailSection(
         label = stringResource(R.string.notes_label),
-        value = flashcard.note,
+        value = flashcard.noteSummary,
     )
     OptionalDetailSection(
         label = stringResource(R.string.why_useful_label),
@@ -209,7 +202,7 @@ private fun LearningMetadataSection(flashcard: Flashcard) {
         flashcard.levelBand.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.level_label) to it
         },
-        flashcard.domain.takeIf(String::isNotBlank)?.let {
+        flashcard.learningDomain.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.domain_label) to it
         },
         flashcard.lemma.takeIf(String::isNotBlank)?.let {
@@ -416,7 +409,7 @@ private fun ExampleItem(index: Int, example: Example) {
 fun CardDetailScreenPreview() {
     HelloTheme {
         val sampleCard = Flashcard(
-            id = "1",
+            id = "1".toFlashcardId(),
             word = "Aesthetic",
             phonetic = "/esˈTHedik/",
             translation = "Estético",

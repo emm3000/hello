@@ -6,6 +6,7 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
@@ -22,13 +23,13 @@ class FlashcardDetailViewModelTest {
 
     @Test
     fun `init loads flashcard and state reflects id and word`() = runTest {
-        val flashcard = Flashcard.empty(SystemClock).copy(id = "card-1", word = "hello")
+        val flashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId(), word = "hello")
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(flashcard)),
         )
 
-        assertThat(viewModel.uiState.value.flashcard.id).isEqualTo("card-1")
+        assertThat(viewModel.uiState.value.flashcard.id.value).isEqualTo("card-1")
         assertThat(viewModel.uiState.value.flashcard.word).isEqualTo("hello")
     }
 

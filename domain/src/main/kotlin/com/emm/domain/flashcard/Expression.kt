@@ -10,6 +10,8 @@ value class Expression private constructor(val value: String) {
 
     companion object {
         fun from(rawValue: String): Expression = Expression(rawValue.normalizedExpression())
+
+        fun fromOrNull(rawValue: String): Expression? = runCatching { from(rawValue) }.getOrNull()
     }
 }
 

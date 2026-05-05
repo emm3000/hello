@@ -5,6 +5,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.hello.core.mvi.MviViewModel
@@ -21,9 +22,9 @@ class StudyViewModel(
 ) {
 
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
-    private val pendingItemsByFlashcardId = mutableMapOf<String, Int>()
-    private val aggregatedGradesByFlashcardId = mutableMapOf<String, ReviewGrade>()
-    private val flashcardsById = mutableMapOf<String, Flashcard>()
+    private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
+    private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
+    private val flashcardsById = mutableMapOf<FlashcardId, Flashcard>()
 
     init {
         viewModelScope.launch {

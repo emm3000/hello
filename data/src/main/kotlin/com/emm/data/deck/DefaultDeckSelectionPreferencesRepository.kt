@@ -7,15 +7,18 @@ import com.emm.domain.ids.DeckId
 class DefaultDeckSelectionPreferencesRepository(
     private val dataStore: DataStore,
 ) : DefaultDeckSelectionRepository {
-    override fun getDefaultDeckId(): String {
+    override fun getDefaultDeckId(): DeckId? {
         return dataStore.defaultDeck
+            .takeUnless(String::isBlank)
+            ?.let(DeckId::from)
     }
 
-    override fun setDefaultDeckId(deckId: DeckId) {
+    override fun setDefaultDeckId(deckId: DeckId?) {
+        if (deckId == null) {
+            dataStore.clearDefaultDeck()
+            return
+        }
+
         dataStore.defaultDeck = deckId.value
-    }
-
-    override fun clearDefaultDeckId() {
-        dataStore.clearDefaultDeck()
     }
 }

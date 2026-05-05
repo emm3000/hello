@@ -64,7 +64,7 @@ object SpacedRepetitionScheduler {
         val newNextReviewAt = now.plus(newInterval, ChronoUnit.DAYS).toEpochMilli()
 
         return review.copy(
-            flashcardId = flashcardId.value,
+            flashcardId = flashcardId,
             easeFactor = newEaseFactor,
             repetitions = newRepetitions,
             interval = newInterval,

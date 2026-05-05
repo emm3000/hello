@@ -10,6 +10,8 @@ value class IntendedMeaningEs private constructor(val value: String) {
 
     companion object {
         fun from(rawValue: String): IntendedMeaningEs = IntendedMeaningEs(rawValue.normalizedIntendedMeaning())
+
+        fun fromOrNull(rawValue: String): IntendedMeaningEs? = runCatching { from(rawValue) }.getOrNull()
     }
 }
 

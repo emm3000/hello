@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
@@ -162,7 +163,7 @@ fun DashboardScreen(
             } else if (state.decks.isEmpty()) {
                 item { EmptyDecks(onCreateDeck) }
             } else {
-                itemsIndexed(state.decks, key = { _, deck -> deck.id }) { _, deck ->
+                itemsIndexed(state.decks, key = { _, deck -> deck.id.value }) { _, deck ->
                     DeckItem(deck = deck, onDeckClick = onDeckDetail)
                     HSeparator()
                 }
@@ -277,7 +278,7 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onDeckClick(deck.id) },
+            .clickable { onDeckClick(deck.id.value) },
     )
 }
 
@@ -333,7 +334,7 @@ private fun DashboardScreenPreview() {
             state = DashboardUiState(
                 decks = listOf(
                     Deck(
-                        id = "1",
+                        id = "1".toDeckId(),
                         name = "Inglés B2",
                         description = "Vocabulario",
                         createdAt = LocalDateTime.now(),
@@ -341,7 +342,7 @@ private fun DashboardScreenPreview() {
                         cardsCount = 24
                     ),
                     Deck(
-                        id = "2",
+                        id = "2".toDeckId(),
                         name = "Phrasal Verbs",
                         description = "Verbos",
                         createdAt = LocalDateTime.now(),
@@ -349,7 +350,7 @@ private fun DashboardScreenPreview() {
                         cardsCount = 7
                     ),
                     Deck(
-                        id = "3",
+                        id = "3".toDeckId(),
                         name = "Gramática",
                         description = "Gramática",
                         createdAt = LocalDateTime.now(),

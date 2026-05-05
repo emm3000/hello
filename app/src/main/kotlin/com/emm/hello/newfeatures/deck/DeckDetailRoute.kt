@@ -27,7 +27,7 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
 
         DeckDetailScreen(
             onNavigateBack = { navController.popBackStack() },
-            onReview = { navController.navigate(StudyRoute(uiState.deck.id)) },
+            onReview = { navController.navigate(StudyRoute(uiState.deck.id.value)) },
             state = uiState,
             onCardClick = { cardId -> navController.navigate(CardDetailRoute(cardId)) },
             onAddCard = { navController.navigate(NewCardRoute) },

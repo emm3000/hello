@@ -38,6 +38,6 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
     override suspend fun fetchById(id: FlashcardId): Flashcard {
         lastFetchByIdArg = id.value
-        return Flashcard.empty(SystemClock).copy(id = id.value)
+        return Flashcard.empty(SystemClock).copy(id = id)
     }
 }

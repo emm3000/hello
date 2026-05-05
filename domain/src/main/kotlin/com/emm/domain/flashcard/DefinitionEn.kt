@@ -10,6 +10,8 @@ value class DefinitionEn private constructor(val value: String) {
 
     companion object {
         fun from(rawValue: String): DefinitionEn = DefinitionEn(rawValue.normalizedDefinition())
+
+        fun fromOrNull(rawValue: String): DefinitionEn? = runCatching { from(rawValue) }.getOrNull()
     }
 }
 

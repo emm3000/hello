@@ -1,6 +1,7 @@
 package com.emm.data.deck
 
 import com.emm.domain.deck.Deck
+import com.emm.domain.ids.toDeckId
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -11,7 +12,7 @@ fun Long.toLocalDateTime(): LocalDateTime = Instant
     .toLocalDateTime()
 
 fun DeckEntity.toDomain() = Deck(
-    id = id,
+    id = id.toDeckId(),
     name = name,
     description = description.orEmpty(),
     createdAt = createdAt.toLocalDateTime(),

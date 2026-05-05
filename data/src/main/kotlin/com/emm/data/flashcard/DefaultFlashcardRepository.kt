@@ -31,6 +31,7 @@ import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import java.time.Instant
 import java.util.UUID
@@ -55,24 +56,24 @@ class DefaultFlashcardRepository(
     private val exampleDao: FlashcardExampleQueries = db.flashcardExampleQueries
 
     override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
-        val cardId: String = input.id ?: UUID.randomUUID().toString()
+        val cardId: FlashcardId = input.id ?: UUID.randomUUID().toString().toFlashcardId()
         val now: Long = Instant.now().toEpochMilli()
         val artifacts = encodeArtifacts(input)
 
         db.transaction {
             dao.create(
-                id = cardId,
-                deckId = input.deckId,
+                id = cardId.value,
+                deckId = input.deckId.value,
                 word = input.word,
                 meaning = input.meaning,
                 translation = input.translation,
                 phonetic = input.phonetic,
                 partOfSpeech = input.partOfSpeech,
-                type = input.type,
-                note = input.note,
+                type = input.noteType,
+                note = input.noteSummary,
                 register = input.register,
                 levelBand = input.levelBand,
-                domain = input.domain,
+                domain = input.learningDomain,
                 lemma = input.lemma,
                 whyUseful = input.whyUseful,
                 usagePattern = input.usagePattern,
@@ -240,7 +241,7 @@ class DefaultFlashcardRepository(
         review: FlashcardReview = FlashcardReview.empty(SystemClock),
     ): Flashcard {
         return Flashcard(
-            id = entity.id,
+            id = entity.id.toFlashcardId(),
             word = entity.word,
             meaning = entity.meaning,
             translation = entity.translation.orEmpty(),
@@ -248,11 +249,11 @@ class DefaultFlashcardRepository(
             examples = emptyList(),
             review = review,
             partOfSpeech = entity.partOfSpeech.orEmpty(),
-            type = entity.type.orEmpty(),
-            note = entity.note.orEmpty(),
+            noteType = entity.type.orEmpty(),
+            noteSummary = entity.note.orEmpty(),
             register = entity.register.orEmpty(),
             levelBand = entity.levelBand.orEmpty(),
-            domain = entity.domain.orEmpty(),
+            learningDomain = entity.domain.orEmpty(),
             lemma = entity.lemma.orEmpty(),
             whyUseful = entity.whyUseful.orEmpty(),
             usagePattern = entity.usagePattern.orEmpty(),
@@ -273,7 +274,7 @@ class DefaultFlashcardRepository(
         review: FlashcardReview,
     ): Flashcard {
         return Flashcard(
-            id = entity.id,
+            id = entity.id.toFlashcardId(),
             word = entity.word,
             meaning = entity.meaning,
             translation = entity.translation.orEmpty(),
@@ -281,11 +282,11 @@ class DefaultFlashcardRepository(
             examples = emptyList(),
             review = review,
             partOfSpeech = entity.partOfSpeech.orEmpty(),
-            type = entity.type.orEmpty(),
-            note = entity.note.orEmpty(),
+            noteType = entity.type.orEmpty(),
+            noteSummary = entity.note.orEmpty(),
             register = entity.register.orEmpty(),
             levelBand = entity.levelBand.orEmpty(),
-            domain = entity.domain.orEmpty(),
+            learningDomain = entity.domain.orEmpty(),
             lemma = entity.lemma.orEmpty(),
             whyUseful = entity.whyUseful.orEmpty(),
             usagePattern = entity.usagePattern.orEmpty(),
@@ -306,7 +307,7 @@ class DefaultFlashcardRepository(
         review: FlashcardReview,
     ): Flashcard {
         return Flashcard(
-            id = entity.id,
+            id = entity.id.toFlashcardId(),
             word = entity.word,
             meaning = entity.meaning,
             translation = entity.translation.orEmpty(),
@@ -314,11 +315,11 @@ class DefaultFlashcardRepository(
             examples = emptyList(),
             review = review,
             partOfSpeech = entity.partOfSpeech.orEmpty(),
-            type = entity.type.orEmpty(),
-            note = entity.note.orEmpty(),
+            noteType = entity.type.orEmpty(),
+            noteSummary = entity.note.orEmpty(),
             register = entity.register.orEmpty(),
             levelBand = entity.levelBand.orEmpty(),
-            domain = entity.domain.orEmpty(),
+            learningDomain = entity.domain.orEmpty(),
             lemma = entity.lemma.orEmpty(),
             whyUseful = entity.whyUseful.orEmpty(),
             usagePattern = entity.usagePattern.orEmpty(),
@@ -339,7 +340,7 @@ class DefaultFlashcardRepository(
         examples: List<Example>,
     ): Flashcard {
         return Flashcard(
-            id = entity.id,
+            id = entity.id.toFlashcardId(),
             word = entity.word,
             meaning = entity.meaning,
             translation = entity.translation.orEmpty(),
@@ -347,11 +348,11 @@ class DefaultFlashcardRepository(
             examples = examples,
             review = FlashcardReview.empty(SystemClock),
             partOfSpeech = entity.partOfSpeech.orEmpty(),
-            type = entity.type.orEmpty(),
-            note = entity.note.orEmpty(),
+            noteType = entity.type.orEmpty(),
+            noteSummary = entity.note.orEmpty(),
             register = entity.register.orEmpty(),
             levelBand = entity.levelBand.orEmpty(),
-            domain = entity.domain.orEmpty(),
+            learningDomain = entity.domain.orEmpty(),
             lemma = entity.lemma.orEmpty(),
             whyUseful = entity.whyUseful.orEmpty(),
             usagePattern = entity.usagePattern.orEmpty(),
@@ -472,7 +473,7 @@ class DefaultFlashcardRepository(
         if (hasMissingField) return FlashcardReview.empty(SystemClock)
 
         return FlashcardReview(
-            flashcardId = deck.flashcardId ?: "",
+            flashcardId = (deck.flashcardId ?: "empty-flashcard").toFlashcardId(),
             lastReviewedAt = deck.lastReviewedAt ?: 0L,
             nextReviewAt = deck.nextReviewAt ?: 0L,
             easeFactor = deck.easeFactor ?: 0.0,

@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.deck
 
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.Clock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -29,7 +30,7 @@ class DeckDetailViewModelTest {
     }
 
     private fun flashcard(id: String, review: FlashcardReview): Flashcard = Flashcard(
-        id = id,
+        id = id.toFlashcardId(),
         word = id,
         meaning = "",
         translation = "",

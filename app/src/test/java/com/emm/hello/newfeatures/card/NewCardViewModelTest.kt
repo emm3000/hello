@@ -40,6 +40,9 @@ import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
@@ -71,7 +74,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -107,7 +110,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -139,7 +142,7 @@ class NewCardViewModelTest {
         coVerify(exactly = 1) {
             writeRepository.create(
                 match<CreateFlashcardInput> {
-                    it.deckId == "deck-1" && it.word == "hello" && it.meaning == "a greeting"
+                    it.deckId.value == "deck-1" && it.word == "hello" && it.meaning == "a greeting"
                 }
             )
         }
@@ -153,7 +156,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -184,7 +187,7 @@ class NewCardViewModelTest {
         val deckRepository = FakeDeckRepository()
         val inputSlot = slot<FlashcardGenerationInput>()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(capture(inputSlot)) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -223,7 +226,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -261,7 +264,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -302,7 +305,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
 
@@ -349,7 +352,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery { generationRepository.regenerateExample(any(), any()) } returns GeneratedExampleDraft(
             sentence = "Hello, how have you been lately?",
@@ -387,7 +390,7 @@ class NewCardViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
-        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1"
+        every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
         coEvery {
             generationRepository.regenerateNoteField(any(), any(), RegenerableNoteField.WhyUseful)
@@ -416,7 +419,7 @@ class NewCardViewModelTest {
 
     private class FakeDeckRepository : DeckRepository {
         private val deck = Deck(
-            id = "deck-1",
+            id = "deck-1".toDeckId(),
             name = "Main deck",
             description = "",
             createdAt = LocalDateTime.parse("2026-03-16T10:00:00"),
@@ -488,9 +491,11 @@ class NewCardViewModelTest {
         readRepository: FlashcardReadRepository,
     ) {
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
-        coEvery { writeRepository.create(any()) } returns "card-1"
+        coEvery { writeRepository.create(any()) } returns "card-1".toFlashcardId()
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.empty(SystemClock)
+        coEvery {
+            readRepository.fetchById(any())
+        } answers { Flashcard.empty(SystemClock).copy(id = firstArg<FlashcardId>()) }
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {

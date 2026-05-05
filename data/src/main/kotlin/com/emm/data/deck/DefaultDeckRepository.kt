@@ -11,6 +11,7 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -72,7 +73,7 @@ class DefaultDeckRepository(
 private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)
 
 private fun toDomain(flashcardCount: DeckWithFlashcardCount): Deck = Deck(
-    id = flashcardCount.id,
+    id = flashcardCount.id.toDeckId(),
     name = flashcardCount.name,
     description = flashcardCount.description.orEmpty(),
     createdAt = flashcardCount.createdAt.toLocalDateTime(),

@@ -40,6 +40,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
@@ -333,7 +334,7 @@ private fun DeckCardItem(
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCardClick(card.id) },
+            .clickable { onCardClick(card.id.value) },
     )
 }
 
@@ -350,7 +351,7 @@ private fun DeckDetailScreenPreview() {
                     description = "Palabras de nivel C1",
                     cards = listOf(
                         Flashcard(
-                            id = "1",
+                            id = "1".toFlashcardId(),
                             word = "Serendipity",
                             meaning = "The occurrence of events by chance in a happy way",
                             translation = "Casualidad afortunada",
@@ -366,7 +367,7 @@ private fun DeckDetailScreenPreview() {
                             review = FlashcardReview.empty(SystemClock),
                         ),
                         Flashcard(
-                            id = "2",
+                            id = "2".toFlashcardId(),
                             word = "Ephemeral",
                             meaning = "Lasting for a very short time",
                             translation = "Efímero",

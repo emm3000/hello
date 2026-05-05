@@ -1,9 +1,10 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.Clock
 
 data class FlashcardReview(
-    val flashcardId: String,
+    val flashcardId: FlashcardId,
     val lastReviewedAt: Long,
     val nextReviewAt: Long,
     val easeFactor: Double,
@@ -28,7 +29,7 @@ data class FlashcardReview(
             val now = clock.now().toEpochMilli()
 
             return FlashcardReview(
-                flashcardId = "",
+                flashcardId = FlashcardId.from("empty-flashcard"),
                 lastReviewedAt = now,
                 nextReviewAt = now,
                 easeFactor = 2.5,

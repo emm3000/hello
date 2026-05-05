@@ -6,6 +6,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toDeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,7 +35,7 @@ class DashboardViewModelTest {
     @Test
     fun `decks from repository appear in state and isLoading becomes false`() = runTest {
         val deck = Deck(
-            id = "deck-1",
+            id = "deck-1".toDeckId(),
             name = "Spanish",
             description = "",
             createdAt = LocalDateTime.parse("2026-03-18T10:00:00"),

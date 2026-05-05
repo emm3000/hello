@@ -1,6 +1,7 @@
 package com.emm.domain.study
 
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.Clock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -21,9 +22,9 @@ class ScheduleFlashcardReviewUseCaseTest {
             lapses = 2L,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.AGAIN, flashcardId = "card-1")
+        val result = useCase(review = review, grade = ReviewGrade.AGAIN, flashcardId = "card-1".toFlashcardId())
 
-        assertEquals("card-1", result.flashcardId)
+        assertEquals("card-1", result.flashcardId.value)
         assertEquals(review.easeFactor, result.easeFactor, 0.0001)
         assertEquals(0L, result.repetitions)
         assertEquals(1L, result.interval)
@@ -40,9 +41,9 @@ class ScheduleFlashcardReviewUseCaseTest {
             interval = 1L,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-2")
+        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-2".toFlashcardId())
 
-        assertEquals("card-2", result.flashcardId)
+        assertEquals("card-2", result.flashcardId.value)
         assertEquals(2L, result.repetitions)
         assertEquals(6L, result.interval)
         assertEquals(2.5, result.easeFactor, 0.0001)
@@ -59,9 +60,9 @@ class ScheduleFlashcardReviewUseCaseTest {
             lapses = 1L,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.EASY, flashcardId = "card-3")
+        val result = useCase(review = review, grade = ReviewGrade.EASY, flashcardId = "card-3".toFlashcardId())
 
-        assertEquals("card-3", result.flashcardId)
+        assertEquals("card-3", result.flashcardId.value)
         assertEquals(3L, result.repetitions)
         assertEquals(16L, result.interval)
         assertEquals(2.6, result.easeFactor, 0.0001)
@@ -78,9 +79,9 @@ class ScheduleFlashcardReviewUseCaseTest {
             interval = 8L,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.HARD, flashcardId = "card-4")
+        val result = useCase(review = review, grade = ReviewGrade.HARD, flashcardId = "card-4".toFlashcardId())
 
-        assertEquals("card-4", result.flashcardId)
+        assertEquals("card-4", result.flashcardId.value)
         assertTrue(result.easeFactor >= 1.3)
     }
 
@@ -93,19 +94,14 @@ class ScheduleFlashcardReviewUseCaseTest {
             lapses = 1L,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-5")
+        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-5".toFlashcardId())
 
-        assertEquals("card-5", result.flashcardId)
+        assertEquals("card-5", result.flashcardId.value)
         assertTrue(result.nextReviewAt > result.lastReviewedAt)
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `invoke rejects blank flashcard id`() {
-        useCase(review = baseReview(), grade = ReviewGrade.GOOD, flashcardId = "   ")
-    }
-
     private fun baseReview(): FlashcardReview = FlashcardReview(
-        flashcardId = "base",
+        flashcardId = "base".toFlashcardId(),
         lastReviewedAt = 0L,
         nextReviewAt = 0L,
         easeFactor = 2.5,

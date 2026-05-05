@@ -9,6 +9,7 @@ import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -57,7 +58,7 @@ class LocalOnlyLocalWritesIntegrationTest {
 
         val flashcardId = flashcardRepository.create(
             CreateFlashcardInput(
-                deckId = deck.id,
+                deckId = deck.id.toDeckId(),
                 word = "hello",
                 meaning = "greeting",
                 translation = "hola",
@@ -76,9 +77,9 @@ class LocalOnlyLocalWritesIntegrationTest {
         )
         reviewRepository.update(review)
 
-        val storedFlashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId())
-        val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId).executeAsOne()
-        val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(flashcardId).executeAsOne()
+        val storedFlashcard = flashcardRepository.fetchById(flashcardId)
+        val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId.value).executeAsOne()
+        val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(flashcardId.value).executeAsOne()
 
         assertEquals("device-local-only", identity.deviceId)
         assertFalse(identity.createdInstallation)
@@ -86,10 +87,10 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals(flashcardId, storedFlashcard.id)
         assertEquals("hello", storedFlashcard.word)
         assertEquals("greeting", storedFlashcard.meaning)
-        assertEquals(flashcardId, reviewProjection.flashcardId)
+        assertEquals(flashcardId.value, reviewProjection.flashcardId)
         assertEquals(300L, reviewProjection.nextReviewAt)
-        assertEquals(flashcardId, reviewEvent.flashcardId)
-        assertNotNull(db.flashcardQueries.findById(flashcardId).executeAsOneOrNull())
+        assertEquals(flashcardId.value, reviewEvent.flashcardId)
+        assertNotNull(db.flashcardQueries.findById(flashcardId.value).executeAsOneOrNull())
     }
 
     @Test
@@ -110,7 +111,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         }
     }
 
-    private suspend fun persistDataForReopenScenario(jdbcUrl: String): String {
+    private suspend fun persistDataForReopenScenario(jdbcUrl: String): com.emm.domain.ids.FlashcardId {
         val firstDriver = JdbcSqliteDriver(jdbcUrl)
         val firstDb = HelloDb(firstDriver)
         HelloDb.Schema.create(firstDriver)
@@ -137,7 +138,7 @@ class LocalOnlyLocalWritesIntegrationTest {
             val persistedDeck = firstDb.deckQueries.all().executeAsOne()
             val persistedFlashcardId = flashcardRepository.create(
                 CreateFlashcardInput(
-                    deckId = persistedDeck.id,
+                    deckId = persistedDeck.id.toDeckId(),
                     word = "bye",
                     meaning = "farewell",
                     translation = "chau",
@@ -161,7 +162,10 @@ class LocalOnlyLocalWritesIntegrationTest {
         }
     }
 
-    private suspend fun loadReopenedData(jdbcUrl: String, persistedFlashcardId: String): ReopenedData {
+    private suspend fun loadReopenedData(
+        jdbcUrl: String,
+        persistedFlashcardId: com.emm.domain.ids.FlashcardId,
+    ): ReopenedData {
         val reopenedDriver = JdbcSqliteDriver(jdbcUrl)
         val reopenedDb = HelloDb(reopenedDriver)
 
@@ -174,7 +178,7 @@ class LocalOnlyLocalWritesIntegrationTest {
             val reopenedIdentity = reopenedInitializer.ensureReady()
             val reopenedDeck = reopenedDb.deckQueries.all().executeAsOne()
             val reopenedFlashcard = reopenedDb.flashcardQueries
-                .findById(persistedFlashcardId)
+                .findById(persistedFlashcardId.value)
                 .executeAsOne()
             val reopenedReview = reopenedDb.localFirstQueries
                 .findReviewProjectionByFlashcardId(reopenedFlashcard.id)

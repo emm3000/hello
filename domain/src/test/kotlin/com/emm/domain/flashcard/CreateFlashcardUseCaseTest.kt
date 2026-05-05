@@ -2,6 +2,8 @@ package com.emm.domain.flashcard
 
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -26,7 +28,7 @@ class CreateFlashcardUseCaseTest {
 
         val error = assertFailsWith<com.emm.domain.validation.DomainValidationException> {
             useCase(
-                deckId = "deck-1",
+                deckId = "deck-1".toDeckId(),
                 learningNote = sampleWordNote().copy(cards = emptyList()),
             )
         }
@@ -48,7 +50,7 @@ class CreateFlashcardUseCaseTest {
             ),
         )
 
-        useCase(deckId = "deck-1", learningNote = sampleWordNote())
+        useCase(deckId = "deck-1".toDeckId(), learningNote = sampleWordNote())
 
         assertEquals(1, writeRepository.createCalls)
         assertEquals(1, writeRepository.upsertExamplesCalls)
@@ -68,7 +70,7 @@ class CreateFlashcardUseCaseTest {
         )
 
         val error = assertFailsWith<com.emm.domain.validation.DomainValidationException> {
-            useCase(deckId = "deck-1", learningNote = sampleWordNote())
+            useCase(deckId = "deck-1".toDeckId(), learningNote = sampleWordNote())
         }
 
         assertTrue(error.issues.any { it.code == com.emm.domain.validation.IssueCode.DuplicateExactCardInDeck })
@@ -149,9 +151,9 @@ private class FakeWriteRepository : FlashcardWriteRepository {
     var createCalls = 0
     var upsertExamplesCalls = 0
 
-    override suspend fun create(input: CreateFlashcardInput): String {
+    override suspend fun create(input: CreateFlashcardInput): FlashcardId {
         createCalls += 1
-        return "flashcard-1"
+        return "flashcard-1".toFlashcardId()
     }
 
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) {
@@ -164,7 +166,7 @@ private class FakeReadRepository : FlashcardReadRepository {
     override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
     override suspend fun fetchById(id: FlashcardId): Flashcard {
-        return Flashcard.empty(SystemClock).copy(id = id.value)
+        return Flashcard.empty(SystemClock).copy(id = id)
     }
 }
 

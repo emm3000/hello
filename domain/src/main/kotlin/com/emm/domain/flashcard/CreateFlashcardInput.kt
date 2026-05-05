@@ -1,18 +1,21 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
+
 data class CreateFlashcardInput(
-    val id: String? = null,
-    val deckId: String,
+    val id: FlashcardId? = null,
+    val deckId: DeckId,
     val word: String,
     val meaning: String,
     val translation: String,
     val phonetic: String,
     val partOfSpeech: String = "",
-    val type: String = "",
-    val note: String = "",
+    val noteType: String = "",
+    val noteSummary: String = "",
     val register: String = "",
     val levelBand: String = "",
-    val domain: String = "",
+    val learningDomain: String = "",
     val lemma: String = "",
     val whyUseful: String = "",
     val usagePattern: String = "",

@@ -10,6 +10,7 @@ import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.time.Clock
@@ -39,7 +40,7 @@ class StudyViewModelTest {
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id).isEqualTo("a")
+        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id?.value).isEqualTo("a")
         assertThat(viewModel.uiState.value.totalCount).isEqualTo(3)
     }
 
@@ -79,7 +80,7 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id).isEqualTo("b")
+        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id?.value).isEqualTo("b")
         assertThat(viewModel.uiState.value.reviewedCount).isEqualTo(1)
     }
 
@@ -181,7 +182,7 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         assertThat(reviewRepo.updates).hasSize(1)
-        assertThat(reviewRepo.updates.single().flashcardId).isEqualTo("a")
+        assertThat(reviewRepo.updates.single().flashcardId.value).isEqualTo("a")
     }
 
     private fun makeViewModel(cards: List<Flashcard>): StudyViewModel = StudyViewModel(
@@ -197,7 +198,7 @@ class StudyViewModelTest {
             studyCard("$id-rec", StudyCardType.Recognition)
         ),
     ): Flashcard = Flashcard(
-        id = id,
+        id = id.toFlashcardId(),
         word = id,
         meaning = "",
         translation = "",
