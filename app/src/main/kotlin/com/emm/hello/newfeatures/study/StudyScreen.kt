@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.study
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -83,6 +85,7 @@ private const val PHONETIC_SEPARATOR_WIDTH_FRACTION = 0.4f
 private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val SUPPORT_SEPARATOR_WIDTH_FRACTION = 0.7f
 private const val MAX_RELATED_FORMS = 3
+private val STUDY_DOCK_MIN_HEIGHT = 220.dp
 
 @Composable
 fun StudyScreen(
@@ -463,114 +466,127 @@ private fun StudyActionDock(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Column(
+        AnimatedContent(
+            targetState = sessionStage,
+            transitionSpec = {
+                fadeIn(tween(CARD_TRANSITION_DURATION_MS)) togetherWith
+                    fadeOut(tween(CARD_EXIT_FADE_DURATION_MS)) using
+                    SizeTransform(clip = false)
+            },
+            label = "study_action_dock",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            when (sessionStage) {
-                StudyStage.Start -> {
-                    Text(
-                        text = stringResource(R.string.study_start_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.study_start_desc,
-                            totalCount,
-                            estimatedMinutes,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    HButton(
-                        text = stringResource(R.string.study_start_cta),
-                        onClick = onStartSession,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-
-                StudyStage.Empty -> {
-                    Text(
-                        text = stringResource(R.string.study_empty_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = stringResource(R.string.study_empty_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                StudyStage.Recall -> {
-                    Text(
-                        text = stringResource(R.string.tap_to_reveal),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    HButton(
-                        text = if (currentItem?.studyCard?.needsTypedAnswer == true) {
-                            stringResource(R.string.study_answer_cta)
-                        } else {
-                            stringResource(R.string.study_reveal_answer)
-                        },
-                        onClick = onRevealAnswer,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-
-                StudyStage.Check -> {
-                    val studyCard = currentItem?.studyCard
-                    val flashcard = currentItem?.flashcard
-                    Text(
-                        text = stringResource(R.string.study_answer_guidance),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    HInput(
-                        value = typedAnswer,
-                        onValueChange = onTypedAnswerChange,
-                        label = studyCard?.typedAnswerLabel() ?: "Tu respuesta",
-                        placeholder = studyCard?.typedAnswerPlaceholder(flashcard) ?: "Escribe tu respuesta",
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { onCheckTypedAnswer() }),
-                    )
-                    HButton(
-                        text = stringResource(R.string.study_check_answer),
-                        onClick = onCheckTypedAnswer,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = typedAnswer.isNotBlank(),
-                    )
-                    HButton(
-                        text = stringResource(R.string.study_reveal_anyway),
-                        onClick = onSkipTypedAnswer,
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = ButtonVariant.Ghost,
-                    )
-                }
-
-                StudyStage.Grade -> {
-                    val needsTypedAnswer = currentItem?.studyCard?.needsTypedAnswer == true
-                    val gradePolicy = currentItem?.studyCard?.gradePolicy(
-                        typedAnswerChecked = typedAnswerChecked,
-                        typedAnswerCorrect = typedAnswerCorrect,
-                    ) ?: ReviewGradePolicy()
-                    if (needsTypedAnswer && typedAnswer.isBlank() && typedAnswerChecked) {
+                .heightIn(min = STUDY_DOCK_MIN_HEIGHT),
+        ) { stage ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                when (stage) {
+                    StudyStage.Start -> {
                         Text(
-                            text = stringResource(R.string.study_skip_guidance),
-                            style = MaterialTheme.typography.bodySmall,
+                            text = stringResource(R.string.study_start_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.study_start_desc,
+                                totalCount,
+                                estimatedMinutes,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        HButton(
+                            text = stringResource(R.string.study_start_cta),
+                            onClick = onStartSession,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    StudyStage.Empty -> {
+                        Text(
+                            text = stringResource(R.string.study_empty_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = stringResource(R.string.study_empty_desc),
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    AnswerButtons(
-                        enabledGrades = gradePolicy.enabledGrades,
-                        guidance = gradePolicy.guidance,
-                        onReviewAnswer = onReviewAnswer,
-                    )
+
+                    StudyStage.Recall -> {
+                        Text(
+                            text = stringResource(R.string.tap_to_reveal),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        HButton(
+                            text = if (currentItem?.studyCard?.needsTypedAnswer == true) {
+                                stringResource(R.string.study_answer_cta)
+                            } else {
+                                stringResource(R.string.study_reveal_answer)
+                            },
+                            onClick = onRevealAnswer,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    StudyStage.Check -> {
+                        val studyCard = currentItem?.studyCard
+                        val flashcard = currentItem?.flashcard
+                        Text(
+                            text = stringResource(R.string.study_answer_guidance),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        HInput(
+                            value = typedAnswer,
+                            onValueChange = onTypedAnswerChange,
+                            label = studyCard?.typedAnswerLabel() ?: "Tu respuesta",
+                            placeholder = studyCard?.typedAnswerPlaceholder(flashcard) ?: "Escribe tu respuesta",
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { onCheckTypedAnswer() }),
+                        )
+                        HButton(
+                            text = stringResource(R.string.study_check_answer),
+                            onClick = onCheckTypedAnswer,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = typedAnswer.isNotBlank(),
+                        )
+                        HButton(
+                            text = stringResource(R.string.study_reveal_anyway),
+                            onClick = onSkipTypedAnswer,
+                            modifier = Modifier.fillMaxWidth(),
+                            variant = ButtonVariant.Ghost,
+                        )
+                    }
+
+                    StudyStage.Grade -> {
+                        val needsTypedAnswer = currentItem?.studyCard?.needsTypedAnswer == true
+                        val gradePolicy = currentItem?.studyCard?.gradePolicy(
+                            typedAnswerChecked = typedAnswerChecked,
+                            typedAnswerCorrect = typedAnswerCorrect,
+                        ) ?: ReviewGradePolicy()
+                        if (needsTypedAnswer && typedAnswer.isBlank() && typedAnswerChecked) {
+                            Text(
+                                text = stringResource(R.string.study_skip_guidance),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        AnswerButtons(
+                            enabledGrades = gradePolicy.enabledGrades,
+                            guidance = gradePolicy.guidance,
+                            onReviewAnswer = onReviewAnswer,
+                        )
+                    }
                 }
             }
         }
