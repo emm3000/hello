@@ -6,6 +6,7 @@ import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +22,7 @@ class FlashcardDetailViewModelTest {
 
     @Test
     fun `init loads flashcard and state reflects id and word`() = runTest {
-        val flashcard = Flashcard.Empty.copy(id = "card-1", word = "hello")
+        val flashcard = Flashcard.empty(SystemClock).copy(id = "card-1", word = "hello")
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(flashcard)),
@@ -46,7 +47,7 @@ class FlashcardDetailViewModelTest {
     }
 
     private class FakeFlashcardReadRepo(
-        private val flashcard: Flashcard = Flashcard.Empty,
+        private val flashcard: Flashcard = Flashcard.empty(SystemClock),
         private val shouldFail: Boolean = false,
     ) : FlashcardReadRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()

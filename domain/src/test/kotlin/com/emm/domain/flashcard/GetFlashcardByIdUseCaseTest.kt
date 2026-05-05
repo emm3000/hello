@@ -2,6 +2,7 @@ package com.emm.domain.flashcard
 
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.time.SystemClock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -37,6 +38,6 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
     override suspend fun fetchById(id: FlashcardId): Flashcard {
         lastFetchByIdArg = id.value
-        return Flashcard.Empty.copy(id = id.value)
+        return Flashcard.empty(SystemClock).copy(id = id.value)
     }
 }

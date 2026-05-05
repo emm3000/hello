@@ -345,7 +345,7 @@ private fun DeckDetailScreenPreview() {
     HelloTheme {
         DeckDetailScreen(
             state = DeckDetailUiState(
-                deck = Deck.Empty.copy(
+                deck = Deck.empty(SystemClock).copy(
                     name = "Vocabulario Avanzado",
                     description = "Palabras de nivel C1",
                     cards = listOf(

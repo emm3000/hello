@@ -2,6 +2,7 @@ package com.emm.domain.flashcard
 
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.time.SystemClock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -163,7 +164,7 @@ private class FakeReadRepository : FlashcardReadRepository {
     override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
     override suspend fun fetchById(id: FlashcardId): Flashcard {
-        return Flashcard.Empty.copy(id = id.value)
+        return Flashcard.empty(SystemClock).copy(id = id.value)
     }
 }
 

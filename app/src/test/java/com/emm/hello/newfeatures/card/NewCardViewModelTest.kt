@@ -40,6 +40,7 @@ import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
+import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -489,7 +490,7 @@ class NewCardViewModelTest {
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { writeRepository.create(any()) } returns "card-1"
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns Flashcard.Empty
+        coEvery { readRepository.fetchById(any()) } returns Flashcard.empty(SystemClock)
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {

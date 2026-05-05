@@ -50,7 +50,15 @@ import com.emm.hello.core.ui.HSeparator
 @Composable
 fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
-    flashcard: Flashcard = Flashcard.Empty,
+    flashcard: Flashcard = Flashcard(
+        id = "",
+        word = "",
+        meaning = "",
+        translation = "",
+        examples = emptyList(),
+        phonetic = "",
+        review = FlashcardReview.empty(SystemClock),
+    ),
     onNavigateBack: () -> Unit = {},
 ) {
     Scaffold(

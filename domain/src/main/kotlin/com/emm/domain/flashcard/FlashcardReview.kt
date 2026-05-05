@@ -1,7 +1,6 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.time.Clock
-import com.emm.domain.time.SystemClock
 
 data class FlashcardReview(
     val flashcardId: String,
@@ -38,14 +37,5 @@ data class FlashcardReview(
                 lapses = 0L,
             )
         }
-
-        @Deprecated(
-            message = "Use empty(clock) for deterministic time.",
-            replaceWith = ReplaceWith(
-                expression = "empty(SystemClock)",
-                imports = ["com.emm.domain.time.SystemClock"],
-            ),
-        )
-        val Empty get() = empty(SystemClock)
     }
 }

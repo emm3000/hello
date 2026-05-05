@@ -2,7 +2,6 @@ package com.emm.domain.deck
 
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.time.Clock
-import com.emm.domain.time.SystemClock
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -25,15 +24,5 @@ data class Deck(
             cards = emptyList(),
             cardsCount = 0L,
         )
-
-        @Deprecated(
-            message = "Use empty(clock) for deterministic time.",
-            replaceWith = ReplaceWith(
-                expression = "empty(SystemClock)",
-                imports = ["com.emm.domain.time.SystemClock"],
-            ),
-        )
-        val Empty: Deck
-            get() = empty(SystemClock)
     }
 }

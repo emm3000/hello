@@ -1,6 +1,7 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.time.SystemClock
+import com.emm.domain.time.Clock
 
 data class Flashcard(
     val id: String,
@@ -32,15 +33,17 @@ data class Flashcard(
 
     companion object {
 
+        fun empty(clock: Clock): Flashcard = Flashcard(
+            id = "",
+            word = "",
+            meaning = "",
+            translation = "",
+            examples = emptyList(),
+            phonetic = "",
+            review = FlashcardReview.empty(clock),
+        )
+
         val Empty: Flashcard
-            get() = Flashcard(
-                id = "",
-                word = "",
-                meaning = "",
-                translation = "",
-                examples = emptyList(),
-                phonetic = "",
-                review = FlashcardReview.empty(SystemClock),
-            )
+            get() = empty(SystemClock)
     }
 }
