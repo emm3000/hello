@@ -17,7 +17,7 @@ class ValidateFlashcardGenerationInputUseCase(
         val errors = mutableListOf<ValidationIssue.Error>()
         val warnings = mutableListOf<ValidationIssue.Warning>()
         val userText = normalized.userText
-        val wordCount = wordCount(userText)
+        val wordCount = userText.wordCountNormalized()
 
         validateRequiredUserText(userText, errors)
         val inputTypeResult = inputTypeRulesPolicy.validate(
@@ -30,7 +30,7 @@ class ValidateFlashcardGenerationInputUseCase(
         disambiguationPolicy
             .missingDisambiguationIssueOrNull(input = normalized, wordCount = wordCount)
             ?.let(errors::add)
-        val contextWordCount = wordCount(normalized.contextSentence)
+        val contextWordCount = normalized.contextSentence.wordCountNormalized()
         contextSentencePolicy
             .contextSentenceWarningOrNull(
                 contextSentence = normalized.contextSentence,
@@ -57,12 +57,4 @@ class ValidateFlashcardGenerationInputUseCase(
         }
     }
 
-    private fun wordCount(text: String): Int {
-        if (text.isBlank()) return 0
-        return text.trim().split(WHITESPACE_REGEX).size
-    }
-
-    private companion object {
-        val WHITESPACE_REGEX = "\\s+".toRegex()
-    }
 }
