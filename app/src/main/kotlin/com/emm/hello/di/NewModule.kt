@@ -8,6 +8,7 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
+import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
@@ -87,7 +88,7 @@ fun Module.repository() {
     factory<FlashcardWriteRepository> { get<DefaultFlashcardRepository>() }
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
-    factory<FlashcardDuplicateRepository> { get<DefaultFlashcardRepository>() }
+    factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)

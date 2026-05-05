@@ -16,8 +16,10 @@ class ExactDuplicateKeyTest {
         )
 
         assertEquals("deck-1", key.deckId)
-        assertEquals("take off", key.expression)
-        assertEquals("despegar", key.intendedMeaningEs)
+        assertEquals("Take Off", key.expression.value)
+        assertEquals("take off", key.expression.canonical)
+        assertEquals("despegar", key.intendedMeaningEs.value)
+        assertEquals("despegar", key.intendedMeaningEs.canonical)
         assertEquals("deck-1|take off|despegar|phrasalverb", key.canonicalValue)
     }
 

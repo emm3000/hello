@@ -4,16 +4,16 @@ import com.emm.domain.text.lowercaseRoot
 
 class ExactDuplicateKey private constructor(
     val deckId: String,
-    val expression: String,
-    val intendedMeaningEs: String,
+    val expression: Expression,
+    val intendedMeaningEs: IntendedMeaningEs,
     val noteType: LearningNoteType,
 ) {
 
     val canonicalValue: String
         get() = listOf(
             deckId,
-            expression,
-            intendedMeaningEs,
+            expression.canonical,
+            intendedMeaningEs.canonical,
             noteType.name.lowercaseRoot(),
         ).joinToString(separator = "|")
 
@@ -25,8 +25,8 @@ class ExactDuplicateKey private constructor(
             noteType: LearningNoteType,
         ): ExactDuplicateKey {
             val normalizedDeckId = deckId.normalizeDeckId()
-            val normalizedExpression = expression.normalizeTextField(fieldName = "expression")
-            val normalizedMeaning = intendedMeaningEs.normalizeTextField(fieldName = "intendedMeaningEs")
+            val normalizedExpression = expression.toExpression()
+            val normalizedMeaning = intendedMeaningEs.toIntendedMeaningEs()
 
             return ExactDuplicateKey(
                 deckId = normalizedDeckId,
@@ -41,11 +41,5 @@ class ExactDuplicateKey private constructor(
 private fun String.normalizeDeckId(): String {
     val normalized = trim()
     require(normalized.isNotEmpty()) { "deckId cannot be blank." }
-    return normalized
-}
-
-private fun String.normalizeTextField(fieldName: String): String {
-    val normalized = trim().replace("\\s+".toRegex(), " ").lowercaseRoot()
-    require(normalized.isNotEmpty()) { "$fieldName cannot be blank." }
     return normalized
 }
