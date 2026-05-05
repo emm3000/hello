@@ -14,6 +14,9 @@ class CreateFlashcardUseCaseTest {
             writeRepository = FakeWriteRepository(),
             readRepository = FakeReadRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                repository = DuplicateRepoStub(exists = false),
+            ),
         )
 
         val error = assertFailsWith<com.emm.domain.validation.DomainValidationException> {
@@ -33,12 +36,33 @@ class CreateFlashcardUseCaseTest {
             writeRepository = writeRepository,
             readRepository = FakeReadRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                repository = DuplicateRepoStub(exists = false),
+            ),
         )
 
         useCase(deckId = "deck-1", learningNote = sampleWordNote())
 
         assertEquals(1, writeRepository.createCalls)
         assertEquals(1, writeRepository.upsertExamplesCalls)
+    }
+
+    @Test
+    fun `invoke rejects exact duplicate in deck`() = runTest {
+        val useCase = CreateFlashcardUseCase(
+            writeRepository = FakeWriteRepository(),
+            readRepository = FakeReadRepository(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                repository = DuplicateRepoStub(exists = true),
+            ),
+        )
+
+        val error = assertFailsWith<com.emm.domain.validation.DomainValidationException> {
+            useCase(deckId = "deck-1", learningNote = sampleWordNote())
+        }
+
+        assertTrue(error.issues.any { it.code == com.emm.domain.validation.IssueCode.DuplicateExactCardInDeck })
     }
 
     private fun sampleWordNote(): GeneratedLearningNote {
@@ -133,4 +157,10 @@ private class FakeReadRepository : FlashcardReadRepository {
     override suspend fun fetchById(id: String): Flashcard {
         return Flashcard.Empty.copy(id = id)
     }
+}
+
+private class DuplicateRepoStub(
+    private val exists: Boolean,
+) : FlashcardDuplicateRepository {
+    override suspend fun existsExactDuplicate(key: ExactDuplicateKey): Boolean = exists
 }
