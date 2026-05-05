@@ -1,6 +1,7 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.validation.DomainValidationException
+import com.emm.domain.validation.requireValid
 
 class CreateFlashcardUseCase(
     private val writeRepository: FlashcardWriteRepository,
@@ -14,10 +15,7 @@ class CreateFlashcardUseCase(
         deckId: String,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
-        val validation = validateGeneratedLearningNoteUseCase(learningNote)
-        if (!validation.isValid) {
-            throw DomainValidationException(validation.errors)
-        }
+        validateGeneratedLearningNoteUseCase(learningNote).requireValid()
 
         ensureUniqueFlashcardInDeckUseCase(deckId = deckId, note = learningNote)
 

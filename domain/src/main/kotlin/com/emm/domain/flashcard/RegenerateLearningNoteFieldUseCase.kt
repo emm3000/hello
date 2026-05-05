@@ -1,6 +1,6 @@
 package com.emm.domain.flashcard
 
-import com.emm.domain.validation.DomainValidationException
+import com.emm.domain.validation.requireValid
 
 class RegenerateLearningNoteFieldUseCase(
     private val repository: FlashcardGenerationRepository,
@@ -12,13 +12,10 @@ class RegenerateLearningNoteFieldUseCase(
         note: GeneratedLearningNote,
         field: RegenerableNoteField,
     ): String {
-        val inputValidation = validateInputUseCase(input)
-        if (!inputValidation.isValid) {
-            throw DomainValidationException(inputValidation.errors)
-        }
+        val normalizedInput = validateInputUseCase(input).requireValid()
 
         return repository.regenerateNoteField(
-            input = inputValidation.value,
+            input = normalizedInput,
             note = note,
             field = field,
         )

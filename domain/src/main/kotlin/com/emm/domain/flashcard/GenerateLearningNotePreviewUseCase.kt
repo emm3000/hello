@@ -1,6 +1,6 @@
 package com.emm.domain.flashcard
 
-import com.emm.domain.validation.DomainValidationException
+import com.emm.domain.validation.requireValid
 
 class GenerateLearningNotePreviewUseCase(
     private val repository: FlashcardGenerationRepository,
@@ -9,16 +9,10 @@ class GenerateLearningNotePreviewUseCase(
 ) {
 
     suspend operator fun invoke(input: FlashcardGenerationInput): GeneratedLearningNote {
-        val inputValidation = validateInputUseCase(input)
-        if (!inputValidation.isValid) {
-            throw DomainValidationException(inputValidation.errors)
-        }
+        val normalizedInput = validateInputUseCase(input).requireValid()
 
-        val note = repository.generateLearningNote(inputValidation.value)
-        val noteValidation = validateGeneratedLearningNoteUseCase(note)
-        if (!noteValidation.isValid) {
-            throw DomainValidationException(noteValidation.errors)
-        }
+        val note = repository.generateLearningNote(normalizedInput)
+        validateGeneratedLearningNoteUseCase(note).requireValid()
 
         return note
     }
