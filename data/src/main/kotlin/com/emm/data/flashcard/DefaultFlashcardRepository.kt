@@ -18,9 +18,11 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
+import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.GeneratedExampleDraft
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
@@ -30,6 +32,7 @@ import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import java.time.Instant
+import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +45,11 @@ class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
-) : FlashcardReadRepository, FlashcardWriteRepository, StudySessionRepository, FlashcardGenerationRepository {
+) : FlashcardReadRepository,
+    FlashcardWriteRepository,
+    StudySessionRepository,
+    FlashcardGenerationRepository,
+    FlashcardDuplicateRepository {
 
     private val dao: FlashcardQueries = db.flashcardQueries
 
@@ -172,6 +179,15 @@ class DefaultFlashcardRepository(
         val prompt = Prompt.buildStudyCardRegenerationPrompt(input, note, card)
         val response = geminiService.process(prompt)
         PartialRegenerationParser.parseStudyCard(response, json)
+    }
+
+    override suspend fun existsExactDuplicate(key: ExactDuplicateKey): Boolean = withContext(Dispatchers.IO) {
+        dao.existsExactDuplicate(
+            deckId = key.deckId,
+            normalizedExpression = key.expression,
+            normalizedIntendedMeaningEs = key.intendedMeaningEs,
+            normalizedNoteType = key.noteType.name.lowercase(Locale.ROOT),
+        ).executeAsOne()
     }
 
     override fun fetchAll(): Flow<List<Flashcard>> {

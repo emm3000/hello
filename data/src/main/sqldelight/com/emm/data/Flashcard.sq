@@ -85,6 +85,16 @@ SELECT * FROM Flashcard
 WHERE deckId = ?
   AND deletedAt IS NULL;
 
+existsExactDuplicate:
+SELECT EXISTS(
+  SELECT 1 FROM Flashcard
+  WHERE deckId = :deckId
+    AND deletedAt IS NULL
+    AND lower(trim(word)) = :normalizedExpression
+    AND lower(trim(translation)) = :normalizedIntendedMeaningEs
+    AND lower(trim(type)) = :normalizedNoteType
+);
+
 flashcardWithExamples:
 SELECT
     f.*,

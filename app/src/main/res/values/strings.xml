@@ -230,6 +230,7 @@
     <string name="validation_failed_quality_check">La nota no puede guardarse si algún quality check falla.</string>
     <string name="validation_card_prompt_matches_answer">La tarjeta no genera recuperación real porque el prompt coincide con la respuesta esperada.</string>
     <string name="validation_duplicate_active_card">Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.</string>
+    <string name="validation_duplicate_exact_card_in_deck">Ya existe una tarjeta equivalente en este mazo (misma expresion, significado y tipo).</string>
     <string name="validation_too_many_active_cards">La nota tiene demasiadas tarjetas activas; conviene mantener entre 2 y 4.</string>
     <string name="validation_answer_too_long_for_recall">La respuesta esperada es larga; intentá apuntar a una expresión más concreta.</string>
 

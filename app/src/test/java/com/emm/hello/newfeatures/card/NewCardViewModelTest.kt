@@ -15,9 +15,11 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
+import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.flashcard.GeneratedExampleDraft
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
@@ -444,6 +446,7 @@ class NewCardViewModelTest {
                     writeRepository,
                     readRepository,
                     validateGeneratedLearningNoteUseCase,
+                    IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository()),
                 ),
                 generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                     repository = generationRepository,
@@ -554,4 +557,8 @@ class NewCardViewModelTest {
             ),
         )
     }
+}
+
+private class FakeDuplicateRepository : FlashcardDuplicateRepository {
+    override suspend fun existsExactDuplicate(key: com.emm.domain.flashcard.ExactDuplicateKey): Boolean = false
 }

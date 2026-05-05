@@ -23,6 +23,7 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardUseCase
+import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
@@ -30,6 +31,7 @@ import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.flashcard.GetStudySessionUseCase
+import com.emm.domain.flashcard.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
@@ -85,6 +87,7 @@ fun Module.repository() {
     factory<FlashcardWriteRepository> { get<DefaultFlashcardRepository>() }
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
+    factory<FlashcardDuplicateRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)
@@ -99,6 +102,7 @@ fun Module.useCases() {
     factoryOf(::GetDefaultDeckUseCase)
     factoryOf(::SetDefaultDeckUseCase)
     factoryOf(::CreateFlashcardUseCase)
+    factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
     factoryOf(::ValidateFlashcardGenerationInputUseCase)
     factoryOf(::ValidateGeneratedLearningNoteUseCase)
     factoryOf(::GenerateLearningNotePreviewUseCase)
