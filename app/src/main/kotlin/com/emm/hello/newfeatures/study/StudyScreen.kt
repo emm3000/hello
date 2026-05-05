@@ -54,6 +54,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.time.SystemClock
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
@@ -803,7 +804,7 @@ private fun StudyScreenPreview() {
                         translation = "Casualidad afortunada",
                         examples = listOf(),
                         phonetic = "/ˌserənˈdɪpɪti/",
-                        review = FlashcardReview.Empty,
+                        review = FlashcardReview.empty(SystemClock),
                     ),
                     studyCard = GeneratedStudyCard(
                         cardId = "study-card-1",

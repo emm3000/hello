@@ -2,6 +2,7 @@ package com.emm.data.flashcard
 
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.time.SystemClock
 
 typealias FlashcardEntity = com.emm.data.Flashcard
 typealias ReviewProjectionEntity = com.emm.data.ReviewProjection
@@ -13,7 +14,7 @@ fun FlashcardEntity.toDomain() = Flashcard(
     translation = translation.orEmpty(),
     examples = emptyList(),
     phonetic = phonetic.orEmpty(),
-    review = FlashcardReview.Empty,
+    review = FlashcardReview.empty(SystemClock),
     partOfSpeech = partOfSpeech.orEmpty(),
     type = type.orEmpty(),
     note = note.orEmpty(),

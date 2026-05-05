@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
@@ -426,7 +427,7 @@ fun CardDetailScreenPreview() {
                     type = "",
                 ),
             ),
-            review = FlashcardReview.Empty,
+            review = FlashcardReview.empty(SystemClock),
         )
         FlashcardDetailScreen(flashcard = sampleCard)
     }

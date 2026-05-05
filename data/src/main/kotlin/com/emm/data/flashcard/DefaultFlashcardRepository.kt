@@ -31,6 +31,7 @@ import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.time.SystemClock
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -226,7 +227,7 @@ class DefaultFlashcardRepository(
                 list.map {
                     toDomainSummary(
                         entity = it,
-                        review = FlashcardReview.Empty.copy(
+                        review = FlashcardReview.empty(SystemClock).copy(
                             nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli()
                         ),
                     )
@@ -236,7 +237,7 @@ class DefaultFlashcardRepository(
 
     private fun toDomainSummary(
         entity: FlashcardEntity,
-        review: FlashcardReview = FlashcardReview.Empty,
+        review: FlashcardReview = FlashcardReview.empty(SystemClock),
     ): Flashcard {
         return Flashcard(
             id = entity.id,
@@ -344,7 +345,7 @@ class DefaultFlashcardRepository(
             translation = entity.translation.orEmpty(),
             phonetic = entity.phonetic.orEmpty(),
             examples = examples,
-            review = FlashcardReview.Empty,
+            review = FlashcardReview.empty(SystemClock),
             partOfSpeech = entity.partOfSpeech.orEmpty(),
             type = entity.type.orEmpty(),
             note = entity.note.orEmpty(),
@@ -468,7 +469,7 @@ class DefaultFlashcardRepository(
             deck.lapses,
         ).any { it == null }
 
-        if (hasMissingField) return FlashcardReview.Empty
+        if (hasMissingField) return FlashcardReview.empty(SystemClock)
 
         return FlashcardReview(
             flashcardId = deck.flashcardId ?: "",

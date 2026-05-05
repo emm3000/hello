@@ -3,6 +3,7 @@ package com.emm.domain.study
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.time.Clock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
@@ -67,6 +68,35 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(1L, result.lapses)
         assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
         assertEquals(16L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
+    }
+
+    @Test
+    fun `invoke when hard keeps ease factor at or above minimum`() {
+        val review = baseReview().copy(
+            easeFactor = 1.3,
+            repetitions = 5L,
+            interval = 8L,
+        )
+
+        val result = useCase(review = review, grade = ReviewGrade.HARD, flashcardId = "card-4")
+
+        assertEquals("card-4", result.flashcardId)
+        assertTrue(result.easeFactor >= 1.3)
+    }
+
+    @Test
+    fun `invoke always schedules next review after last reviewed time`() {
+        val review = baseReview().copy(
+            easeFactor = 2.2,
+            repetitions = 3L,
+            interval = 10L,
+            lapses = 1L,
+        )
+
+        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-5")
+
+        assertEquals("card-5", result.flashcardId)
+        assertTrue(result.nextReviewAt > result.lastReviewedAt)
     }
 
     @Test(expected = IllegalArgumentException::class)

@@ -203,7 +203,7 @@ class StudyViewModelTest {
         translation = "",
         examples = emptyList(),
         phonetic = "",
-        review = FlashcardReview.Empty,
+        review = FlashcardReview.empty(fixedClock),
         studyCards = studyCards,
     )
 

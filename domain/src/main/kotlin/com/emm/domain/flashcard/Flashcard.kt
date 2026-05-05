@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.time.SystemClock
+
 data class Flashcard(
     val id: String,
     val word: String,
@@ -38,7 +40,7 @@ data class Flashcard(
                 translation = "",
                 examples = emptyList(),
                 phonetic = "",
-                review = FlashcardReview.Empty,
+                review = FlashcardReview.empty(SystemClock),
             )
     }
 }

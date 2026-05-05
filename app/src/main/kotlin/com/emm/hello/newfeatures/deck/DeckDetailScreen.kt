@@ -40,6 +40,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.metadata
@@ -362,7 +363,7 @@ private fun DeckDetailScreenPreview() {
                                 )
                             ),
                             phonetic = "/ˌserənˈdɪpɪti/",
-                            review = FlashcardReview.Empty,
+                            review = FlashcardReview.empty(SystemClock),
                         ),
                         Flashcard(
                             id = "2",
@@ -371,7 +372,7 @@ private fun DeckDetailScreenPreview() {
                             translation = "Efímero",
                             examples = listOf(),
                             phonetic = "/ɪˈfem(ə)rəl/",
-                            review = FlashcardReview.Empty,
+                            review = FlashcardReview.empty(SystemClock),
                         ),
                     ),
                 ),
