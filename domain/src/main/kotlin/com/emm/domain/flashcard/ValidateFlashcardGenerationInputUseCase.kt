@@ -8,6 +8,8 @@ class ValidateFlashcardGenerationInputUseCase(
     private val disambiguationPolicy: FlashcardGenerationDisambiguationPolicy = FlashcardGenerationDisambiguationPolicy(),
     private val inputTypeRulesPolicy: FlashcardGenerationInputTypeRulesPolicy =
         FlashcardGenerationInputTypeRulesPolicy(),
+    private val contextSentencePolicy: FlashcardGenerationContextSentencePolicy =
+        FlashcardGenerationContextSentencePolicy(),
 ) {
 
     operator fun invoke(input: FlashcardGenerationInput): ValidationResult<FlashcardGenerationInput> {
@@ -28,7 +30,13 @@ class ValidateFlashcardGenerationInputUseCase(
         disambiguationPolicy
             .missingDisambiguationIssueOrNull(input = normalized, wordCount = wordCount)
             ?.let(errors::add)
-        validateContextSentence(normalized.contextSentence, warnings)
+        val contextWordCount = wordCount(normalized.contextSentence)
+        contextSentencePolicy
+            .contextSentenceWarningOrNull(
+                contextSentence = normalized.contextSentence,
+                wordCount = contextWordCount,
+            )
+            ?.let(warnings::add)
 
         return if (errors.isEmpty()) {
             ValidationResult.valid(value = normalized, warnings = warnings)
@@ -49,18 +57,6 @@ class ValidateFlashcardGenerationInputUseCase(
         }
     }
 
-    private fun validateContextSentence(
-        contextSentence: String,
-        warnings: MutableList<ValidationIssue.Warning>,
-    ) {
-        if (contextSentence.isNotBlank() && wordCount(contextSentence) < MIN_CONTEXT_WORD_COUNT) {
-            warnings += ValidationIssue.Warning(
-                code = IssueCode.ContextSentenceTooShort,
-                field = "contextSentence",
-            )
-        }
-    }
-
     private fun wordCount(text: String): Int {
         if (text.isBlank()) return 0
         return text.trim().split(WHITESPACE_REGEX).size
@@ -68,7 +64,5 @@ class ValidateFlashcardGenerationInputUseCase(
 
     private companion object {
         val WHITESPACE_REGEX = "\\s+".toRegex()
-
-        const val MIN_CONTEXT_WORD_COUNT = 4
     }
 }
