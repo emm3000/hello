@@ -1,6 +1,9 @@
 package com.emm.hello.newfeatures.card
 
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -21,6 +24,19 @@ fun NavGraphBuilder.cardDetailRoute(navController: NavController) {
         )
 
         val uiState by vm.uiState.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+
+        LaunchedEffect(Unit) {
+            vm.effect.collect { effect ->
+                when (effect) {
+                    is FlashcardDetailUiEffect.LoadFailed -> {
+                        Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                        navController.popBackStack()
+                    }
+                }
+            }
+        }
+
         FlashcardDetailScreen(
             flashcard = uiState.flashcard,
         ) { navController.popBackStack() }

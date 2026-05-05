@@ -13,8 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,14 +65,6 @@ fun FlashcardDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Implement edit */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
-                    }
-                    IconButton(onClick = { /* TODO: Implement delete */ }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
                     }
                 },
             )
