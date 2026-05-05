@@ -48,6 +48,30 @@ class CreateFlashcardUseCaseTest {
     }
 
     @Test
+    fun `invoke normalizes expression and intended meaning before persistence`() = runTest {
+        val writeRepository = FakeWriteRepository()
+        val useCase = CreateFlashcardUseCase(
+            writeRepository = writeRepository,
+            readRepository = FakeReadRepository(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                repository = DuplicateRepoStub(exists = false),
+            ),
+        )
+
+        useCase(
+            deckId = "deck-1",
+            learningNote = sampleWordNote().copy(
+                expression = "  Borrow   ",
+                intendedMeaningEs = "  pedir   prestado  ",
+            ),
+        )
+
+        assertEquals("Borrow", writeRepository.lastCreateInput?.word)
+        assertEquals("pedir prestado", writeRepository.lastCreateInput?.translation)
+    }
+
+    @Test
     fun `invoke rejects exact duplicate in deck`() = runTest {
         val useCase = CreateFlashcardUseCase(
             writeRepository = FakeWriteRepository(),
@@ -139,9 +163,11 @@ class CreateFlashcardUseCaseTest {
 private class FakeWriteRepository : FlashcardWriteRepository {
     var createCalls = 0
     var upsertExamplesCalls = 0
+    var lastCreateInput: CreateFlashcardInput? = null
 
     override suspend fun create(input: CreateFlashcardInput): String {
         createCalls += 1
+        lastCreateInput = input
         return "flashcard-1"
     }
 
