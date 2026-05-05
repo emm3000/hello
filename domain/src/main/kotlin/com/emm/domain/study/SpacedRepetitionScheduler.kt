@@ -1,6 +1,7 @@
 package com.emm.domain.study
 
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.Clock
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
@@ -21,7 +22,7 @@ object SpacedRepetitionScheduler {
     fun schedule(
         review: FlashcardReview,
         grade: ReviewGrade,
-        flashcardId: String,
+        flashcardId: FlashcardId,
         clock: Clock,
     ): FlashcardReview {
         val quality = when (grade) {
@@ -63,7 +64,7 @@ object SpacedRepetitionScheduler {
         val newNextReviewAt = now.plus(newInterval, ChronoUnit.DAYS).toEpochMilli()
 
         return review.copy(
-            flashcardId = flashcardId,
+            flashcardId = flashcardId.value,
             easeFactor = newEaseFactor,
             repetitions = newRepetitions,
             interval = newInterval,

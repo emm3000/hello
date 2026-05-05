@@ -69,6 +69,11 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(16L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun `invoke rejects blank flashcard id`() {
+        useCase(review = baseReview(), grade = ReviewGrade.GOOD, flashcardId = "   ")
+    }
+
     private fun baseReview(): FlashcardReview = FlashcardReview(
         flashcardId = "base",
         lastReviewedAt = 0L,
