@@ -7,14 +7,19 @@ import com.emm.domain.validation.ValidationResult
 
 class ValidateGeneratedLearningNoteUseCase {
 
+    private val qualityChecksPolicy = GeneratedLearningNoteQualityChecksPolicy()
+    private val cardsPolicy = GeneratedLearningNoteCardsPolicy()
+
     operator fun invoke(note: GeneratedLearningNote): ValidationResult<GeneratedLearningNote> {
         val errors = mutableListOf<ValidationIssue.Error>()
         val warnings = mutableListOf<ValidationIssue.Warning>()
 
         validateCoreFields(note, errors)
         validateNoteTypeRequirements(note, errors)
-        validateCards(note, errors, warnings)
-        validateQualityChecks(note, errors)
+        val cardsValidation = cardsPolicy.collectIssues(note)
+        errors += cardsValidation.errors
+        warnings += cardsValidation.warnings
+        errors += qualityChecksPolicy.collectIssues(note)
 
         return if (errors.isEmpty()) {
             ValidationResult.valid(value = note, warnings = warnings)
@@ -187,116 +192,6 @@ class ValidateGeneratedLearningNoteUseCase {
         )
     }
 
-    private fun validateCards(
-        note: GeneratedLearningNote,
-        errors: MutableList<ValidationIssue.Error>,
-        warnings: MutableList<ValidationIssue.Warning>,
-    ) {
-        val activeCards = note.cards.filter { it.isActive }
-        if (activeCards.isEmpty()) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.NoActiveCards,
-                field = "cards",
-            )
-        }
-        if (activeCards.size > MAX_RECOMMENDED_ACTIVE_CARDS) {
-            warnings += ValidationIssue.Warning(
-                code = IssueCode.TooManyActiveCards,
-                field = "cards",
-            )
-        }
-
-        val duplicatedActiveCards: Map<String, GeneratedStudyCard> = activeCards
-            .groupBy { "${it.prompt.normalizeForComparison()}::${it.expectedAnswer.normalizeForComparison()}" }
-            .filterValues { it.size > 1 }
-            .values
-            .flatten()
-            .associateBy { it.cardId }
-
-        note.cards.forEach { card ->
-            validateCard(card, duplicatedActiveCards, errors, warnings)
-        }
-    }
-
-    private fun validateCard(
-        card: GeneratedStudyCard,
-        duplicatedActiveCards: Map<String, GeneratedStudyCard>,
-        errors: MutableList<ValidationIssue.Error>,
-        warnings: MutableList<ValidationIssue.Warning>,
-    ) {
-        if (card.prompt.isBlank()) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.EmptyCardPrompt,
-                field = "cards[${card.cardId}].prompt",
-            )
-        }
-        if (card.expectedAnswer.isBlank()) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.EmptyCardAnswer,
-                field = "cards[${card.cardId}].expectedAnswer",
-            )
-        }
-        if (
-            card.prompt.isNotBlank() &&
-            card.expectedAnswer.isNotBlank() &&
-            card.prompt.normalizeForComparison() == card.expectedAnswer.normalizeForComparison()
-        ) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.CardPromptMatchesAnswer,
-                field = "cards[${card.cardId}].expectedAnswer",
-            )
-        }
-        if (card.isActive && duplicatedActiveCards.containsKey(card.cardId)) {
-            warnings += ValidationIssue.Warning(
-                code = IssueCode.DuplicateActiveCard,
-                field = "cards[${card.cardId}].duplicate",
-            )
-        }
-        if (card.expectedAnswer.wordCountForRecall() > MAX_RECOMMENDED_ANSWER_WORDS) {
-            warnings += ValidationIssue.Warning(
-                code = IssueCode.AnswerTooLongForRecall,
-                field = "cards[${card.cardId}].expectedAnswer",
-            )
-        }
-        if (!card.isActive) {
-            warnings += ValidationIssue.Warning(
-                code = IssueCode.InactiveCard,
-                field = "cards[${card.cardId}].active",
-            )
-        }
-    }
-
-    private fun validateQualityChecks(
-        note: GeneratedLearningNote,
-        errors: MutableList<ValidationIssue.Error>,
-    ) {
-        val presentCodes = note.qualityChecks.map { it.code }.toSet()
-        val hasSingleMeaningCheck = presentCodes.contains(GeneratedNoteQualityCode.SingleMeaning)
-        if (!hasSingleMeaningCheck) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.MissingSingleMeaningQualityCheck,
-                field = "qualityChecks.singleMeaning",
-            )
-        }
-
-        GeneratedNoteQualityCode.entries
-            .filterNot(presentCodes::contains)
-            .forEach { missingCode ->
-                errors += ValidationIssue.Error(
-                    code = IssueCode.MissingRequiredQualityCheck,
-                    field = "qualityChecks.${missingCode.name.lowercaseRoot()}",
-                )
-            }
-
-        val failedChecks = note.qualityChecks.filterNot { it.passed }
-        if (failedChecks.isNotEmpty()) {
-            errors += ValidationIssue.Error(
-                code = IssueCode.FailedQualityCheck,
-                field = "qualityChecks.failed",
-            )
-        }
-    }
-
     private fun requireExpectedCard(
         note: GeneratedLearningNote,
         cardType: StudyCardType,
@@ -322,17 +217,4 @@ class ValidateGeneratedLearningNoteUseCase {
         }
     }
 
-    private companion object {
-        const val MAX_RECOMMENDED_ACTIVE_CARDS = 4
-        const val MAX_RECOMMENDED_ANSWER_WORDS = 8
-    }
-}
-
-private fun String.normalizeForComparison(): String {
-    return trim().lowercaseRoot().replace("\\s+".toRegex(), " ")
-}
-
-private fun String.wordCountForRecall(): Int {
-    if (isBlank()) return 0
-    return trim().split("\\s+".toRegex()).size
 }
