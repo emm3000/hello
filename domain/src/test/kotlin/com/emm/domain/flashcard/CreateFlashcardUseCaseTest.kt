@@ -72,6 +72,28 @@ class CreateFlashcardUseCaseTest {
     }
 
     @Test
+    fun `invoke normalizes definition before persistence`() = runTest {
+        val writeRepository = FakeWriteRepository()
+        val useCase = CreateFlashcardUseCase(
+            writeRepository = writeRepository,
+            readRepository = FakeReadRepository(),
+            validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
+                repository = DuplicateRepoStub(exists = false),
+            ),
+        )
+
+        useCase(
+            deckId = "deck-1",
+            learningNote = sampleWordNote().copy(
+                simpleDefinitionEn = "  to   take something   and return it later  ",
+            ),
+        )
+
+        assertEquals("to take something and return it later", writeRepository.lastCreateInput?.meaning)
+    }
+
+    @Test
     fun `invoke rejects exact duplicate in deck`() = runTest {
         val useCase = CreateFlashcardUseCase(
             writeRepository = FakeWriteRepository(),

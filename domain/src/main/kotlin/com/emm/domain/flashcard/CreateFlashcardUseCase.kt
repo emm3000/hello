@@ -17,6 +17,7 @@ class CreateFlashcardUseCase(
     ): Flashcard {
         val normalizedExpression = learningNote.expression.toExpression()
         val normalizedMeaning = learningNote.intendedMeaningEs.toIntendedMeaningEs()
+        val normalizedDefinition = learningNote.simpleDefinitionEn.toDefinitionEn()
 
         val validation = validateGeneratedLearningNoteUseCase(learningNote)
         if (!validation.isValid) {
@@ -39,6 +40,7 @@ class CreateFlashcardUseCase(
             deckId = deckId,
             expression = normalizedExpression,
             intendedMeaningEs = normalizedMeaning,
+            definitionEn = normalizedDefinition,
         )
 
         val flashcardId: String = writeRepository.create(input)
@@ -52,11 +54,12 @@ class CreateFlashcardUseCase(
         deckId: String,
         expression: Expression,
         intendedMeaningEs: IntendedMeaningEs,
+        definitionEn: DefinitionEn,
     ): CreateFlashcardInput {
         return CreateFlashcardInput(
             deckId = deckId,
             word = expression.value,
-            meaning = simpleDefinitionEn,
+            meaning = definitionEn.value,
             translation = intendedMeaningEs.value,
             phonetic = ipa,
             partOfSpeech = partOfSpeech.name,
