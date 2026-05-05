@@ -15,7 +15,7 @@ class ExactDuplicateKeyTest {
             noteType = LearningNoteType.PhrasalVerb,
         )
 
-        assertEquals("deck-1", key.deckId)
+        assertEquals("deck-1", key.deckId.value)
         assertEquals("Take Off", key.expression.value)
         assertEquals("take off", key.expression.canonical)
         assertEquals("despegar", key.intendedMeaningEs.value)

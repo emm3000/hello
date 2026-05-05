@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.requireValid
 
@@ -15,12 +16,14 @@ class CreateFlashcardUseCase(
         deckId: String,
         learningNote: GeneratedLearningNote,
     ): Flashcard {
+        val typedDeckId = deckId.toDeckId()
+
         validateGeneratedLearningNoteUseCase(learningNote).requireValid()
 
-        ensureUniqueFlashcardInDeckUseCase(deckId = deckId, note = learningNote)
+        ensureUniqueFlashcardInDeckUseCase(deckId = typedDeckId, note = learningNote)
 
         val input = generatedLearningNoteMapper.toCreateFlashcardInput(
-            deckId = deckId,
+            deckId = typedDeckId,
             note = learningNote,
         )
 

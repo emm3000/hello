@@ -15,7 +15,7 @@ class DefaultFlashcardDuplicateRepository(
 
     override suspend fun existsExactDuplicate(key: ExactDuplicateKey): Boolean = withContext(Dispatchers.IO) {
         queries.existsExactDuplicate(
-            deckId = key.deckId,
+            deckId = key.deckId.value,
             normalizedExpression = key.expression.canonical,
             normalizedIntendedMeaningEs = key.intendedMeaningEs.canonical,
             normalizedNoteType = key.noteType.name.lowercase(Locale.ROOT),

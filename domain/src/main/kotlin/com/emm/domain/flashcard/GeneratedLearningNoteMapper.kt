@@ -1,9 +1,11 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
+
 class GeneratedLearningNoteMapper {
 
     fun toCreateFlashcardInput(
-        deckId: String,
+        deckId: DeckId,
         note: GeneratedLearningNote,
     ): CreateFlashcardInput {
         val expression = note.expression.toExpression()
@@ -11,7 +13,7 @@ class GeneratedLearningNoteMapper {
         val definitionEn = note.simpleDefinitionEn.toDefinitionEn()
 
         return CreateFlashcardInput(
-            deckId = deckId,
+            deckId = deckId.value,
             word = expression.value,
             meaning = definitionEn.value,
             translation = intendedMeaningEs.value,

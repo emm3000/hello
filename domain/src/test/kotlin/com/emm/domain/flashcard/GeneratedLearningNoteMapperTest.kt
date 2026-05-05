@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.toDeckId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,7 +11,7 @@ class GeneratedLearningNoteMapperTest {
     @Test
     fun `toCreateFlashcardInput normalizes expression meaning and definition`() {
         val input = mapper.toCreateFlashcardInput(
-            deckId = "deck-1",
+            deckId = "deck-1".toDeckId(),
             note = sampleWordNote().copy(
                 expression = "  Borrow   ",
                 intendedMeaningEs = "  pedir   prestado  ",

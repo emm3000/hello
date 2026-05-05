@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
@@ -9,10 +10,10 @@ class EnsureUniqueFlashcardInDeckUseCase(
 ) {
 
     suspend operator fun invoke(
-        deckId: String,
+        deckId: DeckId,
         note: GeneratedLearningNote,
     ) {
-        if (!isExactDuplicateGeneratedNoteUseCase(deckId = deckId, note = note)) return
+        if (!isExactDuplicateGeneratedNoteUseCase(deckId = deckId.value, note = note)) return
         throw duplicateExactCardException()
     }
 

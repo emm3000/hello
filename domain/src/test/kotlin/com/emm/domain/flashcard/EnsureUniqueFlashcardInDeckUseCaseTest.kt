@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -15,7 +16,7 @@ class EnsureUniqueFlashcardInDeckUseCaseTest {
         )
 
         assertFailsWith<com.emm.domain.validation.DomainValidationException> {
-            useCase(deckId = "deck-1", note = sampleWordNote())
+            useCase(deckId = "deck-1".toDeckId(), note = sampleWordNote())
         }
     }
 
@@ -27,7 +28,7 @@ class EnsureUniqueFlashcardInDeckUseCaseTest {
             )
         )
 
-        useCase(deckId = "deck-1", note = sampleWordNote())
+        useCase(deckId = "deck-1".toDeckId(), note = sampleWordNote())
     }
 
     private fun sampleWordNote(): GeneratedLearningNote {

@@ -1,9 +1,11 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.text.lowercaseRoot
 
 class ExactDuplicateKey private constructor(
-    val deckId: String,
+    val deckId: DeckId,
     val expression: Expression,
     val intendedMeaningEs: IntendedMeaningEs,
     val noteType: LearningNoteType,
@@ -11,7 +13,7 @@ class ExactDuplicateKey private constructor(
 
     val canonicalValue: String
         get() = listOf(
-            deckId,
+            deckId.value,
             expression.canonical,
             intendedMeaningEs.canonical,
             noteType.name.lowercaseRoot(),
@@ -24,7 +26,7 @@ class ExactDuplicateKey private constructor(
             intendedMeaningEs: String,
             noteType: LearningNoteType,
         ): ExactDuplicateKey {
-            val normalizedDeckId = deckId.normalizeDeckId()
+            val normalizedDeckId = deckId.toDeckId()
             val normalizedExpression = expression.toExpression()
             val normalizedMeaning = intendedMeaningEs.toIntendedMeaningEs()
 
@@ -36,10 +38,4 @@ class ExactDuplicateKey private constructor(
             )
         }
     }
-}
-
-private fun String.normalizeDeckId(): String {
-    val normalized = trim()
-    require(normalized.isNotEmpty()) { "deckId cannot be blank." }
-    return normalized
 }
