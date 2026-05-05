@@ -155,7 +155,7 @@ fun DeckDetailScreen(
                     )
                 }
 
-                items(state.deck.cards, key = Flashcard::id) { card ->
+                items(state.deck.cards, key = { card -> card.id.value }) { card ->
                     DeckCardItem(card = card, onCardClick = { onCardClick(it) })
                     HSeparator()
                 }
