@@ -13,7 +13,7 @@ class EnsureUniqueFlashcardInDeckUseCase(
         deckId: DeckId,
         note: GeneratedLearningNote,
     ) {
-        if (!isExactDuplicateGeneratedNoteUseCase(deckId = deckId.value, note = note)) return
+        if (!isExactDuplicateGeneratedNoteUseCase(deckId = deckId, note = note)) return
         throw duplicateExactCardException()
     }
 

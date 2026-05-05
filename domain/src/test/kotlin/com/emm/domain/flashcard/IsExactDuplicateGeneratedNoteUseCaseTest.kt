@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +14,7 @@ class IsExactDuplicateGeneratedNoteUseCaseTest {
         val repository = DuplicateRepoSpy(exists = true)
         val useCase = IsExactDuplicateGeneratedNoteUseCase(repository)
 
-        val result = useCase(deckId = " deck-1 ", note = sampleWordNote())
+        val result = useCase(deckId = " deck-1 ".toDeckId(), note = sampleWordNote())
 
         assertTrue(result)
         assertEquals("deck-1|run|correr|word", repository.lastKey?.canonicalValue)
@@ -24,7 +25,7 @@ class IsExactDuplicateGeneratedNoteUseCaseTest {
         val repository = DuplicateRepoSpy(exists = false)
         val useCase = IsExactDuplicateGeneratedNoteUseCase(repository)
 
-        val result = useCase(deckId = "deck-1", note = sampleWordNote())
+        val result = useCase(deckId = "deck-1".toDeckId(), note = sampleWordNote())
 
         assertFalse(result)
     }
