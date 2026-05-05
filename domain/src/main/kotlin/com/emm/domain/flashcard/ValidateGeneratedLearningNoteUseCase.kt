@@ -4,11 +4,13 @@ import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
 import com.emm.domain.validation.ValidationResult
 
-class ValidateGeneratedLearningNoteUseCase {
-
-    private val qualityChecksPolicy = GeneratedLearningNoteQualityChecksPolicy()
-    private val cardsPolicy = GeneratedLearningNoteCardsPolicy()
-    private val typeRequirementsPolicy = GeneratedLearningNoteTypeRequirementsPolicy()
+class ValidateGeneratedLearningNoteUseCase(
+    private val typeRequirementsPolicy: GeneratedLearningNoteTypeRequirementsPolicy =
+        GeneratedLearningNoteTypeRequirementsPolicy(),
+    private val cardsPolicy: GeneratedLearningNoteCardsPolicy = GeneratedLearningNoteCardsPolicy(),
+    private val qualityChecksPolicy: GeneratedLearningNoteQualityChecksPolicy =
+        GeneratedLearningNoteQualityChecksPolicy(),
+) {
 
     operator fun invoke(note: GeneratedLearningNote): ValidationResult<GeneratedLearningNote> {
         val errors = mutableListOf<ValidationIssue.Error>()
