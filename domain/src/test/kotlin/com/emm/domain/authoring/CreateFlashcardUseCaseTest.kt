@@ -8,7 +8,7 @@ import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -18,7 +18,7 @@ import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
 import com.emm.domain.generation.RegisterPreference
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId

@@ -4,7 +4,7 @@ import com.emm.data.flashcard.iadto.GeneratedLearningNoteDto
 import com.emm.data.flashcard.iadto.GeneratedLearningNoteResponseDto
 import com.emm.data.flashcard.iadto.GeneratedNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.GeneratedStudyCardDto
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -14,7 +14,7 @@ import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
 import com.emm.domain.generation.RegisterPreference
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.flashcard.toDefinitionEn
 import com.emm.domain.flashcard.toExpression
 import com.emm.domain.flashcard.toIntendedMeaningEs

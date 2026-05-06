@@ -1,11 +1,11 @@
 package com.emm.hello.newfeatures.study
 
 import app.cash.turbine.test
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.generation.GeneratedStudyCard
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.GetStudySessionUseCase

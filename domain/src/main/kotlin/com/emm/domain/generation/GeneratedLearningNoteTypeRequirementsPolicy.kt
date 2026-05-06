@@ -1,6 +1,5 @@
 package com.emm.domain.generation
 
-import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.text.lowercaseRoot
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue

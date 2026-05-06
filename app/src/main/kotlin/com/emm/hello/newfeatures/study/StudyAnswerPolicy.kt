@@ -1,6 +1,6 @@
 package com.emm.hello.newfeatures.study
 
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.study.ReviewGrade
 

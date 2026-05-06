@@ -1,8 +1,5 @@
 package com.emm.domain.generation
 
-import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.StudyCardType
-
 data class GeneratedStudyCard(
     val cardId: String,
     val cardType: StudyCardType,

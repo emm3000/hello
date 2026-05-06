@@ -176,19 +176,19 @@ object Prompt {
     fun buildNoteFieldRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
         note: com.emm.domain.generation.GeneratedLearningNote,
-        field: com.emm.domain.flashcard.RegenerableNoteField,
+        field: com.emm.domain.generation.RegenerableNoteField,
     ): String {
         val fieldName = when (field) {
-            com.emm.domain.flashcard.RegenerableNoteField.WhyUseful -> "why_useful"
-            com.emm.domain.flashcard.RegenerableNoteField.UsagePattern -> "usage_pattern"
-            com.emm.domain.flashcard.RegenerableNoteField.CommonMistake -> "common_mistake"
+            com.emm.domain.generation.RegenerableNoteField.WhyUseful -> "why_useful"
+            com.emm.domain.generation.RegenerableNoteField.UsagePattern -> "usage_pattern"
+            com.emm.domain.generation.RegenerableNoteField.CommonMistake -> "common_mistake"
         }
         val fieldInstructions = when (field) {
-            com.emm.domain.flashcard.RegenerableNoteField.WhyUseful ->
+            com.emm.domain.generation.RegenerableNoteField.WhyUseful ->
                 "Return a practical reason why this note helps real communication."
-            com.emm.domain.flashcard.RegenerableNoteField.UsagePattern ->
+            com.emm.domain.generation.RegenerableNoteField.UsagePattern ->
                 "Return a concise usage pattern that helps use the expression correctly."
-            com.emm.domain.flashcard.RegenerableNoteField.CommonMistake ->
+            com.emm.domain.generation.RegenerableNoteField.CommonMistake ->
                 "Return one realistic learner mistake to avoid."
         }
 
@@ -271,9 +271,9 @@ object Prompt {
         card: com.emm.domain.generation.GeneratedStudyCard,
     ): String {
         val evaluationMode = when (card.evaluationMode) {
-            com.emm.domain.flashcard.EvaluationMode.Exact -> "exact"
-            com.emm.domain.flashcard.EvaluationMode.FlexibleText -> "flexible_text"
-            com.emm.domain.flashcard.EvaluationMode.ManualSelfCheck -> "manual_self_check"
+            com.emm.domain.generation.EvaluationMode.Exact -> "exact"
+            com.emm.domain.generation.EvaluationMode.FlexibleText -> "flexible_text"
+            com.emm.domain.generation.EvaluationMode.ManualSelfCheck -> "manual_self_check"
         }
         return """
         You are refining one derived study card inside an English learning note for a native Spanish speaker.

@@ -6,7 +6,7 @@ import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.flashcard.LearningGoal
 import com.emm.domain.generation.LevelBand
-import com.emm.domain.flashcard.RegenerableNoteField
+import com.emm.domain.generation.RegenerableNoteField
 import com.emm.domain.generation.RegisterPreference
 import com.emm.data.catalog.StaticCategories
 import java.text.Normalizer

@@ -1,4 +1,4 @@
-package com.emm.domain.flashcard
+package com.emm.domain.generation
 
 enum class EvaluationMode {
     Exact,

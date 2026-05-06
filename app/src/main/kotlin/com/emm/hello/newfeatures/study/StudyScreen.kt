@@ -53,11 +53,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.generation.GeneratedStudyCard
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.domain.study.ReviewGrade

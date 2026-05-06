@@ -6,7 +6,7 @@ import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
 import com.emm.domain.generation.RegisterPreference
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows

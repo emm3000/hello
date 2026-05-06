@@ -1,9 +1,9 @@
 package com.emm.data.flashcard
 
-import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.GeneratedExampleDraft
+import com.emm.domain.generation.EvaluationMode
+import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedStudyCard
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

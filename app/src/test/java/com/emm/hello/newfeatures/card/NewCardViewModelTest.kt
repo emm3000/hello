@@ -12,7 +12,7 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
@@ -22,7 +22,7 @@ import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
-import com.emm.domain.flashcard.GeneratedExampleDraft
+import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -31,13 +31,13 @@ import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
-import com.emm.domain.flashcard.RegenerableNoteField
+import com.emm.domain.generation.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.generation.RegisterPreference
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId

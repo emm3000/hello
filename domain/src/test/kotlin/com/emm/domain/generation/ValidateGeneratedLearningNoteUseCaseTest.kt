@@ -1,7 +1,7 @@
 package com.emm.domain.generation
 
-import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.EvaluationMode
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.validation.IssueCode
 import kotlin.test.Test
 import kotlin.test.assertFalse

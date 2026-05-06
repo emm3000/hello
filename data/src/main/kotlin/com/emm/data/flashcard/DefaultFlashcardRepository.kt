@@ -13,7 +13,7 @@ import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.EvaluationMode
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
@@ -22,13 +22,13 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
-import com.emm.domain.flashcard.GeneratedExampleDraft
+import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
 import com.emm.domain.generation.GeneratedStudyCard
-import com.emm.domain.flashcard.RegenerableNoteField
-import com.emm.domain.flashcard.StudyCardType
+import com.emm.domain.generation.RegenerableNoteField
+import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
