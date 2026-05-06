@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.text.lowercaseRoot

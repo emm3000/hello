@@ -25,8 +25,8 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedNoteQualityCheck
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant

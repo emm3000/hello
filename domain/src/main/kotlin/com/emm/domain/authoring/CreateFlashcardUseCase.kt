@@ -3,7 +3,7 @@ package com.emm.domain.authoring
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.validation.requireValid
@@ -33,6 +33,6 @@ class CreateFlashcardUseCase(
 
         writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
 
-        return readRepository.fetchById(flashcardId)
+        return readRepository.fetchById(flashcardId).flashcard
     }
 }

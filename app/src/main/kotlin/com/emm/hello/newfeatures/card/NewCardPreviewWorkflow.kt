@@ -1,6 +1,6 @@
 package com.emm.hello.newfeatures.card
 
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.validation.DomainValidationException
 
 class NewCardPreviewWorkflow(

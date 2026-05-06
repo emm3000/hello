@@ -1,6 +1,5 @@
 package com.emm.domain.generation
 
-import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
 

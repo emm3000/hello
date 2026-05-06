@@ -18,24 +18,25 @@ import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GeneratedExampleDraft
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedNoteQualityCheck
-import com.emm.domain.flashcard.GeneratedNoteQualityCode
-import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.LearningDomain
-import com.emm.domain.flashcard.LearningNoteType
-import com.emm.domain.flashcard.LevelBand
-import com.emm.domain.flashcard.PartOfSpeechTag
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedNoteQualityCheck
+import com.emm.domain.generation.GeneratedNoteQualityCode
+import com.emm.domain.generation.GeneratedStudyCard
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LearningNoteType
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.PartOfSpeechTag
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
-import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
@@ -494,7 +495,7 @@ class NewCardViewModelTest {
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
         coEvery { writeRepository.create(any()) } returns "card-1".toFlashcardId()
         coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns createdFlashcard
+        coEvery { readRepository.fetchById(any()) } returns FlashcardDetail(createdFlashcard)
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {

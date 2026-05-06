@@ -1,4 +1,8 @@
-package com.emm.domain.flashcard
+package com.emm.domain.generation
+
+import com.emm.domain.flashcard.DefinitionEn
+import com.emm.domain.flashcard.Expression
+import com.emm.domain.flashcard.IntendedMeaningEs
 
 data class GeneratedLearningNote(
     val noteId: String,

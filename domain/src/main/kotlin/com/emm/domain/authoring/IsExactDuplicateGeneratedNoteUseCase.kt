@@ -2,7 +2,7 @@ package com.emm.domain.authoring
 
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.ids.DeckId
 
 class IsExactDuplicateGeneratedNoteUseCase(

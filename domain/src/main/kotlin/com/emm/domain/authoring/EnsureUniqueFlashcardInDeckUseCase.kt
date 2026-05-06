@@ -1,6 +1,6 @@
 package com.emm.domain.authoring
 
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.ids.DeckId
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode

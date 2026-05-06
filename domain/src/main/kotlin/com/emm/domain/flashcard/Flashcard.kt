@@ -1,8 +1,8 @@
 package com.emm.domain.flashcard
 
 import com.emm.domain.ids.FlashcardId
-import com.emm.domain.time.SystemClock
 import com.emm.domain.time.Clock
+import com.emm.domain.time.SystemClock
 
 data class Flashcard(
     val id: FlashcardId,
@@ -28,8 +28,6 @@ data class Flashcard(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
-    val studyCards: List<GeneratedStudyCard> = emptyList(),
-    val qualityChecks: List<GeneratedNoteQualityCheck> = emptyList(),
 ) {
 
     companion object {

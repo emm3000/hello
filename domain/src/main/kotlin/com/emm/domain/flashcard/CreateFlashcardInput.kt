@@ -26,6 +26,6 @@ data class CreateFlashcardInput(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
-    val studyCards: List<GeneratedStudyCard> = emptyList(),
-    val qualityChecks: List<GeneratedNoteQualityCheck> = emptyList(),
+    val studyCardsJson: String = "[]",
+    val qualityChecksJson: String = "[]",
 )

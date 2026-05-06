@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
@@ -49,16 +50,17 @@ import com.emm.hello.core.ui.HSeparator
 @Composable
 fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
-    flashcard: Flashcard = Flashcard.empty(SystemClock),
+    flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
     onNavigateBack: () -> Unit = {},
 ) {
+    val card = flashcard.flashcard
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             MediumTopAppBar(
                 title = {
                     Text(
-                        flashcard.word,
+                        card.word,
                         fontWeight = FontWeight.SemiBold,
                     )
                 },
@@ -92,21 +94,21 @@ fun FlashcardDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            text = flashcard.word,
+                            text = card.word,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f, fill = false),
                         )
-                        if (flashcard.partOfSpeech.isNotBlank()) {
+                        if (card.partOfSpeech.isNotBlank()) {
                             HBadge(
-                                label = flashcard.partOfSpeech,
+                                label = card.partOfSpeech,
                                 variant = BadgeVariant.Secondary,
                             )
                         }
                     }
                     Text(
-                        text = flashcard.phonetic,
+                        text = card.phonetic,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -115,9 +117,9 @@ fun FlashcardDetailScreen(
                     HSeparator()
                     Spacer(Modifier.height(12.dp))
 
-                    DetailItem(label = stringResource(R.string.translation_label), value = flashcard.translation)
+                    DetailItem(label = stringResource(R.string.translation_label), value = card.translation)
                     Spacer(Modifier.height(12.dp))
-                    DetailItem(label = stringResource(R.string.meaning_label), value = flashcard.meaning)
+                    DetailItem(label = stringResource(R.string.meaning_label), value = card.meaning)
                     FlashcardRichSections(flashcard)
                 }
             }
@@ -126,49 +128,50 @@ fun FlashcardDetailScreen(
 }
 
 @Composable
-private fun FlashcardRichSections(flashcard: Flashcard) {
+private fun FlashcardRichSections(flashcard: FlashcardDetail) {
+    val card = flashcard.flashcard
     OptionalDetailSection(
         label = stringResource(R.string.notes_label),
-        value = flashcard.noteSummary,
+        value = card.noteSummary,
     )
     OptionalDetailSection(
         label = stringResource(R.string.why_useful_label),
-        value = flashcard.whyUseful,
+        value = card.whyUseful,
     )
     OptionalDetailSection(
         label = stringResource(R.string.usage_pattern_label),
-        value = flashcard.usagePattern,
+        value = card.usagePattern,
     )
     OptionalDetailSection(
         label = stringResource(R.string.common_mistake_label),
-        value = flashcard.commonMistake,
+        value = card.commonMistake,
     )
     LearningMetadataSection(flashcard)
     RichListSection(
         title = stringResource(R.string.collocations_label),
-        values = flashcard.collocations,
+        values = card.collocations,
     )
     RichListSection(
         title = stringResource(R.string.irregular_forms_label),
-        values = flashcard.irregularForms,
+        values = card.irregularForms,
     )
     RichListSection(
         title = stringResource(R.string.confusable_with_label),
-        values = flashcard.confusableWith,
+        values = card.confusableWith,
     )
     RichListSection(
         title = stringResource(R.string.warnings_label),
-        values = flashcard.warnings,
+        values = card.warnings,
     )
     OptionalDetailSection(
         label = stringResource(R.string.cloze_sentence_label),
-        value = flashcard.clozeSentence,
+        value = card.clozeSentence,
     )
     OptionalDetailSection(
         label = stringResource(R.string.source_context_label),
-        value = flashcard.sourceContext,
+        value = card.sourceContext,
     )
-    ExamplesSection(flashcard.examples)
+    ExamplesSection(card.examples)
     StudyCardsSection(flashcard)
     QualityChecksSection(flashcard)
 }
@@ -184,18 +187,19 @@ private fun OptionalDetailSection(label: String, value: String) {
 }
 
 @Composable
-private fun LearningMetadataSection(flashcard: Flashcard) {
+private fun LearningMetadataSection(flashcard: FlashcardDetail) {
+    val card = flashcard.flashcard
     val metadataItems = listOfNotNull(
-        flashcard.register.takeIf(String::isNotBlank)?.let {
+        card.register.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.register_label) to it
         },
-        flashcard.levelBand.takeIf(String::isNotBlank)?.let {
+        card.levelBand.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.level_label) to it
         },
-        flashcard.learningDomain.takeIf(String::isNotBlank)?.let {
+        card.learningDomain.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.domain_label) to it
         },
-        flashcard.lemma.takeIf(String::isNotBlank)?.let {
+        card.lemma.takeIf(String::isNotBlank)?.let {
             stringResource(R.string.lemma_label) to it
         },
     )
@@ -243,7 +247,7 @@ private fun ExamplesSection(examples: List<Example>) {
 }
 
 @Composable
-private fun StudyCardsSection(flashcard: Flashcard) {
+private fun StudyCardsSection(flashcard: FlashcardDetail) {
     if (flashcard.studyCards.isEmpty()) return
 
     Spacer(Modifier.height(4.dp))
@@ -267,7 +271,7 @@ private fun StudyCardsSection(flashcard: Flashcard) {
 }
 
 @Composable
-private fun QualityChecksSection(flashcard: Flashcard) {
+private fun QualityChecksSection(flashcard: FlashcardDetail) {
     if (flashcard.qualityChecks.isEmpty()) return
 
     Spacer(Modifier.height(4.dp))
@@ -318,7 +322,7 @@ private fun RichListSection(title: String, values: List<String>) {
 }
 
 @Composable
-private fun StudyCardItem(index: Int, card: com.emm.domain.flashcard.GeneratedStudyCard) {
+private fun StudyCardItem(index: Int, card: com.emm.domain.generation.GeneratedStudyCard) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = "$index. ${card.cardType.name}",
@@ -398,27 +402,29 @@ private fun ExampleItem(index: Int, example: Example) {
 @Composable
 fun CardDetailScreenPreview() {
     HelloTheme {
-        val sampleCard = Flashcard(
-            id = "1".toFlashcardId(),
-            word = "Aesthetic",
-            phonetic = "/esˈTHedik/",
-            translation = "Estético",
-            meaning = "Concerned with beauty or the appreciation of beauty.",
-            examples = listOf(
-                Example(
-                    exampleId = "ex1",
-                    text = "The new building has a very aesthetic design.",
-                    translation = "El nuevo edificio tiene un diseño muy estético.",
-                    type = "",
+        val sampleCard = FlashcardDetail(
+            flashcard = Flashcard(
+                id = "1".toFlashcardId(),
+                word = "Aesthetic",
+                phonetic = "/esˈTHedik/",
+                translation = "Estético",
+                meaning = "Concerned with beauty or the appreciation of beauty.",
+                examples = listOf(
+                    Example(
+                        exampleId = "ex1",
+                        text = "The new building has a very aesthetic design.",
+                        translation = "El nuevo edificio tiene un diseño muy estético.",
+                        type = "",
+                    ),
+                    Example(
+                        exampleId = "ex2",
+                        text = "Her Instagram page is very aesthetic.",
+                        translation = "Su página de Instagram es muy estética.",
+                        type = "",
+                    ),
                 ),
-                Example(
-                    exampleId = "ex2",
-                    text = "Her Instagram page is very aesthetic.",
-                    translation = "Su página de Instagram es muy estética.",
-                    type = "",
-                ),
+                review = FlashcardReview.empty(SystemClock),
             ),
-            review = FlashcardReview.empty(SystemClock),
         )
         FlashcardDetailScreen(flashcard = sampleCard)
     }

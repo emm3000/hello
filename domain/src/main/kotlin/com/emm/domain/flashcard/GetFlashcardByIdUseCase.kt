@@ -4,8 +4,8 @@ import com.emm.domain.ids.toFlashcardId
 
 class GetFlashcardByIdUseCase(private val repository: FlashcardReadRepository) {
 
-    suspend operator fun invoke(cardId: String): Flashcard {
-        val typedCardId = cardId.toFlashcardId()
+    suspend operator fun invoke(flashcardId: String): FlashcardDetail {
+        val typedCardId = flashcardId.toFlashcardId()
         return repository.fetchById(typedCardId)
     }
 }

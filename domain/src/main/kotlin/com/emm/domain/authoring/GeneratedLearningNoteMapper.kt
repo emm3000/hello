@@ -2,7 +2,7 @@ package com.emm.domain.authoring
 
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.ids.DeckId
 
 class GeneratedLearningNoteMapper {
@@ -10,6 +10,8 @@ class GeneratedLearningNoteMapper {
     fun toCreateFlashcardInput(
         deckId: DeckId,
         note: GeneratedLearningNote,
+        studyCardsJson: String = "[]",
+        qualityChecksJson: String = "[]",
     ): CreateFlashcardInput {
         val expression = note.requireExpression()
         val intendedMeaningEs = note.requireIntendedMeaningEs()
@@ -37,8 +39,8 @@ class GeneratedLearningNoteMapper {
             clozeSentence = note.clozeSentence,
             sourceContext = note.sourceContext,
             warnings = note.warnings,
-            studyCards = note.cards,
-            qualityChecks = note.qualityChecks,
+            studyCardsJson = studyCardsJson,
+            qualityChecksJson = qualityChecksJson,
         )
     }
 

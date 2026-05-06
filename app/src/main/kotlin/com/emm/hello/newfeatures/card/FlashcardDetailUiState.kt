@@ -1,8 +1,9 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.time.SystemClock
 
 data class FlashcardDetailUiState(
-    val flashcard: Flashcard = Flashcard.empty(SystemClock),
+    val flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
 )

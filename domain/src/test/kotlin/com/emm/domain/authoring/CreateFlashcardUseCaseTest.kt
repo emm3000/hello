@@ -2,21 +2,22 @@ package com.emm.domain.authoring
 
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.Example
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedNoteQualityCheck
-import com.emm.domain.flashcard.GeneratedNoteQualityCode
-import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.LearningDomain
-import com.emm.domain.flashcard.LearningNoteType
-import com.emm.domain.flashcard.LevelBand
-import com.emm.domain.flashcard.PartOfSpeechTag
-import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedNoteQualityCheck
+import com.emm.domain.generation.GeneratedNoteQualityCode
+import com.emm.domain.generation.GeneratedStudyCard
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LearningNoteType
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.PartOfSpeechTag
+import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
@@ -184,8 +185,8 @@ private class FakeReadRepository : FlashcardReadRepository {
     override fun fetchAll() = throw UnsupportedOperationException()
     override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
-    override suspend fun fetchById(id: FlashcardId): Flashcard {
-        return Flashcard.empty(SystemClock).copy(id = id)
+    override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
+        return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }
 }
 

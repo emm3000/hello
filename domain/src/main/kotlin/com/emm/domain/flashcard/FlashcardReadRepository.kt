@@ -9,5 +9,5 @@ interface FlashcardReadRepository {
 
     fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>>
 
-    suspend fun fetchById(id: FlashcardId): Flashcard
+    suspend fun fetchById(id: FlashcardId): FlashcardDetail
 }

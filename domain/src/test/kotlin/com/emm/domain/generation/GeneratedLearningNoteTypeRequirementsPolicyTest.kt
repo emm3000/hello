@@ -1,15 +1,6 @@
 package com.emm.domain.generation
 
 import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedNoteQualityCheck
-import com.emm.domain.flashcard.GeneratedNoteQualityCode
-import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.LearningDomain
-import com.emm.domain.flashcard.LearningNoteType
-import com.emm.domain.flashcard.LevelBand
-import com.emm.domain.flashcard.PartOfSpeechTag
-import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.validation.IssueCode
 import kotlin.test.Test

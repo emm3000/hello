@@ -1,11 +1,11 @@
 package com.emm.data.flashcard
 
-import com.emm.domain.flashcard.GeneratedNoteQualityCode
-import com.emm.domain.flashcard.LearningDomain
-import com.emm.domain.flashcard.LearningNoteType
-import com.emm.domain.flashcard.LevelBand
-import com.emm.domain.flashcard.PartOfSpeechTag
-import com.emm.domain.flashcard.RegisterPreference
+import com.emm.domain.generation.GeneratedNoteQualityCode
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LearningNoteType
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.PartOfSpeechTag
+import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals

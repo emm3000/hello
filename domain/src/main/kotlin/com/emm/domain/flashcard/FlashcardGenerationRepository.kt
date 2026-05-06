@@ -1,5 +1,8 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedStudyCard
+
 interface FlashcardGenerationRepository {
     suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote
     suspend fun regenerateNoteField(

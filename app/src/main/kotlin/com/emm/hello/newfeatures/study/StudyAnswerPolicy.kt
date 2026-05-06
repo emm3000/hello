@@ -1,7 +1,7 @@
 package com.emm.hello.newfeatures.study
 
 import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.study.ReviewGrade
 
 private val allReviewGrades = ReviewGrade.entries.toSet()

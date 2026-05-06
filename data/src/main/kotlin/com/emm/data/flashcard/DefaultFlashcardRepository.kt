@@ -16,21 +16,23 @@ import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GeneratedExampleDraft
-import com.emm.domain.flashcard.GeneratedLearningNote
-import com.emm.domain.flashcard.GeneratedNoteQualityCheck
-import com.emm.domain.flashcard.GeneratedNoteQualityCode
-import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedNoteQualityCheck
+import com.emm.domain.generation.GeneratedNoteQualityCode
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.SystemClock
 import java.time.Instant
@@ -100,8 +102,8 @@ class DefaultFlashcardRepository(
             collocationsJson = json.encodeToString(input.collocations),
             confusableWithJson = json.encodeToString(input.confusableWith),
             warningsJson = json.encodeToString(input.warnings),
-            studyCardsJson = json.encodeToString(input.studyCards.toStoredStudyCardDtos()),
-            qualityChecksJson = json.encodeToString(input.qualityChecks.toStoredQualityCheckDtos()),
+            studyCardsJson = input.studyCardsJson,
+            qualityChecksJson = input.qualityChecksJson,
         )
     }
 
@@ -197,7 +199,7 @@ class DefaultFlashcardRepository(
             .map { entities -> entities.map(::toDomainSummary) }
     }
 
-    override suspend fun fetchById(id: FlashcardId): Flashcard = withContext(Dispatchers.IO) {
+    override suspend fun fetchById(id: FlashcardId): FlashcardDetail = withContext(Dispatchers.IO) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
             .flashcardWithExamples(id.value)
             .executeAsList()
@@ -206,10 +208,15 @@ class DefaultFlashcardRepository(
             ?: throw NoSuchElementException("Flashcard not found")
 
         val examples: List<Example> = flashcardEntities.mapNotNull(::toExampleOrNull)
-        toDomainDetail(first, examples)
+        val flashcard = toDomainDetail(first, examples)
+        FlashcardDetail(
+            flashcard = flashcard,
+            studyCards = decodeStudyCards(first.studyCardsJson),
+            qualityChecks = decodeQualityChecks(first.qualityChecksJson),
+        )
     }
 
-    override suspend fun sessionToday(deckId: DeckId): List<Flashcard> = withContext(Dispatchers.IO) {
+    override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = withContext(Dispatchers.IO) {
         val flashcardsToReviewByDeck: List<FlashcardsToReviewByDeck> = dao.flashcardsToReviewByDeck(
             deckId = deckId.value,
             now = Instant.now().toEpochMilli(),
@@ -217,23 +224,61 @@ class DefaultFlashcardRepository(
 
         flashcardsToReviewByDeck.map {
             val review: FlashcardReview = mapFlashcardReview(it)
-            toDomainSummary(it, review)
+            toStudyFlashcard(it, review)
         }
     }
 
-    override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> {
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> {
         return dao.flashcardsWithReview(deckId.value).asFlow()
             .mapToList(Dispatchers.IO)
             .map { list ->
                 list.map {
-                    toDomainSummary(
-                        entity = it,
-                        review = FlashcardReview.empty(SystemClock).copy(
+                    toStudyFlashcard(
+                        it,
+                        FlashcardReview.empty(SystemClock).copy(
                             nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli()
                         ),
                     )
                 }
             }
+    }
+
+    private fun toStudyFlashcard(
+        entity: FlashcardsToReviewByDeck,
+        review: FlashcardReview,
+    ): StudyFlashcard {
+        return StudyFlashcard(
+            flashcardId = entity.id.toFlashcardId(),
+            word = entity.word,
+            phonetic = entity.phonetic.orEmpty(),
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            review = review,
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            usagePattern = entity.usagePattern.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+        )
+    }
+
+    private fun toStudyFlashcard(
+        entity: com.emm.data.FlashcardsWithReview,
+        review: FlashcardReview,
+    ): StudyFlashcard {
+        return StudyFlashcard(
+            flashcardId = entity.id.toFlashcardId(),
+            word = entity.word,
+            phonetic = entity.phonetic.orEmpty(),
+            meaning = entity.meaning,
+            translation = entity.translation.orEmpty(),
+            review = review,
+            studyCards = decodeStudyCards(entity.studyCardsJson),
+            usagePattern = entity.usagePattern.orEmpty(),
+            whyUseful = entity.whyUseful.orEmpty(),
+            sourceContext = entity.sourceContext.orEmpty(),
+            irregularForms = decodeStringList(entity.irregularFormsJson),
+        )
     }
 
     private fun toDomainSummary(
@@ -264,8 +309,6 @@ class DefaultFlashcardRepository(
             clozeSentence = entity.clozeSentence.orEmpty(),
             sourceContext = entity.sourceContext.orEmpty(),
             warnings = decodeStringList(entity.warningsJson),
-            studyCards = decodeStudyCards(entity.studyCardsJson),
-            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
         )
     }
 
@@ -297,8 +340,6 @@ class DefaultFlashcardRepository(
             clozeSentence = entity.clozeSentence.orEmpty(),
             sourceContext = entity.sourceContext.orEmpty(),
             warnings = decodeStringList(entity.warningsJson),
-            studyCards = decodeStudyCards(entity.studyCardsJson),
-            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
         )
     }
 
@@ -330,8 +371,6 @@ class DefaultFlashcardRepository(
             clozeSentence = entity.clozeSentence.orEmpty(),
             sourceContext = entity.sourceContext.orEmpty(),
             warnings = decodeStringList(entity.warningsJson),
-            studyCards = decodeStudyCards(entity.studyCardsJson),
-            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
         )
     }
 
@@ -363,8 +402,6 @@ class DefaultFlashcardRepository(
             clozeSentence = entity.clozeSentence.orEmpty(),
             sourceContext = entity.sourceContext.orEmpty(),
             warnings = decodeStringList(entity.warningsJson),
-            studyCards = decodeStudyCards(entity.studyCardsJson),
-            qualityChecks = decodeQualityChecks(entity.qualityChecksJson),
         )
     }
 

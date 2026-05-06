@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.study.StudyFlashcard
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -21,7 +22,6 @@ class DeckDetailViewModel(
 ) {
 
     init {
-        // Renamed from `decks` → `uiState` (it holds a single deck's state, not a list of decks)
         combine(
             flow = getDeckDetailUseCase(deckId),
             flow2 = fetchSessionCards(),
@@ -35,10 +35,10 @@ class DeckDetailViewModel(
         ).onEach { mutableState.value = it }.launchIn(viewModelScope)
     }
 
-    // Fixed typo: fetchSessionCars → fetchSessionCards
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
-        observeFlashcardsWithReviewUseCase(deckId).map { flashcards ->
-            val hasSessionEnabled = flashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
+        observeFlashcardsWithReviewUseCase(deckId).map { studyFlashcards ->
+            val flashcards = studyFlashcards.map { it.toFlashcard() }
+            val hasSessionEnabled = studyFlashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
             flashcards to hasSessionEnabled
         }
 
@@ -55,3 +55,17 @@ internal fun mergeDeckCardsById(
         if (sessionCard == null) deckCard else deckCard.copy(review = sessionCard.review)
     }
 }
+
+private fun StudyFlashcard.toFlashcard(): Flashcard = Flashcard(
+    id = flashcardId,
+    word = word,
+    meaning = meaning,
+    translation = translation,
+    examples = emptyList(),
+    phonetic = phonetic,
+    review = review,
+    usagePattern = usagePattern,
+    whyUseful = whyUseful,
+    sourceContext = sourceContext,
+    irregularForms = irregularForms,
+)

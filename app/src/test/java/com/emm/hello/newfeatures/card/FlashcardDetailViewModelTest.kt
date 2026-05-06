@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import app.cash.turbine.test
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.ids.DeckId
@@ -23,14 +24,14 @@ class FlashcardDetailViewModelTest {
 
     @Test
     fun `init loads flashcard and state reflects id and word`() = runTest {
-        val flashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId(), word = "hello")
+        val detail = FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId(), word = "hello"))
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
-            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(flashcard)),
+            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(detail)),
         )
 
-        assertThat(viewModel.uiState.value.flashcard.id.value).isEqualTo("card-1")
-        assertThat(viewModel.uiState.value.flashcard.word).isEqualTo("hello")
+        assertThat(viewModel.uiState.value.flashcard.flashcard.id.value).isEqualTo("card-1")
+        assertThat(viewModel.uiState.value.flashcard.flashcard.word).isEqualTo("hello")
     }
 
     @Test
@@ -48,14 +49,14 @@ class FlashcardDetailViewModelTest {
     }
 
     private class FakeFlashcardReadRepo(
-        private val flashcard: Flashcard = Flashcard.empty(SystemClock),
+        private val detail: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
         private val shouldFail: Boolean = false,
     ) : FlashcardReadRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
         override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
-        override suspend fun fetchById(id: FlashcardId): Flashcard {
+        override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
             if (shouldFail) error("fetch failed")
-            return flashcard
+            return detail
         }
     }
 }

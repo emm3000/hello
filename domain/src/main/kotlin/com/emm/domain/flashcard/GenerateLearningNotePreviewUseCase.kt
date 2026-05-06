@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.validation.requireValid
 

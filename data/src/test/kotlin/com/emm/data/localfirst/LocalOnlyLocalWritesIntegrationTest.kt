@@ -77,7 +77,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         )
         reviewRepository.update(review)
 
-        val storedFlashcard = flashcardRepository.fetchById(flashcardId)
+        val storedFlashcard = flashcardRepository.fetchById(flashcardId).flashcard
         val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId.value).executeAsOne()
         val reviewEvent = db.localFirstQueries.findReviewEventsByFlashcardId(flashcardId.value).executeAsOne()
 

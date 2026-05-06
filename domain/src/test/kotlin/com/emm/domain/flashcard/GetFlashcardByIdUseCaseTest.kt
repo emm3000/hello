@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.SystemClock
@@ -36,8 +37,8 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
 
     override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
 
-    override suspend fun fetchById(id: FlashcardId): Flashcard {
+    override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         lastFetchByIdArg = id.value
-        return Flashcard.empty(SystemClock).copy(id = id)
+        return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }
 }

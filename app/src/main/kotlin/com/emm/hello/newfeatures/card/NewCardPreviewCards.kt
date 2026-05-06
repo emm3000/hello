@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant

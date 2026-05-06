@@ -1,7 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
-import com.emm.domain.flashcard.GeneratedLearningNote
+import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.data.catalog.StaticCategories
 import com.emm.data.catalog.difficult
 import com.emm.data.catalog.staticCategories

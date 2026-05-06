@@ -2,16 +2,16 @@ package com.emm.hello.newfeatures.study
 
 import app.cash.turbine.test
 import com.emm.domain.flashcard.EvaluationMode
-import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
-import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.domain.ids.DeckId
@@ -36,17 +36,17 @@ class StudyViewModelTest {
 
     @Test
     fun `init shows first flashcard and sets total count`() = runTest {
-        val cards = listOf(flashcard("a"), flashcard("b"), flashcard("c"))
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"), studyFlashcard("c"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id?.value).isEqualTo("a")
+        assertThat(viewModel.uiState.value.currentItem?.flashcardId?.value).isEqualTo("a")
         assertThat(viewModel.uiState.value.totalCount).isEqualTo(3)
     }
 
     @Test
     fun `back clicked emits navigate back effect`() = runTest {
-        val viewModel = makeViewModel(listOf(flashcard("a"), flashcard("b")))
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
 
         viewModel.effect.test {
@@ -57,7 +57,7 @@ class StudyViewModelTest {
 
     @Test
     fun `finish dialog dismissed emits navigate back effect`() = runTest {
-        val viewModel = makeViewModel(listOf(flashcard("a"), flashcard("b")))
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
 
         viewModel.effect.test {
@@ -68,7 +68,7 @@ class StudyViewModelTest {
 
     @Test
     fun `review answered advances to next card and increments reviewed count`() = runTest {
-        val cards = listOf(flashcard("a"), flashcard("b"), flashcard("c"))
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"), studyFlashcard("c"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
@@ -80,13 +80,13 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcard?.id?.value).isEqualTo("b")
+        assertThat(viewModel.uiState.value.currentItem?.flashcardId?.value).isEqualTo("b")
         assertThat(viewModel.uiState.value.reviewedCount).isEqualTo(1)
     }
 
     @Test
     fun `reviewing last card emits session finished effect`() = runTest {
-        val cards = listOf(flashcard("a"), flashcard("b"))
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
@@ -103,7 +103,7 @@ class StudyViewModelTest {
 
     @Test
     fun `session finished is not emitted twice when queue is empty`() = runTest {
-        val cards = listOf(flashcard("a"), flashcard("b"))
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
@@ -144,7 +144,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = GetStudySessionUseCase(
                 FakeStudySessionRepo(
                     listOf(
-                        flashcard(
+                        studyFlashcard(
                             id = "a",
                             studyCards = listOf(
                                 studyCard("a-1", StudyCardType.Recognition),
@@ -185,25 +185,24 @@ class StudyViewModelTest {
         assertThat(reviewRepo.updates.single().flashcardId.value).isEqualTo("a")
     }
 
-    private fun makeViewModel(cards: List<Flashcard>): StudyViewModel = StudyViewModel(
+    private fun makeViewModel(cards: List<StudyFlashcard>): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         getStudySessionUseCase = GetStudySessionUseCase(FakeStudySessionRepo(cards)),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(FakeFlashcardReviewRepo()),
     )
 
-    private fun flashcard(
+    private fun studyFlashcard(
         id: String,
         studyCards: List<GeneratedStudyCard> = listOf(
             studyCard("$id-rec", StudyCardType.Recognition)
         ),
-    ): Flashcard = Flashcard(
-        id = id.toFlashcardId(),
+    ): StudyFlashcard = StudyFlashcard(
+        flashcardId = id.toFlashcardId(),
         word = id,
+        phonetic = "",
         meaning = "",
         translation = "",
-        examples = emptyList(),
-        phonetic = "",
         review = FlashcardReview.empty(fixedClock),
         studyCards = studyCards,
     )
@@ -216,9 +215,9 @@ class StudyViewModelTest {
         evaluationMode = EvaluationMode.ManualSelfCheck,
     )
 
-    private class FakeStudySessionRepo(private val flashcards: List<Flashcard>) : StudySessionRepository {
-        override suspend fun sessionToday(deckId: DeckId): List<Flashcard> = flashcards
-        override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
+    private class FakeStudySessionRepo(private val studyFlashcards: List<StudyFlashcard>) : StudySessionRepository {
+        override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = studyFlashcards
+        override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> = emptyFlow()
     }
 
     private class FakeFlashcardReviewRepo : FlashcardReviewRepository {

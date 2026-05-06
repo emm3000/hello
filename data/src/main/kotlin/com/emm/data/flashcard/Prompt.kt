@@ -135,7 +135,7 @@ object Prompt {
 
     fun buildExampleRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
-        note: com.emm.domain.flashcard.GeneratedLearningNote,
+        note: com.emm.domain.generation.GeneratedLearningNote,
     ): String {
         return """
         You are refining one field inside an English learning note for a native Spanish speaker.
@@ -175,7 +175,7 @@ object Prompt {
 
     fun buildNoteFieldRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
-        note: com.emm.domain.flashcard.GeneratedLearningNote,
+        note: com.emm.domain.generation.GeneratedLearningNote,
         field: com.emm.domain.flashcard.RegenerableNoteField,
     ): String {
         val fieldName = when (field) {
@@ -231,7 +231,7 @@ object Prompt {
 
     fun buildClozeRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
-        note: com.emm.domain.flashcard.GeneratedLearningNote,
+        note: com.emm.domain.generation.GeneratedLearningNote,
     ): String {
         return """
         You are refining one cloze sentence inside an English learning note for a native Spanish speaker.
@@ -267,8 +267,8 @@ object Prompt {
 
     fun buildStudyCardRegenerationPrompt(
         input: com.emm.domain.flashcard.FlashcardGenerationInput,
-        note: com.emm.domain.flashcard.GeneratedLearningNote,
-        card: com.emm.domain.flashcard.GeneratedStudyCard,
+        note: com.emm.domain.generation.GeneratedLearningNote,
+        card: com.emm.domain.generation.GeneratedStudyCard,
     ): String {
         val evaluationMode = when (card.evaluationMode) {
             com.emm.domain.flashcard.EvaluationMode.Exact -> "exact"

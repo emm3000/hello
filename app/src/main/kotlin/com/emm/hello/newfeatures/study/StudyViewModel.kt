@@ -1,13 +1,13 @@
 package com.emm.hello.newfeatures.study
 
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.domain.study.StudyFlashcard
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,14 +24,15 @@ class StudyViewModel(
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
     private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
     private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
-    private val flashcardsById = mutableMapOf<FlashcardId, Flashcard>()
+    private val reviewsByFlashcardId = mutableMapOf<FlashcardId, FlashcardReview>()
 
     init {
         viewModelScope.launch {
-            val flashcards: List<Flashcard> = getStudySessionUseCase(deckId)
-            val items = flashcards.flatMap { flashcard ->
-                flashcardsById[flashcard.id] = flashcard
-                flashcard.toStudySessionItems().also { pendingItemsByFlashcardId[flashcard.id] = it.size }
+            val studyFlashcards: List<StudyFlashcard> = getStudySessionUseCase(deckId)
+            val items = studyFlashcards.flatMap { sf ->
+                reviewsByFlashcardId[sf.flashcardId] = sf.review
+                pendingItemsByFlashcardId[sf.flashcardId] = sf.studyCards.count { it.isActive }
+                sf.toStudySessionItems()
             }
             studyItemsForToday.addAll(items)
             mutableState.update { it.copy(totalCount = items.size) }
@@ -71,8 +72,7 @@ class StudyViewModel(
     }
 
     private fun processReviewAnswer(item: StudySessionItem?, reviewResult: ReviewGrade) = viewModelScope.launch {
-        val flashcard = item?.flashcard ?: return@launch
-        val flashcardId = flashcard.id
+        val flashcardId = item?.flashcardId ?: return@launch
         aggregatedGradesByFlashcardId[flashcardId] = moreConservativeGrade(
             current = aggregatedGradesByFlashcardId[flashcardId],
             incoming = reviewResult,
@@ -83,15 +83,15 @@ class StudyViewModel(
 
         if (remainingItems == 0) {
             val finalGrade = aggregatedGradesByFlashcardId.remove(flashcardId) ?: reviewResult
-            val persistedFlashcard = flashcardsById.getValue(flashcardId)
+            val persistedReview = reviewsByFlashcardId.getValue(flashcardId)
             val newReview: FlashcardReview = scheduleFlashcardReviewUseCase(
-                review = persistedFlashcard.review,
+                review = persistedReview,
                 grade = finalGrade,
                 flashcardId = flashcardId,
             )
             updateFlashcardReviewUseCase(newReview)
             pendingItemsByFlashcardId.remove(flashcardId)
-            flashcardsById.remove(flashcardId)
+            reviewsByFlashcardId.remove(flashcardId)
         }
 
         incrementReviewed()

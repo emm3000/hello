@@ -1,5 +1,9 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.RegisterPreference
+
 data class FlashcardGenerationInput(
     val inputType: FlashcardInputType,
     val userText: String,

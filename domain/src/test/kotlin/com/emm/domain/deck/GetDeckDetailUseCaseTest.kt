@@ -1,6 +1,7 @@
 package com.emm.domain.deck
 
 import app.cash.turbine.test
+import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardReview
@@ -169,9 +170,9 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
         return cardsFlow
     }
 
-    override suspend fun fetchById(id: FlashcardId): Flashcard {
+    override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         fetchByIdCalls += 1
-        return sampleCard(id = id.value)
+        return FlashcardDetail(flashcard = sampleCard(id = id.value))
     }
 
 }

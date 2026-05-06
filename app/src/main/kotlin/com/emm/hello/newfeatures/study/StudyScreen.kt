@@ -56,7 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.GeneratedStudyCard
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
@@ -242,7 +242,7 @@ fun StudyScreen(
                     onStop = { tts.stop() },
                     onSpeak = {
                         if (ttsReady) {
-                            tts.speak(state.currentItem?.flashcard?.word.orEmpty())
+                            tts.speak(state.currentItem?.word.orEmpty())
                         }
                     },
                     modifier = Modifier
@@ -420,7 +420,7 @@ private fun StudyCanvas(
                                 card = item?.flashcard,
                                 studyCard = item?.studyCard,
                                 prompt = item?.studyCard?.prompt ?: item?.flashcard?.word.orEmpty(),
-                                phonetic = if (item?.studyCard?.sourceField == "word") item.flashcard.phonetic else "",
+                                phonetic = if (item?.studyCard?.sourceField == "word") item.phonetic else "",
                                 cardType = item?.studyCard?.cardType,
                             )
                         },
@@ -1117,15 +1117,8 @@ private fun StudyScreenPreview() {
         StudyScreen(
             state = StudyUiState(
                 currentItem = StudySessionItem(
-                    flashcard = Flashcard(
-                        id = "1".toFlashcardId(),
-                        word = "Serendipity",
-                        meaning = "The occurrence of events by chance in a happy way",
-                        translation = "Casualidad afortunada",
-                        examples = listOf(),
-                        phonetic = "/ˌserənˈdɪpɪti/",
-                        review = FlashcardReview.empty(SystemClock),
-                    ),
+                    flashcardId = "1".toFlashcardId(),
+                    review = FlashcardReview.empty(SystemClock),
                     studyCard = GeneratedStudyCard(
                         cardId = "study-card-1",
                         cardType = StudyCardType.Recognition,
@@ -1133,6 +1126,10 @@ private fun StudyScreenPreview() {
                         expectedAnswer = "Casualidad afortunada",
                         evaluationMode = EvaluationMode.ManualSelfCheck,
                     ),
+                    word = "Serendipity",
+                    phonetic = "/ˌserənˈdɪpɪti/",
+                    meaning = "The occurrence of events by chance in a happy way",
+                    translation = "Casualidad afortunada",
                 ),
                 reviewedCount = 3,
                 totalCount = 10,

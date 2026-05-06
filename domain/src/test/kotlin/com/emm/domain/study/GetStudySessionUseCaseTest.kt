@@ -1,7 +1,9 @@
 package com.emm.domain.study
 
-import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toFlashcardId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -31,10 +33,10 @@ class GetStudySessionUseCaseTest {
 private class FakeStudySessionForGetRepository : StudySessionRepository {
     var lastSessionTodayDeckId: DeckId? = null
 
-    override suspend fun sessionToday(deckId: DeckId): List<Flashcard> {
+    override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> {
         lastSessionTodayDeckId = deckId
         return emptyList()
     }
 
-    override fun flashcardWithReview(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> = emptyFlow()
 }
