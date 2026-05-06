@@ -1,7 +1,10 @@
 package com.emm.hello.newfeatures.card
 
+import com.emm.domain.flashcard.DefinitionEn
+import com.emm.domain.flashcard.Expression
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardInputType
+import com.emm.domain.flashcard.IntendedMeaningEs
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.flashcard.LearningGoal
@@ -84,8 +87,8 @@ internal fun GeneratedLearningNote.withEditedField(
     value: String,
 ): GeneratedLearningNote {
     return when (field) {
-        EditableLearningNoteField.IntendedMeaningEs -> copy(intendedMeaningEs = value)
-        EditableLearningNoteField.SimpleDefinitionEn -> copy(simpleDefinitionEn = value)
+        EditableLearningNoteField.IntendedMeaningEs -> copy(intendedMeaningEs = IntendedMeaningEs.from(value))
+        EditableLearningNoteField.SimpleDefinitionEn -> copy(simpleDefinitionEn = DefinitionEn.from(value))
         EditableLearningNoteField.WhyUseful -> copy(whyUseful = value)
         EditableLearningNoteField.ExampleSentence -> copy(exampleSentence = value)
         EditableLearningNoteField.ExampleTranslation -> copy(exampleTranslation = value)

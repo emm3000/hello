@@ -160,7 +160,7 @@ internal fun GeneratedLearningNote.cardSectionAlerts(): List<PreviewAlertModel> 
 }
 
 internal fun GeneratedLearningNote.noteSectionSummary(): String {
-    val meaning = simpleDefinitionEn.ifBlank { intendedMeaningEs }
+    val meaning = simpleDefinitionEn.value.ifBlank { intendedMeaningEs.value }
     val useful = whyUseful.ifBlank { "Sin explicación adicional todavía." }
     return "$meaning\n$useful"
 }
@@ -188,7 +188,7 @@ internal fun PreviewOverview(note: GeneratedLearningNote) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = note.expression,
+                text = note.expression.value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,

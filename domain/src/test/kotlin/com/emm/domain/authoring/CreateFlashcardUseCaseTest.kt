@@ -7,6 +7,9 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.toDefinitionEn
+import com.emm.domain.flashcard.toExpression
+import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
@@ -96,9 +99,9 @@ class CreateFlashcardUseCaseTest {
         return GeneratedLearningNote(
             noteId = "note-1",
             noteType = LearningNoteType.Word,
-            expression = "borrow",
-            intendedMeaningEs = "pedir prestado",
-            simpleDefinitionEn = "to take something and return it later",
+            expression = "borrow".toExpression(),
+            intendedMeaningEs = "pedir prestado".toIntendedMeaningEs(),
+            simpleDefinitionEn = "to take something and return it later".toDefinitionEn(),
             partOfSpeech = PartOfSpeechTag.Verb,
             register = RegisterPreference.Neutral,
             levelBand = LevelBand.A1_A2,

@@ -45,7 +45,7 @@ object GeneratedLearningNoteResponseParser {
     }
 
     private fun GeneratedLearningNoteDto.toValidatedDomain(): GeneratedLearningNote {
-        val note = GeneratedLearningNote.fromSemanticCore(
+        val note = GeneratedLearningNote(
             noteId = noteId,
             noteType = noteType.toLearningNoteType(),
             expression = expression.toExpression(),

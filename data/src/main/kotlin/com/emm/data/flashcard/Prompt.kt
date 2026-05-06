@@ -149,9 +149,9 @@ object Prompt {
         - context_sentence: "${input.contextSentence}"
 
         Current note:
-        - expression: "${note.expression}"
-        - intended_meaning_es: "${note.intendedMeaningEs}"
-        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - expression: "${note.expression.value}"
+        - intended_meaning_es: "${note.intendedMeaningEs.value}"
+        - simple_definition_en: "${note.simpleDefinitionEn.value}"
         - why_useful: "${note.whyUseful}"
         - current_example_sentence: "${note.exampleSentence}"
         - current_example_translation: "${note.exampleTranslation}"
@@ -202,9 +202,9 @@ object Prompt {
         - context_sentence: "${input.contextSentence}"
 
         Current note:
-        - expression: "${note.expression}"
-        - intended_meaning_es: "${note.intendedMeaningEs}"
-        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - expression: "${note.expression.value}"
+        - intended_meaning_es: "${note.intendedMeaningEs.value}"
+        - simple_definition_en: "${note.simpleDefinitionEn.value}"
         - example_sentence: "${note.exampleSentence}"
         - usage_pattern: "${note.usagePattern}"
         - common_mistake: "${note.commonMistake}"
@@ -243,9 +243,9 @@ object Prompt {
         - context_sentence: "${input.contextSentence}"
 
         Current note:
-        - expression: "${note.expression}"
-        - intended_meaning_es: "${note.intendedMeaningEs}"
-        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - expression: "${note.expression.value}"
+        - intended_meaning_es: "${note.intendedMeaningEs.value}"
+        - simple_definition_en: "${note.simpleDefinitionEn.value}"
         - example_sentence: "${note.exampleSentence}"
         - current_cloze_sentence: "${note.clozeSentence}"
 
@@ -285,9 +285,9 @@ object Prompt {
         - context_sentence: "${input.contextSentence}"
 
         Current note:
-        - expression: "${note.expression}"
-        - intended_meaning_es: "${note.intendedMeaningEs}"
-        - simple_definition_en: "${note.simpleDefinitionEn}"
+        - expression: "${note.expression.value}"
+        - intended_meaning_es: "${note.intendedMeaningEs.value}"
+        - simple_definition_en: "${note.simpleDefinitionEn.value}"
         - example_sentence: "${note.exampleSentence}"
         - cloze_sentence: "${note.clozeSentence}"
 

@@ -263,7 +263,7 @@ private fun LearningNotePreview(
             ) {
                 EditablePreviewField(
                     label = stringResource(R.string.translation_label),
-                    value = note.intendedMeaningEs,
+                    value = note.intendedMeaningEs.value,
                     placeholder = "Significado intencional en espanol",
                     errorMessage = validationIssues.noteFieldMessage(PreviewField.IntendedMeaning, issueTextMapper),
                     supportingText = warningIssues.noteFieldMessage(PreviewField.IntendedMeaning, issueTextMapper),
@@ -278,7 +278,7 @@ private fun LearningNotePreview(
                 )
                 EditablePreviewField(
                     label = stringResource(R.string.meaning_label),
-                    value = note.simpleDefinitionEn,
+                    value = note.simpleDefinitionEn.value,
                     placeholder = "Define el significado en ingles simple",
                     minLines = 2,
                     errorMessage = validationIssues.noteFieldMessage(PreviewField.SimpleDefinition, issueTextMapper),

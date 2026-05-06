@@ -1,5 +1,8 @@
 package com.emm.domain.authoring
 
+import com.emm.domain.flashcard.toDefinitionEn
+import com.emm.domain.flashcard.toExpression
+import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
@@ -47,9 +50,9 @@ class IsExactDuplicateGeneratedNoteUseCaseTest {
         return GeneratedLearningNote(
             noteId = "note-1",
             noteType = LearningNoteType.Word,
-            expression = "  RUN  ",
-            intendedMeaningEs = "  correr ",
-            simpleDefinitionEn = "to move fast",
+            expression = "  RUN  ".toExpression(),
+            intendedMeaningEs = "  correr ".toIntendedMeaningEs(),
+            simpleDefinitionEn = "to move fast".toDefinitionEn(),
             partOfSpeech = PartOfSpeechTag.Verb,
             register = RegisterPreference.Neutral,
             levelBand = LevelBand.A1_A2,

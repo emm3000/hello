@@ -13,15 +13,11 @@ class GeneratedLearningNoteMapper {
         studyCardsJson: String = "[]",
         qualityChecksJson: String = "[]",
     ): CreateFlashcardInput {
-        val expression = note.requireExpression()
-        val intendedMeaningEs = note.requireIntendedMeaningEs()
-        val definitionEn = note.requireSimpleDefinitionEn()
-
         return CreateFlashcardInput(
             deckId = deckId,
-            word = expression.value,
-            meaning = definitionEn.value,
-            translation = intendedMeaningEs.value,
+            word = note.expression.value,
+            meaning = note.simpleDefinitionEn.value,
+            translation = note.intendedMeaningEs.value,
             phonetic = note.ipa,
             partOfSpeech = note.partOfSpeech.name,
             noteType = note.noteType.name,

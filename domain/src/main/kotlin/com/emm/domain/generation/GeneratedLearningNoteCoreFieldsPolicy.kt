@@ -15,19 +15,19 @@ class GeneratedLearningNoteCoreFieldsPolicy {
             field = "noteId",
         )
         requireNonBlank(
-            value = note.expression,
+            value = note.expression.value,
             code = IssueCode.MissingExpression,
             errors = errors,
             field = "expression",
         )
         requireNonBlank(
-            value = note.intendedMeaningEs,
+            value = note.intendedMeaningEs.value,
             code = IssueCode.MissingIntendedMeaning,
             errors = errors,
             field = "intendedMeaningEs",
         )
         requireNonBlank(
-            value = note.simpleDefinitionEn,
+            value = note.simpleDefinitionEn.value,
             code = IssueCode.MissingDefinition,
             errors = errors,
             field = "simpleDefinitionEn",

@@ -12,8 +12,8 @@ class IsExactDuplicateGeneratedNoteUseCase(
     suspend operator fun invoke(deckId: DeckId, note: GeneratedLearningNote): Boolean {
         val key = ExactDuplicateKey.from(
             deckId = deckId,
-            expression = note.requireExpression(),
-            intendedMeaningEs = note.requireIntendedMeaningEs(),
+            expression = note.expression,
+            intendedMeaningEs = note.intendedMeaningEs,
             noteType = note.noteType,
         )
 

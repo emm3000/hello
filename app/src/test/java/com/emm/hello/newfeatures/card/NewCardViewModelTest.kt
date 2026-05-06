@@ -10,6 +10,9 @@ import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.toDefinitionEn
+import com.emm.domain.flashcard.toExpression
+import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationInput
@@ -495,9 +498,9 @@ class NewCardViewModelTest {
         return GeneratedLearningNote(
             noteId = "note-1",
             noteType = LearningNoteType.Word,
-            expression = "hello",
-            intendedMeaningEs = "hola",
-            simpleDefinitionEn = "a greeting",
+            expression = "hello".toExpression(),
+            intendedMeaningEs = "hola".toIntendedMeaningEs(),
+            simpleDefinitionEn = "a greeting".toDefinitionEn(),
             partOfSpeech = PartOfSpeechTag.Interjection,
             register = RegisterPreference.Neutral,
             levelBand = LevelBand.A1_A2,
