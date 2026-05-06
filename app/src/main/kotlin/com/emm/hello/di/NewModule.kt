@@ -37,7 +37,7 @@ import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
-import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase

@@ -3,7 +3,7 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.Flow

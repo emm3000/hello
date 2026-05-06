@@ -1,4 +1,4 @@
-package com.emm.domain.flashcard
+package com.emm.domain.study
 
 import com.emm.domain.ids.DeckId
 import com.emm.domain.study.StudyFlashcard
