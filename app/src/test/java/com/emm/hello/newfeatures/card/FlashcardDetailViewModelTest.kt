@@ -1,9 +1,11 @@
 package com.emm.hello.newfeatures.card
 
 import app.cash.turbine.test
+import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
-import com.emm.domain.flashcard.FlashcardReadRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -51,12 +53,14 @@ class FlashcardDetailViewModelTest {
     private class FakeFlashcardReadRepo(
         private val detail: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
         private val shouldFail: Boolean = false,
-    ) : FlashcardReadRepository {
+    ) : FlashcardRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
         override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = emptyFlow()
         override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
             if (shouldFail) error("fetch failed")
             return detail
         }
+        override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
+        override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
     }
 }

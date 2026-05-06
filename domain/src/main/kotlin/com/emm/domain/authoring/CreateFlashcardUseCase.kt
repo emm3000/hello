@@ -1,16 +1,14 @@
 package com.emm.domain.authoring
 
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReadRepository
-import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.validation.requireValid
 
 class CreateFlashcardUseCase(
-    private val writeRepository: FlashcardWriteRepository,
-    private val readRepository: FlashcardReadRepository,
+    private val repository: FlashcardRepository,
     private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
     private val ensureUniqueFlashcardInDeckUseCase: EnsureUniqueFlashcardInDeckUseCase,
     private val generatedLearningNoteMapper: GeneratedLearningNoteMapper = GeneratedLearningNoteMapper(),
@@ -29,10 +27,10 @@ class CreateFlashcardUseCase(
             note = learningNote,
         )
 
-        val flashcardId = writeRepository.create(input)
+        val flashcardId = repository.create(input)
 
-        writeRepository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
+        repository.upsertExamples(generatedLearningNoteMapper.toExamples(learningNote), flashcardId)
 
-        return readRepository.fetchById(flashcardId).flashcard
+        return repository.fetchById(flashcardId).flashcard
     }
 }

@@ -5,8 +5,7 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
-import com.emm.domain.flashcard.FlashcardReadRepository
-import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
@@ -36,8 +35,7 @@ class CreateFlashcardUseCaseTest {
     @Test
     fun `invoke rejects invalid learning note`() = runTest {
         val useCase = CreateFlashcardUseCase(
-            writeRepository = FakeWriteRepository(),
-            readRepository = FakeReadRepository(),
+            repository = FakeFlashcardRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
@@ -58,10 +56,9 @@ class CreateFlashcardUseCaseTest {
 
     @Test
     fun `invoke persists valid learning note`() = runTest {
-        val writeRepository = FakeWriteRepository()
+        val repository = FakeFlashcardRepository()
         val useCase = CreateFlashcardUseCase(
-            writeRepository = writeRepository,
-            readRepository = FakeReadRepository(),
+            repository = repository,
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
@@ -72,15 +69,14 @@ class CreateFlashcardUseCaseTest {
 
         useCase(deckId = "deck-1".toDeckId(), learningNote = sampleWordNote())
 
-        assertEquals(1, writeRepository.createCalls)
-        assertEquals(1, writeRepository.upsertExamplesCalls)
+        assertEquals(1, repository.createCalls)
+        assertEquals(1, repository.upsertExamplesCalls)
     }
 
     @Test
     fun `invoke rejects exact duplicate in deck`() = runTest {
         val useCase = CreateFlashcardUseCase(
-            writeRepository = FakeWriteRepository(),
-            readRepository = FakeReadRepository(),
+            repository = FakeFlashcardRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
@@ -167,9 +163,12 @@ class CreateFlashcardUseCaseTest {
     }
 }
 
-private class FakeWriteRepository : FlashcardWriteRepository {
+private class FakeFlashcardRepository : FlashcardRepository {
     var createCalls = 0
     var upsertExamplesCalls = 0
+
+    override fun fetchAll() = throw UnsupportedOperationException()
+    override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
     override suspend fun create(input: CreateFlashcardInput): FlashcardId {
         createCalls += 1
@@ -179,11 +178,6 @@ private class FakeWriteRepository : FlashcardWriteRepository {
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) {
         upsertExamplesCalls += 1
     }
-}
-
-private class FakeReadRepository : FlashcardReadRepository {
-    override fun fetchAll() = throw UnsupportedOperationException()
-    override fun fetchByDeckId(deckId: DeckId) = throw UnsupportedOperationException()
 
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))

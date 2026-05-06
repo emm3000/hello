@@ -19,9 +19,8 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
-import com.emm.domain.flashcard.FlashcardReadRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
@@ -48,8 +47,7 @@ class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
-) : FlashcardReadRepository,
-    FlashcardWriteRepository,
+) : FlashcardRepository,
     StudySessionRepository,
     FlashcardGenerationRepository {
 

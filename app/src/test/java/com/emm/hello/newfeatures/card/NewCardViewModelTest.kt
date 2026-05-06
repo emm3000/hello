@@ -19,8 +19,7 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardDetail
-import com.emm.domain.flashcard.FlashcardReadRepository
-import com.emm.domain.flashcard.FlashcardWriteRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
@@ -70,19 +69,19 @@ class NewCardViewModelTest {
     @Test
     fun `word changed clears error and preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -106,19 +105,19 @@ class NewCardViewModelTest {
     @Test
     fun `save clicked success emits show message effect`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -141,7 +140,7 @@ class NewCardViewModelTest {
         assertThat(viewModel.uiState.value.canSavePreview).isFalse()
 
         coVerify(exactly = 1) {
-            writeRepository.create(
+            flashcardRepository.create(
                 match<CreateFlashcardInput> {
                     it.deckId.value == "deck-1" && it.word == "hello" && it.meaning == "a greeting"
                 }
@@ -152,19 +151,19 @@ class NewCardViewModelTest {
     @Test
     fun `generate clicked with valid note enables save preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -182,20 +181,20 @@ class NewCardViewModelTest {
     @Test
     fun `generate clicked with ai help builds communicative goal input`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
         val inputSlot = slot<FlashcardGenerationInput>()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(capture(inputSlot)) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -222,19 +221,19 @@ class NewCardViewModelTest {
     @Test
     fun `editing required preview field revalidates and can disable save`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -260,19 +259,19 @@ class NewCardViewModelTest {
     @Test
     fun `editing preview card updates derived card in preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -301,19 +300,19 @@ class NewCardViewModelTest {
     @Test
     fun `editing preview card hint and active state updates derived card in preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns "deck-1".toDeckId()
         coEvery { generationRepository.generateLearningNote(any()) } returns sampleGeneratedLearningNote()
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -348,8 +347,8 @@ class NewCardViewModelTest {
     @Test
     fun `regenerate example updates preview fields`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -359,12 +358,12 @@ class NewCardViewModelTest {
             sentence = "Hello, how have you been lately?",
             translation = "Hola, como has estado ultimamente?",
         )
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -386,8 +385,8 @@ class NewCardViewModelTest {
     @Test
     fun `regenerate field updates note value`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
-        val writeRepository = mockk<FlashcardWriteRepository>()
-        val readRepository = mockk<FlashcardReadRepository>()
+        val flashcardRepository = mockk<FlashcardRepository>()
+        
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -396,12 +395,12 @@ class NewCardViewModelTest {
         coEvery {
             generationRepository.regenerateNoteField(any(), any(), RegenerableNoteField.WhyUseful)
         } returns "Te ayuda a sonar natural al saludar."
-        stubDefaultRepositories(defaultDeckSelectionRepository, writeRepository, readRepository)
+        stubDefaultRepositories(defaultDeckSelectionRepository, flashcardRepository)
 
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
-            writeRepository = writeRepository,
-            readRepository = readRepository,
+            flashcardRepository = flashcardRepository,
+            
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -439,8 +438,7 @@ class NewCardViewModelTest {
 
     private fun buildViewModel(
         generationRepository: FlashcardGenerationRepository,
-        writeRepository: FlashcardWriteRepository,
-        readRepository: FlashcardReadRepository,
+        flashcardRepository: FlashcardRepository,
         defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
         deckRepository: DeckRepository,
     ): NewCardViewModel {
@@ -450,8 +448,7 @@ class NewCardViewModelTest {
             getDecksUseCase = GetDecksUseCase(deckRepository),
             generationDependencies = NewCardGenerationDependencies(
                 createFlashcardUseCase = CreateFlashcardUseCase(
-                    writeRepository,
-                    readRepository,
+                    flashcardRepository,
                     validateGeneratedLearningNoteUseCase,
                     EnsureUniqueFlashcardInDeckUseCase(
                         IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository())
@@ -488,14 +485,13 @@ class NewCardViewModelTest {
 
     private fun stubDefaultRepositories(
         defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
-        writeRepository: FlashcardWriteRepository,
-        readRepository: FlashcardReadRepository,
+        flashcardRepository: FlashcardRepository,
     ) {
         val createdFlashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId())
         every { defaultDeckSelectionRepository.setDefaultDeckId(any()) } returns Unit
-        coEvery { writeRepository.create(any()) } returns "card-1".toFlashcardId()
-        coEvery { writeRepository.upsertExamples(any(), any()) } returns Unit
-        coEvery { readRepository.fetchById(any()) } returns FlashcardDetail(createdFlashcard)
+        coEvery { flashcardRepository.create(any()) } returns "card-1".toFlashcardId()
+        coEvery { flashcardRepository.upsertExamples(any(), any()) } returns Unit
+        coEvery { flashcardRepository.fetchById(any()) } returns FlashcardDetail(createdFlashcard)
     }
 
     private fun sampleGeneratedLearningNote(): GeneratedLearningNote {

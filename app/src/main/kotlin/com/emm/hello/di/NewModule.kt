@@ -32,9 +32,8 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
 import com.emm.domain.flashcard.FlashcardGenerationDisambiguationPolicy
 import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
-import com.emm.domain.flashcard.FlashcardReadRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
-import com.emm.domain.flashcard.FlashcardWriteRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
@@ -93,8 +92,7 @@ fun Module.repository() {
     factoryOf(::DefaultDeckRepository) bind DeckRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
     factoryOf(::DefaultFlashcardRepository)
-    factory<FlashcardReadRepository> { get<DefaultFlashcardRepository>() }
-    factory<FlashcardWriteRepository> { get<DefaultFlashcardRepository>() }
+    factory<FlashcardRepository> { get<DefaultFlashcardRepository>() }
     factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class

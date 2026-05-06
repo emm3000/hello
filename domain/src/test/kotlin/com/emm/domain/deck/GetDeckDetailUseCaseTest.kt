@@ -1,9 +1,11 @@
 package com.emm.domain.deck
 
 import app.cash.turbine.test
+import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReadRepository
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -34,7 +36,7 @@ class GetDeckDetailUseCaseTest {
                 )
             )
         )
-        val flashcardRepository = FakeFlashcardReadRepository(
+        val flashcardRepository = FakeFlashcardRepository(
             cardsFlow = MutableStateFlow(
                 listOf(
                     sampleCard(id = "card-1"),
@@ -69,7 +71,7 @@ class GetDeckDetailUseCaseTest {
         val cardsFlow = MutableStateFlow(listOf(sampleCard(id = "card-1")))
 
         val deckRepository = FakeDeckRepository(deckFlow = deckFlow)
-        val flashcardRepository = FakeFlashcardReadRepository(cardsFlow = cardsFlow)
+        val flashcardRepository = FakeFlashcardRepository(cardsFlow = cardsFlow)
         val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
 
         useCase("deck-1").test {
@@ -108,7 +110,7 @@ class GetDeckDetailUseCaseTest {
                 )
             )
         )
-        val flashcardRepository = FakeFlashcardReadRepository(
+        val flashcardRepository = FakeFlashcardRepository(
             cardsFlow = MutableStateFlow(listOf(sampleCard(id = "card-1")))
         )
         val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
@@ -147,7 +149,7 @@ private class FakeDeckRepository : DeckRepository {
     override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(emptyList())
 }
 
-private class FakeFlashcardReadRepository : FlashcardReadRepository {
+private class FakeFlashcardRepository : FlashcardRepository {
     constructor(cardsFlow: MutableStateFlow<List<Flashcard>>) {
         this.cardsFlow = cardsFlow
     }
@@ -175,6 +177,8 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
         return FlashcardDetail(flashcard = sampleCard(id = id.value))
     }
 
+    override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
+    override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
 }
 
 private fun sampleCard(id: String): Flashcard {

@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -14,7 +16,7 @@ class GetFlashcardByIdUseCaseTest {
 
     @Test
     fun `invoke normalizes id before querying repository`() = runTest {
-        val repository = FakeFlashcardReadRepository()
+        val repository = FakeFlashcardRepository()
         val useCase = GetFlashcardByIdUseCase(repository)
 
         useCase("  card-1  ")
@@ -24,13 +26,13 @@ class GetFlashcardByIdUseCaseTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `invoke rejects blank id`() = runTest {
-        val useCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepository())
+        val useCase = GetFlashcardByIdUseCase(FakeFlashcardRepository())
 
         useCase("   ")
     }
 }
 
-private class FakeFlashcardReadRepository : FlashcardReadRepository {
+private class FakeFlashcardRepository : FlashcardRepository {
     var lastFetchByIdArg: String? = null
 
     override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
@@ -41,4 +43,7 @@ private class FakeFlashcardReadRepository : FlashcardReadRepository {
         lastFetchByIdArg = id.value
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }
+
+    override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
+    override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
 }
