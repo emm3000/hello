@@ -1,14 +1,15 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.flashcard.GetFlashcardByIdUseCase
+import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FlashcardDetailViewModel(
     private val flashcardId: String,
-    private val getFlashcardByIdUseCase: GetFlashcardByIdUseCase,
+    private val flashcardRepository: FlashcardRepository,
 ) : MviViewModel<FlashcardDetailUiState, FlashcardDetailUiIntent, FlashcardDetailUiEffect>(
     initialState = FlashcardDetailUiState(),
 ) {
@@ -25,7 +26,7 @@ class FlashcardDetailViewModel(
 
     private fun loadFlashcard() {
         viewModelScope.launch {
-            runCatching { getFlashcardByIdUseCase(flashcardId) }
+            runCatching { flashcardRepository.fetchById(flashcardId.toFlashcardId()) }
                 .onSuccess { flashcard -> mutableState.update { it.copy(flashcard = flashcard) } }
                 .onFailure {
                     mutableEffect.send(FlashcardDetailUiEffect.LoadFailed(it.message ?: "load_failed"))

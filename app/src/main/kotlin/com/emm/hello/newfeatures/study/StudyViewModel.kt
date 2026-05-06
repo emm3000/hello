@@ -4,17 +4,18 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.FlashcardId
-import com.emm.domain.study.GetStudySessionUseCase
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
+import com.emm.domain.study.StudySessionRepository
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StudyViewModel(
     deckId: String,
-    getStudySessionUseCase: GetStudySessionUseCase,
+    studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val updateFlashcardReviewUseCase: UpdateFlashcardReviewUseCase,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
@@ -28,7 +29,7 @@ class StudyViewModel(
 
     init {
         viewModelScope.launch {
-            val studyFlashcards: List<StudyFlashcard> = getStudySessionUseCase(deckId)
+            val studyFlashcards: List<StudyFlashcard> = studySessionRepository.sessionToday(deckId.toDeckId())
             val items = studyFlashcards.flatMap { sf ->
                 reviewsByFlashcardId[sf.flashcardId] = sf.review
                 pendingItemsByFlashcardId[sf.flashcardId] = sf.studyCards.count { it.isActive }

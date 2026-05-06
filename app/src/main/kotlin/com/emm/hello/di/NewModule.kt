@@ -33,7 +33,6 @@ import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
-import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
@@ -46,7 +45,6 @@ import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteQualityChecksPolicy
 import com.emm.domain.generation.GeneratedLearningNoteTypeRequirementsPolicy
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
-import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
@@ -135,9 +133,7 @@ fun Module.useCases() {
             validateGeneratedLearningNoteUseCase = get(),
         )
     }
-    factoryOf(::GetStudySessionUseCase)
     factoryOf(::GetDeckDetailUseCase)
-    factoryOf(::GetFlashcardByIdUseCase)
     factoryOf(::UpdateFlashcardReviewUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
@@ -157,7 +153,7 @@ fun Module.viewModels() {
     viewModel {
         StudyViewModel(
             deckId = it.get(),
-            getStudySessionUseCase = get(),
+            studySessionRepository = get(),
             scheduleFlashcardReviewUseCase = get(),
             updateFlashcardReviewUseCase = get(),
         )
@@ -172,7 +168,7 @@ fun Module.viewModels() {
     viewModel {
         FlashcardDetailViewModel(
             flashcardId = it.get(),
-            getFlashcardByIdUseCase = get(),
+            flashcardRepository = get(),
         )
     }
 }

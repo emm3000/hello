@@ -6,7 +6,6 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.GetFlashcardByIdUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
@@ -29,7 +28,7 @@ class FlashcardDetailViewModelTest {
         val detail = FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId(), word = "hello"))
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
-            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(detail)),
+            flashcardRepository = FakeFlashcardReadRepo(detail),
         )
 
         assertThat(viewModel.uiState.value.flashcard.flashcard.id.value).isEqualTo("card-1")
@@ -40,7 +39,7 @@ class FlashcardDetailViewModelTest {
     fun `load failure emits load failed effect with message`() = runTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
-            getFlashcardByIdUseCase = GetFlashcardByIdUseCase(FakeFlashcardReadRepo(shouldFail = true)),
+            flashcardRepository = FakeFlashcardReadRepo(shouldFail = true),
         )
 
         viewModel.effect.test {

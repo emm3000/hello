@@ -8,7 +8,6 @@ import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.toFlashcardId
-import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
@@ -141,16 +140,14 @@ class StudyViewModelTest {
         val reviewRepo = FakeFlashcardReviewRepo()
         val viewModel = StudyViewModel(
             deckId = "deck-1",
-            getStudySessionUseCase = GetStudySessionUseCase(
-                FakeStudySessionRepo(
-                    listOf(
-                        studyFlashcard(
-                            id = "a",
-                            studyCards = listOf(
-                                studyCard("a-1", StudyCardType.Recognition),
-                                studyCard("a-2", StudyCardType.Production),
-                            ),
-                        )
+            studySessionRepository = FakeStudySessionRepo(
+                listOf(
+                    studyFlashcard(
+                        id = "a",
+                        studyCards = listOf(
+                            studyCard("a-1", StudyCardType.Recognition),
+                            studyCard("a-2", StudyCardType.Production),
+                        ),
                     )
                 )
             ),
@@ -187,7 +184,7 @@ class StudyViewModelTest {
 
     private fun makeViewModel(cards: List<StudyFlashcard>): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
-        getStudySessionUseCase = GetStudySessionUseCase(FakeStudySessionRepo(cards)),
+        studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(FakeFlashcardReviewRepo()),
     )
