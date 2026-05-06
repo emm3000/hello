@@ -28,10 +28,10 @@ import com.emm.domain.flashcard.GeneratedNoteQualityCode
 import com.emm.domain.flashcard.GeneratedStudyCard
 import com.emm.domain.flashcard.RegenerableNoteField
 import com.emm.domain.flashcard.StudyCardType
-import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.SystemClock
 import java.time.Instant
 import java.util.UUID

@@ -2,7 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
+import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 
 class NewCardDraftEditor(
     private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,

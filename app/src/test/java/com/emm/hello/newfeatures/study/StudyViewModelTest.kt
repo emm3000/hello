@@ -6,13 +6,13 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GeneratedStudyCard
-import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.StudyCardType
-import com.emm.domain.flashcard.StudySessionRepository
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
+import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule

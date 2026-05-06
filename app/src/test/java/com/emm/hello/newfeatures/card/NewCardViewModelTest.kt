@@ -1,6 +1,9 @@
 package com.emm.hello.newfeatures.card
 
 import app.cash.turbine.test
+import com.emm.domain.authoring.CreateFlashcardUseCase
+import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
+import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
@@ -9,7 +12,6 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetDefaultDeckUseCase
 import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.CreateFlashcardUseCase
 import com.emm.domain.flashcard.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardGenerationInput
@@ -18,9 +20,7 @@ import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardReadRepository
 import com.emm.domain.flashcard.FlashcardWriteRepository
-import com.emm.domain.flashcard.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
-import com.emm.domain.flashcard.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.flashcard.GeneratedExampleDraft
 import com.emm.domain.flashcard.GeneratedLearningNote
 import com.emm.domain.flashcard.GeneratedNoteQualityCheck
@@ -38,7 +38,7 @@ import com.emm.domain.flashcard.RegenerateStudyCardUseCase
 import com.emm.domain.flashcard.RegisterPreference
 import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
-import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
+import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId

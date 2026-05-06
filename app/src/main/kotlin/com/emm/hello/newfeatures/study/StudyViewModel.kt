@@ -3,9 +3,9 @@ package com.emm.hello.newfeatures.study
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.GetStudySessionUseCase
 import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.hello.core.mvi.MviViewModel

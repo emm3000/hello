@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.flow.Flow
 

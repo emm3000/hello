@@ -18,7 +18,7 @@ import com.emm.domain.flashcard.StudyCardType
 import com.emm.domain.flashcard.toDefinitionEn
 import com.emm.domain.flashcard.toExpression
 import com.emm.domain.flashcard.toIntendedMeaningEs
-import com.emm.domain.flashcard.ValidateGeneratedLearningNoteUseCase
+import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.validation.DomainValidationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
