@@ -2,14 +2,14 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
-import com.emm.domain.deck.CreateDeckUseCase
+import com.emm.domain.deck.DeckRepository
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewDeckViewModel(
-    private val createDeckUseCase: CreateDeckUseCase,
+    private val deckRepository: DeckRepository,
 ) : MviViewModel<NewDeckUiState, NewDeckUiIntent, NewDeckUiEffect>(
     initialState = NewDeckUiState(),
 ) {
@@ -32,7 +32,7 @@ class NewDeckViewModel(
                 name = current.name,
                 description = current.description,
             )
-            createDeckUseCase(input)
+            deckRepository.addDeck(input)
         }.onSuccess {
             mutableState.update { NewDeckUiState() }
             mutableEffect.send(NewDeckUiEffect.NavigateBack)

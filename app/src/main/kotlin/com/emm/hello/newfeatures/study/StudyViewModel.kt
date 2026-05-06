@@ -2,7 +2,7 @@ package com.emm.hello.newfeatures.study
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReview
-import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
+import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.ReviewGrade
@@ -17,7 +17,7 @@ class StudyViewModel(
     deckId: String,
     studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
-    private val updateFlashcardReviewUseCase: UpdateFlashcardReviewUseCase,
+    private val flashcardReviewRepository: FlashcardReviewRepository,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -90,7 +90,7 @@ class StudyViewModel(
                 grade = finalGrade,
                 flashcardId = flashcardId,
             )
-            updateFlashcardReviewUseCase(newReview)
+            flashcardReviewRepository.update(newReview)
             pendingItemsByFlashcardId.remove(flashcardId)
             reviewsByFlashcardId.remove(flashcardId)
         }

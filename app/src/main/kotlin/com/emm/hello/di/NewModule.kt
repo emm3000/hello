@@ -20,7 +20,6 @@ import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
-import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
@@ -38,7 +37,6 @@ import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
 import com.emm.domain.flashcard.RegenerateStudyCardUseCase
-import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.generation.GeneratedLearningNoteCardsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
@@ -109,7 +107,6 @@ fun Module.useCases() {
     factoryOf(::GeneratedLearningNoteCardsPolicy)
     factoryOf(::GeneratedLearningNoteQualityChecksPolicy)
     factoryOf(::GeneratedLearningNoteMapper)
-    factoryOf(::CreateDeckUseCase)
     factoryOf(::GetDecksUseCase)
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
@@ -134,7 +131,6 @@ fun Module.useCases() {
         )
     }
     factoryOf(::GetDeckDetailUseCase)
-    factoryOf(::UpdateFlashcardReviewUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
 }
@@ -155,7 +151,7 @@ fun Module.viewModels() {
             deckId = it.get(),
             studySessionRepository = get(),
             scheduleFlashcardReviewUseCase = get(),
-            updateFlashcardReviewUseCase = get(),
+            flashcardReviewRepository = get(),
         )
     }
     viewModel {

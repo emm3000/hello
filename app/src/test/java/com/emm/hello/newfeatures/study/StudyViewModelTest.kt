@@ -6,7 +6,6 @@ import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
-import com.emm.domain.flashcard.UpdateFlashcardReviewUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
@@ -152,7 +151,7 @@ class StudyViewModelTest {
                 )
             ),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
-            updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(reviewRepo),
+            flashcardReviewRepository = reviewRepo,
         )
         advanceUntilIdle()
 
@@ -186,7 +185,7 @@ class StudyViewModelTest {
         deckId = "deck-1",
         studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
-        updateFlashcardReviewUseCase = UpdateFlashcardReviewUseCase(FakeFlashcardReviewRepo()),
+        flashcardReviewRepository = FakeFlashcardReviewRepo(),
     )
 
     private fun studyFlashcard(

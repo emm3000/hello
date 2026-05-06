@@ -1,7 +1,6 @@
 package com.emm.hello.newfeatures.deck
 
 import com.emm.domain.deck.CreateDeckInput
-import com.emm.domain.deck.CreateDeckUseCase
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.ids.DeckId
@@ -23,7 +22,7 @@ class NewDeckViewModelTest {
     @Test
     fun `submit success resets state and emits navigate back effect`() = runTest {
         val repository = FakeDeckRepository()
-        val viewModel = NewDeckViewModel(CreateDeckUseCase(repository))
+        val viewModel = NewDeckViewModel(repository)
 
         viewModel.onIntent(NewDeckUiIntent.NameChanged("My deck"))
         viewModel.onIntent(NewDeckUiIntent.DescriptionChanged("Optional"))
@@ -42,7 +41,7 @@ class NewDeckViewModelTest {
     @Test
     fun `submit failure emits show message and stops loading`() = runTest {
         val repository = FakeDeckRepository(shouldFail = true)
-        val viewModel = NewDeckViewModel(CreateDeckUseCase(repository))
+        val viewModel = NewDeckViewModel(repository)
 
         viewModel.onIntent(NewDeckUiIntent.NameChanged("Deck with error"))
 
