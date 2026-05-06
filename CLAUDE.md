@@ -1,8 +1,8 @@
-# Copilot Instructions
+# CLAUDE.md
 
-Wrapper mínimo para GitHub Copilot en este repo.
+Wrapper mínimo para Claude Code.
 
-## Leer Primero
+## Leer en este orden
 
 1. `README.md`
 2. `AGENTS.md`

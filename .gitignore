@@ -20,3 +20,7 @@ keystore.properties
 domain/bin/
 google-services.json
 .atl/
+.agent/
+.agents/
+.claude/
+skills-lock.json
