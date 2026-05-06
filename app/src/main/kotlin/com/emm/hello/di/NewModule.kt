@@ -25,8 +25,6 @@ import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.GetDecksUseCase
-import com.emm.domain.deck.GetDefaultDeckUseCase
-import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
@@ -115,8 +113,6 @@ fun Module.useCases() {
     factoryOf(::GeneratedLearningNoteMapper)
     factoryOf(::CreateDeckUseCase)
     factoryOf(::GetDecksUseCase)
-    factoryOf(::GetDefaultDeckUseCase)
-    factoryOf(::SetDefaultDeckUseCase)
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
@@ -155,8 +151,7 @@ fun Module.viewModels() {
         NewCardViewModel(
             getDecksUseCase = get(),
             generationDependencies = get(),
-            getDefaultDeckUseCase = get(),
-            setDefaultDeckUseCase = get(),
+            defaultDeckSelectionRepository = get(),
         )
     }
     viewModel {

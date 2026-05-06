@@ -1,9 +1,8 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.lifecycle.viewModelScope
+import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
-import com.emm.domain.deck.GetDefaultDeckUseCase
-import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.validation.DomainValidationException
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
@@ -15,8 +14,7 @@ import kotlinx.coroutines.launch
 class NewCardViewModel(
     getDecksUseCase: GetDecksUseCase,
     private val generationDependencies: NewCardGenerationDependencies,
-    private val getDefaultDeckUseCase: GetDefaultDeckUseCase,
-    private val setDefaultDeckUseCase: SetDefaultDeckUseCase,
+    private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
 ) : MviViewModel<NewCardUiState, NewCardUiIntent, NewCardUiEffect>(
     initialState = NewCardUiState(),
 ) {
@@ -27,7 +25,7 @@ class NewCardViewModel(
     init {
         getDecksUseCase()
             .onEach { decks ->
-                val defaultDeckId = getDefaultDeckUseCase()
+                val defaultDeckId = defaultDeckSelectionRepository.getDefaultDeckId()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
                 mutableState.update {
                     it.copy(
@@ -70,12 +68,12 @@ class NewCardViewModel(
             is NewCardUiIntent.DeckSelected -> mutableState.update {
                 it.copy(
                     deckSelected = intent.deck,
-                    isCheck = getDefaultDeckUseCase() == intent.deck.id,
+                    isCheck = defaultDeckSelectionRepository.getDefaultDeckId() == intent.deck.id,
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
                 val newDeckId = if (intent.checked) mutableState.value.deckSelected?.id else null
-                setDefaultDeckUseCase(newDeckId)
+                defaultDeckSelectionRepository.setDefaultDeckId(newDeckId)
                 mutableState.update { it.copy(isCheck = intent.checked) }
             }
             else -> Unit

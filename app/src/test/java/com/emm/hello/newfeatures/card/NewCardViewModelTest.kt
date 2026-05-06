@@ -9,8 +9,6 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
-import com.emm.domain.deck.GetDefaultDeckUseCase
-import com.emm.domain.deck.SetDefaultDeckUseCase
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
@@ -478,8 +476,7 @@ class NewCardViewModelTest {
                 validateInputUseCase = validateInputUseCase,
                 validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
             ),
-            getDefaultDeckUseCase = GetDefaultDeckUseCase(defaultDeckSelectionRepository),
-            setDefaultDeckUseCase = SetDefaultDeckUseCase(defaultDeckSelectionRepository),
+            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
         )
     }
 
