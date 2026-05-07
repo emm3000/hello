@@ -1,7 +1,6 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.flashcard.DefinitionEn
-import com.emm.domain.flashcard.Expression
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.IntendedMeaningEs

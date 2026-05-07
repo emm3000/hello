@@ -41,7 +41,6 @@ import com.emm.domain.generation.StudyCardType
 import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
-import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
@@ -71,7 +70,7 @@ class NewCardViewModelTest {
     fun `word changed clears error and preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -82,7 +81,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -107,7 +106,7 @@ class NewCardViewModelTest {
     fun `save clicked success emits show message effect`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -118,7 +117,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -153,7 +152,7 @@ class NewCardViewModelTest {
     fun `generate clicked with valid note enables save preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -164,7 +163,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -183,7 +182,7 @@ class NewCardViewModelTest {
     fun `generate clicked with ai help builds communicative goal input`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
         val inputSlot = slot<FlashcardGenerationInput>()
@@ -195,7 +194,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -223,7 +222,7 @@ class NewCardViewModelTest {
     fun `editing required preview field revalidates and can disable save`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -234,7 +233,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -261,7 +260,7 @@ class NewCardViewModelTest {
     fun `editing preview card updates derived card in preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -272,7 +271,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -302,7 +301,7 @@ class NewCardViewModelTest {
     fun `editing preview card hint and active state updates derived card in preview`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -313,7 +312,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -349,7 +348,7 @@ class NewCardViewModelTest {
     fun `regenerate example updates preview fields`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -364,7 +363,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )
@@ -387,7 +386,7 @@ class NewCardViewModelTest {
     fun `regenerate field updates note value`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
-        
+
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         val deckRepository = FakeDeckRepository()
 
@@ -401,7 +400,7 @@ class NewCardViewModelTest {
         val viewModel = buildViewModel(
             generationRepository = generationRepository,
             flashcardRepository = flashcardRepository,
-            
+
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             deckRepository = deckRepository,
         )

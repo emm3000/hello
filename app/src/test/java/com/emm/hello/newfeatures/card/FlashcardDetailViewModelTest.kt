@@ -25,7 +25,12 @@ class FlashcardDetailViewModelTest {
 
     @Test
     fun `init loads flashcard and state reflects id and word`() = runTest {
-        val detail = FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = "card-1".toFlashcardId(), word = "hello"))
+        val detail = FlashcardDetail(
+            flashcard = Flashcard.empty(SystemClock).copy(
+                id = "card-1".toFlashcardId(),
+                word = "hello",
+            ),
+        )
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(detail),

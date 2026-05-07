@@ -1,8 +1,6 @@
 package com.emm.domain.study
 
 import com.emm.domain.ids.DeckId
-import com.emm.domain.study.StudyFlashcard
-import com.emm.domain.study.StudySessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Assert.assertEquals

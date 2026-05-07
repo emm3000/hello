@@ -3,8 +3,6 @@ package com.emm.domain.generation
 import com.emm.domain.flashcard.toDefinitionEn
 import com.emm.domain.flashcard.toExpression
 import com.emm.domain.flashcard.toIntendedMeaningEs
-import com.emm.domain.generation.EvaluationMode
-import com.emm.domain.generation.StudyCardType
 import com.emm.domain.validation.IssueCode
 import kotlin.test.Test
 import kotlin.test.assertTrue
