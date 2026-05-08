@@ -52,6 +52,7 @@ import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.DashboardSkeleton
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HProgressBar
 import com.emm.hello.core.ui.HSeparator
 import java.time.LocalDateTime
 
@@ -274,12 +275,12 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                 )
                 // Visual progress bar (uses cardsCount as an indicator)
                 if (deck.cardsCount > 0) {
-                    LinearProgressIndicator(
-                        progress = { (deck.cardsCount % 10) / 10f },
+                    HProgressBar(
+                        progress = (deck.cardsCount % 10) / 10f,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(3.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
