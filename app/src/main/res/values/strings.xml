@@ -44,6 +44,9 @@
 
     <!-- Deck Detail Screen -->
     <string name="deck_detail_title_fallback">Mazo</string>
+    <string name="search_cards_hint">Buscar tarjetas…</string>
+    <string name="search_clear_content_description">Limpiar búsqueda</string>
+    <string name="search_no_results">No hay tarjetas que coincidan con \'%1$s\'</string>
     <string name="review_status_ready">✓ Listo</string>
     <string name="review_status_up_to_date">Al día</string>
     <string name="review_status_label">estado de repaso</string>

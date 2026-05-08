@@ -6,4 +6,5 @@ import com.emm.domain.time.SystemClock
 data class DeckDetailUiState(
     val deck: Deck = Deck.empty(SystemClock),
     val hasSessionEnabled: Boolean = false,
+    val searchQuery: String = "",
 )

@@ -15,7 +15,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.HistoryEdu
 import androidx.compose.material3.FloatingActionButton
@@ -24,6 +26,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -68,7 +72,12 @@ fun DeckDetailScreen(
     onReview: () -> Unit = {},
     onCardClick: (String) -> Unit = {},
     onAddCard: () -> Unit = {},
+    onSearchChange: (String) -> Unit = {},
 ) {
+    val isSearching = state.searchQuery.trim().isNotEmpty()
+    val filteredCards = state.deck.cards.filter { card ->
+        matchesSearchQuery(card, state.searchQuery)
+    }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -132,7 +141,16 @@ fun DeckDetailScreen(
                 )
             }
 
-            // ── Empty list ──────────────────────────────────────────────────
+            // ── Search bar (sticky) ─────────────────────────────────────────
+            stickyHeader {
+                SearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = onSearchChange,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            // ── Empty list (no cards at all) ────────────────────────────────
             if (state.deck.cards.isEmpty()) {
                 item {
                     EmptyCards(onAddCard = onAddCard)
@@ -146,8 +164,13 @@ fun DeckDetailScreen(
                         title = stringResource(R.string.cards_section_label),
                         modifier = Modifier.padding(vertical = MaterialTheme.spacing.sm),
                         trailingContent = {
+                            val label = if (isSearching) {
+                                "${filteredCards.size} / ${state.deck.cards.size}"
+                            } else {
+                                "${state.deck.cards.size}"
+                            }
                             HBadge(
-                                label = "${state.deck.cards.size}",
+                                label = label,
                                 variant = BadgeVariant.Secondary,
                             )
                         },
@@ -155,9 +178,15 @@ fun DeckDetailScreen(
                     )
                 }
 
-                items(state.deck.cards, key = { card -> card.id.value }) { card ->
-                    DeckCardItem(card = card, onCardClick = { onCardClick(it) })
-                    HSeparator()
+                if (filteredCards.isEmpty() && isSearching) {
+                    item {
+                        NoSearchResults(query = state.searchQuery.trim())
+                    }
+                } else {
+                    items(filteredCards, key = { card -> card.id.value }) { card ->
+                        DeckCardItem(card = card, onCardClick = { onCardClick(it) })
+                        HSeparator()
+                    }
                 }
             }
         }
@@ -241,6 +270,70 @@ private fun DeckStatsHeader(
                 variant = reviewAlertVariant,
             )
         }
+    }
+}
+
+// ── Component: Search bar ─────────────────────────────────────────────
+
+@Composable
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier,
+        placeholder = {
+            Text(
+                text = stringResource(R.string.search_cards_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.search_clear_content_description),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        maxLines = 1,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        ),
+    )
+}
+
+// ── Component: No search results ──────────────────────────────────────
+
+@Composable
+private fun NoSearchResults(query: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = MaterialTheme.spacing.xxl),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.search_no_results, query),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

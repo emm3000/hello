@@ -42,7 +42,25 @@ class DeckDetailViewModel(
             flashcards to hasSessionEnabled
         }
 
-    override fun onIntent(intent: DeckDetailUiIntent) = Unit
+    override fun onIntent(intent: DeckDetailUiIntent) {
+        when (intent) {
+            is DeckDetailUiIntent.SearchCardsChanged -> {
+                mutableState.value = mutableState.value.copy(searchQuery = intent.query)
+            }
+        }
+    }
+}
+
+/**
+ * Returns true when the card's word, translation, or meaning contains the query
+ * (case-insensitive). Whitespace-only queries are treated as empty (always match).
+ */
+internal fun matchesSearchQuery(card: Flashcard, query: String): Boolean {
+    val trimmed = query.trim()
+    if (trimmed.isEmpty()) return true
+    return card.word.contains(trimmed, ignoreCase = true) ||
+        card.translation.contains(trimmed, ignoreCase = true) ||
+        card.meaning.contains(trimmed, ignoreCase = true)
 }
 
 internal fun mergeDeckCardsById(
