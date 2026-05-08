@@ -24,3 +24,4 @@ google-services.json
 .agents/
 .claude/
 skills-lock.json
+openspec/
