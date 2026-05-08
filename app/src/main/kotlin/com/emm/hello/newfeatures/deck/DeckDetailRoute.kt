@@ -31,6 +31,7 @@ fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
             state = uiState,
             onCardClick = { cardId -> navController.navigate(CardDetailRoute(cardId)) },
             onAddCard = { navController.navigate(NewCardRoute) },
+            onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },
         )
     }
 }
