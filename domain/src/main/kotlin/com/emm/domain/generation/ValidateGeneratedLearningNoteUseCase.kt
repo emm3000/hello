@@ -30,5 +30,4 @@ class ValidateGeneratedLearningNoteUseCase(
             ValidationResult.invalid(value = note, errors = errors, warnings = warnings)
         }
     }
-
 }

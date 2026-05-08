@@ -5,7 +5,8 @@ import com.emm.domain.validation.ValidationIssue
 import com.emm.domain.validation.ValidationResult
 
 class ValidateFlashcardGenerationInputUseCase(
-    private val disambiguationPolicy: FlashcardGenerationDisambiguationPolicy = FlashcardGenerationDisambiguationPolicy(),
+    private val disambiguationPolicy: FlashcardGenerationDisambiguationPolicy =
+        FlashcardGenerationDisambiguationPolicy(),
     private val inputTypeRulesPolicy: FlashcardGenerationInputTypeRulesPolicy =
         FlashcardGenerationInputTypeRulesPolicy(),
     private val contextSentencePolicy: FlashcardGenerationContextSentencePolicy =
@@ -56,5 +57,4 @@ class ValidateFlashcardGenerationInputUseCase(
             )
         }
     }
-
 }

@@ -85,7 +85,32 @@ private const val PHONETIC_SEPARATOR_WIDTH_FRACTION = 0.4f
 private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val SUPPORT_SEPARATOR_WIDTH_FRACTION = 0.7f
 private const val MAX_RELATED_FORMS = 3
-private val STUDY_DOCK_MIN_HEIGHT = 220.dp
+private val studyDockMinHeight = 220.dp
+
+private data class CardViewState(
+    val cardFace: CardFace,
+    val progress: Float,
+)
+
+private data class AudioState(
+    val isSpeaking: Boolean,
+    val ttsReady: Boolean,
+)
+
+private data class TypedAnswerState(
+    val typedAnswer: String,
+    val typedAnswerChecked: Boolean,
+    val typedAnswerCorrect: Boolean,
+)
+
+private data class StudyDockCallbacks(
+    val onStartSession: () -> Unit,
+    val onRevealAnswer: () -> Unit,
+    val onSkipTypedAnswer: () -> Unit,
+    val onReviewAnswer: (ReviewGrade) -> Unit,
+    val onTypedAnswerChange: (String) -> Unit,
+    val onCheckTypedAnswer: () -> Unit,
+)
 
 @Composable
 fun StudyScreen(
@@ -213,32 +238,24 @@ fun StudyScreen(
                     currentItem = currentItem,
                     totalCount = state.totalCount,
                     prevStudyItem = prevStudyItem.value,
-                    cardFace = cardFace,
-                    progress = progress,
-                    typedAnswer = typedAnswer,
-                    typedAnswerChecked = typedAnswerChecked,
-                    typedAnswerCorrect = typedAnswerCorrect,
-                    isSpeaking = isSpeaking,
-                    ttsReady = ttsReady,
+                    cardViewState = CardViewState(
+                        cardFace = cardFace,
+                        progress = progress,
+                    ),
+                    typedAnswerState = TypedAnswerState(
+                        typedAnswer = typedAnswer,
+                        typedAnswerChecked = typedAnswerChecked,
+                        typedAnswerCorrect = typedAnswerCorrect,
+                    ),
+                    audioState = AudioState(
+                        isSpeaking = isSpeaking,
+                        ttsReady = ttsReady,
+                    ),
                     onFlipCard = {
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         cardFace = it.next
                     },
                     onCardAnimationFinished = { prevStudyItem.value = state.currentItem },
-                    onTypedAnswerChange = {
-                        typedAnswer = it
-                        typedAnswerChecked = false
-                    },
-                    onCheckTypedAnswer = {
-                        val activeCard = currentStudyCard ?: return@StudyCanvas
-                        typedAnswerCorrect = matchesTypedAnswer(
-                            evaluationMode = activeCard.evaluationMode,
-                            typedAnswer = typedAnswer,
-                            expectedAnswer = activeCard.expectedAnswer,
-                            acceptedAnswers = activeCard.acceptedAnswers,
-                        )
-                        typedAnswerChecked = true
-                    },
                     onStop = { tts.stop() },
                     onSpeak = {
                         if (ttsReady) {
@@ -253,36 +270,41 @@ fun StudyScreen(
                 StudyActionDock(
                     sessionStage = sessionStage,
                     currentItem = currentItem,
-                    typedAnswer = typedAnswer,
-                    typedAnswerChecked = typedAnswerChecked,
-                    typedAnswerCorrect = typedAnswerCorrect,
-                    onStartSession = { sessionStarted = true },
-                    onRevealAnswer = {
-                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        cardFace = CardFace.Back
-                    },
-                    onTypedAnswerChange = {
-                        typedAnswer = it
-                        typedAnswerChecked = false
-                    },
-                    onCheckTypedAnswer = {
-                        val activeCard = currentStudyCard ?: return@StudyActionDock
-                        typedAnswerCorrect = matchesTypedAnswer(
-                            evaluationMode = activeCard.evaluationMode,
-                            typedAnswer = typedAnswer,
-                            expectedAnswer = activeCard.expectedAnswer,
-                            acceptedAnswers = activeCard.acceptedAnswers,
-                        )
-                        typedAnswerChecked = true
-                    },
-                    onSkipTypedAnswer = {
-                        typedAnswer = ""
-                        typedAnswerChecked = true
-                    },
-                    onReviewAnswer = { grade ->
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onReviewAnswer(state.currentItem, grade)
-                    },
+                    typedAnswerState = TypedAnswerState(
+                        typedAnswer = typedAnswer,
+                        typedAnswerChecked = typedAnswerChecked,
+                        typedAnswerCorrect = typedAnswerCorrect,
+                    ),
+                    callbacks = StudyDockCallbacks(
+                        onStartSession = { sessionStarted = true },
+                        onRevealAnswer = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            cardFace = CardFace.Back
+                        },
+                        onSkipTypedAnswer = {
+                            typedAnswer = ""
+                            typedAnswerChecked = true
+                        },
+                        onReviewAnswer = { grade ->
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onReviewAnswer(state.currentItem, grade)
+                        },
+                        onTypedAnswerChange = {
+                            typedAnswer = it
+                            typedAnswerChecked = false
+                        },
+                        onCheckTypedAnswer = {
+                            currentStudyCard?.let { activeCard ->
+                                typedAnswerCorrect = matchesTypedAnswer(
+                                    evaluationMode = activeCard.evaluationMode,
+                                    typedAnswer = typedAnswer,
+                                    expectedAnswer = activeCard.expectedAnswer,
+                                    acceptedAnswers = activeCard.acceptedAnswers,
+                                )
+                                typedAnswerChecked = true
+                            }
+                        },
+                    ),
                     estimatedMinutes = estimatedMinutes,
                     totalCount = state.totalCount,
                     modifier = Modifier
@@ -364,17 +386,11 @@ private fun StudyCanvas(
     currentItem: StudySessionItem?,
     totalCount: Int,
     prevStudyItem: StudySessionItem?,
-    cardFace: CardFace,
-    progress: Float,
-    typedAnswer: String,
-    typedAnswerChecked: Boolean,
-    typedAnswerCorrect: Boolean,
-    isSpeaking: Boolean,
-    ttsReady: Boolean,
+    cardViewState: CardViewState,
+    typedAnswerState: TypedAnswerState,
+    audioState: AudioState,
     onFlipCard: (CardFace) -> Unit,
     onCardAnimationFinished: (Float) -> Unit,
-    onTypedAnswerChange: (String) -> Unit,
-    onCheckTypedAnswer: () -> Unit,
     onStop: () -> Unit,
     onSpeak: () -> Unit,
     modifier: Modifier = Modifier,
@@ -410,9 +426,9 @@ private fun StudyCanvas(
                     modifier = Modifier.fillMaxSize(),
                 ) { item ->
                     FlippableCard(
-                        cardFace = cardFace,
+                        cardFace = cardViewState.cardFace,
                         onClick = onFlipCard,
-                        progress = progress,
+                        progress = cardViewState.progress,
                         onFinished = onCardAnimationFinished,
                         modifier = Modifier.fillMaxSize(),
                         frontContent = {
@@ -428,11 +444,10 @@ private fun StudyCanvas(
                             FlashcardBackContent(
                                 card = prevStudyItem?.flashcard,
                                 studyCard = prevStudyItem?.studyCard,
-                                typedAnswer = typedAnswer,
-                                typedAnswerChecked = typedAnswerChecked,
-                                typedAnswerCorrect = typedAnswerCorrect,
-                                isSpeaking = isSpeaking,
-                                ttsReady = ttsReady,
+                                typedAnswerChecked = typedAnswerState.typedAnswerChecked,
+                                typedAnswerCorrect = typedAnswerState.typedAnswerCorrect,
+                                isSpeaking = audioState.isSpeaking,
+                                ttsReady = audioState.ttsReady,
                                 onStop = onStop,
                                 onSpeak = onSpeak,
                             )
@@ -448,15 +463,8 @@ private fun StudyCanvas(
 private fun StudyActionDock(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
-    typedAnswer: String,
-    typedAnswerChecked: Boolean,
-    typedAnswerCorrect: Boolean,
-    onStartSession: () -> Unit,
-    onRevealAnswer: () -> Unit,
-    onTypedAnswerChange: (String) -> Unit,
-    onCheckTypedAnswer: () -> Unit,
-    onSkipTypedAnswer: () -> Unit,
-    onReviewAnswer: (ReviewGrade) -> Unit,
+    typedAnswerState: TypedAnswerState,
+    callbacks: StudyDockCallbacks,
     estimatedMinutes: Int,
     totalCount: Int,
     modifier: Modifier = Modifier,
@@ -476,7 +484,7 @@ private fun StudyActionDock(
             label = "study_action_dock",
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = STUDY_DOCK_MIN_HEIGHT),
+                .heightIn(min = studyDockMinHeight),
         ) { stage ->
             Column(
                 modifier = Modifier
@@ -502,7 +510,7 @@ private fun StudyActionDock(
                         )
                         HButton(
                             text = stringResource(R.string.study_start_cta),
-                            onClick = onStartSession,
+                            onClick = callbacks.onStartSession,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -532,7 +540,7 @@ private fun StudyActionDock(
                             } else {
                                 stringResource(R.string.study_reveal_answer)
                             },
-                            onClick = onRevealAnswer,
+                            onClick = callbacks.onRevealAnswer,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -546,23 +554,23 @@ private fun StudyActionDock(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         HInput(
-                            value = typedAnswer,
-                            onValueChange = onTypedAnswerChange,
+                            value = typedAnswerState.typedAnswer,
+                            onValueChange = callbacks.onTypedAnswerChange,
                             label = studyCard?.typedAnswerLabel() ?: "Tu respuesta",
                             placeholder = studyCard?.typedAnswerPlaceholder(flashcard) ?: "Escribe tu respuesta",
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { onCheckTypedAnswer() }),
+                            keyboardActions = KeyboardActions(onDone = { callbacks.onCheckTypedAnswer() }),
                         )
                         HButton(
                             text = stringResource(R.string.study_check_answer),
-                            onClick = onCheckTypedAnswer,
+                            onClick = callbacks.onCheckTypedAnswer,
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = typedAnswer.isNotBlank(),
+                            enabled = typedAnswerState.typedAnswer.isNotBlank(),
                         )
                         HButton(
                             text = stringResource(R.string.study_reveal_anyway),
-                            onClick = onSkipTypedAnswer,
+                            onClick = callbacks.onSkipTypedAnswer,
                             modifier = Modifier.fillMaxWidth(),
                             variant = ButtonVariant.Ghost,
                         )
@@ -571,10 +579,14 @@ private fun StudyActionDock(
                     StudyStage.Grade -> {
                         val needsTypedAnswer = currentItem?.studyCard?.needsTypedAnswer == true
                         val gradePolicy = currentItem?.studyCard?.gradePolicy(
-                            typedAnswerChecked = typedAnswerChecked,
-                            typedAnswerCorrect = typedAnswerCorrect,
+                            typedAnswerChecked = typedAnswerState.typedAnswerChecked,
+                            typedAnswerCorrect = typedAnswerState.typedAnswerCorrect,
                         ) ?: ReviewGradePolicy()
-                        if (needsTypedAnswer && typedAnswer.isBlank() && typedAnswerChecked) {
+                        if (
+                            needsTypedAnswer &&
+                            typedAnswerState.typedAnswer.isBlank() &&
+                            typedAnswerState.typedAnswerChecked
+                        ) {
                             Text(
                                 text = stringResource(R.string.study_skip_guidance),
                                 style = MaterialTheme.typography.bodySmall,
@@ -584,7 +596,7 @@ private fun StudyActionDock(
                         AnswerButtons(
                             enabledGrades = gradePolicy.enabledGrades,
                             guidance = gradePolicy.guidance,
-                            onReviewAnswer = onReviewAnswer,
+                            onReviewAnswer = callbacks.onReviewAnswer,
                         )
                     }
                 }
@@ -735,7 +747,6 @@ private fun FlashcardFrontContent(
 private fun FlashcardBackContent(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
-    typedAnswer: String,
     typedAnswerChecked: Boolean,
     typedAnswerCorrect: Boolean,
     isSpeaking: Boolean,
@@ -1016,14 +1027,6 @@ private fun GeneratedStudyCard.typedAnswerPlaceholder(card: Flashcard?): String 
                 "Escribe la forma correcta"
             }
         }
-    }
-}
-
-private fun GeneratedStudyCard.typedAnswerButtonLabel(): String {
-    return when (evaluationMode) {
-        EvaluationMode.Exact -> "Comprobar"
-        EvaluationMode.FlexibleText -> "Comparar"
-        EvaluationMode.ManualSelfCheck -> "Revisar"
     }
 }
 

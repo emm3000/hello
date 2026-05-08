@@ -422,33 +422,6 @@ class DefaultFlashcardRepository(
         }.getOrDefault(emptyList())
     }
 
-    private fun List<GeneratedStudyCard>.toStoredStudyCardDtos(): List<StoredStudyCardDto> {
-        return map { card ->
-            StoredStudyCardDto(
-                cardId = card.cardId,
-                cardType = card.cardType.name,
-                prompt = card.prompt,
-                expectedAnswer = card.expectedAnswer,
-                evaluationMode = card.evaluationMode.name,
-                isActive = card.isActive,
-                acceptedAnswers = card.acceptedAnswers,
-                hint = card.hint,
-                explanation = card.explanation,
-                sourceField = card.sourceField,
-            )
-        }
-    }
-
-    private fun List<GeneratedNoteQualityCheck>.toStoredQualityCheckDtos(): List<StoredNoteQualityCheckDto> {
-        return map { check ->
-            StoredNoteQualityCheckDto(
-                code = check.code.name,
-                passed = check.passed,
-                message = check.message,
-            )
-        }
-    }
-
     private fun StoredStudyCardDto.toDomain(): GeneratedStudyCard {
         return GeneratedStudyCard(
             cardId = cardId,

@@ -1,8 +1,8 @@
 package com.emm.domain.flashcard
 
-private val WHITESPACE_REGEX = "\\s+".toRegex()
+private val whitespaceRegex = "\\s+".toRegex()
 
 fun String.wordCountNormalized(): Int {
     if (isBlank()) return 0
-    return trim().split(WHITESPACE_REGEX).size
+    return trim().split(whitespaceRegex).size
 }
