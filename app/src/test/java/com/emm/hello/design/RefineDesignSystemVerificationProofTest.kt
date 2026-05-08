@@ -68,7 +68,8 @@ class RefineDesignSystemVerificationProofTest {
 
         val statCardImports = filesContaining("import com.emm.hello.core.ui.StatCard")
         assertThat(statCardImports).containsExactly(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt"
+            "app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt",
+            "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
         )
 
         val promotedPatternUsageOutsideApp = kotlinFilesUnder("data/src")

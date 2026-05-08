@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -61,7 +62,12 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
+    onVisible: () -> Unit = {},
 ) {
+    LaunchedEffect(Unit) {
+        onVisible()
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -123,6 +129,16 @@ fun DashboardScreen(
                         totalDecks = state.decks.size,
                         totalCards = totalPending,
                         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    )
+                }
+            }
+
+            // -- Study Stats ----------------------------------------------------------
+            item {
+                state.stats?.let { stats ->
+                    DashboardStatsSection(
+                        stats = stats,
+                        modifier = Modifier.padding(vertical = 4.dp),
                     )
                 }
             }

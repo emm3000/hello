@@ -108,7 +108,7 @@ class GeneratedLearningNoteResponseParserTest {
 
         assertEquals("note-1", result.noteId)
         assertEquals(LearningNoteType.PhrasalVerb, result.noteType)
-        assertEquals("pick up", result.expression)
+        assertEquals("pick up", result.expression.value)
         assertEquals(PartOfSpeechTag.PhrasalVerb, result.partOfSpeech)
         assertEquals(RegisterPreference.Neutral, result.register)
         assertEquals(LevelBand.A1_A2, result.levelBand)

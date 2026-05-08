@@ -295,3 +295,25 @@ WHERE flashcardId = ?;
 
 allReviewProjections:
 SELECT * FROM ReviewProjection;
+
+-- Count distinct flashcards reviewed within a date range.
+countDistinctCardsStudiedInRange:
+SELECT COUNT(DISTINCT flashcardId) FROM ReviewEvent
+WHERE reviewedAt >= :startMillis AND reviewedAt < :endMillis;
+
+-- Count flashcards due at or before a specific moment.
+countCardsDueBy:
+SELECT COUNT(*) FROM ReviewProjection
+WHERE nextReviewAt <= :nowMillis;
+
+-- Count flashcards due within a future window [nowMillis, endMillis).
+countCardsDueInRange:
+SELECT COUNT(*) FROM ReviewProjection
+WHERE nextReviewAt >= :nowMillis AND nextReviewAt < :endMillis;
+
+-- Return distinct review dates (as epoch millis at start-of-day) in descending order.
+-- Each row is the start-of-day in millis for a day that has at least one review.
+distinctReviewDatesDescending:
+SELECT DISTINCT (reviewedAt / 86400000) * 86400000 AS reviewDayMillis
+FROM ReviewEvent
+ORDER BY reviewDayMillis DESC;

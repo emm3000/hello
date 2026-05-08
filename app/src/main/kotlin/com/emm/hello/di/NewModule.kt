@@ -11,6 +11,7 @@ import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
+import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalIdentityInitializer
@@ -33,6 +34,8 @@ import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.study.GetDashboardStatsUseCase
+import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
@@ -91,6 +94,7 @@ fun Module.repository() {
     factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
+    factoryOf(::DefaultStudyStatsRepository) bind StudyStatsRepository::class
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::DataStore)
@@ -133,12 +137,13 @@ fun Module.useCases() {
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
+    factoryOf(::GetDashboardStatsUseCase)
 }
 
 fun Module.viewModels() {
     viewModel { AppStartupViewModel(get()) }
     viewModel { NewDeckViewModel(get()) }
-    viewModel { DashboardViewModel(get()) }
+    viewModel { DashboardViewModel(get(), get()) }
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),
