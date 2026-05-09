@@ -136,12 +136,12 @@ class ExportBackupDataSourceTest {
     }
 
     @Test
-    fun `export uses batch pagination for large datasets`() = runTest {
-        // Insert many decks to test pagination (more than BATCH_SIZE of 1000)
-        for (i in 0..25) {
+    fun `export paginates across batch boundary for large datasets`() = runTest {
+        // BATCH_SIZE=1000; insert 1005 to cross the boundary
+        repeat(1005) { i ->
             db.deckQueries.insert(
                 id = "deck-batch-$i",
-                name = "Deck $i",
+                name = "BatchDeck $i",
                 description = null,
                 createdAt = (1000L + i),
                 updatedAt = (1000L + i),
@@ -152,12 +152,13 @@ class ExportBackupDataSourceTest {
         val outputUri = Uri.parse("content://test/export.json")
         val capturedOutput = captureOutputStream(outputUri)
 
-        dataSource.export(outputUri)
+        val result = dataSource.export(outputUri)
 
+        assertTrue(result.isSuccess)
         val writtenJson = capturedOutput.toString()
-        // With 27 decks total (25 + 2 from setUp), verify all are exported
-        assertTrue(writtenJson.contains("Deck 0"))
-        assertTrue(writtenJson.contains("Deck 24"))
+        assertTrue(writtenJson.contains("BatchDeck 0"))
+        assertTrue(writtenJson.contains("BatchDeck 999"))
+        assertTrue(writtenJson.contains("BatchDeck 1004"))
     }
 
     @Test

@@ -7,8 +7,8 @@ import com.emm.data.HelloDb
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import kotlinx.serialization.json.Json
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -16,10 +16,6 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
-/**
- * Integration test: export → clear → re-import counts match.
- * Tests the full round-trip using real database operations.
- */
 class ExportImportIntegrationTest {
 
     private lateinit var db: HelloDb
@@ -34,7 +30,6 @@ class ExportImportIntegrationTest {
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
 
-        // Seed identity so deck insert works
         db.localFirstQueries.upsertLocalDeviceIdentity(
             deviceId = "test-device",
             installId = "install-test",
@@ -68,7 +63,6 @@ class ExportImportIntegrationTest {
 
     @Test
     fun `export then import produces identical counts`() = runTest {
-        // Seed data
         seedData()
 
         val (exportDS, baos) = createExportDataSource()
@@ -79,38 +73,28 @@ class ExportImportIntegrationTest {
         assertEquals(2, beforeDeckCount)
         assertEquals(3, beforeCardCount)
 
-        // Export
         val exportUri = Uri.parse("content://test/export-backup.json")
         exportDS.export(exportUri)
         val exportedJson = baos.toString()
         assertTrue(exportedJson.contains("Spanish"))
         assertTrue(exportedJson.contains("French"))
 
-        // Clear all tables (JDBC SQLite doesn't enforce FK cascades, so delete in dependency order)
-        db.exportQueries.deleteAllFlashcardExamples()
-        db.exportQueries.deleteAllFlashcards()
-        db.exportQueries.deleteAllDecks()
-        db.exportQueries.deleteAllTags()
-        db.exportQueries.deleteAllReviewEvents()
-        db.exportQueries.deleteAllReviewProjections()
+        clearAllTables()
 
         assertEquals(0, countDecks())
         assertEquals(0, countFlashcards())
 
-        // Import from exported JSON
         val importUri = Uri.parse("content://test/import.json")
         provideInputStream(exportedJson)
         val result = importDS.import(importUri)
         assertTrue(result.isSuccess)
 
-        // Verify counts match
         assertEquals(beforeDeckCount, countDecks())
         assertEquals(beforeCardCount, countFlashcards())
     }
 
     @Test
     fun `imported data has correct content after round-trip`() = runTest {
-        // Insert specific data
         db.deckQueries.insert(
             id = "deck-spanish",
             name = "Spanish Vocab",
@@ -152,20 +136,16 @@ class ExportImportIntegrationTest {
         val (exportDS, baos) = createExportDataSource()
         val importDS = createImportDataSource()
 
-        // Export
         val exportUri = Uri.parse("content://test/spanish-export.json")
         exportDS.export(exportUri)
         val exportedJson = baos.toString()
 
-        // Clear
-        db.exportQueries.deleteAllDecks()
+        clearAllTables()
 
-        // Import
         val importUri = Uri.parse("content://test/spanish-import.json")
         provideInputStream(exportedJson)
         importDS.import(importUri)
 
-        // Verify content
         val decks = db.deckQueries.all().executeAsList()
         assertEquals(1, decks.size)
         assertEquals("Spanish Vocab", decks[0].name)
@@ -177,7 +157,7 @@ class ExportImportIntegrationTest {
     }
 
     @Test
-    fun `export empty database produces valid empty backup`() = runTest {
+    fun `export empty database produces valid parseable envelope`() = runTest {
         val (exportDS, baos) = createExportDataSource()
 
         val exportUri = Uri.parse("content://test/empty-export.json")
@@ -186,9 +166,8 @@ class ExportImportIntegrationTest {
         assertTrue(result.isSuccess)
 
         val json = baos.toString()
-        assertTrue(json.contains("\"schemaVersion\": 1"))
-        // Empty lists are formatted with line breaks by prettyPrint, so just verify the JSON is parseable
-        val envelope = Json { ignoreUnknownKeys = true }.decodeFromString(BackupEnvelope.serializer(), json)
+        val envelope = Json { ignoreUnknownKeys = true }
+            .decodeFromString(BackupEnvelope.serializer(), json)
         assertEquals(0, envelope.decks.size)
         assertEquals(0, envelope.flashcards.size)
     }
@@ -197,7 +176,6 @@ class ExportImportIntegrationTest {
     fun `soft-deleted records are not exported`() = runTest {
         val (exportDS, baos) = createExportDataSource()
 
-        // Insert active deck
         db.deckQueries.insert(
             id = "deck-active",
             name = "Active Deck",
@@ -206,7 +184,6 @@ class ExportImportIntegrationTest {
             updatedAt = 100L,
             deletedAt = null,
         )
-        // Insert soft-deleted deck
         db.deckQueries.insert(
             id = "deck-deleted",
             name = "Deleted Deck",
@@ -229,7 +206,6 @@ class ExportImportIntegrationTest {
         val (exportDS, baos) = createExportDataSource()
         val importDS = createImportDataSource()
 
-        // Insert deck and card with review
         db.deckQueries.insert(
             id = "deck-review",
             name = "Review Deck",
@@ -279,21 +255,19 @@ class ExportImportIntegrationTest {
             updatedAt = 2000L,
         )
 
-        // Export
         val exportUri = Uri.parse("content://test/review-export.json")
         exportDS.export(exportUri)
         val exportedJson = baos.toString()
 
-        // Clear
+        db.exportQueries.deleteAllFlashcardExamples()
+        db.exportQueries.deleteAllFlashcards()
         db.exportQueries.deleteAllDecks()
         db.exportQueries.deleteAllReviewProjections()
 
-        // Import
         val importUri = Uri.parse("content://test/review-import.json")
         provideInputStream(exportedJson)
         importDS.import(importUri)
 
-        // Verify review projection was restored
         val projections = db.localFirstQueries.allReviewProjections().executeAsList()
         assertEquals(1, projections.size)
         assertEquals("card-review", projections[0].flashcardId)
@@ -301,9 +275,81 @@ class ExportImportIntegrationTest {
         assertEquals(2.5, projections[0].easeFactor, 0.001)
     }
 
+    @Test
+    fun `import malformed JSON does not corrupt database`() = runTest {
+        db.deckQueries.insert(
+            id = "existing-deck",
+            name = "Existing",
+            description = null,
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = null,
+        )
+        assertEquals(1, countDecks())
+
+        val malformedJson = """{schemaVersion": 1, "decks": [invalid"""
+        val importDS = createImportDataSource()
+        val importUri = Uri.parse("content://test/malformed.json")
+        provideInputStream(malformedJson)
+
+        val result = importDS.import(importUri)
+        assertTrue(result.isFailure)
+
+        assertEquals(1, countDecks())
+    }
+
+    @Test
+    fun `import truncated JSON does not corrupt database`() = runTest {
+        db.deckQueries.insert(
+            id = "existing-deck",
+            name = "Existing",
+            description = null,
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = null,
+        )
+        assertEquals(1, countDecks())
+
+        val truncatedJson = """{"schemaVersion": 1, "exportedAt": 123,"""
+        val importDS = createImportDataSource()
+        val importUri = Uri.parse("content://test/truncated.json")
+        provideInputStream(truncatedJson)
+
+        val result = importDS.import(importUri)
+        assertTrue(result.isFailure)
+
+        assertEquals(1, countDecks())
+    }
+
+    @Test
+    fun `transaction rollback preserves database on mid-import failure`() = runTest {
+        db.deckQueries.insert(
+            id = "existing-deck",
+            name = "Survivor Deck",
+            description = "Should survive a failed import",
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = null,
+        )
+        assertEquals(1, countDecks())
+
+        val result = runCatching {
+            db.transaction {
+                db.exportQueries.deleteAllDecks()
+                error("simulated mid-import failure")
+            }
+        }
+
+        assertTrue(result.isFailure)
+        assertEquals(1, countDecks())
+        assertEquals(
+            "Survivor Deck",
+            db.deckQueries.findById("existing-deck").executeAsOne().name,
+        )
+    }
+
     @Suppress("LongMethod")
     private fun seedData() {
-        // Insert 2 decks
         db.deckQueries.insert(
             id = "deck-1",
             name = "Spanish",
@@ -321,7 +367,6 @@ class ExportImportIntegrationTest {
             deletedAt = null,
         )
 
-        // Insert 3 flashcards
         listOf("card-1", "card-2", "card-3").forEachIndexed { index, cardId ->
             db.flashcardQueries.create(
                 id = cardId,
@@ -354,22 +399,32 @@ class ExportImportIntegrationTest {
             )
         }
 
-        // Insert 5 tags
-        listOf("spanish", "french", "travel", "food", "business").forEachIndexed { index, tagName ->
-            db.exportQueries.insertTag(
-                id = "tag-$index",
-                name = tagName,
-                createdAt = (400L + index),
-                deletedAt = null,
-            )
-        }
+        listOf("spanish", "french", "travel", "food", "business")
+            .forEachIndexed { index, tagName ->
+                db.exportQueries.insertTag(
+                    id = "tag-$index",
+                    name = tagName,
+                    createdAt = (400L + index),
+                    deletedAt = null,
+                )
+            }
 
-        // Insert deck-tags
-        db.tagQueries.insertDeckTag(tagId = "tag-0", deckId = "deck-1", createdAt = 500L)
-        db.tagQueries.insertDeckTag(tagId = "tag-1", deckId = "deck-1", createdAt = 500L)
-        db.tagQueries.insertDeckTag(tagId = "tag-2", deckId = "deck-2", createdAt = 500L)
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-0",
+            deckId = "deck-1",
+            createdAt = 500L,
+        )
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-1",
+            deckId = "deck-1",
+            createdAt = 500L,
+        )
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-2",
+            deckId = "deck-2",
+            createdAt = 500L,
+        )
 
-        // Insert review projection
         db.localFirstQueries.upsertReviewProjection(
             flashcardId = "card-1",
             lastReviewedAt = 1000L,
@@ -381,5 +436,14 @@ class ExportImportIntegrationTest {
             sourceEventId = "event-1",
             updatedAt = 2000L,
         )
+    }
+
+    private fun clearAllTables() {
+        db.exportQueries.deleteAllFlashcardExamples()
+        db.exportQueries.deleteAllFlashcards()
+        db.exportQueries.deleteAllDecks()
+        db.exportQueries.deleteAllTags()
+        db.exportQueries.deleteAllReviewEvents()
+        db.exportQueries.deleteAllReviewProjections()
     }
 }
