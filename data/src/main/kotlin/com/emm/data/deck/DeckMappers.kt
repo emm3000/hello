@@ -21,25 +21,25 @@ private val tagJson = Json { ignoreUnknownKeys = true }
 
 fun parseTags(tagsJson: String?): List<Tag> {
     if (tagsJson.isNullOrBlank()) return emptyList()
-    return try {
-        when (val element: JsonElement = tagJson.decodeFromString(tagsJson)) {
-            is JsonArray -> element.mapNotNull { item ->
-                if (item is JsonPrimitive && item.isString) {
-                    val value = item.content
-                    if (value.isNotBlank()) {
-                        Tag(value = value.lowercase().trim())
-                    } else {
-                        null
-                    }
-                } else {
-                    null
-                }
-            }
-            else -> emptyList()
-        }
+
+    val element = try {
+        tagJson.decodeFromString<JsonElement>(tagsJson)
     } catch (_: Exception) {
+        return emptyList()
+    }
+
+    return if (element is JsonArray) {
+        element.mapNotNull { item -> item.toTagOrNull() }
+    } else {
         emptyList()
     }
+}
+
+private fun JsonElement.toTagOrNull(): Tag? {
+    if (this !is JsonPrimitive || !isString) return null
+    val value = content
+    if (value.isBlank()) return null
+    return Tag(value = value.lowercase().trim())
 }
 
 fun DeckEntity.toDomain(): Deck = Deck(

@@ -69,6 +69,14 @@ naming:
 
 style:
   active: true
+  ReturnCount:
+    active: true
+    max: 5
+    excludeLabeled: true
+    excludedFunctions:
+      - 'equals'
+    ignoreAnnotated:
+      - 'Composable'
   MaxLineLength:
     active: false
   ForbiddenComment:
