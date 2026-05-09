@@ -84,6 +84,7 @@ val newModule = module {
 }
 
 fun Module.repository() {
+    single { androidContext().contentResolver }
     single {
         Json {
             ignoreUnknownKeys = true
