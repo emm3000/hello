@@ -28,6 +28,10 @@ SELECT t.* FROM Tag t
 JOIN DeckTag dt ON dt.tagId = t.id
 WHERE dt.deckId = ? AND t.deletedAt IS NULL;
 
+findByName:
+SELECT t.* FROM Tag t
+WHERE lower(t.name) = lower(?) AND t.deletedAt IS NULL;
+
 insertDeckTag:
 INSERT OR IGNORE INTO DeckTag (tagId, deckId, createdAt)
 VALUES (?, ?, ?);

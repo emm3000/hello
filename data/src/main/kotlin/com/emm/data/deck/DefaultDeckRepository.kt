@@ -49,11 +49,14 @@ class DefaultDeckRepository(
                 val tq = db.tagQueries
                 deck.tags.forEach { tagName ->
                     val normalized = tagName.lowercase().trim()
-                    tq.getOrCreateTags(
-                        name = normalized,
-                        createdAt = now,
-                    )
-                    val tagId = UUID.randomUUID().toString()
+                    // First check if tag already exists
+                    val existingTag = tq.findByName(normalized).executeAsOneOrNull()
+                    val tagId = if (existingTag != null) {
+                        existingTag.id
+                    } else {
+                        tq.getOrCreateTags(name = normalized, createdAt = now)
+                        tq.findByName(normalized).executeAsOne().id
+                    }
                     tq.insertDeckTag(
                         tagId = tagId,
                         deckId = newId,

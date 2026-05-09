@@ -54,8 +54,16 @@ class LocalOnlyLocalWritesIntegrationTest {
         )
         val reviewRepository = DefaultFlashcardReviewRepository(db = db)
 
-        deckRepository.addDeck(CreateDeckInput(name = "Travel", description = "Trip phrases"))
+        deckRepository.addDeck(CreateDeckInput(name = "Travel", description = "Trip phrases", tags = listOf("travel")))
         val deck = db.deckQueries.all().executeAsOne()
+
+        val tags = db.tagQueries.findByDeckId(deck.id).executeAsList()
+
+        assertEquals("device-local-only", identity.deviceId)
+        assertFalse(identity.createdInstallation)
+        assertEquals("Travel", deck.name)
+        assertEquals(1, tags.size)
+        assertEquals("travel", tags[0].name)
 
         val flashcardId = flashcardRepository.create(
             CreateFlashcardInput(
@@ -92,6 +100,35 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals(300L, reviewProjection.nextReviewAt)
         assertEquals(flashcardId.value, reviewEvent.flashcardId)
         assertNotNull(db.flashcardQueries.findById(flashcardId.value).executeAsOneOrNull())
+    }
+
+    @Test
+    fun `deck creation with multiple tags persists tags and deck-tag relations`() = runTest {
+        seedDeviceIdentity(deviceId = "device-tags")
+
+        val identity = localIdentityInitializer.ensureReady()
+
+        val tagRepository = DefaultTagRepository(db = db)
+        val deckRepository = DefaultDeckRepository(db = db, tagRepository = tagRepository)
+
+        deckRepository.addDeck(
+            CreateDeckInput(
+                name = "Languages",
+                description = "Learning phrases",
+                tags = listOf("spanish", "  TRAVEL ", "French"),
+            ),
+        )
+        val deck = db.deckQueries.all().executeAsOne()
+
+        val tags = db.tagQueries.findByDeckId(deck.id).executeAsList()
+
+        assertEquals("device-tags", identity.deviceId)
+        assertFalse(identity.createdInstallation)
+        assertEquals("Languages", deck.name)
+        // Tags are lowercased and trimmed
+        assertEquals(3, tags.size)
+        val tagNames = tags.map { it.name }.sorted()
+        assertEquals(listOf("french", "spanish", "travel"), tagNames)
     }
 
     @Test

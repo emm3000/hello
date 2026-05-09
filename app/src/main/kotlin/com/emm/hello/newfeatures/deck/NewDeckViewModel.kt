@@ -18,7 +18,9 @@ class NewDeckViewModel(
         when (intent) {
             is NewDeckUiIntent.DescriptionChanged -> mutableState.update { it.copy(description = intent.description) }
             is NewDeckUiIntent.NameChanged -> mutableState.update { it.copy(name = intent.name) }
-            is NewDeckUiIntent.TagsChanged -> mutableState.update { it.copy(tags = intent.tags) }
+            is NewDeckUiIntent.TagsChanged -> mutableState.update {
+                it.copy(tags = intent.tags.normalizeTags())
+            }
             NewDeckUiIntent.Submit -> createDeck()
         }
     }
@@ -47,3 +49,8 @@ class NewDeckViewModel(
 }
 
 private const val TAG = "NewDeckViewModel"
+
+private fun List<String>.normalizeTags(): List<String> =
+    map { it.lowercase().trim() }
+        .filter { it.isNotBlank() }
+        .distinct()

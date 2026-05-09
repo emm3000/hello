@@ -36,7 +36,44 @@ class NewDeckViewModelTest {
         assertThat(viewModel.uiState.value.name).isEmpty()
         assertThat(viewModel.uiState.value.description).isEmpty()
         assertThat(viewModel.uiState.value.isLoading).isFalse()
-        assertThat(repository.lastAdded).isEqualTo(CreateDeckInput("My deck", "Optional"))
+        assertThat(repository.lastAdded).isEqualTo(CreateDeckInput("My deck", "Optional", emptyList()))
+    }
+
+    @Test
+    fun `submit with tags passes normalized tags to repository`() = runTest {
+        val repository = FakeDeckRepository()
+        val viewModel = NewDeckViewModel(repository)
+
+        viewModel.onIntent(NewDeckUiIntent.NameChanged("Travel Deck"))
+        viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Spanish ", "TRAVEL", "spanish")))
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(NewDeckUiIntent.Submit)
+
+        val effect = effectDeferred.await()
+        assertThat(effect).isEqualTo(NewDeckUiEffect.NavigateBack)
+        // Tags should be normalized: lowercase, trimmed, deduplicated
+        assertThat(repository.lastAdded?.tags).isEqualTo(listOf("spanish", "travel"))
+    }
+
+    @Test
+    fun `tags changed normalizes tags before updating state`() = runTest {
+        val repository = FakeDeckRepository()
+        val viewModel = NewDeckViewModel(repository)
+
+        viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Mixed ", "UPPERCASE", "mixed", "")))
+
+        assertThat(viewModel.uiState.value.tags).isEqualTo(listOf("mixed", "uppercase"))
+    }
+
+    @Test
+    fun `tags changed removes blank tags`() = runTest {
+        val repository = FakeDeckRepository()
+        val viewModel = NewDeckViewModel(repository)
+
+        viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("valid", "   ", "", "  ")))
+
+        assertThat(viewModel.uiState.value.tags).isEqualTo(listOf("valid"))
     }
 
     @Test
