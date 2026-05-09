@@ -15,6 +15,7 @@ import com.emm.domain.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -147,6 +148,8 @@ private class FakeDeckRepository : DeckRepository {
     override fun fetchAll(): Flow<List<Deck>> = flowOf(emptyList())
 
     override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(emptyList())
+
+    override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 }
 
 private class FakeFlashcardRepository : FlashcardRepository {

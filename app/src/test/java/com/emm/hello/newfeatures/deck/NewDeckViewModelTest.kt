@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.deck
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.Tag
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
@@ -72,5 +73,7 @@ class NewDeckViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
+
+        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }
 }

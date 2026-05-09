@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
@@ -127,6 +128,8 @@ class DashboardViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> =
             if (emitImmediately) flowOf(decks) else emptyFlow()
+
+        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }
 
     private class FakeStatsRepo(

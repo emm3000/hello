@@ -26,8 +26,14 @@ fun parseTags(tagsJson: String?): List<Tag> {
             is JsonArray -> element.mapNotNull { item ->
                 if (item is JsonPrimitive && item.isString) {
                     val value = item.content
-                    if (value.isNotBlank()) Tag(value = value.lowercase().trim()) else null
-                } else null
+                    if (value.isNotBlank()) {
+                        Tag(value = value.lowercase().trim())
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
             }
             else -> emptyList()
         }

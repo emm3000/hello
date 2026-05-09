@@ -3,6 +3,7 @@ package com.emm.data.localfirst
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
+import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.GeminiService
@@ -44,7 +45,8 @@ class LocalOnlyLocalWritesIntegrationTest {
 
         val identity = localIdentityInitializer.ensureReady()
 
-        val deckRepository = DefaultDeckRepository(db = db)
+        val tagRepository = DefaultTagRepository(db = db)
+        val deckRepository = DefaultDeckRepository(db = db, tagRepository = tagRepository)
         val flashcardRepository = DefaultFlashcardRepository(
             db = db,
             geminiService = mockk<GeminiService>(),
@@ -124,7 +126,8 @@ class LocalOnlyLocalWritesIntegrationTest {
             seedDeviceIdentity(firstDb, deviceId = "device-reopen")
             val identity = firstInitializer.ensureReady()
 
-            val deckRepository = DefaultDeckRepository(db = firstDb)
+            val firstTagRepository = DefaultTagRepository(db = firstDb)
+            val deckRepository = DefaultDeckRepository(db = firstDb, tagRepository = firstTagRepository)
             val flashcardRepository = DefaultFlashcardRepository(
                 db = firstDb,
                 geminiService = mockk<GeminiService>(),

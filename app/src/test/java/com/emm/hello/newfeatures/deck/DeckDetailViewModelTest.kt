@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.deck
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
@@ -191,6 +192,7 @@ class DeckDetailViewModelTest {
         override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
+        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }
 
     private class FakeCardRepo : FlashcardRepository {
