@@ -52,6 +52,8 @@ import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.domain.time.SystemClock
 import com.emm.hello.BuildConfig
+import com.emm.data.export.BackupExporter
+import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
@@ -105,8 +107,8 @@ fun Module.repository() {
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::DataStore)
-    factoryOf(::ExportBackupDataSource)
-    factoryOf(::ImportBackupDataSource)
+    factoryOf(::ExportBackupDataSource) bind BackupExporter::class
+    factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     single { AppStartupCoordinator(get()) }
 }
 

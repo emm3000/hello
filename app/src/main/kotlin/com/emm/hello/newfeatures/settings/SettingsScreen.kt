@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,16 +40,15 @@ import com.emm.hello.core.ui.HCardHeader
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    state: SettingsUiState,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    state: SettingsUiState = SettingsUiState(),
     onExport: () -> Unit = {},
     onImport: () -> Unit = {},
     onConfirmImport: () -> Unit = {},
     onDismissImport: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {

@@ -2,8 +2,8 @@ package com.emm.hello.newfeatures.settings
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
-import com.emm.data.export.ExportBackupDataSource
-import com.emm.data.export.ImportBackupDataSource
+import com.emm.data.export.BackupExporter
+import com.emm.data.export.BackupImporter
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.launch
@@ -11,13 +11,11 @@ import kotlinx.coroutines.launch
 private const val TAG = "SettingsViewModel"
 
 class SettingsViewModel(
-    private val exportDataSource: ExportBackupDataSource,
-    private val importDataSource: ImportBackupDataSource,
+    private val exportDataSource: BackupExporter,
+    private val importDataSource: BackupImporter,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(),
 ) {
-
-    private var pendingImportUri: Uri? = null
 
     override fun onIntent(intent: SettingsUiIntent) {
         when (intent) {
@@ -44,12 +42,14 @@ class SettingsViewModel(
     }
 
     fun onImportUri(uri: Uri) {
-        pendingImportUri = uri
-        mutableState.value = mutableState.value.copy(showConfirmDialog = true)
+        mutableState.value = mutableState.value.copy(
+            showConfirmDialog = true,
+            pendingImportUri = uri,
+        )
     }
 
     private fun confirmImport() {
-        val uri = pendingImportUri ?: return
+        val uri = mutableState.value.pendingImportUri ?: return
         mutableState.value = mutableState.value.copy(showConfirmDialog = false)
 
         viewModelScope.launch {
@@ -62,13 +62,14 @@ class SettingsViewModel(
                     logError(TAG, "import:error ${error.message}", error)
                     mutableEffect.send(SettingsUiEffect.ShowError(error.message ?: "Import failed"))
                 }
-            mutableState.value = mutableState.value.copy(isImporting = false)
-            pendingImportUri = null
+            mutableState.value = mutableState.value.copy(isImporting = false, pendingImportUri = null)
         }
     }
 
     private fun cancelImport() {
-        mutableState.value = mutableState.value.copy(showConfirmDialog = false)
-        pendingImportUri = null
+        mutableState.value = mutableState.value.copy(
+            showConfirmDialog = false,
+            pendingImportUri = null,
+        )
     }
 }

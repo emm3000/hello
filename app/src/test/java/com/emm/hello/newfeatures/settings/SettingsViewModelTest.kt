@@ -1,10 +1,8 @@
 package com.emm.hello.newfeatures.settings
 
 import android.net.Uri
-import com.emm.data.export.ExportBackupDataSource
-import com.emm.data.export.ExportException
-import com.emm.data.export.ImportBackupDataSource
-import com.emm.data.export.ImportException
+import com.emm.data.export.BackupExporter
+import com.emm.data.export.BackupImporter
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
@@ -30,8 +28,8 @@ class SettingsViewModelTest {
 
     @Test
     fun `onExportUri success emits ShowSuccess effect`() = runTest {
-        val exportDataSource = FakeExportDataSource(Result.success(Unit))
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter(Result.success(Unit))
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
@@ -46,8 +44,8 @@ class SettingsViewModelTest {
 
     @Test
     fun `onExportUri failure emits ShowError effect`() = runTest {
-        val exportDataSource = FakeExportDataSource(Result.failure(ExportException("Export failed")))
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter(Result.failure(Exception("Export failed")))
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
@@ -62,21 +60,22 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `onImportUri shows confirmation dialog`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource()
+    fun `onImportUri shows confirmation dialog and stores uri`() = runTest {
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onImportUri(uri)
 
         assertThat(viewModel.uiState.value.showConfirmDialog).isTrue()
+        assertThat(viewModel.uiState.value.pendingImportUri).isEqualTo(uri)
     }
 
     @Test
     fun `confirmImport success emits ShowSuccess and clears dialog`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource(Result.success(Unit))
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter(Result.success(Unit))
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
@@ -86,17 +85,17 @@ class SettingsViewModelTest {
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
 
-        // Wait for effect
         val effect = effectDeferred.await()
         assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup restored successfully"))
         assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
         assertThat(viewModel.uiState.value.isImporting).isFalse()
+        assertThat(viewModel.uiState.value.pendingImportUri).isNull()
     }
 
     @Test
     fun `confirmImport failure emits ShowError and clears dialog`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource(Result.failure(ImportException("Import failed")))
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter(Result.failure(Exception("Import failed")))
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
@@ -113,8 +112,8 @@ class SettingsViewModelTest {
 
     @Test
     fun `cancelImport dismisses dialog without importing`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
@@ -124,40 +123,39 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.CancelImport)
 
         assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
+        assertThat(viewModel.uiState.value.pendingImportUri).isNull()
         assertThat(importDataSource.importCalled).isFalse()
     }
 
     @Test
     fun `isExporting is true during export operation`() = runTest {
-        val exportDataSource = FakeExportDataSource(suspendDuring = 100L)
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter(suspendDuring = 100L)
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
 
-        // Start export and check state immediately
         viewModel.onExportUri(uri)
         assertThat(viewModel.uiState.value.isExporting).isTrue()
     }
 
     @Test
     fun `isImporting is true during import operation`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource(suspendDuring = 100L)
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter(suspendDuring = 100L)
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onImportUri(uri)
 
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
-        // State should be importing right after ConfirmImport
         assertThat(viewModel.uiState.value.isImporting).isTrue()
     }
 
     @Test
     fun `ExportData intent does nothing (SAF picker handled by Route)`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         viewModel.onIntent(SettingsUiIntent.ExportData)
@@ -168,8 +166,8 @@ class SettingsViewModelTest {
 
     @Test
     fun `ImportData intent does nothing (SAF picker handled by Route)`() = runTest {
-        val exportDataSource = FakeExportDataSource()
-        val importDataSource = FakeImportDataSource()
+        val exportDataSource = FakeBackupExporter()
+        val importDataSource = FakeBackupImporter()
         val viewModel = SettingsViewModel(exportDataSource, importDataSource)
 
         viewModel.onIntent(SettingsUiIntent.ImportData)
@@ -178,10 +176,10 @@ class SettingsViewModelTest {
     }
 }
 
-private class FakeExportDataSource(
+private class FakeBackupExporter(
     private val result: Result<Unit> = Result.success(Unit),
     private val suspendDuring: Long = 0L,
-) : ExportBackupDataSource(mockk(relaxed = true), mockk(relaxed = true)) {
+) : BackupExporter {
 
     var exportCalled = false
 
@@ -192,10 +190,10 @@ private class FakeExportDataSource(
     }
 }
 
-private class FakeImportDataSource(
+private class FakeBackupImporter(
     private val result: Result<Unit> = Result.success(Unit),
     private val suspendDuring: Long = 0L,
-) : ImportBackupDataSource(mockk(relaxed = true), mockk(relaxed = true)) {
+) : BackupImporter {
 
     var importCalled = false
 
