@@ -67,6 +67,55 @@ Todo nuevo diseño o componente debe seguir esta jerarquía:
 
 **Regla de hierro**: un componente custom en un screen NUNCA reemplaza un componente de `core/ui` que exista para ese propósito. Si el de `core/ui` no sirve, se extiende o modifica primero.
 
+## Linting y code style (detekt)
+
+Reglas activas en `config/detekt/detekt.yml`:
+
+### Complexity — evitar callback hell y anidamiento profundo
+
+```yaml
+CyclomaticComplexMethod:
+  active: true
+  threshold: 10
+  ignoreSingleWhenExpression: true
+  ignoreSimpleWhenEntries: true
+  nestingFunctions:
+    - 'also'
+    - 'apply'
+    - 'run'
+    - 'let'
+    - 'use'
+    - 'with'
+```
+
+**Por qué**: Estas funciones son las que generan callback hell. Si ves métodos con muchos `also { apply { run { ... } } }`, refactorear con funciones intermedias o early return.
+
+### Style — early return y returns moderados
+
+```yaml
+ReturnCount:
+  active: true
+  max: 5
+  excludeLabeled: true       # labeled returns no cuentan (return@mapNotNull)
+  excludedFunctions:
+    - 'equals'
+  ignoreAnnotated:
+    - 'Composable'
+```
+
+**Por qué**: Más de 5 returns confunde. Usar:
+- Early returns en guard clauses (validación, null-checks)
+- Labeled returns en lambdas (`return@mapNotNull null`) para short-circuit
+- Extraer lógica a funciones privadas si un método tiene muchos branches
+
+### Regla de hierro para código nuevo
+
+Antes de commitear, verificar:
+1. ¿Hay más de 3 niveles de nesting? → extraer función
+2. ¿Hay muchos `else if` encadenados? → usar `when` o extraer funciones
+3. ¿La función hace muchas cosas? → split en funciones más pequeñas
+4. ¿Las lambdas tienen `also/apply/run/let` anidados? → refactorizar con funciones intermedias
+
 ## Toolchain actual
 
 - Java 17
