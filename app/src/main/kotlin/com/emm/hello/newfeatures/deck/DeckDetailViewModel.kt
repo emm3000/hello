@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import java.time.Instant
 
 class DeckDetailViewModel(
@@ -45,16 +46,12 @@ class DeckDetailViewModel(
     override fun onIntent(intent: DeckDetailUiIntent) {
         when (intent) {
             is DeckDetailUiIntent.SearchCardsChanged -> {
-                mutableState.value = mutableState.value.copy(searchQuery = intent.query)
+                mutableState.update { it.copy(searchQuery = intent.query) }
             }
         }
     }
 }
 
-/**
- * Returns true when the card's word, translation, or meaning contains the query
- * (case-insensitive). Whitespace-only queries are treated as empty (always match).
- */
 internal fun matchesSearchQuery(card: Flashcard, query: String): Boolean {
     val trimmed = query.trim()
     if (trimmed.isEmpty()) return true

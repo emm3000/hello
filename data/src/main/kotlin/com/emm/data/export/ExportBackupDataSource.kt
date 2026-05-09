@@ -6,14 +6,8 @@ import com.emm.data.HelloDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.io.Writer
 
-/**
- * Streams database records in batches of 1000 via LIMIT/OFFSET pagination,
- * writing directly to a user-chosen SAF output URI as UTF-8 JSON.
- *
- * Exports as a single JSON object per spec format:
- * { "schemaVersion": 1, "exportedAt": 123, "decks": [...], ... }
- */
 class ExportBackupDataSource(
     private val db: HelloDb,
     private val contentResolver: ContentResolver,
@@ -34,237 +28,167 @@ class ExportBackupDataSource(
             val outputStream = contentResolver.openOutputStream(outputUri)
                 ?: throw ExportException("Cannot open output URI for writing")
 
-            outputStream.bufferedWriter().use { writer ->
-                exportAll(writer)
-            }
+            outputStream.bufferedWriter().use { writer -> exportAll(writer) }
         }
     }
 
-    private fun exportAll(writer: java.io.Writer) {
+    @Suppress("LongMethod")
+    private fun exportAll(writer: Writer) {
         val exportedAt = System.currentTimeMillis()
 
         writer.write("{\n")
         writer.write("  \"schemaVersion\": $SUPPORTED_VERSION,\n")
         writer.write("  \"exportedAt\": $exportedAt,\n")
 
-        exportDecks(writer)
+        exportEntities(writer, "decks") { limit, offset ->
+            db.exportQueries.allDecksPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    DeckDto(
+                        id = it.id,
+                        name = it.name,
+                        description = it.description,
+                        createdAt = it.createdAt,
+                        updatedAt = it.updatedAt,
+                        deletedAt = it.deletedAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportFlashcards(writer)
+        exportEntities(writer, "flashcards") { limit, offset ->
+            db.exportQueries.allFlashcardsPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    FlashcardDto(
+                        id = it.id,
+                        deckId = it.deckId,
+                        word = it.word,
+                        meaning = it.meaning,
+                        translation = it.translation,
+                        phonetic = it.phonetic,
+                        partOfSpeech = it.partOfSpeech,
+                        type = it.type,
+                        note = it.note,
+                        register = it.register,
+                        levelBand = it.levelBand,
+                        domain = it.domain,
+                        lemma = it.lemma,
+                        whyUseful = it.whyUseful,
+                        usagePattern = it.usagePattern,
+                        irregularFormsJson = it.irregularFormsJson,
+                        collocationsJson = it.collocationsJson,
+                        commonMistake = it.commonMistake,
+                        confusableWithJson = it.confusableWithJson,
+                        clozeSentence = it.clozeSentence,
+                        sourceContext = it.sourceContext,
+                        warningsJson = it.warningsJson,
+                        studyCardsJson = it.studyCardsJson,
+                        qualityChecksJson = it.qualityChecksJson,
+                        createdAt = it.createdAt,
+                        updatedAt = it.updatedAt,
+                        deletedAt = it.deletedAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportExamples(writer)
+        exportEntities(writer, "examples") { limit, offset ->
+            db.exportQueries.allExamplesPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    FlashcardExampleDto(
+                        id = it.id,
+                        flashcardId = it.flashcardId,
+                        text = it.text,
+                        translation = it.translation,
+                        type = it.type,
+                        createdAt = it.createdAt,
+                        updatedAt = it.updatedAt,
+                        deletedAt = it.deletedAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportTags(writer)
+        exportEntities(writer, "tags") { limit, offset ->
+            db.exportQueries.allTagsPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    TagDto(
+                        id = it.id,
+                        name = it.name,
+                        createdAt = it.createdAt,
+                        deletedAt = it.deletedAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportDeckTags(writer)
+        exportEntities(writer, "deckTags") { limit, offset ->
+            db.exportQueries.allDeckTagsPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    DeckTagDto(
+                        tagId = it.tagId,
+                        deckId = it.deckId,
+                        createdAt = it.createdAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportReviewEvents(writer)
+        exportEntities(writer, "reviewEvents") { limit, offset ->
+            db.exportQueries.allReviewEventsPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    ReviewEventDto(
+                        eventId = it.eventId,
+                        flashcardId = it.flashcardId,
+                        grade = it.grade,
+                        reviewedAt = it.reviewedAt,
+                        nextReviewAt = it.nextReviewAt,
+                        easeFactor = it.easeFactor,
+                        interval = it.interval,
+                        repetitions = it.repetitions,
+                        lapses = it.lapses,
+                        createdAt = it.createdAt,
+                    )
+                )
+            }
+        }
         writer.write(",\n")
-        exportReviewProjections(writer)
+        exportEntities(writer, "reviewProjections") { limit, offset ->
+            db.exportQueries.allReviewProjectionsPaged(limit, offset).executeAsList().map {
+                json.encodeToString(
+                    ReviewProjectionDto(
+                        flashcardId = it.flashcardId,
+                        lastReviewedAt = it.lastReviewedAt,
+                        nextReviewAt = it.nextReviewAt,
+                        easeFactor = it.easeFactor,
+                        interval = it.interval,
+                        repetitions = it.repetitions,
+                        lapses = it.lapses,
+                        sourceEventId = it.sourceEventId,
+                        updatedAt = it.updatedAt,
+                    )
+                )
+            }
+        }
 
         writer.write("\n}\n")
     }
 
-    private fun exportDecks(writer: java.io.Writer) {
-        writer.write("  \"decks\": [\n")
+    private fun exportEntities(
+        writer: Writer,
+        key: String,
+        pagedQuery: (limit: Long, offset: Long) -> List<String>,
+    ) {
+        writer.write("  \"$key\": [\n")
         var offset = 0L
         var isFirst = true
         while (true) {
-            val rows = db.exportQueries.allDecksPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
+            val serializedRows = pagedQuery(BATCH_SIZE, offset)
+            if (serializedRows.isEmpty()) break
+            serializedRows.forEach { serialized ->
                 if (!isFirst) writer.write(",\n")
                 isFirst = false
-                val dto = DeckDto(
-                    id = row.id,
-                    name = row.name,
-                    description = row.description,
-                    createdAt = row.createdAt,
-                    updatedAt = row.updatedAt,
-                    deletedAt = row.deletedAt,
-                )
                 writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportFlashcards(writer: java.io.Writer) {
-        writer.write("  \"flashcards\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allFlashcardsPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = FlashcardDto(
-                    id = row.id,
-                    deckId = row.deckId,
-                    word = row.word,
-                    meaning = row.meaning,
-                    translation = row.translation,
-                    phonetic = row.phonetic,
-                    partOfSpeech = row.partOfSpeech,
-                    type = row.type,
-                    note = row.note,
-                    register = row.register,
-                    levelBand = row.levelBand,
-                    domain = row.domain,
-                    lemma = row.lemma,
-                    whyUseful = row.whyUseful,
-                    usagePattern = row.usagePattern,
-                    irregularFormsJson = row.irregularFormsJson,
-                    collocationsJson = row.collocationsJson,
-                    commonMistake = row.commonMistake,
-                    confusableWithJson = row.confusableWithJson,
-                    clozeSentence = row.clozeSentence,
-                    sourceContext = row.sourceContext,
-                    warningsJson = row.warningsJson,
-                    studyCardsJson = row.studyCardsJson,
-                    qualityChecksJson = row.qualityChecksJson,
-                    createdAt = row.createdAt,
-                    updatedAt = row.updatedAt,
-                    deletedAt = row.deletedAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportExamples(writer: java.io.Writer) {
-        writer.write("  \"examples\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allExamplesPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = FlashcardExampleDto(
-                    id = row.id,
-                    flashcardId = row.flashcardId,
-                    text = row.text,
-                    translation = row.translation,
-                    type = row.type,
-                    createdAt = row.createdAt,
-                    updatedAt = row.updatedAt,
-                    deletedAt = row.deletedAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportTags(writer: java.io.Writer) {
-        writer.write("  \"tags\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allTagsPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = TagDto(
-                    id = row.id,
-                    name = row.name,
-                    createdAt = row.createdAt,
-                    deletedAt = row.deletedAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportDeckTags(writer: java.io.Writer) {
-        writer.write("  \"deckTags\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allDeckTagsPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = DeckTagDto(
-                    tagId = row.tagId,
-                    deckId = row.deckId,
-                    createdAt = row.createdAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportReviewEvents(writer: java.io.Writer) {
-        writer.write("  \"reviewEvents\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allReviewEventsPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = ReviewEventDto(
-                    eventId = row.eventId,
-                    flashcardId = row.flashcardId,
-                    grade = row.grade,
-                    reviewedAt = row.reviewedAt,
-                    nextReviewAt = row.nextReviewAt,
-                    easeFactor = row.easeFactor,
-                    interval = row.interval,
-                    repetitions = row.repetitions,
-                    lapses = row.lapses,
-                    createdAt = row.createdAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
-            }
-            offset += BATCH_SIZE
-        }
-        writer.write("\n  ]")
-    }
-
-    private fun exportReviewProjections(writer: java.io.Writer) {
-        writer.write("  \"reviewProjections\": [\n")
-        var offset = 0L
-        var isFirst = true
-        while (true) {
-            val rows = db.exportQueries.allReviewProjectionsPaged(BATCH_SIZE, offset).executeAsList()
-            if (rows.isEmpty()) break
-            rows.forEach { row ->
-                if (!isFirst) writer.write(",\n")
-                isFirst = false
-                val dto = ReviewProjectionDto(
-                    flashcardId = row.flashcardId,
-                    lastReviewedAt = row.lastReviewedAt,
-                    nextReviewAt = row.nextReviewAt,
-                    easeFactor = row.easeFactor,
-                    interval = row.interval,
-                    repetitions = row.repetitions,
-                    lapses = row.lapses,
-                    sourceEventId = row.sourceEventId,
-                    updatedAt = row.updatedAt,
-                )
-                writer.write("    ")
-                writer.write(json.encodeToString(dto))
+                writer.write(serialized)
             }
             offset += BATCH_SIZE
         }

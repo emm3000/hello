@@ -7,11 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-/**
- * Reads a backup JSON file from a user-chosen SAF input URI,
- * validates the schema version, then executes a transactional
- * full-replace restore (clear all tables + insert all records).
- */
 class ImportBackupDataSource(
     private val db: HelloDb,
     private val contentResolver: ContentResolver,
