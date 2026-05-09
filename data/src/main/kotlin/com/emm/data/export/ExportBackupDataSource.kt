@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
  * Exports as a single JSON object per spec format:
  * { "schemaVersion": 1, "exportedAt": 123, "decks": [...], ... }
  */
-class ExportBackupDataSource(
+open class ExportBackupDataSource(
     private val db: HelloDb,
     private val contentResolver: ContentResolver,
 ) {
@@ -29,7 +29,7 @@ class ExportBackupDataSource(
         encodeDefaults = true
     }
 
-    suspend fun export(outputUri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
+    open suspend fun export(outputUri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val outputStream = contentResolver.openOutputStream(outputUri)
                 ?: throw ExportException("Cannot open output URI for writing")
@@ -37,9 +37,6 @@ class ExportBackupDataSource(
             outputStream.bufferedWriter().use { writer ->
                 exportAll(writer)
             }
-        }.onFailure { cause ->
-            if (cause is ExportException) throw cause
-            throw ExportException("Export failed", cause)
         }
     }
 

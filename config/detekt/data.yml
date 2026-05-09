@@ -2,6 +2,8 @@ complexity:
   LongMethod:
     active: true
     threshold: 60
+    ignoreAnnotated:
+      - 'Test'
   CyclomaticComplexMethod:
     active: true
     threshold: 14

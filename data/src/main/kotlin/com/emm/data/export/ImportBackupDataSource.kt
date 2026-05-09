@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
  * validates the schema version, then executes a transactional
  * full-replace restore (clear all tables + insert all records).
  */
-class ImportBackupDataSource(
+open class ImportBackupDataSource(
     private val db: HelloDb,
     private val contentResolver: ContentResolver,
 ) {
@@ -25,7 +25,7 @@ class ImportBackupDataSource(
         encodeDefaults = true
     }
 
-    suspend fun import(inputUri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
+    open suspend fun import(inputUri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val inputStream = contentResolver.openInputStream(inputUri)
                 ?: throw ImportException("Cannot open input URI for reading")
@@ -36,9 +36,6 @@ class ImportBackupDataSource(
 
             validateSchemaVersion(envelope.schemaVersion)
             restoreAll(envelope)
-        }.onFailure { cause ->
-            if (cause is IncompatibleSchemaException || cause is ImportException) throw cause
-            throw ImportException("Import failed", cause)
         }
     }
 
