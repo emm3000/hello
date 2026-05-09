@@ -25,6 +25,7 @@ import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.dashboard.dashboard
 import com.emm.hello.newfeatures.deck.deckDetailRoute
 import com.emm.hello.newfeatures.deck.newDeckRoute
+import com.emm.hello.newfeatures.settings.settings
 import com.emm.hello.newfeatures.study.study
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
@@ -58,6 +59,7 @@ private fun AppNavigation() {
         newDeckRoute(navController)
         deckDetailRoute(navController)
         cardDetailRoute(navController)
+        settings(navController)
     }
 }
 

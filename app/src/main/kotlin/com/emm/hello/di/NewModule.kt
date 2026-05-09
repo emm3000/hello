@@ -52,12 +52,15 @@ import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.domain.time.SystemClock
 import com.emm.hello.BuildConfig
+import com.emm.data.export.ExportBackupDataSource
+import com.emm.data.export.ImportBackupDataSource
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
@@ -102,6 +105,8 @@ fun Module.repository() {
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)
     factoryOf(::DataStore)
+    factoryOf(::ExportBackupDataSource)
+    factoryOf(::ImportBackupDataSource)
     single { AppStartupCoordinator(get()) }
 }
 
@@ -176,6 +181,7 @@ fun Module.viewModels() {
             flashcardRepository = get(),
         )
     }
+    viewModel { SettingsViewModel(get(), get()) }
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {

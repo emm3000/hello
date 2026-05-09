@@ -273,4 +273,18 @@
     <!-- Notes -->
     <string name="notes_label">Notas</string>
 
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="backup_section_title">Backup</string>
+    <string name="backup_section_description">Export or restore your data</string>
+    <string name="backup_warning_title">Warning</string>
+    <string name="backup_warning_description">Restoring a backup will replace ALL current data. This action cannot be undone.</string>
+    <string name="export_data">Export data</string>
+    <string name="restore_backup">Restore from backup</string>
+    <string name="restore_confirm_title">Replace all data?</string>
+    <string name="restore_confirm_description">This will delete your current data and replace it with the backup. This action cannot be undone. Continue?</string>
+    <string name="restore_confirm_yes">Replace</string>
+    <string name="restore_confirm_no">Cancel</string>
+    <string name="settings_content_description">Settings</string>
+
 </resources>

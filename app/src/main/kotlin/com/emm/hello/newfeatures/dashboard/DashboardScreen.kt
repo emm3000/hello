@@ -22,10 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +62,7 @@ import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTagChip
 import java.time.LocalDateTime
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
@@ -66,6 +70,7 @@ fun DashboardScreen(
     newCard: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
+    onSettings: () -> Unit = {},
     onVisible: () -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
@@ -82,6 +87,14 @@ fun DashboardScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
+                },
+                actions = {
+                    IconButton(onClick = onSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings_content_description),
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -409,6 +422,7 @@ private fun DashboardScreenPreview() {
                     ),
                 )
             ),
+            onSettings = {},
         )
     }
 }
@@ -417,6 +431,6 @@ private fun DashboardScreenPreview() {
 @Composable
 private fun DashboardScreenEmptyPreview() {
     HelloTheme {
-        DashboardScreen(state = DashboardUiState(decks = emptyList()))
+        DashboardScreen(state = DashboardUiState(decks = emptyList()), onSettings = {})
     }
 }
