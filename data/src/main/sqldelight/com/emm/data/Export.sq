@@ -1,0 +1,77 @@
+-- Export queries: paginated streaming for all 7 exportable entities.
+-- Active records only where soft-delete column exists (Deck, Flashcard, Tag).
+-- All records for entities without soft-delete (FlashcardExample, DeckTag, ReviewEvent, ReviewProjection).
+-- Batch size: 1000 rows per query run.
+
+-- Deck: active only
+allDecksPaged:
+SELECT * FROM Deck
+WHERE deletedAt IS NULL
+LIMIT :limit OFFSET :offset;
+
+-- Flashcard: active only
+allFlashcardsPaged:
+SELECT * FROM Flashcard
+WHERE deletedAt IS NULL
+LIMIT :limit OFFSET :offset;
+
+-- FlashcardExample: all (no soft-delete column)
+allExamplesPaged:
+SELECT * FROM FlashcardExample
+LIMIT :limit OFFSET :offset;
+
+-- Tag: active only
+allTagsPaged:
+SELECT * FROM Tag
+WHERE deletedAt IS NULL
+LIMIT :limit OFFSET :offset;
+
+-- DeckTag: all (no soft-delete column)
+allDeckTagsPaged:
+SELECT * FROM DeckTag
+LIMIT :limit OFFSET :offset;
+
+-- ReviewEvent: all
+allReviewEventsPaged:
+SELECT * FROM ReviewEvent
+LIMIT :limit OFFSET :offset;
+
+-- ReviewProjection: all
+allReviewProjectionsPaged:
+SELECT * FROM ReviewProjection
+LIMIT :limit OFFSET :offset;
+
+-- Insert a tag by id (used for restore)
+insertTag:
+INSERT OR REPLACE INTO Tag (id, name, createdAt, deletedAt)
+VALUES (?, ?, ?, ?);
+
+-- Delete all decks (cascades to Flashcard, FlashcardExample via FK)
+deleteAllDecks:
+DELETE FROM Deck;
+
+-- Delete all flashcards
+deleteAllFlashcards:
+DELETE FROM Flashcard;
+
+-- Delete all flashcard examples
+deleteAllFlashcardExamples:
+DELETE FROM FlashcardExample;
+
+-- Delete all tags (cascades to DeckTag via FK on tagId)
+deleteAllTags:
+DELETE FROM Tag;
+
+-- Delete all review events
+deleteAllReviewEvents:
+DELETE FROM ReviewEvent;
+
+-- Delete all review projections
+deleteAllReviewProjections:
+DELETE FROM ReviewProjection;
+
+-- Find tags for a deck (needed for restore queries)
+findByDeckId:
+SELECT t.* FROM Tag t
+JOIN DeckTag dt ON dt.tagId = t.id
+WHERE dt.deckId = ? AND t.deletedAt IS NULL;
