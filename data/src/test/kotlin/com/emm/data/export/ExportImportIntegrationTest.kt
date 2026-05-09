@@ -18,6 +18,10 @@ import java.io.ByteArrayOutputStream
 
 class ExportImportIntegrationTest {
 
+    private companion object {
+        val json = Json { ignoreUnknownKeys = true }
+    }
+
     private lateinit var db: HelloDb
     private lateinit var contentResolver: ContentResolver
 
@@ -165,9 +169,8 @@ class ExportImportIntegrationTest {
 
         assertTrue(result.isSuccess)
 
-        val json = baos.toString()
-        val envelope = Json { ignoreUnknownKeys = true }
-            .decodeFromString(BackupEnvelope.serializer(), json)
+        val output = baos.toString()
+        val envelope = json.decodeFromString(BackupEnvelope.serializer(), output)
         assertEquals(0, envelope.decks.size)
         assertEquals(0, envelope.flashcards.size)
     }
