@@ -47,3 +47,8 @@ LEFT JOIN Flashcard
 WHERE Deck.deletedAt IS NULL
 GROUP BY Deck.id
 ORDER BY Deck.createdAt DESC;
+
+tagsForDeck:
+SELECT t.* FROM Tag t
+JOIN DeckTag dt ON dt.tagId = t.id
+WHERE dt.deckId = ? AND t.deletedAt IS NULL;

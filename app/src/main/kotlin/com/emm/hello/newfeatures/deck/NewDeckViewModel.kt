@@ -18,6 +18,7 @@ class NewDeckViewModel(
         when (intent) {
             is NewDeckUiIntent.DescriptionChanged -> mutableState.update { it.copy(description = intent.description) }
             is NewDeckUiIntent.NameChanged -> mutableState.update { it.copy(name = intent.name) }
+            is NewDeckUiIntent.TagsChanged -> mutableState.update { it.copy(tags = intent.tags) }
             NewDeckUiIntent.Submit -> createDeck()
         }
     }
@@ -31,6 +32,7 @@ class NewDeckViewModel(
             val input = CreateDeckInput(
                 name = current.name,
                 description = current.description,
+                tags = current.tags,
             )
             deckRepository.addDeck(input)
         }.onSuccess {

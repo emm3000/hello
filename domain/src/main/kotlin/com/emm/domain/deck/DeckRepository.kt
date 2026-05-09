@@ -12,4 +12,6 @@ interface DeckRepository {
     fun fetchAll(): Flow<List<Deck>>
 
     fun deckWithFlashcardCount(): Flow<List<Deck>>
+
+    fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>>
 }

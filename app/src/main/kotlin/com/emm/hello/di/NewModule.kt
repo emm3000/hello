@@ -8,6 +8,7 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
+import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
@@ -86,7 +87,10 @@ fun Module.repository() {
     }
     single<SharedPreferences> { provideSharedPreferences(androidContext()) }
 
-    factoryOf(::DefaultDeckRepository) bind DeckRepository::class
+    factory<com.emm.domain.deck.DeckRepository> {
+        DefaultDeckRepository(get(), get())
+    } bind DeckRepository::class
+    factoryOf(::DefaultTagRepository) bind com.emm.domain.deck.TagRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
     factoryOf(::DefaultFlashcardRepository)
     factory<FlashcardRepository> { get<DefaultFlashcardRepository>() }

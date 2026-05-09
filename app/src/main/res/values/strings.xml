@@ -41,6 +41,9 @@
     <string name="deck_description_label">Descripción</string>
     <string name="deck_description_placeholder">Un mazo para los verbos irregulares más comunes.</string>
     <string name="optional">Opcional</string>
+    <string name="tags_label">Etiquetas</string>
+    <string name="tags_placeholder">Ej: inglés, trabajo, viajes</string>
+    <string name="tags_supporting_text">Enter o coma para agregar. Mínúsculas, sin duplicados.</string>
 
     <!-- Deck Detail Screen -->
     <string name="deck_detail_title_fallback">Mazo</string>

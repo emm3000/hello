@@ -30,6 +30,7 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HInput
+import com.emm.hello.core.ui.HTagInput
 
 @Composable
 fun NewDeckScreen(
@@ -104,6 +105,12 @@ fun NewDeckScreen(
                 keyboardActions = KeyboardActions(
                     onDone = { focusManager.clearFocus() }
                 ),
+            )
+
+            HTagInput(
+                tags = state.tags,
+                onTagsChange = { onIntent(NewDeckUiIntent.TagsChanged(it)) },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }

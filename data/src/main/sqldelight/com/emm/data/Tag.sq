@@ -1,0 +1,33 @@
+CREATE TABLE Tag (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    createdAt INTEGER NOT NULL,
+    deletedAt INTEGER
+);
+
+CREATE INDEX idx_Tag_name ON Tag(name);
+
+CREATE TABLE DeckTag (
+    tagId TEXT NOT NULL,
+    deckId TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    PRIMARY KEY (tagId, deckId),
+    FOREIGN KEY (tagId) REFERENCES Tag(id) ON DELETE CASCADE,
+    FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_DeckTag_deck ON DeckTag(deckId);
+
+getOrCreateTags:
+INSERT OR IGNORE INTO Tag (id, name, createdAt, deletedAt)
+VALUES (lower(hex(randomblob(16))), lower(:name), :createdAt, NULL);
+SELECT * FROM Tag WHERE lower(name) = lower(:name) AND deletedAt IS NULL;
+
+findByDeckId:
+SELECT t.* FROM Tag t
+JOIN DeckTag dt ON dt.tagId = t.id
+WHERE dt.deckId = ? AND t.deletedAt IS NULL;
+
+insertDeckTag:
+INSERT OR IGNORE INTO DeckTag (tagId, deckId, createdAt)
+VALUES (?, ?, ?);

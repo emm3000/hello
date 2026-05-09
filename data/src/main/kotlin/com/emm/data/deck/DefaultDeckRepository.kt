@@ -4,16 +4,17 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import com.emm.data.DeckQueries
-import com.emm.data.DeckWithFlashcardCount
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.Tag
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.Instant
@@ -24,6 +25,7 @@ typealias DeckEntity = com.emm.data.Deck
 @LocalFirstWrite
 class DefaultDeckRepository(
     private val db: HelloDb,
+    private val tagRepository: com.emm.domain.deck.TagRepository,
 ) : DeckRepository {
 
     private val dq: DeckQueries = db.deckQueries
@@ -41,16 +43,37 @@ class DefaultDeckRepository(
                 updatedAt = now,
                 deletedAt = null,
             )
+
+            // Insert tags and junction rows
+            if (deck.tags.isNotEmpty()) {
+                val tq = db.tagQueries
+                deck.tags.forEach { tagName ->
+                    val normalized = tagName.lowercase().trim()
+                    tq.getOrCreateTags(
+                        name = normalized,
+                        createdAt = now,
+                    )
+                    val tagId = UUID.randomUUID().toString()
+                    tq.insertDeckTag(
+                        tagId = tagId,
+                        deckId = newId,
+                        createdAt = now,
+                    )
+                }
+            }
         }
         Unit
     }
 
     override fun findById(deckId: DeckId): Flow<Deck> {
-        return dq
-            .findActiveById(deckId.value)
+        val deckFlow = dq.findActiveById(deckId.value)
             .asFlow()
             .mapToOne(Dispatchers.IO)
-            .map(DeckEntity::toDomain)
+            .map { entity -> entity.toDomain() }
+        val tagsFlow = tagRepository.findTagsForDeck(deckId)
+        return combine(deckFlow, tagsFlow) { deck, tags ->
+            deck.copy(tags = tags)
+        }
     }
 
     override fun fetchAll(): Flow<List<Deck>> {
@@ -58,7 +81,9 @@ class DefaultDeckRepository(
             .all()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map(List<DeckEntity>::toDomain)
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
     }
 
     override fun deckWithFlashcardCount(): Flow<List<Deck>> {
@@ -66,17 +91,22 @@ class DefaultDeckRepository(
             .deckWithFlashcardCount()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map(::toDomain)
+            .map { counts ->
+                counts.map { count ->
+                    Deck(
+                        id = count.id.toDeckId(),
+                        name = count.name,
+                        description = count.description.orEmpty(),
+                        createdAt = count.createdAt.toLocalDateTime(),
+                        cards = emptyList(),
+                        cardsCount = count.flashcardCount,
+                        tags = emptyList(), // Tags loaded per-deck via findTagsForDeck
+                    )
+                }
+            }
+    }
+
+    override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> {
+        return tagRepository.findTagsForDeck(deckId)
     }
 }
-
-private fun toDomain(counts: List<DeckWithFlashcardCount>): List<Deck> = counts.map(::toDomain)
-
-private fun toDomain(flashcardCount: DeckWithFlashcardCount): Deck = Deck(
-    id = flashcardCount.id.toDeckId(),
-    name = flashcardCount.name,
-    description = flashcardCount.description.orEmpty(),
-    createdAt = flashcardCount.createdAt.toLocalDateTime(),
-    cards = emptyList(),
-    cardsCount = flashcardCount.flashcardCount,
-)

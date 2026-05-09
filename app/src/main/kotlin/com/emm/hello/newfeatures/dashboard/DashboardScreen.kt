@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.domain.deck.Tag
 import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
@@ -54,6 +57,7 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HProgressBar
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.HTagChip
 import java.time.LocalDateTime
 
 @Composable
@@ -253,8 +257,10 @@ private fun SessionSummaryBanner(
 
 // -- Component: Deck Row ------------------------------------------------------
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
+    val deckTags = deck.tags.map { it.value }
     ListItem(
         headlineContent = {
             Text(
@@ -284,6 +290,10 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                         trackColor = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
+                // Tags row — max 3 tags with overflow badge
+                if (deckTags.isNotEmpty()) {
+                    TagsOverflowRow(tags = deckTags.sorted())
+                }
             }
         },
         trailingContent = {
@@ -297,6 +307,27 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
             .fillMaxWidth()
             .clickable { onDeckClick(deck.id.value) },
     )
+}
+
+// -- Component: Tags with overflow ─────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagsOverflowRow(tags: List<String>) {
+    val visibleTags = tags.take(3)
+    val overflowCount = tags.size - 3
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        visibleTags.forEach { tag ->
+            HTagChip(tag = tag, variant = BadgeVariant.Tertiary)
+        }
+        if (overflowCount > 0) {
+            HBadge(label = "+$overflowCount", variant = BadgeVariant.Secondary)
+        }
+    }
 }
 
 // -- Component: Empty State ---------------------------------------------------
@@ -356,7 +387,8 @@ private fun DashboardScreenPreview() {
                         description = "Vocabulario",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
-                        cardsCount = 24
+                        cardsCount = 24,
+                        tags = listOf(Tag("spanish"), Tag("b2")),
                     ),
                     Deck(
                         id = "2".toDeckId(),
@@ -364,7 +396,8 @@ private fun DashboardScreenPreview() {
                         description = "Verbos",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
-                        cardsCount = 7
+                        cardsCount = 7,
+                        tags = listOf(Tag("verbs"), Tag("intermediate"), Tag("travel")),
                     ),
                     Deck(
                         id = "3".toDeckId(),
@@ -372,7 +405,8 @@ private fun DashboardScreenPreview() {
                         description = "Gramática",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
-                        cardsCount = 15
+                        cardsCount = 15,
+                        tags = listOf(Tag("grammar"), Tag("spanish")),
                     ),
                 )
             ),

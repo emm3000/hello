@@ -26,7 +26,7 @@ import com.emm.hello.core.theme.spacing
 
 // ─── Variants ──────────────────────────────────────────────────────────────
 
-enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success }
+enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success, Tertiary }
 
 /**
  * Status badge/chip inspired by shadcn/ui.
@@ -73,7 +73,7 @@ fun HBadge(
 }
 
 @Composable
-private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
+internal fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
     val cs = MaterialTheme.colorScheme
     return when (variant) {
         // Default → primary (black bg, white text)
@@ -88,6 +88,8 @@ private fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
             MaterialTheme.semanticColors.warning.container to MaterialTheme.semanticColors.warning.content
         // Success → tertiary (green in new theme)
         BadgeVariant.Success -> cs.tertiaryContainer to cs.onTertiaryContainer
+        // Tertiary → same as Success for consistency
+        BadgeVariant.Tertiary -> cs.tertiaryContainer to cs.onTertiaryContainer
     }
 }
 
@@ -100,6 +102,7 @@ private fun badgeStateDescription(variant: BadgeVariant): String? {
         BadgeVariant.Destructive -> stringResource(R.string.error_label)
         BadgeVariant.Warning -> stringResource(R.string.warning_label)
         BadgeVariant.Success -> stringResource(R.string.success_label)
+        BadgeVariant.Tertiary -> null
     }
 }
 

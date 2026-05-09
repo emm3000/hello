@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.deck.Deck
+import com.emm.domain.deck.Tag
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardReview
@@ -55,6 +58,7 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSearchBar
+import com.emm.hello.core.ui.HTagChip
 import com.emm.hello.core.ui.SectionBlock
 import com.emm.hello.core.ui.StatCard
 import com.emm.hello.core.ui.StatCardStatus
@@ -136,6 +140,7 @@ fun DeckDetailScreen(
                 DeckStatsHeader(
                     cardCount = state.deck.cards.size,
                     hasSessionEnabled = state.hasSessionEnabled,
+                    tags = state.deck.tags.map { it.value },
                     onReview = onReview,
                 )
             }
@@ -198,6 +203,7 @@ fun DeckDetailScreen(
 private fun DeckStatsHeader(
     cardCount: Int,
     hasSessionEnabled: Boolean,
+    tags: List<String>,
     onReview: () -> Unit,
 ) {
     val deckPluralLabel = if (cardCount == 1) {
@@ -237,6 +243,11 @@ private fun DeckStatsHeader(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
+            // Tags row — shown only when deck has tags
+            if (tags.isNotEmpty()) {
+                TagsRow(tags = tags)
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
@@ -268,6 +279,21 @@ private fun DeckStatsHeader(
                 description = reviewButtonText,
                 variant = reviewAlertVariant,
             )
+        }
+    }
+}
+
+// ── Component: Tags row ───────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagsRow(tags: List<String>) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+    ) {
+        tags.sorted().forEach { tag ->
+            HTagChip(tag = tag, variant = BadgeVariant.Tertiary)
         }
     }
 }
@@ -412,6 +438,7 @@ private fun DeckDetailScreenPreview() {
                 deck = Deck.empty(SystemClock).copy(
                     name = "Vocabulario Avanzado",
                     description = "Palabras de nivel C1",
+                    tags = listOf(Tag("spanish"), Tag("advanced")),
                     cards = listOf(
                         Flashcard(
                             id = "1".toFlashcardId(),
