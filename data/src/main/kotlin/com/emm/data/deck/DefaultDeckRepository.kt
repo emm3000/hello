@@ -8,6 +8,7 @@ import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
+import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.Tag
 import com.emm.domain.ids.DeckId
@@ -104,6 +105,30 @@ class DefaultDeckRepository(
                         cards = emptyList(),
                         cardsCount = count.flashcardCount,
                         tags = emptyList(), // Tags loaded per-deck via findTagsForDeck
+                    )
+                }
+            }
+    }
+
+    override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> {
+        val normalizedTags = criteria.normalizedSelectedTags.toList()
+        return dq.observeFiltered(
+            query = criteria.normalizedQuery,
+            selectedTagCount = normalizedTags.size.toLong(),
+            normalizedTagNames = normalizedTags,
+        )
+            .asFlow()
+            .mapToList(Dispatchers.IO)
+            .map { rows ->
+                rows.map { row ->
+                    Deck(
+                        id = row.id.toDeckId(),
+                        name = row.name,
+                        description = row.description.orEmpty(),
+                        createdAt = row.createdAt.toLocalDateTime(),
+                        cards = emptyList(),
+                        cardsCount = row.flashcardCount,
+                        tags = row.tagsCsv.toDomainTagsFromCsv(),
                     )
                 }
             }

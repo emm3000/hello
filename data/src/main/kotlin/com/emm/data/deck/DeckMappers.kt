@@ -53,3 +53,12 @@ fun DeckEntity.toDomain(): Deck = Deck(
 )
 
 fun List<DeckEntity>.toDomain(): List<Deck> = map(DeckEntity::toDomain)
+
+fun String.toDomainTagsFromCsv(): List<Tag> {
+    if (isBlank()) return emptyList()
+    return split(',')
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .distinct()
+        .map { Tag(value = it) }
+}

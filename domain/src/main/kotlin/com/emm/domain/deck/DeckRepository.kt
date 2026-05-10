@@ -13,5 +13,7 @@ interface DeckRepository {
 
     fun deckWithFlashcardCount(): Flow<List<Deck>>
 
+    fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>>
+
     fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>>
 }

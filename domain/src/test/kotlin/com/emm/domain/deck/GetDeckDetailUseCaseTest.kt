@@ -149,6 +149,8 @@ private class FakeDeckRepository : DeckRepository {
 
     override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(emptyList())
 
+    override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
+
     override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 }
 
