@@ -7,6 +7,7 @@ import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -436,6 +437,8 @@ class NewCardViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = flowOf(listOf(deck))
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(listOf(deck))
+
+        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(listOf(deck))
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }

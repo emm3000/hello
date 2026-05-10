@@ -58,6 +58,7 @@ import com.emm.hello.core.ui.DashboardSkeleton
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HProgressBar
+import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTagChip
 import java.time.LocalDateTime
@@ -72,6 +73,9 @@ fun DashboardScreen(
     onCreateDeck: () -> Unit = {},
     onSettings: () -> Unit = {},
     onVisible: () -> Unit = {},
+    onSearchQueryChanged: (String) -> Unit = {},
+    onTagToggled: (String) -> Unit = {},
+    onClearFilters: () -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
         onVisible()
@@ -178,8 +182,8 @@ fun DashboardScreen(
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        if (state.decks.isNotEmpty()) {
-                            HBadge(label = "${state.decks.size}", variant = BadgeVariant.Secondary)
+                        if (state.totalDeckCount > 0) {
+                            HBadge(label = "${state.totalDeckCount}", variant = BadgeVariant.Secondary)
                         }
                     }
                     HButton(
@@ -190,11 +194,22 @@ fun DashboardScreen(
                 }
             }
 
+            item {
+                SearchAndFilterSection(
+                    state = state,
+                    onSearchQueryChanged = onSearchQueryChanged,
+                    onTagToggled = onTagToggled,
+                    onClearFilters = onClearFilters,
+                )
+            }
+
             // -- Content --------------------------------------------------------------
             if (state.isLoading) {
                 item { DashboardSkeleton(count = 4) }
-            } else if (state.decks.isEmpty()) {
+            } else if (state.emptyState == DashboardEmptyState.LibraryEmpty) {
                 item { EmptyDecks(onCreateDeck) }
+            } else if (state.emptyState == DashboardEmptyState.NoResults) {
+                item { NoResults(onClearFilters) }
             } else {
                 itemsIndexed(state.decks, key = { _, deck -> deck.id.value }) { _, deck ->
                     DeckItem(deck = deck, onDeckClick = onDeckDetail)
@@ -202,6 +217,54 @@ fun DashboardScreen(
                 }
                 item { Spacer(modifier = Modifier.height(88.dp)) }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SearchAndFilterSection(
+    state: DashboardUiState,
+    onSearchQueryChanged: (String) -> Unit,
+    onTagToggled: (String) -> Unit,
+    onClearFilters: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        HSearchBar(
+            value = state.searchQuery,
+            onValueChange = onSearchQueryChanged,
+            placeholder = stringResource(R.string.dashboard_search_placeholder),
+            clearContentDescription = stringResource(R.string.dashboard_search_clear_content_description),
+            leadingIconContentDescription = stringResource(R.string.dashboard_search_icon_content_description),
+        )
+
+        if (state.availableTags.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                state.availableTags.forEach { tag ->
+                    val isSelected = state.selectedTags.contains(tag)
+                    HTagChip(
+                        tag = tag,
+                        variant = if (isSelected) BadgeVariant.Default else BadgeVariant.Secondary,
+                        modifier = Modifier.clickable { onTagToggled(tag) },
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(visible = state.isFiltering) {
+            HButton(
+                text = stringResource(R.string.dashboard_clear_filters),
+                onClick = onClearFilters,
+                variant = ButtonVariant.Ghost,
+            )
         }
     }
 }
@@ -377,6 +440,37 @@ private fun EmptyDecks(onCreateDeck: () -> Unit) {
             HButton(
                 text = stringResource(R.string.create_first_deck),
                 onClick = onCreateDeck,
+                variant = ButtonVariant.Outline,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoResults(onClearFilters: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 56.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.dashboard_no_results_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = stringResource(R.string.dashboard_no_results_description),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            HButton(
+                text = stringResource(R.string.dashboard_clear_filters),
+                onClick = onClearFilters,
                 variant = ButtonVariant.Outline,
             )
         }

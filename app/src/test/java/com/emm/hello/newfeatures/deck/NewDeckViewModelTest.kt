@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.deck
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
@@ -11,6 +12,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -110,6 +112,8 @@ class NewDeckViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
+
+        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }

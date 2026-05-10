@@ -4,8 +4,10 @@ import app.cash.turbine.test
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.GetFilteredDecksUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.GetDashboardStatsUseCase
@@ -15,8 +17,9 @@ import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -55,7 +58,92 @@ class DashboardViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.uiState.value.decks).containsExactly(deck)
+        assertThat(viewModel.uiState.value.totalDeckCount).isEqualTo(1)
         assertThat(viewModel.uiState.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun `query and tag intents update state and toggle filtering`() = runTest {
+        val deck = sampleDeck(name = "Biology Exam", tags = listOf("exam", "biology"))
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deck)))
+        advanceUntilIdle()
+
+        viewModel.onIntent(QueryChanged("bio"))
+        viewModel.onIntent(TagToggled("exam"))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("bio")
+        assertThat(viewModel.uiState.value.selectedTags).containsExactly("exam")
+        assertThat(viewModel.uiState.value.isFiltering).isTrue()
+    }
+
+    @Test
+    fun `clear filters resets criteria and filtered list`() = runTest {
+        val deckA = sampleDeck(name = "Biology Exam", tags = listOf("exam", "biology"))
+        val deckB = sampleDeck(id = "2", name = "English", tags = listOf("language"))
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deckA, deckB)))
+        advanceUntilIdle()
+
+        viewModel.onIntent(QueryChanged("bio"))
+        advanceUntilIdle()
+        assertThat(viewModel.uiState.value.decks).containsExactly(deckA)
+
+        viewModel.onIntent(ClearFilters)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.searchQuery).isEmpty()
+        assertThat(viewModel.uiState.value.selectedTags).isEmpty()
+        assertThat(viewModel.uiState.value.isFiltering).isFalse()
+        assertThat(viewModel.uiState.value.decks).containsExactly(deckA, deckB)
+    }
+
+    @Test
+    fun `no results sets empty state to no results`() = runTest {
+        val deck = sampleDeck(name = "Biology", tags = listOf("exam"))
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deck)))
+        advanceUntilIdle()
+
+        viewModel.onIntent(QueryChanged("history"))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.decks).isEmpty()
+        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
+    }
+
+    @Test
+    fun `empty library sets empty state to library empty`() = runTest {
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.totalDeckCount).isEqualTo(0)
+        assertThat(viewModel.uiState.value.decks).isEmpty()
+        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.LibraryEmpty)
+    }
+
+    @Test
+    fun `rendered list follows active criteria when source updates`() = runTest {
+        val biologyExam = sampleDeck(id = "1", name = "Biology Exam", tags = listOf("exam", "biology"))
+        val biologyPractice = sampleDeck(id = "2", name = "Biology Practice", tags = listOf("biology"))
+        val englishExam = sampleDeck(id = "3", name = "English Exam", tags = listOf("exam"))
+        val deckRepo = FakeDeckRepo(decks = listOf(biologyExam, biologyPractice, englishExam))
+        val viewModel = makeViewModel(deckRepo = deckRepo)
+        advanceUntilIdle()
+
+        viewModel.onIntent(QueryChanged("bio"))
+        viewModel.onIntent(TagToggled("exam"))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.decks).containsExactly(biologyExam)
+
+        val bioNoExam = sampleDeck(id = "4", name = "Biology Notes", tags = listOf("biology"))
+        val historyExam = sampleDeck(id = "5", name = "History Exam", tags = listOf("exam"))
+        deckRepo.updateDecks(listOf(bioNoExam, historyExam))
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("bio")
+        assertThat(viewModel.uiState.value.selectedTags).containsExactly("exam")
+        assertThat(viewModel.uiState.value.decks).isEmpty()
+        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
     }
 
     @Test
@@ -110,7 +198,22 @@ class DashboardViewModelTest {
         statsUseCase: GetDashboardStatsUseCase = makeDefaultStatsUseCase(),
     ): DashboardViewModel = DashboardViewModel(
         getDecksUseCase = GetDecksUseCase(deckRepo),
+        getFilteredDecksUseCase = GetFilteredDecksUseCase(deckRepo),
         getDashboardStatsUseCase = statsUseCase,
+    )
+
+    private fun sampleDeck(
+        id: String = "deck-1",
+        name: String,
+        tags: List<String>,
+    ): Deck = Deck(
+        id = id.toDeckId(),
+        name = name,
+        description = "",
+        createdAt = LocalDateTime.parse("2026-03-18T10:00:00"),
+        cards = emptyList(),
+        cardsCount = 5L,
+        tags = tags.map(::Tag),
     )
 
     private fun makeDefaultStatsUseCase(): GetDashboardStatsUseCase {
@@ -123,11 +226,29 @@ class DashboardViewModelTest {
         private val decks: List<Deck> = emptyList(),
         private val emitImmediately: Boolean = true,
     ) : DeckRepository {
+        private val deckFlow = MutableStateFlow(decks)
+
+        fun updateDecks(updatedDecks: List<Deck>) {
+            deckFlow.value = updatedDecks
+        }
+
         override suspend fun addDeck(deck: CreateDeckInput) = Unit
         override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> =
-            if (emitImmediately) flowOf(decks) else emptyFlow()
+            if (emitImmediately) deckFlow else emptyFlow()
+
+        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> =
+            deckWithFlashcardCount().map { source ->
+                source.filter { deck ->
+                    val queryMatches = criteria.normalizedQuery.isEmpty() ||
+                        deck.name.lowercase().contains(criteria.normalizedQuery)
+                    val tagsMatch = criteria.normalizedSelectedTags.all { selected ->
+                        deck.tags.any { it.value.equals(selected, ignoreCase = true) }
+                    }
+                    queryMatches && tagsMatch
+                }
+            }
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
     }

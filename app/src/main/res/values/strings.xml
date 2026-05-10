@@ -27,6 +27,12 @@
     <string name="create_first_deck">Crear primer mazo</string>
     <string name="new_card_content_description">Nueva tarjeta</string>
     <string name="new_deck_content_description">Nuevo mazo</string>
+    <string name="dashboard_search_placeholder">Buscar mazos por nombre</string>
+    <string name="dashboard_search_clear_content_description">Limpiar búsqueda de mazos</string>
+    <string name="dashboard_search_icon_content_description">Buscar mazos</string>
+    <string name="dashboard_clear_filters">Limpiar filtros</string>
+    <string name="dashboard_no_results_title">No hay resultados</string>
+    <string name="dashboard_no_results_description">Probá limpiar o ajustar los filtros.</string>
 
     <!-- Decks Screen -->
     <string name="my_decks">Mis Mazos</string>

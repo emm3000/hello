@@ -53,6 +53,9 @@ fun NavGraphBuilder.dashboard(navController: NavController) {
             onCreateDeck = { navController.navigate(NewDeckRoute) },
             onSettings = { navController.navigate(SettingsRoute) },
             onVisible = { vm.onVisible() },
+            onSearchQueryChanged = { vm.onIntent(QueryChanged(it)) },
+            onTagToggled = { vm.onIntent(TagToggled(it)) },
+            onClearFilters = { vm.onIntent(ClearFilters) },
         )
     }
 }
