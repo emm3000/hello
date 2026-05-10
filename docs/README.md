@@ -20,6 +20,7 @@ Las sources of truth globales siguen en raíz:
 
 ## Documentos activos
 
+- `DASHBOARD_CURRENT.md`: estado actual del flujo `Dashboard` (lista, búsqueda y filtros)
 - `CARD_CREATION_CURRENT.md`: estado actual del flujo `New Card`
 - `STUDY_CURRENT.md`: estado actual del flujo `Study`
 
