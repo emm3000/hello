@@ -131,6 +131,7 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    androidTestImplementation(platform(libs.koin.bom))
     androidTestImplementation(libs.koin.test)
     androidTestImplementation(libs.koin.test.junit4)
 

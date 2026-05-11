@@ -3,13 +3,18 @@ package com.emm.hello.newfeatures.settings
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.waitUntil
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.emm.hello.di.KoinComposeTestRule
+import com.emm.hello.di.newModule
+import com.emm.hello.di.repositoryModule
+import com.emm.hello.di.testModule
 import com.emm.hello.newfeatures.NewRoot
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -20,7 +25,10 @@ import org.junit.runner.RunWith
 @OptIn(ExperimentalTestApi::class)
 class SettingsScreenTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val koinRule = KoinComposeTestRule(newModule, repositoryModule, testModule)
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
@@ -30,7 +38,9 @@ class SettingsScreenTest {
         }
 
         // Wait for startup to complete and dashboard to load
-        composeRule.waitForIdle()
+        composeRule.waitUntil(timeoutMillis = 5000) {
+            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
+        }
 
         // Navigate to Settings screen via the settings icon in TopAppBar
         composeRule.onNodeWithContentDescription("Settings").performClick()
@@ -54,7 +64,9 @@ class SettingsScreenTest {
             NewRoot()
         }
 
-        composeRule.waitForIdle()
+        composeRule.waitUntil(timeoutMillis = 5000) {
+            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
+        }
 
         // Navigate to Settings
         composeRule.onNodeWithContentDescription("Settings").performClick()
@@ -78,7 +90,9 @@ class SettingsScreenTest {
             NewRoot()
         }
 
-        composeRule.waitForIdle()
+        composeRule.waitUntil(timeoutMillis = 5000) {
+            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
+        }
 
         // Navigate to Settings
         composeRule.onNodeWithContentDescription("Settings").performClick()
