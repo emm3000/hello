@@ -9,24 +9,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.newfeatures.card.cardDetailRoute
-import com.emm.hello.newfeatures.card.newCardRoute
+import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.card.CardDetailDestination
+import com.emm.hello.newfeatures.card.CardDetailRoute
+import com.emm.hello.newfeatures.card.NewCardDestination
+import com.emm.hello.newfeatures.card.NewCardRoute
+import com.emm.hello.newfeatures.dashboard.DashboardDestination
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
-import com.emm.hello.newfeatures.dashboard.dashboard
-import com.emm.hello.newfeatures.deck.deckDetailRoute
-import com.emm.hello.newfeatures.deck.newDeckRoute
-import com.emm.hello.newfeatures.settings.settings
-import com.emm.hello.newfeatures.study.study
+import com.emm.hello.newfeatures.deck.DeckDetailDestination
+import com.emm.hello.newfeatures.deck.DeckDetailRoute
+import com.emm.hello.newfeatures.deck.NewDeckDestination
+import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.settings.SettingsDestination
+import com.emm.hello.newfeatures.settings.SettingsRoute
+import com.emm.hello.newfeatures.study.StudyDestination
+import com.emm.hello.newfeatures.study.StudyRoute
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -46,21 +57,27 @@ fun NewRoot() {
 
 @Composable
 private fun AppNavigation() {
-    val navController = rememberNavController()
+    val backStack = rememberNavBackStack(DashboardRoute)
+    val navigator = remember(backStack) { Navigator(backStack) }
 
-    NavHost(
-        navController = navController,
-        startDestination = DashboardRoute,
-        modifier = Modifier.background(MaterialTheme.colorScheme.background)
-    ) {
-        dashboard(navController)
-        study(navController)
-        newCardRoute(navController)
-        newDeckRoute(navController)
-        deckDetailRoute(navController)
-        cardDetailRoute(navController)
-        settings(navController)
-    }
+    NavDisplay(
+        backStack = backStack,
+        onBack = navigator::goBack,
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = entryProvider {
+            entry<DashboardRoute> { DashboardDestination(navigator) }
+            entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
+            entry<NewCardRoute> { NewCardDestination(navigator) }
+            entry<NewDeckRoute> { NewDeckDestination(navigator) }
+            entry<DeckDetailRoute> { key -> DeckDetailDestination(navigator, key.deckId) }
+            entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId) }
+            entry<SettingsRoute> { SettingsDestination(navigator) }
+        }
+    )
 }
 
 @Composable

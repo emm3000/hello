@@ -17,7 +17,8 @@ composeBom = "2026.04.01"
 googleServicesVersion = "4.4.4"
 googleCrashlyticsVersion = "3.0.7"
 mockk = "1.14.9"
-navigationCompose = "2.9.8"
+nav3Core = "1.0.0"
+lifecycleViewmodelNav3 = "2.10.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 coreKtxVersion = "1.7.0"
@@ -33,7 +34,9 @@ ktor = "3.4.3"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }

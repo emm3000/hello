@@ -1,11 +1,10 @@
 package com.emm.hello.newfeatures.deck
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import androidx.navigation3.runtime.NavKey
+import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.study.StudyRoute
@@ -14,24 +13,22 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Serializable
-data class DeckDetailRoute(val deckId: String)
+data class DeckDetailRoute(val deckId: String) : NavKey
 
-fun NavGraphBuilder.deckDetailRoute(navController: NavController) {
-    composable<DeckDetailRoute> {
-        val deckDetailRoute: DeckDetailRoute = it.toRoute<DeckDetailRoute>()
-        val vm: DeckDetailViewModel = koinViewModel(
-            parameters = { parametersOf(deckDetailRoute.deckId) }
-        )
+@Composable
+fun DeckDetailDestination(navigator: Navigator, deckId: String) {
+    val vm: DeckDetailViewModel = koinViewModel(
+        parameters = { parametersOf(deckId) }
+    )
 
-        val uiState: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
 
-        DeckDetailScreen(
-            onNavigateBack = { navController.popBackStack() },
-            onReview = { navController.navigate(StudyRoute(uiState.deck.id.value)) },
-            state = uiState,
-            onCardClick = { cardId -> navController.navigate(CardDetailRoute(cardId)) },
-            onAddCard = { navController.navigate(NewCardRoute) },
-            onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },
-        )
-    }
+    DeckDetailScreen(
+        onNavigateBack = { navigator.goBack() },
+        onReview = { navigator.navigateTo(StudyRoute(uiState.deck.id.value)) },
+        state = uiState,
+        onCardClick = { cardId -> navigator.navigateTo(CardDetailRoute(cardId)) },
+        onAddCard = { navigator.navigateTo(NewCardRoute) },
+        onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },
+    )
 }

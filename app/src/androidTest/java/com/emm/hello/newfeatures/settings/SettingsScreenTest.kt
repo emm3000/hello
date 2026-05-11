@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleOwner
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.emm.hello.newfeatures.NewRoot
 import org.junit.Assert.assertEquals
