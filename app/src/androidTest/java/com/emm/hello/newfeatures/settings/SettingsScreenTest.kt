@@ -4,32 +4,44 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.waitUntil
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.emm.hello.di.KoinComposeTestRule
 import com.emm.hello.di.newModule
-import com.emm.hello.di.repositoryModule
 import com.emm.hello.di.testModule
 import com.emm.hello.newfeatures.NewRoot
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 
 @RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
 class SettingsScreenTest {
 
-    @get:Rule(order = 0)
-    val koinRule = KoinComposeTestRule(newModule, repositoryModule, testModule)
-
-    @get:Rule(order = 1)
+    @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Before
+    fun setUp() {
+        stopKoin()
+        startKoin {
+            androidContext(composeRule.activity)
+            modules(newModule, testModule)
+        }
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
 
     @Test
     fun settingsScreen_reachesResumedState() {
@@ -37,19 +49,13 @@ class SettingsScreenTest {
             NewRoot()
         }
 
-        // Wait for startup to complete and dashboard to load
-        composeRule.waitUntil(timeoutMillis = 5000) {
-            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.waitForIdle()
 
-        // Navigate to Settings screen via the settings icon in TopAppBar
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.waitForIdle()
 
-        // Verify Settings screen is displayed by checking the title
         composeRule.onNodeWithText("Settings").assertIsDisplayed()
 
-        // Verify lifecycle state is RESUMED
         val activity = composeRule.activity
         assertEquals(
             "Settings screen should be in RESUMED state",
@@ -64,23 +70,17 @@ class SettingsScreenTest {
             NewRoot()
         }
 
-        composeRule.waitUntil(timeoutMillis = 5000) {
-            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.waitForIdle()
 
-        // Navigate to Settings
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.waitForIdle()
 
-        // Verify Settings screen content
         composeRule.onNodeWithText("Settings").assertIsDisplayed()
         composeRule.onNodeWithText("Backup").assertIsDisplayed()
 
-        // Navigate back using the back arrow
         composeRule.onNodeWithContentDescription("Back").performClick()
         composeRule.waitForIdle()
 
-        // Verify we're back on Dashboard (no "Settings" title visible)
         composeRule.onNodeWithText("Settings").assertDoesNotExist()
     }
 
@@ -90,16 +90,12 @@ class SettingsScreenTest {
             NewRoot()
         }
 
-        composeRule.waitUntil(timeoutMillis = 5000) {
-            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.waitForIdle()
 
-        // Navigate to Settings
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.waitForIdle()
 
-        // Verify export and import buttons are displayed
         composeRule.onNodeWithText("Export data").assertIsDisplayed()
-        composeRule.onNodeWithText("Restore backup").assertIsDisplayed()
+        composeRule.onNodeWithText("Restore from backup").assertIsDisplayed()
     }
 }

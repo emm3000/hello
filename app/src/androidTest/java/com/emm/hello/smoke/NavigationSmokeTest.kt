@@ -4,30 +4,42 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.waitUntil
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.emm.hello.di.KoinComposeTestRule
 import com.emm.hello.di.newModule
-import com.emm.hello.di.repositoryModule
 import com.emm.hello.di.testModule
 import com.emm.hello.newfeatures.NewRoot
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 
 @RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
 class NavigationSmokeTest {
 
-    @get:Rule(order = 0)
-    val koinRule = KoinComposeTestRule(newModule, repositoryModule, testModule)
-
-    @get:Rule(order = 1)
+    @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Before
+    fun setUp() {
+        stopKoin()
+        startKoin {
+            androidContext(composeRule.activity)
+            modules(newModule, testModule)
+        }
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
 
     @Test
     fun smokeTest_dashboardToSettingsAndBack() {
@@ -35,30 +47,22 @@ class NavigationSmokeTest {
             NewRoot()
         }
 
-        // Wait for startup to complete and dashboard title to appear
-        composeRule.waitUntil(timeoutMillis = 5000) {
-            composeRule.onAllNodesWithText("Mis mazos").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.waitForIdle()
 
-        // Dashboard is visible
         composeRule.onNodeWithText("Mis mazos").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Settings").assertIsDisplayed()
 
-        // Navigate to Settings
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.waitForIdle()
 
-        // Settings screen is visible
         composeRule.onNodeWithText("Settings").assertIsDisplayed()
         composeRule.onNodeWithText("Backup").assertIsDisplayed()
         composeRule.onNodeWithText("Export data").assertIsDisplayed()
-        composeRule.onNodeWithText("Restore backup").assertIsDisplayed()
+        composeRule.onNodeWithText("Restore from backup").assertIsDisplayed()
 
-        // Navigate back
         composeRule.onNodeWithContentDescription("Back").performClick()
         composeRule.waitForIdle()
 
-        // Dashboard is visible again
         composeRule.onNodeWithText("Mis mazos").assertIsDisplayed()
         composeRule.onNodeWithText("Settings").assertDoesNotExist()
     }
