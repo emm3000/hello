@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set current date as env variable
         run: echo "date_today=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
@@ -36,20 +38,19 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-          cache: 'gradle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+      - name: Run tests and build APK
+        run: ./gradlew testDebugUnitTest assembleStaging --build-cache
 
-      - name: Build Staging APK
-        run: ./gradlew assembleStaging
-
-      - name: Get Staging APK path
+      - name: Get Staging APK path and size
         id: releaseApkPath
-        run: echo "apk=$(find app/build/outputs/apk/staging/*.apk)" >> $GITHUB_OUTPUT
+        run: |
+          apk=$(find app/build/outputs/apk/staging/*.apk)
+          echo "apk=$apk" >> $GITHUB_OUTPUT
+          echo "size=$(ls -lh "$apk" | awk '{print $5}')" >> $GITHUB_OUTPUT
 
       - name: Upload Release to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1.7.1
@@ -58,4 +59,8 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: Hello
           file: ${{ steps.releaseApkPath.outputs.apk }}
-          releaseNotes: "Build generated on ${{ env.date_today }} by ${{ github.actor }}"
+          releaseNotes: |
+            ${{ github.event.head_commit.message || 'workflow_dispatch' }}
+            ${{ github.event.compare || github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+            Branch: ${{ github.ref_name }}  ·  ${{ github.actor }}  ·  ${{ env.date_today }}
+            APK: ${{ steps.releaseApkPath.outputs.size }}
