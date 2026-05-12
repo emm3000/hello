@@ -7,6 +7,10 @@ interface DeckRepository {
 
     suspend fun addDeck(deck: CreateDeckInput)
 
+    suspend fun updateDeck(input: UpdateDeckInput)
+
+    suspend fun softDeleteDeck(deckId: DeckId)
+
     fun findById(deckId: DeckId): Flow<Deck>
 
     fun fetchAll(): Flow<List<Deck>>

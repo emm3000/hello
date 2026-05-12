@@ -35,3 +35,8 @@ WHERE lower(t.name) = lower(?) AND t.deletedAt IS NULL;
 insertDeckTag:
 INSERT OR IGNORE INTO DeckTag (tagId, deckId, createdAt)
 VALUES (?, ?, ?);
+
+deleteDeckTagsExcept:
+DELETE FROM DeckTag
+WHERE deckId = :deckId
+  AND tagId NOT IN :keepTagIds;

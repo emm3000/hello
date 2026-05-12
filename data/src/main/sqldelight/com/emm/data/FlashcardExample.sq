@@ -35,3 +35,13 @@ SELECT * FROM FlashcardExample;
 findById:
 SELECT * FROM FlashcardExample
 WHERE id = ?;
+
+findByFlashcardId:
+SELECT * FROM FlashcardExample
+WHERE flashcardId = ?;
+
+softDelete:
+UPDATE FlashcardExample
+SET deletedAt = :now
+WHERE id = :id
+  AND deletedAt IS NULL;

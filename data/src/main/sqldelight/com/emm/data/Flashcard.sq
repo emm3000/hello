@@ -125,3 +125,43 @@ LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId
   AND f.deletedAt IS NULL;
+
+update:
+UPDATE Flashcard
+SET word = :word,
+    meaning = :meaning,
+    translation = :translation,
+    phonetic = :phonetic,
+    partOfSpeech = :partOfSpeech,
+    type = :type,
+    note = :note,
+    register = :register,
+    levelBand = :levelBand,
+    domain = :domain,
+    lemma = :lemma,
+    whyUseful = :whyUseful,
+    usagePattern = :usagePattern,
+    irregularFormsJson = :irregularFormsJson,
+    collocationsJson = :collocationsJson,
+    commonMistake = :commonMistake,
+    confusableWithJson = :confusableWithJson,
+    clozeSentence = :clozeSentence,
+    sourceContext = :sourceContext,
+    warningsJson = :warningsJson,
+    studyCardsJson = :studyCardsJson,
+    qualityChecksJson = :qualityChecksJson,
+    updatedAt = :updatedAt
+WHERE id = :id
+  AND deletedAt IS NULL;
+
+softDelete:
+UPDATE Flashcard
+SET deletedAt = :now
+WHERE id = :id
+  AND deletedAt IS NULL;
+
+softDeleteExamplesByFlashcard:
+UPDATE FlashcardExample
+SET deletedAt = :now
+WHERE flashcardId = :flashcardId
+  AND deletedAt IS NULL;

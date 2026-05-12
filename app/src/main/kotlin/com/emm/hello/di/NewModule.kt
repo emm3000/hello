@@ -27,6 +27,8 @@ import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetFilteredDecksUseCase
+import com.emm.domain.deck.SoftDeleteDeckUseCase
+import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
@@ -35,6 +37,8 @@ import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
+import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
@@ -152,6 +156,10 @@ fun Module.useCases() {
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
     factoryOf(::GetDashboardStatsUseCase)
+    factoryOf(::UpdateDeckUseCase)
+    factoryOf(::SoftDeleteDeckUseCase)
+    factoryOf(::UpdateFlashcardUseCase)
+    factoryOf(::SoftDeleteFlashcardUseCase)
 }
 
 fun Module.viewModels() {

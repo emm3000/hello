@@ -11,6 +11,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.Tag
+import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,83 @@ class DefaultDeckRepository(
             }
         }
         Unit
+    }
+
+    override suspend fun updateDeck(input: UpdateDeckInput) = withContext(Dispatchers.IO) {
+        require(input.name.isNotBlank()) { "Deck name must not be blank." }
+
+        val now: Long = Instant.now().toEpochMilli()
+        val deckId = input.deckId.value
+
+        db.transactionWithResult {
+            // Verify the deck exists and is not deleted
+            val existing = dq.findActiveById(deckId).executeAsOneOrNull()
+                ?: throw NoSuchElementException("Deck not found or already deleted: $deckId")
+
+            // Update the deck row
+            dq.update(
+                name = input.name,
+                description = input.description,
+                updatedAt = now,
+                id = deckId,
+            )
+
+            // Handle tag diff: find-or-create new tags, remove old junction rows
+            val tq = db.tagQueries
+            val currentTags = tq.findByDeckId(deckId).executeAsList()
+                .map { it.id }
+
+            val desiredTagIds = input.tags.map { tagName ->
+                val normalized = tagName.lowercase().trim()
+                val existingTag = tq.findByName(normalized).executeAsOneOrNull()
+                if (existingTag != null) {
+                    existingTag.id
+                } else {
+                    tq.getOrCreateTags(name = normalized, createdAt = now)
+                    tq.findByName(normalized).executeAsOne().id
+                }
+            }
+
+            // Remove junction rows for tags no longer in the list
+            if (currentTags.isNotEmpty() || desiredTagIds.isNotEmpty()) {
+                if (desiredTagIds.isEmpty()) {
+                    // Remove all tags for this deck
+                    tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = listOf("__none__"))
+                } else {
+                    tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = desiredTagIds)
+                }
+
+                // Add new junction rows
+                desiredTagIds.forEach { tagId ->
+                    if (tagId !in currentTags) {
+                        tq.insertDeckTag(
+                            tagId = tagId,
+                            deckId = deckId,
+                            createdAt = now,
+                        )
+                    }
+                }
+            }
+
+            Unit
+        }
+    }
+
+    override suspend fun softDeleteDeck(deckId: DeckId) = withContext(Dispatchers.IO) {
+        val now: Long = Instant.now().toEpochMilli()
+
+        db.transactionWithResult {
+            // Verify the deck exists and is not already deleted
+            val existing = dq.findActiveById(deckId.value).executeAsOneOrNull()
+                ?: throw NoSuchElementException("Deck not found or already deleted: ${deckId.value}")
+
+            // Cascading soft-delete: deck → flashcards → examples
+            dq.softDelete(now = now, id = deckId.value)
+            dq.softDeleteFlashcardsByDeck(now = now, deckId = deckId.value)
+            dq.softDeleteExamplesByDeck(now = now, deckId = deckId.value)
+
+            Unit
+        }
     }
 
     override fun findById(deckId: DeckId): Flow<Deck> {

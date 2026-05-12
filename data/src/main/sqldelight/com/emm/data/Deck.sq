@@ -88,3 +88,33 @@ WHERE Deck.deletedAt IS NULL
   )
 GROUP BY Deck.id
 ORDER BY Deck.createdAt DESC;
+
+update:
+UPDATE Deck
+SET name = :name,
+    description = :description,
+    updatedAt = :updatedAt
+WHERE id = :id
+  AND deletedAt IS NULL;
+
+softDelete:
+UPDATE Deck
+SET deletedAt = :now
+WHERE id = :id
+  AND deletedAt IS NULL;
+
+softDeleteFlashcardsByDeck:
+UPDATE Flashcard
+SET deletedAt = :now
+WHERE deckId = :deckId
+  AND deletedAt IS NULL;
+
+softDeleteExamplesByDeck:
+UPDATE FlashcardExample
+SET deletedAt = :now
+WHERE flashcardId IN (
+    SELECT id FROM Flashcard
+    WHERE deckId = :deckId
+      AND deletedAt IS NULL
+)
+AND deletedAt IS NULL;

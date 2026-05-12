@@ -13,7 +13,6 @@ import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
@@ -21,6 +20,8 @@ import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
@@ -110,6 +111,120 @@ class DefaultFlashcardRepository(
         flashcardId: FlashcardId,
     ) = withContext(Dispatchers.IO) {
         db.transaction { populate(examples, flashcardId.value) }
+    }
+
+    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = withContext(Dispatchers.IO) {
+        require(input.word.isNotBlank()) { "Flashcard word must not be blank." }
+        require(input.meaning.isNotBlank()) { "Flashcard meaning must not be blank." }
+
+        val now: Long = Instant.now().toEpochMilli()
+        val cardId: String = input.flashcardId.value
+
+        db.transactionWithResult {
+            // Verify the flashcard exists and is not deleted
+            val existing = dao.findById(cardId).executeAsOneOrNull()
+                ?: throw NoSuchElementException("Flashcard not found: $cardId")
+            if (existing.deletedAt != null) {
+                throw IllegalStateException("Flashcard already deleted: $cardId")
+            }
+
+            // Update the flashcard row
+            dao.update(
+                word = input.word,
+                meaning = input.meaning,
+                translation = input.translation,
+                phonetic = input.phonetic,
+                partOfSpeech = input.partOfSpeech,
+                type = input.noteType,
+                note = input.noteSummary,
+                register = input.register,
+                levelBand = input.levelBand,
+                domain = input.learningDomain,
+                lemma = input.lemma,
+                whyUseful = input.whyUseful,
+                usagePattern = input.usagePattern,
+                irregularFormsJson = json.encodeToString(input.irregularForms),
+                collocationsJson = json.encodeToString(input.collocations),
+                commonMistake = input.commonMistake,
+                confusableWithJson = json.encodeToString(input.confusableWith),
+                clozeSentence = input.clozeSentence,
+                sourceContext = input.sourceContext,
+                warningsJson = json.encodeToString(input.warnings),
+                studyCardsJson = input.studyCardsJson,
+                qualityChecksJson = input.qualityChecksJson,
+                updatedAt = now,
+                id = cardId,
+            )
+
+            // Diff examples: match by id to update, insert new, soft-delete removed
+            val existingExamples = exampleDao.findByFlashcardId(cardId).executeAsList()
+                .filter { it.deletedAt == null }
+            val existingIds = existingExamples.map { it.id }.toSet()
+
+            val inputIds = input.examples.map { it.exampleId }.filter { it.isNotBlank() }.toSet()
+
+            // Soft-delete removed examples
+            existingExamples.forEach { existing ->
+                if (existing.id !in inputIds) {
+                    exampleDao.softDelete(now = now, id = existing.id)
+                }
+            }
+
+            // Upsert examples
+            input.examples.forEach { example ->
+                val exampleId = example.exampleId.ifBlank { UUID.randomUUID().toString() }
+                val text = example.text
+                val translation = example.translation
+                val type = example.type
+
+                if (exampleId in existingIds) {
+                    // Update existing example
+                    exampleDao.insert(
+                        id = exampleId,
+                        flashcardId = cardId,
+                        text = text,
+                        translation = translation,
+                        type = type,
+                        createdAt = existingExamples.first { it.id == exampleId }.createdAt,
+                        updatedAt = now,
+                        deletedAt = null,
+                    )
+                } else {
+                    // Insert new example
+                    exampleDao.insert(
+                        id = exampleId,
+                        flashcardId = cardId,
+                        text = text,
+                        translation = translation,
+                        type = type,
+                        createdAt = now,
+                        updatedAt = now,
+                        deletedAt = null,
+                    )
+                }
+            }
+
+            Unit
+        }
+    }
+
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = withContext(Dispatchers.IO) {
+        val now: Long = Instant.now().toEpochMilli()
+
+        db.transactionWithResult {
+            // Verify the flashcard exists and is not already deleted
+            val existing = dao.findById(flashcardId.value).executeAsOneOrNull()
+                ?: throw NoSuchElementException("Flashcard not found: ${flashcardId.value}")
+            if (existing.deletedAt != null) {
+                throw IllegalStateException("Flashcard already deleted: ${flashcardId.value}")
+            }
+
+            // Cascade: flashcard → examples
+            dao.softDelete(now = now, id = flashcardId.value)
+            dao.softDeleteExamplesByFlashcard(now = now, flashcardId = flashcardId.value)
+
+            Unit
+        }
     }
 
     private fun populate(examples: List<Example>, flashcardId: String) {
