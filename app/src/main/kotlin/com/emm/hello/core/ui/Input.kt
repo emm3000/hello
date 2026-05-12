@@ -88,7 +88,7 @@ fun HInput(
                         contentDescription = label
                     }
                     if (isError) {
-                        error(errorMessage!!)
+                        error(errorMessage)
                     }
                 },
             enabled = enabled,

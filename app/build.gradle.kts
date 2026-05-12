@@ -92,7 +92,10 @@ configure<ApplicationExtension> {
 kotlin {
     jvmToolchain(17)
     compilerOptions {
-        freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+        freeCompilerArgs.addAll(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-Xannotation-default-target=param-property",
+        )
     }
 }
 
