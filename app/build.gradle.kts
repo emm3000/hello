@@ -65,16 +65,11 @@ configure<ApplicationExtension> {
 
         create("staging") {
             initWith(getByName("release"))
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             isShrinkResources = false
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             matchingFallbacks += listOf("release")
-            proguardFiles(
-                //noinspection ProguardAndroidTxtUsage
-                getDefaultProguardFile("proguard-android.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
 
