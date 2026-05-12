@@ -56,6 +56,9 @@ class GetFilteredDecksUseCaseTest {
         }
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = flowOf(emptyList())
+
+        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 
 }

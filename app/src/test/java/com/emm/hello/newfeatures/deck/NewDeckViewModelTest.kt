@@ -5,6 +5,8 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
+import com.emm.domain.deck.UpdateDeckInput
+import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
@@ -25,7 +27,11 @@ class NewDeckViewModelTest {
     @Test
     fun `submit success resets state and emits navigate back effect`() = runTest {
         val repository = FakeDeckRepository()
-        val viewModel = NewDeckViewModel(repository)
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            formMode = DeckFormMode.Create,
+        )
 
         viewModel.onIntent(NewDeckUiIntent.NameChanged("My deck"))
         viewModel.onIntent(NewDeckUiIntent.DescriptionChanged("Optional"))
@@ -44,7 +50,11 @@ class NewDeckViewModelTest {
     @Test
     fun `submit with tags passes normalized tags to repository`() = runTest {
         val repository = FakeDeckRepository()
-        val viewModel = NewDeckViewModel(repository)
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            formMode = DeckFormMode.Create,
+        )
 
         viewModel.onIntent(NewDeckUiIntent.NameChanged("Travel Deck"))
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Spanish ", "TRAVEL", "spanish")))
@@ -61,7 +71,11 @@ class NewDeckViewModelTest {
     @Test
     fun `tags changed normalizes tags before updating state`() = runTest {
         val repository = FakeDeckRepository()
-        val viewModel = NewDeckViewModel(repository)
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            formMode = DeckFormMode.Create,
+        )
 
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Mixed ", "UPPERCASE", "mixed", "")))
 
@@ -71,7 +85,11 @@ class NewDeckViewModelTest {
     @Test
     fun `tags changed removes blank tags`() = runTest {
         val repository = FakeDeckRepository()
-        val viewModel = NewDeckViewModel(repository)
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            formMode = DeckFormMode.Create,
+        )
 
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("valid", "   ", "", "  ")))
 
@@ -81,7 +99,11 @@ class NewDeckViewModelTest {
     @Test
     fun `submit failure emits show message and stops loading`() = runTest {
         val repository = FakeDeckRepository(shouldFail = true)
-        val viewModel = NewDeckViewModel(repository)
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            formMode = DeckFormMode.Create,
+        )
 
         viewModel.onIntent(NewDeckUiIntent.NameChanged("Deck with error"))
 
@@ -116,5 +138,8 @@ class NewDeckViewModelTest {
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+
+        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 }

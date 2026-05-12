@@ -7,6 +7,7 @@ import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
@@ -152,6 +153,9 @@ private class FakeDeckRepository : DeckRepository {
     override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
 
     override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+
+    override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+    override suspend fun softDeleteDeck(deckId: DeckId) = Unit
 }
 
 private class FakeFlashcardRepository : FlashcardRepository {
@@ -184,6 +188,9 @@ private class FakeFlashcardRepository : FlashcardRepository {
 
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
+
+    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
 }
 
 private fun sampleCard(id: String): Flashcard {

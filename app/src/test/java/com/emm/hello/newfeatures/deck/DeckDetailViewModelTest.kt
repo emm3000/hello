@@ -5,10 +5,13 @@ import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDeckDetailUseCase
+import com.emm.domain.deck.SoftDeleteDeckUseCase
+import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.hello.MainDispatcherRule
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -185,6 +188,7 @@ class DeckDetailViewModelTest {
             deckId = "deck-1",
             getDeckDetailUseCase = GetDeckDetailUseCase(deckRepo, cardRepo),
             observeFlashcardsWithReviewUseCase = ObserveFlashcardsWithReviewUseCase(studyRepo),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(deckRepo),
         )
     }
 
@@ -195,6 +199,8 @@ class DeckDetailViewModelTest {
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 
     private class FakeCardRepo : FlashcardRepository {
@@ -208,6 +214,8 @@ class DeckDetailViewModelTest {
             examples: List<com.emm.domain.flashcard.Example>,
             flashcardId: FlashcardId,
         ) = Unit
+        override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
     }
 
     private class FakeStudyRepo : StudySessionRepository {

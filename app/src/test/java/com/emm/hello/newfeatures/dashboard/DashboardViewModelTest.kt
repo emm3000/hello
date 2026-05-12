@@ -8,6 +8,7 @@ import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetFilteredDecksUseCase
+import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.GetDashboardStatsUseCase
@@ -251,6 +252,9 @@ class DashboardViewModelTest {
             }
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+
+        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 
     private class FakeStatsRepo(

@@ -7,6 +7,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.toDefinitionEn
 import com.emm.domain.flashcard.toExpression
 import com.emm.domain.flashcard.toIntendedMeaningEs
@@ -185,6 +186,9 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }
+
+    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
 }
 
 private class DuplicateRepoStub(

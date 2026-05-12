@@ -11,6 +11,7 @@ import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.toDefinitionEn
 import com.emm.domain.flashcard.toExpression
@@ -441,6 +442,9 @@ class NewCardViewModelTest {
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(listOf(deck))
 
         override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+
+        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 
     private fun buildViewModel(
