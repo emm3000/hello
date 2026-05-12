@@ -72,7 +72,7 @@ private fun AppNavigation() {
             entry<DashboardRoute> { DashboardDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<NewCardRoute> { NewCardDestination(navigator) }
-            entry<NewDeckRoute> { NewDeckDestination(navigator) }
+            entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<DeckDetailRoute> { key -> DeckDetailDestination(navigator, key.deckId) }
             entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId) }
             entry<SettingsRoute> { SettingsDestination(navigator) }

@@ -17,9 +17,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.HistoryEdu
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,13 +58,15 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
+import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlert
+import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSearchBar
+import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTagChip
 import com.emm.hello.core.ui.SectionBlock
 import com.emm.hello.core.ui.StatCard
@@ -74,43 +85,24 @@ fun DeckDetailScreen(
     onCardClick: (String) -> Unit = {},
     onAddCard: () -> Unit = {},
     onSearchChange: (String) -> Unit = {},
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onConfirmDelete: () -> Unit = {},
+    onDismissDelete: () -> Unit = {},
 ) {
     val isSearching = state.searchQuery.trim().isNotEmpty()
     val filteredCards = state.deck.cards.filter { card ->
         matchesSearchQuery(card, state.searchQuery)
     }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
-                        Text(
-                            text = state.deck.name.ifBlank { stringResource(R.string.deck_detail_title_fallback) },
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (state.deck.description.isNotBlank()) {
-                            Text(
-                                text = state.deck.description,
-                                style = MaterialTheme.typography.metadata,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+            DeckDetailTopBar(
+                deck = state.deck,
+                onNavigateBack = onNavigateBack,
+                onEditClick = onEditClick,
+                onDeleteClick = onDeleteClick,
             )
         },
         floatingActionButton = {
@@ -193,6 +185,92 @@ fun DeckDetailScreen(
             }
         }
     }
+
+    // ── Delete confirmation dialog ────────────────────────────────────────
+    if (state.showDeleteConfirmation) {
+        HAlertDialog(
+            title = stringResource(R.string.delete_deck_title),
+            description = stringResource(R.string.delete_deck_description),
+            icon = Icons.Outlined.Delete,
+            confirmText = stringResource(R.string.delete),
+            cancelText = stringResource(R.string.cancel),
+            isDangerous = true,
+            onConfirm = onConfirmDelete,
+            onDismiss = onDismissDelete,
+        )
+    }
+}
+
+// ── Component: Top bar ───────────────────────────────────────────────────
+
+@Composable
+private fun DeckDetailTopBar(
+    deck: Deck,
+    onNavigateBack: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
+                Text(
+                    text = deck.name.ifBlank { stringResource(R.string.deck_detail_title_fallback) },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (deck.description.isNotBlank()) {
+                    Text(
+                        text = deck.description,
+                        style = MaterialTheme.typography.metadata,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+            }
+        },
+        actions = {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.more_options),
+                )
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = {
+                        showMenu = false
+                        onEditClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.delete)) },
+                    onClick = {
+                        showMenu = false
+                        onDeleteClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+        ),
+    )
 }
 
 // ── Component: Deck statistics ────────────────────────────────────────

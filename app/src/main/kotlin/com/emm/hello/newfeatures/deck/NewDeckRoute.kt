@@ -3,20 +3,25 @@ package com.emm.hello.newfeatures.deck
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
-object NewDeckRoute : NavKey
+data class NewDeckRoute(val deckId: String? = null) : NavKey
 
 @Composable
-fun NewDeckDestination(navigator: Navigator) {
-    val vm: NewDeckViewModel = koinViewModel()
-    val uiState = vm.uiState.collectAsStateWithLifecycle()
+fun NewDeckDestination(navigator: Navigator, deckId: String? = null) {
+    val formMode = if (deckId != null) DeckFormMode.Edit(deckId) else DeckFormMode.Create
+    val vm: NewDeckViewModel = koinViewModel(
+        parameters = { parametersOf(formMode) }
+    )
+    val uiState by vm.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -32,7 +37,7 @@ fun NewDeckDestination(navigator: Navigator) {
 
     NewDeckScreen(
         onNavigateBack = { navigator.goBack() },
-        state = uiState.value,
+        state = uiState,
         onIntent = vm::onIntent,
     )
 }

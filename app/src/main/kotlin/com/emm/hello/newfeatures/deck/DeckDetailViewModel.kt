@@ -2,22 +2,27 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
+import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.hello.core.mvi.MviViewModel
+import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 class DeckDetailViewModel(
     private val deckId: String,
     getDeckDetailUseCase: GetDeckDetailUseCase,
     private val observeFlashcardsWithReviewUseCase: ObserveFlashcardsWithReviewUseCase,
+    private val softDeleteDeckUseCase: SoftDeleteDeckUseCase,
 ) : MviViewModel<DeckDetailUiState, DeckDetailUiIntent, DeckDetailUiEffect>(
     initialState = DeckDetailUiState(),
 ) {
@@ -48,6 +53,32 @@ class DeckDetailViewModel(
             is DeckDetailUiIntent.SearchCardsChanged -> {
                 mutableState.update { it.copy(searchQuery = intent.query) }
             }
+            DeckDetailUiIntent.EditDeck -> handleEditDeck()
+            DeckDetailUiIntent.DeleteDeck -> {
+                mutableState.update { it.copy(showDeleteConfirmation = true) }
+            }
+            DeckDetailUiIntent.ConfirmDeleteDeck -> deleteDeck()
+            DeckDetailUiIntent.DismissDeleteDeck -> {
+                mutableState.update { it.copy(showDeleteConfirmation = false) }
+            }
+        }
+    }
+
+    private fun handleEditDeck() = viewModelScope.launch {
+        mutableEffect.send(DeckDetailUiEffect.NavigateToEditDeck(deckId))
+    }
+
+    private fun deleteDeck() = viewModelScope.launch {
+        mutableState.update { it.copy(showDeleteConfirmation = false) }
+        runCatching {
+            softDeleteDeckUseCase(deckId.toDeckId())
+        }.onSuccess {
+            mutableEffect.send(DeckDetailUiEffect.DeckDeleted)
+        }.onFailure { error ->
+            logError(TAG, "deleteDeck:error ${error.message}", error)
+            mutableEffect.send(
+                DeckDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar el mazo")
+            )
         }
     }
 }
@@ -84,3 +115,5 @@ private fun StudyFlashcard.toFlashcard(): Flashcard = Flashcard(
     sourceContext = sourceContext,
     irregularForms = irregularForms,
 )
+
+private const val TAG = "DeckDetailViewModel"

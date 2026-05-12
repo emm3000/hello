@@ -5,6 +5,7 @@ data class NewDeckUiState(
     val description: String = "",
     val tags: List<String> = emptyList(),
     val isLoading: Boolean = false,
+    val formMode: DeckFormMode = DeckFormMode.Create,
 ) {
 
     val isValid: Boolean

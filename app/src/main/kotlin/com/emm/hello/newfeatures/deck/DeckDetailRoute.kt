@@ -1,7 +1,10 @@
 package com.emm.hello.newfeatures.deck
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
@@ -22,6 +25,23 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
     )
 
     val uiState: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.effect.collect { effect ->
+            when (effect) {
+                is DeckDetailUiEffect.NavigateToEditDeck -> {
+                    navigator.navigateTo(NewDeckRoute(deckId = effect.deckId))
+                }
+                DeckDetailUiEffect.DeckDeleted -> {
+                    navigator.goBack()
+                }
+                is DeckDetailUiEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     DeckDetailScreen(
         onNavigateBack = { navigator.goBack() },
@@ -30,5 +50,9 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
         onCardClick = { cardId -> navigator.navigateTo(CardDetailRoute(cardId)) },
         onAddCard = { navigator.navigateTo(NewCardRoute) },
         onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },
+        onEditClick = { vm.onIntent(DeckDetailUiIntent.EditDeck) },
+        onDeleteClick = { vm.onIntent(DeckDetailUiIntent.DeleteDeck) },
+        onConfirmDelete = { vm.onIntent(DeckDetailUiIntent.ConfirmDeleteDeck) },
+        onDismissDelete = { vm.onIntent(DeckDetailUiIntent.DismissDeleteDeck) },
     )
 }

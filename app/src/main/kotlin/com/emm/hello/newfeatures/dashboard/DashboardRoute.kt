@@ -50,7 +50,7 @@ fun DashboardDestination(navigator: Navigator) {
         state = uiState,
         newCard = { navigator.navigateTo(NewCardRoute) },
         onDeckDetail = { navigator.navigateTo(DeckDetailRoute(it)) },
-        onCreateDeck = { navigator.navigateTo(NewDeckRoute) },
+        onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
         onVisible = { vm.onVisible() },
         onSearchQueryChanged = { vm.onIntent(QueryChanged(it)) },

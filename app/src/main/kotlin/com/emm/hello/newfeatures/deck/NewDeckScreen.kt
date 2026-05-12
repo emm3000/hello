@@ -40,12 +40,15 @@ fun NewDeckScreen(
     onIntent: (NewDeckUiIntent) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
+    val isEditMode = state.formMode is DeckFormMode.Edit
+    val title = if (isEditMode) stringResource(R.string.edit_deck_title) else stringResource(R.string.new_deck_title)
+    val saveText = if (isEditMode) stringResource(R.string.save_changes) else stringResource(R.string.save)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.new_deck_title)) },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -53,7 +56,7 @@ fun NewDeckScreen(
                 },
                 actions = {
                     HButton(
-                        text = stringResource(R.string.save),
+                        text = saveText,
                         onClick = {
                             focusManager.clearFocus()
                             onIntent(NewDeckUiIntent.Submit)

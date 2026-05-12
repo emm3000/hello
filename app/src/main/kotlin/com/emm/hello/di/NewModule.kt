@@ -164,7 +164,13 @@ fun Module.useCases() {
 
 fun Module.viewModels() {
     viewModel { AppStartupViewModel(get()) }
-    viewModel { NewDeckViewModel(get()) }
+    viewModel { params ->
+        NewDeckViewModel(
+            deckRepository = get(),
+            updateDeckUseCase = get(),
+            formMode = params.get(),
+        )
+    }
     viewModel { DashboardViewModel(get(), get(), get()) }
     viewModel {
         NewCardViewModel(
@@ -186,6 +192,7 @@ fun Module.viewModels() {
             deckId = it.get(),
             getDeckDetailUseCase = get(),
             observeFlashcardsWithReviewUseCase = get(),
+            softDeleteDeckUseCase = get(),
         )
     }
     viewModel {

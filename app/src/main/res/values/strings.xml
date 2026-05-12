@@ -65,6 +65,11 @@
     <string name="empty_cards_description">Añade la primera tarjeta a este mazo</string>
     <string name="add_card">Añadir tarjeta</string>
     <string name="cards_section_label">Tarjetas</string>
+    <string name="more_options">Más opciones</string>
+    <string name="edit_deck_title">Editar mazo</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="delete_deck_title">Eliminar mazo</string>
+    <string name="delete_deck_description">Esta acción no se puede deshacer. Se eliminarán todas las tarjetas asociadas.</string>
 
     <!-- Flashcards -->
     <string name="new_card_title">Nueva tarjeta</string>
