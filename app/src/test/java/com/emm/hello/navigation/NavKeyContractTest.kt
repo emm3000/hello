@@ -2,6 +2,7 @@ package com.emm.hello.navigation
 
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.newfeatures.card.CardDetailRoute
+import com.emm.hello.newfeatures.card.EditFlashcardRoute
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
@@ -19,9 +20,10 @@ class NavKeyContractTest {
             DashboardRoute,
             StudyRoute("test"),
             NewCardRoute,
-            NewDeckRoute,
+            NewDeckRoute(),
             DeckDetailRoute("test"),
-            CardDetailRoute("test"),
+            CardDetailRoute("test", "deck-test"),
+            EditFlashcardRoute("test", "deck-test"),
             SettingsRoute,
         )
 
@@ -37,10 +39,12 @@ class NavKeyContractTest {
     fun `parameterized routes preserve args`() {
         val study = StudyRoute("deck-123")
         val deck = DeckDetailRoute("deck-456")
-        val card = CardDetailRoute("card-789")
+        val card = CardDetailRoute("card-789", "deck-789")
+        val editFlashcard = EditFlashcardRoute("card-789", "deck-789")
 
         assertTrue(study is NavKey)
         assertTrue(deck is NavKey)
         assertTrue(card is NavKey)
+        assertTrue(editFlashcard is NavKey)
     }
 }

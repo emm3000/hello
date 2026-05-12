@@ -1,4 +1,3 @@
-
 package com.emm.hello.newfeatures.card
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +12,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +46,7 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
@@ -52,23 +57,21 @@ fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
     flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
     onNavigateBack: () -> Unit = {},
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onConfirmDelete: () -> Unit = {},
+    onDismissDelete: () -> Unit = {},
+    showDeleteConfirmation: Boolean = false,
 ) {
     val card = flashcard.flashcard
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            MediumTopAppBar(
-                title = {
-                    Text(
-                        card.word,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
+            FlashcardDetailTopBar(
+                word = card.word,
+                onNavigateBack = onNavigateBack,
+                onEditClick = onEditClick,
+                onDeleteClick = onDeleteClick,
             )
         }
     ) { innerPadding ->
@@ -125,6 +128,75 @@ fun FlashcardDetailScreen(
             }
         }
     }
+
+    // ── Delete confirmation dialog ────────────────────────────────────────
+    if (showDeleteConfirmation) {
+        HAlertDialog(
+            title = stringResource(R.string.delete_flashcard_title),
+            description = stringResource(R.string.delete_flashcard_description),
+            icon = Icons.Outlined.Delete,
+            confirmText = stringResource(R.string.delete),
+            cancelText = stringResource(R.string.cancel),
+            isDangerous = true,
+            onConfirm = onConfirmDelete,
+            onDismiss = onDismissDelete,
+        )
+    }
+}
+
+// ── Top bar ───────────────────────────────────────────────────────────────────
+
+@Composable
+private fun FlashcardDetailTopBar(
+    word: String,
+    onNavigateBack: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    MediumTopAppBar(
+        title = {
+            Text(
+                text = word,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+            }
+        },
+        actions = {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.more_options),
+                )
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = {
+                        showMenu = false
+                        onEditClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.delete)) },
+                    onClick = {
+                        showMenu = false
+                        onDeleteClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                )
+            }
+        },
+    )
 }
 
 @Composable

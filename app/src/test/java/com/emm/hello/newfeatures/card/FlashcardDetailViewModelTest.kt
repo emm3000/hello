@@ -6,6 +6,8 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
+import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
@@ -34,6 +36,7 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(detail),
+            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
         )
 
         assertThat(viewModel.uiState.value.flashcard.flashcard.id.value).isEqualTo("card-1")
@@ -45,6 +48,7 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(shouldFail = true),
+            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
         )
 
         viewModel.effect.test {
@@ -65,6 +69,8 @@ class FlashcardDetailViewModelTest {
             return detail
         }
         override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
+        override suspend fun updateFlashcard(input: UpdateFlashcardInput) = throw UnsupportedOperationException()
+        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
         override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
     }
 }

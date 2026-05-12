@@ -47,7 +47,7 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
         onNavigateBack = { navigator.goBack() },
         onReview = { navigator.navigateTo(StudyRoute(uiState.deck.id.value)) },
         state = uiState,
-        onCardClick = { cardId -> navigator.navigateTo(CardDetailRoute(cardId)) },
+        onCardClick = { cardId -> navigator.navigateTo(CardDetailRoute(cardId = cardId, deckId = uiState.deck.id.value)) },
         onAddCard = { navigator.navigateTo(NewCardRoute) },
         onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },
         onEditClick = { vm.onIntent(DeckDetailUiIntent.EditDeck) },

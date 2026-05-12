@@ -26,6 +26,8 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.card.CardDetailDestination
 import com.emm.hello.newfeatures.card.CardDetailRoute
+import com.emm.hello.newfeatures.card.EditFlashcardDestination
+import com.emm.hello.newfeatures.card.EditFlashcardRoute
 import com.emm.hello.newfeatures.card.NewCardDestination
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardDestination
@@ -74,7 +76,8 @@ private fun AppNavigation() {
             entry<NewCardRoute> { NewCardDestination(navigator) }
             entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<DeckDetailRoute> { key -> DeckDetailDestination(navigator, key.deckId) }
-            entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId) }
+            entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId, key.deckId) }
+            entry<EditFlashcardRoute> { key -> EditFlashcardDestination(navigator, key.cardId, key.deckId) }
             entry<SettingsRoute> { SettingsDestination(navigator) }
         }
     )

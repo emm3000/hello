@@ -13,10 +13,10 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Serializable
-data class CardDetailRoute(val cardId: String) : NavKey
+data class CardDetailRoute(val cardId: String, val deckId: String) : NavKey
 
 @Composable
-fun CardDetailDestination(navigator: Navigator, cardId: String) {
+fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) {
     val vm: FlashcardDetailViewModel = koinViewModel(
         parameters = { parametersOf(cardId) }
     )
@@ -31,11 +31,26 @@ fun CardDetailDestination(navigator: Navigator, cardId: String) {
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                     navigator.goBack()
                 }
+                is FlashcardDetailUiEffect.NavigateToEditFlashcard -> {
+                    navigator.navigateTo(EditFlashcardRoute(cardId = effect.cardId, deckId = deckId))
+                }
+                FlashcardDetailUiEffect.FlashcardDeleted -> {
+                    navigator.goBack()
+                }
+                is FlashcardDetailUiEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
 
     FlashcardDetailScreen(
         flashcard = uiState.flashcard,
-    ) { navigator.goBack() }
+        onNavigateBack = { navigator.goBack() },
+        onEditClick = { vm.onIntent(FlashcardDetailUiIntent.EditFlashcard) },
+        onDeleteClick = { vm.onIntent(FlashcardDetailUiIntent.DeleteFlashcard) },
+        onConfirmDelete = { vm.onIntent(FlashcardDetailUiIntent.ConfirmDeleteFlashcard) },
+        onDismissDelete = { vm.onIntent(FlashcardDetailUiIntent.DismissDeleteFlashcard) },
+        showDeleteConfirmation = uiState.showDeleteConfirmation,
+    )
 }

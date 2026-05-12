@@ -298,4 +298,20 @@
     <string name="restore_confirm_no">Cancel</string>
     <string name="settings_content_description">Settings</string>
 
+    <!-- Flashcard edit/delete -->
+    <string name="edit_flashcard_title">Editar tarjeta</string>
+    <string name="edit_flashcard_loading">Cargando tarjeta…</string>
+    <string name="edit_flashcard_word_placeholder">Ej: serendipity</string>
+    <string name="edit_flashcard_meaning_placeholder">Significado de la palabra</string>
+    <string name="edit_flashcard_translation_placeholder">Traducción al español</string>
+    <string name="edit_flashcard_phonetic_placeholder">Ej: /ˌserənˈdɪpɪti/</string>
+    <string name="edit_flashcard_part_of_speech_placeholder">Ej: noun, verb</string>
+    <string name="edit_flashcard_no_examples">No hay ejemplos</string>
+    <string name="edit_flashcard_add_example">Añadir ejemplo</string>
+    <string name="edit_flashcard_example_number">Ejemplo %1$d</string>
+    <string name="edit_flashcard_remove_example">Eliminar ejemplo</string>
+    <string name="delete_flashcard_title">Eliminar tarjeta</string>
+    <string name="delete_flashcard_description">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a esta tarjeta.</string>
+    <string name="part_of_speech_label">Categoría gramatical</string>
+
 </resources>

@@ -6,4 +6,5 @@ import com.emm.domain.time.SystemClock
 
 data class FlashcardDetailUiState(
     val flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
+    val showDeleteConfirmation: Boolean = false,
 )

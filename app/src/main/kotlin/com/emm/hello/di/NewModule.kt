@@ -61,6 +61,7 @@ import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
+import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
@@ -199,6 +200,15 @@ fun Module.viewModels() {
         FlashcardDetailViewModel(
             flashcardId = it.get(),
             flashcardRepository = get(),
+            softDeleteFlashcardUseCase = get(),
+        )
+    }
+    viewModel {
+        EditFlashcardViewModel(
+            flashcardId = it.get(),
+            deckId = it.get(),
+            flashcardRepository = get(),
+            updateFlashcardUseCase = get(),
         )
     }
     viewModel { SettingsViewModel(get(), get()) }
