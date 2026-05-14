@@ -19,7 +19,7 @@ import com.emm.hello.core.theme.HelloTheme
 /**
  * Horizontal separator inspired by shadcn/ui `<Separator />`.
  *
- * Usage: between sections in NewCardScreen, between fields in FlashcardDetailScreen.
+ * Usage: between sections in the new card flow, between fields in FlashcardDetailScreen.
  */
 @Composable
 fun HSeparator(

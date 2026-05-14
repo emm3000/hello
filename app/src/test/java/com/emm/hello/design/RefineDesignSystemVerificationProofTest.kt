@@ -17,12 +17,11 @@ class RefineDesignSystemVerificationProofTest {
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/StatCard.kt"))).isTrue()
 
         val sectionBlockConsumers = listOf(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
         ).filter { read(it).contains("HSectionBlock(") }
 
-        assertThat(sectionBlockConsumers).hasSize(3)
+        assertThat(sectionBlockConsumers).hasSize(2)
         assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt"))
             .contains("HStatCard(")
     }
@@ -43,8 +42,6 @@ class RefineDesignSystemVerificationProofTest {
 
     @Test
     fun `initial rollout boundary holds`() {
-        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt"))
-            .contains("HSectionBlock(")
         assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt"))
             .contains("HSectionBlock(")
 
@@ -62,7 +59,6 @@ class RefineDesignSystemVerificationProofTest {
         val sectionBlockImports = filesContaining("import com.emm.hello.core.ui.HSectionBlock")
         assertThat(sectionBlockImports).containsExactly(
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
-            "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
         )
 

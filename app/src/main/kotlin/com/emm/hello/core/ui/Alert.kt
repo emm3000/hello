@@ -43,7 +43,7 @@ enum class AlertVariant { Default, Destructive, Warning, Success }
 /**
  * Alert / callout inspired by shadcn/ui.
  *
- * Usage: error messages in NewCardScreen ([AlertVariant.Destructive]),
+ * Usage: error messages in the new card flow ([AlertVariant.Destructive]),
  *        general information, action confirmations.
  */
 @Composable

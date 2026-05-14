@@ -9,11 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +34,7 @@ import com.emm.hello.R
 import com.emm.hello.newfeatures.card.validation.InputField
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.newfeatures.card.validation.IssueUiTarget
+import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.CardVariant
@@ -332,4 +336,33 @@ private fun VoiceInputButton(
             },
         )
     }
+}
+
+@Composable
+internal fun LabeledCheckbox(
+    label: String,
+    checked: Boolean,
+    isEnabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = { onCheckedChange(!checked) }, enabled = isEnabled)
+            .padding(MaterialTheme.spacing.sm),
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+internal fun SupportingText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.metadata,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
