@@ -689,7 +689,6 @@ private fun FlashcardFrontContent(
             CardTypePromptBlock(
                 card = card,
                 studyCard = studyCard,
-                prompt = prompt,
             )
             Spacer(Modifier.height(12.dp))
             Text(
@@ -835,14 +834,14 @@ private fun FlashcardBackContent(
 private fun CardTypePromptBlock(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
-    prompt: String,
 ) {
     when (studyCard?.cardType) {
         StudyCardType.Cloze -> {
-            HAlert(
-                title = "Completa el hueco",
-                description = prompt,
-                variant = AlertVariant.Warning,
+            Text(
+                text = "Completa el hueco",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
 
