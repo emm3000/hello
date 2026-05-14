@@ -48,6 +48,8 @@ import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
 import org.koin.androidx.compose.koinViewModel
 
+private const val NAV_TRANSITION_DURATION_MS = 350
+
 @Composable
 fun NewRoot() {
     val startupViewModel: AppStartupViewModel = koinViewModel()
@@ -73,31 +75,31 @@ private fun AppNavigation() {
         transitionSpec = {
             slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = tween(350),
+                animationSpec = tween(NAV_TRANSITION_DURATION_MS),
             ) togetherWith
                 slideOutHorizontally(
                     targetOffsetX = { -it / 3 },
-                    animationSpec = tween(350),
+                    animationSpec = tween(NAV_TRANSITION_DURATION_MS),
                 )
         },
         popTransitionSpec = {
             slideInHorizontally(
                 initialOffsetX = { -it / 3 },
-                animationSpec = tween(350),
+                animationSpec = tween(NAV_TRANSITION_DURATION_MS),
             ) togetherWith
                 slideOutHorizontally(
                     targetOffsetX = { it },
-                    animationSpec = tween(350),
+                    animationSpec = tween(NAV_TRANSITION_DURATION_MS),
                 )
         },
         predictivePopTransitionSpec = {
             slideInHorizontally(
                 initialOffsetX = { -it / 3 },
-                animationSpec = tween(350),
+                animationSpec = tween(NAV_TRANSITION_DURATION_MS),
             ) togetherWith
                 slideOutHorizontally(
                     targetOffsetX = { it },
-                    animationSpec = tween(350),
+                    animationSpec = tween(NAV_TRANSITION_DURATION_MS),
                 )
         },
         entryDecorators = listOf(
