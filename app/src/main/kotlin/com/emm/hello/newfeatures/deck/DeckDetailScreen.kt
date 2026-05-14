@@ -58,10 +58,8 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
-import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
-import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
@@ -70,7 +68,6 @@ import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTagChip
 import com.emm.hello.core.ui.HSectionBlock
 import com.emm.hello.core.ui.HStatCard
-import com.emm.hello.core.ui.StatCardStatus
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -292,21 +289,16 @@ private fun DeckStatsHeader(
     } else {
         stringResource(R.string.review_status_up_to_date)
     }
-    val reviewButtonText = if (hasSessionEnabled) {
+    val reviewSectionDescription = if (hasSessionEnabled) {
         stringResource(R.string.start_review)
     } else {
         stringResource(R.string.no_pending_cards)
     }
     val reviewBadgeVariant = if (hasSessionEnabled) BadgeVariant.Success else BadgeVariant.Secondary
-    val reviewAlertVariant = if (hasSessionEnabled) {
-        com.emm.hello.core.ui.AlertVariant.Success
-    } else {
-        com.emm.hello.core.ui.AlertVariant.Default
-    }
 
     HSectionBlock(
         title = stringResource(R.string.review_status_label),
-        description = reviewButtonText,
+        description = reviewSectionDescription,
         trailingContent = {
             HBadge(
                 label = reviewStatusValue,
@@ -319,42 +311,24 @@ private fun DeckStatsHeader(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
-            // Tags row — shown only when deck has tags
             if (tags.isNotEmpty()) {
                 TagsRow(tags = tags)
             }
 
-            Row(
+            HStatCard(
+                value = "$cardCount",
+                label = deckPluralLabel,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
-            ) {
-                HStatCard(
-                    value = "$cardCount",
-                    label = deckPluralLabel,
-                    modifier = Modifier.weight(1f),
-                )
-                HStatCard(
-                    value = reviewStatusValue,
-                    label = stringResource(R.string.review_status_label),
-                    status = if (hasSessionEnabled) StatCardStatus.Success else StatCardStatus.Default,
-                    modifier = Modifier.weight(1f),
+            )
+
+            if (hasSessionEnabled) {
+                HButton(
+                    text = stringResource(R.string.start_review),
+                    onClick = onReview,
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = Icons.Filled.PlayArrow,
                 )
             }
-
-            HButton(
-                text = reviewButtonText,
-                onClick = onReview,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = hasSessionEnabled,
-                leadingIcon = Icons.Filled.PlayArrow,
-                variant = if (hasSessionEnabled) ButtonVariant.Default else ButtonVariant.Secondary,
-            )
-
-            HAlert(
-                title = reviewStatusValue,
-                description = reviewButtonText,
-                variant = reviewAlertVariant,
-            )
         }
     }
 }
