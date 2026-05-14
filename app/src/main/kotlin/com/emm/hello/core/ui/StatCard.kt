@@ -22,7 +22,7 @@ import com.emm.hello.core.theme.spacing
 enum class StatCardStatus { Default, Success, Warning, Destructive }
 
 @Composable
-fun StatCard(
+fun HStatCard(
     value: String,
     label: String,
     modifier: Modifier = Modifier,
@@ -86,7 +86,7 @@ private fun statCardColors(status: StatCardStatus): Triple<Color, Color, Color> 
 
 @PreviewLightDark
 @Composable
-private fun StatCardPreview() {
+private fun HStatCardPreview() {
     HelloTheme {
         Column(
             modifier = Modifier
@@ -94,9 +94,9 @@ private fun StatCardPreview() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            StatCard(value = "24", label = "tarjetas")
-            StatCard(value = "Listo", label = "estado de repaso", status = StatCardStatus.Success)
-            StatCard(value = "Advertencia", label = "estado", status = StatCardStatus.Warning)
+            HStatCard(value = "24", label = "tarjetas")
+            HStatCard(value = "Listo", label = "estado de repaso", status = StatCardStatus.Success)
+            HStatCard(value = "Advertencia", label = "estado", status = StatCardStatus.Warning)
         }
     }
 }

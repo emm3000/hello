@@ -48,9 +48,7 @@ No asumir:
 
 - **Composables públicos**: prefijo `H` (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). Esta es la regla dura.
 - **Archivos**: actualmente inconsistente — la mayoría sin prefijo (`Button.kt`, `Input.kt`, `Badge.kt`, `Card.kt`) y 4 con prefijo (`HSearchBar.kt`, `HTagChip.kt`, `HTagInput.kt`, `HLoadingSpinner.kt`). Para archivos nuevos preferir **sin prefijo** (alinea con la mayoría y con el template `Input.kt`).
-- **Excepciones sin composable `H*`** (no replicar en componentes nuevos):
-  - `FieldShell` — building block interno, template para inputs
-  - `SectionBlock`, `StatCard` — gap pendiente de migración (renombrar a `HSectionBlock`/`HStatCard`)
+- **Excepción sin composable `H*`**: `FieldShell` — building block interno, template para inputs.
 
 ### Jerarquía para nuevos diseños
 

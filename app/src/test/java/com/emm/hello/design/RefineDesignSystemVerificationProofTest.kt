@@ -20,11 +20,11 @@ class RefineDesignSystemVerificationProofTest {
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
-        ).filter { read(it).contains("SectionBlock(") }
+        ).filter { read(it).contains("HSectionBlock(") }
 
         assertThat(sectionBlockConsumers).hasSize(3)
         assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt"))
-            .contains("StatCard(")
+            .contains("HStatCard(")
     }
 
     @Test
@@ -44,29 +44,29 @@ class RefineDesignSystemVerificationProofTest {
     @Test
     fun `initial rollout boundary holds`() {
         assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt"))
-            .contains("SectionBlock(")
+            .contains("HSectionBlock(")
         assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt"))
-            .contains("SectionBlock(")
+            .contains("HSectionBlock(")
 
         val deckDetailSource = read("app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt")
-        assertThat(deckDetailSource).contains("SectionBlock(")
-        assertThat(deckDetailSource).contains("StatCard(")
+        assertThat(deckDetailSource).contains("HSectionBlock(")
+        assertThat(deckDetailSource).contains("HStatCard(")
 
         val studySource = read("app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt")
-        assertThat(studySource).doesNotContain("SectionBlock(")
-        assertThat(studySource).doesNotContain("StatCard(")
+        assertThat(studySource).doesNotContain("HSectionBlock(")
+        assertThat(studySource).doesNotContain("HStatCard(")
     }
 
     @Test
     fun `out of scope work is rejected`() {
-        val sectionBlockImports = filesContaining("import com.emm.hello.core.ui.SectionBlock")
+        val sectionBlockImports = filesContaining("import com.emm.hello.core.ui.HSectionBlock")
         assertThat(sectionBlockImports).containsExactly(
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardScreen.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
         )
 
-        val statCardImports = filesContaining("import com.emm.hello.core.ui.StatCard")
+        val statCardImports = filesContaining("import com.emm.hello.core.ui.HStatCard")
         assertThat(statCardImports).containsExactly(
             "app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt",
             "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
@@ -77,8 +77,8 @@ class RefineDesignSystemVerificationProofTest {
             .map(::relativePath)
             .filter { path ->
                 val source = read(path)
-                source.contains("SectionBlock") ||
-                    source.contains("StatCard") ||
+                source.contains("HSectionBlock") ||
+                    source.contains("HStatCard") ||
                     source.contains("helloShapes") ||
                     source.contains("semanticColors")
             }

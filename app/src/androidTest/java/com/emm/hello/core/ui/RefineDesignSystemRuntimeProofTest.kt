@@ -36,7 +36,7 @@ class RefineDesignSystemRuntimeProofTest {
                         .background(Color.Magenta)
                         .padding(12.dp)
                 ) {
-                    StatCard(
+                    HStatCard(
                         value = "24",
                         label = "tarjetas",
                         status = StatCardStatus.Success,

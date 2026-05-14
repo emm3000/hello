@@ -39,7 +39,7 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSelect
-import com.emm.hello.core.ui.SectionBlock
+import com.emm.hello.core.ui.HSectionBlock
 import java.util.Locale
 
 private const val INPUT_STEP_NUMBER = 2
@@ -139,7 +139,7 @@ fun NewCardInputStepScreen(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg + MaterialTheme.spacing.xs),
         ) {
             item {
-                SectionBlock(
+                HSectionBlock(
                     title = stringResource(R.string.input_section_title),
                     description = when (state.typeView) {
                         TypeView.WordOrPhase -> stringResource(R.string.input_section_word_description)
@@ -172,7 +172,7 @@ fun NewCardInputStepScreen(
             }
 
             item {
-                SectionBlock(
+                HSectionBlock(
                     title = stringResource(R.string.destination_section_title),
                     description = stringResource(R.string.destination_section_description),
                 ) {

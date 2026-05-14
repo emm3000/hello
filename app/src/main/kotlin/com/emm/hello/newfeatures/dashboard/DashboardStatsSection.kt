@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.emm.domain.study.DashboardStats
-import com.emm.hello.core.ui.StatCard
+import com.emm.hello.core.ui.HStatCard
 
 @Composable
 fun DashboardStatsSection(
@@ -22,13 +22,13 @@ fun DashboardStatsSection(
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            StatCard(
+            HStatCard(
                 value = "${stats.cardsStudiedToday}",
                 label = "Studied today",
                 modifier = Modifier
                     .weight(1f),
             )
-            StatCard(
+            HStatCard(
                 value = "${stats.cardsDueToday}",
                 label = "Due today",
                 modifier = Modifier
@@ -38,13 +38,13 @@ fun DashboardStatsSection(
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            StatCard(
+            HStatCard(
                 value = "${stats.currentStreak}",
                 label = "Day streak",
                 modifier = Modifier
                     .weight(1f),
             )
-            StatCard(
+            HStatCard(
                 value = "${stats.cardsDueThisWeek}",
                 label = "Due this week",
                 modifier = Modifier

@@ -68,8 +68,8 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTagChip
-import com.emm.hello.core.ui.SectionBlock
-import com.emm.hello.core.ui.StatCard
+import com.emm.hello.core.ui.HSectionBlock
+import com.emm.hello.core.ui.HStatCard
 import com.emm.hello.core.ui.StatCardStatus
 import java.time.Instant
 import java.time.ZoneId
@@ -154,7 +154,7 @@ fun DeckDetailScreen(
             // ── Cards ─────────────────────────────────────────────────────
             if (state.deck.cards.isNotEmpty()) {
                 item {
-                    SectionBlock(
+                    HSectionBlock(
                         title = stringResource(R.string.cards_section_label),
                         modifier = Modifier.padding(vertical = MaterialTheme.spacing.sm),
                         trailingContent = {
@@ -304,7 +304,7 @@ private fun DeckStatsHeader(
         com.emm.hello.core.ui.AlertVariant.Default
     }
 
-    SectionBlock(
+    HSectionBlock(
         title = stringResource(R.string.review_status_label),
         description = reviewButtonText,
         trailingContent = {
@@ -328,12 +328,12 @@ private fun DeckStatsHeader(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
-                StatCard(
+                HStatCard(
                     value = "$cardCount",
                     label = deckPluralLabel,
                     modifier = Modifier.weight(1f),
                 )
-                StatCard(
+                HStatCard(
                     value = reviewStatusValue,
                     label = stringResource(R.string.review_status_label),
                     status = if (hasSessionEnabled) StatCardStatus.Success else StatCardStatus.Default,
@@ -419,7 +419,7 @@ private fun EmptyCards(onAddCard: () -> Unit) {
             .padding(vertical = MaterialTheme.spacing.xxl),
         contentAlignment = Alignment.Center,
     ) {
-        SectionBlock(
+        HSectionBlock(
             title = stringResource(R.string.empty_cards_title),
             description = stringResource(R.string.empty_cards_description),
             showDivider = false,

@@ -20,7 +20,7 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 
 @Composable
-fun SectionBlock(
+fun HSectionBlock(
     title: String,
     modifier: Modifier = Modifier,
     description: String? = null,
@@ -71,14 +71,14 @@ fun SectionBlock(
 
 @PreviewLightDark
 @Composable
-private fun SectionBlockPreview() {
+private fun HSectionBlockPreview() {
     HelloTheme {
         Surface {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                SectionBlock(
+                HSectionBlock(
                     title = "Entrada",
                     description = "Describe lo justo para que la IA entienda el objetivo.",
                 ) {
@@ -89,7 +89,7 @@ private fun SectionBlockPreview() {
                     )
                 }
 
-                SectionBlock(
+                HSectionBlock(
                     title = "Tarjetas",
                     trailingContent = {
                         HBadge(label = "12", variant = BadgeVariant.Secondary)

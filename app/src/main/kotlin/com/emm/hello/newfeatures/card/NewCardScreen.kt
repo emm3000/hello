@@ -56,7 +56,7 @@ import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HSelect
-import com.emm.hello.core.ui.SectionBlock
+import com.emm.hello.core.ui.HSectionBlock
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -138,7 +138,7 @@ fun NewCardScreen(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg + MaterialTheme.spacing.xs),
         ) {
             item {
-                SectionBlock(
+                HSectionBlock(
                     title = stringResource(R.string.creation_mode_section_title),
                     description = stringResource(R.string.creation_mode_section_description),
                 ) {
@@ -150,7 +150,7 @@ fun NewCardScreen(
             }
 
             item {
-                SectionBlock(
+                HSectionBlock(
                     title = stringResource(R.string.input_section_title),
                     description = stringResource(state.typeView.inputSectionDescriptionResId()),
                 ) {
@@ -165,7 +165,7 @@ fun NewCardScreen(
             }
 
             item {
-                SectionBlock(
+                HSectionBlock(
                     title = stringResource(R.string.destination_section_title),
                     description = stringResource(R.string.destination_section_description),
                 ) {
