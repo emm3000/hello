@@ -2,7 +2,6 @@ package com.emm.hello.core.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,7 +38,6 @@ import com.emm.hello.core.theme.spacing
  * @param modifier Modifier for the outer container.
  * @param enabled Whether the input is enabled.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HTagInput(
     tags: List<String>,
@@ -128,7 +126,6 @@ private fun normalizeAndAddTag(
 
 // ─── Previews ────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HTagInputPreview() {
     HelloTheme {

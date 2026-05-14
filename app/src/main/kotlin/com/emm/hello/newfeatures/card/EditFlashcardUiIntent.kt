@@ -1,7 +1,5 @@
 package com.emm.hello.newfeatures.card
 
-import com.emm.domain.flashcard.Example
-
 sealed interface EditFlashcardUiIntent {
     data class WordChanged(val word: String) : EditFlashcardUiIntent
     data class MeaningChanged(val meaning: String) : EditFlashcardUiIntent

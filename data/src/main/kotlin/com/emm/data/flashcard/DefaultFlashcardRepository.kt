@@ -124,9 +124,7 @@ class DefaultFlashcardRepository(
             // Verify the flashcard exists and is not deleted
             val existing = dao.findById(cardId).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Flashcard not found: $cardId")
-            if (existing.deletedAt != null) {
-                throw IllegalStateException("Flashcard already deleted: $cardId")
-            }
+            check(existing.deletedAt == null) { "Flashcard already deleted: $cardId" }
 
             // Update the flashcard row
             dao.update(
@@ -156,53 +154,7 @@ class DefaultFlashcardRepository(
                 id = cardId,
             )
 
-            // Diff examples: match by id to update, insert new, soft-delete removed
-            val existingExamples = exampleDao.findByFlashcardId(cardId).executeAsList()
-                .filter { it.deletedAt == null }
-            val existingIds = existingExamples.map { it.id }.toSet()
-
-            val inputIds = input.examples.map { it.exampleId }.filter { it.isNotBlank() }.toSet()
-
-            // Soft-delete removed examples
-            existingExamples.forEach { existing ->
-                if (existing.id !in inputIds) {
-                    exampleDao.softDelete(now = now, id = existing.id)
-                }
-            }
-
-            // Upsert examples
-            input.examples.forEach { example ->
-                val exampleId = example.exampleId.ifBlank { UUID.randomUUID().toString() }
-                val text = example.text
-                val translation = example.translation
-                val type = example.type
-
-                if (exampleId in existingIds) {
-                    // Update existing example
-                    exampleDao.insert(
-                        id = exampleId,
-                        flashcardId = cardId,
-                        text = text,
-                        translation = translation,
-                        type = type,
-                        createdAt = existingExamples.first { it.id == exampleId }.createdAt,
-                        updatedAt = now,
-                        deletedAt = null,
-                    )
-                } else {
-                    // Insert new example
-                    exampleDao.insert(
-                        id = exampleId,
-                        flashcardId = cardId,
-                        text = text,
-                        translation = translation,
-                        type = type,
-                        createdAt = now,
-                        updatedAt = now,
-                        deletedAt = null,
-                    )
-                }
-            }
+            syncExamples(cardId = cardId, now = now, input = input)
 
             Unit
         }
@@ -215,15 +167,62 @@ class DefaultFlashcardRepository(
             // Verify the flashcard exists and is not already deleted
             val existing = dao.findById(flashcardId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Flashcard not found: ${flashcardId.value}")
-            if (existing.deletedAt != null) {
-                throw IllegalStateException("Flashcard already deleted: ${flashcardId.value}")
-            }
+            check(existing.deletedAt == null) { "Flashcard already deleted: ${flashcardId.value}" }
 
             // Cascade: flashcard → examples
             dao.softDelete(now = now, id = flashcardId.value)
             dao.softDeleteExamplesByFlashcard(now = now, flashcardId = flashcardId.value)
 
             Unit
+        }
+    }
+
+    private fun syncExamples(
+        cardId: String,
+        now: Long,
+        input: UpdateFlashcardInput,
+    ) {
+        val existingExamples = exampleDao.findByFlashcardId(cardId).executeAsList()
+            .filter { it.deletedAt == null }
+        val existingIds = existingExamples.map { it.id }.toSet()
+
+        val inputIds = input.examples.map { it.exampleId }.filter { it.isNotBlank() }.toSet()
+
+        existingExamples.forEach { existing ->
+            if (existing.id !in inputIds) {
+                exampleDao.softDelete(now = now, id = existing.id)
+            }
+        }
+
+        input.examples.forEach { example ->
+            val exampleId = example.exampleId.ifBlank { UUID.randomUUID().toString() }
+            val text = example.text
+            val translation = example.translation
+            val type = example.type
+
+            if (exampleId in existingIds) {
+                exampleDao.insert(
+                    id = exampleId,
+                    flashcardId = cardId,
+                    text = text,
+                    translation = translation,
+                    type = type,
+                    createdAt = existingExamples.first { it.id == exampleId }.createdAt,
+                    updatedAt = now,
+                    deletedAt = null,
+                )
+            } else {
+                exampleDao.insert(
+                    id = exampleId,
+                    flashcardId = cardId,
+                    text = text,
+                    translation = translation,
+                    type = type,
+                    createdAt = now,
+                    updatedAt = now,
+                    deletedAt = null,
+                )
+            }
         }
     }
 

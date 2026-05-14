@@ -78,7 +78,7 @@ class DefaultDeckRepository(
 
         db.transactionWithResult {
             // Verify the deck exists and is not deleted
-            val existing = dq.findActiveById(deckId).executeAsOneOrNull()
+            dq.findActiveById(deckId).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: $deckId")
 
             // Update the deck row
@@ -135,7 +135,7 @@ class DefaultDeckRepository(
 
         db.transactionWithResult {
             // Verify the deck exists and is not already deleted
-            val existing = dq.findActiveById(deckId.value).executeAsOneOrNull()
+            dq.findActiveById(deckId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: ${deckId.value}")
 
             // Cascading soft-delete: deck → flashcards → examples

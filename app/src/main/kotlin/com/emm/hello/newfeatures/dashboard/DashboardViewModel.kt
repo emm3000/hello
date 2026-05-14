@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val SEARCH_DEBOUNCE_MS = 120L
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class DashboardViewModel(
     getDecksUseCase: GetDecksUseCase,
@@ -34,7 +36,7 @@ class DashboardViewModel(
         combine(
             flow = getDecksUseCase(),
             flow2 = criteria
-                .debounce(120)
+                .debounce(SEARCH_DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .flatMapLatest(getFilteredDecksUseCase::invoke),
             transform = { allDecks, filteredDecks ->

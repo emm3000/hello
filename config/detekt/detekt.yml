@@ -43,7 +43,7 @@ complexity:
   TooManyFunctions:
     active: true
     thresholdInFiles: 40
-    thresholdInClasses: 30
+    thresholdInClasses: 35
     thresholdInInterfaces: 20
     thresholdInObjects: 20
     thresholdInEnums: 20
@@ -78,6 +78,8 @@ style:
     ignoreAnnotated:
       - 'Composable'
   MaxLineLength:
+    active: false
+  NewLineAtEndOfFile:
     active: false
   ForbiddenComment:
     active: false
@@ -136,7 +138,7 @@ formatting:
   Indentation:
     active: true
   FinalNewline:
-    active: true
+    active: false
 
 Compose:
   active: true

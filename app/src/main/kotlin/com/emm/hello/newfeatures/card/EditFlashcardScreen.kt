@@ -27,9 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.flashcard.Example
-import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.ids.toFlashcardId
-import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HButton

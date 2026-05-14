@@ -60,5 +60,4 @@ class GetFilteredDecksUseCaseTest {
         override suspend fun updateDeck(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
-
 }
