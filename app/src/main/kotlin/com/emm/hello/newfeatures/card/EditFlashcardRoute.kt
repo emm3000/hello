@@ -21,7 +21,7 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String, deckId: Strin
         parameters = { parametersOf(cardId, deckId) }
     )
 
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {

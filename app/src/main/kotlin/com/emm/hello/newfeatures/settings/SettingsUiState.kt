@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.settings
 
 import android.net.Uri
+import com.emm.hello.core.mvi.MviState
 
 /**
  * MVI State for the Settings screen.
@@ -12,4 +13,4 @@ data class SettingsUiState(
     val isImporting: Boolean = false,
     val showConfirmDialog: Boolean = false,
     val pendingImportUri: Uri? = null,
-)
+) : MviState

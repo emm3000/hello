@@ -21,7 +21,7 @@ fun NewDeckDestination(navigator: Navigator, deckId: String? = null) {
     val vm: NewDeckViewModel = koinViewModel(
         parameters = { parametersOf(formMode) }
     )
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {

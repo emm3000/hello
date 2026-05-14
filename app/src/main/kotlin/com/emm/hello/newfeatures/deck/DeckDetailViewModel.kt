@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -33,12 +32,13 @@ class DeckDetailViewModel(
             flow2 = fetchSessionCards(),
             transform = { deck, (sessionCards, hasSessionEnabled) ->
                 val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
-                mutableState.value.copy(
-                    deck = deck.copy(cards = mergedCards),
-                    hasSessionEnabled = hasSessionEnabled,
-                )
+                deck.copy(cards = mergedCards) to hasSessionEnabled
             }
-        ).onEach { mutableState.value = it }.launchIn(viewModelScope)
+        )
+            .onEach { (deck, hasSessionEnabled) ->
+                setState { copy(deck = deck, hasSessionEnabled = hasSessionEnabled) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
@@ -50,35 +50,23 @@ class DeckDetailViewModel(
 
     override fun onIntent(intent: DeckDetailUiIntent) {
         when (intent) {
-            is DeckDetailUiIntent.SearchCardsChanged -> {
-                mutableState.update { it.copy(searchQuery = intent.query) }
-            }
-            DeckDetailUiIntent.EditDeck -> handleEditDeck()
-            DeckDetailUiIntent.DeleteDeck -> {
-                mutableState.update { it.copy(showDeleteConfirmation = true) }
-            }
+            is DeckDetailUiIntent.SearchCardsChanged -> setState { copy(searchQuery = intent.query) }
+            DeckDetailUiIntent.EditDeck -> sendEffect(DeckDetailUiEffect.NavigateToEditDeck(deckId))
+            DeckDetailUiIntent.DeleteDeck -> setState { copy(showDeleteConfirmation = true) }
             DeckDetailUiIntent.ConfirmDeleteDeck -> deleteDeck()
-            DeckDetailUiIntent.DismissDeleteDeck -> {
-                mutableState.update { it.copy(showDeleteConfirmation = false) }
-            }
+            DeckDetailUiIntent.DismissDeleteDeck -> setState { copy(showDeleteConfirmation = false) }
         }
     }
 
-    private fun handleEditDeck() = viewModelScope.launch {
-        mutableEffect.send(DeckDetailUiEffect.NavigateToEditDeck(deckId))
-    }
-
     private fun deleteDeck() = viewModelScope.launch {
-        mutableState.update { it.copy(showDeleteConfirmation = false) }
+        setState { copy(showDeleteConfirmation = false) }
         runCatching {
             softDeleteDeckUseCase(deckId.toDeckId())
         }.onSuccess {
-            mutableEffect.send(DeckDetailUiEffect.DeckDeleted)
+            sendEffect(DeckDetailUiEffect.DeckDeleted)
         }.onFailure { error ->
             logError(TAG, "deleteDeck:error ${error.message}", error)
-            mutableEffect.send(
-                DeckDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar el mazo")
-            )
+            sendEffect(DeckDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar el mazo"))
         }
     }
 }

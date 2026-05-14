@@ -24,7 +24,7 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
         parameters = { parametersOf(deckId) }
     )
 
-    val uiState: DeckDetailUiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState: DeckDetailUiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {

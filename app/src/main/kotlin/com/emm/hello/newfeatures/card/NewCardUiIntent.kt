@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
 import com.emm.data.catalog.StaticCategories
+import com.emm.hello.core.mvi.MviIntent
 
 enum class EditableLearningNoteField {
     IntendedMeaningEs,
@@ -14,7 +15,7 @@ enum class EditableLearningNoteField {
     ClozeSentence,
 }
 
-sealed interface NewCardUiIntent {
+sealed interface NewCardUiIntent : MviIntent {
 
     data class WordChanged(val word: String) : NewCardUiIntent
 

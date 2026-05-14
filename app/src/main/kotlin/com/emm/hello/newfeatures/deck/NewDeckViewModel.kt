@@ -9,7 +9,6 @@ import com.emm.domain.ids.toDeckId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewDeckViewModel(
@@ -21,32 +20,28 @@ class NewDeckViewModel(
 ) {
 
     init {
-        if (mutableState.value.formMode is DeckFormMode.Edit) {
+        if (currentState.formMode is DeckFormMode.Edit) {
             loadDeck()
         }
     }
 
     override fun onIntent(intent: NewDeckUiIntent) {
         when (intent) {
-            is NewDeckUiIntent.NameChanged -> mutableState.update { it.copy(name = intent.name) }
-            is NewDeckUiIntent.DescriptionChanged -> mutableState.update {
-                it.copy(description = intent.description)
-            }
-            is NewDeckUiIntent.TagsChanged -> mutableState.update {
-                it.copy(tags = intent.tags.normalizeTags())
-            }
+            is NewDeckUiIntent.NameChanged -> setState { copy(name = intent.name) }
+            is NewDeckUiIntent.DescriptionChanged -> setState { copy(description = intent.description) }
+            is NewDeckUiIntent.TagsChanged -> setState { copy(tags = intent.tags.normalizeTags()) }
             NewDeckUiIntent.Submit -> handleSubmit()
         }
     }
 
     private fun loadDeck() = viewModelScope.launch {
-        val deckId = (mutableState.value.formMode as DeckFormMode.Edit).deckId
-        mutableState.update { it.copy(isLoading = true) }
+        val deckId = (currentState.formMode as DeckFormMode.Edit).deckId
+        setState { copy(isLoading = true) }
         runCatching {
             deckRepository.findById(deckId.toDeckId()).first()
         }.onSuccess { deck ->
-            mutableState.update {
-                it.copy(
+            setState {
+                copy(
                     name = deck.name,
                     description = deck.description,
                     tags = deck.tags.map { tag -> tag.value },
@@ -55,16 +50,16 @@ class NewDeckViewModel(
             }
         }.onFailure { error ->
             logError(TAG, "loadDeck:error ${error.message}", error)
-            mutableState.update { it.copy(isLoading = false) }
-            mutableEffect.send(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo cargar el mazo"))
+            setState { copy(isLoading = false) }
+            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo cargar el mazo"))
         }
     }
 
     private fun handleSubmit() = viewModelScope.launch {
-        val current = mutableState.value
+        val current = currentState
         if (!current.isValid || current.isLoading) return@launch
 
-        mutableState.update { it.copy(isLoading = true) }
+        setState { copy(isLoading = true) }
         when (current.formMode) {
             DeckFormMode.Create -> createDeck(current)
             is DeckFormMode.Edit -> updateDeck(current)
@@ -80,14 +75,12 @@ class NewDeckViewModel(
             )
             deckRepository.addDeck(input)
         }.onSuccess {
-            mutableState.update { NewDeckUiState() }
-            mutableEffect.send(NewDeckUiEffect.NavigateBack)
+            setState { NewDeckUiState() }
+            sendEffect(NewDeckUiEffect.NavigateBack)
         }.onFailure { error ->
             logError(TAG, "createDeck:error ${error.message}", error)
-            mutableState.update { it.copy(isLoading = false) }
-            mutableEffect.send(
-                NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo crear el mazo")
-            )
+            setState { copy(isLoading = false) }
+            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo crear el mazo"))
         }
     }
 
@@ -103,13 +96,11 @@ class NewDeckViewModel(
                 )
             )
         }.onSuccess {
-            mutableEffect.send(NewDeckUiEffect.NavigateBack)
+            sendEffect(NewDeckUiEffect.NavigateBack)
         }.onFailure { error ->
             logError(TAG, "updateDeck:error ${error.message}", error)
-            mutableState.update { it.copy(isLoading = false) }
-            mutableEffect.send(
-                NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo actualizar el mazo")
-            )
+            setState { copy(isLoading = false) }
+            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo actualizar el mazo"))
         }
     }
 }

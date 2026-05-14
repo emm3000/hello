@@ -38,8 +38,8 @@ class StudyViewModelTest {
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcardId?.value).isEqualTo("a")
-        assertThat(viewModel.uiState.value.totalCount).isEqualTo(3)
+        assertThat(viewModel.state.value.currentItem?.flashcardId?.value).isEqualTo("a")
+        assertThat(viewModel.state.value.totalCount).isEqualTo(3)
     }
 
     @Test
@@ -72,14 +72,14 @@ class StudyViewModelTest {
 
         viewModel.onIntent(
             StudyUiIntent.ReviewAnswered(
-                item = viewModel.uiState.value.currentItem,
+                item = viewModel.state.value.currentItem,
                 reviewGrade = ReviewGrade.GOOD,
             )
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.currentItem?.flashcardId?.value).isEqualTo("b")
-        assertThat(viewModel.uiState.value.reviewedCount).isEqualTo(1)
+        assertThat(viewModel.state.value.currentItem?.flashcardId?.value).isEqualTo("b")
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(1)
     }
 
     @Test
@@ -91,7 +91,7 @@ class StudyViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(
                 StudyUiIntent.ReviewAnswered(
-                    item = viewModel.uiState.value.currentItem,
+                    item = viewModel.state.value.currentItem,
                     reviewGrade = ReviewGrade.GOOD,
                 )
             )
@@ -108,7 +108,7 @@ class StudyViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(
                 StudyUiIntent.ReviewAnswered(
-                    item = viewModel.uiState.value.currentItem,
+                    item = viewModel.state.value.currentItem,
                     reviewGrade = ReviewGrade.GOOD,
                 )
             )
@@ -116,7 +116,7 @@ class StudyViewModelTest {
 
             viewModel.onIntent(
                 StudyUiIntent.ReviewAnswered(
-                    item = viewModel.uiState.value.currentItem,
+                    item = viewModel.state.value.currentItem,
                     reviewGrade = ReviewGrade.GOOD,
                 )
             )
@@ -155,23 +155,23 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.totalCount).isEqualTo(2)
-        assertThat(viewModel.uiState.value.currentItem?.studyCard?.cardId).isEqualTo("a-1")
+        assertThat(viewModel.state.value.totalCount).isEqualTo(2)
+        assertThat(viewModel.state.value.currentItem?.studyCard?.cardId).isEqualTo("a-1")
 
         viewModel.onIntent(
             StudyUiIntent.ReviewAnswered(
-                item = viewModel.uiState.value.currentItem,
+                item = viewModel.state.value.currentItem,
                 reviewGrade = ReviewGrade.EASY,
             )
         )
         advanceUntilIdle()
 
         assertThat(reviewRepo.updates).isEmpty()
-        assertThat(viewModel.uiState.value.currentItem?.studyCard?.cardId).isEqualTo("a-2")
+        assertThat(viewModel.state.value.currentItem?.studyCard?.cardId).isEqualTo("a-2")
 
         viewModel.onIntent(
             StudyUiIntent.ReviewAnswered(
-                item = viewModel.uiState.value.currentItem,
+                item = viewModel.state.value.currentItem,
                 reviewGrade = ReviewGrade.HARD,
             )
         )

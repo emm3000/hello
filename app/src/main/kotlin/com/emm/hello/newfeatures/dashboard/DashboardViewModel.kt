@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,68 +38,69 @@ class DashboardViewModel(
                 .debounce(SEARCH_DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .flatMapLatest(getFilteredDecksUseCase::invoke),
-            transform = { allDecks, filteredDecks ->
-                val availableTags = allDecks
-                    .flatMap { deck -> deck.tags.map { tag -> tag.value } }
-                    .distinct()
-                    .sorted()
-
-                val currentState = mutableState.value
-                currentState.copy(
-                    decks = filteredDecks,
-                    totalDeckCount = allDecks.size,
-                    availableTags = availableTags,
-                    isLoading = false,
-                    isFiltering = currentState.searchQuery.isNotBlank() || currentState.selectedTags.isNotEmpty(),
-                    emptyState = resolveEmptyState(
-                        totalDeckCount = allDecks.size,
-                        filteredDeckCount = filteredDecks.size,
-                        isFiltering = currentState.searchQuery.isNotBlank() || currentState.selectedTags.isNotEmpty(),
-                    ),
-                )
-            },
+            transform = ::buildState,
         )
-            .onEach { state -> mutableState.update { state } }
+            .onEach { newState -> setState { newState } }
             .launchIn(viewModelScope)
     }
 
     fun onVisible() {
         viewModelScope.launch {
             val stats = getDashboardStatsUseCase()
-            mutableState.update { it.copy(stats = stats) }
+            setState { copy(stats = stats) }
         }
     }
 
     override fun onIntent(intent: DashboardUiIntent) {
         when (intent) {
             is QueryChanged -> {
-                mutableState.update { it.copy(searchQuery = intent.value) }
+                setState { copy(searchQuery = intent.value) }
                 criteria.update { current -> current.copy(query = intent.value) }
             }
 
             is TagToggled -> {
                 val normalizedTag = intent.tag.trim().lowercase()
-                val selectedTags = mutableState.value.selectedTags.toMutableSet()
+                val selectedTags = currentState.selectedTags.toMutableSet()
                 if (selectedTags.contains(normalizedTag)) {
                     selectedTags.remove(normalizedTag)
                 } else {
                     selectedTags.add(normalizedTag)
                 }
 
-                mutableState.update { it.copy(selectedTags = selectedTags) }
+                setState { copy(selectedTags = selectedTags) }
                 criteria.update { current -> current.copy(selectedTags = selectedTags) }
             }
 
             ClearFilters -> {
-                mutableState.update {
-                    it.copy(
-                        searchQuery = "",
-                        selectedTags = emptySet(),
-                    )
-                }
+                setState { copy(searchQuery = "", selectedTags = emptySet()) }
                 criteria.value = DeckSearchCriteria()
             }
         }
+    }
+
+    private fun buildState(
+        allDecks: List<com.emm.domain.deck.Deck>,
+        filteredDecks: List<com.emm.domain.deck.Deck>,
+    ): DashboardUiState {
+        val availableTags = allDecks
+            .flatMap { deck -> deck.tags.map { tag -> tag.value } }
+            .distinct()
+            .sorted()
+
+        val current = currentState
+        val isFiltering = current.searchQuery.isNotBlank() || current.selectedTags.isNotEmpty()
+        return current.copy(
+            decks = filteredDecks,
+            totalDeckCount = allDecks.size,
+            availableTags = availableTags,
+            isLoading = false,
+            isFiltering = isFiltering,
+            emptyState = resolveEmptyState(
+                totalDeckCount = allDecks.size,
+                filteredDeckCount = filteredDecks.size,
+                isFiltering = isFiltering,
+            ),
+        )
     }
 
     private fun resolveEmptyState(

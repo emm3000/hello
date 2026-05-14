@@ -6,7 +6,6 @@ import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FlashcardDetailViewModel(
@@ -24,13 +23,15 @@ class FlashcardDetailViewModel(
     override fun onIntent(intent: FlashcardDetailUiIntent) {
         when (intent) {
             FlashcardDetailUiIntent.Load -> loadFlashcard()
-            FlashcardDetailUiIntent.EditFlashcard -> handleEditFlashcard()
+            FlashcardDetailUiIntent.EditFlashcard -> {
+                sendEffect(FlashcardDetailUiEffect.NavigateToEditFlashcard(flashcardId))
+            }
             FlashcardDetailUiIntent.DeleteFlashcard -> {
-                mutableState.update { it.copy(showDeleteConfirmation = true) }
+                setState { copy(showDeleteConfirmation = true) }
             }
             FlashcardDetailUiIntent.ConfirmDeleteFlashcard -> deleteFlashcard()
             FlashcardDetailUiIntent.DismissDeleteFlashcard -> {
-                mutableState.update { it.copy(showDeleteConfirmation = false) }
+                setState { copy(showDeleteConfirmation = false) }
             }
         }
     }
@@ -38,26 +39,22 @@ class FlashcardDetailViewModel(
     private fun loadFlashcard() {
         viewModelScope.launch {
             runCatching { flashcardRepository.fetchById(flashcardId.toFlashcardId()) }
-                .onSuccess { flashcard -> mutableState.update { it.copy(flashcard = flashcard) } }
+                .onSuccess { flashcard -> setState { copy(flashcard = flashcard) } }
                 .onFailure {
-                    mutableEffect.send(FlashcardDetailUiEffect.LoadFailed(it.message ?: "load_failed"))
+                    sendEffect(FlashcardDetailUiEffect.LoadFailed(it.message ?: "load_failed"))
                 }
         }
     }
 
-    private fun handleEditFlashcard() = viewModelScope.launch {
-        mutableEffect.send(FlashcardDetailUiEffect.NavigateToEditFlashcard(flashcardId))
-    }
-
     private fun deleteFlashcard() = viewModelScope.launch {
-        mutableState.update { it.copy(showDeleteConfirmation = false) }
+        setState { copy(showDeleteConfirmation = false) }
         runCatching {
             softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
         }.onSuccess {
-            mutableEffect.send(FlashcardDetailUiEffect.FlashcardDeleted)
+            sendEffect(FlashcardDetailUiEffect.FlashcardDeleted)
         }.onFailure { error ->
             logError(TAG, "deleteFlashcard:error ${error.message}", error)
-            mutableEffect.send(
+            sendEffect(
                 FlashcardDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar la tarjeta")
             )
         }

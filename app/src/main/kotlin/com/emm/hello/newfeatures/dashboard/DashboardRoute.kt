@@ -27,7 +27,7 @@ object DashboardRoute : NavKey
 fun DashboardDestination(navigator: Navigator) {
     val vm: DashboardViewModel = koinViewModel()
 
-    val uiState: DashboardUiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState: DashboardUiState by vm.state.collectAsStateWithLifecycle()
 
     val ctx = LocalContext.current
 

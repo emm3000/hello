@@ -21,7 +21,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
     val vm: StudyViewModel = koinViewModel(
         parameters = { parametersOf(deckId) }
     )
-    val uiState = vm.uiState.collectAsStateWithLifecycle()
+    val uiState = vm.state.collectAsStateWithLifecycle()
     var showFinishDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {

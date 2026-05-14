@@ -10,7 +10,6 @@ import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
 import com.emm.hello.core.mvi.MviViewModel
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StudyViewModel(
@@ -36,35 +35,29 @@ class StudyViewModel(
                 sf.toStudySessionItems()
             }
             studyItemsForToday.addAll(items)
-            mutableState.update { it.copy(totalCount = items.size) }
+            setState { copy(totalCount = items.size) }
             showNextCard()
         }
     }
 
-    private suspend fun showNextCard() {
-        mutableState.update {
+    private fun showNextCard() {
+        setState {
             if (studyItemsForToday.isNotEmpty()) {
-                it.copy(currentItem = studyItemsForToday.removeFirstOrNull())
+                copy(currentItem = studyItemsForToday.removeFirstOrNull())
             } else {
-                it.copy(currentItem = null)
+                copy(currentItem = null)
             }
         }
-        if (studyItemsForToday.isEmpty() && !mutableState.value.sessionFinished) {
-            mutableState.update { it.copy(sessionFinished = true) }
-            mutableEffect.send(StudyUiEffect.SessionFinished)
+        if (studyItemsForToday.isEmpty() && !currentState.sessionFinished) {
+            setState { copy(sessionFinished = true) }
+            sendEffect(StudyUiEffect.SessionFinished)
         }
-    }
-
-    private fun incrementReviewed() {
-        mutableState.update { it.copy(reviewedCount = it.reviewedCount + 1) }
     }
 
     override fun onIntent(intent: StudyUiIntent) {
         when (intent) {
             StudyUiIntent.BackClicked,
-            StudyUiIntent.FinishDialogDismissed -> {
-                viewModelScope.launch { mutableEffect.send(StudyUiEffect.NavigateBack) }
-            }
+            StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 item = intent.item,
                 reviewResult = intent.reviewGrade,
@@ -95,7 +88,7 @@ class StudyViewModel(
             reviewsByFlashcardId.remove(flashcardId)
         }
 
-        incrementReviewed()
+        setState { copy(reviewedCount = reviewedCount + 1) }
         showNextCard()
     }
 

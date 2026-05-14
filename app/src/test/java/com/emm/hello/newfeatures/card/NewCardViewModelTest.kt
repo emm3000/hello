@@ -95,7 +95,7 @@ class NewCardViewModelTest {
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
-        viewModel.uiState.test {
+        viewModel.state.test {
             skipItems(1)
             viewModel.onIntent(NewCardUiIntent.WordChanged("updated"))
             val updated = awaitItem()
@@ -140,8 +140,8 @@ class NewCardViewModelTest {
             assertThat(awaitItem()).isEqualTo(NewCardUiEffect.CloseFlow)
         }
 
-        assertThat(viewModel.uiState.value.error).isNull()
-        assertThat(viewModel.uiState.value.canSavePreview).isFalse()
+        assertThat(viewModel.state.value.error).isNull()
+        assertThat(viewModel.state.value.canSavePreview).isFalse()
 
         coVerify(exactly = 1) {
             flashcardRepository.create(
@@ -177,9 +177,9 @@ class NewCardViewModelTest {
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.learningNotePreview).isNotNull()
-        assertThat(viewModel.uiState.value.canSavePreview).isTrue()
-        assertThat(viewModel.uiState.value.previewValidationIssues).isEmpty()
+        assertThat(viewModel.state.value.learningNotePreview).isNotNull()
+        assertThat(viewModel.state.value.canSavePreview).isTrue()
+        assertThat(viewModel.state.value.previewValidationIssues).isEmpty()
     }
 
     @Test
@@ -219,7 +219,7 @@ class NewCardViewModelTest {
             .isEqualTo("Quiero aprender frases para pedir comida en un restaurante")
         assertThat(inputSlot.captured.communicativeIntentId).isEqualTo("order_food")
         assertThat(inputSlot.captured.domain).isEqualTo(LearningDomain.DailyLife)
-        assertThat(viewModel.uiState.value.canSavePreview).isTrue()
+        assertThat(viewModel.state.value.canSavePreview).isTrue()
     }
 
     @Test
@@ -255,9 +255,9 @@ class NewCardViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.learningNotePreview?.exampleSentence).isEmpty()
-        assertThat(viewModel.uiState.value.canSavePreview).isFalse()
-        assertThat(viewModel.uiState.value.previewValidationIssues).isNotEmpty()
+        assertThat(viewModel.state.value.learningNotePreview?.exampleSentence).isEmpty()
+        assertThat(viewModel.state.value.canSavePreview).isFalse()
+        assertThat(viewModel.state.value.previewValidationIssues).isNotEmpty()
     }
 
     @Test
@@ -294,7 +294,7 @@ class NewCardViewModelTest {
         advanceUntilIdle()
 
         assertThat(
-            viewModel.uiState.value.learningNotePreview
+            viewModel.state.value.learningNotePreview
                 ?.cards
                 ?.first { it.cardId == "card-2" }
                 ?.expectedAnswer
@@ -340,7 +340,7 @@ class NewCardViewModelTest {
         )
         advanceUntilIdle()
 
-        val updatedCard = viewModel.uiState.value.learningNotePreview
+        val updatedCard = viewModel.state.value.learningNotePreview
             ?.cards
             ?.first { it.cardId == "card-2" }
 
@@ -380,9 +380,9 @@ class NewCardViewModelTest {
         viewModel.onIntent(NewCardUiIntent.RegenerateExampleClicked)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.learningNotePreview?.exampleSentence)
+        assertThat(viewModel.state.value.learningNotePreview?.exampleSentence)
             .isEqualTo("Hello, how have you been lately?")
-        assertThat(viewModel.uiState.value.learningNotePreview?.exampleTranslation)
+        assertThat(viewModel.state.value.learningNotePreview?.exampleTranslation)
             .isEqualTo("Hola, como has estado ultimamente?")
     }
 
@@ -417,7 +417,7 @@ class NewCardViewModelTest {
         viewModel.onIntent(NewCardUiIntent.RegenerateFieldClicked(EditableLearningNoteField.WhyUseful))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.learningNotePreview?.whyUseful)
+        assertThat(viewModel.state.value.learningNotePreview?.whyUseful)
             .isEqualTo("Te ayuda a sonar natural al saludar.")
     }
 

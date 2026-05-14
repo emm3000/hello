@@ -39,7 +39,7 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
-        assertThat(viewModel.uiState.value.isExporting).isFalse()
+        assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
     @Test
@@ -56,7 +56,7 @@ class SettingsViewModelTest {
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
         assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Export failed")
-        assertThat(viewModel.uiState.value.isExporting).isFalse()
+        assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
     @Test
@@ -68,8 +68,8 @@ class SettingsViewModelTest {
         val uri = Uri.parse("content://test/import.json")
         viewModel.onImportUri(uri)
 
-        assertThat(viewModel.uiState.value.showConfirmDialog).isTrue()
-        assertThat(viewModel.uiState.value.pendingImportUri).isEqualTo(uri)
+        assertThat(viewModel.state.value.showConfirmDialog).isTrue()
+        assertThat(viewModel.state.value.pendingImportUri).isEqualTo(uri)
     }
 
     @Test
@@ -80,16 +80,16 @@ class SettingsViewModelTest {
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onImportUri(uri)
-        assertThat(viewModel.uiState.value.showConfirmDialog).isTrue()
+        assertThat(viewModel.state.value.showConfirmDialog).isTrue()
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
 
         val effect = effectDeferred.await()
         assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup restored successfully"))
-        assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
-        assertThat(viewModel.uiState.value.isImporting).isFalse()
-        assertThat(viewModel.uiState.value.pendingImportUri).isNull()
+        assertThat(viewModel.state.value.showConfirmDialog).isFalse()
+        assertThat(viewModel.state.value.isImporting).isFalse()
+        assertThat(viewModel.state.value.pendingImportUri).isNull()
     }
 
     @Test
@@ -107,7 +107,7 @@ class SettingsViewModelTest {
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
         assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Import failed")
-        assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
+        assertThat(viewModel.state.value.showConfirmDialog).isFalse()
     }
 
     @Test
@@ -118,12 +118,12 @@ class SettingsViewModelTest {
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onImportUri(uri)
-        assertThat(viewModel.uiState.value.showConfirmDialog).isTrue()
+        assertThat(viewModel.state.value.showConfirmDialog).isTrue()
 
         viewModel.onIntent(SettingsUiIntent.CancelImport)
 
-        assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
-        assertThat(viewModel.uiState.value.pendingImportUri).isNull()
+        assertThat(viewModel.state.value.showConfirmDialog).isFalse()
+        assertThat(viewModel.state.value.pendingImportUri).isNull()
         assertThat(importDataSource.importCalled).isFalse()
     }
 
@@ -136,7 +136,7 @@ class SettingsViewModelTest {
         val uri = Uri.parse("content://test/export.json")
 
         viewModel.onExportUri(uri)
-        assertThat(viewModel.uiState.value.isExporting).isTrue()
+        assertThat(viewModel.state.value.isExporting).isTrue()
     }
 
     @Test
@@ -149,7 +149,7 @@ class SettingsViewModelTest {
         viewModel.onImportUri(uri)
 
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
-        assertThat(viewModel.uiState.value.isImporting).isTrue()
+        assertThat(viewModel.state.value.isImporting).isTrue()
     }
 
     @Test
@@ -160,7 +160,7 @@ class SettingsViewModelTest {
 
         viewModel.onIntent(SettingsUiIntent.ExportData)
 
-        assertThat(viewModel.uiState.value.isExporting).isFalse()
+        assertThat(viewModel.state.value.isExporting).isFalse()
         assertThat(exportDataSource.exportCalled).isFalse()
     }
 
@@ -172,7 +172,7 @@ class SettingsViewModelTest {
 
         viewModel.onIntent(SettingsUiIntent.ImportData)
 
-        assertThat(viewModel.uiState.value.showConfirmDialog).isFalse()
+        assertThat(viewModel.state.value.showConfirmDialog).isFalse()
     }
 }
 

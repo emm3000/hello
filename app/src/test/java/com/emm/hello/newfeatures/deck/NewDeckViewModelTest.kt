@@ -41,9 +41,9 @@ class NewDeckViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isEqualTo(NewDeckUiEffect.NavigateBack)
-        assertThat(viewModel.uiState.value.name).isEmpty()
-        assertThat(viewModel.uiState.value.description).isEmpty()
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.name).isEmpty()
+        assertThat(viewModel.state.value.description).isEmpty()
+        assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(repository.lastAdded).isEqualTo(CreateDeckInput("My deck", "Optional", emptyList()))
     }
 
@@ -79,7 +79,7 @@ class NewDeckViewModelTest {
 
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Mixed ", "UPPERCASE", "mixed", "")))
 
-        assertThat(viewModel.uiState.value.tags).isEqualTo(listOf("mixed", "uppercase"))
+        assertThat(viewModel.state.value.tags).isEqualTo(listOf("mixed", "uppercase"))
     }
 
     @Test
@@ -93,7 +93,7 @@ class NewDeckViewModelTest {
 
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("valid", "   ", "", "  ")))
 
-        assertThat(viewModel.uiState.value.tags).isEqualTo(listOf("valid"))
+        assertThat(viewModel.state.value.tags).isEqualTo(listOf("valid"))
     }
 
     @Test
@@ -113,7 +113,7 @@ class NewDeckViewModelTest {
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(NewDeckUiEffect.ShowMessage::class.java)
         assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("boom")
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(repository.addDeckCalls).isEqualTo(1)
     }
 

@@ -1,3 +1,5 @@
 package com.emm.hello.newfeatures.dashboard
 
-sealed interface DashboardUiEffect
+import com.emm.hello.core.mvi.MviEffect
+
+sealed interface DashboardUiEffect : MviEffect

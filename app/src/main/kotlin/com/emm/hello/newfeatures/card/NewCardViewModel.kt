@@ -8,7 +8,6 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NewCardViewModel(
@@ -27,11 +26,11 @@ class NewCardViewModel(
             .onEach { decks ->
                 val defaultDeckId = defaultDeckSelectionRepository.getDefaultDeckId()
                 val selectedDeck = decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
-                mutableState.update {
-                    it.copy(
+                setState {
+                    copy(
                         decks = decks,
                         deckSelected = selectedDeck,
-                        isCheck = defaultDeckId != null && selectedDeck?.id == defaultDeckId
+                        isCheck = defaultDeckId != null && selectedDeck?.id == defaultDeckId,
                     )
                 }
             }
@@ -65,16 +64,16 @@ class NewCardViewModel(
 
     private fun handleDeckIntent(intent: NewCardUiIntent) {
         when (intent) {
-            is NewCardUiIntent.DeckSelected -> mutableState.update {
-                it.copy(
+            is NewCardUiIntent.DeckSelected -> setState {
+                copy(
                     deckSelected = intent.deck,
                     isCheck = defaultDeckSelectionRepository.getDefaultDeckId() == intent.deck.id,
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
-                val newDeckId = if (intent.checked) mutableState.value.deckSelected?.id else null
+                val newDeckId = if (intent.checked) currentState.deckSelected?.id else null
                 defaultDeckSelectionRepository.setDefaultDeckId(newDeckId)
-                mutableState.update { it.copy(isCheck = intent.checked) }
+                setState { copy(isCheck = intent.checked) }
             }
             else -> Unit
         }
@@ -99,20 +98,20 @@ class NewCardViewModel(
 
     private fun handlePreviewEditIntent(intent: NewCardUiIntent) {
         when (intent) {
-            is NewCardUiIntent.PreviewFieldChanged -> mutableState.update {
-                draftEditor.editField(it, intent.field, intent.value)
+            is NewCardUiIntent.PreviewFieldChanged -> setState {
+                draftEditor.editField(this, intent.field, intent.value)
             }
-            is NewCardUiIntent.PreviewCardPromptChanged -> mutableState.update {
-                draftEditor.editCardPrompt(it, intent.cardId, intent.prompt)
+            is NewCardUiIntent.PreviewCardPromptChanged -> setState {
+                draftEditor.editCardPrompt(this, intent.cardId, intent.prompt)
             }
-            is NewCardUiIntent.PreviewCardExpectedAnswerChanged -> mutableState.update {
-                draftEditor.editCardExpectedAnswer(it, intent.cardId, intent.expectedAnswer)
+            is NewCardUiIntent.PreviewCardExpectedAnswerChanged -> setState {
+                draftEditor.editCardExpectedAnswer(this, intent.cardId, intent.expectedAnswer)
             }
-            is NewCardUiIntent.PreviewCardHintChanged -> mutableState.update {
-                draftEditor.editCardHint(it, intent.cardId, intent.hint)
+            is NewCardUiIntent.PreviewCardHintChanged -> setState {
+                draftEditor.editCardHint(this, intent.cardId, intent.hint)
             }
-            is NewCardUiIntent.PreviewCardActiveChanged -> mutableState.update {
-                draftEditor.editCardActive(it, intent.cardId, intent.isActive)
+            is NewCardUiIntent.PreviewCardActiveChanged -> setState {
+                draftEditor.editCardActive(this, intent.cardId, intent.isActive)
             }
             else -> Unit
         }
@@ -129,28 +128,28 @@ class NewCardViewModel(
     }
 
     private fun updateInputState(transform: NewCardUiState.() -> NewCardUiState) {
-        mutableState.update { current -> transform(current).clearPreviewState(error = null) }
+        setState { transform().clearPreviewState(error = null) }
     }
 
     private fun generateFlashcard() = viewModelScope.launch {
-        mutableState.update { it.clearPreviewState(error = null, isLoading = true) }
-        mutableEffect.send(NewCardUiEffect.OpenReview)
+        setState { clearPreviewState(error = null, isLoading = true) }
+        sendEffect(NewCardUiEffect.OpenReview)
 
-        when (val result = previewWorkflow.generate(mutableState.value)) {
+        when (val result = previewWorkflow.generate(currentState)) {
             is NewCardPreviewResult.InputInvalid -> {
-                mutableState.update {
-                    it.clearPreviewState(error = null).copy(
+                setState {
+                    clearPreviewState(error = null).copy(
                         inputValidationIssues = result.errors,
                         inputWarningIssues = result.warnings,
                     )
                 }
             }
             is NewCardPreviewResult.PreviewReady -> {
-                mutableState.update { it.withPreviewValidation(result.preview, result.validation) }
+                setState { withPreviewValidation(result.preview, result.validation) }
             }
             is NewCardPreviewResult.DomainError -> {
-                mutableState.update {
-                    it.clearPreviewState(
+                setState {
+                    clearPreviewState(
                         error = NewCardErrorUi(
                             title = "Respuesta inválida de IA",
                             validationIssues = result.issues,
@@ -161,8 +160,8 @@ class NewCardViewModel(
             is NewCardPreviewResult.UnexpectedError -> {
                 val error = result.error
                 logError(TAG, "generateFlashcard:error ${error.message}", error)
-                mutableState.update {
-                    it.copy(
+                setState {
+                    copy(
                         error = NewCardErrorUi(
                             title = "Respuesta inválida de IA",
                             message = error.message ?: "No se pudo generar una learning note válida.",
@@ -185,7 +184,7 @@ class NewCardViewModel(
             actionName = "regenerateExample",
             failureTitle = "Error al regenerar ejemplo",
             fallbackMessage = "No se pudo regenerar el ejemplo.",
-        ) { previewWorkflow.regenerateExample(mutableState.value) }
+        ) { previewWorkflow.regenerateExample(currentState) }
     }
 
     private fun regenerateCloze() = viewModelScope.launch {
@@ -194,7 +193,7 @@ class NewCardViewModel(
             actionName = "regenerateCloze",
             failureTitle = "Error al regenerar cloze",
             fallbackMessage = "No se pudo regenerar el cloze.",
-        ) { previewWorkflow.regenerateCloze(mutableState.value) }
+        ) { previewWorkflow.regenerateCloze(currentState) }
     }
 
     private fun regenerateCard(cardId: String) = viewModelScope.launch {
@@ -204,7 +203,7 @@ class NewCardViewModel(
             failureTitle = "Error al regenerar card",
             fallbackMessage = "No se pudo regenerar la card.",
             metadata = "cardId=$cardId",
-        ) { previewWorkflow.regenerateCard(mutableState.value, cardId) }
+        ) { previewWorkflow.regenerateCard(currentState, cardId) }
     }
 
     private fun regenerateField(field: EditableLearningNoteField) = viewModelScope.launch {
@@ -214,7 +213,7 @@ class NewCardViewModel(
             failureTitle = "Error al regenerar campo",
             fallbackMessage = "No se pudo regenerar el campo.",
             metadata = "field=$field",
-        ) { previewWorkflow.regenerateField(mutableState.value, field) }
+        ) { previewWorkflow.regenerateField(currentState, field) }
     }
 
     private suspend fun runPreviewWorkflowUpdate(
@@ -225,14 +224,13 @@ class NewCardViewModel(
         metadata: String = "",
         action: suspend () -> NewCardPreviewUpdateResult,
     ) {
-        val current = mutableState.value
-        val preview = current.learningNotePreview ?: return
+        val preview = currentState.learningNotePreview ?: return
         val logContext = buildString {
             append("noteId=${preview.noteId}")
             if (metadata.isNotBlank()) append(" $metadata")
         }
-        mutableState.update {
-            it.copy(
+        setState {
+            copy(
                 isLoading = true,
                 error = null,
                 previewRegenerationTarget = target,
@@ -240,13 +238,11 @@ class NewCardViewModel(
         }
         when (val result = action()) {
             is NewCardPreviewUpdateResult.Updated -> {
-                mutableState.update {
-                    draftEditor.applyUpdatedPreview(it, result.preview)
-                }
+                setState { draftEditor.applyUpdatedPreview(this, result.preview) }
             }
             is NewCardPreviewUpdateResult.DomainError -> {
-                mutableState.update {
-                    it.copy(
+                setState {
+                    copy(
                         error = NewCardErrorUi(
                             title = failureTitle,
                             validationIssues = result.issues,
@@ -259,8 +255,8 @@ class NewCardViewModel(
             is NewCardPreviewUpdateResult.UnexpectedError -> {
                 val error = result.error
                 logError(TAG, "$actionName:error $logContext ${error.message}", error)
-                mutableState.update {
-                    it.copy(
+                setState {
+                    copy(
                         error = NewCardErrorUi(
                             title = failureTitle,
                             message = error.message ?: fallbackMessage,
@@ -271,21 +267,19 @@ class NewCardViewModel(
                 }
             }
             NewCardPreviewUpdateResult.NoPreview -> {
-                mutableState.update {
-                    it.copy(isLoading = false, previewRegenerationTarget = null)
-                }
+                setState { copy(isLoading = false, previewRegenerationTarget = null) }
             }
         }
     }
 
     private fun saveFlashcard() = viewModelScope.launch {
-        val current = mutableState.value
+        val current = currentState
         val deckId = current.deckSelected?.id ?: return@launch
         val learningNotePreview = current.learningNotePreview ?: return@launch
         val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(learningNotePreview)
         if (!previewValidation.isValid) {
-            mutableState.update {
-                it.withPreviewValidation(
+            setState {
+                withPreviewValidation(
                     preview = learningNotePreview,
                     validation = previewValidation,
                     error = null,
@@ -293,20 +287,20 @@ class NewCardViewModel(
             }
             return@launch
         }
-        mutableState.update { it.copy(isLoading = true, error = null) }
+        setState { copy(isLoading = true, error = null) }
         runCatching {
             generationDependencies.createFlashcardUseCase(
                 deckId = deckId,
                 learningNote = learningNotePreview,
             )
         }.onSuccess {
-            mutableState.update(NewCardUiState::resetAfterSave)
-            mutableEffect.send(NewCardUiEffect.ShowMessage("Tarjeta creada"))
-            mutableEffect.send(NewCardUiEffect.CloseFlow)
+            setState { resetAfterSave() }
+            sendEffect(NewCardUiEffect.ShowMessage("Tarjeta creada"))
+            sendEffect(NewCardUiEffect.CloseFlow)
         }.onFailure { e ->
             if (e is DomainValidationException) {
-                mutableState.update {
-                    it.withPreviewValidation(
+                setState {
+                    withPreviewValidation(
                         preview = learningNotePreview,
                         validation = previewValidation,
                         error = NewCardErrorUi(
@@ -317,8 +311,8 @@ class NewCardViewModel(
                 }
             } else {
                 logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
-                mutableState.update {
-                    it.copy(
+                setState {
+                    copy(
                         error = NewCardErrorUi(
                             title = "Error al guardar",
                             message = e.message ?: "No se pudo guardar la tarjeta",
@@ -326,7 +320,7 @@ class NewCardViewModel(
                         isLoading = false,
                     )
                 }
-                mutableEffect.send(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
+                sendEffect(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
             }
         }
     }

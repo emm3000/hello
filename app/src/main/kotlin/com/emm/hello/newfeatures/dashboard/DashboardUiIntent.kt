@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.dashboard
 
-sealed interface DashboardUiIntent
+import com.emm.hello.core.mvi.MviIntent
+
+sealed interface DashboardUiIntent : MviIntent
 
 data class QueryChanged(val value: String) : DashboardUiIntent
 

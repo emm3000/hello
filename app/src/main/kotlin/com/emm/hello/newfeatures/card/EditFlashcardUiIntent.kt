@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.card
 
-sealed interface EditFlashcardUiIntent {
+import com.emm.hello.core.mvi.MviIntent
+
+sealed interface EditFlashcardUiIntent : MviIntent {
     data class WordChanged(val word: String) : EditFlashcardUiIntent
     data class MeaningChanged(val meaning: String) : EditFlashcardUiIntent
     data class TranslationChanged(val translation: String) : EditFlashcardUiIntent

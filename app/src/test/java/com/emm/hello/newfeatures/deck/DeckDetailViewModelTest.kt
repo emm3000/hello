@@ -107,7 +107,7 @@ class DeckDetailViewModelTest {
 
         viewModel.onIntent(DeckDetailUiIntent.SearchCardsChanged("hello"))
 
-        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("hello")
+        assertThat(viewModel.state.value.searchQuery).isEqualTo("hello")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -117,10 +117,10 @@ class DeckDetailViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(DeckDetailUiIntent.SearchCardsChanged("hello"))
-        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("hello")
+        assertThat(viewModel.state.value.searchQuery).isEqualTo("hello")
 
         viewModel.onIntent(DeckDetailUiIntent.SearchCardsChanged(""))
-        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("")
+        assertThat(viewModel.state.value.searchQuery).isEqualTo("")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -129,7 +129,7 @@ class DeckDetailViewModelTest {
         val viewModel = makeViewModel()
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.searchQuery).isEmpty()
+        assertThat(viewModel.state.value.searchQuery).isEmpty()
     }
 
     // ── mergeDeckCardsById tests ─────────────────────────────────────────

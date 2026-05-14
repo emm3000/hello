@@ -22,7 +22,7 @@ object SettingsRoute : NavKey
 @Composable
 fun SettingsDestination(navigator: Navigator) {
     val vm: SettingsViewModel = koinViewModel()
-    val uiState: SettingsUiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState: SettingsUiState by vm.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 

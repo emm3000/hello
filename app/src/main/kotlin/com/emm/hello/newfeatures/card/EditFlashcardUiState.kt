@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.flashcard.Example
+import com.emm.hello.core.mvi.MviState
 
 data class EditFlashcardUiState(
     val isLoading: Boolean = true,
@@ -13,7 +14,7 @@ data class EditFlashcardUiState(
     val wordError: String? = null,
     val meaningError: String? = null,
     val isSubmitting: Boolean = false,
-) {
+) : MviState {
     val isValid: Boolean
         get() = word.isNotBlank() && meaning.isNotBlank() && wordError == null && meaningError == null
 }

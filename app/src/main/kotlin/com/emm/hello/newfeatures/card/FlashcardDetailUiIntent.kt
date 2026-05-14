@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.card
 
-sealed interface FlashcardDetailUiIntent {
+import com.emm.hello.core.mvi.MviIntent
+
+sealed interface FlashcardDetailUiIntent : MviIntent {
     data object Load : FlashcardDetailUiIntent
     data object EditFlashcard : FlashcardDetailUiIntent
     data object DeleteFlashcard : FlashcardDetailUiIntent

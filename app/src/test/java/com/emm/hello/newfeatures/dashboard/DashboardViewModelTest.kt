@@ -42,7 +42,7 @@ class DashboardViewModelTest {
     fun `initial state has isLoading true`() = runTest {
         val viewModel = makeViewModel(deckRepo = FakeDeckRepo(emitImmediately = false))
 
-        assertThat(viewModel.uiState.value.isLoading).isTrue()
+        assertThat(viewModel.state.value.isLoading).isTrue()
     }
 
     @Test
@@ -58,9 +58,9 @@ class DashboardViewModelTest {
         val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deck)))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.decks).containsExactly(deck)
-        assertThat(viewModel.uiState.value.totalDeckCount).isEqualTo(1)
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.decks).containsExactly(deck)
+        assertThat(viewModel.state.value.totalDeckCount).isEqualTo(1)
+        assertThat(viewModel.state.value.isLoading).isFalse()
     }
 
     @Test
@@ -73,9 +73,9 @@ class DashboardViewModelTest {
         viewModel.onIntent(TagToggled("exam"))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("bio")
-        assertThat(viewModel.uiState.value.selectedTags).containsExactly("exam")
-        assertThat(viewModel.uiState.value.isFiltering).isTrue()
+        assertThat(viewModel.state.value.searchQuery).isEqualTo("bio")
+        assertThat(viewModel.state.value.selectedTags).containsExactly("exam")
+        assertThat(viewModel.state.value.isFiltering).isTrue()
     }
 
     @Test
@@ -87,15 +87,15 @@ class DashboardViewModelTest {
 
         viewModel.onIntent(QueryChanged("bio"))
         advanceUntilIdle()
-        assertThat(viewModel.uiState.value.decks).containsExactly(deckA)
+        assertThat(viewModel.state.value.decks).containsExactly(deckA)
 
         viewModel.onIntent(ClearFilters)
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.searchQuery).isEmpty()
-        assertThat(viewModel.uiState.value.selectedTags).isEmpty()
-        assertThat(viewModel.uiState.value.isFiltering).isFalse()
-        assertThat(viewModel.uiState.value.decks).containsExactly(deckA, deckB)
+        assertThat(viewModel.state.value.searchQuery).isEmpty()
+        assertThat(viewModel.state.value.selectedTags).isEmpty()
+        assertThat(viewModel.state.value.isFiltering).isFalse()
+        assertThat(viewModel.state.value.decks).containsExactly(deckA, deckB)
     }
 
     @Test
@@ -107,8 +107,8 @@ class DashboardViewModelTest {
         viewModel.onIntent(QueryChanged("history"))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.decks).isEmpty()
-        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
+        assertThat(viewModel.state.value.decks).isEmpty()
+        assertThat(viewModel.state.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
     }
 
     @Test
@@ -116,9 +116,9 @@ class DashboardViewModelTest {
         val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.totalDeckCount).isEqualTo(0)
-        assertThat(viewModel.uiState.value.decks).isEmpty()
-        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.LibraryEmpty)
+        assertThat(viewModel.state.value.totalDeckCount).isEqualTo(0)
+        assertThat(viewModel.state.value.decks).isEmpty()
+        assertThat(viewModel.state.value.emptyState).isEqualTo(DashboardEmptyState.LibraryEmpty)
     }
 
     @Test
@@ -134,17 +134,17 @@ class DashboardViewModelTest {
         viewModel.onIntent(TagToggled("exam"))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.decks).containsExactly(biologyExam)
+        assertThat(viewModel.state.value.decks).containsExactly(biologyExam)
 
         val bioNoExam = sampleDeck(id = "4", name = "Biology Notes", tags = listOf("biology"))
         val historyExam = sampleDeck(id = "5", name = "History Exam", tags = listOf("exam"))
         deckRepo.updateDecks(listOf(bioNoExam, historyExam))
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.searchQuery).isEqualTo("bio")
-        assertThat(viewModel.uiState.value.selectedTags).containsExactly("exam")
-        assertThat(viewModel.uiState.value.decks).isEmpty()
-        assertThat(viewModel.uiState.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
+        assertThat(viewModel.state.value.searchQuery).isEqualTo("bio")
+        assertThat(viewModel.state.value.selectedTags).containsExactly("exam")
+        assertThat(viewModel.state.value.decks).isEmpty()
+        assertThat(viewModel.state.value.emptyState).isEqualTo(DashboardEmptyState.NoResults)
     }
 
     @Test
@@ -182,16 +182,16 @@ class DashboardViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.stats).isNull()
+        assertThat(viewModel.state.value.stats).isNull()
 
         viewModel.onVisible()
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.stats).isNotNull()
-        assertThat(viewModel.uiState.value.stats?.cardsStudiedToday).isEqualTo(5)
-        assertThat(viewModel.uiState.value.stats?.cardsDueToday).isEqualTo(3)
-        assertThat(viewModel.uiState.value.stats?.currentStreak).isEqualTo(7)
-        assertThat(viewModel.uiState.value.stats?.cardsDueThisWeek).isEqualTo(12)
+        assertThat(viewModel.state.value.stats).isNotNull()
+        assertThat(viewModel.state.value.stats?.cardsStudiedToday).isEqualTo(5)
+        assertThat(viewModel.state.value.stats?.cardsDueToday).isEqualTo(3)
+        assertThat(viewModel.state.value.stats?.currentStreak).isEqualTo(7)
+        assertThat(viewModel.state.value.stats?.cardsDueThisWeek).isEqualTo(12)
     }
 
     private fun makeViewModel(

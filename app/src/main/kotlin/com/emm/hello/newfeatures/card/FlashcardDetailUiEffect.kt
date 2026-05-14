@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.card
 
-sealed interface FlashcardDetailUiEffect {
+import com.emm.hello.core.mvi.MviEffect
+
+sealed interface FlashcardDetailUiEffect : MviEffect {
     data class LoadFailed(val message: String) : FlashcardDetailUiEffect
     data class NavigateToEditFlashcard(val cardId: String) : FlashcardDetailUiEffect
     data object FlashcardDeleted : FlashcardDetailUiEffect

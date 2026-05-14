@@ -6,7 +6,6 @@ import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val TAG = "SettingsViewModel"
@@ -29,42 +28,42 @@ class SettingsViewModel(
 
     fun onExportUri(uri: Uri) {
         viewModelScope.launch {
-            mutableState.update { it.copy(isExporting = true) }
+            setState { copy(isExporting = true) }
             exportDataSource.export(uri)
                 .onSuccess {
-                    mutableEffect.send(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
+                    sendEffect(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
                 }
                 .onFailure { error ->
                     logError(TAG, "export:error ${error.message}", error)
-                    mutableEffect.send(SettingsUiEffect.ShowError(error.message ?: "Export failed"))
+                    sendEffect(SettingsUiEffect.ShowError(error.message ?: "Export failed"))
                 }
-            mutableState.update { it.copy(isExporting = false) }
+            setState { copy(isExporting = false) }
         }
     }
 
     fun onImportUri(uri: Uri) {
-        mutableState.update { it.copy(showConfirmDialog = true, pendingImportUri = uri) }
+        setState { copy(showConfirmDialog = true, pendingImportUri = uri) }
     }
 
     private fun confirmImport() {
-        val uri = mutableState.value.pendingImportUri ?: return
-        mutableState.update { it.copy(showConfirmDialog = false) }
+        val uri = currentState.pendingImportUri ?: return
+        setState { copy(showConfirmDialog = false) }
 
         viewModelScope.launch {
-            mutableState.update { it.copy(isImporting = true) }
+            setState { copy(isImporting = true) }
             importDataSource.import(uri)
                 .onSuccess {
-                    mutableEffect.send(SettingsUiEffect.ShowSuccess("Backup restored successfully"))
+                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restored successfully"))
                 }
                 .onFailure { error ->
                     logError(TAG, "import:error ${error.message}", error)
-                    mutableEffect.send(SettingsUiEffect.ShowError(error.message ?: "Import failed"))
+                    sendEffect(SettingsUiEffect.ShowError(error.message ?: "Import failed"))
                 }
-            mutableState.update { it.copy(isImporting = false, pendingImportUri = null) }
+            setState { copy(isImporting = false, pendingImportUri = null) }
         }
     }
 
     private fun cancelImport() {
-        mutableState.update { it.copy(showConfirmDialog = false, pendingImportUri = null) }
+        setState { copy(showConfirmDialog = false, pendingImportUri = null) }
     }
 }

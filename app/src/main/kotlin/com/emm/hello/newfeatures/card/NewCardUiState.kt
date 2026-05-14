@@ -6,6 +6,7 @@ import com.emm.data.catalog.StaticCategories
 import com.emm.data.catalog.difficult
 import com.emm.data.catalog.staticCategories
 import com.emm.domain.validation.ValidationIssue
+import com.emm.hello.core.mvi.MviState
 
 sealed interface PreviewRegenerationTarget {
     data object Example : PreviewRegenerationTarget
@@ -35,4 +36,4 @@ data class NewCardUiState(
     val previewWarningIssues: List<ValidationIssue> = emptyList(),
     val canSavePreview: Boolean = false,
     val previewRegenerationTarget: PreviewRegenerationTarget? = null,
-)
+) : MviState

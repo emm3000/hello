@@ -1,8 +1,9 @@
 package com.emm.hello.newfeatures.study
 
 import com.emm.domain.study.ReviewGrade
+import com.emm.hello.core.mvi.MviIntent
 
-sealed interface StudyUiIntent {
+sealed interface StudyUiIntent : MviIntent {
     data object BackClicked : StudyUiIntent
     data object FinishDialogDismissed : StudyUiIntent
 

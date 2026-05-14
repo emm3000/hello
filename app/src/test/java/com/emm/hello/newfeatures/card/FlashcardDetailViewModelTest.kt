@@ -39,8 +39,8 @@ class FlashcardDetailViewModelTest {
             softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
         )
 
-        assertThat(viewModel.uiState.value.flashcard.flashcard.id.value).isEqualTo("card-1")
-        assertThat(viewModel.uiState.value.flashcard.flashcard.word).isEqualTo("hello")
+        assertThat(viewModel.state.value.flashcard.flashcard.id.value).isEqualTo("card-1")
+        assertThat(viewModel.state.value.flashcard.flashcard.word).isEqualTo("hello")
     }
 
     @Test

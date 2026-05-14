@@ -3,8 +3,9 @@ package com.emm.hello.newfeatures.card
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.time.SystemClock
+import com.emm.hello.core.mvi.MviState
 
 data class FlashcardDetailUiState(
     val flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
     val showDeleteConfirmation: Boolean = false,
-)
+) : MviState

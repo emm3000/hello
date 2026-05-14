@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.dashboard
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.study.DashboardStats
+import com.emm.hello.core.mvi.MviState
 
 data class DashboardUiState(
     val decks: List<Deck> = emptyList(),
@@ -13,7 +14,7 @@ data class DashboardUiState(
     val isFiltering: Boolean = false,
     val emptyState: DashboardEmptyState = DashboardEmptyState.None,
     val stats: DashboardStats? = null,
-)
+) : MviState
 
 enum class DashboardEmptyState {
     None,

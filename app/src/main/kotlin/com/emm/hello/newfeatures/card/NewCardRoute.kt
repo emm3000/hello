@@ -26,7 +26,7 @@ private enum class NewCardFlowStep {
 @Composable
 fun NewCardDestination(navigator: Navigator) {
     val vm: NewCardViewModel = koinViewModel()
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var currentStep by rememberSaveable { mutableStateOf(NewCardFlowStep.Mode) }
 

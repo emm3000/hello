@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.deck
 
-sealed interface NewDeckUiIntent {
+import com.emm.hello.core.mvi.MviIntent
+
+sealed interface NewDeckUiIntent : MviIntent {
 
     data class NameChanged(val name: String) : NewDeckUiIntent
     data class DescriptionChanged(val description: String) : NewDeckUiIntent

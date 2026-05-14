@@ -21,7 +21,7 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
         parameters = { parametersOf(cardId) }
     )
 
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
