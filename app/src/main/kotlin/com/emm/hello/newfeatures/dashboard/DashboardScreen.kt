@@ -1,8 +1,6 @@
 package com.emm.hello.newfeatures.dashboard
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -33,8 +28,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -106,29 +99,12 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+            FloatingActionButton(
+                onClick = newCard,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                // Secondary FAB: new deck
-                SmallFloatingActionButton(
-                    onClick = onCreateDeck,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ) {
-                    Icon(
-                        Icons.Default.BookmarkAdd,
-                        contentDescription = stringResource(R.string.new_deck_content_description)
-                    )
-                }
-                // Main FAB: new card
-                FloatingActionButton(
-                    onClick = newCard,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_card_content_description))
-                }
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_card_content_description))
             }
         },
     ) { innerPadding ->
@@ -138,22 +114,6 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            // -- Session Summary ------------------------------------------------------
-            item {
-                val totalPending = state.decks.sumOf { it.cardsCount }
-                AnimatedVisibility(
-                    visible = !state.isLoading && totalPending > 0,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    SessionSummaryBanner(
-                        totalDecks = state.decks.size,
-                        totalCards = totalPending,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                    )
-                }
-            }
-
             // -- Study Stats ----------------------------------------------------------
             item {
                 state.stats?.let { stats ->
@@ -264,67 +224,6 @@ private fun SearchAndFilterSection(
                 text = stringResource(R.string.dashboard_clear_filters),
                 onClick = onClearFilters,
                 variant = ButtonVariant.Ghost,
-            )
-        }
-    }
-}
-
-// -- Component: Summary Banner ------------------------------------------------
-
-@Composable
-private fun SessionSummaryBanner(
-    totalDecks: Int,
-    totalCards: Long,
-    modifier: Modifier = Modifier,
-) {
-    val deckPluralLabel = if (totalDecks == 1) {
-        stringResource(R.string.deck_plural_one)
-    } else {
-        stringResource(R.string.deck_plural_other)
-    }
-
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.PlayCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Column {
-                    Text(
-                        text = stringResource(R.string.cards_ready_label, totalCards),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.deck_count_format,
-                            totalDecks,
-                            deckPluralLabel,
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
