@@ -44,6 +44,16 @@
 - `app -> domain`
 - `data -> domain`
 
+## Navegación
+
+- Entry composable: `NewRoot` en `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt`.
+- Stack: Jetpack Navigation 3 (`NavDisplay`, `rememberNavBackStack`).
+- Wrapper de backstack: clase `Navigator` (`app/.../navigation/Navigator.kt`).
+- Transiciones: slide horizontal (350ms) para push/pop/predictive-pop.
+- Routes activas: `DashboardRoute`, `StudyRoute(deckId)`, `NewCardRoute`, `NewDeckRoute(deckId)`, `DeckDetailRoute(deckId)`, `CardDetailRoute(cardId, deckId)`, `EditFlashcardRoute(cardId, deckId)`, `SettingsRoute`.
+- Decorators: `rememberSaveableStateHolderNavEntryDecorator` + `rememberViewModelStoreNavEntryDecorator`.
+- Startup gate: `NewRoot` observa `AppStartupViewModel` y muestra loading/error antes de `AppNavigation`.
+
 ## Startup actual
 
 Flujo vigente:

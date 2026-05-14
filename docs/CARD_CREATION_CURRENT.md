@@ -20,6 +20,8 @@ La navegación es local al route y usa un único `NewCardViewModel` compartido.
 
 ## Archivos clave
 
+Estos son **entry points y artefactos principales** del flujo de creación. El resto de `newfeatures/card/` contiene componentes internos (preview UI, validación, drafts) y los flujos hermanos de detalle/edición documentados aparte.
+
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardModeScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt`
@@ -28,6 +30,11 @@ La navegación es local al route y usa un único `NewCardViewModel` compartido.
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardGenerationMappings.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardPreviewWorkflow.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardDraftEditor.kt`
+
+## Flujos relacionados
+
+- Ver tarjeta existente: `docs/CARD_DETAIL_CURRENT.md`
+- Editar tarjeta existente: `docs/EDIT_FLASHCARD_CURRENT.md`
 
 ## Paso 1. Modo
 

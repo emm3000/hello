@@ -22,7 +22,11 @@ Las sources of truth globales siguen en raíz:
 
 - `DASHBOARD_CURRENT.md`: estado actual del flujo `Dashboard` (lista, búsqueda y filtros)
 - `CARD_CREATION_CURRENT.md`: estado actual del flujo `New Card`
+- `CARD_DETAIL_CURRENT.md`: estado actual del flujo `Card Detail` (ver y borrar)
+- `EDIT_FLASHCARD_CURRENT.md`: estado actual del flujo `Edit Flashcard`
+- `DECK_CURRENT.md`: estado actual de los flujos `Deck Detail` y `New/Edit Deck`
 - `STUDY_CURRENT.md`: estado actual del flujo `Study`
+- `SETTINGS_CURRENT.md`: estado actual del flujo `Settings` (export/import backup)
 
 ## Regla
 

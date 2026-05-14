@@ -44,26 +44,27 @@ No asumir:
 
 ## Componentes UI compartidos (core/ui)
 
-Todo nuevo diseño o componente debe seguir esta jerarquía:
+### Convención de naming
 
-1. **Primero**: revisá `app/src/main/kotlin/com/emm/hello/core/ui/`
-   - Si existe el componente que necesitás, USALO sin excepción
-   - Los componentes de `core/ui` están inspirados en shadcn/ui y definen el tema de la app
+- **Composables públicos**: prefijo `H` (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). Esta es la regla dura.
+- **Archivos**: actualmente inconsistente — la mayoría sin prefijo (`Button.kt`, `Input.kt`, `Badge.kt`, `Card.kt`) y 4 con prefijo (`HSearchBar.kt`, `HTagChip.kt`, `HTagInput.kt`, `HLoadingSpinner.kt`). Para archivos nuevos preferir **sin prefijo** (alinea con la mayoría y con el template `Input.kt`).
+- **Excepciones sin composable `H*`** (no replicar en componentes nuevos):
+  - `FieldShell` — building block interno, template para inputs
+  - `SectionBlock`, `StatCard` — gap pendiente de migración (renombrar a `HSectionBlock`/`HStatCard`)
 
-2. **Componente local vs compartido**:
-   - `scope = una sola pantalla`: crear en el feature mismo (`newfeatures/X/`)
-   - `scope = toda la app`: crear en `core/ui/` siguiendo los style guidelines de shadcn
+### Jerarquía para nuevos diseños
 
-3. **Si no existe el componente necesario**:
-   - CREARLO en `core/ui/` con el patrón shadcn-style (`H*` prefix: `HInput`, `HButton`, etc.)
-   - NO usar componentes raw de Material3 (`OutlinedTextField`, `Button`, etc.)
-   - Consultar `Input.kt` como template — documenta el patrón exacto
+1. **Primero**: revisá `app/src/main/kotlin/com/emm/hello/core/ui/`. Si existe el componente que necesitás, USALO sin excepción. Los componentes están inspirados en shadcn/ui y definen el tema de la app.
 
-4. **Para crear nuevo componente compartido**:
-   - Crear en `core/ui/` con prefijo `H` (ej: `HSearchBar`, `H Chip`, `HTagInput`)
-   - Seguir convenciones de `FieldShell.kt` y `Input.kt` (borde animado, fondo transparente, 48dp altura mínima)
-   - Incluir preview `PreviewLightDark`
-   - Agregar al exports de `core/ui` si corresponde
+2. **Local vs compartido**:
+   - scope = una sola pantalla → crear en el feature (`newfeatures/X/`)
+   - scope = app-wide → crear en `core/ui/`
+
+3. **Si no existe**:
+   - Crear composable `H*` en `core/ui/` (`HSearchBar`, `HChip`, `HTagInput`, etc.).
+   - **NO usar** componentes raw de Material3 (`OutlinedTextField`, `Button`, `TextField`, etc.).
+   - Template: `Input.kt` + `FieldShell.kt` (borde animado, fondo transparente, 48dp altura mínima).
+   - Incluir preview `PreviewLightDark`.
 
 **Regla de hierro**: un componente custom en un screen NUNCA reemplaza un componente de `core/ui` que exista para ese propósito. Si el de `core/ui` no sirve, se extiende o modifica primero.
 
