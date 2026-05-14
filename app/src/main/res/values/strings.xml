@@ -162,6 +162,9 @@
     <string name="source_context_label">Contexto fuente</string>
     <string name="generated_cards_label">Tarjetas derivadas</string>
     <string name="quality_checks_label">Validaciones de calidad</string>
+    <string name="card_detail_tab_summary">Resumen</string>
+    <string name="card_detail_tab_examples">Ejemplos</string>
+    <string name="card_detail_tab_study">Estudio</string>
     <string name="preview_overview_note_label">Tipo de nota</string>
     <string name="preview_overview_focus_label">Enfoque de aprendizaje</string>
     <string name="preview_overview_cards_label">Cards derivadas</string>

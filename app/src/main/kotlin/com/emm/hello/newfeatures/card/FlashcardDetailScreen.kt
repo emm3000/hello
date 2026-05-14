@@ -26,8 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +53,7 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.HTabBar
 
 @Composable
 fun FlashcardDetailScreen(
@@ -75,55 +78,40 @@ fun FlashcardDetailScreen(
             )
         }
     ) { innerPadding ->
+        val tabs = remember(flashcard) { availableTabs(flashcard) }
+        var selectedTab by rememberSaveable(tabs) { mutableIntStateOf(0) }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 10.dp)
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ── Main card ─────────────────────────────────────────────
-            HCard(
-                modifier = Modifier.fillMaxWidth(),
-                variant = CardVariant.Elevated,
+            FlashcardHeaderCard(card = card)
+
+            if (tabs.size > 1) {
+                HTabBar(
+                    selectedIndex = selectedTab.coerceAtMost(tabs.lastIndex),
+                    tabs = tabs.map { stringResource(it.titleRes) },
+                    onTabSelected = { selectedTab = it },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = card.word,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        if (card.partOfSpeech.isNotBlank()) {
-                            HBadge(
-                                label = card.partOfSpeech,
-                                variant = BadgeVariant.Secondary,
-                            )
-                        }
+                when (tabs.getOrNull(selectedTab.coerceAtMost(tabs.lastIndex))) {
+                    DetailTab.Summary -> SummaryTabContent(flashcard)
+                    DetailTab.Examples -> ExamplesSection(card.examples)
+                    DetailTab.Study -> {
+                        StudyCardsSection(flashcard)
+                        QualityChecksSection(flashcard)
                     }
-                    Text(
-                        text = card.phonetic,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-                    HSeparator()
-                    Spacer(Modifier.height(12.dp))
-
-                    DetailItem(label = stringResource(R.string.translation_label), value = card.translation)
-                    Spacer(Modifier.height(12.dp))
-                    DetailItem(label = stringResource(R.string.meaning_label), value = card.meaning)
-                    FlashcardRichSections(flashcard)
+                    null -> Unit
                 }
             }
         }
@@ -199,8 +187,72 @@ private fun FlashcardDetailTopBar(
     )
 }
 
+private enum class DetailTab(val titleRes: Int) {
+    Summary(R.string.card_detail_tab_summary),
+    Examples(R.string.card_detail_tab_examples),
+    Study(R.string.card_detail_tab_study),
+}
+
+private fun availableTabs(flashcard: FlashcardDetail): List<DetailTab> {
+    val tabs = mutableListOf(DetailTab.Summary)
+    if (flashcard.flashcard.examples.isNotEmpty()) tabs += DetailTab.Examples
+    if (flashcard.studyCards.isNotEmpty() || flashcard.qualityChecks.isNotEmpty()) {
+        tabs += DetailTab.Study
+    }
+    return tabs
+}
+
 @Composable
-private fun FlashcardRichSections(flashcard: FlashcardDetail) {
+private fun FlashcardHeaderCard(card: Flashcard) {
+    HCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        variant = CardVariant.Elevated,
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = card.word,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (card.partOfSpeech.isNotBlank()) {
+                    HBadge(
+                        label = card.partOfSpeech,
+                        variant = BadgeVariant.Secondary,
+                    )
+                }
+            }
+            if (card.phonetic.isNotBlank()) {
+                Text(
+                    text = card.phonetic,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+            HSeparator()
+            Spacer(Modifier.height(12.dp))
+
+            DetailItem(label = stringResource(R.string.translation_label), value = card.translation)
+            Spacer(Modifier.height(12.dp))
+            DetailItem(label = stringResource(R.string.meaning_label), value = card.meaning)
+        }
+    }
+}
+
+@Composable
+private fun SummaryTabContent(flashcard: FlashcardDetail) {
     val card = flashcard.flashcard
     OptionalDetailSection(
         label = stringResource(R.string.notes_label),
@@ -243,9 +295,6 @@ private fun FlashcardRichSections(flashcard: FlashcardDetail) {
         label = stringResource(R.string.source_context_label),
         value = card.sourceContext,
     )
-    ExamplesSection(card.examples)
-    StudyCardsSection(flashcard)
-    QualityChecksSection(flashcard)
 }
 
 @Composable
