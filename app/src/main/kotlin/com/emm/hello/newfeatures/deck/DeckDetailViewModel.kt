@@ -52,14 +52,14 @@ class DeckDetailViewModel(
         when (intent) {
             is DeckDetailUiIntent.SearchCardsChanged -> setState { copy(searchQuery = intent.query) }
             DeckDetailUiIntent.EditDeck -> sendEffect(DeckDetailUiEffect.NavigateToEditDeck(deckId))
-            DeckDetailUiIntent.DeleteDeck -> setState { copy(showDeleteConfirmation = true) }
+            DeckDetailUiIntent.DeleteDeck -> setState { copy(isDeleteConfirmationVisible = true) }
             DeckDetailUiIntent.ConfirmDeleteDeck -> deleteDeck()
-            DeckDetailUiIntent.DismissDeleteDeck -> setState { copy(showDeleteConfirmation = false) }
+            DeckDetailUiIntent.DismissDeleteDeck -> setState { copy(isDeleteConfirmationVisible = false) }
         }
     }
 
     private fun deleteDeck() = viewModelScope.launch {
-        setState { copy(showDeleteConfirmation = false) }
+        setState { copy(isDeleteConfirmationVisible = false) }
         runCatching {
             softDeleteDeckUseCase(deckId.toDeckId())
         }.onSuccess {

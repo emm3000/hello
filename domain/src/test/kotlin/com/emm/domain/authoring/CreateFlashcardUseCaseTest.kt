@@ -187,7 +187,7 @@ private class FakeFlashcardRepository : FlashcardRepository {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }
 
-    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+    override suspend fun update(input: UpdateFlashcardInput) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
 }
 

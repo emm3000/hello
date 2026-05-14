@@ -32,7 +32,7 @@ class GetFilteredDecksUseCaseTest {
     private class FakeDeckRepository : DeckRepository {
         var lastObservedCriteria: DeckSearchCriteria? = null
 
-        override suspend fun addDeck(deck: CreateDeckInput) = Unit
+        override suspend fun create(deck: CreateDeckInput) = Unit
 
         override fun findById(deckId: DeckId): Flow<Deck> = flowOf(
             Deck(
@@ -55,9 +55,9 @@ class GetFilteredDecksUseCaseTest {
             return flowOf(emptyList())
         }
 
-        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = flowOf(emptyList())
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = flowOf(emptyList())
 
-        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 }

@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface DeckRepository {
 
-    suspend fun addDeck(deck: CreateDeckInput)
+    suspend fun create(deck: CreateDeckInput)
 
-    suspend fun updateDeck(input: UpdateDeckInput)
+    suspend fun update(input: UpdateDeckInput)
 
     suspend fun softDeleteDeck(deckId: DeckId)
 
-    fun findById(deckId: DeckId): Flow<Deck>
+    fun fetchById(deckId: DeckId): Flow<Deck>
 
     fun fetchAll(): Flow<List<Deck>>
 
@@ -19,5 +19,5 @@ interface DeckRepository {
 
     fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>>
 
-    fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>>
+    fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>>
 }

@@ -23,7 +23,7 @@ data class NewCardUiState(
     val decks: List<Deck> = emptyList(),
     val deckSelected: Deck? = null,
     val isLoading: Boolean = false,
-    val isCheck: Boolean = false,
+    val isSetAsDefault: Boolean = false,
     val category: StaticCategories = staticCategories.first(),
     val typeView: TypeView = TypeView.WordOrPhase,
     val difficulty: String = difficult.first(),

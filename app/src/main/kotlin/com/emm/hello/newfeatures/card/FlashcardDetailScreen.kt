@@ -61,7 +61,7 @@ fun FlashcardDetailScreen(
     onDeleteClick: () -> Unit = {},
     onConfirmDelete: () -> Unit = {},
     onDismissDelete: () -> Unit = {},
-    showDeleteConfirmation: Boolean = false,
+    isDeleteConfirmationVisible: Boolean = false,
 ) {
     val card = flashcard.flashcard
     Scaffold(
@@ -130,7 +130,7 @@ fun FlashcardDetailScreen(
     }
 
     // ── Delete confirmation dialog ────────────────────────────────────────
-    if (showDeleteConfirmation) {
+    if (isDeleteConfirmationVisible) {
         HAlertDialog(
             title = stringResource(R.string.delete_flashcard_title),
             description = stringResource(R.string.delete_flashcard_description),

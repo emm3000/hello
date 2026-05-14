@@ -233,8 +233,8 @@ class DashboardViewModelTest {
             deckFlow.value = updatedDecks
         }
 
-        override suspend fun addDeck(deck: CreateDeckInput) = Unit
-        override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        override suspend fun create(deck: CreateDeckInput) = Unit
+        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> =
             if (emitImmediately) deckFlow else emptyFlow()
@@ -251,9 +251,9 @@ class DashboardViewModelTest {
                 }
             }
 
-        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
-        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 

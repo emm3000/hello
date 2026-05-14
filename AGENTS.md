@@ -66,6 +66,59 @@ No asumir:
 
 **Regla de hierro**: un componente custom en un screen NUNCA reemplaza un componente de `core/ui` que exista para ese propósito. Si el de `core/ui` no sirve, se extiende o modifica primero.
 
+## Convenciones de nombres
+
+Tres fuentes combinadas: Uncle Bob (Clean Code), Kotlin oficial, y práctica Android profesional (GDE tier). En caso de conflicto, este orden es la prioridad.
+
+### Principios Uncle Bob — aplicados a Kotlin/Android
+
+| Regla | Mal | Bien |
+|---|---|---|
+| El nombre revela intención | `d`, `data`, `tmp` | `deckId`, `filteredDecks`, `elapsedMs` |
+| Sin desinformación | `deckList` (es una `List`) | `decks` |
+| Distinción significativa | `getDeck` vs `fetchDeck` vs `retrieveDeck` | un solo verbo por concepto |
+| Pronunciable | `genDtTmStmp` | `generatedAt` |
+| Buscable (sin magic literals) | `if (type == 2)` | `if (type == CardType.CLOZE)` |
+| Clases: sustantivos | `DataProcessor`, `Manager` | `FlashcardRepository`, `DeckDetailViewModel` |
+| Funciones: verbos | `card()`, `data()` | `loadCard()`, `buildState()` |
+| Una palabra por concepto | `fetch` en un sitio, `get` en otro | elegir uno y usarlo en todo el codebase |
+| Sin humor ni jerga | `whack()`, `eatMyShorts()` | `delete()`, `clear()` |
+
+### Kotlin oficial
+
+- **Clases / objetos / interfaces**: `PascalCase` — `DashboardViewModel`, `MviState`
+- **Funciones / propiedades**: `camelCase` — `loadDeck()`, `isLoading`
+- **Constantes** (`const val`, companion, top-level): `SCREAMING_SNAKE_CASE` — `SEARCH_DEBOUNCE_MS`
+- **Paquetes**: `lowercase.sinunderscores`
+- **Backing properties**: prefijo `_` + mismo nombre — `_state` / `state`
+- **Lambdas**: usar `it` solo si el contexto es obvio en ≤ 2 líneas; si no, nombre explícito
+- Preferir `val` sobre `var`; preferir extension functions sobre clases utilitarias
+
+### Android / Kotlin profesional
+
+**Patrones de nombres por capa:**
+
+| Tipo | Patrón | Ejemplos |
+|---|---|---|
+| ViewModel | `<Feature>ViewModel` | `DashboardViewModel` |
+| UseCase | `<Verbo><Sujeto>UseCase` | `GetDecksUseCase`, `ScheduleFlashcardReviewUseCase` |
+| Repository (interfaz) | `<Entidad>Repository` | `DeckRepository`, `FlashcardReviewRepository` |
+| Repository (impl) | `<Entidad>RepositoryImpl` o `<Fuente><Entidad>Repository` | `SqlDelightDeckRepository` |
+| UiState | `<Feature>UiState` — data class, todos los campos `val` | `DashboardUiState` |
+| UiIntent | `<Feature>UiIntent` — sealed interface, nombres en **pasado o sustantivo-verbo** | `QueryChanged`, `TagToggled`, `SaveClicked` |
+| UiEffect | `<Feature>UiEffect` — sealed interface, nombres descriptivos del efecto | `NavigateBack`, `ShowMessage` |
+| Flow/StateFlow expuesto | nombre sin sufijo `Flow` | `val decks: Flow<List<Deck>>` no `val decksFlow` |
+| Booleanos | prefijo `is`, `has`, `can`, `should` | `isLoading`, `hasSession`, `canSave` |
+| Callbacks / lambdas en Composable | prefijo `on` | `onIntent`, `onClick`, `onDismiss` |
+| Suspend fun | nombre como si fuera síncrono | `fetchById()` no `fetchByIdSuspend()` |
+
+**Reglas adicionales:**
+
+- Los nombres de `UiIntent` describen **lo que el usuario hizo**, no lo que el ViewModel debe hacer: `DeleteClicked`, no `TriggerDelete`.
+- Los `UiEffect` describen **el efecto resultante**, no la acción: `NavigateBack`, no `GoBack`.
+- Las funciones privadas en ViewModel que manejan un intent llevan el prefijo `handle` solo si agrupan lógica de varios sub-casos; si hacen una sola cosa, nombre directo: `loadDeck()`, no `handleLoadDeck()`.
+- Evitar prefijos redundantes dentro de un scope: dentro de `DeckDetailViewModel`, `loadDeck()` no `loadDeckDetail()`.
+
 ## Linting y code style (detekt)
 
 Reglas activas en `config/detekt/detekt.yml`:

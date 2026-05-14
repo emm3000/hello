@@ -30,7 +30,7 @@ class NewCardViewModel(
                     copy(
                         decks = decks,
                         deckSelected = selectedDeck,
-                        isCheck = defaultDeckId != null && selectedDeck?.id == defaultDeckId,
+                        isSetAsDefault = defaultDeckId != null && selectedDeck?.id == defaultDeckId,
                     )
                 }
             }
@@ -67,13 +67,13 @@ class NewCardViewModel(
             is NewCardUiIntent.DeckSelected -> setState {
                 copy(
                     deckSelected = intent.deck,
-                    isCheck = defaultDeckSelectionRepository.getDefaultDeckId() == intent.deck.id,
+                    isSetAsDefault = defaultDeckSelectionRepository.getDefaultDeckId() == intent.deck.id,
                 )
             }
             is NewCardUiIntent.CheckChanged -> {
                 val newDeckId = if (intent.checked) currentState.deckSelected?.id else null
                 defaultDeckSelectionRepository.setDefaultDeckId(newDeckId)
-                setState { copy(isCheck = intent.checked) }
+                setState { copy(isSetAsDefault = intent.checked) }
             }
             else -> Unit
         }

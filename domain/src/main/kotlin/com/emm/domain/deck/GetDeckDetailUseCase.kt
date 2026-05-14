@@ -15,7 +15,7 @@ class GetDeckDetailUseCase(
         val typedDeckId = deckId.toDeckId()
 
         return combine(
-            flow = repository.findById(typedDeckId),
+            flow = repository.fetchById(typedDeckId),
             flow2 = cardRepository.fetchByDeckId(typedDeckId)
         ) { deck: Deck, cards: List<Flashcard> ->
             deck.copy(cards = cards)

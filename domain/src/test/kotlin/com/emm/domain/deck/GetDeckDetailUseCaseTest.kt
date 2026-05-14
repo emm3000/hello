@@ -139,9 +139,9 @@ private class FakeDeckRepository : DeckRepository {
 
     var lastFindByIdArg: com.emm.domain.ids.DeckId? = null
 
-    override suspend fun addDeck(deck: CreateDeckInput) = Unit
+    override suspend fun create(deck: CreateDeckInput) = Unit
 
-    override fun findById(deckId: DeckId): Flow<Deck> {
+    override fun fetchById(deckId: DeckId): Flow<Deck> {
         lastFindByIdArg = deckId
         return deckFlow
     }
@@ -152,9 +152,9 @@ private class FakeDeckRepository : DeckRepository {
 
     override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
 
-    override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+    override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
-    override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+    override suspend fun update(input: UpdateDeckInput) = Unit
     override suspend fun softDeleteDeck(deckId: DeckId) = Unit
 }
 
@@ -189,7 +189,7 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
 
-    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+    override suspend fun update(input: UpdateFlashcardInput) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
 }
 

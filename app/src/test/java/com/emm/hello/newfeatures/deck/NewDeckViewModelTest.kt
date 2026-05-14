@@ -114,22 +114,22 @@ class NewDeckViewModelTest {
         assertThat(effect).isInstanceOf(NewDeckUiEffect.ShowMessage::class.java)
         assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("boom")
         assertThat(viewModel.state.value.isLoading).isFalse()
-        assertThat(repository.addDeckCalls).isEqualTo(1)
+        assertThat(repository.createCalls).isEqualTo(1)
     }
 
     private class FakeDeckRepository(
         private val shouldFail: Boolean = false,
     ) : DeckRepository {
-        var addDeckCalls: Int = 0
+        var createCalls: Int = 0
         var lastAdded: CreateDeckInput? = null
 
-        override suspend fun addDeck(deck: CreateDeckInput) {
-            addDeckCalls += 1
+        override suspend fun create(deck: CreateDeckInput) {
+            createCalls += 1
             lastAdded = deck
             if (shouldFail) error("boom")
         }
 
-        override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
 
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 
@@ -137,9 +137,9 @@ class NewDeckViewModelTest {
 
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
 
-        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
-        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 }

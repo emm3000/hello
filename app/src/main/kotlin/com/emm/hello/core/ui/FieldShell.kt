@@ -21,9 +21,9 @@ import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 
-internal const val fieldShellBorderAnimationMs = 150
-internal const val fieldShellDisabledAlpha = 0.38f
-internal const val fieldShellPlaceholderAlpha = 0.6f
+internal const val FIELD_SHELL_BORDER_ANIMATION_MS = 150
+internal const val FIELD_SHELL_DISABLED_ALPHA = 0.38f
+internal const val FIELD_SHELL_PLACEHOLDER_ALPHA = 0.6f
 internal val fieldShellMinHeight = 48.dp
 
 @Composable
@@ -88,12 +88,12 @@ internal fun fieldShellBorderColor(
         isActive -> colorScheme.outline
         else -> colorScheme.outlineVariant
     }.let { color ->
-        if (enabled) color else color.copy(alpha = fieldShellDisabledAlpha)
+        if (enabled) color else color.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
     }
 
     val animatedColor by animateColorAsState(
         targetValue = targetColor,
-        animationSpec = tween(durationMillis = fieldShellBorderAnimationMs),
+        animationSpec = tween(durationMillis = FIELD_SHELL_BORDER_ANIMATION_MS),
         label = "field_shell_border",
     )
 
@@ -106,29 +106,29 @@ internal fun fieldShellContentColor(enabled: Boolean): Color {
     return if (enabled) {
         colorScheme.onSurface
     } else {
-        colorScheme.onSurface.copy(alpha = fieldShellDisabledAlpha)
+        colorScheme.onSurface.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
     }
 }
 
 @Composable
 internal fun fieldShellPlaceholderColor(enabled: Boolean): Color {
     val colorScheme = MaterialTheme.colorScheme
-    val baseColor = colorScheme.onSurfaceVariant.copy(alpha = fieldShellPlaceholderAlpha)
-    return if (enabled) baseColor else baseColor.copy(alpha = fieldShellDisabledAlpha)
+    val baseColor = colorScheme.onSurfaceVariant.copy(alpha = FIELD_SHELL_PLACEHOLDER_ALPHA)
+    return if (enabled) baseColor else baseColor.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
 }
 
 @Composable
 internal fun fieldShellLabelColor(isError: Boolean, enabled: Boolean): Color {
     val colorScheme = MaterialTheme.colorScheme
     val baseColor = if (isError) colorScheme.error else colorScheme.onSurface
-    return if (enabled) baseColor else colorScheme.onSurface.copy(alpha = fieldShellDisabledAlpha)
+    return if (enabled) baseColor else colorScheme.onSurface.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
 }
 
 @Composable
 internal fun fieldShellSupportingColor(isError: Boolean, enabled: Boolean): Color {
     val colorScheme = MaterialTheme.colorScheme
     val baseColor = if (isError) colorScheme.error else colorScheme.onSurfaceVariant
-    return if (enabled) baseColor else baseColor.copy(alpha = fieldShellDisabledAlpha)
+    return if (enabled) baseColor else baseColor.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
 }
 
 @Composable

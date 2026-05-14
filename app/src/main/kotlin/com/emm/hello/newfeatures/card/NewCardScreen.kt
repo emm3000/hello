@@ -187,7 +187,7 @@ fun NewCardScreen(
                         ) {
                             LabeledCheckbox(
                                 label = stringResource(R.string.default_deck_checkbox),
-                                checked = state.isCheck,
+                                checked = state.isSetAsDefault,
                                 isEnabled = state.deckSelected != null,
                                 onCheckedChange = { onIntent(NewCardUiIntent.CheckChanged(it)) },
                             )

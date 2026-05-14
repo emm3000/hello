@@ -8,6 +8,6 @@ class UpdateFlashcardUseCase(
         require(input.word.isNotBlank()) { "Flashcard word must not be blank." }
         require(input.meaning.isNotBlank()) { "Flashcard meaning must not be blank." }
 
-        flashcardRepository.updateFlashcard(input)
+        flashcardRepository.update(input)
     }
 }

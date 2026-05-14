@@ -187,7 +187,7 @@ fun DeckDetailScreen(
     }
 
     // ── Delete confirmation dialog ────────────────────────────────────────
-    if (state.showDeleteConfirmation) {
+    if (state.isDeleteConfirmationVisible) {
         HAlertDialog(
             title = stringResource(R.string.delete_deck_title),
             description = stringResource(R.string.delete_deck_description),

@@ -125,7 +125,7 @@ fun SettingsScreen(
     }
 
     // Confirmation dialog for import
-    if (state.showConfirmDialog) {
+    if (state.isConfirmDialogVisible) {
         HAlertDialog(
             onDismiss = onDismissImport,
             onConfirm = onConfirmImport,

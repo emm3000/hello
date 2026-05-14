@@ -113,7 +113,7 @@ class DefaultFlashcardRepository(
         db.transaction { populate(examples, flashcardId.value) }
     }
 
-    override suspend fun updateFlashcard(input: UpdateFlashcardInput) = withContext(Dispatchers.IO) {
+    override suspend fun update(input: UpdateFlashcardInput) = withContext(Dispatchers.IO) {
         require(input.word.isNotBlank()) { "Flashcard word must not be blank." }
         require(input.meaning.isNotBlank()) { "Flashcard meaning must not be blank." }
 

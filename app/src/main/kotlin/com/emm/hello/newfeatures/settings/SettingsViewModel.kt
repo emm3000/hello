@@ -42,12 +42,12 @@ class SettingsViewModel(
     }
 
     fun onImportUri(uri: Uri) {
-        setState { copy(showConfirmDialog = true, pendingImportUri = uri) }
+        setState { copy(isConfirmDialogVisible = true, pendingImportUri = uri) }
     }
 
     private fun confirmImport() {
         val uri = currentState.pendingImportUri ?: return
-        setState { copy(showConfirmDialog = false) }
+        setState { copy(isConfirmDialogVisible = false) }
 
         viewModelScope.launch {
             setState { copy(isImporting = true) }
@@ -64,6 +64,6 @@ class SettingsViewModel(
     }
 
     private fun cancelImport() {
-        setState { copy(showConfirmDialog = false, pendingImportUri = null) }
+        setState { copy(isConfirmDialogVisible = false, pendingImportUri = null) }
     }
 }

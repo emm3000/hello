@@ -193,13 +193,13 @@ class DeckDetailViewModelTest {
     }
 
     private class FakeDeckRepo : DeckRepository {
-        override suspend fun addDeck(deck: com.emm.domain.deck.CreateDeckInput) = Unit
-        override fun findById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        override suspend fun create(deck: com.emm.domain.deck.CreateDeckInput) = Unit
+        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
-        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
-        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 
@@ -214,7 +214,7 @@ class DeckDetailViewModelTest {
             examples: List<com.emm.domain.flashcard.Example>,
             flashcardId: FlashcardId,
         ) = Unit
-        override suspend fun updateFlashcard(input: UpdateFlashcardInput) = Unit
+        override suspend fun update(input: UpdateFlashcardInput) = Unit
         override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
     }
 

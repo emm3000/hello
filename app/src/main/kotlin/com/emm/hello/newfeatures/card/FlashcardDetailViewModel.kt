@@ -27,11 +27,11 @@ class FlashcardDetailViewModel(
                 sendEffect(FlashcardDetailUiEffect.NavigateToEditFlashcard(flashcardId))
             }
             FlashcardDetailUiIntent.DeleteFlashcard -> {
-                setState { copy(showDeleteConfirmation = true) }
+                setState { copy(isDeleteConfirmationVisible = true) }
             }
             FlashcardDetailUiIntent.ConfirmDeleteFlashcard -> deleteFlashcard()
             FlashcardDetailUiIntent.DismissDeleteFlashcard -> {
-                setState { copy(showDeleteConfirmation = false) }
+                setState { copy(isDeleteConfirmationVisible = false) }
             }
         }
     }
@@ -47,7 +47,7 @@ class FlashcardDetailViewModel(
     }
 
     private fun deleteFlashcard() = viewModelScope.launch {
-        setState { copy(showDeleteConfirmation = false) }
+        setState { copy(isDeleteConfirmationVisible = false) }
         runCatching {
             softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
         }.onSuccess {

@@ -431,9 +431,9 @@ class NewCardViewModelTest {
             cardsCount = 0L,
         )
 
-        override suspend fun addDeck(deck: CreateDeckInput) = Unit
+        override suspend fun create(deck: CreateDeckInput) = Unit
 
-        override fun findById(deckId: DeckId): Flow<Deck> = flowOf(deck)
+        override fun fetchById(deckId: DeckId): Flow<Deck> = flowOf(deck)
 
         override fun fetchAll(): Flow<List<Deck>> = flowOf(listOf(deck))
 
@@ -441,9 +441,9 @@ class NewCardViewModelTest {
 
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(listOf(deck))
 
-        override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
-        override suspend fun updateDeck(input: UpdateDeckInput) = Unit
+        override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId) = Unit
     }
 

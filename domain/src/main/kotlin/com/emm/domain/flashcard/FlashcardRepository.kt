@@ -13,7 +13,7 @@ interface FlashcardRepository {
 
     suspend fun create(input: CreateFlashcardInput): FlashcardId
 
-    suspend fun updateFlashcard(input: UpdateFlashcardInput)
+    suspend fun update(input: UpdateFlashcardInput)
 
     suspend fun softDeleteFlashcard(flashcardId: FlashcardId)
 

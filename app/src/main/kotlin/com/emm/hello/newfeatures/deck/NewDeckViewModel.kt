@@ -38,7 +38,7 @@ class NewDeckViewModel(
         val deckId = (currentState.formMode as DeckFormMode.Edit).deckId
         setState { copy(isLoading = true) }
         runCatching {
-            deckRepository.findById(deckId.toDeckId()).first()
+            deckRepository.fetchById(deckId.toDeckId()).first()
         }.onSuccess { deck ->
             setState {
                 copy(
@@ -73,7 +73,7 @@ class NewDeckViewModel(
                 description = state.description,
                 tags = state.tags,
             )
-            deckRepository.addDeck(input)
+            deckRepository.create(input)
         }.onSuccess {
             setState { NewDeckUiState() }
             sendEffect(NewDeckUiEffect.NavigateBack)

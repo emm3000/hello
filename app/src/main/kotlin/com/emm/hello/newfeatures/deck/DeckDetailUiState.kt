@@ -8,5 +8,5 @@ data class DeckDetailUiState(
     val deck: Deck = Deck.empty(SystemClock),
     val hasSessionEnabled: Boolean = false,
     val searchQuery: String = "",
-    val showDeleteConfirmation: Boolean = false,
+    val isDeleteConfirmationVisible: Boolean = false,
 ) : MviState

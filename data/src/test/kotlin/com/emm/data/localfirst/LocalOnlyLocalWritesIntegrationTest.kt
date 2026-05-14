@@ -54,7 +54,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         )
         val reviewRepository = DefaultFlashcardReviewRepository(db = db)
 
-        deckRepository.addDeck(CreateDeckInput(name = "Travel", description = "Trip phrases", tags = listOf("travel")))
+        deckRepository.create(CreateDeckInput(name = "Travel", description = "Trip phrases", tags = listOf("travel")))
         val deck = db.deckQueries.all().executeAsOne()
 
         val tags = db.tagQueries.findByDeckId(deck.id).executeAsList()
@@ -111,7 +111,7 @@ class LocalOnlyLocalWritesIntegrationTest {
         val tagRepository = DefaultTagRepository(db = db)
         val deckRepository = DefaultDeckRepository(db = db, tagRepository = tagRepository)
 
-        deckRepository.addDeck(
+        deckRepository.create(
             CreateDeckInput(
                 name = "Languages",
                 description = "Learning phrases",
@@ -172,7 +172,7 @@ class LocalOnlyLocalWritesIntegrationTest {
             )
             val reviewRepository = DefaultFlashcardReviewRepository(db = firstDb)
 
-            deckRepository.addDeck(CreateDeckInput(name = "Reopen deck", description = "available after reopen"))
+            deckRepository.create(CreateDeckInput(name = "Reopen deck", description = "available after reopen"))
             assertFalse(identity.createdInstallation)
             val persistedDeck = firstDb.deckQueries.all().executeAsOne()
             val persistedFlashcardId = flashcardRepository.create(

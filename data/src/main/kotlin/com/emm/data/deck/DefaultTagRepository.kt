@@ -31,7 +31,7 @@ class DefaultTagRepository(
         }
     }
 
-    override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> {
+    override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> {
         return tq
             .findByDeckId(deckId.value)
             .asFlow()

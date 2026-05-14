@@ -51,6 +51,6 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
         onDeleteClick = { vm.onIntent(FlashcardDetailUiIntent.DeleteFlashcard) },
         onConfirmDelete = { vm.onIntent(FlashcardDetailUiIntent.ConfirmDeleteFlashcard) },
         onDismissDelete = { vm.onIntent(FlashcardDetailUiIntent.DismissDeleteFlashcard) },
-        showDeleteConfirmation = uiState.showDeleteConfirmation,
+        isDeleteConfirmationVisible = uiState.isDeleteConfirmationVisible,
     )
 }

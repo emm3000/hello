@@ -32,7 +32,7 @@ class DefaultDeckRepository(
 
     private val dq: DeckQueries = db.deckQueries
 
-    override suspend fun addDeck(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
+    override suspend fun create(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
         val newId: String = UUID.randomUUID().toString()
 
@@ -70,7 +70,7 @@ class DefaultDeckRepository(
         Unit
     }
 
-    override suspend fun updateDeck(input: UpdateDeckInput) = withContext(Dispatchers.IO) {
+    override suspend fun update(input: UpdateDeckInput) = withContext(Dispatchers.IO) {
         require(input.name.isNotBlank()) { "Deck name must not be blank." }
 
         val now: Long = Instant.now().toEpochMilli()
@@ -147,12 +147,12 @@ class DefaultDeckRepository(
         }
     }
 
-    override fun findById(deckId: DeckId): Flow<Deck> {
+    override fun fetchById(deckId: DeckId): Flow<Deck> {
         val deckFlow = dq.findActiveById(deckId.value)
             .asFlow()
             .mapToOne(Dispatchers.IO)
             .map { entity -> entity.toDomain() }
-        val tagsFlow = tagRepository.findTagsForDeck(deckId)
+        val tagsFlow = tagRepository.fetchTagsForDeck(deckId)
         return combine(deckFlow, tagsFlow) { deck, tags ->
             deck.copy(tags = tags)
         }
@@ -182,7 +182,7 @@ class DefaultDeckRepository(
                         createdAt = count.createdAt.toLocalDateTime(),
                         cards = emptyList(),
                         cardsCount = count.flashcardCount,
-                        tags = emptyList(), // Tags loaded per-deck via findTagsForDeck
+                        tags = emptyList(), // Tags loaded per-deck via fetchTagsForDeck
                     )
                 }
             }
@@ -212,7 +212,7 @@ class DefaultDeckRepository(
             }
     }
 
-    override fun findTagsForDeck(deckId: DeckId): Flow<List<Tag>> {
-        return tagRepository.findTagsForDeck(deckId)
+    override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> {
+        return tagRepository.fetchTagsForDeck(deckId)
     }
 }
