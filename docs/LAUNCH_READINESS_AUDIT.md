@@ -7,6 +7,7 @@
 | Source of Truth | Yes (mientras no se cierre todo) |
 | Read this when | Vas a trabajar en cualquier tarea de hardening pre-lanzamiento |
 | Última verificación contra código | 2026-05-14 |
+| Progreso Sprint 1 | 3/8 completados (T1, T2, T8) · T3 descartado · pendientes T4, T5, T6, T7 |
 
 ## TL;DR
 
@@ -102,7 +103,7 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** en `onCreate()` antes de `startKoin`, llamar `FirebaseApp.initializeApp(this)`, habilitar `FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true`, instanciar `FirebaseAnalytics.getInstance(this)`.
 - **Criterio:** abrir la app debug, forzar crash, verlo en Crashlytics console dentro de 5 min. Verificar evento `first_open` en Analytics DebugView.
 - **Estimación:** 30 min.
-- **Estado:** [ ]
+- **Estado:** [x] — `App.kt` inicializa `FirebaseApp`, habilita Crashlytics y instancia Analytics antes de Koin (commit `8e8e5dd`). Validación manual en device pendiente.
 
 #### S1-T2: Reglas R8/ProGuard para Firebase y serialization
 - **Archivos:** `app/proguard-rules.pro`, `data/proguard-rules.pro`
@@ -110,16 +111,16 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** agregar keep rules para `com.google.firebase.**`, `kotlinx.serialization.**`, todas las `@Serializable data class` del proyecto (DTOs en `data/.../flashcard/iadto/`, `BackupEnvelope`), SQLDelight runtime classes.
 - **Criterio:** `./gradlew :app:assembleRelease` y correr el APK en device real. Crear una flashcard via Gemini sin error de deserialización. Export/import backup sin errores.
 - **Estimación:** 1-2 h (incluye iteración cuando algo se rompe en runtime).
-- **Estado:** [ ]
+- **Estado:** [x] — keep rules agregadas en `app/proguard-rules.pro` (Crashlytics deobfuscation, kotlinx.serialization oficial, Firebase defensivo, `@Serializable` del proyecto) y `data/consumer-rules.pro` (DTOs de `:data`, `HelloDb` de SQLDelight). `data/proguard-rules.pro` queda intacto porque `:data` no minifica. `assembleRelease` verificado con R8 (commit `8e8e5dd`). Validación funcional en device pendiente.
 - **Depende de:** S1-T1 (para ver crashes en Crashlytics si algo falla).
 
-#### S1-T3: Cambiar modelo Gemini a `gemini-2.5-flash`
+#### S1-T3: Cambiar modelo Gemini a `gemini-2.5-flash` ~~(descartado por decisión del usuario)~~
 - **Archivo:** `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt:29`
 - **Por qué:** flash-lite produce ~30% de notas mediocres en lingüística. Costo extra estimado: ~$40/día a 10k users × 5 cards/día.
 - **Qué hacer:** cambiar `modelName = "gemini-2.5-flash-lite"` a `"gemini-2.5-flash"`.
 - **Criterio:** generar 10 flashcards de palabras variadas (high-frequency, phrasal verbs, idioms, latinismos). Comparar manualmente con outputs previos. Naturalidad de ejemplos y IPA deberían mejorar.
 - **Estimación:** 15 min + 30 min de validación manual.
-- **Estado:** [ ]
+- **Estado:** [~] — descartado: usuario decidió mantener `gemini-2.5-flash-lite` por ahora. Re-evaluar tras feedback de beta si calidad lingüística degrada el producto.
 
 #### S1-T4: Agregar `responseSchema` explícito en `generationConfig`
 - **Archivo:** `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt:30-31`
@@ -160,7 +161,7 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** verificar `POST_NOTIFICATIONS` — si no hay notificaciones implementadas, removerlo. Verificar `RECORD_AUDIO` — confirmar que el STT (`rememberSpeechToTextManager`) sigue activo en el wizard de NewCard; si está deshabilitado, sacarlo.
 - **Criterio:** la app pide solo lo que usa. Play Console no marca permisos no justificados.
 - **Estimación:** 30 min.
-- **Estado:** [ ]
+- **Estado:** [x] — `POST_NOTIFICATIONS` removido del manifest y el `LaunchedEffect` huérfano en `DashboardRoute` también borrado (no había notificaciones implementadas). `RECORD_AUDIO` se mantiene (STT activo en `NewCardInputStepScreen`). `READ/WRITE_EXTERNAL_STORAGE` con `maxSdkVersion=32` quedan (uso legacy < Android 13). Commit `8e8e5dd`.
 
 ---
 
