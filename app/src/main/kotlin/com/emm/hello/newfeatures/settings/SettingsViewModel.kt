@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
+import com.emm.data.export.IncompatibleSchemaException
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.launch
@@ -57,7 +58,7 @@ class SettingsViewModel(
                 }
                 .onFailure { error ->
                     logError(TAG, "import:error ${error.message}", error)
-                    sendEffect(SettingsUiEffect.ShowError(error.message ?: "Import failed"))
+                    sendEffect(SettingsUiEffect.ShowError(humanizeImportError(error)))
                 }
             setState { copy(isImporting = false, pendingImportUri = null) }
         }
@@ -65,5 +66,20 @@ class SettingsViewModel(
 
     private fun cancelImport() {
         setState { copy(isConfirmDialogVisible = false, pendingImportUri = null) }
+    }
+
+    private fun humanizeImportError(error: Throwable): String = when {
+        error is IncompatibleSchemaException || hasCause<IncompatibleSchemaException>(error) ->
+            "Este backup fue creado con otra versión de la app. Actualizá la app e intentá de nuevo."
+        else -> error.message ?: "No se pudo restaurar el backup."
+    }
+
+    private inline fun <reified T : Throwable> hasCause(error: Throwable): Boolean {
+        var current: Throwable? = error.cause
+        while (current != null && current !== error) {
+            if (current is T) return true
+            current = current.cause
+        }
+        return false
     }
 }

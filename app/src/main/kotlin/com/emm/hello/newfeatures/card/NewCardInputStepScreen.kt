@@ -17,12 +17,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -60,12 +65,28 @@ fun NewCardInputStepScreen(
         onIntent(NewCardUiIntent.WordChanged(voiceText))
     }
     val isListening by sttManager.isListening.collectAsStateWithLifecycle()
+    val sttError by sttManager.error.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
+    val micPermissionDeniedMessage = "Necesitamos permiso de micrófono para dictar."
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
-            if (isGranted) sttManager.startListening(Locale.US)
+            if (isGranted) {
+                sttManager.startListening(Locale.US)
+            } else {
+                snackbarScope.launch { snackbarHostState.showSnackbar(micPermissionDeniedMessage) }
+            }
         }
     )
+
+    LaunchedEffect(sttError) {
+        val message = sttError
+        if (!message.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(message)
+            sttManager.clearError()
+        }
+    }
 
     val isGenerateEnabled = remember(state.isLoading, state.deckSelected, state.word, state.aiRequest, state.typeView) {
         val hasWord = state.word.isNotBlank()
@@ -81,6 +102,7 @@ fun NewCardInputStepScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {

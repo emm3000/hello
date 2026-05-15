@@ -37,6 +37,7 @@ interface SpeechToTextManager {
     var onResultCallback: ((String) -> Unit)?
     fun startListening(locale: Locale = Locale.US)
     fun stopListening()
+    fun clearError()
 }
 
 /**
@@ -88,14 +89,19 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
             _isListening.value = true
             _state.value = STTState.READY_TO_LISTEN
         } catch (_: SecurityException) {
-            _error.value = "Could not start speech recognizer"
+            _error.value = "No se pudo iniciar el reconocimiento de voz."
             _isListening.value = false
             _state.value = STTState.ERROR
         } catch (_: IllegalStateException) {
-            _error.value = "Could not start speech recognizer"
+            _error.value = "No se pudo iniciar el reconocimiento de voz."
             _isListening.value = false
             _state.value = STTState.ERROR
         }
+    }
+
+    override fun clearError() {
+        _error.value = null
+        if (_state.value == STTState.ERROR) _state.value = STTState.IDLE
     }
 
     override fun stopListening() {
@@ -142,12 +148,14 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
         mainHandler.post {
             _isListening.value = false
             _error.value = when (error) {
-                SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
-                SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                SpeechRecognizer.ERROR_AUDIO -> "Audio error"
-                SpeechRecognizer.ERROR_CLIENT -> "Client error"
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
-                else -> "Recognition error: $error"
+                SpeechRecognizer.ERROR_NO_MATCH,
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No te escuchamos. Intentá hablar más cerca del micrófono."
+                SpeechRecognizer.ERROR_NETWORK,
+                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Sin conexión. El dictado por voz necesita internet."
+                SpeechRecognizer.ERROR_AUDIO -> "No pudimos acceder al micrófono."
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Falta permiso de micrófono."
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "El dictado está ocupado, esperá un momento."
+                else -> "El dictado por voz no está disponible en este dispositivo."
             }
             _state.value = STTState.ERROR
         }
@@ -194,6 +202,7 @@ fun rememberSpeechToTextManager(
                 override var onResultCallback: ((String) -> Unit)? = null
                 override fun startListening(locale: Locale) = Unit
                 override fun stopListening() = Unit
+                override fun clearError() = Unit
             }
         }
     }
