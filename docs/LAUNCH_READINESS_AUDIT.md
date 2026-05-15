@@ -171,7 +171,7 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** wrap del `generateContent` con: timeout explícito (10-15 s), retry 3 veces con backoff exponencial (1s, 2s, 4s), try-catch que capture `FirebaseException` y logue el raw response (truncado) a Crashlytics como non-fatal.
 - **Criterio:** mock de red caída → usuario ve mensaje claro "no se pudo conectar, reintentando" y a los ~7s "no se pudo generar, reintentá más tarde". Crashlytics recibe non-fatal con stack del error original.
 - **Estimación:** 3 h.
-- **Estado:** [ ]
+- **Estado:** [x] — `GeminiService` envuelve `process` y `processLearningNote` con `withTimeout(15s)` + 4 intentos totales (backoff 1s/2s/4s). Interfaz `GeminiTelemetry` con `NoOp` por defecto en `:data`; impl `CrashlyticsGeminiTelemetry` en `:app` (`setCustomKey` + `recordException` como non-fatal). `DefaultFlashcardRepository` también captura parse failures y reporta `recordParseFailure` con raw response truncado a 4 000 chars. Wiring en `RepositoryModule`. Tests: `GeminiServiceRetryTest` cubre éxito sin retry, éxito tras reintento y reporte non-fatal cuando todos los intentos fallan. UI de mensaje de error y verificación en device real quedan para S2-T6.
 - **Depende de:** S1-T1.
 
 #### S2-T2: Quality checks deterministas en Kotlin

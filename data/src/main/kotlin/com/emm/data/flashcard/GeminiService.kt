@@ -2,24 +2,59 @@ package com.emm.data.flashcard
 
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 
 open class GeminiService(
     private val generativeModel: GenerativeModel,
     private val learningNoteModel: GenerativeModel = generativeModel,
+    private val telemetry: GeminiTelemetry = GeminiTelemetry.NoOp,
+    private val perAttemptTimeoutMs: Long = DEFAULT_TIMEOUT_MS,
+    private val backoffMs: List<Long> = DEFAULT_BACKOFF_MS,
 ) {
 
-    open suspend fun process(prompt: String): String {
-        val generateContent: GenerateContentResponse = generativeModel.generateContent(prompt)
-        val response: String = generateContent.text.orEmpty()
-        return response
-    }
+    open suspend fun process(prompt: String): String =
+        callWithRetry(kind = "generic") {
+            val response: GenerateContentResponse = generativeModel.generateContent(prompt)
+            response.text.orEmpty()
+        }
 
     /**
      * Llamada dedicada a la generación principal de [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto].
      * Usa un modelo con `responseSchema` declarado para restringir enums y forma del JSON.
      */
-    open suspend fun processLearningNote(prompt: String): String {
-        val generateContent: GenerateContentResponse = learningNoteModel.generateContent(prompt)
-        return generateContent.text.orEmpty()
+    open suspend fun processLearningNote(prompt: String): String =
+        callWithRetry(kind = "learning_note") {
+            val response: GenerateContentResponse = learningNoteModel.generateContent(prompt)
+            response.text.orEmpty()
+        }
+
+    private suspend fun callWithRetry(kind: String, block: suspend () -> String): String {
+        val totalAttempts = backoffMs.size + 1
+        var lastError: Throwable? = null
+        repeat(totalAttempts) { attempt ->
+            try {
+                return withTimeout(perAttemptTimeoutMs) { block() }
+            } catch (timeout: TimeoutCancellationException) {
+                lastError = timeout
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                lastError = t
+            }
+            if (attempt < backoffMs.size) {
+                delay(backoffMs[attempt])
+            }
+        }
+        val error = lastError ?: IllegalStateException("Gemini call failed without throwable")
+        telemetry.recordCallFailure(kind = kind, attempts = totalAttempts, cause = error)
+        throw error
+    }
+
+    private companion object {
+        const val DEFAULT_TIMEOUT_MS: Long = 15_000L
+        val DEFAULT_BACKOFF_MS: List<Long> = listOf(1_000L, 2_000L, 4_000L)
     }
 }

@@ -1,7 +1,9 @@
 package com.emm.hello.di
 
 import com.emm.data.flashcard.GeminiService
+import com.emm.data.flashcard.GeminiTelemetry
 import com.emm.data.flashcard.LearningNoteResponseSchema
+import com.emm.hello.telemetry.CrashlyticsGeminiTelemetry
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
@@ -20,10 +22,12 @@ private const val DEFAULT_TOP_P = 0.95f
  * - `learningNoteModel`: aplica `responseSchema` para la generación principal.
  */
 val repositoryModule = module {
+    single<GeminiTelemetry> { CrashlyticsGeminiTelemetry() }
     single {
         GeminiService(
             generativeModel = provideGenericModel(),
             learningNoteModel = provideLearningNoteModel(),
+            telemetry = get(),
         )
     }
 }

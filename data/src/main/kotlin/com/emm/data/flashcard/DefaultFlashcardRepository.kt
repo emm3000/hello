@@ -48,6 +48,7 @@ class DefaultFlashcardRepository(
     private val db: HelloDb,
     private val geminiService: GeminiService,
     private val json: Json,
+    private val telemetry: GeminiTelemetry = GeminiTelemetry.NoOp,
 ) : FlashcardRepository,
     StudySessionRepository,
     FlashcardGenerationRepository {
@@ -247,7 +248,9 @@ class DefaultFlashcardRepository(
         withContext(Dispatchers.IO) {
             val prompt = Prompt.buildLearningNotePrompt(input)
             val response = geminiService.processLearningNote(prompt)
-            GeneratedLearningNoteResponseParser.parse(response, json)
+            parseWithTelemetry(kind = "learning_note", rawResponse = response) {
+                GeneratedLearningNoteResponseParser.parse(response, json)
+            }
         }
 
     override suspend fun regenerateNoteField(
@@ -262,7 +265,9 @@ class DefaultFlashcardRepository(
             RegenerableNoteField.UsagePattern -> "usage_pattern"
             RegenerableNoteField.CommonMistake -> "common_mistake"
         }
-        PartialRegenerationParser.parseField(response, json, jsonKey = jsonKey, label = field.name)
+        parseWithTelemetry(kind = "regen_field_${field.name}", rawResponse = response) {
+            PartialRegenerationParser.parseField(response, json, jsonKey = jsonKey, label = field.name)
+        }
     }
 
     override suspend fun regenerateExample(
@@ -271,7 +276,9 @@ class DefaultFlashcardRepository(
     ): GeneratedExampleDraft = withContext(Dispatchers.IO) {
         val prompt = Prompt.buildExampleRegenerationPrompt(input, note)
         val response = geminiService.process(prompt)
-        PartialRegenerationParser.parseExample(response, json)
+        parseWithTelemetry(kind = "regen_example", rawResponse = response) {
+            PartialRegenerationParser.parseExample(response, json)
+        }
     }
 
     override suspend fun regenerateClozeSentence(
@@ -280,7 +287,9 @@ class DefaultFlashcardRepository(
     ): String = withContext(Dispatchers.IO) {
         val prompt = Prompt.buildClozeRegenerationPrompt(input, note)
         val response = geminiService.process(prompt)
-        PartialRegenerationParser.parseCloze(response, json)
+        parseWithTelemetry(kind = "regen_cloze", rawResponse = response) {
+            PartialRegenerationParser.parseCloze(response, json)
+        }
     }
 
     override suspend fun regenerateStudyCard(
@@ -292,7 +301,24 @@ class DefaultFlashcardRepository(
             ?: throw IllegalArgumentException("Study card no encontrada para regenerar.")
         val prompt = Prompt.buildStudyCardRegenerationPrompt(input, note, card)
         val response = geminiService.process(prompt)
-        PartialRegenerationParser.parseStudyCard(response, json)
+        parseWithTelemetry(kind = "regen_study_card", rawResponse = response) {
+            PartialRegenerationParser.parseStudyCard(response, json)
+        }
+    }
+
+    private inline fun <T> parseWithTelemetry(
+        kind: String,
+        rawResponse: String,
+        block: () -> T,
+    ): T = try {
+        block()
+    } catch (cause: Throwable) {
+        telemetry.recordParseFailure(
+            kind = kind,
+            rawResponse = rawResponse.take(MAX_RAW_RESPONSE_CHARS),
+            cause = cause,
+        )
+        throw cause
     }
 
     override fun fetchAll(): Flow<List<Flashcard>> {
@@ -603,6 +629,10 @@ class DefaultFlashcardRepository(
             repetitions = deck.repetitions ?: 0L,
             lapses = deck.lapses ?: 0L,
         )
+    }
+
+    private companion object {
+        const val MAX_RAW_RESPONSE_CHARS: Int = 4_000
     }
 }
 
