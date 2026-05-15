@@ -7,7 +7,7 @@
 | Source of Truth | Yes (mientras no se cierre todo) |
 | Read this when | Vas a trabajar en cualquier tarea de hardening pre-lanzamiento |
 | Última verificación contra código | 2026-05-14 |
-| Progreso Sprint 1 | 6/8 completados (T1, T2, T4, T5, T6, T8) · T3 descartado · pendiente T7 |
+| Progreso Sprint 1 | 6/8 completados (T1, T2, T4, T5, T6, T8) · T3 descartado · T7 en progreso (draft publicado, falta URL + manifest + Data Safety form) |
 
 ## TL;DR
 
@@ -152,7 +152,7 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** redactar política mínima que cubra: deviceId local, input del usuario enviado a Firebase AI / Gemini, Crashlytics, Analytics. Publicarla (GitHub Pages, Notion público, etc.). En Play Console, marcar: "data collected: app activity, app info, device IDs", "shared with third parties: Google Firebase AI".
 - **Criterio:** Play Console acepta el Data Safety form en pre-validación.
 - **Estimación:** 2 h (redacción + publicación + form).
-- **Estado:** [ ]
+- **Estado:** [~] — draft de la política en `docs/privacy-policy.md` (cubre datos locales, Firebase AI/Gemini, Crashlytics, Analytics, permisos, retención, contacto). Pendiente: (1) habilitar GitHub Pages en `main/docs` y obtener URL final, (2) agregar `<meta-data>` en `AndroidManifest.xml` con esa URL, (3) completar Data Safety form en Play Console.
 
 #### S1-T8: Limpiar permisos no usados
 - **Archivo:** `app/src/main/AndroidManifest.xml`
