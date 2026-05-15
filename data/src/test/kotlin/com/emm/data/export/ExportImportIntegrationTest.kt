@@ -279,6 +279,98 @@ class ExportImportIntegrationTest {
     }
 
     @Test
+    fun `soft-deleted tag does not leak DeckTag rows into export`() = runTest {
+        val (exportDS, baos) = createExportDataSource()
+        val importDS = createImportDataSource()
+
+        db.deckQueries.insert(
+            id = "deck-tagged",
+            name = "Tagged Deck",
+            description = null,
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = null,
+        )
+        db.exportQueries.insertTag(
+            id = "tag-active",
+            name = "active-tag",
+            createdAt = 100L,
+            deletedAt = null,
+        )
+        db.exportQueries.insertTag(
+            id = "tag-deleted",
+            name = "deleted-tag",
+            createdAt = 100L,
+            deletedAt = 999L,
+        )
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-active",
+            deckId = "deck-tagged",
+            createdAt = 500L,
+        )
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-deleted",
+            deckId = "deck-tagged",
+            createdAt = 500L,
+        )
+
+        val exportUri = Uri.parse("content://test/orphan-export.json")
+        exportDS.export(exportUri)
+        val exportedJson = baos.toString()
+
+        clearAllTables()
+
+        val importUri = Uri.parse("content://test/orphan-import.json")
+        provideInputStream(exportedJson)
+        val result = importDS.import(importUri)
+        assertTrue(result.isSuccess)
+
+        val deckTags = db.exportQueries.allDeckTagsPaged(limit = 100L, offset = 0L).executeAsList()
+        assertEquals(1, deckTags.size)
+        assertEquals("tag-active", deckTags[0].tagId)
+    }
+
+    @Test
+    fun `soft-deleted deck does not leak DeckTag rows into export`() = runTest {
+        val (exportDS, baos) = createExportDataSource()
+        val importDS = createImportDataSource()
+
+        db.deckQueries.insert(
+            id = "deck-deleted",
+            name = "Deleted Deck",
+            description = null,
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = 999L,
+        )
+        db.exportQueries.insertTag(
+            id = "tag-x",
+            name = "tag-x",
+            createdAt = 100L,
+            deletedAt = null,
+        )
+        db.tagQueries.insertDeckTag(
+            tagId = "tag-x",
+            deckId = "deck-deleted",
+            createdAt = 500L,
+        )
+
+        val exportUri = Uri.parse("content://test/orphan-deck-export.json")
+        exportDS.export(exportUri)
+        val exportedJson = baos.toString()
+
+        clearAllTables()
+
+        val importUri = Uri.parse("content://test/orphan-deck-import.json")
+        provideInputStream(exportedJson)
+        val result = importDS.import(importUri)
+        assertTrue(result.isSuccess)
+
+        val deckTags = db.exportQueries.allDeckTagsPaged(limit = 100L, offset = 0L).executeAsList()
+        assertEquals(0, deckTags.size)
+    }
+
+    @Test
     fun `import malformed JSON does not corrupt database`() = runTest {
         db.deckQueries.insert(
             id = "existing-deck",

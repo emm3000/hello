@@ -7,7 +7,7 @@
 | Source of Truth | Yes (mientras no se cierre todo) |
 | Read this when | Vas a trabajar en cualquier tarea de hardening pre-lanzamiento |
 | Última verificación contra código | 2026-05-14 |
-| Progreso Sprint 1 | 3/8 completados (T1, T2, T8) · T3 descartado · pendientes T4, T5, T6, T7 |
+| Progreso Sprint 1 | 6/8 completados (T1, T2, T4, T5, T6, T8) · T3 descartado · pendiente T7 |
 
 ## TL;DR
 
@@ -123,30 +123,28 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Estado:** [~] — descartado: usuario decidió mantener `gemini-2.5-flash-lite` por ahora. Re-evaluar tras feedback de beta si calidad lingüística degrada el producto.
 
 #### S1-T4: Agregar `responseSchema` explícito en `generationConfig`
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt:30-31`
+- **Archivos:** `data/src/main/kotlin/com/emm/data/flashcard/LearningNoteResponseSchema.kt` (nuevo), `data/src/main/kotlin/com/emm/data/flashcard/GeminiService.kt`, `data/src/main/kotlin/com/emm/data/flashcard/DefaultFlashcardRepository.kt`, `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt`.
 - **Por qué:** sin schema, el modelo puede devolver enums con casing inconsistente y el parser explota con error genérico.
-- **Qué hacer:** declarar `responseSchema = Schema.obj(...)` con la estructura de `GeneratedLearningNoteDto`, incluyendo `Schema.enum(...)` para `noteType`, `cardType`, `learningDomain`, `registerPreference`.
-- **Criterio:** generar 20 flashcards; el parser nunca debería lanzar `IllegalArgumentException` por casing/enum. Si lanza, es bug real.
+- **Qué hacer:** declarar `responseSchema` con la estructura de `GeneratedLearningNoteResponseDto` (wrapper `{success, data, error}`) incluyendo `Schema.enumeration(...)` para `note_type`, `part_of_speech`, `register`, `level_band`, `domain`, `card_type`, `evaluation_mode`, `quality_checks.code`. Scope: sólo afecta la generación principal; las regeneraciones parciales mantienen el modelo genérico.
+- **Criterio:** generar 20 flashcards; el parser nunca debería lanzar `IllegalArgumentException` por casing/enum. Validación funcional pendiente en device (requiere build release + lote de generaciones).
 - **Estimación:** 2-3 h (definir schema completo es tedioso pero mecánico).
-- **Estado:** [ ]
-- **Depende de:** S1-T3 (probarlo con el modelo que va a producción).
+- **Estado:** [x] — schema completo en `LearningNoteResponseSchema` (note + study cards + quality checks + error envelope) con `optionalProperties` alineados a los defaults del DTO. `GeminiService` ahora expone `processLearningNote(prompt)` que usa un `GenerativeModel` dedicado con `responseSchema`; las regeneraciones parciales siguen usando `process(prompt)` con el modelo sin schema (preserva shapes distintos). `DefaultFlashcardRepository.generateLearningNote` re-ruteado al método nuevo. `:data` tests + detekt en verde. Validación manual en device queda para S2-T6.
 
 #### S1-T5: Migrations baseline en SQLDelight
-- **Archivos:** crear `data/src/main/sqldelight/migrations/1.sqm` (vacío) + actualizar `data/build.gradle.kts` si hace falta declarar `schemaOutputDirectory` / `migrationOutputDirectory`. Documentar la política en `ARCHITECTURE.md`.
+- **Archivos:** `data/build.gradle.kts`, `data/src/main/sqldelight/databases/1.db` (generado), `ARCHITECTURE.md`.
 - **Por qué:** si v1.0 sale y v1.1 cambia schema, el upgrade rompe. Es gratis hacerlo ahora.
-- **Qué hacer:** crear el archivo de migración vacío como baseline. Configurar `verifyMigrations = true` en el bloque sqldelight de gradle.
+- **Qué hacer:** configurar `schemaOutputDirectory` + `verifyMigrations = true` en el bloque sqldelight. Generar baseline con `./gradlew :data:generateDebugHelloDbSchema`. Documentar política en `ARCHITECTURE.md`.
 - **Criterio:** `./gradlew :data:verifySqlDelightMigration` pasa. Documentar en `ARCHITECTURE.md` la política: "cada cambio de schema requiere `N.sqm` correspondiente".
 - **Estimación:** 1 h.
-- **Estado:** [ ]
+- **Estado:** [x] — `schemaOutputDirectory.set(file("src/main/sqldelight/databases"))` + `verifyMigrations.set(true)` agregados al bloque `sqldelight` de `data/build.gradle.kts`. Baseline `1.db` generado y commiteado en `data/src/main/sqldelight/databases/`. `verifySqlDelightMigration` pasa. Política de migraciones documentada en `ARCHITECTURE.md`. Decisión: NO se creó `1.sqm` vacío (bumpearía el schema a v2 sin cambios reales); el `.db` baseline es suficiente para que `verifyMigrations` detecte futuras divergencias.
 
 #### S1-T6: Soft-delete cascada en `DeckTag`
-- **Archivos:** `data/src/main/sqldelight/com/emm/data/Tag.sq`, `data/src/main/sqldelight/com/emm/data/Export.sq`, `data/src/main/kotlin/com/emm/data/deck/DefaultTagRepository.kt` (o donde se haga soft-delete de tag).
+- **Archivos:** `data/src/main/sqldelight/com/emm/data/Export.sq`, `data/src/test/kotlin/com/emm/data/export/ExportImportIntegrationTest.kt`.
 - **Por qué:** tags soft-deleted dejan `DeckTag` huérfanos en el export.
-- **Qué hacer:** filtrar export con `WHERE EXISTS (SELECT 1 FROM Tag WHERE id = DeckTag.tagId AND deletedAt IS NULL)`. Opción más limpia: agregar `deletedAt` a `DeckTag` y propagar en el soft-delete de Tag (requiere migration `2.sqm`).
-- **Criterio:** test nuevo en `ExportImportIntegrationTest`: crear tag, asignar a deck, soft-delete tag, exportar, importar en BD limpia → no debe haber rows en `DeckTag` referenciando tags ausentes.
+- **Qué hacer:** filtrar `allDeckTagsPaged` con JOIN a `Tag` y `Deck` exigiendo `deletedAt IS NULL` en ambos. Decisión: NO se agrega `deletedAt` a `DeckTag` (evita migration y mantiene `DeckTag` como tabla de unión pura; el filtrado en el query es suficiente porque el importer reescribe `DeckTag` desde el envelope).
+- **Criterio:** dos tests nuevos en `ExportImportIntegrationTest`: (1) tag soft-deleted con DeckTag activo → import en BD limpia deja solo 1 DeckTag (el del tag activo). (2) deck soft-deleted con DeckTag → import en BD limpia deja 0 DeckTag.
 - **Estimación:** 2 h.
-- **Estado:** [ ]
-- **Depende de:** S1-T5 (si se elige la opción del schema change).
+- **Estado:** [x] — `allDeckTagsPaged` ahora hace `JOIN Tag JOIN Deck` con doble filtro `deletedAt IS NULL`. Tests `soft-deleted tag does not leak DeckTag rows into export` y `soft-deleted deck does not leak DeckTag rows into export` agregados y verdes. Sin cambios de schema → no requiere `N.sqm`.
 
 #### S1-T7: Privacy policy + Data Safety
 - **Archivos:** publicar política externa (URL), agregar `meta-data` o referencia en `app/src/main/AndroidManifest.xml`, completar Data Safety form en Play Console.

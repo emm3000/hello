@@ -26,9 +26,13 @@ SELECT * FROM Tag
 WHERE deletedAt IS NULL
 LIMIT :limit OFFSET :offset;
 
--- DeckTag: all (no soft-delete column)
+-- DeckTag: exclude rows whose Tag or Deck is soft-deleted
+-- (otherwise import recreates orphan DeckTag rows pointing to tags/decks that were never restored).
 allDeckTagsPaged:
-SELECT * FROM DeckTag
+SELECT dt.* FROM DeckTag dt
+JOIN Tag t ON t.id = dt.tagId
+JOIN Deck d ON d.id = dt.deckId
+WHERE t.deletedAt IS NULL AND d.deletedAt IS NULL
 LIMIT :limit OFFSET :offset;
 
 -- ReviewEvent: all

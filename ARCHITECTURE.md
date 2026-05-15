@@ -68,6 +68,17 @@ No hay otras etapas obligatorias de producto en startup.
 - decks, flashcards y reviews se leen desde estado local
 - `DefaultFlashcardReviewRepository` persiste `ReviewEvent` y `ReviewProjection`
 
+### Migraciones SQLDelight
+
+- Baseline (`schemaVersion = 1`) dumpeado en `data/src/main/sqldelight/databases/1.db`. Es el snapshot de los `.sq` actuales y debe commitearse.
+- `verifyMigrations = true` en `data/build.gradle.kts`: cada PR que modifique `.sq` debe regenerar el `.db` correspondiente y agregar un `N.sqm` con el `ALTER`/`CREATE` necesario.
+- Política de cambios de schema:
+  1. Editar el `.sq` con el cambio.
+  2. Crear `data/src/main/sqldelight/migrations/N.sqm` (donde `N` es la versión actual antes del bump) con SQL idempotente que migre `v(N)` → `v(N+1)`.
+  3. Correr `./gradlew :data:generateDebugHelloDbSchema` para producir `(N+1).db`.
+  4. Validar con `./gradlew :data:verifySqlDelightMigration`.
+- Nunca borrar `.db` previos: son la fuente para `verifyMigrations`.
+
 ## Features relevantes hoy
 
 - creación de tarjetas con preview editable y regeneraciones parciales
