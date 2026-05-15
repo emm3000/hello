@@ -1,0 +1,72 @@
+package com.emm.hello.newfeatures.card
+
+import java.io.IOException
+import kotlinx.coroutines.TimeoutCancellationException
+
+internal data class ClassifiedError(val title: String, val message: String)
+
+internal object NewCardErrorClassifier {
+
+    fun classifyGenerationFailure(error: Throwable, fallbackMessage: String): ClassifiedError {
+        if (error.isNetworkRelated()) {
+            return ClassifiedError(
+                title = "Sin conexión",
+                message = "No pudimos contactar al asistente. Verificá tu conexión y reintentá.",
+            )
+        }
+        return ClassifiedError(
+            title = "Respuesta inválida de IA",
+            message = error.message ?: fallbackMessage,
+        )
+    }
+
+    fun classifyRegenerationFailure(
+        error: Throwable,
+        failureTitle: String,
+        fallbackMessage: String,
+    ): ClassifiedError {
+        if (error.isNetworkRelated()) {
+            return ClassifiedError(
+                title = "Sin conexión",
+                message = "No pudimos contactar al asistente. Verificá tu conexión y reintentá.",
+            )
+        }
+        return ClassifiedError(
+            title = failureTitle,
+            message = error.message ?: fallbackMessage,
+        )
+    }
+
+    private fun Throwable.isNetworkRelated(): Boolean {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is TimeoutCancellationException || current is IOException) return true
+            val name = current::class.qualifiedName.orEmpty()
+            if (NETWORK_ERROR_CLASS_HINTS.any { hint -> name.contains(hint, ignoreCase = true) }) return true
+            val text = current.message.orEmpty()
+            if (text.isNotBlank() && NETWORK_MESSAGE_HINTS.any { hint -> text.contains(hint, ignoreCase = true) }) {
+                return true
+            }
+            current = current.cause?.takeIf { it !== current }
+        }
+        return false
+    }
+
+    private val NETWORK_ERROR_CLASS_HINTS = listOf(
+        "UnknownHost",
+        "ConnectException",
+        "SocketTimeout",
+        "ServerException",
+        "ServiceUnavailable",
+        "QuotaExceeded",
+    )
+
+    private val NETWORK_MESSAGE_HINTS = listOf(
+        "timeout",
+        "timed out",
+        "unable to resolve",
+        "network",
+        "connection",
+        "unreachable",
+    )
+}

@@ -160,12 +160,13 @@ class NewCardViewModel(
             is NewCardPreviewResult.UnexpectedError -> {
                 val error = result.error
                 logError(TAG, "generateFlashcard:error ${error.message}", error)
+                val classified = NewCardErrorClassifier.classifyGenerationFailure(
+                    error = error,
+                    fallbackMessage = "No se pudo generar una learning note válida.",
+                )
                 setState {
                     copy(
-                        error = NewCardErrorUi(
-                            title = "Respuesta inválida de IA",
-                            message = error.message ?: "No se pudo generar una learning note válida.",
-                        ),
+                        error = NewCardErrorUi(title = classified.title, message = classified.message),
                         isLoading = false,
                         canSavePreview = false,
                         previewGeneratedWarnings = emptyList(),
@@ -255,12 +256,14 @@ class NewCardViewModel(
             is NewCardPreviewUpdateResult.UnexpectedError -> {
                 val error = result.error
                 logError(TAG, "$actionName:error $logContext ${error.message}", error)
+                val classified = NewCardErrorClassifier.classifyRegenerationFailure(
+                    error = error,
+                    failureTitle = failureTitle,
+                    fallbackMessage = fallbackMessage,
+                )
                 setState {
                     copy(
-                        error = NewCardErrorUi(
-                            title = failureTitle,
-                            message = error.message ?: fallbackMessage,
-                        ),
+                        error = NewCardErrorUi(title = classified.title, message = classified.message),
                         isLoading = false,
                         previewRegenerationTarget = null,
                     )
