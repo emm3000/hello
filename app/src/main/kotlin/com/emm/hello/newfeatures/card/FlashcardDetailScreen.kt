@@ -54,6 +54,7 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTabBar
+import com.emm.hello.core.ui.TabBadge
 
 @Composable
 fun FlashcardDetailScreen(
@@ -89,11 +90,26 @@ fun FlashcardDetailScreen(
             FlashcardHeaderCard(card = card)
 
             if (tabs.size > 1) {
+                val failedQualityChecks = flashcard.qualityChecks.count { !it.passed }
+                val badges = tabs.map { tab ->
+                    if (tab == DetailTab.Study && failedQualityChecks > 0) {
+                        TabBadge(
+                            label = stringResource(
+                                R.string.card_detail_tab_study_pending_badge,
+                                failedQualityChecks,
+                            ),
+                            variant = BadgeVariant.Destructive,
+                        )
+                    } else {
+                        null
+                    }
+                }
                 HTabBar(
                     selectedIndex = selectedTab.coerceAtMost(tabs.lastIndex),
                     tabs = tabs.map { stringResource(it.titleRes) },
                     onTabSelected = { selectedTab = it },
                     modifier = Modifier.padding(top = 8.dp),
+                    badges = badges,
                 )
             }
 

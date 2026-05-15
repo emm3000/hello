@@ -283,23 +283,58 @@
     <string name="grade_easy">Fácil</string>
     <string name="session_completed_title">¡Sesión completada! 🎉</string>
     <string name="session_completed_desc">Has repasado %1$d tarjetas. ¡Sigue así!</string>
+    <string name="study_typed_answer_label_default">Tu respuesta</string>
+    <string name="study_typed_answer_placeholder_default">Escribe tu respuesta</string>
+    <string name="study_typed_answer_label_recognition">Significado</string>
+    <string name="study_typed_answer_label_production">Expresión en inglés</string>
+    <string name="study_typed_answer_label_cloze">Completa la frase</string>
+    <string name="study_typed_answer_label_form">Forma exacta</string>
+    <string name="study_typed_answer_placeholder_recognition">Escribe el significado esperado</string>
+    <string name="study_typed_answer_placeholder_production">Escribe la expresión en inglés</string>
+    <string name="study_typed_answer_placeholder_cloze">Escribe la palabra o frase faltante</string>
+    <string name="study_typed_answer_placeholder_form_specific">Escribe la forma pedida</string>
+    <string name="study_typed_answer_placeholder_form_generic">Escribe la forma correcta</string>
+    <string name="study_typed_answer_correct_prefix">Correcto</string>
+    <string name="study_typed_answer_incorrect_prefix">Incorrecto</string>
+    <string name="study_typed_answer_exact_match">Tu respuesta coincide exactamente con la esperada.</string>
+    <string name="study_typed_answer_flexible_match">Tu respuesta coincide de forma aceptable.</string>
+    <string name="study_typed_answer_no_exact_match">No coincide exactamente con la respuesta esperada.</string>
+    <string name="study_typed_answer_no_flexible_match">No se parece lo suficiente a la respuesta esperada.</string>
+    <string name="study_answer_label_default">Respuesta</string>
+    <string name="study_answer_label_recognition">Significado esperado</string>
+    <string name="study_answer_label_production">Respuesta esperada</string>
+    <string name="study_answer_label_cloze">Expresión que completa la frase</string>
+    <string name="study_answer_label_form">Forma esperada</string>
+    <string name="study_front_title_recognition">Reconoce el significado o la idea principal</string>
+    <string name="study_front_title_production">Recupera la expresión en inglés</string>
+    <string name="study_front_title_cloze">Completa el hueco con la expresión correcta</string>
+    <string name="study_front_title_form">Recupera la forma exacta</string>
+    <string name="study_cloze_prompt_title">Completa el hueco</string>
+    <string name="study_form_hints_title">Pistas de forma</string>
+    <string name="study_related_forms_title">Formas relacionadas</string>
+    <string name="study_supporting_context_title">Contexto de apoyo</string>
+    <string name="study_related_forms_inline">Formas relacionadas: %1$s</string>
+    <string name="study_correct_icon_desc">Respuesta correcta</string>
+    <string name="study_incorrect_icon_desc">Respuesta incorrecta</string>
+    <string name="card_detail_tab_study_pending_badge">%1$d</string>
 
     <!-- Notes -->
     <string name="notes_label">Notas</string>
 
     <!-- Settings Screen -->
-    <string name="settings_title">Settings</string>
+    <string name="settings_title">Ajustes</string>
     <string name="backup_section_title">Backup</string>
-    <string name="backup_section_description">Export or restore your data</string>
-    <string name="backup_warning_title">Warning</string>
-    <string name="backup_warning_description">Restoring a backup will replace ALL current data. This action cannot be undone.</string>
-    <string name="export_data">Export data</string>
-    <string name="restore_backup">Restore from backup</string>
-    <string name="restore_confirm_title">Replace all data?</string>
-    <string name="restore_confirm_description">This will delete your current data and replace it with the backup. This action cannot be undone. Continue?</string>
-    <string name="restore_confirm_yes">Replace</string>
-    <string name="restore_confirm_no">Cancel</string>
-    <string name="settings_content_description">Settings</string>
+    <string name="backup_section_description">Exportá o restaurá tus datos.</string>
+    <string name="backup_warning_title">Atención</string>
+    <string name="backup_warning_description">Restaurar un backup reemplaza TODOS los datos actuales. Esta acción no se puede deshacer.</string>
+    <string name="export_data">Exportar datos</string>
+    <string name="restore_backup">Restaurar desde backup</string>
+    <string name="restore_confirm_title">¿Reemplazar todos los datos?</string>
+    <string name="restore_confirm_description">Vas a borrar los datos actuales y reemplazarlos con el backup. Esta acción no se puede deshacer. ¿Continuar?</string>
+    <string name="restore_confirm_yes">Reemplazar</string>
+    <string name="restore_confirm_no">Cancelar</string>
+    <string name="settings_content_description">Ajustes</string>
+    <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
 
     <!-- Flashcard edit/delete -->
     <string name="edit_flashcard_title">Editar tarjeta</string>

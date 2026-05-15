@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.Bolt
@@ -553,11 +554,15 @@ private fun StudyActionDock(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        val typedLabel = studyCard?.typedAnswerLabel()
+                            ?: stringResource(R.string.study_typed_answer_label_default)
+                        val typedPlaceholder = studyCard?.typedAnswerPlaceholder(flashcard)
+                            ?: stringResource(R.string.study_typed_answer_placeholder_default)
                         HInput(
                             value = typedAnswerState.typedAnswer,
                             onValueChange = callbacks.onTypedAnswerChange,
-                            label = studyCard?.typedAnswerLabel() ?: "Tu respuesta",
-                            placeholder = studyCard?.typedAnswerPlaceholder(flashcard) ?: "Escribe tu respuesta",
+                            label = typedLabel,
+                            placeholder = typedPlaceholder,
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { callbacks.onCheckTypedAnswer() }),
@@ -756,7 +761,8 @@ private fun FlashcardBackContent(
     val needsTypedAnswer = studyCard?.needsTypedAnswer == true
     val shouldRevealAnswer = !needsTypedAnswer || typedAnswerChecked
     val primaryText = studyCard?.expectedAnswer ?: card?.translation.orEmpty()
-    val answerLabel = studyCard?.answerLabel() ?: "Respuesta"
+    val answerLabel = studyCard?.answerLabel()
+        ?: stringResource(R.string.study_answer_label_default)
     val resultMessage = studyCard?.typedAnswerResultMessage(typedAnswerCorrect).orEmpty()
     val supportingText = studyCard?.supportingBackText(card).orEmpty()
 
@@ -785,15 +791,9 @@ private fun FlashcardBackContent(
 
             if (needsTypedAnswer) {
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    text = resultMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (typedAnswerCorrect) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                    textAlign = TextAlign.Center,
+                TypedAnswerResultRow(
+                    isCorrect = typedAnswerCorrect,
+                    message = resultMessage,
                 )
             }
 
@@ -831,6 +831,42 @@ private fun FlashcardBackContent(
 }
 
 @Composable
+private fun TypedAnswerResultRow(
+    isCorrect: Boolean,
+    message: String,
+) {
+    val tint = if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val icon = if (isCorrect) Icons.Outlined.Check else Icons.Outlined.Close
+    val iconDescription = stringResource(
+        if (isCorrect) R.string.study_correct_icon_desc else R.string.study_incorrect_icon_desc
+    )
+    val prefixRes = if (isCorrect) {
+        R.string.study_typed_answer_correct_prefix
+    } else {
+        R.string.study_typed_answer_incorrect_prefix
+    }
+    val prefix = stringResource(prefixRes)
+    val fullMessage = if (message.isBlank()) prefix else "$prefix · $message"
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = iconDescription,
+            tint = tint,
+            modifier = Modifier.height(18.dp),
+        )
+        Text(
+            text = fullMessage,
+            style = MaterialTheme.typography.bodyMedium,
+            color = tint,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
 private fun CardTypePromptBlock(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
@@ -838,7 +874,7 @@ private fun CardTypePromptBlock(
     when (studyCard?.cardType) {
         StudyCardType.Cloze -> {
             Text(
-                text = "Completa el hueco",
+                text = stringResource(R.string.study_cloze_prompt_title),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -859,7 +895,7 @@ private fun CardTypePromptBlock(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "Pistas de forma",
+                        text = stringResource(R.string.study_form_hints_title),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -892,7 +928,7 @@ private fun CardTypeAnswerSupport(
             if (context.isNotBlank()) {
                 Spacer(Modifier.height(16.dp))
                 HAlert(
-                    title = "Contexto de apoyo",
+                    title = stringResource(R.string.study_supporting_context_title),
                     description = context,
                     variant = AlertVariant.Default,
                 )
@@ -908,7 +944,7 @@ private fun CardTypeAnswerSupport(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "Formas relacionadas",
+                        text = stringResource(R.string.study_related_forms_title),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -928,15 +964,19 @@ private fun CardTypeAnswerSupport(
     }
 }
 
+@Composable
 private fun GeneratedStudyCard.frontTitle(): String {
-    return when (cardType) {
-        StudyCardType.Recognition -> "Reconoce el significado o la idea principal"
-        StudyCardType.Production -> "Recupera la expresion en ingles"
-        StudyCardType.Cloze -> "Completa el hueco con la expresion correcta"
-        StudyCardType.Form -> "Recupera la forma exacta"
-    }
+    return stringResource(
+        when (cardType) {
+            StudyCardType.Recognition -> R.string.study_front_title_recognition
+            StudyCardType.Production -> R.string.study_front_title_production
+            StudyCardType.Cloze -> R.string.study_front_title_cloze
+            StudyCardType.Form -> R.string.study_front_title_form
+        }
+    )
 }
 
+@Composable
 private fun GeneratedStudyCard.frontSupportText(card: Flashcard?): String {
     return when (cardType) {
         StudyCardType.Recognition -> recognitionSupportText(card)
@@ -973,10 +1013,11 @@ private fun GeneratedStudyCard.clozeSupportText(card: Flashcard?): String {
     }
 }
 
+@Composable
 private fun GeneratedStudyCard.formSupportText(card: Flashcard?): String {
     return when {
         card?.irregularForms?.isNotEmpty() == true -> {
-            "Formas relacionadas: ${card.irregularForms.joinToString()}"
+            stringResource(R.string.study_related_forms_inline, card.irregularForms.joinToString())
         }
         card?.usagePattern?.isNotBlank() == true -> card.usagePattern
         hint.isNotBlank() -> hint
@@ -984,13 +1025,16 @@ private fun GeneratedStudyCard.formSupportText(card: Flashcard?): String {
     }
 }
 
+@Composable
 private fun GeneratedStudyCard.answerLabel(): String {
-    return when (cardType) {
-        StudyCardType.Recognition -> "Significado esperado"
-        StudyCardType.Production -> "Respuesta esperada"
-        StudyCardType.Cloze -> "Expresion que completa la frase"
-        StudyCardType.Form -> "Forma esperada"
-    }
+    return stringResource(
+        when (cardType) {
+            StudyCardType.Recognition -> R.string.study_answer_label_recognition
+            StudyCardType.Production -> R.string.study_answer_label_production
+            StudyCardType.Cloze -> R.string.study_answer_label_cloze
+            StudyCardType.Form -> R.string.study_answer_label_form
+        }
+    )
 }
 
 private fun GeneratedStudyCard.supportingBackText(card: Flashcard?): String {
@@ -1005,42 +1049,46 @@ private fun GeneratedStudyCard.supportingBackText(card: Flashcard?): String {
     }
 }
 
+@Composable
 private fun GeneratedStudyCard.typedAnswerLabel(): String {
-    return when (cardType) {
-        StudyCardType.Recognition -> "Significado"
-        StudyCardType.Production -> "Expresion en ingles"
-        StudyCardType.Cloze -> "Completa la frase"
-        StudyCardType.Form -> "Forma exacta"
-    }
+    return stringResource(
+        when (cardType) {
+            StudyCardType.Recognition -> R.string.study_typed_answer_label_recognition
+            StudyCardType.Production -> R.string.study_typed_answer_label_production
+            StudyCardType.Cloze -> R.string.study_typed_answer_label_cloze
+            StudyCardType.Form -> R.string.study_typed_answer_label_form
+        }
+    )
 }
 
+@Composable
 private fun GeneratedStudyCard.typedAnswerPlaceholder(card: Flashcard?): String {
     return when (cardType) {
-        StudyCardType.Recognition -> "Escribe el significado esperado"
-        StudyCardType.Production -> "Escribe la expresion en ingles"
-        StudyCardType.Cloze -> "Escribe la palabra o frase faltante"
-        StudyCardType.Form -> {
+        StudyCardType.Recognition -> stringResource(R.string.study_typed_answer_placeholder_recognition)
+        StudyCardType.Production -> stringResource(R.string.study_typed_answer_placeholder_production)
+        StudyCardType.Cloze -> stringResource(R.string.study_typed_answer_placeholder_cloze)
+        StudyCardType.Form -> stringResource(
             if (card?.irregularForms?.isNotEmpty() == true) {
-                "Escribe la forma pedida"
+                R.string.study_typed_answer_placeholder_form_specific
             } else {
-                "Escribe la forma correcta"
+                R.string.study_typed_answer_placeholder_form_generic
             }
-        }
+        )
     }
 }
 
+@Composable
 private fun GeneratedStudyCard.typedAnswerResultMessage(isCorrect: Boolean): String {
     if (isCorrect) {
         return when (evaluationMode) {
-            EvaluationMode.Exact -> "Tu respuesta coincide exactamente con la esperada"
-            EvaluationMode.FlexibleText -> "Tu respuesta coincide de forma aceptable"
+            EvaluationMode.Exact -> stringResource(R.string.study_typed_answer_exact_match)
+            EvaluationMode.FlexibleText -> stringResource(R.string.study_typed_answer_flexible_match)
             EvaluationMode.ManualSelfCheck -> ""
         }
     }
-
     return when (evaluationMode) {
-        EvaluationMode.Exact -> "No coincide exactamente con la respuesta esperada"
-        EvaluationMode.FlexibleText -> "No se parece lo suficiente a la respuesta esperada"
+        EvaluationMode.Exact -> stringResource(R.string.study_typed_answer_no_exact_match)
+        EvaluationMode.FlexibleText -> stringResource(R.string.study_typed_answer_no_flexible_match)
         EvaluationMode.ManualSelfCheck -> ""
     }
 }
