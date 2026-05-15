@@ -11,7 +11,7 @@ class CreateFlashcardUseCase(
     private val repository: FlashcardRepository,
     private val validateGeneratedLearningNoteUseCase: ValidateGeneratedLearningNoteUseCase,
     private val ensureUniqueFlashcardInDeckUseCase: EnsureUniqueFlashcardInDeckUseCase,
-    private val generatedLearningNoteMapper: GeneratedLearningNoteMapper = GeneratedLearningNoteMapper(),
+    private val generatedLearningNoteMapper: GeneratedLearningNoteMapper,
 ) {
 
     suspend operator fun invoke(

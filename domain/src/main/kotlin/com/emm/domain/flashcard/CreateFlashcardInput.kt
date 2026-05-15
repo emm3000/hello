@@ -53,7 +53,5 @@ data class UpdateFlashcardInput(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
-    val studyCardsJson: String = "[]",
-    val qualityChecksJson: String = "[]",
     val examples: List<Example> = emptyList(),
 )

@@ -34,7 +34,7 @@ class GetFilteredDecksUseCaseTest {
 
         override suspend fun create(deck: CreateDeckInput) = Unit
 
-        override fun findById(deckId: DeckId): Flow<Deck> = flowOf(
+        override fun fetchById(deckId: DeckId): Flow<Deck> = flowOf(
             Deck(
                 id = DeckId.from("deck-1"),
                 name = "Deck",

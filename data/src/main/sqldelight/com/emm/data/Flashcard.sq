@@ -148,8 +148,6 @@ SET word = :word,
     clozeSentence = :clozeSentence,
     sourceContext = :sourceContext,
     warningsJson = :warningsJson,
-    studyCardsJson = :studyCardsJson,
-    qualityChecksJson = :qualityChecksJson,
     updatedAt = :updatedAt
 WHERE id = :id
   AND deletedAt IS NULL;

@@ -149,8 +149,6 @@ class DefaultFlashcardRepository(
                 clozeSentence = input.clozeSentence,
                 sourceContext = input.sourceContext,
                 warningsJson = json.encodeToString(input.warnings),
-                studyCardsJson = input.studyCardsJson,
-                qualityChecksJson = input.qualityChecksJson,
                 updatedAt = now,
                 id = cardId,
             )

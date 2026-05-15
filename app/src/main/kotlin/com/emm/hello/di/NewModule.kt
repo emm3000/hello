@@ -18,10 +18,12 @@ import com.emm.data.localfirst.LocalDeviceIdentityProvider
 import com.emm.data.localfirst.LocalIdentityInitializer
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
+import com.emm.data.flashcard.KotlinxLearningNoteArtifactSerializer
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
+import com.emm.domain.authoring.LearningNoteArtifactSerializer
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
@@ -128,6 +130,7 @@ fun Module.useCases() {
     factoryOf(::GeneratedLearningNoteTypeRequirementsPolicy)
     factoryOf(::GeneratedLearningNoteCardsPolicy)
     factoryOf(::GeneratedLearningNoteQualityChecksPolicy)
+    factory<LearningNoteArtifactSerializer> { KotlinxLearningNoteArtifactSerializer(get()) }
     factoryOf(::GeneratedLearningNoteMapper)
     factoryOf(::GetDecksUseCase)
     factoryOf(::GetFilteredDecksUseCase)

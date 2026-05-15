@@ -41,6 +41,7 @@ class CreateFlashcardUseCaseTest {
         val useCase = CreateFlashcardUseCase(
             repository = FakeFlashcardRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            generatedLearningNoteMapper = testMapper(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
                     repository = DuplicateRepoStub(exists = false),
@@ -64,6 +65,7 @@ class CreateFlashcardUseCaseTest {
         val useCase = CreateFlashcardUseCase(
             repository = repository,
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            generatedLearningNoteMapper = testMapper(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
                     repository = DuplicateRepoStub(exists = false),
@@ -82,6 +84,7 @@ class CreateFlashcardUseCaseTest {
         val useCase = CreateFlashcardUseCase(
             repository = FakeFlashcardRepository(),
             validateGeneratedLearningNoteUseCase = ValidateGeneratedLearningNoteUseCase(),
+            generatedLearningNoteMapper = testMapper(),
             ensureUniqueFlashcardInDeckUseCase = EnsureUniqueFlashcardInDeckUseCase(
                 isExactDuplicateGeneratedNoteUseCase = IsExactDuplicateGeneratedNoteUseCase(
                     repository = DuplicateRepoStub(exists = true),

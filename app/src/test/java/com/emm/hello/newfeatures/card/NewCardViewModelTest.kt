@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.card
 import app.cash.turbine.test
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
+import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
@@ -463,6 +464,14 @@ class NewCardViewModelTest {
                     validateGeneratedLearningNoteUseCase,
                     EnsureUniqueFlashcardInDeckUseCase(
                         IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository())
+                    ),
+                    GeneratedLearningNoteMapper(
+                        object : com.emm.domain.authoring.LearningNoteArtifactSerializer {
+                            override fun encode(
+                                studyCards: List<com.emm.domain.generation.GeneratedStudyCard>,
+                                qualityChecks: List<com.emm.domain.generation.GeneratedNoteQualityCheck>,
+                            ) = com.emm.domain.authoring.EncodedLearningArtifacts("[]", "[]")
+                        }
                     ),
                 ),
                 generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
