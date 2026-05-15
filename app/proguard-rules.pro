@@ -1,21 +1,31 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep line numbers in stack traces so Crashlytics deobfuscation works.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# kotlinx.serialization — official keep rules.
+# https://github.com/Kotlin/kotlinx.serialization#android
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepclasseswithmembers class **.*$Companion {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-if class **.*$Companion {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep class <1>.<2> {
+    <1>.<2>$Companion Companion;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Project-level @Serializable types (nav routes under app, DTOs propagated via :data consumer-rules.pro).
+-keepclassmembers @kotlinx.serialization.Serializable class com.emm.** {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.emm.**$$serializer { *; }
+
+# Firebase — modern libs ship consumer rules, but keep public API defensively.
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# SQLDelight runtime ships consumer rules; nothing extra needed here.

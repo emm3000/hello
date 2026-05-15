@@ -174,6 +174,10 @@ Antes de commitear, verificar:
 - AGP `9.2.0`
 - Kotlin `2.3.21`
 
+## Commits
+
+- **No agregar `Co-Authored-By` de Claude, Anthropic ni de ningún asistente AI** en los mensajes de commit. Los commits van firmados solo por el autor humano. Aplica a `git commit`, `git commit --amend`, rebases y cualquier flujo de auto-generación de mensajes.
+
 ## Regla final
 
 Si una doc contradice el código actual, manda el código y luego se actualiza la doc.
