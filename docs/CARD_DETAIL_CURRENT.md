@@ -1,18 +1,18 @@
-# Detalle de Tarjeta Actual
+# Current Card Detail
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujo `Card Detail` |
+| Role | Factual feature reference |
+| Scope | `Card Detail` flow |
 | Source of Truth | No |
-| Read this when | Necesitás entender cómo se muestra y se elimina una tarjeta existente |
+| Read this when | You need to understand how an existing card is shown and deleted |
 
-## Resumen
+## Summary
 
-`Card Detail` muestra una flashcard guardada y permite ir a edición o eliminarla (soft delete). Se abre desde el deck detail o desde la dashboard.
+`Card Detail` shows a saved flashcard and lets you go to edit or delete it (soft delete). It opens from the deck detail or from the dashboard.
 
-## Archivos clave
+## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/CardDetailRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailScreen.kt`
@@ -21,29 +21,29 @@
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailUiEffect.kt`
 
-## Estado
+## State
 
-`FlashcardDetailUiState` mantiene:
+`FlashcardDetailUiState` holds:
 
-- `flashcard: FlashcardDetail` (default vacío con `SystemClock`)
+- `flashcard: FlashcardDetail` (empty default with `SystemClock`)
 - `showDeleteConfirmation`
 
-## Carga
+## Loading
 
 `FlashcardDetailViewModel.init`:
 
-- dispara `FlashcardDetailUiIntent.Load`
-- pide `FlashcardRepository.fetchById(flashcardId)`
-- en error emite `LoadFailed(message)`
+- fires `FlashcardDetailUiIntent.Load`
+- calls `FlashcardRepository.fetchById(flashcardId)`
+- on error emits `LoadFailed(message)`
 
-## Acciones
+## Actions
 
-- `EditFlashcard` → emite `NavigateToEditFlashcard(flashcardId)`
-- `DeleteFlashcard` → abre diálogo de confirmación (`showDeleteConfirmation = true`)
-- `ConfirmDeleteFlashcard` → usa `SoftDeleteFlashcardUseCase` y emite `FlashcardDeleted`
-- `DismissDeleteFlashcard` → cierra diálogo
+- `EditFlashcard` → emits `NavigateToEditFlashcard(flashcardId)`
+- `DeleteFlashcard` → opens confirmation dialog (`showDeleteConfirmation = true`)
+- `ConfirmDeleteFlashcard` → uses `SoftDeleteFlashcardUseCase` and emits `FlashcardDeleted`
+- `DismissDeleteFlashcard` → closes dialog
 
-## Efectos
+## Effects
 
 `FlashcardDetailUiEffect`:
 
@@ -52,8 +52,8 @@
 - `FlashcardDeleted`
 - `ShowMessage(text)`
 
-## Persistencia
+## Persistence
 
-- Lectura: `FlashcardRepository.fetchById` (local).
-- Delete: soft delete vía `SoftDeleteFlashcardUseCase`.
-- No hay sync remoto involucrado.
+- Read: `FlashcardRepository.fetchById` (local).
+- Delete: soft delete via `SoftDeleteFlashcardUseCase`.
+- No remote sync involved.

@@ -2,162 +2,162 @@
 
 | Field | Value |
 |---|---|
-| Status | Closed (10/10 mergeadas en local; validación en device pendiente) |
-| Role | Plan atómico para iterar diseño + animación + interacción de la carta en `Study` |
-| Source of Truth | No (queda como histórico; ver `STUDY_CURRENT.md` para estado actual) |
-| Read this when | Querés trazar el rationale de la iteración o auditar las decisiones |
-| Última verificación contra código | 2026-05-16 |
+| Status | Closed (10/10 merged locally; on-device validation pending) |
+| Role | Atomic plan to iterate design + animation + interaction of the card in `Study` |
+| Source of Truth | No (kept as history; see `STUDY_CURRENT.md` for current state) |
+| Read this when | You want to trace the rationale of the iteration or audit the decisions |
+| Last verified against code | 2026-05-16 |
 
-## Resumen de cierre
+## Closing summary
 
-Las 10 tareas se implementaron en una sola sesión. `:app:compileDebugKotlin`, `detekt`, `:domain:test`, y `testDebugUnitTest` en verde.
+The 10 tasks were implemented in a single session. `:app:compileDebugKotlin`, `detekt`, `:domain:test`, and `testDebugUnitTest` green.
 
-**Desviaciones del plan original (intencionales):**
+**Deviations from the original plan (intentional):**
 
-- **S2-T6**: el plan decía mover `StudyStageHeader` como overlay top-start de la carta. Decisión final: eliminarlo por completo, porque (a) `study_answer_guidance` ya se muestra dentro del dock en Check, y (b) `study_prompt_guidance` ("Intenta recordar antes de mirar") se solapa con el `TapToRevealHint` del dock en Recall. Mantener ambos era ruido.
-- **S3-T9**: el plan ponía el `HBadge(cardType)` en top-start dentro del Box exterior. Implementado así (sale del `FlashcardFrontContent` y vive en el `Box` de `StudyCanvas` junto a TTS).
-- **S1-T2 v1**: implementé el gesto (tap → flip; drag horizontal → grade) con thresholds 25% / 50%. **Falta** el overlay tintado con label del grade durante el drag — la única afordancia visual hoy es la translación de la carta. Es un follow-up barato (~1h) pero queda fuera de esta iteración para no inflar la sesión. Anotado como **F1-Overlay-Swipe** abajo.
+- **S2-T6**: the plan said move `StudyStageHeader` as a top-start overlay on the card. Final decision: drop it entirely, because (a) `study_answer_guidance` is already shown inside the dock in Check, and (b) `study_prompt_guidance` ("Try to recall before peeking") overlaps with the dock's `TapToRevealHint` in Recall. Keeping both was noise.
+- **S3-T9**: the plan put the `HBadge(cardType)` top-start inside the outer Box. Implemented that way (moved out of `FlashcardFrontContent` and lives in `StudyCanvas`'s `Box` next to TTS).
+- **S1-T2 v1**: I implemented the gesture (tap → flip; horizontal drag → grade) with 25% / 50% thresholds. **Missing** the tinted overlay with grade label during the drag — today's only visual affordance is the card's translation. It's a cheap follow-up (~1h) but kept out of this iteration to avoid bloating the session. Tracked as **F1-Overlay-Swipe** below.
 
-## Follow-ups conocidos
+## Known follow-ups
 
-- **F1-Overlay-Swipe**: agregar overlay tintado (errorContainer/tertiaryContainer/primaryContainer/secondaryContainer) sobre la back face con label "Hard"/"Easy"/etc. mientras `dragOffset != 0`. Alpha proporcional a `|dragOffset| / widthPx`. Vive dentro del `Box` re-rotado del back content (para no quedar mirrored).
-- **F2-Validación-Device**: ninguna de las 10 tareas se probó en device físico. La sensación final del flip 420ms con cameraDistance 30 + scale entrada + swipe coordinado solo se confirma con hardware real.
-- **F3-Hard-Color**: el plan mapea HARD a `tertiaryContainer` (suele ser verde/teal en M3). Semánticamente HARD es "struggled" — más cercano a warning (ámbar). Considerar usar `semanticColors.warning` que ya existe en el tema.
+- **F1-Overlay-Swipe**: add tinted overlay (errorContainer/tertiaryContainer/primaryContainer/secondaryContainer) over the back face with label "Hard"/"Easy"/etc. while `dragOffset != 0`. Alpha proportional to `|dragOffset| / widthPx`. Lives inside the re-rotated `Box` of the back content (so it doesn't end up mirrored).
+- **F2-Device-Validation**: none of the 10 tasks were tested on a physical device. The final feel of the 420ms flip with cameraDistance 30 + scale-in + coordinated swipe is only confirmed with real hardware.
+- **F3-Hard-Color**: the plan maps HARD to `tertiaryContainer` (usually green/teal in M3). Semantically HARD is "struggled" — closer to warning (amber). Consider using `semanticColors.warning` that already exists in the theme.
 
 ## TL;DR
 
-La sesión de estudio funciona, pero la interacción no fluye: el tap en la carta y el botón "Reveal" compiten, las animaciones son seriales (~1s por carta), los 4 botones de grade son densos, el TTS está enterrado en el back content, y no hay feedback informado del intervalo SRS al gradar. Esta iteración rediseña la interacción en **10 tareas atómicas** organizadas en 3 sprints. Cada tarea es independiente; ningún cambio toca `:domain` excepto T8 (helper puro de preview de intervalo).
+The study session works, but the interaction does not flow: tapping the card and the "Reveal" button compete, animations are serial (~1s per card), the 4 grade buttons are dense, TTS is buried in the back content, and there's no informed feedback of the SRS interval when grading. This iteration redesigns the interaction in **10 atomic tasks** organized in 3 sprints. Each task is independent; no change touches `:domain` except T8 (pure interval-preview helper).
 
-**Estimación total**: 1.5-2 días efectivos. Cada tarea tiene archivo afectado, criterio de aceptación y estimación.
+**Total estimate**: 1.5-2 effective days. Each task has an affected file, acceptance criterion, and estimate.
 
-## Principios de diseño
+## Design principles
 
-1. **Una afordancia por intención**: si la carta es tocable para revelar, no hay botón "Reveal" paralelo.
-2. **Gestos canónicos antes que botones**: swipe horizontal para grade en back face; botones quedan como fallback accesible.
-3. **Una sola superficie viva**: carta + dock + hints viven dentro del mismo `Surface`; cambian con `SizeTransform` spring, no como pantallas separadas.
-4. **Animación corta y paralela**: ≤ 420 ms por flip, ≤ 220 ms por transición entre cartas, fade + scale en vez de slide horizontal.
-5. **Feedback informado**: cada grade muestra su intervalo SRS resultante antes y después de elegir.
-6. **Jerarquía visual proporcional al recall**: la palabra es ~70% del peso visual del front; hints son progresivos (on-demand), no automáticos.
-
----
-
-## Sprint 1 — Interacción core (objetivo: ½ día)
-
-Quita ruido perceptual y resuelve la fricción más obvia: dónde toco, qué pasa cuando arrastro.
-
-### S1-T1: Eliminar botón "Reveal" redundante en `StudyStage.Recall`
-
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt:532-547`
-- **Por qué:** la carta ya gira al tap (`StudyScreen.kt:255-258`), pero el dock muestra un `HButton "Reveal answer"`. Dos afordancias para la misma acción confunden y rompen la expectativa cuando el usuario toca la back por error.
-- **Qué hacer:** en la rama `StudyStage.Recall`, reemplazar el `HButton` por un hint chip sutil con `HBadge(variant = Outline)` + ícono `Icons.Outlined.TouchApp`, texto "Toca la carta para revelar". Mantener el `HButton` "Answer" cuando `needsTypedAnswer == true` (ese caso sí necesita CTA dock-driven porque el siguiente paso es input).
-- **Criterio:** en Recall sin typed-answer, no hay botón grande en el dock. Tap en carta → flip. Tap en el chip → no hace nada (es solo affordance visual).
-- **Estimación:** 30 min.
-- **Estado:** [x]
-- **Depende de:** ninguna.
-
-### S1-T2: Swipe horizontal en back face → grade
-
-- **Archivos:** `app/src/main/kotlin/com/emm/hello/newfeatures/study/FlippableCard.kt` (agregar gesture handling), `StudyScreen.kt:429-456` (cablear callbacks).
-- **Por qué:** todo el flujo de grade es tap en botones. Swipe es la interacción canónica de flashcards (Anki Pro, Quizlet, RemNote). Acelera sesiones de 50+ cards.
-- **Qué hacer:**
-    1. Reemplazar `Modifier.clickable` en `FlippableCard` por `Modifier.pointerInput` que combine `detectTapGestures` (para flip) + `detectHorizontalDragGestures` (para grade).
-    2. Agregar parámetros nuevos a `FlippableCard`: `gradeEnabled: Boolean` y `onGradeSwipe: (ReviewGrade) -> Unit`. Solo activar gestures de drag cuando `cardFace == Back && gradeEnabled`.
-    3. Mientras el usuario arrastra, pintar un overlay tintado encima de la carta (`errorContainer` / `tertiaryContainer` / `primaryContainer` / `secondaryContainer`) cuya opacidad crece con `dragOffset / widthPx`.
-    4. Definir umbrales: |offset| < 25% width → snap back (cancelado); 25% ≤ |offset| < 50% → `HARD` (izq) o `GOOD` (der); |offset| ≥ 50% → `AGAIN` (izq) o `EASY` (der).
-    5. Mostrar texto centrado en el overlay con el grade pendiente ("Hard", "Easy"...) en `headlineSmall`.
-    6. En `StudyScreen.kt`, pasar `gradeEnabled = sessionStage == StudyStage.Grade && enabledGrades` y `onGradeSwipe = callbacks.onReviewAnswer`.
-- **Criterio:** en back face durante Grade, swipe izquierda corta marca Hard, larga marca Again; swipe derecha corta marca Good, larga marca Easy; release sin pasar umbral hace snap-back. Los 4 botones del dock siguen disponibles como fallback. Si `enabledGrades` no incluye un grade (caso typed-answer correcto bloquea Again), el swipe en esa dirección queda deshabilitado.
-- **Estimación:** 3-4 h (la lógica de gesture + overlay + accesibilidad).
-- **Estado:** [x]
-- **Depende de:** ninguna estrictamente, pero leer mejor después de S1-T1.
-
-### S1-T3: Mover TTS a `IconButton` flotante en esquina de la carta
-
-- **Archivos:** `StudyScreen.kt:818-824` (eliminar `HButton` del back), `StudyScreen.kt:399-461` (`StudyCanvas` envuelve `FlippableCard` en un `Box` con overlay top-end).
-- **Por qué:** hoy el botón "Speak" vive dentro del back content (`FlashcardBackContent`), rompiendo la jerarquía del answer y siendo inalcanzable mientras el usuario está en Front (cuando más útil es: validar pronunciación antes de revelar).
-- **Qué hacer:**
-    1. Quitar el `HButton` ghost de TTS de `FlashcardBackContent` (`StudyScreen.kt:818-824`).
-    2. En `StudyCanvas`, envolver el `AnimatedContent` con un `Box` que tenga un `IconButton` alineado a `TopEnd` con padding 12.dp. Ícono `Icons.AutoMirrored.Filled.VolumeUp` cuando idle, `Icons.Outlined.Stop` cuando `isSpeaking`. El botón **no rota con el flip** (vive afuera del `FlippableCard`).
-    3. El callback `onSpeak`/`onStop` lee la palabra del `currentItem` independientemente de la face. Si `!ttsReady`, deshabilitar.
-    4. ContentDescription correcto en cada estado.
-- **Criterio:** TTS accesible en Front y Back, ubicado fija en esquina superior derecha, no rota con flip. Funciona idéntico que antes (mismo `TextToSpeechManager`).
-- **Estimación:** 1 h.
-- **Estado:** [x]
-- **Depende de:** ninguna.
+1. **One affordance per intent**: if the card is tappable to reveal, there's no parallel "Reveal" button.
+2. **Canonical gestures before buttons**: horizontal swipe for grade on the back face; buttons remain as accessible fallback.
+3. **One live surface**: card + dock + hints live within the same `Surface`; they change with `SizeTransform` spring, not as separate screens.
+4. **Short, parallel animation**: ≤ 420 ms per flip, ≤ 220 ms per card transition, fade + scale instead of horizontal slide.
+5. **Informed feedback**: each grade shows its resulting SRS interval before and after selecting.
+6. **Visual hierarchy proportional to recall**: the word is ~70% of the front's visual weight; hints are progressive (on-demand), not automatic.
 
 ---
 
-## Sprint 2 — Motion & polish (objetivo: ½ día)
+## Sprint 1 — Core interaction (goal: ½ day)
 
-Hace que la interacción se sienta fluida. Cambios pequeños individualmente, sinérgicos en conjunto.
+Removes perceptual noise and resolves the most obvious friction: where I tap, what happens when I drag.
 
-### S2-T4: Acortar y reemplazar la transición entre cartas
+### S1-T1: Drop the redundant "Reveal" button in `StudyStage.Recall`
 
-- **Archivo:** `StudyScreen.kt:82-87` (constantes), `StudyScreen.kt:412-425` (`transitionSpec`).
-- **Por qué:** hoy `CARD_TRANSITION_DURATION_MS = 350` con slide horizontal + `CARD_FLIP_DURATION_MS = 600` flip + `CARD_EXIT_FADE_DURATION_MS = 250` fade out. Encadenados al gradar son ~1s perceptual. El slide horizontal compite además con el swipe de S1-T2.
-- **Qué hacer:**
+- **File:** `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt:532-547`
+- **Why:** the card already flips on tap (`StudyScreen.kt:255-258`), but the dock shows an `HButton "Reveal answer"`. Two affordances for the same action confuse and break the expectation when the user taps the back by mistake.
+- **What to do:** in the `StudyStage.Recall` branch, replace the `HButton` with a subtle hint chip using `HBadge(variant = Outline)` + `Icons.Outlined.TouchApp` icon, text "Tap the card to reveal". Keep the `HButton` "Answer" when `needsTypedAnswer == true` (that case does need a dock-driven CTA because the next step is input).
+- **Criterion:** in Recall without typed-answer, no big button in the dock. Tap on card → flip. Tap on the chip → does nothing (purely visual affordance).
+- **Estimate:** 30 min.
+- **Status:** [x]
+- **Depends on:** none.
+
+### S1-T2: Horizontal swipe on back face → grade
+
+- **Files:** `app/src/main/kotlin/com/emm/hello/newfeatures/study/FlippableCard.kt` (add gesture handling), `StudyScreen.kt:429-456` (wire callbacks).
+- **Why:** the whole grade flow is tap on buttons. Swipe is the canonical flashcard interaction (Anki Pro, Quizlet, RemNote). Speeds up 50+ card sessions.
+- **What to do:**
+    1. Replace `Modifier.clickable` in `FlippableCard` with `Modifier.pointerInput` combining `detectTapGestures` (for flip) + `detectHorizontalDragGestures` (for grade).
+    2. Add new parameters to `FlippableCard`: `gradeEnabled: Boolean` and `onGradeSwipe: (ReviewGrade) -> Unit`. Only enable drag gestures when `cardFace == Back && gradeEnabled`.
+    3. While the user drags, paint a tinted overlay on top of the card (`errorContainer` / `tertiaryContainer` / `primaryContainer` / `secondaryContainer`) whose opacity grows with `dragOffset / widthPx`.
+    4. Define thresholds: |offset| < 25% width → snap back (canceled); 25% ≤ |offset| < 50% → `HARD` (left) or `GOOD` (right); |offset| ≥ 50% → `AGAIN` (left) or `EASY` (right).
+    5. Show centered text on the overlay with the pending grade ("Hard", "Easy"...) in `headlineSmall`.
+    6. In `StudyScreen.kt`, pass `gradeEnabled = sessionStage == StudyStage.Grade && enabledGrades` and `onGradeSwipe = callbacks.onReviewAnswer`.
+- **Criterion:** on back face during Grade, short left swipe marks Hard, long marks Again; short right marks Good, long marks Easy; release without crossing threshold snaps back. The 4 dock buttons remain available as fallback. If `enabledGrades` excludes a grade (case where correct typed-answer blocks Again), swipe in that direction is disabled.
+- **Estimate:** 3-4 h (gesture logic + overlay + accessibility).
+- **Status:** [x]
+- **Depends on:** none strictly, but reads better after S1-T1.
+
+### S1-T3: Move TTS to a floating `IconButton` in the card corner
+
+- **Files:** `StudyScreen.kt:818-824` (remove the back's `HButton`), `StudyScreen.kt:399-461` (`StudyCanvas` wraps `FlippableCard` in a `Box` with top-end overlay).
+- **Why:** today the "Speak" button lives inside the back content (`FlashcardBackContent`), breaking the answer hierarchy and being unreachable while the user is on Front (where it's most useful: validating pronunciation before revealing).
+- **What to do:**
+    1. Remove the TTS ghost `HButton` from `FlashcardBackContent` (`StudyScreen.kt:818-824`).
+    2. In `StudyCanvas`, wrap the `AnimatedContent` with a `Box` that has an `IconButton` aligned to `TopEnd` with 12.dp padding. Icon `Icons.AutoMirrored.Filled.VolumeUp` when idle, `Icons.Outlined.Stop` when `isSpeaking`. The button **does not rotate with the flip** (lives outside `FlippableCard`).
+    3. The `onSpeak`/`onStop` callback reads the word from `currentItem` regardless of face. If `!ttsReady`, disable.
+    4. Correct contentDescription per state.
+- **Criterion:** TTS accessible on Front and Back, fixed at the top-right corner, doesn't rotate with flip. Works identically to before (same `TextToSpeechManager`).
+- **Estimate:** 1 h.
+- **Status:** [x]
+- **Depends on:** none.
+
+---
+
+## Sprint 2 — Motion & polish (goal: ½ day)
+
+Makes the interaction feel fluid. Small individually, synergistic together.
+
+### S2-T4: Shorten and replace the card-to-card transition
+
+- **File:** `StudyScreen.kt:82-87` (constants), `StudyScreen.kt:412-425` (`transitionSpec`).
+- **Why:** today `CARD_TRANSITION_DURATION_MS = 350` with horizontal slide + `CARD_FLIP_DURATION_MS = 600` flip + `CARD_EXIT_FADE_DURATION_MS = 250` fade out. Chained on grade they're ~1s perceptual. The horizontal slide also competes with S1-T2's swipe.
+- **What to do:**
     1. `CARD_TRANSITION_DURATION_MS = 350` → **220**.
     2. `CARD_EXIT_FADE_DURATION_MS = 250` → **160**.
-    3. Reemplazar `slideInHorizontally + fadeIn` por `fadeIn + scaleIn(initialScale = 0.96f)`.
-    4. Reemplazar `slideOutHorizontally + fadeOut` por `fadeOut + scaleOut(targetScale = 0.92f)`.
-    5. Usar `FastOutSlowInEasing` explícito en los `tween`.
-- **Criterio:** al gradar (o al swipear si S1-T2 ya está merged), la carta saliente se desvanece encogiendo levemente y la nueva entra creciendo desde 0.96 con fade. No hay slide horizontal (eso queda libre para que el swipe gestural no compita).
-- **Estimación:** 45 min.
-- **Estado:** [x]
-- **Depende de:** ninguna.
+    3. Replace `slideInHorizontally + fadeIn` with `fadeIn + scaleIn(initialScale = 0.96f)`.
+    4. Replace `slideOutHorizontally + fadeOut` with `fadeOut + scaleOut(targetScale = 0.92f)`.
+    5. Use explicit `FastOutSlowInEasing` in the `tween`s.
+- **Criterion:** on grade (or on swipe if S1-T2 already merged), the outgoing card fades while shrinking slightly and the new one enters growing from 0.96 with fade. No horizontal slide (frees that axis so the gestural swipe doesn't compete).
+- **Estimate:** 45 min.
+- **Status:** [x]
+- **Depends on:** none.
 
-### S2-T5: Aumentar `cameraDistance` y suavizar el flip
+### S2-T5: Increase `cameraDistance` and smooth the flip
 
-- **Archivo:** `FlippableCard.kt:26-27, 67`.
-- **Por qué:** `CARD_CAMERA_DISTANCE_MULTIPLIER = 12f` da un flip "pegado al lente", caricaturesco. Guideline Compose es ~30. El flip de 600ms también es excesivo combinado con S2-T4.
-- **Qué hacer:**
+- **File:** `FlippableCard.kt:26-27, 67`.
+- **Why:** `CARD_CAMERA_DISTANCE_MULTIPLIER = 12f` gives a "glued to the lens" flip, cartoony. Compose guideline is ~30. The 600ms flip is also excessive combined with S2-T4.
+- **What to do:**
     1. `CARD_CAMERA_DISTANCE_MULTIPLIER = 12f` → **30f**.
     2. `CARD_FLIP_DURATION_MS = 600` → **420**.
-    3. Cambiar `tween` por `tween(durationMillis = 420, easing = FastOutSlowInEasing)`.
-- **Criterio:** el flip se siente 3D orgánico (no plano-papel), y se completa en ~420ms. Validar en device físico (no solo emulador) porque la percepción de profundidad depende del DPI.
-- **Estimación:** 30 min.
-- **Estado:** [x]
-- **Depende de:** ninguna.
+    3. Change `tween` to `tween(durationMillis = 420, easing = FastOutSlowInEasing)`.
+- **Criterion:** the flip feels organically 3D (not flat-paper), and completes in ~420ms. Validate on a physical device (not just emulator) because depth perception depends on DPI.
+- **Estimate:** 30 min.
+- **Status:** [x]
+- **Depends on:** none.
 
-### S2-T6: Unificar Card + Dock + Hint en una sola superficie
+### S2-T6: Unify Card + Dock + Hint into a single surface
 
-- **Archivos:** `StudyScreen.kt:216-315` (la `Column` raíz dentro de `Scaffold`), `StudyScreen.kt:361-382` (eliminar `StudyStageHeader`), `StudyScreen.kt:399-461` (`StudyCanvas`), `StudyScreen.kt:463-611` (`StudyActionDock`).
-- **Por qué:** hoy hay 3 bloques visuales separados — `HProgressBar`, `StudyStageHeader` (Text flotante), `StudyCanvas` (Surface), `StudyActionDock` (Surface). Cada uno con sus propios paddings, shapes y backgrounds. Visualmente compiten en vez de sentirse como un solo objeto.
-- **Qué hacer:**
-    1. Envolver `StudyCanvas` + `StudyActionDock` en un único `Surface` (`shape = extraLarge`, `color = surfaceContainerLowest`) con `Column` interna.
-    2. Eliminar el `Surface` interno de `StudyActionDock` (que vive en `StudyScreen.kt:473-476`); ahora es solo una `Column` con padding.
-    3. Eliminar `StudyStageHeader` como composable separado. El hint guidance se renderiza dentro de la carta como `Text` overlay top-start (con `bodySmall` + `onSurfaceVariant`), solo en `StudyStage.Recall` y `StudyStage.Check`.
-    4. El `AnimatedContent` del dock usa `SizeTransform(clip = false) { initial, target -> spring(stiffness = StiffnessMediumLow) }` para que el cambio de altura entre stages (Recall → Check → Grade) sea spring fluido.
-- **Criterio:** se ve un solo cuerpo visual con la carta arriba y los controles abajo, sin "costuras" entre superficies. El cambio entre stages anima la altura con spring, no salta.
-- **Estimación:** 2 h.
-- **Estado:** [x]
-- **Depende de:** facilita S1-T3 (TTS floating ya está dentro del wrapper único); idealmente después de S1-T3.
+- **Files:** `StudyScreen.kt:216-315` (root `Column` inside `Scaffold`), `StudyScreen.kt:361-382` (remove `StudyStageHeader`), `StudyScreen.kt:399-461` (`StudyCanvas`), `StudyScreen.kt:463-611` (`StudyActionDock`).
+- **Why:** today there are 3 separate visual blocks — `HProgressBar`, `StudyStageHeader` (floating Text), `StudyCanvas` (Surface), `StudyActionDock` (Surface). Each with its own paddings, shapes, and backgrounds. They visually compete instead of feeling like one object.
+- **What to do:**
+    1. Wrap `StudyCanvas` + `StudyActionDock` in a single `Surface` (`shape = extraLarge`, `color = surfaceContainerLowest`) with an inner `Column`.
+    2. Remove the inner `Surface` from `StudyActionDock` (which lives at `StudyScreen.kt:473-476`); now it's just a `Column` with padding.
+    3. Drop `StudyStageHeader` as a separate composable. The hint guidance renders inside the card as a `Text` overlay top-start (with `bodySmall` + `onSurfaceVariant`), only in `StudyStage.Recall` and `StudyStage.Check`.
+    4. The dock's `AnimatedContent` uses `SizeTransform(clip = false) { initial, target -> spring(stiffness = StiffnessMediumLow) }` so the height change across stages (Recall → Check → Grade) is fluid spring.
+- **Criterion:** one visual body with the card on top and controls below, no "seams" between surfaces. Stage change animates the height with spring, no jumps.
+- **Estimate:** 2 h.
+- **Status:** [x]
+- **Depends on:** facilitates S1-T3 (TTS floating already inside the unified wrapper); ideally after S1-T3.
 
-### S2-T7: Eliminar dual-source `prevStudyItem`
+### S2-T7: Remove dual-source `prevStudyItem`
 
-- **Archivos:** `StudyScreen.kt:130, 259, 389, 446` (eliminar `prevStudyItem` y referencias).
-- **Por qué:** hoy `frontContent` usa `currentItem` y `backContent` usa `prevStudyItem.value` para evitar parpadeo al avanzar mientras la carta hace flip. Tener dos fuentes de datos en la misma vista es frágil — y deja de tener sentido cuando S2-T4 reemplaza el slide horizontal por fade+scale (la carta saliente se desvanece como unidad, no hay momento en que se necesite congelar el back).
-- **Qué hacer:**
-    1. Eliminar `prevStudyItem` (`StudyScreen.kt:130`) y `onCardAnimationFinished` callback (`StudyScreen.kt:259`).
-    2. En `FlashcardBackContent`, leer `card = currentItem?.flashcard` y `studyCard = currentItem?.studyCard` directamente.
-    3. Quitar el parámetro `onFinished` de `FlippableCard` (`FlippableCard.kt:40, 48`).
-- **Criterio:** al gradar, la carta saliente hace fade+scale out con sus propios datos consistentes; la nueva carta entra con los suyos. Sin flash de contenido vacío en la back face. Verificar visualmente con 5-10 grades seguidos.
-- **Estimación:** 45 min.
-- **Estado:** [x]
-- **Depende de:** S2-T4 (la nueva transición es la que hace que esto sea seguro).
+- **Files:** `StudyScreen.kt:130, 259, 389, 446` (remove `prevStudyItem` and references).
+- **Why:** today `frontContent` uses `currentItem` and `backContent` uses `prevStudyItem.value` to avoid flicker on advance while the card is flipping. Having two data sources in the same view is fragile — and stops making sense once S2-T4 replaces the horizontal slide with fade+scale (the outgoing card fades as a unit; there's no moment where the back needs freezing).
+- **What to do:**
+    1. Remove `prevStudyItem` (`StudyScreen.kt:130`) and the `onCardAnimationFinished` callback (`StudyScreen.kt:259`).
+    2. In `FlashcardBackContent`, read `card = currentItem?.flashcard` and `studyCard = currentItem?.studyCard` directly.
+    3. Drop the `onFinished` parameter of `FlippableCard` (`FlippableCard.kt:40, 48`).
+- **Criterion:** on grade, the outgoing card does fade+scale out with its own consistent data; the new card enters with its own. No flash of empty content on the back face. Verify visually with 5-10 grades in a row.
+- **Estimate:** 45 min.
+- **Status:** [x]
+- **Depends on:** S2-T4 (the new transition is what makes this safe).
 
 ---
 
-## Sprint 3 — Informed feedback (objetivo: ½ día)
+## Sprint 3 — Informed feedback (goal: ½ day)
 
-Convierte cada interacción en una decisión informada. Es donde un usuario con 50 cards/día pasa de "tocar Good por inercia" a "evaluar honestamente".
+Turns each interaction into an informed decision. This is where a user with 50 cards/day goes from "tapping Good by inertia" to "evaluating honestly".
 
-### S3-T8: Preview de intervalo SRS por grade (helper de dominio)
+### S3-T8: SRS interval preview per grade (domain helper)
 
-- **Archivos:** `domain/src/main/kotlin/com/emm/domain/study/PreviewNextInterval.kt` (nuevo), `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiState.kt`, `StudyViewModel.kt:43-55` (`showNextCard`).
-- **Por qué:** hoy el usuario elige Again/Hard/Good/Easy sin saber qué intervalo SRS produce cada uno. Mostrar el preview convierte el grade en una decisión informada y respeta la lógica del scheduler ya implementada (`SpacedRepetitionScheduler.kt`).
-- **Qué hacer:**
-    1. Crear `domain/.../study/PreviewNextInterval.kt`:
+- **Files:** `domain/src/main/kotlin/com/emm/domain/study/PreviewNextInterval.kt` (new), `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiState.kt`, `StudyViewModel.kt:43-55` (`showNextCard`).
+- **Why:** today the user picks Again/Hard/Good/Easy without knowing what SRS interval each produces. Showing the preview turns the grade into an informed decision and respects the already-implemented scheduler logic (`SpacedRepetitionScheduler.kt`).
+- **What to do:**
+    1. Create `domain/.../study/PreviewNextInterval.kt`:
         ```kotlin
         object PreviewNextInterval {
             fun previewAll(review: FlashcardReview, clock: Clock): Map<ReviewGrade, Long> =
@@ -166,80 +166,80 @@ Convierte cada interacción en una decisión informada. Es donde un usuario con 
                 }
         }
         ```
-       Devuelve días por grade. Pure function, JVM-only, sin side effects.
-    2. Agregar `intervalPreviews: Map<ReviewGrade, Long> = emptyMap()` a `StudyUiState`.
-    3. En `StudyViewModel.showNextCard()`, después de setear `currentItem`, calcular `PreviewNextInterval.previewAll(currentItem.review, clock)` y guardar en state. Inyectar `Clock` en el VM (usar `SystemClock` del domain como default en `NewModule.kt`).
-    4. Tests: `PreviewNextIntervalTest.kt` en `domain/src/test/` cubriendo cards nuevas (repetitions=0) y maduras (repetitions=5, interval=14).
-- **Criterio:** `StudyUiState.intervalPreviews` contiene los 4 intervalos en días al inicio de cada card. Tests verdes. Sin cambios visibles aún (S3-T10 los renderiza).
-- **Estimación:** 1.5 h.
-- **Estado:** [x]
-- **Depende de:** ninguna.
+       Returns days per grade. Pure function, JVM-only, no side effects.
+    2. Add `intervalPreviews: Map<ReviewGrade, Long> = emptyMap()` to `StudyUiState`.
+    3. In `StudyViewModel.showNextCard()`, after setting `currentItem`, compute `PreviewNextInterval.previewAll(currentItem.review, clock)` and store in state. Inject `Clock` in the VM (use the domain's `SystemClock` as default in `NewModule.kt`).
+    4. Tests: `PreviewNextIntervalTest.kt` in `domain/src/test/` covering new cards (repetitions=0) and mature ones (repetitions=5, interval=14).
+- **Criterion:** `StudyUiState.intervalPreviews` contains the 4 intervals in days at the start of each card. Tests green. No visible changes yet (S3-T10 renders them).
+- **Estimate:** 1.5 h.
+- **Status:** [x]
+- **Depends on:** none.
 
-### S3-T9: Jerarquía visual del front — palabra dominante + hint progresivo
+### S3-T9: Front visual hierarchy — dominant word + progressive hint
 
-- **Archivo:** `StudyScreen.kt:673-744` (`FlashcardFrontContent`), `StudyScreen.kt:864-911` (`CardTypePromptBlock`).
-- **Por qué:** hoy el front apila 5-6 elementos competitivos (badge cardType + frontTitle "Recognition" + prompt + phonetic + frontSupport + separators). `frontTitle` repite lo que dice el badge. El `frontSupport` siempre visible da hints automáticos que rompen el principio de "desirable difficulty" del SRS.
-- **Qué hacer:**
-    1. Eliminar el `Text(frontTitle)` (`StudyScreen.kt:704-712`) — el `cardType` badge ya comunica esa información.
-    2. Mover el `HBadge(cardType)` a la esquina top-start de la carta (alineado top-start dentro del `Box` exterior, junto al TTS de S1-T3 que está en top-end). Padding 12.dp. Quitarlo del flujo central.
-    3. Subir el `prompt` a `displayMedium` (de `headlineMedium`) y dejarlo en `FontWeight.Bold`.
-    4. Phonetic en `bodySmall`, sin separator antes (el peso visual ya es bajo).
-    5. **Hint progresivo**: el `frontSupport` deja de mostrarse por default. Agregar un `IconButton` pequeño debajo del phonetic con `Icons.Outlined.Info`. Al tap, muestra el `frontSupport` en un `HAlert` inline (`AlertVariant.Default`). Tap de nuevo lo oculta.
-    6. Para `StudyCardType.Cloze`, mantener el label "study_cloze_prompt_title" porque indica que la respuesta es un completamiento, no la palabra entera (es semánticamente necesario, no es ruido).
-- **Criterio:** la palabra ocupa el centro visual y representa ≥ 60% del peso. Hints solo aparecen on-demand. Cloze sigue siendo distinguible visualmente (label "Completa la frase" sobre la palabra).
-- **Estimación:** 2 h.
-- **Estado:** [x]
-- **Depende de:** S1-T3 (porque el cardType badge va al top-start del wrapper que ya tiene TTS en top-end).
+- **File:** `StudyScreen.kt:673-744` (`FlashcardFrontContent`), `StudyScreen.kt:864-911` (`CardTypePromptBlock`).
+- **Why:** today the front stacks 5-6 competing elements (cardType badge + frontTitle "Recognition" + prompt + phonetic + frontSupport + separators). `frontTitle` repeats what the badge already says. The always-visible `frontSupport` provides automatic hints that break the SRS "desirable difficulty" principle.
+- **What to do:**
+    1. Remove the `Text(frontTitle)` (`StudyScreen.kt:704-712`) — the `cardType` badge already conveys that information.
+    2. Move the `HBadge(cardType)` to the card's top-start corner (aligned top-start inside the outer `Box`, next to S1-T3's TTS at top-end). Padding 12.dp. Take it out of the central flow.
+    3. Bump the `prompt` to `displayMedium` (from `headlineMedium`) and leave it in `FontWeight.Bold`.
+    4. Phonetic in `bodySmall`, with no separator before it (visual weight is already low).
+    5. **Progressive hint**: `frontSupport` is no longer shown by default. Add a small `IconButton` below the phonetic with `Icons.Outlined.Info`. On tap, show `frontSupport` in an inline `HAlert` (`AlertVariant.Default`). Tap again hides it.
+    6. For `StudyCardType.Cloze`, keep the "study_cloze_prompt_title" label because it indicates the answer is a completion, not the whole word (semantically necessary, not noise).
+- **Criterion:** the word holds the visual center and represents ≥ 60% of the weight. Hints appear only on-demand. Cloze remains visually distinguishable (label "Complete the phrase" above the word).
+- **Estimate:** 2 h.
+- **Status:** [x]
+- **Depends on:** S1-T3 (because the cardType badge goes at top-start of the wrapper that already has TTS at top-end).
 
-### S3-T10: Grade buttons como grid 2x2 con intervalo + color semántico
+### S3-T10: Grade buttons as 2x2 grid with interval + semantic color
 
-- **Archivos:** `StudyScreen.kt:1091-1152` (`AnswerButtons`), nuevo composable privado `GradeChip` dentro del mismo archivo.
-- **Por qué:** los 4 `HButton` rectangulares con leadingIcon son densos, ocupan poco click-target relativo al ancho, y no muestran el intervalo. El estándar de Anki Pro/RemNote es chips 1:1 con label + intervalo + color semántico.
-- **Qué hacer:**
-    1. Crear `GradeChip(grade, intervalDays, enabled, onClick)` composable privado en `StudyScreen.kt`. Renderiza un `Surface` con:
-        - Aspect ratio 1:1 (o `heightIn(min = 88.dp)`).
+- **Files:** `StudyScreen.kt:1091-1152` (`AnswerButtons`), new private composable `GradeChip` in the same file.
+- **Why:** the 4 rectangular `HButton`s with leadingIcon are dense, take up little click-target relative to width, and don't show the interval. The Anki Pro/RemNote standard is 1:1 chips with label + interval + semantic color.
+- **What to do:**
+    1. Create `GradeChip(grade, intervalDays, enabled, onClick)` private composable in `StudyScreen.kt`. Renders a `Surface` with:
+        - Aspect ratio 1:1 (or `heightIn(min = 88.dp)`).
         - Background: `errorContainer` (Again), `tertiaryContainer` (Hard), `primaryContainer` (Good), `secondaryContainer` (Easy).
-        - Border 1dp del `contentColorFor(...)` con alpha 0.2.
-        - Layout: ícono top-start, label `titleMedium` SemiBold center, intervalo `labelSmall` bottom-center con `formatInterval(days)` ("1 día", "6 días", "2 semanas", "1 mes" — helper local).
-    2. Reemplazar las dos `Row` con `HButton` por un `Column` de 2 `Row` con `GradeChip` en cada celda, `Modifier.weight(1f)` y `aspectRatio(1f)` o altura fija.
-    3. `formatInterval(days: Long): String` local: <1 → "Hoy", 1 → "Mañana", <7 → "$days días", <30 → "$weeks semana(s)", else "$months mes(es)".
-    4. Pasar `intervalPreviews: Map<ReviewGrade, Long>` desde state a `AnswerButtons`.
-    5. Mantener `enabledGrades` y `guidance` igual que hoy (la policy de S1-T1 sigue válida).
-- **Criterio:** dock muestra grid 2x2 de chips coloreados; cada uno con ícono + label + intervalo dinámico calculado para la card actual. Tocar uno graba el grade. Si un grade está en `enabledGrades = false`, el chip se renderiza con alpha 0.4 y no recibe taps. Los intervalos coinciden con lo que `SpacedRepetitionScheduler.schedule` retornaría.
-- **Estimación:** 2 h.
-- **Estado:** [x]
-- **Depende de:** S3-T8 (para tener los previews en state).
+        - 1dp border in `contentColorFor(...)` with alpha 0.2.
+        - Layout: icon top-start, label `titleMedium` SemiBold center, interval `labelSmall` bottom-center with `formatInterval(days)` ("1 day", "6 days", "2 weeks", "1 month" — local helper).
+    2. Replace the two `Row`s of `HButton`s with a `Column` of 2 `Row`s holding a `GradeChip` per cell, `Modifier.weight(1f)` and `aspectRatio(1f)` or fixed height.
+    3. `formatInterval(days: Long): String` local: <1 → "Today", 1 → "Tomorrow", <7 → "$days days", <30 → "$weeks week(s)", else "$months month(s)".
+    4. Pass `intervalPreviews: Map<ReviewGrade, Long>` from state to `AnswerButtons`.
+    5. Keep `enabledGrades` and `guidance` as today (S1-T1's policy still holds).
+- **Criterion:** dock shows a 2x2 grid of colored chips; each one with icon + label + interval dynamically computed for the current card. Tapping one records the grade. If a grade is `enabledGrades = false`, the chip renders with alpha 0.4 and receives no taps. The intervals match what `SpacedRepetitionScheduler.schedule` would return.
+- **Estimate:** 2 h.
+- **Status:** [x]
+- **Depends on:** S3-T8 (to have previews in state).
 
 ---
 
-## Anti-tareas (qué NO se hace en esta iteración)
+## Anti-tasks (what is NOT done in this iteration)
 
-- **No** se introduce un sistema de gestos verticales (swipe up = skip, swipe down = back). Demasiado ambiguo, y el back ya tiene navigation icon.
-- **No** se agrega haptic feedback nuevo más allá del que ya existe (`TextHandleMove` en flip, `LongPress` en grade). Si S1-T2 necesita haptic en el cruce de umbral, se agrega ahí puntualmente.
-- **No** se crea un `H*` component nuevo para el chip de hint ni para el grade chip. Se mantienen como composables privados dentro de `StudyScreen.kt`. Si pasan a usarse en otras pantallas, se promueven a `core/ui/` en su PR propio.
-- **No** se cambia la lógica de aggregated grade en `StudyViewModel.processReviewAnswer` (`StudyViewModel.kt:68-93`). El preview de S3-T8 muestra el intervalo "si esta fuera la última studyCard del flashcard"; el comportamiento real para flashcards con múltiples studyCards sigue siendo el moreConservativeGrade ya implementado. Esto es deliberado: complicar el preview con lógica de pending studyCards hace el plan inestimable. Se puede revisar después.
-- **No** se toca `:data` ni el schema. Todo el cambio vive en `app/` excepto el helper puro de S3-T8 en `:domain`.
+- **Not** introducing a vertical gesture system (swipe up = skip, swipe down = back). Too ambiguous, and back already has a navigation icon.
+- **Not** adding new haptic feedback beyond what already exists (`TextHandleMove` on flip, `LongPress` on grade). If S1-T2 needs haptic at threshold crossing, add it there specifically.
+- **Not** creating a new `H*` component for the hint chip or the grade chip. They stay as private composables inside `StudyScreen.kt`. If they end up used on other screens, promote them to `core/ui/` in their own PR.
+- **Not** changing the aggregated-grade logic in `StudyViewModel.processReviewAnswer` (`StudyViewModel.kt:68-93`). The S3-T8 preview shows the interval "if this were the last studyCard of the flashcard"; the actual behavior for flashcards with multiple studyCards remains the already-implemented moreConservativeGrade. This is deliberate: complicating the preview with pending-studyCard logic makes the plan unestimable. Can be revisited later.
+- **Not** touching `:data` or the schema. All change lives in `app/` except S3-T8's pure helper in `:domain`.
 
 ---
 
-## Orden recomendado de implementación
+## Recommended implementation order
 
-1. **S1-T1** (afterReveal limpio) → confirma que el dock se simplifica sin romper Recall.
-2. **S1-T3** (TTS floating) → libera espacio en back content.
-3. **S2-T5** (cameraDistance + flip duration) → cambio trivial, mejora inmediata.
-4. **S2-T4** (transición fade+scale) → habilita S2-T7.
-5. **S2-T7** (eliminar prevStudyItem) → cierra deuda de doble-source.
-6. **S2-T6** (unificar superficie) → consolida visualmente lo anterior.
-7. **S3-T8** (helper preview interval + state) → infraestructura para S3-T10.
-8. **S3-T9** (jerarquía front) → con TTS y badge ya posicionados.
-9. **S3-T10** (grid 2x2 con intervalo) → cierre visible.
-10. **S1-T2** (swipe) → al final porque es la tarea más larga y se beneficia de tener todo lo demás estable para validar la sensación.
+1. **S1-T1** (clean afterReveal) → confirms the dock simplifies without breaking Recall.
+2. **S1-T3** (floating TTS) → frees space in the back content.
+3. **S2-T5** (cameraDistance + flip duration) → trivial change, immediate improvement.
+4. **S2-T4** (fade+scale transition) → enables S2-T7.
+5. **S2-T7** (remove prevStudyItem) → closes dual-source debt.
+6. **S2-T6** (unify surface) → visually consolidates the above.
+7. **S3-T8** (preview interval helper + state) → infrastructure for S3-T10.
+8. **S3-T9** (front hierarchy) → with TTS and badge already positioned.
+9. **S3-T10** (2x2 grid with interval) → visible close-out.
+10. **S1-T2** (swipe) → last because it's the longest task and benefits from having everything else stable to validate the feel.
 
-## Criterios de cierre del plan
+## Plan closing criteria
 
-- Sesión de 20 cards en device físico se siente "una sola acción continua", no "20 pantallas separadas".
-- Tap para revelar tiene exactamente un destino (la carta misma cuando no hay typed-answer; el dock cuando sí).
-- Cada grade muestra su intervalo SRS resultante antes de elegirlo.
-- Swipe a izquierda/derecha funciona como alternativa fluida a los chips de grade.
-- TTS accesible desde Front y Back sin rotar con flip.
-- No hay regresiones en typed-answer (Exact / FlexibleText / ManualSelfCheck siguen funcionando como hoy).
+- A 20-card session on a physical device feels like "one continuous action", not "20 separate screens".
+- Tap to reveal has exactly one destination (the card itself when there's no typed-answer; the dock when there is).
+- Each grade shows its resulting SRS interval before being chosen.
+- Left/right swipe works as a fluid alternative to the grade chips.
+- TTS accessible from Front and Back without rotating with flip.
+- No regressions in typed-answer (Exact / FlexibleText / ManualSelfCheck still work as today).

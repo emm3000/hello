@@ -3,31 +3,31 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Índice de documentación factual por feature |
+| Role | Factual documentation index by feature |
 | Source of Truth | No |
-| Read this when | Querés entender features actuales sin abrir código al azar |
+| Read this when | You want to understand current features without opening code at random |
 
-Este directorio describe solo comportamiento actual implementado.
+This directory describes only currently implemented behavior.
 
-## Leer primero
+## Read first
 
-Las sources of truth globales siguen en raíz:
+Global sources of truth still live at the root:
 
 1. `README.md`
 2. `AGENTS.md`
 3. `ARCHITECTURE.md`
 4. `LOCAL_FIRST.md`
 
-## Documentos activos
+## Active documents
 
-- `DASHBOARD_CURRENT.md`: estado actual del flujo `Dashboard` (lista, búsqueda y filtros)
-- `CARD_CREATION_CURRENT.md`: estado actual del flujo `New Card`
-- `CARD_DETAIL_CURRENT.md`: estado actual del flujo `Card Detail` (ver y borrar)
-- `EDIT_FLASHCARD_CURRENT.md`: estado actual del flujo `Edit Flashcard`
-- `DECK_CURRENT.md`: estado actual de los flujos `Deck Detail` y `New/Edit Deck`
-- `STUDY_CURRENT.md`: estado actual del flujo `Study`
-- `SETTINGS_CURRENT.md`: estado actual del flujo `Settings` (export/import backup)
+- `DASHBOARD_CURRENT.md`: current state of the `Dashboard` flow (list, search and filters)
+- `CARD_CREATION_CURRENT.md`: current state of the `New Card` flow
+- `CARD_DETAIL_CURRENT.md`: current state of the `Card Detail` flow (view and delete)
+- `EDIT_FLASHCARD_CURRENT.md`: current state of the `Edit Flashcard` flow
+- `DECK_CURRENT.md`: current state of the `Deck Detail` and `New/Edit Deck` flows
+- `STUDY_CURRENT.md`: current state of the `Study` flow
+- `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup)
 
-## Regla
+## Rule
 
-Si un documento no describe código vigente o comportamiento actual del producto, no vive en `docs/`.
+If a document does not describe current code or current product behavior, it does not live in `docs/`.

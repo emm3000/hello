@@ -1,18 +1,18 @@
-# Edición de Tarjeta Actual
+# Current Edit Flashcard
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujo `Edit Flashcard` |
+| Role | Factual feature reference |
+| Scope | `Edit Flashcard` flow |
 | Source of Truth | No |
-| Read this when | Necesitás entender cómo se editan los campos de una tarjeta existente |
+| Read this when | You need to understand how an existing card's fields are edited |
 
-## Resumen
+## Summary
 
-`Edit Flashcard` carga una tarjeta existente, permite editar sus campos básicos y ejemplos, valida en vivo y persiste el cambio vía `UpdateFlashcardUseCase`. Se abre desde `Card Detail`.
+`Edit Flashcard` loads an existing card, lets you edit its basic fields and examples, validates live, and persists the change via `UpdateFlashcardUseCase`. Opened from `Card Detail`.
 
-## Archivos clave
+## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/EditFlashcardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/EditFlashcardScreen.kt`
@@ -21,58 +21,58 @@
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/EditFlashcardUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/EditFlashcardUiEffect.kt`
 
-## Estado
+## State
 
 `EditFlashcardUiState`:
 
-- `isLoading` (true mientras carga la tarjeta)
-- campos editables: `word`, `meaning`, `translation`, `phonetic`, `partOfSpeech`, `examples: List<Example>`
-- errores: `wordError`, `meaningError`
+- `isLoading` (true while the card loads)
+- editable fields: `word`, `meaning`, `translation`, `phonetic`, `partOfSpeech`, `examples: List<Example>`
+- errors: `wordError`, `meaningError`
 - `isSubmitting`
-- `isValid` (computed): `word` y `meaning` no vacíos y sin errores
+- `isValid` (computed): `word` and `meaning` non-empty and no errors
 
-## Carga
+## Load
 
-`EditFlashcardViewModel.init` llama `loadFlashcard()`:
+`EditFlashcardViewModel.init` calls `loadFlashcard()`:
 
 - `FlashcardRepository.fetchById(flashcardId)`
-- en éxito popula los campos desde `detail.flashcard`
-- en error: `ShowMessage` + `isLoading = false`
+- on success populates fields from `detail.flashcard`
+- on error: `ShowMessage` + `isLoading = false`
 
-## Acciones
+## Actions
 
-Intents soportadas:
+Supported intents:
 
-- `WordChanged(text)` — valida no-blank
-- `MeaningChanged(text)` — valida no-blank
+- `WordChanged(text)` — validates non-blank
+- `MeaningChanged(text)` — validates non-blank
 - `TranslationChanged(text)`
 - `PhoneticChanged(text)`
 - `PartOfSpeechChanged(text)`
 - `ExampleTextChanged(index, text)`
 - `ExampleTranslationChanged(index, translation)`
-- `AddExample` — agrega `Example` vacío al final
-- `RemoveExample(index)` — bounded por `examples.indices`
-- `Submit` — short-circuit si `!isValid || isSubmitting`
+- `AddExample` — appends an empty `Example`
+- `RemoveExample(index)` — bounded by `examples.indices`
+- `Submit` — short-circuits if `!isValid || isSubmitting`
 
 ## Submit
 
 `handleSubmit()`:
 
-- valida estado
-- arma `UpdateFlashcardInput(flashcardId, deckId, word, meaning, translation, phonetic, partOfSpeech, examples)`
-- llama `UpdateFlashcardUseCase`
-- en éxito: emite `NavigateBack`
-- en error: `ShowMessage` + libera `isSubmitting`
+- validates state
+- builds `UpdateFlashcardInput(flashcardId, deckId, word, meaning, translation, phonetic, partOfSpeech, examples)`
+- calls `UpdateFlashcardUseCase`
+- on success: emits `NavigateBack`
+- on error: `ShowMessage` + releases `isSubmitting`
 
-## Efectos
+## Effects
 
 `EditFlashcardUiEffect`:
 
 - `NavigateBack`
 - `ShowMessage(text)`
 
-## Persistencia
+## Persistence
 
-- Lectura: `FlashcardRepository.fetchById` (local).
-- Escritura: `UpdateFlashcardUseCase` (local).
-- No hay sync remoto involucrado.
+- Read: `FlashcardRepository.fetchById` (local).
+- Write: `UpdateFlashcardUseCase` (local).
+- No remote sync involved.

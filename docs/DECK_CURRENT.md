@@ -1,21 +1,21 @@
-# Decks Actual
+# Current Decks
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujos `Deck Detail` y `New/Edit Deck` |
+| Role | Factual feature reference |
+| Scope | `Deck Detail` and `New/Edit Deck` flows |
 | Source of Truth | No |
-| Read this when | Necesitás entender la creación, edición y vista de detalle de mazos |
+| Read this when | You need to understand deck creation, editing and detail view |
 
-## Resumen
+## Summary
 
-Dos flujos hermanos sobre la misma feature `deck`:
+Two sibling flows on the same `deck` feature:
 
-- `Deck Detail` muestra info del mazo, su lista de tarjetas con búsqueda local, y entry points a edición/eliminación.
-- `New/Edit Deck` reutiliza la misma pantalla y viewmodel para crear o editar un mazo, distinguidos por `DeckFormMode`.
+- `Deck Detail` shows deck info, its card list with local search, and entry points to edit/delete.
+- `New/Edit Deck` reuses the same screen and viewmodel for creating or editing a deck, distinguished by `DeckFormMode`.
 
-## Archivos clave
+## Key files
 
 ### Deck Detail
 
@@ -38,33 +38,33 @@ Dos flujos hermanos sobre la misma feature `deck`:
 
 ## Deck Detail
 
-### Estado
+### State
 
 `DeckDetailUiState`:
 
-- `deck: Deck` (default vacío con `SystemClock`)
-- `hasSessionEnabled` (true si alguna tarjeta tiene `nextReviewAt <= now`)
+- `deck: Deck` (empty default with `SystemClock`)
+- `hasSessionEnabled` (true if any card has `nextReviewAt <= now`)
 - `searchQuery`
 - `showDeleteConfirmation`
 
-### Carga
+### Loading
 
-`DeckDetailViewModel.init` combina dos flows:
+`DeckDetailViewModel.init` combines two flows:
 
-- `GetDeckDetailUseCase(deckId)` — info del mazo + cards
-- `ObserveFlashcardsWithReviewUseCase(deckId)` — flashcards con review schedule
+- `GetDeckDetailUseCase(deckId)` — deck info + cards
+- `ObserveFlashcardsWithReviewUseCase(deckId)` — flashcards with review schedule
 
-El merge (`mergeDeckCardsById`) sobrescribe el `review` de las cards del deck con el del flow de study, manteniendo el resto de campos.
+The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards with the one from the study flow, keeping the rest of the fields.
 
-### Acciones
+### Actions
 
-- `SearchCardsChanged(query)` — actualiza filtro local (matching por `word`, `translation`, `meaning`, case-insensitive)
-- `EditDeck` → emite `NavigateToEditDeck(deckId)`
-- `DeleteDeck` → abre confirmación
-- `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emite `DeckDeleted`
-- `DismissDeleteDeck` → cierra confirmación
+- `SearchCardsChanged(query)` — updates local filter (matching by `word`, `translation`, `meaning`, case-insensitive)
+- `EditDeck` → emits `NavigateToEditDeck(deckId)`
+- `DeleteDeck` → opens confirmation
+- `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emits `DeckDeleted`
+- `DismissDeleteDeck` → closes confirmation
 
-### Efectos
+### Effects
 
 `DeckDetailUiEffect`:
 
@@ -74,44 +74,44 @@ El merge (`mergeDeckCardsById`) sobrescribe el `review` de las cards del deck co
 
 ## New / Edit Deck
 
-### Estado
+### State
 
 `NewDeckUiState`:
 
-- `name`, `description`, `tags: List<String>` (normalizados: lowercase + trim + distinct + non-blank)
+- `name`, `description`, `tags: List<String>` (normalized: lowercase + trim + distinct + non-blank)
 - `isLoading`
-- `formMode: DeckFormMode` (`Create` o `Edit(deckId)`)
-- `isValid` (computed): `name` no vacío
+- `formMode: DeckFormMode` (`Create` or `Edit(deckId)`)
+- `isValid` (computed): `name` not empty
 
-### Carga
+### Loading
 
-Solo si `formMode is DeckFormMode.Edit`:
+Only if `formMode is DeckFormMode.Edit`:
 
 - `DeckRepository.findById(deckId).first()`
-- popula `name`, `description`, `tags` desde el deck cargado
+- populates `name`, `description`, `tags` from the loaded deck
 
-### Acciones
+### Actions
 
 Intents:
 
 - `NameChanged(name)`
 - `DescriptionChanged(description)`
-- `TagsChanged(tags)` — normaliza antes de guardar en state
-- `Submit` — short-circuit si `!isValid || isLoading`
+- `TagsChanged(tags)` — normalizes before saving to state
+- `Submit` — short-circuits if `!isValid || isLoading`
 
 ### Submit
 
 - `DeckFormMode.Create` → `DeckRepository.addDeck(CreateDeckInput(...))` → reset state + `NavigateBack`
 - `DeckFormMode.Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` → `NavigateBack`
 
-### Efectos
+### Effects
 
 `NewDeckUiEffect`:
 
 - `NavigateBack`
 - `ShowMessage(text)`
 
-## Persistencia
+## Persistence
 
-- Lectura/escritura: 100% local sobre `HelloDb` vía repos y use cases del módulo `:domain`/`:data`.
-- Soft delete preserva data y respeta `LOCAL_FIRST.md`.
+- Read/write: 100% local on `HelloDb` via repos and use cases from the `:domain`/`:data` modules.
+- Soft delete preserves data and respects `LOCAL_FIRST.md`.

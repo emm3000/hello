@@ -1,26 +1,26 @@
 # CLAUDE.md
 
-Manifest Claude Code para este repo. **Reglas operativas: `AGENTS.md`** (source of truth).
+Claude Code manifest for this repo. **Operating rules: `AGENTS.md`** (source of truth).
 
-## Orden de lectura
+## Reading order
 
 1. `README.md` · 2. `AGENTS.md` · 3. `ARCHITECTURE.md` · 4. `LOCAL_FIRST.md` · 5. `docs/README.md`
 
-## Slash commands custom (`.claude/commands/`)
+## Custom slash commands (`.claude/commands/`)
 
-- `/checks` — `./gradlew detekt` + `testDebugUnitTest`, agrupa fallas por módulo.
-- `/feature <Name>` — scaffold MVI completo (`UiState/UiIntent/UiEffect/ViewModel/Route/Screen`).
-- `/agents-review` — review del diff pendiente contra reglas de `AGENTS.md`.
-- `/h-component <Name>` — scaffold de componente `H*` en `core/ui/`.
+- `/checks` — `./gradlew detekt` + `testDebugUnitTest`, groups failures by module.
+- `/feature <Name>` — full MVI scaffold (`UiState/UiIntent/UiEffect/ViewModel/Route/Screen`).
+- `/agents-review` — review the pending diff against `AGENTS.md` rules.
+- `/h-component <Name>` — scaffold an `H*` component in `core/ui/`.
 
-## Gotchas que se rompen seguido
+## Common gotchas
 
-(reglas completas en `AGENTS.md`)
+(full rules in `AGENTS.md`)
 
-- Producto **local-first single-device**. No asumir sync, pairing ni bootstrap remoto.
-- `:domain` es **JVM-only**. Sin Android, DB ni network.
-- UI: solo `core/ui/H*`. **Nunca** Material3 raw (`OutlinedTextField`, `Button`, etc.).
+- **Local-first single-device** product. Don't assume sync, pairing or remote bootstrap.
+- `:domain` is **JVM-only**. No Android, DB or network.
+- UI: only `core/ui/H*`. **Never** raw Material3 (`OutlinedTextField`, `Button`, etc.).
 
-## Regla final
+## Final rule
 
-Si una doc contradice el código actual, manda el código y luego se actualiza la doc.
+If a doc contradicts the current code, the code wins and the doc gets updated afterwards.

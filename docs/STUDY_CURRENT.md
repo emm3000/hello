@@ -1,20 +1,20 @@
-# Estudio Actual
+# Current Study
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujo `Study` |
+| Role | Factual feature reference |
+| Scope | `Study` flow |
 | Source of Truth | No |
-| Read this when | Necesitás entender cómo funciona hoy la sesión de estudio |
+| Read this when | You need to understand how the study session works today |
 
-## Resumen
+## Summary
 
-La sesión de estudio trabaja sobre una cola de `StudySessionItem` derivados de flashcards del deck.
+The study session works over a queue of `StudySessionItem`s derived from the deck's flashcards.
 
-Cada flashcard puede expandirse en múltiples items de estudio. La review se persiste una vez por flashcard, cuando se terminan sus items pendientes.
+Each flashcard can expand into multiple study items. The review is persisted once per flashcard, when its pending items are done.
 
-## Archivos clave
+## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyViewModel.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt`
@@ -22,44 +22,44 @@ Cada flashcard puede expandirse en múltiples items de estudio. La review se per
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`
 
-## Estado actual
+## Current state
 
-`StudyUiState` mantiene:
+`StudyUiState` holds:
 
 - `currentItem`
 - `reviewedCount`
 - `totalCount`
 - `sessionFinished`
 
-La lógica fuerte vive en `StudyScreen` y `StudyViewModel`.
+The heavy logic lives in `StudyScreen` and `StudyViewModel`.
 
-## Carga de sesión
+## Session load
 
 `StudyViewModel`:
 
-- obtiene flashcards con `GetStudySessionUseCase(deckId)`
-- expande cada flashcard a `StudySessionItem`
-- guarda una cola local `ArrayDeque`
-- inicializa `totalCount`
-- muestra el primer item disponible
+- fetches flashcards via `GetStudySessionUseCase(deckId)`
+- expands each flashcard into `StudySessionItem`s
+- stores a local `ArrayDeque` queue
+- initializes `totalCount`
+- shows the first available item
 
-## Modelo de progreso
+## Progress model
 
-Por cada flashcard, el viewmodel mantiene:
+For each flashcard, the viewmodel keeps:
 
-- items pendientes por `flashcardId`
-- grade agregado más conservador por `flashcardId`
-- referencia a la flashcard original
+- pending items by `flashcardId`
+- the most conservative aggregated grade per `flashcardId`
+- a reference to the original flashcard
 
-Cuando el último item de una flashcard se responde:
+When the last item of a flashcard is answered:
 
-- calcula el grade final más conservador
-- agenda nueva review con `ScheduleFlashcardReviewUseCase`
-- persiste con `UpdateFlashcardReviewUseCase`
+- computes the most conservative final grade
+- schedules a new review with `ScheduleFlashcardReviewUseCase`
+- persists it with `UpdateFlashcardReviewUseCase`
 
-## Etapas visuales
+## Visual stages
 
-`StudyScreen` usa estas etapas locales:
+`StudyScreen` uses these local stages:
 
 - `Start`
 - `Empty`
@@ -67,64 +67,64 @@ Cuando el último item de una flashcard se responde:
 - `Check`
 - `Grade`
 
-La etapa depende de:
+The stage depends on:
 
-- si la sesión empezó
-- si hay item actual
-- si la card necesita typed answer
-- si la respuesta tipeada ya fue chequeada
+- whether the session has started
+- whether there's a current item
+- whether the card needs a typed answer
+- whether the typed answer has been checked
 
-## Flujo actual de interacción
+## Current interaction flow
 
 ### Start
 
-Muestra una tarjeta de inicio con:
+Shows a start card with:
 
-- cantidad total de items
-- tiempo estimado
-- CTA para empezar
+- total item count
+- estimated time
+- CTA to begin
 
 ### Recall
 
-Muestra el frente de la card y CTA para revelar o pasar a responder.
+Shows the front of the card and a CTA to reveal or jump to answering.
 
 ### Check
 
-Si la card requiere respuesta tipeada:
+If the card requires a typed answer:
 
-- muestra input
-- permite comprobar respuesta
-- permite revelar igual sin responder
+- shows input
+- lets you check the answer
+- lets you reveal anyway without answering
 
 ### Grade
 
-Muestra botones de grading según la política permitida para esa card y el resultado del typed answer.
+Shows grading buttons per the policy allowed for that card and the typed-answer result.
 
 ## Typed answer
 
-El estado local de pantalla mantiene:
+Local screen state holds:
 
 - `typedAnswer`
 - `typedAnswerChecked`
 - `typedAnswerCorrect`
 
-El matching se hace contra:
+Matching is done against:
 
 - `expectedAnswer`
 - `acceptedAnswers`
 - `evaluationMode`
 
-## Navegación y cierre
+## Navigation and exit
 
-Comportamientos actuales:
+Current behaviors:
 
-- si ya hubo progreso, back muestra confirmación de salida
-- cuando termina la sesión, se emite `SessionFinished`
-- al cerrar el diálogo final o back, se emite `NavigateBack`
+- if there's already progress, back shows an exit confirmation
+- when the session ends, `SessionFinished` is emitted
+- closing the final dialog or back emits `NavigateBack`
 
-## Efectos actuales
+## Current effects
 
-`StudyUiEffect` hoy expone:
+`StudyUiEffect` currently exposes:
 
 - `NavigateBack`
 - `SessionFinished`

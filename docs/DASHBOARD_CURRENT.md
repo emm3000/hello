@@ -1,18 +1,18 @@
-# Dashboard Actual
+# Current Dashboard
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujo `Dashboard` |
+| Role | Factual feature reference |
+| Scope | `Dashboard` flow |
 | Source of Truth | No |
-| Read this when | Necesitás entender la lista de decks, búsqueda y filtros actuales |
+| Read this when | You need to understand the current deck list, search and filters |
 
-## Resumen
+## Summary
 
-`Dashboard` es la pantalla principal para ver decks, navegar a detalle, crear deck/card y aplicar búsqueda + filtros por tags sobre datos locales de `HelloDb`.
+`Dashboard` is the main screen for viewing decks, navigating to detail, creating deck/card and applying search + tag filters over local data from `HelloDb`.
 
-## Archivos clave
+## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardScreen.kt`
@@ -20,46 +20,46 @@
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardUiIntent.kt`
 
-## Estado y criterios
+## State and criteria
 
-`DashboardUiState` concentra en una sola fuente:
+`DashboardUiState` consolidates into a single source:
 
 - `searchQuery`
 - `selectedTags`
 - `availableTags`
-- `decks` (lista renderizada)
+- `decks` (rendered list)
 - `totalDeckCount`
 - `emptyState` (`LibraryEmpty`, `NoResults`, `None`)
 
-La lista renderizada se calcula desde criterios activos (query + tags) y no desde fuentes paralelas.
+The rendered list is computed from active criteria (query + tags), not from parallel sources.
 
-## Búsqueda y filtros
+## Search and filters
 
-- búsqueda por nombre de deck case-insensitive
-- filtros por tags con intersección (match ALL)
-- acción `ClearFilters` limpia query + tags en un solo paso
+- search by deck name, case-insensitive
+- tag filters with intersection (match ALL)
+- `ClearFilters` action clears query + tags in a single step
 
-## Decisión de persistencia de filtros
+## Filter persistence decision
 
-Actualmente **no se persisten** filtros entre sesiones.
+Filters are currently **not persisted** across sessions.
 
-- al abrir/recrear la pantalla, `searchQuery` arranca vacío
-- `selectedTags` arranca vacío
+- on open/recreate, `searchQuery` starts empty
+- `selectedTags` starts empty
 
-Motivo: mantener comportamiento predecible y evitar estado stale entre sesiones mientras el producto sigue local-first single-device.
+Reason: keep behavior predictable and avoid stale state across sessions while the product remains local-first single-device.
 
 ## Empty states
 
-- `LibraryEmpty`: no hay decks en base local
-- `NoResults`: hay decks, pero ningún resultado con los criterios activos
+- `LibraryEmpty`: no decks in local database
+- `NoResults`: decks exist, but no results match the active criteria
 
-## Componentes UI reutilizados
+## Reused UI components
 
-La UI usa componentes compartidos de `core/ui`:
+The UI uses shared components from `core/ui`:
 
 - `HSearchBar`
 - `HTagChip`
 - `HButton`
 - `HBadge`
 
-No se introducen componentes Material3 raw para controles de búsqueda/filtro.
+No raw Material3 components are introduced for search/filter controls.

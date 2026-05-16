@@ -3,54 +3,54 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Plan atómico para implementar la notificación diaria de cards due |
-| Source of Truth | Yes (mientras no se cierren todas las tareas) |
-| Read this when | Vas a tocar `WorkManager`, `NotificationChannel` o `Settings` para opt-in |
-| Última verificación contra código | 2026-05-16 |
+| Role | Atomic plan to implement the daily due-cards notification |
+| Source of Truth | Yes (until all tasks close) |
+| Read this when | You're going to touch `WorkManager`, `NotificationChannel`, or `Settings` for opt-in |
+| Last verified against code | 2026-05-16 |
 
 ## TL;DR
 
-`POST_NOTIFICATIONS` está declarado en el plan original pero **no en el manifest actual** (verificado). No hay infra de notificaciones. Esta iteración agrega: permiso, canal, worker periódico que cuenta cards due globalmente, scheduler en startup. **Sin time picker ni deep link en v1** — disparo fijo a las 19:00 local, tap abre la app en la pantalla principal.
+`POST_NOTIFICATIONS` is declared in the original plan but **not in the current manifest** (verified). There is no notification infra. This iteration adds: permission, channel, periodic worker that counts globally due cards, scheduler at startup. **No time picker or deep link in v1** — fixed trigger at 19:00 local, tap opens the app on the main screen.
 
-## Decisiones explícitas
+## Explicit decisions
 
-- **Disparo fijo 19:00 local** en v1. Time picker es follow-up.
-- **No deep link a Study** en v1 — el `PendingIntent` abre `MainActivity`. Follow-up: deep link a deck/study.
-- **Default ON** — los usuarios obtienen el reminder al instalar. Toggle off vive en Settings. Follow-up: onboarding consent dialog.
-- **No backoff exponencial** — si la red/disco fallan, próxima ejecución en 24h.
-- **Cuenta global de cards due**, no por deck. La notificación es genérica ("Tenés N cards para repasar hoy").
-- **Skip si due_count == 0** — no molestar cuando no hay nada.
+- **Fixed trigger at 19:00 local** in v1. Time picker is a follow-up.
+- **No deep link to Study** in v1 — the `PendingIntent` opens `MainActivity`. Follow-up: deep link to deck/study.
+- **Default ON** — users get the reminder on install. Toggle off lives in Settings. Follow-up: onboarding consent dialog.
+- **No exponential backoff** — if network/disk fails, next run is in 24h.
+- **Global due-cards count**, not per deck. The notification is generic ("You have N cards to review today").
+- **Skip if due_count == 0** — don't bother when there's nothing.
 
-## Sprint 1 — Infra base (objetivo: 1.5 h)
+## Sprint 1 — Base infra (goal: 1.5 h)
 
-### N1-T1: Manifest + permisos + ícono
+### N1-T1: Manifest + permissions + icon
 
-- **Archivo:** `app/src/main/AndroidManifest.xml`, `app/src/main/res/drawable/ic_notification.xml` (nuevo).
-- **Qué hacer:**
-    1. Agregar `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`.
-    2. (Opcional v2) `RECEIVE_BOOT_COMPLETED` para resucitar el schedule tras reboot — WorkManager lo maneja solo si usás `PeriodicWorkRequest`, así que SKIP.
-    3. Crear `ic_notification.xml` vector blanco simple (24×24). Si no, usar `R.mipmap.ic_launcher` como fallback (no recomendado por guidelines).
-- **Criterio:** build pasa. La app pide permiso de notificación al primer uso (auto desde Android 13+ cuando se intenta postear).
-- **Estimación:** 15 min.
-- **Estado:** [ ]
+- **Files:** `app/src/main/AndroidManifest.xml`, `app/src/main/res/drawable/ic_notification.xml` (new).
+- **What to do:**
+    1. Add `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`.
+    2. (Optional v2) `RECEIVE_BOOT_COMPLETED` to revive the schedule after reboot — WorkManager handles it alone if you use `PeriodicWorkRequest`, so SKIP.
+    3. Create a simple white vector `ic_notification.xml` (24×24). Otherwise, use `R.mipmap.ic_launcher` as fallback (not recommended per guidelines).
+- **Criterion:** build passes. The app requests notification permission on first use (automatically from Android 13+ when posting is attempted).
+- **Estimate:** 15 min.
+- **Status:** [ ]
 
-### N1-T2: NotificationChannel registrado en App.onCreate
+### N1-T2: NotificationChannel registered in App.onCreate
 
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/notifications/StudyReminderChannel.kt` (nuevo), `App.kt`.
-- **Qué hacer:**
-    1. Constante `STUDY_REMINDER_CHANNEL_ID = "study_reminders"`.
-    2. Función `ensureStudyReminderChannel(context: Context)` que crea el `NotificationChannel` (importance DEFAULT, lights/sound según guidelines) idempotente.
-    3. Llamar desde `App.onCreate()` después de `FirebaseApp.initializeApp`.
-- **Criterio:** abrir Settings > App > Notifications muestra "Recordatorios de estudio" como categoría.
-- **Estimación:** 20 min.
-- **Estado:** [ ]
-- **Depende de:** N1-T1.
+- **Files:** `app/src/main/kotlin/com/emm/hello/notifications/StudyReminderChannel.kt` (new), `App.kt`.
+- **What to do:**
+    1. Constant `STUDY_REMINDER_CHANNEL_ID = "study_reminders"`.
+    2. Function `ensureStudyReminderChannel(context: Context)` that creates the `NotificationChannel` (importance DEFAULT, lights/sound per guidelines), idempotent.
+    3. Call it from `App.onCreate()` after `FirebaseApp.initializeApp`.
+- **Criterion:** opening Settings > App > Notifications shows "Study reminders" as a category.
+- **Estimate:** 20 min.
+- **Status:** [ ]
+- **Depends on:** N1-T1.
 
 ### N1-T3: Global due-cards count query + use case
 
-- **Archivos:** `data/src/main/sqldelight/com/emm/data/Flashcard.sq` (nueva query), `domain/src/main/kotlin/com/emm/domain/flashcard/CountDueFlashcardsUseCase.kt` (nuevo), `FlashcardRepository.kt` (interface), `DefaultFlashcardRepository.kt` (impl).
-- **Qué hacer:**
-    1. Query SQL:
+- **Files:** `data/src/main/sqldelight/com/emm/data/Flashcard.sq` (new query), `domain/src/main/kotlin/com/emm/domain/flashcard/CountDueFlashcardsUseCase.kt` (new), `FlashcardRepository.kt` (interface), `DefaultFlashcardRepository.kt` (impl).
+- **What to do:**
+    1. SQL query:
         ```sql
         countDueFlashcards:
         SELECT COUNT(*)
@@ -60,72 +60,72 @@
         WHERE f.deletedAt IS NULL
           AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
         ```
-    2. `FlashcardRepository.countDueFlashcards(nowMillis: Long): Long` — método nuevo.
-    3. `CountDueFlashcardsUseCase(repo, clock)` — pure use case que devuelve `Long`.
-    4. Test: `CountDueFlashcardsUseCaseTest` con fake repo.
-- **Criterio:** test verde. Cuenta cards con `nextReviewAt IS NULL` (nuevas) más cards con `nextReviewAt <= now`.
-- **Estimación:** 30 min.
-- **Estado:** [ ]
+    2. `FlashcardRepository.countDueFlashcards(nowMillis: Long): Long` — new method.
+    3. `CountDueFlashcardsUseCase(repo, clock)` — pure use case returning `Long`.
+    4. Test: `CountDueFlashcardsUseCaseTest` with a fake repo.
+- **Criterion:** test green. Counts cards with `nextReviewAt IS NULL` (new) plus cards with `nextReviewAt <= now`.
+- **Estimate:** 30 min.
+- **Status:** [ ]
 
 ### N1-T4: DueCardsReminderWorker
 
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/notifications/DueCardsReminderWorker.kt` (nuevo).
-- **Qué hacer:**
-    1. `class DueCardsReminderWorker(context, params, useCase, clock) : CoroutineWorker` — inyectado via Koin (`WorkerFactory` o `koin-androidx-workmanager`).
-    2. `doWork()`: invoca `CountDueFlashcardsUseCase`. Si count == 0, return `Result.success()` sin notificar. Si count > 0, postea notificación con título "Tu repaso del día" y cuerpo "Tenés N cards para repasar".
-    3. PendingIntent target: `MainActivity` con flags inmutables (`FLAG_IMMUTABLE`).
-    4. ID de notificación constante (`STUDY_REMINDER_NOTIFICATION_ID = 1001`) → re-postea sobre la anterior si el usuario no la abre.
-- **Criterio:** ejecutar el worker manualmente desde una unit-style test (o WorkManager test runner) con count > 0 produce una notificación visible.
-- **Estimación:** 45 min.
-- **Estado:** [ ]
-- **Depende de:** N1-T2, N1-T3.
+- **File:** `app/src/main/kotlin/com/emm/hello/notifications/DueCardsReminderWorker.kt` (new).
+- **What to do:**
+    1. `class DueCardsReminderWorker(context, params, useCase, clock) : CoroutineWorker` — injected via Koin (`WorkerFactory` or `koin-androidx-workmanager`).
+    2. `doWork()`: invokes `CountDueFlashcardsUseCase`. If count == 0, return `Result.success()` without notifying. If count > 0, post notification with title "Your daily review" and body "You have N cards to review".
+    3. PendingIntent target: `MainActivity` with immutable flags (`FLAG_IMMUTABLE`).
+    4. Constant notification ID (`STUDY_REMINDER_NOTIFICATION_ID = 1001`) → re-posts over the previous one if the user doesn't open it.
+- **Criterion:** running the worker manually from a unit-style test (or WorkManager test runner) with count > 0 produces a visible notification.
+- **Estimate:** 45 min.
+- **Status:** [ ]
+- **Depends on:** N1-T2, N1-T3.
 
-### N1-T5: Scheduler en app startup (PeriodicWorkRequest 24h, primera ejecución a las 19:00)
+### N1-T5: Scheduler at app startup (PeriodicWorkRequest 24h, first run at 19:00)
 
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/notifications/StudyReminderScheduler.kt` (nuevo), `App.kt` (invocación).
-- **Qué hacer:**
-    1. `StudyReminderScheduler.scheduleDaily()` configura `PeriodicWorkRequest<DueCardsReminderWorker>` con `repeatInterval = 24h`, `flexInterval = 1h`, `initialDelay` calculado para alinear con las 19:00 locales del día actual o siguiente.
-    2. Enqueue con `ExistingPeriodicWorkPolicy.UPDATE` (no `KEEP`) para que cambios de hora se reflejen sin reinstalar.
-    3. Llamar desde `App.onCreate()` después de `startKoin`.
-- **Criterio:** `adb shell dumpsys jobscheduler | grep emm` muestra el job programado. Cambiar el reloj a 19:00 y la notificación aparece dentro de la ventana de 1h.
-- **Estimación:** 30 min.
-- **Estado:** [ ]
-- **Depende de:** N1-T4.
+- **Files:** `app/src/main/kotlin/com/emm/hello/notifications/StudyReminderScheduler.kt` (new), `App.kt` (invocation).
+- **What to do:**
+    1. `StudyReminderScheduler.scheduleDaily()` configures `PeriodicWorkRequest<DueCardsReminderWorker>` with `repeatInterval = 24h`, `flexInterval = 1h`, `initialDelay` computed to align with 19:00 local today or tomorrow.
+    2. Enqueue with `ExistingPeriodicWorkPolicy.UPDATE` (not `KEEP`) so time changes are reflected without reinstalling.
+    3. Call from `App.onCreate()` after `startKoin`.
+- **Criterion:** `adb shell dumpsys jobscheduler | grep emm` shows the scheduled job. Change the clock to 19:00 and the notification appears within the 1h window.
+- **Estimate:** 30 min.
+- **Status:** [ ]
+- **Depends on:** N1-T4.
 
-## Sprint 2 — Opt-out + polish (objetivo: 1.5 h)
+## Sprint 2 — Opt-out + polish (goal: 1.5 h)
 
 ### N2-T6: Settings toggle on/off
 
-- **Archivos:** `data/.../UserPreferences` (nuevo o extender), `app/.../settings/SettingsViewModel.kt`, `SettingsScreen.kt`.
-- **Qué hacer:**
-    1. Almacenar preferencia en `DataStore`/`SharedPreferences`: `study_reminder_enabled: Boolean` (default `true`).
-    2. UI en Settings: `Switch` "Recordatorio diario de estudio" con sublabel "Cada día a las 19:00".
-    3. Al cambiar a OFF → `WorkManager.cancelUniqueWork(...)`. Al cambiar a ON → re-encolar.
-- **Criterio:** toggle off → `adb shell dumpsys jobscheduler` ya no muestra el job. Toggle on → vuelve a aparecer.
-- **Estimación:** 1 h.
-- **Estado:** [ ]
-- **Depende de:** N1-T5.
+- **Files:** `data/.../UserPreferences` (new or extend), `app/.../settings/SettingsViewModel.kt`, `SettingsScreen.kt`.
+- **What to do:**
+    1. Store preference in `DataStore`/`SharedPreferences`: `study_reminder_enabled: Boolean` (default `true`).
+    2. UI in Settings: `Switch` "Daily study reminder" with sublabel "Every day at 19:00".
+    3. On OFF → `WorkManager.cancelUniqueWork(...)`. On ON → re-enqueue.
+- **Criterion:** toggle off → `adb shell dumpsys jobscheduler` no longer shows the job. Toggle on → it reappears.
+- **Estimate:** 1 h.
+- **Status:** [ ]
+- **Depends on:** N1-T5.
 
-### N2-T7: Strings i18n + ícono final
+### N2-T7: i18n strings + final icon
 
-- **Archivos:** `values/strings.xml`, `values-en/strings.xml` (si existe), `res/drawable/ic_notification.xml`.
-- **Qué hacer:**
-    1. Extraer textos: `notification_title`, `notification_body` (plurals), `notification_channel_name`, `notification_channel_description`, `settings_study_reminder_title`, `settings_study_reminder_subtitle`.
-    2. Usar `<plurals>` para "1 card" vs "N cards".
-    3. Reemplazar ícono mock por uno definitivo (vector blanco, 24×24, sin background — guideline Material).
-- **Criterio:** notificación renderiza el plural correcto. Cambiar locale del device respeta el idioma.
-- **Estimación:** 30 min.
-- **Estado:** [ ]
+- **Files:** `values/strings.xml`, `values-en/strings.xml` (if it exists), `res/drawable/ic_notification.xml`.
+- **What to do:**
+    1. Extract strings: `notification_title`, `notification_body` (plurals), `notification_channel_name`, `notification_channel_description`, `settings_study_reminder_title`, `settings_study_reminder_subtitle`.
+    2. Use `<plurals>` for "1 card" vs "N cards".
+    3. Replace mock icon with a final one (white vector, 24×24, no background — Material guideline).
+- **Criterion:** notification renders the correct plural. Changing device locale respects the language.
+- **Estimate:** 30 min.
+- **Status:** [ ]
 
-## Follow-ups conocidos (NO en esta iteración)
+## Known follow-ups (NOT in this iteration)
 
-- **F-Time-Picker**: permitir al usuario elegir hora del recordatorio (no fijo 19:00). Requiere DataStore + lógica de re-cálculo del `initialDelay`.
-- **F-Deep-Link**: tap en la notificación → `Study` para un deck específico (o el deck con más due).
-- **F-Onboarding-Consent**: pedir permiso `POST_NOTIFICATIONS` con UI contextual durante onboarding (en Android 13+) en vez de al primer post.
-- **F-Multi-Reminder**: notificaciones múltiples por deck en vez de una global (UX más rica pero más ruidoso).
+- **F-Time-Picker**: let the user pick the reminder time (not fixed 19:00). Requires DataStore + `initialDelay` re-computation logic.
+- **F-Deep-Link**: tap on notification → `Study` for a specific deck (or the deck with the most due).
+- **F-Onboarding-Consent**: ask `POST_NOTIFICATIONS` permission with contextual UI during onboarding (on Android 13+) instead of at first post.
+- **F-Multi-Reminder**: multiple notifications per deck instead of a single global one (richer UX but noisier).
 
-## Decisiones que no son obvias
+## Decisions that aren't obvious
 
-- **¿Por qué `flexInterval = 1h`?** WorkManager para `PeriodicWorkRequest` permite una ventana de flex que el sistema usa para agrupar wakes y ahorrar batería. Sin flex el sistema podría hacer wake exact, que en Doze mode no es posible. 1h es buen tradeoff: el usuario ve la notif entre 18:00 y 19:00, no estrictamente a las 19:00.
-- **¿Por qué Worker en `app/` y no en `:data`?** El worker depende de notificación (Android API) que no entra en `:data` puro. Vive con UI/scaffolding.
-- **¿Por qué `UPDATE` en lugar de `KEEP`?** El plan permite cambiar la hora más adelante (F-Time-Picker). `UPDATE` re-encola con la nueva spec sin requerir cancelación manual.
+- **Why `flexInterval = 1h`?** WorkManager `PeriodicWorkRequest` allows a flex window the system uses to batch wakes and save battery. Without flex, the system might attempt an exact wake, which is not possible in Doze mode. 1h is a good tradeoff: the user sees the notif between 18:00 and 19:00, not strictly at 19:00.
+- **Why Worker in `app/` and not `:data`?** The worker depends on notifications (Android API) which don't fit in pure `:data`. It lives with UI/scaffolding.
+- **Why `UPDATE` instead of `KEEP`?** The plan allows changing the time later (F-Time-Picker). `UPDATE` re-enqueues with the new spec without requiring manual cancellation.

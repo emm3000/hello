@@ -1,26 +1,26 @@
-# Creación de Tarjetas Actual
+# Current Card Creation
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Referencia factual de feature |
-| Scope | Flujo `New Card` |
+| Role | Factual feature reference |
+| Scope | `New Card` flow |
 | Source of Truth | No |
-| Read this when | Necesitás entender cómo funciona hoy la creación de tarjetas |
+| Read this when | You need to understand how card creation works today |
 
-## Resumen
+## Summary
 
-El flujo actual de creación tiene 3 pasos manejados en `NewCardRoute`:
+The current creation flow has 3 steps handled in `NewCardRoute`:
 
 1. `Mode`
 2. `Input`
 3. `Review`
 
-La navegación es local al route y usa un único `NewCardViewModel` compartido.
+Navigation is local to the route and uses a single shared `NewCardViewModel`.
 
-## Archivos clave
+## Key files
 
-Estos son **entry points y artefactos principales** del flujo de creación. El resto de `newfeatures/card/` contiene componentes internos (preview UI, validación, drafts) y los flujos hermanos de detalle/edición documentados aparte.
+These are the **main entry points and artifacts** of the creation flow. The rest of `newfeatures/card/` contains internal components (preview UI, validation, drafts) and the sibling detail/edit flows documented separately.
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardModeScreen.kt`
@@ -31,104 +31,104 @@ Estos son **entry points y artefactos principales** del flujo de creación. El r
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardPreviewWorkflow.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardDraftEditor.kt`
 
-## Flujos relacionados
+## Related flows
 
-- Ver tarjeta existente: `docs/CARD_DETAIL_CURRENT.md`
-- Editar tarjeta existente: `docs/EDIT_FLASHCARD_CURRENT.md`
+- View existing card: `docs/CARD_DETAIL_CURRENT.md`
+- Edit existing card: `docs/EDIT_FLASHCARD_CURRENT.md`
 
-## Paso 1. Modo
+## Step 1. Mode
 
-`NewCardModeScreen` muestra un selector de modo y un CTA para continuar.
+`NewCardModeScreen` shows a mode selector and a CTA to continue.
 
-Modos actuales de `TypeView`:
+Current `TypeView` modes:
 
 - `WordOrPhase`
 - `WithCategories`
 - `WithAiHelp`
 
-## Paso 2. Input
+## Step 2. Input
 
-`NewCardInputStepScreen` muestra:
+`NewCardInputStepScreen` shows:
 
-- inputs según `TypeView`
-- selección de deck
-- checkbox para deck por defecto
-- CTA `Generar`
+- inputs based on `TypeView`
+- deck selection
+- default-deck checkbox
+- `Generate` CTA
 
-Habilitación actual:
+Current gating:
 
-- `WordOrPhase`: requiere deck y `word`
-- `WithCategories`: requiere deck
-- `WithAiHelp`: requiere deck y `aiRequest`
+- `WordOrPhase`: requires deck and `word`
+- `WithCategories`: requires deck
+- `WithAiHelp`: requires deck and `aiRequest`
 
-Soporte actual:
+Current support:
 
-- micrófono en inputs de palabra
-- categorías estáticas mediante bottom sheet
-- dificultad simple mapeada a `LevelBand`
+- microphone in word inputs
+- static categories via bottom sheet
+- simple difficulty mapped to `LevelBand`
 
-## Input de dominio
+## Domain input
 
-`NewCardUiState` se traduce a `FlashcardGenerationInput` en `NewCardGenerationMappings.kt`.
+`NewCardUiState` is translated to `FlashcardGenerationInput` in `NewCardGenerationMappings.kt`.
 
-Mapeo actual:
+Current mapping:
 
-- `WordOrPhase` infiere `Word`, `Phrase` o `Sentence` desde `word`
-- `WithCategories` usa `CommunicativeGoal` desde una categoría estática
-- `WithAiHelp` usa `CommunicativeGoal` desde texto libre
+- `WordOrPhase` infers `Word`, `Phrase` or `Sentence` from `word`
+- `WithCategories` uses `CommunicativeGoal` from a static category
+- `WithAiHelp` uses `CommunicativeGoal` from free text
 
-Antes de generar preview siempre hay validación de input.
+Input is always validated before generating a preview.
 
-## Paso 3. Review
+## Step 3. Review
 
-`NewCardReviewScreen` renderiza uno de estos estados:
+`NewCardReviewScreen` renders one of these states:
 
-- preview disponible
+- preview available
 - loading
 - error
 - empty state
 
-La review actual permite:
+The current review allows:
 
-- editar campos de `GeneratedLearningNote`
-- editar prompt, expected answer e hint de cada `GeneratedStudyCard`
-- activar o desactivar cards individuales
-- regenerar ejemplo
-- regenerar cloze
-- regenerar campos específicos (`WhyUseful`, `UsagePattern`, `CommonMistake`)
-- regenerar una card individual
+- editing `GeneratedLearningNote` fields
+- editing prompt, expected answer and hint for each `GeneratedStudyCard`
+- enabling or disabling individual cards
+- regenerating example
+- regenerating cloze
+- regenerating specific fields (`WhyUseful`, `UsagePattern`, `CommonMistake`)
+- regenerating an individual card
 
-La validación se recalcula después de cada edición o regeneración.
+Validation is recomputed after each edit or regeneration.
 
-## Guardado
+## Saving
 
 `NewCardViewModel.saveFlashcard()`:
 
-- exige `deckSelected`
-- exige `learningNotePreview`
-- vuelve a validar preview antes de guardar
-- usa `CreateFlashcardUseCase`
-- al guardar con éxito resetea estado, muestra mensaje y cierra el flujo
+- requires `deckSelected`
+- requires `learningNotePreview`
+- re-validates preview before saving
+- uses `CreateFlashcardUseCase`
+- on success it resets state, shows a message and closes the flow
 
-## Efectos del flujo
+## Flow effects
 
-`NewCardUiEffect` hoy expone:
+`NewCardUiEffect` today exposes:
 
 - `ShowMessage`
 - `OpenReview`
 - `CloseFlow`
 
-`GenerateClicked` dispara `OpenReview` antes de resolver el resultado, así que el paso de review también contiene loading y errores.
+`GenerateClicked` fires `OpenReview` before resolving the result, so the review step also contains loading and errors.
 
-## Modelo relevante
+## Relevant model
 
-La preview gira alrededor de `GeneratedLearningNote`:
+The preview revolves around `GeneratedLearningNote`:
 
-- nota base
-- ejemplo
-- metadata lingüística
+- base note
+- example
+- linguistic metadata
 - `cards`
 - `qualityChecks`
 - `warnings`
 
-La detección de duplicados exactos existe mediante `FlashcardDuplicateRepository`.
+Exact-duplicate detection exists via `FlashcardDuplicateRepository`.

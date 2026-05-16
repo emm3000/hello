@@ -3,128 +3,128 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Documentación del algoritmo de scheduling de reviews |
+| Role | Documentation of the review scheduling algorithm |
 | Source of Truth | `domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt` |
 | Tests | `domain/src/test/kotlin/com/emm/domain/study/SpacedRepetitionSchedulerTest.kt` |
-| Read this when | Toques el scheduler, expliques a un usuario "por qué volvió tan pronto", o decidas migrar a FSRS |
-| Última verificación contra código | 2026-05-15 |
+| Read this when | You touch the scheduler, explain to a user "why did it come back so soon", or decide to migrate to FSRS |
+| Last verified against code | 2026-05-15 |
 
 ## TL;DR
 
-Variante simplificada de **SM-2** (Anki clásico) con una elección de diseño deliberada:
-las cartas calificadas como **HARD pasan** en lugar de reprobar. Solo **AGAIN** reprueba.
-Eso hace que el algoritmo sea **más permisivo** que Anki estándar para reducir la
-fricción del usuario nuevo, a costo de progresar más despacio.
+Simplified variant of **SM-2** (classic Anki) with a deliberate design choice:
+cards graded **HARD pass** instead of failing. Only **AGAIN** fails.
+That makes the algorithm **more permissive** than standard Anki to reduce
+new-user friction, at the cost of slower progression.
 
-Si un usuario reclama "esta carta volvió rápido", la respuesta casi siempre es:
-- Calificó HARD varias veces → el ease bajó hasta el piso 1.3 → intervalos cortos.
-- O calificó AGAIN → reset a `interval = 1`.
+If a user complains "this card came back too fast", the answer is almost always:
+- They graded HARD several times → ease dropped to the 1.3 floor → short intervals.
+- Or they graded AGAIN → reset to `interval = 1`.
 
-## Mapeo Grade → Quality (no canónico)
+## Grade → Quality mapping (non-canonical)
 
-Internamente cada `ReviewGrade` se traduce a un valor de "quality" SM-2.
-Nuestro mapeo está **shifteado hacia arriba** respecto a Anki canónico:
+Internally each `ReviewGrade` translates to an SM-2 "quality" value.
+Our mapping is **shifted upward** relative to canonical Anki:
 
-| Grade | Quality (Hello) | Quality canónico Anki | Efecto |
+| Grade | Quality (Hello) | Canonical Anki quality | Effect |
 |---|---|---|---|
-| `AGAIN` | 1 | 0 | Reprueba (quality < 3) |
-| `HARD`  | 3 | 2 | **Pasa** en Hello, reprueba en Anki canónico |
-| `GOOD`  | 4 | 3 | Pasa |
-| `EASY`  | 5 | 4 | Pasa |
+| `AGAIN` | 1 | 0 | Fails (quality < 3) |
+| `HARD`  | 3 | 2 | **Passes** in Hello, fails in canonical Anki |
+| `GOOD`  | 4 | 3 | Passes |
+| `EASY`  | 5 | 4 | Passes |
 
-Threshold de reprobación: `quality < QUALITY_THRESHOLD_FOR_RESET (3)`.
-Como HARD = 3, **HARD pasa por un punto**.
+Failure threshold: `quality < QUALITY_THRESHOLD_FOR_RESET (3)`.
+Since HARD = 3, **HARD passes by one point**.
 
-### Por qué este shift
+### Why this shift
 
-Decisión de producto: en una app local-first sin presión social ni gamificación,
-calificarse honestamente como HARD ya implica humildad. Penalizarlo con un reset
-desincentiva la auto-evaluación honesta. El usuario termina marcando GOOD
-mecánicamente para no perder el ritmo. Preferimos que HARD pase pero **baje el ease**,
-acortando los próximos intervalos sin tirar el progreso a la basura.
+Product decision: in a local-first app with no social pressure or gamification,
+grading yourself HARD already implies humility. Penalizing it with a reset
+disincentivizes honest self-assessment. The user ends up mechanically tapping
+GOOD to keep momentum. We prefer HARD to pass but **lower the ease**,
+shortening upcoming intervals without throwing progress in the trash.
 
-## Algoritmo paso a paso
+## Algorithm step by step
 
 ```
 input:  review (ease, repetitions, interval, lapses), grade, flashcardId, clock
-output: nuevo FlashcardReview
+output: new FlashcardReview
 
 1. quality = mapGradeToQuality(grade)
-2. si quality < 3:
+2. if quality < 3:
      // FAIL path
-     newEaseFactor   = review.easeFactor   (sin cambios)
+     newEaseFactor   = review.easeFactor   (unchanged)
      newRepetitions  = 0                   (reset)
-     newInterval     = 1                   (mañana lo ves otra vez)
+     newInterval     = 1                   (see it again tomorrow)
      newLapses       = review.lapses + 1
-   sino:
+   else:
      // PASS path
      qualityDistance = MAX_QUALITY - quality
      easeAdjustment  = 0.10 - qualityDistance * (0.08 + qualityDistance * 0.02)
      newEaseFactor   = max(1.3, review.easeFactor + easeAdjustment)
      newRepetitions  = review.repetitions + 1
-     newInterval     = cuando newRepetitions sea:
-                         1L → 1 día
-                         2L → 6 días
+     newInterval     = when newRepetitions is:
+                         1L → 1 day
+                         2L → 6 days
                          3L+ → round(review.interval * newEaseFactor)
-     newLapses       = review.lapses  (sin cambios)
+     newLapses       = review.lapses  (unchanged)
 
 3. lastReviewedAt = clock.now()
-4. nextReviewAt   = clock.now() + newInterval días
+4. nextReviewAt   = clock.now() + newInterval days
 ```
 
-## Constantes (qué significa cada número)
+## Constants (what each number means)
 
 ```kotlin
-MINIMUM_EASE_FACTOR        = 1.3   // piso del ease — nunca baja de acá
-QUALITY_THRESHOLD_FOR_RESET = 3    // quality < esto → fail path
-MAX_QUALITY                = 5     // quality de EASY
-EASE_DELTA_BASE            = 0.1   // ajuste cuando quality == 5
-EASE_DELTA_FACTOR          = 0.08  // pendiente lineal de decay
-EASE_DELTA_PENALTY         = 0.02  // término cuadrático que penaliza calidad baja
-SECOND_REVIEW_INTERVAL_DAYS = 6L   // intervalo tras la 2ª repetición exitosa
+MINIMUM_EASE_FACTOR        = 1.3   // ease floor — never goes below this
+QUALITY_THRESHOLD_FOR_RESET = 3    // quality < this → fail path
+MAX_QUALITY                = 5     // EASY's quality
+EASE_DELTA_BASE            = 0.1   // adjustment when quality == 5
+EASE_DELTA_FACTOR          = 0.08  // linear decay slope
+EASE_DELTA_PENALTY         = 0.02  // quadratic term penalizing low quality
+SECOND_REVIEW_INTERVAL_DAYS = 6L   // interval after the 2nd successful repetition
 ```
 
-Los 4 valores del ease (`MINIMUM_EASE_FACTOR`, `EASE_DELTA_BASE`, `EASE_DELTA_FACTOR`,
-`EASE_DELTA_PENALTY`) son los **mismos que Anki**. La fórmula del ease adjustment
-es literalmente la de SM-2:
+The 4 ease values (`MINIMUM_EASE_FACTOR`, `EASE_DELTA_BASE`, `EASE_DELTA_FACTOR`,
+`EASE_DELTA_PENALTY`) are the **same as Anki**. The ease-adjustment formula is
+literally SM-2's:
 
 > `EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))`
 
-Lo único que difiere es **cuándo se invoca** (umbral de reset) y la tabla de
-intervalos para reps tempranas (Anki usa 10 días para la 2ª; nosotros 6).
+The only difference is **when it's invoked** (reset threshold) and the interval
+table for early reps (Anki uses 10 days for the 2nd; we use 6).
 
-## Tabla de easeAdjustment por grade
+## easeAdjustment table per grade
 
-| Grade | qualityDistance | Ajuste de ease |
+| Grade | qualityDistance | Ease adjustment |
 |---|---|---|
-| `AGAIN` (q=1) | 4 | n/a (no se aplica, va por fail path) |
+| `AGAIN` (q=1) | 4 | n/a (not applied, takes fail path) |
 | `HARD`  (q=3) | 2 | `0.10 - 2*(0.08 + 2*0.02) = -0.14` |
 | `GOOD`  (q=4) | 1 | `0.10 - 1*(0.08 + 1*0.02) = 0.00` |
 | `EASY`  (q=5) | 0 | `0.10` |
 
-Implicancias:
-- **GOOD no cambia el ease**. Es el grade "neutral" — el algoritmo te respeta.
-- **HARD baja 0.14**. Llegás al piso 1.3 desde 2.5 en ~9 HARDs seguidos.
-- **EASY sube 0.10**. Te premia pero modesto.
+Implications:
+- **GOOD doesn't change ease**. It's the "neutral" grade — the algorithm respects you.
+- **HARD drops 0.14**. You reach the 1.3 floor from 2.5 in ~9 consecutive HARDs.
+- **EASY rises 0.10**. Rewards you, but modestly.
 
-## Edge cases cubiertos por tests
+## Edge cases covered by tests
 
-`SpacedRepetitionSchedulerTest.kt` cubre:
+`SpacedRepetitionSchedulerTest.kt` covers:
 
-- Mapeo grade → behavior (ease delta correcto por grade).
-- Piso del ease: HARD en 1.3 se queda en 1.3, HARD en 1.4 floorea a 1.3.
-- Progresión de intervalos: 1 → 6 → ease * interval.
-- Brand-new card con AGAIN: `lapses = 1, repetitions = 0, interval = 1`.
-- Brand-new card con EASY: `ease = 2.6, repetitions = 1, interval = 1`.
-- Múltiples AGAINs acumulan lapses correctamente.
-- Lapse mid-stream resetea repetitions pero **conserva el ease**.
-- Timestamps: `lastReviewedAt = clock.now()`, `nextReviewAt` exactamente N días después.
-- `flashcardId` es **reemplazado** por el argumento, no leído del review (importante
-  para evitar arrastrar el id placeholder de `FlashcardReview.empty()`).
+- Grade → behavior mapping (correct ease delta per grade).
+- Ease floor: HARD at 1.3 stays at 1.3; HARD at 1.4 floors to 1.3.
+- Interval progression: 1 → 6 → ease * interval.
+- Brand-new card with AGAIN: `lapses = 1, repetitions = 0, interval = 1`.
+- Brand-new card with EASY: `ease = 2.6, repetitions = 1, interval = 1`.
+- Multiple AGAINs accumulate lapses correctly.
+- Mid-stream lapse resets repetitions but **preserves ease**.
+- Timestamps: `lastReviewedAt = clock.now()`, `nextReviewAt` exactly N days later.
+- `flashcardId` is **replaced** by the argument, not read from the review (important
+  to avoid carrying the placeholder id from `FlashcardReview.empty()`).
 
-## Invariantes garantizados por `FlashcardReview`
+## Invariants guaranteed by `FlashcardReview`
 
-El constructor de `FlashcardReview` (no el scheduler) hace `require()` de:
+The `FlashcardReview` constructor (not the scheduler) `require()`s:
 
 - `easeFactor >= 1.3`
 - `nextReviewAt >= lastReviewedAt`
@@ -132,39 +132,39 @@ El constructor de `FlashcardReview` (no el scheduler) hace `require()` de:
 - `repetitions >= 0`
 - `lapses >= 0`
 
-Por eso el scheduler nunca chequea estas condiciones a la salida: si las viola,
-`copy()` tira en el `init` block.
+That's why the scheduler never checks these conditions on output: if it violates them,
+`copy()` throws in the `init` block.
 
-## Limitaciones conocidas
+## Known limitations
 
-1. **No hay modelo de "leech"**: cartas con muchísimos lapses no se marcan ni se
-   sacan del deck. Anki las suspende a las 8. Decidir cuándo agregarlo cuando
-   tengamos data real de retención.
-2. **Clock asumido monotónico**: si el reloj del device retrocede entre un review
-   y el siguiente, `nextReviewAt < lastReviewedAt` rompería el constructor. No
-   defendemos contra esto explícitamente — confiamos en el sistema.
-3. **No hay diferenciación de "learning" vs "review" cards**: Anki tiene dos
-   colas separadas. Nosotros simplificamos a una sola.
-4. **Intervalos en días enteros**: `(interval * ease).roundToLong()`. Pierde
-   precisión sub-día. OK para una app de estudio diario; no OK si alguna vez
-   hacemos repaso por minutos/horas.
+1. **No "leech" model**: cards with very many lapses are not flagged or removed
+   from the deck. Anki suspends them at 8. Decide when to add it once we have
+   real retention data.
+2. **Clock assumed monotonic**: if the device clock goes backwards between one
+   review and the next, `nextReviewAt < lastReviewedAt` would break the
+   constructor. We don't defend against this explicitly — we trust the system.
+3. **No "learning" vs "review" card distinction**: Anki has two separate
+   queues. We simplify to one.
+4. **Integer-day intervals**: `(interval * ease).roundToLong()`. Loses sub-day
+   precision. Fine for a daily study app; not fine if we ever do minute/hour
+   reviews.
 
-## Si alguna vez decidimos migrar a FSRS
+## If we ever decide to migrate to FSRS
 
-FSRS (Free Spaced Repetition Scheduler) es el sucesor moderno de SM-2 que usa
-ML para predecir retention. Migrar requeriría:
+FSRS (Free Spaced Repetition Scheduler) is the modern successor to SM-2 that uses
+ML to predict retention. Migrating would require:
 
-- Tabla de parámetros por usuario (FSRS los aprende del review history).
-- Cambio de schema en `FlashcardReview` (FSRS usa "stability" y "difficulty",
-  no `easeFactor`).
-- Lógica de scheduling completamente distinta.
-- Tests del scheduler reescritos.
+- Per-user parameter table (FSRS learns them from review history).
+- Schema change in `FlashcardReview` (FSRS uses "stability" and "difficulty",
+  not `easeFactor`).
+- Completely different scheduling logic.
+- Rewritten scheduler tests.
 
-**Cuándo evaluarlo**: cuando tengamos ≥3 meses de review data de usuarios beta
-y podamos medir retention real vs predicha. Antes es prematuro.
+**When to evaluate**: once we have ≥3 months of beta user review data and can
+measure real vs predicted retention. Before that is premature.
 
-## Documentos relacionados
+## Related documents
 
-- `LAUNCH_READINESS_AUDIT.md` — `S2-T4` originalmente pedía esta doc.
-- `ARCHITECTURE.md` — ubicación del scheduler en el domain.
-- `AGENTS.md` — reglas de modificación del domain.
+- `LAUNCH_READINESS_AUDIT.md` — `S2-T4` originally requested this doc.
+- `ARCHITECTURE.md` — scheduler location in the domain.
+- `AGENTS.md` — rules for modifying the domain.

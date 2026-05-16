@@ -3,127 +3,127 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Guía operativa para agentes |
+| Role | Operating guide for agents |
 | Source of Truth | Yes |
-| Read this when | Vas a editar código o documentación del repo |
+| Read this when | You're about to edit code or documentation in the repo |
 
-## Estado obligatorio
+## Mandatory state
 
-El producto corre en modo local-first single-device.
+The product runs in local-first single-device mode.
 
-No asumir:
+Don't assume:
 
-- sync remoto activo
-- pairing activo
-- bootstrap remoto activo
+- active remote sync
+- active pairing
+- active remote bootstrap
 
-## Fuentes a leer
+## Sources to read
 
 1. `README.md`
 2. `ARCHITECTURE.md`
 3. `LOCAL_FIRST.md`
 4. `docs/README.md`
 
-## Reglas del repo
+## Repo rules
 
-- módulos: `:app`, `:data`, `:domain`
-- dependencias: `app -> data`, `app -> domain`, `data -> domain`
-- `domain` se mantiene JVM-only
-- `HelloDb` es source of truth
+- modules: `:app`, `:data`, `:domain`
+- dependencies: `app -> data`, `app -> domain`, `data -> domain`
+- `domain` stays JVM-only
+- `HelloDb` is the source of truth
 
-## Startup actual
+## Current startup
 
 - `App -> Koin -> AppStartupCoordinator.start()`
-- startup solo inicializa identidad local de instalación
+- startup only initializes local install identity
 
-## Convenciones de features
+## Feature conventions
 
-- MVI por feature con `UiState`, `UiIntent`, `UiEffect`
-- punto de entrada público: `onIntent(intent)`
-- naming en `app/src/main/kotlin/com/emm/hello/newfeatures/`: `*ViewModel`, `*Route`, `*UiState`, `*UiIntent`, `*UiEffect`
+- MVI per feature with `UiState`, `UiIntent`, `UiEffect`
+- public entry point: `onIntent(intent)`
+- naming in `app/src/main/kotlin/com/emm/hello/newfeatures/`: `*ViewModel`, `*Route`, `*UiState`, `*UiIntent`, `*UiEffect`
 
-## Componentes UI compartidos (core/ui)
+## Shared UI components (core/ui)
 
-### Convención de naming
+### Naming convention
 
-- **Composables públicos**: prefijo `H` (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). Esta es la regla dura.
-- **Archivos**: actualmente inconsistente — la mayoría sin prefijo (`Button.kt`, `Input.kt`, `Badge.kt`, `Card.kt`) y 4 con prefijo (`HSearchBar.kt`, `HTagChip.kt`, `HTagInput.kt`, `HLoadingSpinner.kt`). Para archivos nuevos preferir **sin prefijo** (alinea con la mayoría y con el template `Input.kt`).
-- **Excepción sin composable `H*`**: `FieldShell` — building block interno, template para inputs.
+- **Public composables**: `H` prefix (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). This is the hard rule.
+- **Files**: currently inconsistent — most without prefix (`Button.kt`, `Input.kt`, `Badge.kt`, `Card.kt`) and 4 with prefix (`HSearchBar.kt`, `HTagChip.kt`, `HTagInput.kt`, `HLoadingSpinner.kt`). For new files prefer **no prefix** (aligns with the majority and with the `Input.kt` template).
+- **Exception without `H*` composable**: `FieldShell` — internal building block, template for inputs.
 
-### Jerarquía para nuevos diseños
+### Hierarchy for new designs
 
-1. **Primero**: revisá `app/src/main/kotlin/com/emm/hello/core/ui/`. Si existe el componente que necesitás, USALO sin excepción. Los componentes están inspirados en shadcn/ui y definen el tema de la app.
+1. **First**: check `app/src/main/kotlin/com/emm/hello/core/ui/`. If the component you need exists, USE IT no exceptions. The components are inspired by shadcn/ui and define the app's theme.
 
-2. **Local vs compartido**:
-   - scope = una sola pantalla → crear en el feature (`newfeatures/X/`)
-   - scope = app-wide → crear en `core/ui/`
+2. **Local vs shared**:
+   - scope = single screen → create in the feature (`newfeatures/X/`)
+   - scope = app-wide → create in `core/ui/`
 
-3. **Si no existe**:
-   - Crear composable `H*` en `core/ui/` (`HSearchBar`, `HChip`, `HTagInput`, etc.).
-   - **NO usar** componentes raw de Material3 (`OutlinedTextField`, `Button`, `TextField`, etc.).
-   - Template: `Input.kt` + `FieldShell.kt` (borde animado, fondo transparente, 48dp altura mínima).
-   - Incluir preview `PreviewLightDark`.
+3. **If it doesn't exist**:
+   - Create an `H*` composable in `core/ui/` (`HSearchBar`, `HChip`, `HTagInput`, etc.).
+   - **Do NOT use** raw Material3 components (`OutlinedTextField`, `Button`, `TextField`, etc.).
+   - Template: `Input.kt` + `FieldShell.kt` (animated border, transparent background, 48dp minimum height).
+   - Include `PreviewLightDark` preview.
 
-**Regla de hierro**: un componente custom en un screen NUNCA reemplaza un componente de `core/ui` que exista para ese propósito. Si el de `core/ui` no sirve, se extiende o modifica primero.
+**Iron rule**: a custom component in a screen NEVER replaces a `core/ui` component that exists for that purpose. If the `core/ui` one doesn't fit, extend or modify it first.
 
-## Convenciones de nombres
+## Naming conventions
 
-Tres fuentes combinadas: Uncle Bob (Clean Code), Kotlin oficial, y práctica Android profesional (GDE tier). En caso de conflicto, este orden es la prioridad.
+Three combined sources: Uncle Bob (Clean Code), official Kotlin, and professional Android practice (GDE tier). In case of conflict, this order is the priority.
 
-### Principios Uncle Bob — aplicados a Kotlin/Android
+### Uncle Bob principles — applied to Kotlin/Android
 
-| Regla | Mal | Bien |
+| Rule | Bad | Good |
 |---|---|---|
-| El nombre revela intención | `d`, `data`, `tmp` | `deckId`, `filteredDecks`, `elapsedMs` |
-| Sin desinformación | `deckList` (es una `List`) | `decks` |
-| Distinción significativa | `getDeck` vs `fetchDeck` vs `retrieveDeck` | un solo verbo por concepto |
-| Pronunciable | `genDtTmStmp` | `generatedAt` |
-| Buscable (sin magic literals) | `if (type == 2)` | `if (type == CardType.CLOZE)` |
-| Clases: sustantivos | `DataProcessor`, `Manager` | `FlashcardRepository`, `DeckDetailViewModel` |
-| Funciones: verbos | `card()`, `data()` | `loadCard()`, `buildState()` |
-| Una palabra por concepto | `fetch` en un sitio, `get` en otro | elegir uno y usarlo en todo el codebase |
-| Sin humor ni jerga | `whack()`, `eatMyShorts()` | `delete()`, `clear()` |
+| Name reveals intent | `d`, `data`, `tmp` | `deckId`, `filteredDecks`, `elapsedMs` |
+| No disinformation | `deckList` (it's a `List`) | `decks` |
+| Meaningful distinction | `getDeck` vs `fetchDeck` vs `retrieveDeck` | one verb per concept |
+| Pronounceable | `genDtTmStmp` | `generatedAt` |
+| Searchable (no magic literals) | `if (type == 2)` | `if (type == CardType.CLOZE)` |
+| Classes: nouns | `DataProcessor`, `Manager` | `FlashcardRepository`, `DeckDetailViewModel` |
+| Functions: verbs | `card()`, `data()` | `loadCard()`, `buildState()` |
+| One word per concept | `fetch` in one place, `get` in another | pick one and use it across the codebase |
+| No humor or jargon | `whack()`, `eatMyShorts()` | `delete()`, `clear()` |
 
-### Kotlin oficial
+### Official Kotlin
 
-- **Clases / objetos / interfaces**: `PascalCase` — `DashboardViewModel`, `MviState`
-- **Funciones / propiedades**: `camelCase` — `loadDeck()`, `isLoading`
-- **Constantes** (`const val`, companion, top-level): `SCREAMING_SNAKE_CASE` — `SEARCH_DEBOUNCE_MS`
-- **Paquetes**: `lowercase.sinunderscores`
-- **Backing properties**: prefijo `_` + mismo nombre — `_state` / `state`
-- **Lambdas**: usar `it` solo si el contexto es obvio en ≤ 2 líneas; si no, nombre explícito
-- Preferir `val` sobre `var`; preferir extension functions sobre clases utilitarias
+- **Classes / objects / interfaces**: `PascalCase` — `DashboardViewModel`, `MviState`
+- **Functions / properties**: `camelCase` — `loadDeck()`, `isLoading`
+- **Constants** (`const val`, companion, top-level): `SCREAMING_SNAKE_CASE` — `SEARCH_DEBOUNCE_MS`
+- **Packages**: `lowercase.nounderscores`
+- **Backing properties**: `_` prefix + same name — `_state` / `state`
+- **Lambdas**: use `it` only if context is obvious in ≤ 2 lines; otherwise explicit name
+- Prefer `val` over `var`; prefer extension functions over utility classes
 
-### Android / Kotlin profesional
+### Professional Android / Kotlin
 
-**Patrones de nombres por capa:**
+**Naming patterns by layer:**
 
-| Tipo | Patrón | Ejemplos |
+| Type | Pattern | Examples |
 |---|---|---|
 | ViewModel | `<Feature>ViewModel` | `DashboardViewModel` |
-| UseCase | `<Verbo><Sujeto>UseCase` | `GetDecksUseCase`, `ScheduleFlashcardReviewUseCase` |
-| Repository (interfaz) | `<Entidad>Repository` | `DeckRepository`, `FlashcardReviewRepository` |
-| Repository (impl) | `<Entidad>RepositoryImpl` o `<Fuente><Entidad>Repository` | `SqlDelightDeckRepository` |
-| UiState | `<Feature>UiState` — data class, todos los campos `val` | `DashboardUiState` |
-| UiIntent | `<Feature>UiIntent` — sealed interface, nombres en **pasado o sustantivo-verbo** | `QueryChanged`, `TagToggled`, `SaveClicked` |
-| UiEffect | `<Feature>UiEffect` — sealed interface, nombres descriptivos del efecto | `NavigateBack`, `ShowMessage` |
-| Flow/StateFlow expuesto | nombre sin sufijo `Flow` | `val decks: Flow<List<Deck>>` no `val decksFlow` |
-| Booleanos | prefijo `is`, `has`, `can`, `should` | `isLoading`, `hasSession`, `canSave` |
-| Callbacks / lambdas en Composable | prefijo `on` | `onIntent`, `onClick`, `onDismiss` |
-| Suspend fun | nombre como si fuera síncrono | `fetchById()` no `fetchByIdSuspend()` |
+| UseCase | `<Verb><Subject>UseCase` | `GetDecksUseCase`, `ScheduleFlashcardReviewUseCase` |
+| Repository (interface) | `<Entity>Repository` | `DeckRepository`, `FlashcardReviewRepository` |
+| Repository (impl) | `<Entity>RepositoryImpl` or `<Source><Entity>Repository` | `SqlDelightDeckRepository` |
+| UiState | `<Feature>UiState` — data class, all fields `val` | `DashboardUiState` |
+| UiIntent | `<Feature>UiIntent` — sealed interface, names in **past tense or noun-verb** | `QueryChanged`, `TagToggled`, `SaveClicked` |
+| UiEffect | `<Feature>UiEffect` — sealed interface, names describing the effect | `NavigateBack`, `ShowMessage` |
+| Exposed Flow/StateFlow | name without `Flow` suffix | `val decks: Flow<List<Deck>>` not `val decksFlow` |
+| Booleans | `is`, `has`, `can`, `should` prefix | `isLoading`, `hasSession`, `canSave` |
+| Callbacks / lambdas in Composable | `on` prefix | `onIntent`, `onClick`, `onDismiss` |
+| Suspend fun | name as if synchronous | `fetchById()` not `fetchByIdSuspend()` |
 
-**Reglas adicionales:**
+**Additional rules:**
 
-- Los nombres de `UiIntent` describen **lo que el usuario hizo**, no lo que el ViewModel debe hacer: `DeleteClicked`, no `TriggerDelete`.
-- Los `UiEffect` describen **el efecto resultante**, no la acción: `NavigateBack`, no `GoBack`.
-- Las funciones privadas en ViewModel que manejan un intent llevan el prefijo `handle` solo si agrupan lógica de varios sub-casos; si hacen una sola cosa, nombre directo: `loadDeck()`, no `handleLoadDeck()`.
-- Evitar prefijos redundantes dentro de un scope: dentro de `DeckDetailViewModel`, `loadDeck()` no `loadDeckDetail()`.
+- `UiIntent` names describe **what the user did**, not what the ViewModel should do: `DeleteClicked`, not `TriggerDelete`.
+- `UiEffect` describes **the resulting effect**, not the action: `NavigateBack`, not `GoBack`.
+- Private functions in a ViewModel that handle an intent take the `handle` prefix only if they group logic for several sub-cases; if they do one thing, use a direct name: `loadDeck()`, not `handleLoadDeck()`.
+- Avoid redundant prefixes within a scope: inside `DeckDetailViewModel`, `loadDeck()` not `loadDeckDetail()`.
 
-## Linting y code style (detekt)
+## Linting and code style (detekt)
 
-Reglas activas en `config/detekt/detekt.yml`:
+Active rules in `config/detekt/detekt.yml`:
 
-### Complexity — evitar callback hell y anidamiento profundo
+### Complexity — avoid callback hell and deep nesting
 
 ```yaml
 CyclomaticComplexMethod:
@@ -140,9 +140,9 @@ CyclomaticComplexMethod:
     - 'with'
 ```
 
-**Por qué**: Estas funciones son las que generan callback hell. Si ves métodos con muchos `also { apply { run { ... } } }`, refactorear con funciones intermedias o early return.
+**Why**: These functions are the ones that generate callback hell. If you see methods with many `also { apply { run { ... } } }`, refactor with intermediate functions or early return.
 
-### Style — early return y returns moderados
+### Style — early return and moderate returns
 
 ```yaml
 ReturnCount:
@@ -155,20 +155,20 @@ ReturnCount:
     - 'Composable'
 ```
 
-**Por qué**: Más de 5 returns confunde. Usar:
-- Early returns en guard clauses (validación, null-checks)
-- Labeled returns en lambdas (`return@mapNotNull null`) para short-circuit
-- Extraer lógica a funciones privadas si un método tiene muchos branches
+**Why**: More than 5 returns is confusing. Use:
+- Early returns in guard clauses (validation, null-checks)
+- Labeled returns in lambdas (`return@mapNotNull null`) for short-circuit
+- Extract logic into private functions if a method has many branches
 
-### Regla de hierro para código nuevo
+### Iron rule for new code
 
-Antes de commitear, verificar:
-1. ¿Hay más de 3 niveles de nesting? → extraer función
-2. ¿Hay muchos `else if` encadenados? → usar `when` o extraer funciones
-3. ¿La función hace muchas cosas? → split en funciones más pequeñas
-4. ¿Las lambdas tienen `also/apply/run/let` anidados? → refactorizar con funciones intermedias
+Before committing, check:
+1. More than 3 levels of nesting? → extract function
+2. Many chained `else if`? → use `when` or extract functions
+3. Function doing many things? → split into smaller functions
+4. Lambdas with nested `also/apply/run/let`? → refactor with intermediate functions
 
-## Toolchain actual
+## Current toolchain
 
 - Java 17
 - AGP `9.2.0`
@@ -176,8 +176,8 @@ Antes de commitear, verificar:
 
 ## Commits
 
-- **No agregar `Co-Authored-By` de Claude, Anthropic ni de ningún asistente AI** en los mensajes de commit. Los commits van firmados solo por el autor humano. Aplica a `git commit`, `git commit --amend`, rebases y cualquier flujo de auto-generación de mensajes.
+- **Do not add `Co-Authored-By` from Claude, Anthropic or any AI assistant** in commit messages. Commits are signed only by the human author. Applies to `git commit`, `git commit --amend`, rebases and any auto-generated message flow.
 
-## Regla final
+## Final rule
 
-Si una doc contradice el código actual, manda el código y luego se actualiza la doc.
+If a doc contradicts the current code, the code wins and the doc gets updated afterwards.

@@ -3,283 +3,283 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Auditoría completa pre-lanzamiento + plan de fases atómicas |
-| Source of Truth | Yes (mientras no se cierre todo) |
-| Read this when | Vas a trabajar en cualquier tarea de hardening pre-lanzamiento |
-| Última verificación contra código | 2026-05-14 |
-| Progreso Sprint 1 | 6/8 completados (T1, T2, T4, T5, T6, T8) · T3 descartado · T7 en progreso (draft publicado, falta URL + manifest + Data Safety form) |
+| Role | Full pre-launch audit + atomic phased plan |
+| Source of Truth | Yes (until everything closes) |
+| Read this when | You're working on any pre-launch hardening task |
+| Last verified against code | 2026-05-14 |
+| Sprint 1 progress | 6/8 done (T1, T2, T4, T5, T6, T8) · T3 discarded · T7 in progress (draft published, missing URL + manifest + Data Safety form) |
 
 ## TL;DR
 
-**No hay que rehacer el proyecto.** La base es sólida y honesta con su contrato local-first. Hay ~10 fixes concretos (mayoría configuración + prompts + un cambio de modelo) que bloquean Play Store o degradan UX en producción. Estimo **2-3 días de trabajo efectivo**, organizados en 3 sprints.
+**No need to redo the project.** The base is solid and honest about its local-first contract. There are ~10 concrete fixes (mostly configuration + prompts + one model change) that block Play Store or degrade UX in production. I estimate **2-3 effective days of work**, organized in 3 sprints.
 
-| Capa | Nota | Estado |
+| Layer | Score | Status |
 |---|---|---|
-| Domain | 7.5/10 | Sólido. Value objects firmes, policies separadas. Grietas en `Flashcard` anémica + scheduler SM-2 sin documentar. |
-| Data | 8/10 | Schema limpio, soft-delete consistente, backup round-trip testeado. 2 hotfixes reales. |
-| AI / Prompts | 6/10 | Arquitectura buena, pero modelo demasiado liviano + quality checks auto-sellados + error handling frágil. Capa más débil. |
-| Arquitectura | 7/10 | Boundaries respetados, DI coherente, MVI sin overengineering. Falta observabilidad y release hardening. |
+| Domain | 7.5/10 | Solid. Firm value objects, separated policies. Cracks in anemic `Flashcard` + undocumented SM-2 scheduler. |
+| Data | 8/10 | Clean schema, consistent soft-delete, tested backup round-trip. 2 real hotfixes. |
+| AI / Prompts | 6/10 | Good architecture, but model too lightweight + self-sealed quality checks + fragile error handling. Weakest layer. |
+| Architecture | 7/10 | Boundaries respected, coherent DI, MVI without overengineering. Missing observability and release hardening. |
 
 ---
 
-## 1. Análisis por capa
+## 1. Per-layer analysis
 
 ### 1.1 Domain (`:domain`)
 
 **Strengths**
-- Value objects con normalización en constructor: `Expression`, `IntendedMeaningEs`, `DefinitionEn`, `FlashcardId`, `DeckId` (`@JvmInline`, trim, whitespace collapse).
-- `FlashcardReview` con invariantes reales (`easeFactor ≥ 1.3`, no-negativas).
-- Policies separadas y testables: `CoreFieldsPolicy`, `CardsPolicy`, `QualityChecksPolicy`, `TypeRequirementsPolicy` para `GeneratedLearningNote`; `ContextSentence`, `Disambiguation`, `InputTypeRules`, `WordCount` para `FlashcardGenerationInput`.
-- Use cases cohesivos (`CreateFlashcardUseCase`, `ScheduleFlashcardReviewUseCase`) sin orchestration innecesaria.
-- Domain JVM-only respetado, repositorios como interfaces.
+- Value objects with normalization in constructor: `Expression`, `IntendedMeaningEs`, `DefinitionEn`, `FlashcardId`, `DeckId` (`@JvmInline`, trim, whitespace collapse).
+- `FlashcardReview` with real invariants (`easeFactor ≥ 1.3`, non-negative).
+- Separated, testable policies: `CoreFieldsPolicy`, `CardsPolicy`, `QualityChecksPolicy`, `TypeRequirementsPolicy` for `GeneratedLearningNote`; `ContextSentence`, `Disambiguation`, `InputTypeRules`, `WordCount` for `FlashcardGenerationInput`.
+- Cohesive use cases (`CreateFlashcardUseCase`, `ScheduleFlashcardReviewUseCase`) without unnecessary orchestration.
+- JVM-only domain respected, repositories as interfaces.
 
-**Grietas**
-- 🟡 `Flashcard` es anémica: `word/meaning/translation` son `String` crudos sin invariantes (`domain/src/main/kotlin/com/emm/domain/flashcard/Flashcard.kt`). Ya existen los value objects, no se usan en el agregado principal.
-- 🟡 `SpacedRepetitionScheduler` usa SM-2 simplificado con fórmula custom no documentada (`domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`). El delta de ease (`0.1 - qualityDistance * (0.08 + qualityDistance * 0.02)`) no tiene paper de referencia. Para una app de estudio, ese es el corazón.
-- 🟢 `UpdateFlashcardUseCase` y `SoftDeleteFlashcardUseCase` son forwarders triviales que envuelven el repo. No agregan lógica.
-- 🟢 Naming inconsistente entre policies: `FlashcardGeneration*Policy` vs `GeneratedLearningNote*Policy`. No bloquea, agrega fricción cognitiva.
+**Cracks**
+- 🟡 `Flashcard` is anemic: `word/meaning/translation` are raw `String`s without invariants (`domain/src/main/kotlin/com/emm/domain/flashcard/Flashcard.kt`). The value objects already exist; they're just not used in the main aggregate.
+- 🟡 `SpacedRepetitionScheduler` uses a simplified SM-2 with an undocumented custom formula (`domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`). The ease delta (`0.1 - qualityDistance * (0.08 + qualityDistance * 0.02)`) has no reference paper. For a study app, that's the heart.
+- 🟢 `UpdateFlashcardUseCase` and `SoftDeleteFlashcardUseCase` are trivial forwarders wrapping the repo. They add no logic.
+- 🟢 Inconsistent naming between policies: `FlashcardGeneration*Policy` vs `GeneratedLearningNote*Policy`. Not blocking, adds cognitive friction.
 
 ### 1.2 Data (`:data`)
 
 **Strengths**
-- Schema normalizado con UUIDs naturales; FKs con `ON DELETE CASCADE`; soft-delete (`deletedAt`) consistente en `Deck`, `Flashcard`, `FlashcardExample`, `Tag`.
-- Índices en `deletedAt` y composites (`deckId + deletedAt`); índice DESC en `createdAt`.
-- Transacciones explícitas en operaciones multi-tabla; tests de soft-delete visibility (`SoftDeleteVisibilityQueryTest`).
-- Backup round-trip validado (`ExportImportIntegrationTest`); import idempotente dentro de transacción; JSON con `ignoreUnknownKeys = true` para forward-compat.
-- `LocalDeviceIdentity` thread-safe (`INSERT OR IGNORE`, singletonId fijo).
+- Normalized schema with natural UUIDs; FKs with `ON DELETE CASCADE`; soft-delete (`deletedAt`) consistent across `Deck`, `Flashcard`, `FlashcardExample`, `Tag`.
+- Indexes on `deletedAt` and composites (`deckId + deletedAt`); DESC index on `createdAt`.
+- Explicit transactions in multi-table operations; soft-delete visibility tests (`SoftDeleteVisibilityQueryTest`).
+- Backup round-trip validated (`ExportImportIntegrationTest`); idempotent import inside a transaction; JSON with `ignoreUnknownKeys = true` for forward-compat.
+- `LocalDeviceIdentity` thread-safe (`INSERT OR IGNORE`, fixed singletonId).
 
-**Grietas**
-- 🔴 No existe carpeta `migrations/` en `data/src/main/sqldelight/`. Si v1.0 sale y v1.1 cambia schema, el upgrade rompe. Hay que crear baseline ANTES de tener usuarios.
-- 🔴 `DeckTag` no propaga soft-delete: `Tag` tiene `deletedAt` pero `DeckTag` no. El `ON DELETE CASCADE` solo dispara si el tag se borra duro. El export incluye `DeckTag` huérfanos.
-- 🟡 No hay validación de `schemaVersion` en import; un backup de v2 importado en app v1 puede truncar la DB.
-- 🟢 Catálogos estáticos (`StaticCategories`, `CommunicativeIntent`) sin i18n.
+**Cracks**
+- 🔴 No `migrations/` folder under `data/src/main/sqldelight/`. If v1.0 ships and v1.1 changes schema, upgrade breaks. The baseline must be created BEFORE there are users.
+- 🔴 `DeckTag` does not propagate soft-delete: `Tag` has `deletedAt` but `DeckTag` does not. `ON DELETE CASCADE` only fires on a hard delete. The export includes orphan `DeckTag`s.
+- 🟡 No `schemaVersion` validation on import; a v2 backup imported in v1 can truncate the DB.
+- 🟢 Static catalogs (`StaticCategories`, `CommunicativeIntent`) without i18n.
 
 ### 1.3 AI / Prompts (`data/.../flashcard/`)
 
 **Strengths**
-- Role + principios explícitos en el prompt principal (bilingual EN-learning assistant for native Spanish speakers).
-- Decision policy clara: priorización por nivel, frecuencia > reusability.
-- Schema JSON estructurado con 7 quality checks + discriminación por nota_type.
-- Regeneraciones parciales (Field/Cloze/Example/StudyCard) reutilizan la nota existente, no rehacen el trabajo.
-- Parser tipado con DTOs separados (`data/.../flashcard/iadto/`).
+- Explicit role + principles in the main prompt (bilingual EN-learning assistant for native Spanish speakers).
+- Clear decision policy: prioritized by level, frequency > reusability.
+- Structured JSON schema with 7 quality checks + discrimination by nota_type.
+- Partial regenerations (Field/Cloze/Example/StudyCard) reuse the existing note; they don't redo the work.
+- Typed parser with separated DTOs (`data/.../flashcard/iadto/`).
 
-**Grietas críticas**
-- 🔴 Modelo `gemini-2.5-flash-lite` es el más débil de la familia 2.5. Esperar ~30% de notas mediocres (traducciones literales, ejemplos textbook, IPA ocasionalmente errado). Cambiar a `gemini-2.5-flash`.
-- 🔴 Sin `responseSchema` en `generationConfig` (`app/.../di/RepositoryModule.kt:30-31`, solo `responseMimeType = "application/json"`). El modelo puede devolver enums con casing inconsistente; el parser explota con `IllegalArgumentException` genérico.
-- 🔴 Error handling frágil en `GeminiService`: si Gemini retorna null/error, devuelve `""`, el parser lanza excepción sin causa original. Sin retry, sin backoff, sin timeout explícito, sin log del raw response.
-- 🟡 Quality checks son **auto-sellados**: el prompt le pide al modelo que rellene `passed: true/false` para sus propios outputs. `QualityChecksPolicy` solo lee la decisión del modelo. Es burocracia útil pero no es validación.
-- 🟡 Lenguaje mezclado (es/en) en el mismo prompt. Inputs en español interpolados en system prompt en inglés confunden al modelo.
-- 🟢 Sin few-shot examples en prompts de regeneración. `gemini-2.5-flash-lite` rinde mejor con 1-2 ejemplos.
+**Critical cracks**
+- 🔴 The `gemini-2.5-flash-lite` model is the weakest in the 2.5 family. Expect ~30% mediocre notes (literal translations, textbook examples, occasionally wrong IPA). Switch to `gemini-2.5-flash`.
+- 🔴 No `responseSchema` in `generationConfig` (`app/.../di/RepositoryModule.kt:30-31`, only `responseMimeType = "application/json"`). The model can return enums with inconsistent casing; the parser blows up with a generic `IllegalArgumentException`.
+- 🔴 Fragile error handling in `GeminiService`: if Gemini returns null/error, returns `""`, parser throws without original cause. No retry, no backoff, no explicit timeout, no log of the raw response.
+- 🟡 Quality checks are **self-sealed**: the prompt asks the model to fill `passed: true/false` for its own outputs. `QualityChecksPolicy` only reads the model's decision. Useful bureaucracy but not validation.
+- 🟡 Mixed language (es/en) in the same prompt. Spanish inputs interpolated into an English system prompt confuse the model.
+- 🟢 No few-shot examples in regeneration prompts. `gemini-2.5-flash-lite` performs better with 1-2 examples.
 
-### 1.4 Arquitectura y wiring
+### 1.4 Architecture and wiring
 
 **Strengths**
-- Module boundaries respetados (`app -> data`, `app -> domain`, `data -> domain`). Domain JVM-only verificado.
-- Koin coherente: cada `Repository` del domain tiene impl bindeada en data; cada VM registrado (incluido `AppStartupViewModel` en `NewModule.kt:167`).
-- Base MVI (`MviViewModel<S, I, E>`) hace lo justo. No middleware, no saga.
-- Navigation 3 bien integrada: `rememberNavBackStack`, decorators correctos, transiciones consistentes.
-- Tests del domain bien cubiertos (~30 archivos).
+- Module boundaries respected (`app -> data`, `app -> domain`, `data -> domain`). JVM-only domain verified.
+- Coherent Koin: every domain `Repository` has an impl bound in data; every VM registered (including `AppStartupViewModel` in `NewModule.kt:167`).
+- MVI base (`MviViewModel<S, I, E>`) does just enough. No middleware, no saga.
+- Navigation 3 well integrated: `rememberNavBackStack`, correct decorators, consistent transitions.
+- Domain tests well covered (~30 files).
 
-**Grietas**
-- 🔴 `App.kt` solo arranca Koin + `AppStartupCoordinator.start()`. Firebase Crashlytics y Analytics están en gradle pero **nunca se inicializan**. Sin esto, lanzar = volar ciego.
-- 🔴 `app/proguard-rules.pro` y `data/proguard-rules.pro` están vacíos (solo comentarios). En release con minify, Firebase AI / kotlinx-serialization / SQLDelight pueden romper en runtime.
-- 🟡 No hay timeout en startup: si `LocalIdentityInitializer.ensureReady()` cuelga, loading infinito.
-- 🟡 `POST_NOTIFICATIONS` permission en `AndroidManifest.xml` sin notificaciones implementadas. Play Console preguntará.
-- 🟡 ViewModels sin tests unitarios. Solo domain está bien cubierto.
-- 🟢 Sin privacy policy URL en `AndroidManifest`. Requerido por Play Store (Data Safety section).
+**Cracks**
+- 🔴 `App.kt` only starts Koin + `AppStartupCoordinator.start()`. Firebase Crashlytics and Analytics are in gradle but **never initialized**. Without these, launching = flying blind.
+- 🔴 `app/proguard-rules.pro` and `data/proguard-rules.pro` are empty (just comments). On release with minify, Firebase AI / kotlinx-serialization / SQLDelight can break at runtime.
+- 🟡 No timeout in startup: if `LocalIdentityInitializer.ensureReady()` hangs, infinite loading.
+- 🟡 `POST_NOTIFICATIONS` permission in `AndroidManifest.xml` without notifications implemented. Play Console will ask.
+- 🟡 ViewModels lack unit tests. Only domain is well covered.
+- 🟢 No privacy policy URL in `AndroidManifest`. Required by Play Store (Data Safety section).
 
 ---
 
-## 2. Plan en fases atómicas
+## 2. Atomic phased plan
 
-Cada tarea es independiente, tiene **archivo afectado**, **criterio de aceptación**, y **estimación**.
-Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas.
+Each task is independent, has an **affected file**, **acceptance criterion**, and **estimate**.
+Mark as `[x]` when complete. Dependencies between tasks are explicit.
 
-### Sprint 1 — Bloqueantes Play Store (objetivo: 1-2 días)
+### Sprint 1 — Play Store blockers (goal: 1-2 days)
 
-#### S1-T1: Inicializar Crashlytics y Analytics en App
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/App.kt`
-- **Por qué:** sin esto no hay señales del campo en producción.
-- **Qué hacer:** en `onCreate()` antes de `startKoin`, llamar `FirebaseApp.initializeApp(this)`, habilitar `FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true`, instanciar `FirebaseAnalytics.getInstance(this)`.
-- **Criterio:** abrir la app debug, forzar crash, verlo en Crashlytics console dentro de 5 min. Verificar evento `first_open` en Analytics DebugView.
-- **Estimación:** 30 min.
-- **Estado:** [x] — `App.kt` inicializa `FirebaseApp`, habilita Crashlytics y instancia Analytics antes de Koin (commit `8e8e5dd`). Validación manual en device pendiente.
+#### S1-T1: Initialize Crashlytics and Analytics in App
+- **File:** `app/src/main/kotlin/com/emm/hello/App.kt`
+- **Why:** without it there are no field signals in production.
+- **What to do:** in `onCreate()` before `startKoin`, call `FirebaseApp.initializeApp(this)`, enable `FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true`, instantiate `FirebaseAnalytics.getInstance(this)`.
+- **Criterion:** open the debug app, force a crash, see it in the Crashlytics console within 5 min. Verify `first_open` event in Analytics DebugView.
+- **Estimate:** 30 min.
+- **Status:** [x] — `App.kt` initializes `FirebaseApp`, enables Crashlytics, and instantiates Analytics before Koin (commit `8e8e5dd`). On-device manual validation pending.
 
-#### S1-T2: Reglas R8/ProGuard para Firebase y serialization
-- **Archivos:** `app/proguard-rules.pro`, `data/proguard-rules.pro`
-- **Por qué:** un build release con minify puede romper deserialización de respuesta de Gemini sin error en compile.
-- **Qué hacer:** agregar keep rules para `com.google.firebase.**`, `kotlinx.serialization.**`, todas las `@Serializable data class` del proyecto (DTOs en `data/.../flashcard/iadto/`, `BackupEnvelope`), SQLDelight runtime classes.
-- **Criterio:** `./gradlew :app:assembleRelease` y correr el APK en device real. Crear una flashcard via Gemini sin error de deserialización. Export/import backup sin errores.
-- **Estimación:** 1-2 h (incluye iteración cuando algo se rompe en runtime).
-- **Estado:** [x] — keep rules agregadas en `app/proguard-rules.pro` (Crashlytics deobfuscation, kotlinx.serialization oficial, Firebase defensivo, `@Serializable` del proyecto) y `data/consumer-rules.pro` (DTOs de `:data`, `HelloDb` de SQLDelight). `data/proguard-rules.pro` queda intacto porque `:data` no minifica. `assembleRelease` verificado con R8 (commit `8e8e5dd`). Validación funcional en device pendiente.
-- **Depende de:** S1-T1 (para ver crashes en Crashlytics si algo falla).
+#### S1-T2: R8/ProGuard rules for Firebase and serialization
+- **Files:** `app/proguard-rules.pro`, `data/proguard-rules.pro`
+- **Why:** a release build with minify can break Gemini response deserialization without a compile error.
+- **What to do:** add keep rules for `com.google.firebase.**`, `kotlinx.serialization.**`, all project `@Serializable data class`es (DTOs in `data/.../flashcard/iadto/`, `BackupEnvelope`), SQLDelight runtime classes.
+- **Criterion:** `./gradlew :app:assembleRelease` and run the APK on a real device. Create a flashcard via Gemini without deserialization error. Export/import backup without errors.
+- **Estimate:** 1-2 h (includes iterating when something breaks at runtime).
+- **Status:** [x] — keep rules added in `app/proguard-rules.pro` (Crashlytics deobfuscation, official kotlinx.serialization, defensive Firebase, project `@Serializable`s) and `data/consumer-rules.pro` (DTOs from `:data`, SQLDelight `HelloDb`). `data/proguard-rules.pro` stays as-is because `:data` does not minify. `assembleRelease` verified with R8 (commit `8e8e5dd`). Functional on-device validation pending.
+- **Depends on:** S1-T1 (so crashes show in Crashlytics if something fails).
 
-#### S1-T3: Cambiar modelo Gemini a `gemini-2.5-flash` ~~(descartado por decisión del usuario)~~
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt:29`
-- **Por qué:** flash-lite produce ~30% de notas mediocres en lingüística. Costo extra estimado: ~$40/día a 10k users × 5 cards/día.
-- **Qué hacer:** cambiar `modelName = "gemini-2.5-flash-lite"` a `"gemini-2.5-flash"`.
-- **Criterio:** generar 10 flashcards de palabras variadas (high-frequency, phrasal verbs, idioms, latinismos). Comparar manualmente con outputs previos. Naturalidad de ejemplos y IPA deberían mejorar.
-- **Estimación:** 15 min + 30 min de validación manual.
-- **Estado:** [~] — descartado: usuario decidió mantener `gemini-2.5-flash-lite` por ahora. Re-evaluar tras feedback de beta si calidad lingüística degrada el producto.
+#### S1-T3: Switch Gemini model to `gemini-2.5-flash` ~~(discarded by user decision)~~
+- **File:** `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt:29`
+- **Why:** flash-lite produces ~30% mediocre linguistic notes. Estimated extra cost: ~$40/day at 10k users × 5 cards/day.
+- **What to do:** change `modelName = "gemini-2.5-flash-lite"` to `"gemini-2.5-flash"`.
+- **Criterion:** generate 10 flashcards of varied words (high-frequency, phrasal verbs, idioms, latinate). Compare manually with previous outputs. Naturalness of examples and IPA should improve.
+- **Estimate:** 15 min + 30 min of manual validation.
+- **Status:** [~] — discarded: user decided to keep `gemini-2.5-flash-lite` for now. Re-evaluate after beta feedback if linguistic quality degrades the product.
 
-#### S1-T4: Agregar `responseSchema` explícito en `generationConfig`
-- **Archivos:** `data/src/main/kotlin/com/emm/data/flashcard/LearningNoteResponseSchema.kt` (nuevo), `data/src/main/kotlin/com/emm/data/flashcard/GeminiService.kt`, `data/src/main/kotlin/com/emm/data/flashcard/DefaultFlashcardRepository.kt`, `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt`.
-- **Por qué:** sin schema, el modelo puede devolver enums con casing inconsistente y el parser explota con error genérico.
-- **Qué hacer:** declarar `responseSchema` con la estructura de `GeneratedLearningNoteResponseDto` (wrapper `{success, data, error}`) incluyendo `Schema.enumeration(...)` para `note_type`, `part_of_speech`, `register`, `level_band`, `domain`, `card_type`, `evaluation_mode`, `quality_checks.code`. Scope: sólo afecta la generación principal; las regeneraciones parciales mantienen el modelo genérico.
-- **Criterio:** generar 20 flashcards; el parser nunca debería lanzar `IllegalArgumentException` por casing/enum. Validación funcional pendiente en device (requiere build release + lote de generaciones).
-- **Estimación:** 2-3 h (definir schema completo es tedioso pero mecánico).
-- **Estado:** [x] — schema completo en `LearningNoteResponseSchema` (note + study cards + quality checks + error envelope) con `optionalProperties` alineados a los defaults del DTO. `GeminiService` ahora expone `processLearningNote(prompt)` que usa un `GenerativeModel` dedicado con `responseSchema`; las regeneraciones parciales siguen usando `process(prompt)` con el modelo sin schema (preserva shapes distintos). `DefaultFlashcardRepository.generateLearningNote` re-ruteado al método nuevo. `:data` tests + detekt en verde. Validación manual en device queda para S2-T6.
+#### S1-T4: Add explicit `responseSchema` in `generationConfig`
+- **Files:** `data/src/main/kotlin/com/emm/data/flashcard/LearningNoteResponseSchema.kt` (new), `data/src/main/kotlin/com/emm/data/flashcard/GeminiService.kt`, `data/src/main/kotlin/com/emm/data/flashcard/DefaultFlashcardRepository.kt`, `app/src/main/kotlin/com/emm/hello/di/RepositoryModule.kt`.
+- **Why:** without a schema, the model can return enums with inconsistent casing and the parser blows up with a generic error.
+- **What to do:** declare `responseSchema` with the structure of `GeneratedLearningNoteResponseDto` (wrapper `{success, data, error}`) including `Schema.enumeration(...)` for `note_type`, `part_of_speech`, `register`, `level_band`, `domain`, `card_type`, `evaluation_mode`, `quality_checks.code`. Scope: only affects main generation; partial regenerations keep the generic model.
+- **Criterion:** generate 20 flashcards; the parser should never throw `IllegalArgumentException` for casing/enum. Functional validation pending on device (requires release build + a batch of generations).
+- **Estimate:** 2-3 h (defining the full schema is tedious but mechanical).
+- **Status:** [x] — full schema in `LearningNoteResponseSchema` (note + study cards + quality checks + error envelope) with `optionalProperties` aligned to DTO defaults. `GeminiService` now exposes `processLearningNote(prompt)` that uses a dedicated `GenerativeModel` with `responseSchema`; partial regenerations keep using `process(prompt)` with the schema-less model (preserves different shapes). `DefaultFlashcardRepository.generateLearningNote` rerouted to the new method. `:data` tests + detekt green. On-device manual validation deferred to S2-T6.
 
-#### S1-T5: Migrations baseline en SQLDelight
-- **Archivos:** `data/build.gradle.kts`, `data/src/main/sqldelight/databases/1.db` (generado), `ARCHITECTURE.md`.
-- **Por qué:** si v1.0 sale y v1.1 cambia schema, el upgrade rompe. Es gratis hacerlo ahora.
-- **Qué hacer:** configurar `schemaOutputDirectory` + `verifyMigrations = true` en el bloque sqldelight. Generar baseline con `./gradlew :data:generateDebugHelloDbSchema`. Documentar política en `ARCHITECTURE.md`.
-- **Criterio:** `./gradlew :data:verifySqlDelightMigration` pasa. Documentar en `ARCHITECTURE.md` la política: "cada cambio de schema requiere `N.sqm` correspondiente".
-- **Estimación:** 1 h.
-- **Estado:** [x] — `schemaOutputDirectory.set(file("src/main/sqldelight/databases"))` + `verifyMigrations.set(true)` agregados al bloque `sqldelight` de `data/build.gradle.kts`. Baseline `1.db` generado y commiteado en `data/src/main/sqldelight/databases/`. `verifySqlDelightMigration` pasa. Política de migraciones documentada en `ARCHITECTURE.md`. Decisión: NO se creó `1.sqm` vacío (bumpearía el schema a v2 sin cambios reales); el `.db` baseline es suficiente para que `verifyMigrations` detecte futuras divergencias.
+#### S1-T5: SQLDelight baseline migrations
+- **Files:** `data/build.gradle.kts`, `data/src/main/sqldelight/databases/1.db` (generated), `ARCHITECTURE.md`.
+- **Why:** if v1.0 ships and v1.1 changes schema, upgrade breaks. It's free to do now.
+- **What to do:** configure `schemaOutputDirectory` + `verifyMigrations = true` in the sqldelight block. Generate baseline with `./gradlew :data:generateDebugHelloDbSchema`. Document policy in `ARCHITECTURE.md`.
+- **Criterion:** `./gradlew :data:verifySqlDelightMigration` passes. Document policy in `ARCHITECTURE.md`: "every schema change requires a corresponding `N.sqm`".
+- **Estimate:** 1 h.
+- **Status:** [x] — `schemaOutputDirectory.set(file("src/main/sqldelight/databases"))` + `verifyMigrations.set(true)` added to the `sqldelight` block in `data/build.gradle.kts`. Baseline `1.db` generated and committed under `data/src/main/sqldelight/databases/`. `verifySqlDelightMigration` passes. Migration policy documented in `ARCHITECTURE.md`. Decision: no empty `1.sqm` was created (would bump schema to v2 with no real changes); the baseline `.db` is enough for `verifyMigrations` to detect future divergences.
 
-#### S1-T6: Soft-delete cascada en `DeckTag`
-- **Archivos:** `data/src/main/sqldelight/com/emm/data/Export.sq`, `data/src/test/kotlin/com/emm/data/export/ExportImportIntegrationTest.kt`.
-- **Por qué:** tags soft-deleted dejan `DeckTag` huérfanos en el export.
-- **Qué hacer:** filtrar `allDeckTagsPaged` con JOIN a `Tag` y `Deck` exigiendo `deletedAt IS NULL` en ambos. Decisión: NO se agrega `deletedAt` a `DeckTag` (evita migration y mantiene `DeckTag` como tabla de unión pura; el filtrado en el query es suficiente porque el importer reescribe `DeckTag` desde el envelope).
-- **Criterio:** dos tests nuevos en `ExportImportIntegrationTest`: (1) tag soft-deleted con DeckTag activo → import en BD limpia deja solo 1 DeckTag (el del tag activo). (2) deck soft-deleted con DeckTag → import en BD limpia deja 0 DeckTag.
-- **Estimación:** 2 h.
-- **Estado:** [x] — `allDeckTagsPaged` ahora hace `JOIN Tag JOIN Deck` con doble filtro `deletedAt IS NULL`. Tests `soft-deleted tag does not leak DeckTag rows into export` y `soft-deleted deck does not leak DeckTag rows into export` agregados y verdes. Sin cambios de schema → no requiere `N.sqm`.
+#### S1-T6: Soft-delete cascade in `DeckTag`
+- **Files:** `data/src/main/sqldelight/com/emm/data/Export.sq`, `data/src/test/kotlin/com/emm/data/export/ExportImportIntegrationTest.kt`.
+- **Why:** soft-deleted tags leave orphan `DeckTag`s in the export.
+- **What to do:** filter `allDeckTagsPaged` with a JOIN to `Tag` and `Deck` requiring `deletedAt IS NULL` in both. Decision: do NOT add `deletedAt` to `DeckTag` (avoids migration and keeps `DeckTag` as a pure join table; filtering in the query is enough because the importer rewrites `DeckTag` from the envelope).
+- **Criterion:** two new tests in `ExportImportIntegrationTest`: (1) soft-deleted tag with active DeckTag → import on clean DB leaves only 1 DeckTag (the active tag's). (2) soft-deleted deck with DeckTag → import on clean DB leaves 0 DeckTag.
+- **Estimate:** 2 h.
+- **Status:** [x] — `allDeckTagsPaged` now does `JOIN Tag JOIN Deck` with double `deletedAt IS NULL` filter. Tests `soft-deleted tag does not leak DeckTag rows into export` and `soft-deleted deck does not leak DeckTag rows into export` added and green. No schema changes → no `N.sqm` required.
 
 #### S1-T7: Privacy policy + Data Safety
-- **Archivos:** publicar política externa (URL), agregar `meta-data` o referencia en `app/src/main/AndroidManifest.xml`, completar Data Safety form en Play Console.
-- **Por qué:** Play Store rechaza apps que envían input del usuario a un LLM sin declararlo.
-- **Qué hacer:** redactar política mínima que cubra: deviceId local, input del usuario enviado a Firebase AI / Gemini, Crashlytics, Analytics. Publicarla (GitHub Pages, Notion público, etc.). En Play Console, marcar: "data collected: app activity, app info, device IDs", "shared with third parties: Google Firebase AI".
-- **Criterio:** Play Console acepta el Data Safety form en pre-validación.
-- **Estimación:** 2 h (redacción + publicación + form).
-- **Estado:** [~] — draft de la política en `docs/privacy-policy.md` (cubre datos locales, Firebase AI/Gemini, Crashlytics, Analytics, permisos, retención, contacto). Pendiente: (1) habilitar GitHub Pages en `main/docs` y obtener URL final, (2) agregar `<meta-data>` en `AndroidManifest.xml` con esa URL, (3) completar Data Safety form en Play Console.
+- **Files:** publish external policy (URL), add `meta-data` or reference in `app/src/main/AndroidManifest.xml`, complete Data Safety form in Play Console.
+- **Why:** Play Store rejects apps that send user input to an LLM without declaring it.
+- **What to do:** write a minimal policy covering: local deviceId, user input sent to Firebase AI / Gemini, Crashlytics, Analytics. Publish it (GitHub Pages, public Notion, etc.). In Play Console mark: "data collected: app activity, app info, device IDs", "shared with third parties: Google Firebase AI".
+- **Criterion:** Play Console accepts the Data Safety form in pre-validation.
+- **Estimate:** 2 h (writing + publishing + form).
+- **Status:** [~] — policy draft in `docs/privacy-policy.md` (covers local data, Firebase AI/Gemini, Crashlytics, Analytics, permissions, retention, contact). Pending: (1) enable GitHub Pages on `main/docs` and get final URL, (2) add `<meta-data>` to `AndroidManifest.xml` with that URL, (3) complete Data Safety form in Play Console.
 
-#### S1-T8: Limpiar permisos no usados
-- **Archivo:** `app/src/main/AndroidManifest.xml`
-- **Qué hacer:** verificar `POST_NOTIFICATIONS` — si no hay notificaciones implementadas, removerlo. Verificar `RECORD_AUDIO` — confirmar que el STT (`rememberSpeechToTextManager`) sigue activo en el wizard de NewCard; si está deshabilitado, sacarlo.
-- **Criterio:** la app pide solo lo que usa. Play Console no marca permisos no justificados.
-- **Estimación:** 30 min.
-- **Estado:** [x] — `POST_NOTIFICATIONS` removido del manifest y el `LaunchedEffect` huérfano en `DashboardRoute` también borrado (no había notificaciones implementadas). `RECORD_AUDIO` se mantiene (STT activo en `NewCardInputStepScreen`). `READ/WRITE_EXTERNAL_STORAGE` con `maxSdkVersion=32` quedan (uso legacy < Android 13). Commit `8e8e5dd`.
-
----
-
-### Sprint 2 — Antes de invitar beta testers (objetivo: 1 día)
-
-#### S2-T1: Retry + timeout + logging en `GeminiService`
-- **Archivo:** `data/src/main/kotlin/com/emm/data/flashcard/GeminiService.kt`
-- **Por qué:** una caída de red o un timeout dejan al usuario sin feedback útil.
-- **Qué hacer:** wrap del `generateContent` con: timeout explícito (10-15 s), retry 3 veces con backoff exponencial (1s, 2s, 4s), try-catch que capture `FirebaseException` y logue el raw response (truncado) a Crashlytics como non-fatal.
-- **Criterio:** mock de red caída → usuario ve mensaje claro "no se pudo conectar, reintentando" y a los ~7s "no se pudo generar, reintentá más tarde". Crashlytics recibe non-fatal con stack del error original.
-- **Estimación:** 3 h.
-- **Estado:** [x] — `GeminiService` envuelve `process` y `processLearningNote` con `withTimeout(15s)` + 4 intentos totales (backoff 1s/2s/4s). Interfaz `GeminiTelemetry` con `NoOp` por defecto en `:data`; impl `CrashlyticsGeminiTelemetry` en `:app` (`setCustomKey` + `recordException` como non-fatal). `DefaultFlashcardRepository` también captura parse failures y reporta `recordParseFailure` con raw response truncado a 4 000 chars. Wiring en `RepositoryModule`. Tests: `GeminiServiceRetryTest` cubre éxito sin retry, éxito tras reintento y reporte non-fatal cuando todos los intentos fallan. UI de mensaje de error y verificación en device real quedan para S2-T6.
-- **Depende de:** S1-T1.
-
-#### S2-T2: Quality checks deterministas en Kotlin
-- **Archivos:** `domain/src/main/kotlin/com/emm/domain/generation/GeneratedLearningNoteQualityChecksPolicy.kt`, `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`
-- **Por qué:** los checks actuales son auto-sellados por el modelo. Reemplazar 2-3 por validadores reales agrega valor sin reescribir todo.
-- **Qué hacer:** elegir 2-3 checks con criterio determinable (ej: `required_fields_present` ya es chequeable; `single_meaning` se puede verificar con regex sobre `cards`; `natural_example` con wordlist de "textbookismos"). Removerlos del prompt y validarlos en Kotlin. Dejar el resto del prompt como hint informativo.
-- **Criterio:** una nota con un campo vacío que el modelo marcó `passed: true` ahora falla validación.
-- **Estimación:** 4 h.
-- **Estado:** [ ]
-
-#### S2-T3: Normalizar inputs a inglés en prompt builder
-- **Archivo:** `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`
-- **Por qué:** lenguaje mezclado en el system prompt produce outputs inconsistentes.
-- **Qué hacer:** en cada builder, mapear inputs en español (ej: `communicativeIntentLabel`) a su versión en inglés antes de interpolar. Si el catálogo está en español, agregar campo `englishLabel` o tabla de traducción inline.
-- **Criterio:** los prompts finales que envía a Gemini están 100% en inglés (verificable con un log del prompt completo en debug).
-- **Estimación:** 2 h.
-- **Estado:** [ ]
-
-#### S2-T4: Documentar `SpacedRepetitionScheduler`
-- **Archivo:** `domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`
-- **Por qué:** es el corazón del producto. Si un usuario reporta "esta carta volvió muy rápido", hay que poder explicar por qué.
-- **Qué hacer:** comentario en el archivo explicando: variante de SM-2 usada, racional de los coeficientes del delta de ease, cómo se calcula el `nextInterval`. Si la decisión es migrar a SM-2 estándar o FSRS, decidirlo acá y trackearlo como tarea S3.
-- **Criterio:** un dev externo puede leer el archivo y entender el algoritmo sin grep adicional.
-- **Estimación:** 1-2 h.
-- **Estado:** [x] — `docs/SCHEDULER.md` cubre: mapeo grade→quality (no canónico, HARD pasa por diseño), tabla de easeAdjustment por grade, constantes con su significado, algoritmo paso a paso, edge cases cubiertos por tests, invariantes garantizados por `FlashcardReview`, limitaciones conocidas (sin leech model, clock monotónico asumido, intervalos en días enteros), criterio para evaluar migración a FSRS. Además se eliminó la tautología `assertTrue(easeFactor >= 1.3)` del test del use case (reemplazada por assert exacto en 1.3).
-
-#### S2-T5: Startup con timeout
-- **Archivo:** `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt`
-- **Qué hacer:** envolver el `collect` del `AppStartupViewModel` con `withTimeoutOrNull(5_000L)`, mostrar error con retry si timeout.
-- **Criterio:** simular DB corrupta (renombrar archivo SQLite en device) → la app muestra error con botón "reintentar" en <6s, no loading infinito.
-- **Estimación:** 1 h.
-- **Estado:** [ ]
-
-#### S2-T6: Build release real en device + recorrido manual
-- **Qué hacer:** generar APK release firmado, instalarlo en device físico, hacer recorrido completo: crear deck → crear card (los 3 modos) → estudiar → editar → eliminar → exportar backup → reinstalar → importar.
-- **Criterio:** los 5 flujos funcionan en release con minify activo, sin crashes en Crashlytics, sin pérdida de datos en backup round-trip.
-- **Estimación:** 2 h.
-- **Estado:** [ ]
-- **Depende de:** todos los S1 + S2-T1.
+#### S1-T8: Clean up unused permissions
+- **File:** `app/src/main/AndroidManifest.xml`
+- **What to do:** check `POST_NOTIFICATIONS` — if no notifications are implemented, remove it. Check `RECORD_AUDIO` — confirm STT (`rememberSpeechToTextManager`) is still active in the NewCard wizard; if disabled, drop it.
+- **Criterion:** the app requests only what it uses. Play Console doesn't flag unjustified permissions.
+- **Estimate:** 30 min.
+- **Status:** [x] — `POST_NOTIFICATIONS` removed from the manifest and the orphan `LaunchedEffect` in `DashboardRoute` deleted (no notifications were implemented). `RECORD_AUDIO` kept (STT active in `NewCardInputStepScreen`). `READ/WRITE_EXTERNAL_STORAGE` with `maxSdkVersion=32` stay (legacy < Android 13 usage). Commit `8e8e5dd`.
 
 ---
 
-### Sprint 3 — Post-launch, con feedback real (objetivo: ongoing)
+### Sprint 2 — Before inviting beta testers (goal: 1 day)
 
-Estas tareas NO bloquean lanzamiento. Priorizar según señales de usuarios reales.
+#### S2-T1: Retry + timeout + logging in `GeminiService`
+- **File:** `data/src/main/kotlin/com/emm/data/flashcard/GeminiService.kt`
+- **Why:** a network drop or timeout leaves the user without useful feedback.
+- **What to do:** wrap `generateContent` with: explicit timeout (10-15 s), 3 retries with exponential backoff (1s, 2s, 4s), try-catch that captures `FirebaseException` and logs the raw response (truncated) to Crashlytics as non-fatal.
+- **Criterion:** mock network down → user sees a clear "couldn't connect, retrying" and after ~7s "couldn't generate, try again later". Crashlytics receives a non-fatal with the original error stack.
+- **Estimate:** 3 h.
+- **Status:** [x] — `GeminiService` wraps `process` and `processLearningNote` with `withTimeout(15s)` + 4 total attempts (backoff 1s/2s/4s). `GeminiTelemetry` interface with `NoOp` default in `:data`; `CrashlyticsGeminiTelemetry` impl in `:app` (`setCustomKey` + `recordException` as non-fatal). `DefaultFlashcardRepository` also catches parse failures and reports `recordParseFailure` with raw response truncated to 4 000 chars. Wiring in `RepositoryModule`. Tests: `GeminiServiceRetryTest` covers success without retry, success after retry, and non-fatal report when all attempts fail. Error-message UI and real-device verification deferred to S2-T6.
+- **Depends on:** S1-T1.
 
-#### S3-T1: `Flashcard` con value objects
-- Migrar `word/meaning/translation` a `Expression`/`IntendedMeaningEs`/`DefinitionEn`. Implica migración de schema (cards existentes deben pasar la validación de los VOs) y ajustes en mappers.
-- **Estado:** [ ]
+#### S2-T2: Deterministic quality checks in Kotlin
+- **Files:** `domain/src/main/kotlin/com/emm/domain/generation/GeneratedLearningNoteQualityChecksPolicy.kt`, `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`
+- **Why:** current checks are self-sealed by the model. Replacing 2-3 with real validators adds value without rewriting everything.
+- **What to do:** pick 2-3 checks with deterministic criteria (e.g. `required_fields_present` is already checkable; `single_meaning` can be verified with a regex over `cards`; `natural_example` with a textbook-ism wordlist). Remove them from the prompt and validate in Kotlin. Keep the rest of the prompt as informative hint.
+- **Criterion:** a note with an empty field that the model marked `passed: true` now fails validation.
+- **Estimate:** 4 h.
+- **Status:** [ ]
 
-#### S3-T2: ViewModel tests por feature
-- Empezar por el feature con más bugs reportados. Pattern: test de routing de intents, state updates, effect emissions.
-- **Estado:** [ ]
+#### S2-T3: Normalize inputs to English in the prompt builder
+- **File:** `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`
+- **Why:** mixed language in the system prompt produces inconsistent outputs.
+- **What to do:** in each builder, map Spanish inputs (e.g. `communicativeIntentLabel`) to their English version before interpolation. If the catalog is in Spanish, add an `englishLabel` field or inline translation table.
+- **Criterion:** final prompts sent to Gemini are 100% in English (verifiable by logging the full prompt in debug).
+- **Estimate:** 2 h.
+- **Status:** [ ]
 
-#### S3-T3: Decidir entre SM-2 estándar / FSRS
-- Validar con feedback de retención si el scheduler actual rinde. Si no, migrar a FSRS (Anki moderno) con tablas de parámetros default.
-- **Estado:** [ ]
+#### S2-T4: Document `SpacedRepetitionScheduler`
+- **File:** `domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`
+- **Why:** it's the heart of the product. If a user reports "this card came back too fast", you need to explain why.
+- **What to do:** comment in the file explaining: the SM-2 variant used, rationale for the ease-delta coefficients, how `nextInterval` is computed. If the decision is to migrate to standard SM-2 or FSRS, decide here and track as an S3 task.
+- **Criterion:** an external dev can read the file and understand the algorithm without additional grepping.
+- **Estimate:** 1-2 h.
+- **Status:** [x] — `docs/SCHEDULER.md` covers: grade→quality mapping (non-canonical, HARD passes by design), easeAdjustment table per grade, constants with their meaning, step-by-step algorithm, edge cases covered by tests, invariants guaranteed by `FlashcardReview`, known limitations (no leech model, monotonic clock assumed, integer-day intervals), criteria for evaluating FSRS migration. Also removed the tautology `assertTrue(easeFactor >= 1.3)` from the use case test (replaced with exact assert at 1.3).
 
-#### S3-T4: Versionar prompts
-- Agregar `promptVersion` a cada nota generada. Permite A/B testing y trackear regresiones de calidad por versión de prompt.
-- **Estado:** [ ]
+#### S2-T5: Startup with timeout
+- **File:** `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt`
+- **What to do:** wrap the `AppStartupViewModel` `collect` with `withTimeoutOrNull(5_000L)`, show error with retry on timeout.
+- **Criterion:** simulate a corrupt DB (rename SQLite file on device) → app shows an error with a "retry" button in <6s, not infinite loading.
+- **Estimate:** 1 h.
+- **Status:** [ ]
 
-#### S3-T5: i18n de catálogos estáticos
-- `StaticCategories`, `CommunicativeIntent` con labels traducibles.
-- **Estado:** [ ]
-
-#### S3-T6: Few-shot examples en prompts de regeneración
-- Agregar 1-2 ejemplos en cada builder de regeneración. Mejora consistencia con `gemini-2.5-flash`.
-- **Estado:** [ ]
-
-#### S3-T7: `UpdateFlashcardUseCase` / `SoftDeleteFlashcardUseCase` — decidir
-- Si no van a tener lógica, inline en ViewModel y eliminar. Si van a tener lógica de validación, agregarla y tests.
-- **Estado:** [ ]
-
-#### S3-T8: Limpiar redundancia en docs
-- Reconciliar `docs/*_CURRENT.md` con código actual post-refactor de UI.
-- **Estado:** [ ]
+#### S2-T6: Real release build on device + manual walkthrough
+- **What to do:** generate signed release APK, install on a physical device, do a full walkthrough: create deck → create card (all 3 modes) → study → edit → delete → export backup → reinstall → import.
+- **Criterion:** the 5 flows work in release with minify on, no crashes in Crashlytics, no data loss in backup round-trip.
+- **Estimate:** 2 h.
+- **Status:** [ ]
+- **Depends on:** all S1 + S2-T1.
 
 ---
 
-## 3. Orden de ejecución recomendado
+### Sprint 3 — Post-launch, with real feedback (goal: ongoing)
+
+These tasks do NOT block launch. Prioritize by signals from real users.
+
+#### S3-T1: `Flashcard` with value objects
+- Migrate `word/meaning/translation` to `Expression`/`IntendedMeaningEs`/`DefinitionEn`. Implies schema migration (existing cards must pass VO validation) and mapper adjustments.
+- **Status:** [ ]
+
+#### S3-T2: Per-feature ViewModel tests
+- Start with the feature with the most reported bugs. Pattern: intent routing, state updates, effect emissions.
+- **Status:** [ ]
+
+#### S3-T3: Decide between standard SM-2 / FSRS
+- Validate with retention feedback whether the current scheduler performs. If not, migrate to FSRS (modern Anki) with default parameter tables.
+- **Status:** [ ]
+
+#### S3-T4: Version prompts
+- Add `promptVersion` to each generated note. Enables A/B testing and tracking quality regressions per prompt version.
+- **Status:** [ ]
+
+#### S3-T5: i18n for static catalogs
+- `StaticCategories`, `CommunicativeIntent` with translatable labels.
+- **Status:** [ ]
+
+#### S3-T6: Few-shot examples in regeneration prompts
+- Add 1-2 examples in each regeneration builder. Improves consistency with `gemini-2.5-flash`.
+- **Status:** [ ]
+
+#### S3-T7: `UpdateFlashcardUseCase` / `SoftDeleteFlashcardUseCase` — decide
+- If they won't have logic, inline in ViewModel and delete. If they'll carry validation logic, add it and tests.
+- **Status:** [ ]
+
+#### S3-T8: Clean up redundancy in docs
+- Reconcile `docs/*_CURRENT.md` with current code post-UI refactor.
+- **Status:** [ ]
+
+---
+
+## 3. Recommended execution order
 
 ```
 S1-T1 (Crashlytics)
   └─→ S1-T2 (R8 rules)
-S1-T3 (modelo Gemini)
+S1-T3 (Gemini model)
   └─→ S1-T4 (responseSchema)
 S1-T5 (migrations baseline)
-  └─→ S1-T6 (DeckTag cascade, si se elige schema change)
-S1-T7 (privacy policy) — independiente, paralelizable
-S1-T8 (manifest cleanup) — independiente
+  └─→ S1-T6 (DeckTag cascade, if schema change chosen)
+S1-T7 (privacy policy) — independent, parallelizable
+S1-T8 (manifest cleanup) — independent
 
-Después de S1 completo:
-S2-T1 (retry/timeout/log) — depende de S1-T1
-S2-T2, S2-T3, S2-T4, S2-T5 — independientes
-S2-T6 (release build) — al final, depende de todo lo anterior
+After S1 complete:
+S2-T1 (retry/timeout/log) — depends on S1-T1
+S2-T2, S2-T3, S2-T4, S2-T5 — independent
+S2-T6 (release build) — last, depends on everything above
 
-Después de lanzamiento:
-S3-* según señales reales
+After launch:
+S3-* per real signals
 ```
 
-## 4. Definición de "listo para Play Store"
+## 4. Definition of "ready for Play Store"
 
-Todos los items de Sprint 1 cerrados + S2-T1 + S2-T6 verificado en device real.
+All Sprint 1 items closed + S2-T1 + S2-T6 verified on a real device.
 
-## 5. Documentos relacionados
+## 5. Related documents
 
-- `AGENTS.md` — reglas operativas
-- `ARCHITECTURE.md` — estructura técnica
-- `LOCAL_FIRST.md` — contrato de runtime
-- `README.md` — entry point del repo
+- `AGENTS.md` — operating rules
+- `ARCHITECTURE.md` — technical structure
+- `LOCAL_FIRST.md` — runtime contract
+- `README.md` — repo entry point

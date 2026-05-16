@@ -1,56 +1,61 @@
-# Runtime Local-First Actual
+# Current Local-First Runtime
 
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Contrato de runtime actual |
+| Role | Current runtime contract |
 | Source of Truth | Yes |
-| Read this when | Tocás startup, persistencia o supuestos de producto |
+| Read this when | You touch startup, persistence or product assumptions |
 
-## Principios
+## Principles
 
-- la UI lee desde `HelloDb`
-- las escrituras persisten localmente
-- startup no depende de servicios remotos
-- el producto opera como single-device
+- the UI reads from `HelloDb`
+- writes persist locally
+- startup does not depend on remote services
+- the product runs as single-device
+- the study loop works without network
+- AI card generation requires network and is an external service, not part of the local runtime
 
 ## Startup
 
-`AppStartupCoordinator.start()` hace solo esto:
+`AppStartupCoordinator.start()` only does this:
 
-1. asegura identidad local de instalación
-2. marca la app como lista si sale bien
-3. expone error local si falla
+1. ensures local install identity
+2. marks the app as ready if it succeeds
+3. exposes local error if it fails
 
-## Existe hoy
+## Exists today
 
-- identidad local con `deviceId`
-- repositorios locales sobre SQLDelight
-- generación con Firebase AI
-- estudio local con `ReviewEvent` y `ReviewProjection`
+- local identity with `deviceId`
+- local repositories over SQLDelight
+- generation with Firebase AI
+- local study with `ReviewEvent` and `ReviewProjection`
 
-## No existe en runtime activo
+## Does not exist in active runtime
 
-- bootstrap remoto
+- remote bootstrap
 - pairing
-- push/pull/ack remotos
-- workers de sync remoto
-- panel de debug de sync en path de producto
+- remote push/pull/ack
+- remote sync workers
+- sync debug panel in product path
 
-## Escritura local
+## Local write
 
-Patrón vigente:
+Current pattern:
 
-1. abrir transacción local
-2. persistir entidades de negocio
-3. renderizar desde consultas locales
+1. open local transaction
+2. persist business entities
+3. render from local queries
 
-## Alcance
+## Scope
 
-- el producto actual es local-first single-device
-- referencias legacy a sync o Supabase no forman parte del runtime vigente
+- the current product is local-first single-device
+- local-first applies to the study loop and persistence
+- AI-assisted content entry is online by design and is not considered a break of the contract
+- without network the user can study what they already have; they cannot create new cards until the connection is back
+- legacy references to sync or Supabase are not part of the current runtime
 
-## Ver también
+## See also
 
 - `ARCHITECTURE.md`
 - `docs/CARD_CREATION_CURRENT.md`

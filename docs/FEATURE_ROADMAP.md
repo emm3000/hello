@@ -3,22 +3,22 @@
 | Field | Value |
 |---|---|
 | Status | Active |
-| Role | Plan corto por feature pendiente. Cada entrada se expande a un doc atómico tipo `STUDY_UX_ITERATION.md` cuando se prioriza. |
-| Source of Truth | Yes para prioridad y tamaño de cada item |
-| Read this when | Vas a elegir qué feature implementar a continuación |
-| Última verificación contra código | 2026-05-16 |
+| Role | Short plan per pending feature. Each entry expands into an atomic doc like `STUDY_UX_ITERATION.md` when prioritized. |
+| Source of Truth | Yes for priority and size of each item |
+| Read this when | You're picking which feature to implement next |
+| Last verified against code | 2026-05-16 |
 
-## Orden recomendado
+## Recommended order
 
-1. **Sprint 2 de Notifications** (settings toggle + time picker) — completa la feature ya scaffoldeada.
-2. **Undo soft-delete** — chico, polish UX.
-3. **Búsqueda global de flashcards** — alta utilidad, mediano.
-4. **Stats / racha** — engagement, mediano-grande.
-5. **Tags a nivel flashcard** — schema mig, grande.
-6. **Onboarding primer uso** — opcional, mediano.
-7. **Modo cram (no-SRS)** — opcional, mediano.
+1. **Notifications Sprint 2** (settings toggle + time picker) — finishes the already-scaffolded feature.
+2. **Undo soft-delete** — small, UX polish.
+3. **Global flashcard search** — high utility, medium.
+4. **Stats / streak** — engagement, medium-large.
+5. **Flashcard-level tags** — schema migration, large.
+6. **First-run onboarding** — optional, medium.
+7. **Cram mode (no-SRS)** — optional, medium.
 
-`F2` (validación device) y `S1-T7` (privacy URL) son del usuario, no míos.
+`F2` (device validation) and `S1-T7` (privacy URL) are on the user, not me.
 
 ---
 
@@ -26,19 +26,19 @@
 
 | Field | Value |
 |---|---|
-| Tamaño | Mediano (~1.5 h) |
-| Bloquea | Nada |
-| Bloqueado por | Notifications Sprint 1 (ya hecho, `9cddeb6`) |
-| Plan completo | `docs/NOTIFICATIONS_PLAN.md` Sprint 2 + Follow-ups |
+| Size | Medium (~1.5 h) |
+| Blocks | Nothing |
+| Blocked by | Notifications Sprint 1 (already done, `9cddeb6`) |
+| Full plan | `docs/NOTIFICATIONS_PLAN.md` Sprint 2 + Follow-ups |
 
-**Tareas:**
+**Tasks:**
 
-- **N2-T6**: Settings toggle on/off persistido en `DataStore`. Al cambiar OFF → `StudyReminderScheduler.cancel(context)`. ON → `scheduleDaily(context)`.
-- **N2-T7**: Strings i18n + ícono Material guideline-compliant (vector blanco 24×24 sin background).
-- **F-Time-Picker**: TimePicker en Settings para elegir hora. Persistir como `LocalTime`. `StudyReminderScheduler.scheduleDaily(context, time)` recalcula `initialDelay`.
-- **F-Deep-Link**: tap en notificación → `Study` para el deck con más cards due. Requiere extender `MainActivity` con intent extras.
+- **N2-T6**: Settings toggle on/off persisted in `DataStore`. Switching OFF → `StudyReminderScheduler.cancel(context)`. ON → `scheduleDaily(context)`.
+- **N2-T7**: i18n strings + Material guideline-compliant icon (white 24×24 vector, no background).
+- **F-Time-Picker**: TimePicker in Settings to pick the hour. Persist as `LocalTime`. `StudyReminderScheduler.scheduleDaily(context, time)` recomputes `initialDelay`.
+- **F-Deep-Link**: tap notification → `Study` for the deck with the most due cards. Requires extending `MainActivity` with intent extras.
 
-**Definition of done:** usuario puede desactivar el reminder, cambiar la hora, y al tocar la notificación entra directamente al estudio del deck más cargado.
+**Definition of done:** user can disable the reminder, change the time, and tapping the notification jumps straight into studying the busiest deck.
 
 ---
 
@@ -46,43 +46,43 @@
 
 | Field | Value |
 |---|---|
-| Tamaño | Chico (~1 h) |
-| Bloquea | Nada |
-| Bloqueado por | Nada |
+| Size | Small (~1 h) |
+| Blocks | Nothing |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **U-T1**: Agregar queries `restoreByTimestamp` en `Flashcard.sq` y `FlashcardExample.sq`:
+- **U-T1**: Add `restoreByTimestamp` queries in `Flashcard.sq` and `FlashcardExample.sq`:
     ```sql
     restoreByTimestamp:
     UPDATE Flashcard SET deletedAt = NULL
     WHERE id = :id AND deletedAt = :timestamp;
     ```
-    El filtro por timestamp es para no restaurar examples soft-deleted antes (independiente del cascade actual).
-- **U-T2**: `FlashcardRepository.restoreFlashcard(flashcardId, deletedAtTimestamp)` + impl en `DefaultFlashcardRepository` con transacción que también restaura los examples cascaded.
+    The timestamp filter prevents restoring examples soft-deleted earlier (independent of the current cascade).
+- **U-T2**: `FlashcardRepository.restoreFlashcard(flashcardId, deletedAtTimestamp)` + impl in `DefaultFlashcardRepository` with a transaction that also restores cascaded examples.
 - **U-T3**: `RestoreFlashcardUseCase`.
-- **U-T4**: Modificar `FlashcardDetailViewModel.deleteFlashcard()`:
-  1. Capturar `deletedAt` timestamp.
-  2. Setear estado `pendingDeletion = PendingDeletion(timestamp, dismissJob)`.
-  3. Lanzar coroutine con `delay(5_000)` → emite `FlashcardDeleted` (navega back).
-  4. Si recibe `UndoDeletion` intent → cancel job + `RestoreFlashcardUseCase(flashcardId, timestamp)`.
-- **U-T5**: UI: `Snackbar` con action "Deshacer" en `FlashcardDetailScreen` mientras `pendingDeletion != null`. Auto-dismiss en 5s.
+- **U-T4**: Modify `FlashcardDetailViewModel.deleteFlashcard()`:
+  1. Capture `deletedAt` timestamp.
+  2. Set state `pendingDeletion = PendingDeletion(timestamp, dismissJob)`.
+  3. Launch coroutine with `delay(5_000)` → emits `FlashcardDeleted` (navigates back).
+  4. If it receives `UndoDeletion` intent → cancel job + `RestoreFlashcardUseCase(flashcardId, timestamp)`.
+- **U-T5**: UI: `Snackbar` with "Undo" action in `FlashcardDetailScreen` while `pendingDeletion != null`. Auto-dismiss after 5s.
 
-**Caveat:** durante los 5s, la card está soft-deleted en DB pero la UI todavía la muestra (data en memoria del state). El user-flow es coherente porque la pantalla no recarga.
+**Caveat:** during those 5s, the card is soft-deleted in DB but UI still shows it (data is in state memory). User flow is coherent because the screen does not reload.
 
 ---
 
-## 3. Búsqueda global de flashcards (Feature #8)
+## 3. Global flashcard search (Feature #8)
 
 | Field | Value |
 |---|---|
-| Tamaño | Mediano (~2 h) |
-| Bloquea | Nada |
-| Bloqueado por | Nada |
+| Size | Medium (~2 h) |
+| Blocks | Nothing |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **S-T1**: Query SQL nuevo en `Flashcard.sq`:
+- **S-T1**: New SQL query in `Flashcard.sq`:
     ```sql
     searchFlashcards:
     SELECT f.*, d.name AS deckName
@@ -96,28 +96,28 @@
     ORDER BY f.createdAt DESC
     LIMIT 50;
     ```
-- **S-T2**: `FlashcardRepository.search(query: String): Flow<List<FlashcardSearchResult>>` (incluye nombre del deck).
-- **S-T3**: Extender `DashboardUiState`:
+- **S-T2**: `FlashcardRepository.search(query: String): Flow<List<FlashcardSearchResult>>` (includes deck name).
+- **S-T3**: Extend `DashboardUiState`:
   - `flashcardResults: List<FlashcardSearchResult>`
-  - Al escribir en `HSearchBar`, además de filtrar decks, llama `search(query)` debounced (~300 ms).
-- **S-T4**: UI en Dashboard: si hay query no-vacío, mostrar dos secciones — "Decks" (lo actual) y "Flashcards" (cards matched con su deck name y un highlight del término matched).
-- **S-T5**: Tap en card de búsqueda → navega a `CardDetailRoute(flashcardId)`.
+  - When typing in `HSearchBar`, in addition to filtering decks, call `search(query)` debounced (~300 ms).
+- **S-T4**: UI in Dashboard: if query is non-empty, show two sections — "Decks" (current) and "Flashcards" (matched cards with their deck name and a highlight of the matched term).
+- **S-T5**: Tap a search-result card → navigate to `CardDetailRoute(flashcardId)`.
 
-**Definition of done:** con 500 cards, buscar "phrasal" muestra todas las cards con esa palabra/significado en menos de 200 ms.
+**Definition of done:** with 500 cards, searching "phrasal" shows all cards with that word/meaning in under 200 ms.
 
 ---
 
-## 4. Stats / racha (Feature #7)
+## 4. Stats / streak (Feature #7)
 
 | Field | Value |
 |---|---|
-| Tamaño | Grande (~4-5 h) |
-| Bloquea | Onboarding pre-ranking |
-| Bloqueado por | Nada |
+| Size | Large (~4-5 h) |
+| Blocks | Onboarding pre-ranking |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **St-T1**: Nueva tabla `ReviewLog`:
+- **St-T1**: New `ReviewLog` table:
     ```sql
     CREATE TABLE ReviewLog (
       id TEXT NOT NULL PRIMARY KEY,
@@ -127,78 +127,78 @@
     );
     CREATE INDEX idx_ReviewLog_reviewedAt ON ReviewLog(reviewedAt);
     ```
-- **St-T2**: Migration `2.sqm` para crear la tabla. Verify con `verifySqlDelightMigration`.
-- **St-T3**: Insertar log entry en `ScheduleFlashcardReviewUseCase` (o en el VM antes de actualizar review). Decisión: hacerlo en el use case para mantener single source of truth.
-- **St-T4**: Queries en `Stats.sq`:
+- **St-T2**: Migration `2.sqm` to create the table. Verify with `verifySqlDelightMigration`.
+- **St-T3**: Insert log entry in `ScheduleFlashcardReviewUseCase` (or in the VM before updating review). Decision: do it in the use case to keep a single source of truth.
+- **St-T4**: Queries in `Stats.sq`:
   - `reviewsByDay`: COUNT(*) GROUP BY date(reviewedAt/1000, 'unixepoch')
-  - `currentStreak`: cálculo en Kotlin sobre los días consecutivos con ≥ 1 review.
-- **St-T5**: Domain: `GetStudyStatsUseCase` devuelve `StudyStats(streak, reviewsToday, reviewsThisWeek, accuracy30d, heatmap30d)`.
-- **St-T6**: Extender `DashboardStatsSection` para mostrar racha, gráfico simple del heatmap (30 días).
+  - `currentStreak`: computed in Kotlin over consecutive days with ≥ 1 review.
+- **St-T5**: Domain: `GetStudyStatsUseCase` returns `StudyStats(streak, reviewsToday, reviewsThisWeek, accuracy30d, heatmap30d)`.
+- **St-T6**: Extend `DashboardStatsSection` to show streak and a simple 30-day heatmap chart.
 
-**Definition of done:** Dashboard muestra "Racha: 5 días", "Hoy: 12 cards", heatmap visual de 30 días.
+**Definition of done:** Dashboard shows "Streak: 5 days", "Today: 12 cards", a 30-day visual heatmap.
 
 ---
 
-## 5. Tags a nivel flashcard (Feature #9)
+## 5. Flashcard-level tags (Feature #9)
 
 | Field | Value |
 |---|---|
-| Tamaño | Grande (~5-6 h) |
-| Bloquea | Nada |
-| Bloqueado por | Nada |
+| Size | Large (~5-6 h) |
+| Blocks | Nothing |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **T-T1**: Tabla `FlashcardTag(flashcardId, tagId)` con FKs ON DELETE CASCADE. Migration `3.sqm`.
+- **T-T1**: `FlashcardTag(flashcardId, tagId)` table with FKs ON DELETE CASCADE. Migration `3.sqm`.
 - **T-T2**: Repo methods: `addTag`, `removeTag`, `flashcardTags(flashcardId)`, `flashcardsByTag(tagId)`.
-- **T-T3**: UI en `EditFlashcardScreen` para asignar tags vía `HTagInput`.
-- **T-T4**: Filtro por tag en `DeckDetail` y `Dashboard` flashcard search.
-- **T-T5**: Backup export/import incluye `FlashcardTag` con filtro de soft-delete (mismo patrón que `DeckTag`).
+- **T-T3**: UI in `EditFlashcardScreen` to assign tags via `HTagInput`.
+- **T-T4**: Tag filter in `DeckDetail` and `Dashboard` flashcard search.
+- **T-T5**: Backup export/import includes `FlashcardTag` with soft-delete filter (same pattern as `DeckTag`).
 
-**Definition of done:** crear/editar card permite asignar tags. Filtrar deck por tag muestra solo cards taggeadas.
+**Definition of done:** creating/editing a card allows assigning tags. Filtering a deck by tag shows only tagged cards.
 
 ---
 
-## 6. Onboarding primer uso (Feature #10)
+## 6. First-run onboarding (Feature #10)
 
 | Field | Value |
 |---|---|
-| Tamaño | Mediano (~2-3 h) |
-| Bloquea | Notifications opt-in dialog |
-| Bloqueado por | Nada |
+| Size | Medium (~2-3 h) |
+| Blocks | Notifications opt-in dialog |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **O-T1**: Detectar primer uso en `AppStartupCoordinator` (flag persistido en DataStore).
-- **O-T2**: Nueva feature `app/.../onboarding/` con 3 pantallas: bienvenida, "creá tu primer deck" (genera deck demo), opt-in de notificaciones (request POST_NOTIFICATIONS en Android 13+).
-- **O-T3**: Skip-able pero con CTA prominente para crear el primer deck.
-- **O-T4**: Marcar `firstRunCompleted = true` al final.
+- **O-T1**: Detect first run in `AppStartupCoordinator` (flag persisted in DataStore).
+- **O-T2**: New feature `app/.../onboarding/` with 3 screens: welcome, "create your first deck" (generates demo deck), notifications opt-in (request POST_NOTIFICATIONS on Android 13+).
+- **O-T3**: Skippable but with a prominent CTA to create the first deck.
+- **O-T4**: Mark `firstRunCompleted = true` at the end.
 
-**Definition of done:** instalar fresco → onboarding aparece una vez. Cierre o completar marca el flag y no vuelve a aparecer.
+**Definition of done:** fresh install → onboarding appears once. Closing or completing sets the flag and it doesn't appear again.
 
 ---
 
-## 7. Modo cram / no-SRS (Feature #11)
+## 7. Cram / no-SRS mode (Feature #11)
 
 | Field | Value |
 |---|---|
-| Tamaño | Mediano (~2-3 h) |
-| Bloquea | Nada |
-| Bloqueado por | Nada |
+| Size | Medium (~2-3 h) |
+| Blocks | Nothing |
+| Blocked by | Nothing |
 
-**Tareas atómicas:**
+**Atomic tasks:**
 
-- **C-T1**: Nuevo intent `StartCramSession` en `StudyViewModel` que carga TODAS las cards del deck (no solo due) en orden aleatorio, sin schedule actualizado.
-- **C-T2**: UI: botón "Cram" en `DeckDetail` además del "Estudiar" actual.
-- **C-T3**: En la sesión cram, los grade buttons existen pero NO escriben en `FlashcardReview` — solo navegan al siguiente. Banner sutil indica "Modo repaso rápido (no afecta tu progreso SRS)".
-- **C-T4**: Misma UI de Study, solo cambia la fuente de items y el callback de grade.
+- **C-T1**: New `StartCramSession` intent in `StudyViewModel` that loads ALL deck cards (not only due) in random order, without updating the schedule.
+- **C-T2**: UI: "Cram" button in `DeckDetail` next to the current "Study".
+- **C-T3**: In the cram session, grade buttons exist but do NOT write to `FlashcardReview` — they only advance to the next card. A subtle banner says "Quick review mode (does not affect your SRS progress)".
+- **C-T4**: Same Study UI; only the item source and grade callback change.
 
-**Definition of done:** "Cram" arranca con todas las cards aleatorias. Tocar "Good" avanza sin escribir SRS. Saliendo del cram, los intervals del deck quedan intactos.
+**Definition of done:** "Cram" starts with all cards shuffled. Tapping "Good" advances without writing SRS. Leaving cram leaves the deck's intervals intact.
 
 ---
 
-## Decisiones de cierre
+## Closing decisions
 
-- **Privacy URL (S1-T7 del audit)**: bloqueado en el usuario hasta que publique `docs/privacy-policy.md` en una URL pública. Cuando me digas la URL, agrego el meta-data al manifest en 5 minutos.
-- **F2 validación device**: necesito hardware tuyo. Pasame lo que detectes y refino.
-- **F3 color HARD**: ya cerrado en commit `5f33a94`.
+- **Privacy URL (audit S1-T7)**: blocked on the user until `docs/privacy-policy.md` is published at a public URL. Once you give me the URL, I'll add the meta-data to the manifest in 5 minutes.
+- **F2 device validation**: I need your hardware. Pass me whatever you find and I'll refine.
+- **F3 HARD color**: already closed in commit `5f33a94`.
