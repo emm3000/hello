@@ -19,7 +19,7 @@ open class GeminiService(
 ) {
 
     open suspend fun process(prompt: String): String {
-        enforceQuota()
+        enforceQuota(kind = "generic")
         return callWithRetry(kind = "generic") {
             val response: GenerateContentResponse = generativeModel.generateContent(prompt)
             response.text.orEmpty()
@@ -31,16 +31,17 @@ open class GeminiService(
      * Usa un modelo con `responseSchema` declarado para restringir enums y forma del JSON.
      */
     open suspend fun processLearningNote(prompt: String): String {
-        enforceQuota()
+        enforceQuota(kind = "learning_note")
         return callWithRetry(kind = "learning_note") {
             val response: GenerateContentResponse = learningNoteModel.generateContent(prompt)
             response.text.orEmpty()
         }
     }
 
-    private suspend fun enforceQuota() {
+    private suspend fun enforceQuota(kind: String) {
         val outcome = quota.tryConsume()
         if (outcome is GenerationQuota.Outcome.Exceeded) {
+            telemetry.recordQuotaExceeded(kind = kind, limit = outcome.limit)
             throw GenerationQuotaExceededException(limit = outcome.limit, resetAt = outcome.resetAt)
         }
     }

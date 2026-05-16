@@ -97,6 +97,7 @@ class GeminiServiceRetryTest {
         assertEquals(resetAt, thrown.resetAt)
         coVerify(exactly = 0) { model.generateContent(any<String>()) }
         verify(exactly = 0) { telemetry.recordCallFailure(any(), any(), any()) }
+        verify(exactly = 1) { telemetry.recordQuotaExceeded(kind = "generic", limit = 50) }
     }
 
     private fun TestScope.newService(

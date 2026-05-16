@@ -20,4 +20,10 @@ class CrashlyticsGeminiTelemetry(
         crashlytics.log("Gemini parse failed (kind=$kind)")
         crashlytics.recordException(cause)
     }
+
+    override fun recordQuotaExceeded(kind: String, limit: Int) {
+        crashlytics.setCustomKey("gemini_quota_kind", kind)
+        crashlytics.setCustomKey("gemini_quota_limit", limit)
+        crashlytics.log("Gemini daily quota exceeded (kind=$kind, limit=$limit)")
+    }
 }
