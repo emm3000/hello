@@ -1,5 +1,7 @@
 package com.emm.data.flashcard
 
+import com.emm.domain.generation.GenerationQuota
+import com.emm.domain.generation.GenerationQuotaExceededException
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
 import kotlinx.coroutines.TimeoutCancellationException
@@ -11,25 +13,37 @@ open class GeminiService(
     private val generativeModel: GenerativeModel,
     private val learningNoteModel: GenerativeModel = generativeModel,
     private val telemetry: GeminiTelemetry = GeminiTelemetry.NoOp,
+    private val quota: GenerationQuota = GenerationQuota.AlwaysAllow,
     private val perAttemptTimeoutMs: Long = DEFAULT_TIMEOUT_MS,
     private val backoffMs: List<Long> = DEFAULT_BACKOFF_MS,
 ) {
 
-    open suspend fun process(prompt: String): String =
-        callWithRetry(kind = "generic") {
+    open suspend fun process(prompt: String): String {
+        enforceQuota()
+        return callWithRetry(kind = "generic") {
             val response: GenerateContentResponse = generativeModel.generateContent(prompt)
             response.text.orEmpty()
         }
+    }
 
     /**
      * Llamada dedicada a la generación principal de [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto].
      * Usa un modelo con `responseSchema` declarado para restringir enums y forma del JSON.
      */
-    open suspend fun processLearningNote(prompt: String): String =
-        callWithRetry(kind = "learning_note") {
+    open suspend fun processLearningNote(prompt: String): String {
+        enforceQuota()
+        return callWithRetry(kind = "learning_note") {
             val response: GenerateContentResponse = learningNoteModel.generateContent(prompt)
             response.text.orEmpty()
         }
+    }
+
+    private suspend fun enforceQuota() {
+        val outcome = quota.tryConsume()
+        if (outcome is GenerationQuota.Outcome.Exceeded) {
+            throw GenerationQuotaExceededException(limit = outcome.limit, resetAt = outcome.resetAt)
+        }
+    }
 
     private suspend fun callWithRetry(kind: String, block: suspend () -> String): String {
         val totalAttempts = backoffMs.size + 1

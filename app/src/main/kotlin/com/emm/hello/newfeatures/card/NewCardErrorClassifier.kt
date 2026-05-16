@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.card
 
+import com.emm.domain.generation.GenerationQuotaExceededException
 import java.io.IOException
 import kotlinx.coroutines.TimeoutCancellationException
 
@@ -8,6 +9,7 @@ internal data class ClassifiedError(val title: String, val message: String)
 internal object NewCardErrorClassifier {
 
     fun classifyGenerationFailure(error: Throwable, fallbackMessage: String): ClassifiedError {
+        error.findQuotaExceeded()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
@@ -25,6 +27,7 @@ internal object NewCardErrorClassifier {
         failureTitle: String,
         fallbackMessage: String,
     ): ClassifiedError {
+        error.findQuotaExceeded()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
@@ -34,6 +37,22 @@ internal object NewCardErrorClassifier {
         return ClassifiedError(
             title = failureTitle,
             message = error.message ?: fallbackMessage,
+        )
+    }
+
+    private fun Throwable.findQuotaExceeded(): GenerationQuotaExceededException? {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is GenerationQuotaExceededException) return current
+            current = current.cause?.takeIf { it !== current }
+        }
+        return null
+    }
+
+    private fun GenerationQuotaExceededException.toClassifiedError(): ClassifiedError {
+        return ClassifiedError(
+            title = "Límite diario alcanzado",
+            message = "Llegaste al máximo de $limit generaciones por día. Volvé a intentarlo mañana.",
         )
     }
 
