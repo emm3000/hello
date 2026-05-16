@@ -17,5 +17,7 @@ interface FlashcardRepository {
 
     suspend fun softDeleteFlashcard(flashcardId: FlashcardId)
 
+    suspend fun countDueFlashcards(nowMillis: Long): Long
+
     suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId)
 }

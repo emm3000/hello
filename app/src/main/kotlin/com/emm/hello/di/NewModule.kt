@@ -37,6 +37,7 @@ import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
+import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
@@ -161,6 +162,7 @@ fun Module.useCases() {
     factoryOf(::SoftDeleteDeckUseCase)
     factoryOf(::UpdateFlashcardUseCase)
     factoryOf(::SoftDeleteFlashcardUseCase)
+    factoryOf(::CountDueFlashcardsUseCase)
 }
 
 fun Module.viewModels() {

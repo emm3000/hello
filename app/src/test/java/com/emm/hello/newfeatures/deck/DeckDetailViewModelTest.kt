@@ -208,6 +208,7 @@ class DeckDetailViewModelTest {
         ) = Unit
         override suspend fun update(input: UpdateFlashcardInput) = Unit
         override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
+        override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     }
 
     private class FakeStudyRepo : StudySessionRepository {

@@ -322,6 +322,15 @@
     <string name="study_interval_days_format">%1$d días</string>
     <string name="study_interval_weeks_format">%1$d sem.</string>
     <string name="study_interval_months_format">%1$d meses</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Recordatorios de estudio</string>
+    <string name="notification_channel_description">Aviso diario cuando tenés cards listas para repasar.</string>
+    <string name="notification_reminder_title">Tu repaso del día</string>
+    <plurals name="notification_reminder_body">
+        <item quantity="one">Tenés %1$d card para repasar hoy.</item>
+        <item quantity="other">Tenés %1$d cards para repasar hoy.</item>
+    </plurals>
     <string name="card_detail_tab_study_pending_badge">%1$d</string>
 
     <!-- Notes -->

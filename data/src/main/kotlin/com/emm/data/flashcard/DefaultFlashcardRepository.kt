@@ -161,6 +161,10 @@ class DefaultFlashcardRepository(
         }
     }
 
+    override suspend fun countDueFlashcards(nowMillis: Long): Long = withContext(Dispatchers.IO) {
+        dao.countDueFlashcards(now = nowMillis).executeAsOne()
+    }
+
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
 

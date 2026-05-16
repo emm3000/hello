@@ -3,6 +3,8 @@ package com.emm.hello
 import android.app.Application
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
+import com.emm.hello.notifications.StudyReminderScheduler
+import com.emm.hello.notifications.ensureStudyReminderChannel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -27,6 +29,8 @@ class App : Application() {
                 newModule,
             )
         }
+        ensureStudyReminderChannel(this)
         GlobalContext.get().get<AppStartupCoordinator>().start()
+        StudyReminderScheduler.scheduleDaily(this)
     }
 }
