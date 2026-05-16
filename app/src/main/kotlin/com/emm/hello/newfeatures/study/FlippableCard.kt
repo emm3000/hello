@@ -95,8 +95,6 @@ fun FlippableCard(
     }
 }
 
-// ── Dynamic gradient that evolves with session progress ──────────────────────
-
 @Composable
 fun rememberDynamicStudyGradient(
     progress: Float,
@@ -169,8 +167,6 @@ fun rememberDynamicStudyGradient(
         Brush.verticalGradient(colors = listOf(finalColor1, finalColor2))
     }
 }
-
-// ── Color utilities ─────────────────────────────────────────────────────────
 
 private fun lerp(start: Color, end: Color, fraction: Float): Color {
     val clampedFraction = fraction.coerceIn(0f, 1f)

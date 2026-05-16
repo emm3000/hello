@@ -164,8 +164,6 @@ private fun InputDecoration(
     }
 }
 
-// ─── Previews ────────────────────────────────────────────────────────────────
-
 @PreviewLightDark
 @Composable
 private fun HInputPreview() {

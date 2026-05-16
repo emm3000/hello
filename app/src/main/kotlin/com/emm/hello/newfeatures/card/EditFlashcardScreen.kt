@@ -80,7 +80,6 @@ fun EditFlashcardScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
-            // ── Word ──────────────────────────────────────────────────
             HInput(
                 value = state.word,
                 onValueChange = { onIntent(EditFlashcardUiIntent.WordChanged(it)) },
@@ -91,7 +90,6 @@ fun EditFlashcardScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // ── Meaning ───────────────────────────────────────────────
             HInput(
                 value = state.meaning,
                 onValueChange = { onIntent(EditFlashcardUiIntent.MeaningChanged(it)) },
@@ -102,7 +100,6 @@ fun EditFlashcardScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // ── Translation ──────────────────────────────────────────
             HInput(
                 value = state.translation,
                 onValueChange = { onIntent(EditFlashcardUiIntent.TranslationChanged(it)) },
@@ -112,7 +109,6 @@ fun EditFlashcardScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // ── Phonetic (optional) ──────────────────────────────────
             HInput(
                 value = state.phonetic,
                 onValueChange = { onIntent(EditFlashcardUiIntent.PhoneticChanged(it)) },
@@ -122,7 +118,6 @@ fun EditFlashcardScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            // ── Part of speech (optional) ────────────────────────────
             HInput(
                 value = state.partOfSpeech,
                 onValueChange = { onIntent(EditFlashcardUiIntent.PartOfSpeechChanged(it)) },
@@ -134,7 +129,6 @@ fun EditFlashcardScreen(
 
             HSeparator()
 
-            // ── Examples ──────────────────────────────────────────────
             ExamplesEditor(
                 examples = state.examples,
                 onIntent = onIntent,
@@ -142,7 +136,6 @@ fun EditFlashcardScreen(
 
             Spacer(Modifier.height(MaterialTheme.spacing.md))
 
-            // ── Submit ────────────────────────────────────────────────
             HButton(
                 text = stringResource(R.string.save_changes),
                 onClick = { onIntent(EditFlashcardUiIntent.Submit) },
@@ -156,8 +149,6 @@ fun EditFlashcardScreen(
         }
     }
 }
-
-// ── Top bar ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun EditFlashcardTopBar(onNavigateBack: () -> Unit) {
@@ -175,8 +166,6 @@ private fun EditFlashcardTopBar(onNavigateBack: () -> Unit) {
         },
     )
 }
-
-// ── Examples editor ────────────────────────────────────────────────────────────
 
 @Composable
 private fun ExamplesEditor(

@@ -36,8 +36,6 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.theme.spacing
 
-// ─── Variants ──────────────────────────────────────────────────────────────
-
 enum class AlertVariant { Default, Destructive, Warning, Success }
 
 /**
@@ -147,8 +145,6 @@ private fun alertStateDescription(variant: AlertVariant): String? {
         AlertVariant.Success -> stringResource(R.string.success_label)
     }
 }
-
-// ─── Previews ────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

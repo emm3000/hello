@@ -34,8 +34,6 @@ fun HSeparator(
     )
 }
 
-// ─── Previews ────────────────────────────────────────────────────────────────
-
 @PreviewLightDark
 @Composable
 private fun HSeparatorPreview() {

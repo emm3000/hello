@@ -124,8 +124,6 @@ private fun normalizeAndAddTag(
     onClear()
 }
 
-// ─── Previews ────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HTagInputPreview() {
     HelloTheme {

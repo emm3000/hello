@@ -670,8 +670,6 @@ private fun StudyEmptyState() {
     }
 }
 
-// ── Front content ────────────────────────────────────────────────────────────
-
 @Composable
 private fun FlashcardFrontContent(
     card: Flashcard?,
@@ -745,8 +743,6 @@ private fun FlashcardFrontContent(
     }
 }
 
-// ── Back content ─────────────────────────────────────────────────────────────
-
 @Composable
 private fun FlashcardBackContent(
     card: Flashcard?,
@@ -819,7 +815,6 @@ private fun FlashcardBackContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // ── TTS button ──────────────────────────────────────────────────
         HButton(
             text = if (isSpeaking) stringResource(R.string.stop_speech_desc) else stringResource(R.string.speak_desc),
             onClick = { if (isSpeaking) onStop() else onSpeak() },
@@ -1093,8 +1088,6 @@ private fun GeneratedStudyCard.typedAnswerResultMessage(isCorrect: Boolean): Str
     }
 }
 
-// ── Answer buttons with icons ────────────────────────────────────────────────
-
 @Composable
 private fun AnswerButtons(
     modifier: Modifier = Modifier,
@@ -1157,8 +1150,6 @@ private fun AnswerButtons(
         }
     }
 }
-
-// ── Previews ─────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

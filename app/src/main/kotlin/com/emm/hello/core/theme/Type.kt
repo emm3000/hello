@@ -6,7 +6,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// ─── Font Family ─────────────────────────────────────────────────────────────
 //
 // Para usar Geist (la fuente de shadcn/ui) descarga los .ttf desde:
 //   https://vercel.com/font/geist

@@ -41,8 +41,6 @@ private const val DECK_ITEM_SUBTITLE_WIDTH = 0.35f
 private const val PREVIEW_TITLE_WIDTH = 0.5f
 private const val PREVIEW_LAST_LINE_WIDTH = 0.7f
 
-// ─── Primitive ───────────────────────────────────────────────────────────────
-
 /**
  * Primitive skeleton inspired by shadcn/ui.
  *
@@ -80,8 +78,6 @@ fun HSkeleton(
             .background(shimmerBrush),
     )
 }
-
-// ─── Screen Presets ─────────────────────────────────────────────────────
 
 /** Skeleton of a DeckItem in the Dashboard. */
 @Composable
@@ -154,8 +150,6 @@ fun TextSkeleton(
         }
     }
 }
-
-// ─── Previews ────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

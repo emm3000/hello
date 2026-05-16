@@ -19,8 +19,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-// ─── Variantes ──────────────────────────────────────────────────────────────
-
 enum class CardVariant { Elevated, Filled, Outlined }
 
 /**
@@ -58,8 +56,6 @@ private fun cardTokens(variant: CardVariant): Triple<Color, Dp, BorderStroke?> {
         CardVariant.Outlined -> Triple(cs.surface, 0.dp, BorderStroke(1.dp, cs.outlineVariant))
     }
 }
-
-// ─── Slots ───────────────────────────────────────────────────────────────────
 
 /** Header con título y subtítulo opcional. */
 @Composable
@@ -116,8 +112,6 @@ fun HCardFooter(
         content = content,
     )
 }
-
-// ─── Previews ────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

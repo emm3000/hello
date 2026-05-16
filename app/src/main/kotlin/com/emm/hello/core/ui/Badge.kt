@@ -24,8 +24,6 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.theme.spacing
 
-// ─── Variants ──────────────────────────────────────────────────────────────
-
 enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success, Tertiary }
 
 /**
@@ -105,8 +103,6 @@ private fun badgeStateDescription(variant: BadgeVariant): String? {
         BadgeVariant.Tertiary -> null
     }
 }
-
-// ─── Previews ────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 
-// ─────────────────────────────────────────────────────────────────────────────
 // shadcn/ui — Neutral theme mapped to Material 3 color roles
 //
 // Mapping strategy:
@@ -23,7 +22,6 @@ import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 //   M3 surfaceContainer → shadcn --card
 //   M3 outline          → shadcn --ring (subtle ring)
 //   M3 outlineVariant   → shadcn --border
-// ─────────────────────────────────────────────────────────────────────────────
 
 private val lightScheme = lightColorScheme(
     semanticColors = lightSemanticColors()
@@ -32,52 +30,43 @@ private val lightScheme = lightColorScheme(
 private fun lightColorScheme(
     semanticColors: HelloSemanticColors,
 ) = materialLightColorScheme(
-    // ── Primary (black button in shadcn) ──────────────────────────────────────
     primary = shadcnPrimary,
     onPrimary = shadcnPrimaryFg,
     primaryContainer = shadcnSecondary,
     onPrimaryContainer = shadcnPrimary,
 
-    // ── Secondary (soft gray, "secondary" variant) ────────────────────────────
     secondary = shadcnMuted,
     onSecondary = shadcnForeground,
     secondaryContainer = shadcnSecondary,
     onSecondaryContainer = shadcnSecondaryFg,
 
-    // ── Tertiary → success green ───────────────────────────────────────────────
     tertiary = semanticColors.success.accent,
     onTertiary = shadcnWhite,
     tertiaryContainer = semanticColors.success.container,
     onTertiaryContainer = semanticColors.success.content,
 
-    // ── Error → destructive red ───────────────────────────────────────────────
     error = semanticColors.destructive.accent,
     onError = shadcnDestructiveFg,
     errorContainer = semanticColors.destructive.container,
     onErrorContainer = semanticColors.destructive.content,
 
-    // ── Background & Surface ──────────────────────────────────────────────────
     background = shadcnBackground,
     onBackground = shadcnForeground,
     surface = shadcnBackground,
     onSurface = shadcnForeground,
 
-    // ── Surface variants → muted / card tones ────────────────────────────────
     surfaceVariant = shadcnMuted,
     onSurfaceVariant = shadcnMutedFg,
 
-    // ── Borders & rings ───────────────────────────────────────────────────────
     outline = shadcnRing,
     outlineVariant = shadcnBorder,
 
-    // ── Inverse ───────────────────────────────────────────────────────────────
     inverseSurface = shadcnPrimary,
     inverseOnSurface = shadcnPrimaryFg,
     inversePrimary = shadcnDarkPrimary,
 
     scrim = shadcnBlack,
 
-    // ── Surface containers → card / popover tones ────────────────────────────
     surfaceContainerLowest = shadcnWhite,
     surfaceContainerLow = shadcnBackground, // pure white
     surfaceContainer = shadcnSecondary, // #F5F5F5
@@ -94,52 +83,43 @@ private val darkScheme = darkColorScheme(
 private fun darkColorScheme(
     semanticColors: HelloSemanticColors,
 ) = materialDarkColorScheme(
-    // ── Primary (near-white in dark mode) ─────────────────────────────────────
     primary = shadcnDarkPrimary,
     onPrimary = shadcnDarkPrimaryFg,
     primaryContainer = shadcnDarkSecondary,
     onPrimaryContainer = shadcnDarkPrimary,
 
-    // ── Secondary ─────────────────────────────────────────────────────────────
     secondary = shadcnDarkMuted,
     onSecondary = shadcnDarkForeground,
     secondaryContainer = shadcnDarkSecondary,
     onSecondaryContainer = shadcnDarkSecondaryFg,
 
-    // ── Tertiary → success green ───────────────────────────────────────────────
     tertiary = semanticColors.success.accent,
     onTertiary = shadcnBlack,
     tertiaryContainer = semanticColors.success.container,
     onTertiaryContainer = semanticColors.success.content,
 
-    // ── Error → destructive red ───────────────────────────────────────────────
     error = semanticColors.destructive.accent,
     onError = shadcnDarkDestructiveFg,
     errorContainer = semanticColors.destructive.container,
     onErrorContainer = semanticColors.destructive.content,
 
-    // ── Background & Surface ──────────────────────────────────────────────────
     background = shadcnDarkBackground,
     onBackground = shadcnDarkForeground,
     surface = shadcnDarkBackground,
     onSurface = shadcnDarkForeground,
 
-    // ── Surface variants → muted tones ────────────────────────────────────────
     surfaceVariant = shadcnDarkMuted,
     onSurfaceVariant = shadcnDarkMutedFg,
 
-    // ── Borders & rings ───────────────────────────────────────────────────────
     outline = shadcnDarkRing,
     outlineVariant = shadcnDarkBorder,
 
-    // ── Inverse ───────────────────────────────────────────────────────────────
     inverseSurface = shadcnDarkPrimary,
     inverseOnSurface = shadcnDarkPrimaryFg,
     inversePrimary = shadcnPrimary,
 
     scrim = shadcnBlack,
 
-    // ── Surface containers → card tones ──────────────────────────────────────
     surfaceContainerLowest = shadcnBlack,
     surfaceContainerLow = shadcnDarkBackground, // #0A0A0A
     surfaceContainer = shadcnDarkCard, // #171717

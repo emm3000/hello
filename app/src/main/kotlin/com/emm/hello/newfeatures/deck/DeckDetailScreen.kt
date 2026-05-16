@@ -122,7 +122,6 @@ fun DeckDetailScreen(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
-            // ── Header with statistics ──────────────────────────────────────
             item {
                 DeckStatsHeader(
                     cardCount = state.deck.cards.size,
@@ -132,7 +131,6 @@ fun DeckDetailScreen(
                 )
             }
 
-            // ── Search bar (sticky) ─────────────────────────────────────────
             stickyHeader {
                 SearchBar(
                     query = state.searchQuery,
@@ -141,14 +139,12 @@ fun DeckDetailScreen(
                 )
             }
 
-            // ── Empty list (no cards at all) ────────────────────────────────
             if (state.deck.cards.isEmpty()) {
                 item {
                     EmptyCards(onAddCard = onAddCard)
                 }
             }
 
-            // ── Cards ─────────────────────────────────────────────────────
             if (state.deck.cards.isNotEmpty()) {
                 item {
                     HSectionBlock(
@@ -183,7 +179,6 @@ fun DeckDetailScreen(
         }
     }
 
-    // ── Delete confirmation dialog ────────────────────────────────────────
     if (state.isDeleteConfirmationVisible) {
         HAlertDialog(
             title = stringResource(R.string.delete_deck_title),
@@ -197,8 +192,6 @@ fun DeckDetailScreen(
         )
     }
 }
-
-// ── Component: Top bar ───────────────────────────────────────────────────
 
 @Composable
 private fun DeckDetailTopBar(
@@ -270,8 +263,6 @@ private fun DeckDetailTopBar(
     )
 }
 
-// ── Component: Deck statistics ────────────────────────────────────────
-
 @Composable
 private fun DeckStatsHeader(
     cardCount: Int,
@@ -333,8 +324,6 @@ private fun DeckStatsHeader(
     }
 }
 
-// ── Component: Tags row ───────────────────────────────────────────────
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsRow(tags: List<String>) {
@@ -347,8 +336,6 @@ private fun TagsRow(tags: List<String>) {
         }
     }
 }
-
-// ── Component: Search bar ─────────────────────────────────────────────
 
 @Composable
 private fun SearchBar(
@@ -365,8 +352,6 @@ private fun SearchBar(
     )
 }
 
-// ── Component: No search results ──────────────────────────────────────
-
 @Composable
 private fun NoSearchResults(query: String) {
     Box(
@@ -382,8 +367,6 @@ private fun NoSearchResults(query: String) {
         )
     }
 }
-
-// ── Component: Empty cards state ─────────────────────────────────────
 
 @Composable
 private fun EmptyCards(onAddCard: () -> Unit) {
@@ -417,8 +400,6 @@ private fun EmptyCards(onAddCard: () -> Unit) {
         }
     }
 }
-
-// ── Component: Card row ───────────────────────────────────────────────
 
 @Composable
 private fun DeckCardItem(
@@ -476,8 +457,6 @@ private fun DeckCardItem(
             .clickable { onCardClick(card.id.value) },
     )
 }
-
-// ── Previews ──────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

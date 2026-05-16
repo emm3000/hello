@@ -133,7 +133,6 @@ fun FlashcardDetailScreen(
         }
     }
 
-    // ── Delete confirmation dialog ────────────────────────────────────────
     if (isDeleteConfirmationVisible) {
         HAlertDialog(
             title = stringResource(R.string.delete_flashcard_title),
@@ -147,8 +146,6 @@ fun FlashcardDetailScreen(
         )
     }
 }
-
-// ── Top bar ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun FlashcardDetailTopBar(

@@ -35,8 +35,6 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.spacing
 
-// ─── Variants ──────────────────────────────────────────────────────────────
-
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
 
 private const val DISABLED_ALPHA = 0.38f
@@ -189,8 +187,6 @@ private fun RowScope.ButtonContent(
     content()
 }
 
-// ─── Convenience overloads ───────────────────────────────────────────────────
-
 @Composable
 fun HButton(
     text: String,
@@ -215,8 +211,6 @@ fun HButton(
         )
     }
 }
-
-// ─── Previews ────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

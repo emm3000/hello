@@ -83,8 +83,6 @@ fun HTagChip(
     }
 }
 
-// ─── Previews ────────────────────────────────────────────────────────────────
-
 @PreviewLightDark
 @Composable
 private fun HTagChipPreview() {

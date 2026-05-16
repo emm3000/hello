@@ -225,8 +225,6 @@ fun <T> HSelect(
     }
 }
 
-// ─── Previews ────────────────────────────────────────────────────────────────
-
 private val demoItems = listOf("Vocabulario B2", "Phrasal Verbs", "Idioms", "Gramática")
 
 @PreviewLightDark

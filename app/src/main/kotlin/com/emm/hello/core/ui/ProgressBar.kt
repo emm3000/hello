@@ -63,8 +63,6 @@ fun HProgressBar(
     }
 }
 
-// ── Previews ─────────────────────────────────────────────────────────────────
-
 @PreviewLightDark
 @Composable
 private fun HProgressBarPreview() {

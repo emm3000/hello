@@ -35,8 +35,6 @@ class DeckDetailViewModelTest {
 
     private val fixedClock = Clock { Instant.EPOCH }
 
-    // ── matchesSearchQuery tests ─────────────────────────────────────────
-
     @Test
     fun `matchesSearchQuery returns true for empty query`() {
         val card = testCard(word = "hello", translation = "hola", meaning = "greeting")
@@ -97,8 +95,6 @@ class DeckDetailViewModelTest {
         assertThat(matchesSearchQuery(card, "  hello  ")).isTrue()
     }
 
-    // ── ViewModel search intent tests ────────────────────────────────────
-
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `onIntent SearchCardsChanged updates searchQuery in state`() = runTest {
@@ -131,8 +127,6 @@ class DeckDetailViewModelTest {
 
         assertThat(viewModel.state.value.searchQuery).isEmpty()
     }
-
-    // ── mergeDeckCardsById tests ─────────────────────────────────────────
 
     @Test
     fun `merge deck cards by id preserves all deck cards when session list is shorter`() {
@@ -174,8 +168,6 @@ class DeckDetailViewModelTest {
         phonetic = "",
         review = FlashcardReview.empty(fixedClock),
     )
-
-    // ── ViewModel test helpers ───────────────────────────────────────────
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
