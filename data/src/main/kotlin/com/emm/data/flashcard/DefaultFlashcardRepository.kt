@@ -57,6 +57,8 @@ class DefaultFlashcardRepository(
 
     private val exampleDao: FlashcardExampleQueries = db.flashcardExampleQueries
 
+    private val artifactEncoder = LearningNoteArtifactEncoder(json)
+
     override suspend fun create(input: CreateFlashcardInput) = withContext(Dispatchers.IO) {
         val cardId: FlashcardId = input.id ?: UUID.randomUUID().toString().toFlashcardId()
         val now: Long = Instant.now().toEpochMilli()
@@ -102,8 +104,8 @@ class DefaultFlashcardRepository(
             collocationsJson = json.encodeToString(input.collocations),
             confusableWithJson = json.encodeToString(input.confusableWith),
             warningsJson = json.encodeToString(input.warnings),
-            studyCardsJson = input.studyCardsJson,
-            qualityChecksJson = input.qualityChecksJson,
+            studyCardsJson = artifactEncoder.encodeStudyCards(input.studyCards),
+            qualityChecksJson = artifactEncoder.encodeQualityChecks(input.qualityChecks),
         )
     }
 

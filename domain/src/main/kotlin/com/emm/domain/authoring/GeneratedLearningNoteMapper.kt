@@ -5,15 +5,12 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.ids.DeckId
 
-class GeneratedLearningNoteMapper(
-    private val artifactSerializer: LearningNoteArtifactSerializer,
-) {
+class GeneratedLearningNoteMapper {
 
     fun toCreateFlashcardInput(
         deckId: DeckId,
         note: GeneratedLearningNote,
     ): CreateFlashcardInput {
-        val encoded = artifactSerializer.encode(note.cards, note.qualityChecks)
         return CreateFlashcardInput(
             deckId = deckId,
             word = note.expression.value,
@@ -36,8 +33,8 @@ class GeneratedLearningNoteMapper(
             clozeSentence = note.clozeSentence,
             sourceContext = note.sourceContext,
             warnings = note.warnings,
-            studyCardsJson = encoded.studyCardsJson,
-            qualityChecksJson = encoded.qualityChecksJson,
+            studyCards = note.cards,
+            qualityChecks = note.qualityChecks,
         )
     }
 

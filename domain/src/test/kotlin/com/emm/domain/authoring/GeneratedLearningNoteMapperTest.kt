@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 
 class GeneratedLearningNoteMapperTest {
 
-    private val mapper = testMapper()
+    private val mapper = GeneratedLearningNoteMapper()
 
     @Test
     fun `toCreateFlashcardInput normalizes expression meaning and definition`() {

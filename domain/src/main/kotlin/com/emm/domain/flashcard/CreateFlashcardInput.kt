@@ -1,5 +1,7 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.GeneratedNoteQualityCheck
+import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 
@@ -26,8 +28,8 @@ data class CreateFlashcardInput(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
-    val studyCardsJson: String = "[]",
-    val qualityChecksJson: String = "[]",
+    val studyCards: List<GeneratedStudyCard> = emptyList(),
+    val qualityChecks: List<GeneratedNoteQualityCheck> = emptyList(),
 )
 
 data class UpdateFlashcardInput(

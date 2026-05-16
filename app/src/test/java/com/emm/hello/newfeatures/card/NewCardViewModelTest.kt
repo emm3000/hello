@@ -465,14 +465,7 @@ class NewCardViewModelTest {
                     EnsureUniqueFlashcardInDeckUseCase(
                         IsExactDuplicateGeneratedNoteUseCase(FakeDuplicateRepository())
                     ),
-                    GeneratedLearningNoteMapper(
-                        object : com.emm.domain.authoring.LearningNoteArtifactSerializer {
-                            override fun encode(
-                                studyCards: List<com.emm.domain.generation.GeneratedStudyCard>,
-                                qualityChecks: List<com.emm.domain.generation.GeneratedNoteQualityCheck>,
-                            ) = com.emm.domain.authoring.EncodedLearningArtifacts("[]", "[]")
-                        }
-                    ),
+                    GeneratedLearningNoteMapper(),
                 ),
                 generateLearningNotePreviewUseCase = GenerateLearningNotePreviewUseCase(
                     repository = generationRepository,
