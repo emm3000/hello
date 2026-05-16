@@ -3,13 +3,8 @@ package com.emm.data.flashcard
 import com.google.firebase.ai.type.Schema
 
 /**
- * Estructura esperada de la respuesta de Gemini para la generación principal
- * de [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto]. Restringe enums y
- * marca como opcionales sólo los campos que el DTO también declara con default.
- *
- * Se aplica vía `generationConfig { responseSchema = ... }` en el `GenerativeModel`
- * dedicado a esta llamada (las regeneraciones parciales usan otro modelo sin schema
- * porque tienen shapes distintos).
+ * `optionalProperties` debe coincidir con los defaults del DTO; las regeneraciones
+ * parciales usan otro `GenerativeModel` sin schema porque tienen shapes distintos.
  */
 object LearningNoteResponseSchema {
 

@@ -114,7 +114,6 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            // -- Study Stats ----------------------------------------------------------
             item {
                 state.stats?.let { stats ->
                     DashboardStatsSection(
@@ -124,7 +123,6 @@ fun DashboardScreen(
                 }
             }
 
-            // -- Section Header -------------------------------------------------------
             item {
                 Row(
                     modifier = Modifier
@@ -163,7 +161,6 @@ fun DashboardScreen(
                 )
             }
 
-            // -- Content --------------------------------------------------------------
             if (state.isLoading) {
                 item { DashboardSkeleton(count = 4) }
             } else if (state.emptyState == DashboardEmptyState.LibraryEmpty) {
@@ -229,8 +226,6 @@ private fun SearchAndFilterSection(
     }
 }
 
-// -- Component: Deck Row ------------------------------------------------------
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
@@ -253,7 +248,6 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
-                // Visual progress bar (uses cardsCount as an indicator)
                 if (deck.cardsCount > 0) {
                     HProgressBar(
                         progress = (deck.cardsCount % 10) / 10f,
@@ -264,7 +258,6 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
                         trackColor = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
-                // Tags row — max 3 tags with overflow badge
                 if (deckTags.isNotEmpty()) {
                     TagsOverflowRow(tags = deckTags.sorted())
                 }
@@ -282,8 +275,6 @@ private fun DeckItem(deck: Deck, onDeckClick: (String) -> Unit) {
             .clickable { onDeckClick(deck.id.value) },
     )
 }
-
-// -- Component: Tags with overflow ─────────────────────────────────────────
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -303,8 +294,6 @@ private fun TagsOverflowRow(tags: List<String>) {
         }
     }
 }
-
-// -- Component: Empty State ---------------------------------------------------
 
 @Composable
 private fun EmptyDecks(onCreateDeck: () -> Unit) {
@@ -375,8 +364,6 @@ private fun NoResults(onClearFilters: () -> Unit) {
         }
     }
 }
-
-// -- Previews -----------------------------------------------------------------
 
 @Preview(showSystemUi = true)
 @PreviewLightDark

@@ -37,16 +37,7 @@ import com.emm.hello.core.theme.spacing
 
 private val searchBarHeight = 48.dp
 
-/**
- * Search bar con altura fija de 48dp — idéntico visualmente a HInput
- * pero sin los problemas de recomposición que causa el trailing icon.
- *
- * - Borde animado (outlineVariant → outline on focus)
- * - Placeholder visible cuando está vacío
- * - Clear button a la derecha (solo visible cuando hay texto)
- * - Altura NUNCA cambia
- * - Inspirado en shadcn/ui search input
- */
+/** No usar HInput acá: el trailing icon dispara recomposiciones que cambian la altura. */
 @Composable
 fun HSearchBar(
     value: String,
@@ -86,7 +77,6 @@ fun HSearchBar(
             .semantics { contentDescription = "Search input" },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Leading icon (search)
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = leadingIconContentDescription,
@@ -94,7 +84,6 @@ fun HSearchBar(
             modifier = Modifier.size(20.dp),
         )
 
-        // Text field
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -124,7 +113,6 @@ fun HSearchBar(
             )
         }
 
-        // Trailing icon (clear) — solo visible si hay texto
         if (value.isNotEmpty()) {
             IconButton(
                 onClick = { onValueChange("") },

@@ -24,16 +24,6 @@ import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 
-/**
- * Tag chip — HBadge variant with optional remove icon.
- *
- * Used for displaying tags in NewDeckScreen (input), DashboardScreen (list), and DeckDetailScreen.
- *
- * @param tag The tag string value to display.
- * @param variant Visual style for the chip. Defaults to [BadgeVariant.Secondary].
- * @param removable When true, shows a remove icon button on the trailing side.
- * @param onRemove Called when the remove icon is clicked. Only meaningful when [removable] is true.
- */
 @Composable
 fun HTagChip(
     tag: String,

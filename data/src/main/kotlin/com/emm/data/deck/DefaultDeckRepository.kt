@@ -46,12 +46,10 @@ class DefaultDeckRepository(
                 deletedAt = null,
             )
 
-            // Insert tags and junction rows
             if (deck.tags.isNotEmpty()) {
                 val tq = db.tagQueries
                 deck.tags.forEach { tagName ->
                     val normalized = tagName.lowercase().trim()
-                    // First check if tag already exists
                     val existingTag = tq.findByName(normalized).executeAsOneOrNull()
                     val tagId = if (existingTag != null) {
                         existingTag.id
@@ -77,11 +75,9 @@ class DefaultDeckRepository(
         val deckId = input.deckId.value
 
         db.transactionWithResult {
-            // Verify the deck exists and is not deleted
             dq.findActiveById(deckId).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: $deckId")
 
-            // Update the deck row
             dq.update(
                 name = input.name,
                 description = input.description,
@@ -89,10 +85,8 @@ class DefaultDeckRepository(
                 id = deckId,
             )
 
-            // Handle tag diff: find-or-create new tags, remove old junction rows
             val tq = db.tagQueries
-            val currentTags = tq.findByDeckId(deckId).executeAsList()
-                .map { it.id }
+            val currentTags = tq.findByDeckId(deckId).executeAsList().map { it.id }
 
             val desiredTagIds = input.tags.map { tagName ->
                 val normalized = tagName.lowercase().trim()
@@ -105,23 +99,16 @@ class DefaultDeckRepository(
                 }
             }
 
-            // Remove junction rows for tags no longer in the list
             if (currentTags.isNotEmpty() || desiredTagIds.isNotEmpty()) {
                 if (desiredTagIds.isEmpty()) {
-                    // Remove all tags for this deck
+                    // SQLDelight bindea IN() vacío como error; "__none__" no existe nunca → borra todos.
                     tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = listOf("__none__"))
                 } else {
                     tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = desiredTagIds)
                 }
-
-                // Add new junction rows
                 desiredTagIds.forEach { tagId ->
                     if (tagId !in currentTags) {
-                        tq.insertDeckTag(
-                            tagId = tagId,
-                            deckId = deckId,
-                            createdAt = now,
-                        )
+                        tq.insertDeckTag(tagId = tagId, deckId = deckId, createdAt = now)
                     }
                 }
             }
@@ -134,11 +121,10 @@ class DefaultDeckRepository(
         val now: Long = Instant.now().toEpochMilli()
 
         db.transactionWithResult {
-            // Verify the deck exists and is not already deleted
             dq.findActiveById(deckId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: ${deckId.value}")
 
-            // Cascading soft-delete: deck → flashcards → examples
+            // Cascade soft-delete: deck → flashcards → examples (FK no propaga deletedAt).
             dq.softDelete(now = now, id = deckId.value)
             dq.softDeleteFlashcardsByDeck(now = now, deckId = deckId.value)
             dq.softDeleteExamplesByDeck(now = now, deckId = deckId.value)
