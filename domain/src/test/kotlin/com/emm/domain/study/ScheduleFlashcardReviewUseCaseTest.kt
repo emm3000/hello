@@ -72,7 +72,7 @@ class ScheduleFlashcardReviewUseCaseTest {
     }
 
     @Test
-    fun `invoke when hard keeps ease factor at or above minimum`() {
+    fun `invoke when hard at minimum ease keeps ease at exactly 1,3 (floor enforced)`() {
         val review = baseReview().copy(
             easeFactor = 1.3,
             repetitions = 5L,
@@ -82,7 +82,7 @@ class ScheduleFlashcardReviewUseCaseTest {
         val result = useCase(review = review, grade = ReviewGrade.HARD, flashcardId = "card-4".toFlashcardId())
 
         assertEquals("card-4", result.flashcardId.value)
-        assertTrue(result.easeFactor >= 1.3)
+        assertEquals(1.3, result.easeFactor, 0.0001)
     }
 
     @Test

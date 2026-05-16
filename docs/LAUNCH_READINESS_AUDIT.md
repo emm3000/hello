@@ -196,7 +196,7 @@ Marcá como `[x]` al completar. Las dependencias entre tareas están explícitas
 - **Qué hacer:** comentario en el archivo explicando: variante de SM-2 usada, racional de los coeficientes del delta de ease, cómo se calcula el `nextInterval`. Si la decisión es migrar a SM-2 estándar o FSRS, decidirlo acá y trackearlo como tarea S3.
 - **Criterio:** un dev externo puede leer el archivo y entender el algoritmo sin grep adicional.
 - **Estimación:** 1-2 h.
-- **Estado:** [ ]
+- **Estado:** [x] — `docs/SCHEDULER.md` cubre: mapeo grade→quality (no canónico, HARD pasa por diseño), tabla de easeAdjustment por grade, constantes con su significado, algoritmo paso a paso, edge cases cubiertos por tests, invariantes garantizados por `FlashcardReview`, limitaciones conocidas (sin leech model, clock monotónico asumido, intervalos en días enteros), criterio para evaluar migración a FSRS. Además se eliminó la tautología `assertTrue(easeFactor >= 1.3)` del test del use case (reemplazada por assert exacto en 1.3).
 
 #### S2-T5: Startup con timeout
 - **Archivo:** `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt`
