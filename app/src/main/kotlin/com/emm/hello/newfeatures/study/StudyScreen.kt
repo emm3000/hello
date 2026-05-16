@@ -75,6 +75,7 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.ButtonVariant
@@ -1236,6 +1237,7 @@ private data class GradeChipTokens(
 @Composable
 private fun gradeChipTokens(grade: ReviewGrade): GradeChipTokens {
     val cs = MaterialTheme.colorScheme
+    val warning = MaterialTheme.semanticColors.warning
     return when (grade) {
         ReviewGrade.AGAIN -> GradeChipTokens(
             container = cs.errorContainer,
@@ -1244,8 +1246,8 @@ private fun gradeChipTokens(grade: ReviewGrade): GradeChipTokens {
             labelRes = R.string.grade_again,
         )
         ReviewGrade.HARD -> GradeChipTokens(
-            container = cs.tertiaryContainer,
-            content = cs.onTertiaryContainer,
+            container = warning.container,
+            content = warning.content,
             icon = Icons.Outlined.Warning,
             labelRes = R.string.grade_hard,
         )
