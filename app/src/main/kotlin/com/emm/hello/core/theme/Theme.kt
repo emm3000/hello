@@ -10,19 +10,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 
-// shadcn/ui — Neutral theme mapped to Material 3 color roles
-//
-// Mapping strategy:
-//   M3 primary          → shadcn --primary (near-black / near-white)
-//   M3 secondary        → shadcn --secondary (light gray)
-//   M3 tertiary         → shadcn success green
-//   M3 error            → shadcn --destructive (red)
-//   M3 background/surface → shadcn --background
-//   M3 surfaceVariant   → shadcn --muted (light gray bg)
-//   M3 surfaceContainer → shadcn --card
-//   M3 outline          → shadcn --ring (subtle ring)
-//   M3 outlineVariant   → shadcn --border
-
+/*
+ * shadcn/ui Neutral → Material 3 color roles:
+ *   primary             → shadcn --primary       (near-black / near-white)
+ *   secondary           → shadcn --secondary     (light gray)
+ *   tertiary            → shadcn success green
+ *   error               → shadcn --destructive   (red)
+ *   background/surface  → shadcn --background
+ *   surfaceVariant      → shadcn --muted
+ *   surfaceContainer    → shadcn --card
+ *   outline             → shadcn --ring
+ *   outlineVariant      → shadcn --border
+ */
 private val lightScheme = lightColorScheme(
     semanticColors = lightSemanticColors()
 )
@@ -68,10 +67,10 @@ private fun lightColorScheme(
     scrim = shadcnBlack,
 
     surfaceContainerLowest = shadcnWhite,
-    surfaceContainerLow = shadcnBackground, // pure white
-    surfaceContainer = shadcnSecondary, // #F5F5F5
-    surfaceContainerHigh = shadcnBorder, // #E5E5E5
-    surfaceContainerHighest = shadcnInput, // #E5E5E5
+    surfaceContainerLow = shadcnBackground,
+    surfaceContainer = shadcnSecondary,
+    surfaceContainerHigh = shadcnBorder,
+    surfaceContainerHighest = shadcnInput,
     surfaceDim = shadcnBorder,
     surfaceBright = shadcnWhite,
 )
@@ -121,10 +120,10 @@ private fun darkColorScheme(
     scrim = shadcnBlack,
 
     surfaceContainerLowest = shadcnBlack,
-    surfaceContainerLow = shadcnDarkBackground, // #0A0A0A
-    surfaceContainer = shadcnDarkCard, // #171717
-    surfaceContainerHigh = shadcnDarkSecondary, // #262626
-    surfaceContainerHighest = shadcnDarkAccent, // #3F3F3F
+    surfaceContainerLow = shadcnDarkBackground,
+    surfaceContainer = shadcnDarkCard,
+    surfaceContainerHigh = shadcnDarkSecondary,
+    surfaceContainerHighest = shadcnDarkAccent,
     surfaceDim = shadcnDarkBackground,
     surfaceBright = shadcnDarkCard,
 )
@@ -132,7 +131,6 @@ private fun darkColorScheme(
 @Composable
 fun HelloTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color disabled by default — we want exact shadcn colors
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {

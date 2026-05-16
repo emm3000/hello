@@ -31,18 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.spacing
 
-/**
- * Input de texto inspirado en shadcn/ui — look & feel exacto.
- *
- * Características:
- * - Label externo sobre el campo (como shadcn `<Label />` + `<Input />`)
- * - Borde `outlineVariant` en reposo → `outline` (ring) al focus (animado)
- * - Fondo transparente (sin fill)
- * - Sin trailing icon / label flotante de Material 3
- * - Error: borde rojo, helper text rojo abajo
- * - Supporting text en `muted-foreground` cuando no hay error
- * - Altura mínima accesible de 48 dp
- */
 @Composable
 fun HInput(
     value: String,

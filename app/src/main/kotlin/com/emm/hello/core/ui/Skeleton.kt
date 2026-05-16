@@ -41,12 +41,7 @@ private const val DECK_ITEM_SUBTITLE_WIDTH = 0.35f
 private const val PREVIEW_TITLE_WIDTH = 0.5f
 private const val PREVIEW_LAST_LINE_WIDTH = 0.7f
 
-/**
- * Primitive skeleton inspired by shadcn/ui.
- *
- * Produces a rectangle with animated shimmer. Always specify
- * [modifier] with explicit width/height.
- */
+/** Specify [modifier] with explicit width/height — the box has no intrinsic size. */
 @Composable
 fun HSkeleton(
     modifier: Modifier = Modifier,
@@ -79,7 +74,6 @@ fun HSkeleton(
     )
 }
 
-/** Skeleton of a DeckItem in the Dashboard. */
 @Composable
 fun DeckItemSkeleton(modifier: Modifier = Modifier) {
     Row(
@@ -110,11 +104,9 @@ fun DeckItemSkeleton(modifier: Modifier = Modifier) {
     }
 }
 
-/** Skeleton of the Dashboard screen with N DeckItems. */
 @Composable
 fun DashboardSkeleton(count: Int = 4, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
-        // Header row
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -131,7 +123,6 @@ fun DashboardSkeleton(count: Int = 4, modifier: Modifier = Modifier) {
     }
 }
 
-/** Generic skeleton for text lines. */
 @Composable
 fun TextSkeleton(
     lines: Int = 3,
@@ -162,13 +153,10 @@ private fun HSkeletonPreview() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                // Title line
                 HSkeleton(Modifier.fillMaxWidth(PREVIEW_TITLE_WIDTH).height(20.dp))
-                // Body lines
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                 HSkeleton(Modifier.fillMaxWidth().height(14.dp))
                 HSkeleton(Modifier.fillMaxWidth(PREVIEW_LAST_LINE_WIDTH).height(14.dp))
-                // Skeleton button
                 HSkeleton(Modifier.size(width = 120.dp, height = 36.dp), cornerRadius = 20.dp)
             }
         }

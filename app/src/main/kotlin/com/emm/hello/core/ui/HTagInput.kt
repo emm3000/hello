@@ -26,17 +26,8 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.spacing
 
 /**
- * Tag input component — an [HInput] with a flow row of [HTagChip] removable badges above it.
- *
- * Normalization rules (applied on Enter or comma):
- * - Lowercase, trimmed
- * - Empty strings / pure whitespace are ignored
- * - Duplicate (case-insensitive) tags are deduplicated (first kept)
- *
- * @param tags List of currently added tags (displayed as removable chips).
- * @param onTagsChange Called when tags are added or removed with the full updated list.
- * @param modifier Modifier for the outer container.
- * @param enabled Whether the input is enabled.
+ * Tags entran al confirmar con Enter o coma: lowercase + trim;
+ * duplicados case-insensitive y strings vacíos se descartan.
  */
 @Composable
 fun HTagInput(
@@ -52,7 +43,6 @@ fun HTagInput(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
     ) {
-        // Tag chips row — only shown when there are tags
         if (tags.isNotEmpty()) {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
@@ -72,10 +62,7 @@ fun HTagInput(
         HInput(
             value = inputValue,
             onValueChange = { raw ->
-                // Only update if the new char is not a comma (commas are handled in normalization)
-                if (!raw.endsWith(",")) {
-                    inputValue = raw
-                }
+                if (!raw.endsWith(",")) inputValue = raw
             },
             modifier = Modifier.fillMaxWidth(),
             label = stringResource(R.string.tags_label),
@@ -97,25 +84,17 @@ fun HTagInput(
     }
 }
 
-/**
- * Normalizes the raw input value and adds it to the tag list if valid.
- *
- * Normalization: lowercase, trim. Duplicates (case-insensitive) are filtered.
- * Empty or whitespace-only strings are silently dropped.
- */
 private fun normalizeAndAddTag(
     raw: String,
     currentTags: List<String>,
     onTagsChange: (List<String>) -> Unit,
     onClear: () -> Unit,
 ) {
-    // Strip trailing comma if present, then normalize
     val normalized = raw.trimEnd(',').trim().lowercase()
     if (normalized.isEmpty()) {
         onClear()
         return
     }
-
     val updated = currentTags.toMutableList()
     if (updated.none { it.equals(normalized, ignoreCase = true) }) {
         updated.add(normalized)

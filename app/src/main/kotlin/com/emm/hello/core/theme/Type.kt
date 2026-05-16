@@ -6,44 +6,26 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-//
-// Para usar Geist (la fuente de shadcn/ui) descarga los .ttf desde:
-//   https://vercel.com/font/geist
-// y ponlos en app/src/main/res/font/ con estos nombres:
-//   geist_regular.ttf, geist_medium.ttf, geist_semibold.ttf, geist_bold.ttf
-//
-// Luego reemplaza `FontFamily.Default` por:
-//   FontFamily(
-//       Font(R.font.geist_regular, FontWeight.Normal),
-//       Font(R.font.geist_medium, FontWeight.Medium),
-//       Font(R.font.geist_semibold, FontWeight.SemiBold),
-//       Font(R.font.geist_bold, FontWeight.Bold),
-//   )
-//
-// Por ahora, la app usa la fuente del sistema (Roboto en Android).
-
+/*
+ * Para usar Geist (fuente de shadcn): https://vercel.com/font/geist
+ * Por ahora, FontFamily.Default = Roboto del sistema.
+ *
+ * Mapeo Material3 → shadcn:
+ *
+ * | Token M3        | shadcn clase         | Uso en Hello                          |
+ * |-----------------|----------------------|---------------------------------------|
+ * | headlineSmall   | text-2xl semibold    | Título de word en CardDetail          |
+ * | titleLarge      | text-xl semibold     | TopAppBar, sección principal          |
+ * | titleMedium     | text-lg medium       | Subtítulos de sección                 |
+ * | titleSmall      | text-sm medium       | Labels de sección (SectionCard)       |
+ * | bodyLarge       | text-base normal     | Cuerpo principal de flashcard         |
+ * | bodyMedium      | text-sm normal       | Textos secundarios / onSurfaceVariant |
+ * | bodySmall       | text-xs normal       | Texto secundario compacto             |
+ * | labelLarge      | text-sm medium       | Texto de botones                      |
+ * | labelMedium     | text-xs medium       | Badges, chips, conteos                |
+ */
 private val appFontFamily: FontFamily = FontFamily.Default
 
-/**
- * Sistema tipográfico inspirado directamente en shadcn/ui.
- *
- * Mapeo Material3 → shadcn (equivalencias de clase CSS):
- *
- * | Token M3          | shadcn clase         | Uso en Hello                      |
- * |-------------------|----------------------|-----------------------------------|
- * | headlineLarge     | text-4xl extrabold   | —                                 |
- * | headlineMedium    | text-3xl bold        | —                                 |
- * | headlineSmall     | text-2xl semibold    | Título de word en CardDetail      |
- * | titleLarge        | text-xl semibold     | TopAppBar, sección principal      |
- * | titleMedium       | text-lg medium       | Subtítulos de sección             |
- * | titleSmall        | text-sm medium       | Labels de sección (SectionCard)   |
- * | bodyLarge         | text-base normal     | Cuerpo principal de flashcard     |
- * | bodyMedium        | text-sm normal       | Textos secundarios / onSurfaceVariant |
- * | bodySmall         | text-xs normal       | Texto secundario compacto         |
- * | labelLarge        | text-sm medium       | Texto de botones                  |
- * | labelMedium       | text-xs medium       | Badges, chips, conteos            |
- * | labelSmall        | text-[10px] medium   | Legacy micro-label; evitar para metadata funcional |
- */
 internal val metadataTextStyle = TextStyle(
     fontFamily = appFontFamily,
     fontWeight = FontWeight.Medium,

@@ -19,20 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.emm.hello.core.theme.HelloTheme
 
-/**
- * Standard Dialog inspired by shadcn/ui `<AlertDialog />`.
- *
- * Usage: "Review session finished" in StudyScreen.
- *
- * @param title         Dialog title
- * @param description   Descriptive body (optional)
- * @param icon          Optional icon above the title
- * @param confirmText   Confirmation button text
- * @param cancelText    Cancellation button text (null = hides the button)
- * @param onConfirm     Action on confirmation
- * @param onDismiss     Action on cancel or touching outside
- * @param isDangerous   If true, the confirmation button uses destructive color
- */
+/** Pass `cancelText = null` para ocultar el botón de cancelar. */
 @Composable
 fun HAlertDialog(
     title: String,

@@ -19,16 +19,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
-/**
- * States for the speech-to-text process.
- */
 enum class STTState { IDLE, READY_TO_LISTEN, LISTENING, PROCESSING, ERROR }
 
-/**
- * Interface to control speech-to-text functionality.
- * This allows us to provide a stub implementation during Compose Previews,
- * avoiding NoClassDefFoundError for Android Speech classes not available in layoutlib.
- */
+/** Existe como interface para stubear en Compose previews (layoutlib no incluye android.speech). */
 interface SpeechToTextManager {
     val isListening: StateFlow<Boolean>
     val textResult: StateFlow<String>
@@ -40,9 +33,6 @@ interface SpeechToTextManager {
     fun clearError()
 }
 
-/**
- * Android-specific implementation of SpeechToTextManager using SpeechRecognizer.
- */
 class AndroidSpeechToTextManager(private val context: Context) : RecognitionListener, SpeechToTextManager {
 
     private var recognizer: SpeechRecognizer? = null
@@ -65,7 +55,7 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
 
     fun init() {
         if (recognizer != null) return
-        // SpeechRecognizer must be created on the Main Thread
+        // SpeechRecognizer.createSpeechRecognizer requires Main Thread; sin esto crashea en runtime.
         mainHandler.post {
             recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
                 setRecognitionListener(this@AndroidSpeechToTextManager)
@@ -122,8 +112,6 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
         _isListening.value = false
         _state.value = STTState.IDLE
     }
-
-    // -- RecognitionListener --------------------------------------------------
 
     override fun onReadyForSpeech(params: Bundle?) {
         mainHandler.post { _state.value = STTState.LISTENING }
@@ -208,8 +196,7 @@ fun rememberSpeechToTextManager(
     }
 
     val manager = remember { AndroidSpeechToTextManager(context) }
-    // rememberUpdatedState ensures the callback always holds the latest lambda,
-    // even if the Composable recomposes with a new capture after init.
+    // rememberUpdatedState: el lambda capturado en init() debe seguir apuntando al último onResult tras recomposición.
     val currentOnResult = rememberUpdatedState(onResult)
 
     DisposableEffect(Unit) {
