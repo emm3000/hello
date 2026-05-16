@@ -152,6 +152,7 @@ class StudyViewModelTest {
             ),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = reviewRepo,
+            clock = fixedClock,
         )
         advanceUntilIdle()
 
@@ -186,6 +187,7 @@ class StudyViewModelTest {
         studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         flashcardReviewRepository = FakeFlashcardReviewRepo(),
+        clock = fixedClock,
     )
 
     private fun studyFlashcard(

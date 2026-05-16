@@ -5,10 +5,12 @@ import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.study.PreviewNextInterval
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
+import com.emm.domain.time.Clock
 import com.emm.hello.core.mvi.MviViewModel
 import kotlinx.coroutines.launch
 
@@ -17,6 +19,7 @@ class StudyViewModel(
     studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
+    private val clock: Clock,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -42,11 +45,12 @@ class StudyViewModel(
 
     private fun showNextCard() {
         setState {
-            if (studyItemsForToday.isNotEmpty()) {
-                copy(currentItem = studyItemsForToday.removeFirstOrNull())
-            } else {
-                copy(currentItem = null)
-            }
+            val nextItem = studyItemsForToday.removeFirstOrNull()
+            val previews = nextItem?.let { item ->
+                val liveReview = reviewsByFlashcardId[item.flashcardId] ?: item.review
+                PreviewNextInterval.previewAll(liveReview, clock)
+            } ?: emptyMap()
+            copy(currentItem = nextItem, intervalPreviews = previews)
         }
         if (studyItemsForToday.isEmpty() && !currentState.sessionFinished) {
             setState { copy(sessionFinished = true) }

@@ -316,6 +316,12 @@
     <string name="study_related_forms_inline">Formas relacionadas: %1$s</string>
     <string name="study_correct_icon_desc">Respuesta correcta</string>
     <string name="study_incorrect_icon_desc">Respuesta incorrecta</string>
+    <string name="study_show_hint_desc">Mostrar u ocultar pista</string>
+    <string name="study_interval_today">Hoy</string>
+    <string name="study_interval_tomorrow">Mañana</string>
+    <string name="study_interval_days_format">%1$d días</string>
+    <string name="study_interval_weeks_format">%1$d sem.</string>
+    <string name="study_interval_months_format">%1$d meses</string>
     <string name="card_detail_tab_study_pending_badge">%1$d</string>
 
     <!-- Notes -->

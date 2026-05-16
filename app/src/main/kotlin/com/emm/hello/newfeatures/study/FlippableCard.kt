@@ -1,11 +1,14 @@
 package com.emm.hello.newfeatures.study
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -15,21 +18,31 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
+import com.emm.domain.study.ReviewGrade
+import kotlin.math.abs
 
-private const val CARD_FLIP_DURATION_MS = 600
-private const val CARD_CAMERA_DISTANCE_MULTIPLIER = 12f
+private const val CARD_FLIP_DURATION_MS = 420
+private const val CARD_CAMERA_DISTANCE_MULTIPLIER = 30f
 private const val FRONT_FACE_MAX_ROTATION = 90f
 private const val BACK_FACE_ROTATION = 180f
 private const val GRADIENT_TRANSITION_DURATION_MS = 500
 private const val BACK_FACE_TINT_BLEND_FRACTION = 0.15f
 private const val BACK_FACE_TRANSITION_DURATION_MS = 400
+private const val SWIPE_SHORT_THRESHOLD_FRACTION = 0.25f
+private const val SWIPE_LONG_THRESHOLD_FRACTION = 0.5f
 
 @Composable
 fun FlippableCard(
@@ -37,15 +50,19 @@ fun FlippableCard(
     cardFace: CardFace,
     onClick: (CardFace) -> Unit,
     progress: Float = 0f,
-    onFinished: (Float) -> Unit = {},
+    gradeEnabled: Boolean = false,
+    enabledGrades: Set<ReviewGrade> = ReviewGrade.entries.toSet(),
+    onGradeSwipe: (ReviewGrade) -> Unit = {},
     frontContent: @Composable () -> Unit,
-    backContent: @Composable () -> Unit
+    backContent: @Composable () -> Unit,
 ) {
     val rotation by animateFloatAsState(
         targetValue = cardFace.angle,
-        animationSpec = tween(durationMillis = CARD_FLIP_DURATION_MS),
+        animationSpec = tween(
+            durationMillis = CARD_FLIP_DURATION_MS,
+            easing = FastOutSlowInEasing,
+        ),
         label = "cardRotation",
-        finishedListener = onFinished,
     )
 
     val gradientBrush = rememberDynamicStudyGradient(
@@ -55,16 +72,47 @@ fun FlippableCard(
 
     val borderColor = MaterialTheme.colorScheme.outlineVariant
 
+    var rawDragOffset by remember { mutableFloatStateOf(0f) }
+    var widthPx by remember { mutableIntStateOf(0) }
+    val canSwipe = gradeEnabled && cardFace == CardFace.Back
+
+    LaunchedEffect(cardFace) {
+        if (cardFace == CardFace.Front) rawDragOffset = 0f
+    }
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = rawDragOffset,
+        animationSpec = spring(),
+        label = "dragOffset",
+    )
+
     Card(
         modifier = modifier
+            .onSizeChanged { widthPx = it.width }
             .clickable(
                 onClick = { onClick(cardFace) },
                 indication = null,
-                interactionSource = remember { MutableInteractionSource() }
+                interactionSource = remember { MutableInteractionSource() },
             )
+            .pointerInput(canSwipe, enabledGrades) {
+                if (!canSwipe) return@pointerInput
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        val grade = computeSwipeGrade(rawDragOffset, widthPx, enabledGrades)
+                        rawDragOffset = 0f
+                        if (grade != null) onGradeSwipe(grade)
+                    },
+                    onDragCancel = { rawDragOffset = 0f },
+                    onHorizontalDrag = { change, delta ->
+                        rawDragOffset += delta
+                        change.consume()
+                    },
+                )
+            }
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = CARD_CAMERA_DISTANCE_MULTIPLIER * density
+                translationX = if (cardFace == CardFace.Back) animatedOffset else 0f
             },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -93,6 +141,25 @@ fun FlippableCard(
             }
         }
     }
+}
+
+private fun computeSwipeGrade(
+    dragOffsetPx: Float,
+    widthPx: Int,
+    enabledGrades: Set<ReviewGrade>,
+): ReviewGrade? {
+    if (widthPx <= 0) return null
+    val fraction = dragOffsetPx / widthPx
+    val absFraction = abs(fraction)
+    if (absFraction < SWIPE_SHORT_THRESHOLD_FRACTION) return null
+
+    val candidate = when {
+        fraction <= -SWIPE_LONG_THRESHOLD_FRACTION -> ReviewGrade.AGAIN
+        fraction < 0f -> ReviewGrade.HARD
+        fraction >= SWIPE_LONG_THRESHOLD_FRACTION -> ReviewGrade.EASY
+        else -> ReviewGrade.GOOD
+    }
+    return candidate.takeIf { it in enabledGrades }
 }
 
 @Composable
