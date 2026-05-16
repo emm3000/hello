@@ -32,18 +32,6 @@ data class Flashcard(
 
     companion object {
 
-        /**
-         * Construye una `Flashcard` validada vía los value objects de dominio
-         * (`Expression`, `DefinitionEn`, `IntendedMeaningEs`). Los strings
-         * resultantes quedan normalizados (trim + whitespace collapse).
-         *
-         * Path para crear flashcards desde **código nuevo** (use cases, previews,
-         * mappers internos). NO se usa en la hidratación DB→domain porque ahí
-         * los campos pueden venir vacíos por datos legacy.
-         *
-         * @throws IllegalArgumentException si `word`, `meaning` o `translation`
-         * resultan blank tras normalizar (vía los VOs).
-         */
         @Suppress("LongParameterList")
         fun create(
             id: FlashcardId,

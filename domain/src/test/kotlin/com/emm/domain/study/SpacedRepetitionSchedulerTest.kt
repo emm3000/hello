@@ -8,20 +8,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Tests del scheduler en isolation (sin pasar por ScheduleFlashcardReviewUseCase).
- * Cubre: mapeo grade→quality, ramas de aprobado/reprobado, intervalos por repetición,
- * decay y floor del ease factor, lapse counting, edge cases de carta nueva.
- *
- * Referencia del algoritmo en docs/SCHEDULER.md.
- */
 class SpacedRepetitionSchedulerTest {
 
     private val now = Instant.parse("2026-05-15T12:00:00Z")
     private val clock = Clock { now }
     private val flashcardId = "card-1".toFlashcardId()
-
-    // ── Grade → behavior mapping ─────────────────────────────────────────────
 
     @Test
     fun `AGAIN resets repetitions to zero, sets interval to 1 day, increments lapses`() {
@@ -73,8 +64,6 @@ class SpacedRepetitionSchedulerTest {
         assertEquals(4L, result.repetitions)
     }
 
-    // ── Ease floor (MIN_EASE_FACTOR = 1.3) ───────────────────────────────────
-
     @Test
     fun `HARD at ease 1,3 keeps ease at 1,3 (floor)`() {
         val review = newCard().copy(easeFactor = 1.3, repetitions = 5L, interval = 10L)
@@ -102,8 +91,6 @@ class SpacedRepetitionSchedulerTest {
 
         assertEquals(1.3, result.easeFactor, EPSILON)
     }
-
-    // ── Interval progression (1 → 6 → ease * interval) ───────────────────────
 
     @Test
     fun `first successful repetition (repetitions 0 to 1) sets interval to 1 day`() {
@@ -144,8 +131,6 @@ class SpacedRepetitionSchedulerTest {
         assertEquals(18L, result.interval)
     }
 
-    // ── Lapse counting ───────────────────────────────────────────────────────
-
     @Test
     fun `multiple AGAINs accumulate lapses`() {
         var review = newCard().copy(repetitions = 5L, interval = 30L, lapses = 0L)
@@ -171,8 +156,6 @@ class SpacedRepetitionSchedulerTest {
         assertEquals(4L, hard.lapses)
     }
 
-    // ── Brand new card edge cases ────────────────────────────────────────────
-
     @Test
     fun `brand new card with AGAIN gets lapses 1, repetitions 0, interval 1`() {
         val review = newCard()
@@ -194,8 +177,6 @@ class SpacedRepetitionSchedulerTest {
         assertEquals(1L, result.repetitions)
         assertEquals(1L, result.interval)
     }
-
-    // ── Sequences (regression-style) ─────────────────────────────────────────
 
     @Test
     fun `GOOD GOOD GOOD sequence reaches expected ease and interval`() {
@@ -239,8 +220,6 @@ class SpacedRepetitionSchedulerTest {
         assertEquals(easeBeforeLapse, review.easeFactor, EPSILON)
     }
 
-    // ── Timestamps ───────────────────────────────────────────────────────────
-
     @Test
     fun `lastReviewedAt is set to clock now`() {
         val review = newCard()
@@ -278,8 +257,6 @@ class SpacedRepetitionSchedulerTest {
 
         assertEquals("different-card", result.flashcardId.value)
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private fun newCard(): FlashcardReview = FlashcardReview(
         flashcardId = flashcardId,
