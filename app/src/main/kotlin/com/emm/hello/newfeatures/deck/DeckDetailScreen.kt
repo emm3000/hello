@@ -490,7 +490,7 @@ private fun DeckDetailScreenPreview() {
                     description = "Palabras de nivel C1",
                     tags = listOf(Tag("spanish"), Tag("advanced")),
                     cards = listOf(
-                        Flashcard(
+                        Flashcard.create(
                             id = "1".toFlashcardId(),
                             word = "Serendipity",
                             meaning = "The occurrence of events by chance in a happy way",
@@ -506,7 +506,7 @@ private fun DeckDetailScreenPreview() {
                             phonetic = "/ˌserənˈdɪpɪti/",
                             review = FlashcardReview.empty(SystemClock),
                         ),
-                        Flashcard(
+                        Flashcard.create(
                             id = "2".toFlashcardId(),
                             word = "Ephemeral",
                             meaning = "Lasting for a very short time",

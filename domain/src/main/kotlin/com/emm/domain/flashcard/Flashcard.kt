@@ -32,6 +32,69 @@ data class Flashcard(
 
     companion object {
 
+        /**
+         * Construye una `Flashcard` validada vía los value objects de dominio
+         * (`Expression`, `DefinitionEn`, `IntendedMeaningEs`). Los strings
+         * resultantes quedan normalizados (trim + whitespace collapse).
+         *
+         * Path para crear flashcards desde **código nuevo** (use cases, previews,
+         * mappers internos). NO se usa en la hidratación DB→domain porque ahí
+         * los campos pueden venir vacíos por datos legacy.
+         *
+         * @throws IllegalArgumentException si `word`, `meaning` o `translation`
+         * resultan blank tras normalizar (vía los VOs).
+         */
+        @Suppress("LongParameterList")
+        fun create(
+            id: FlashcardId,
+            word: String,
+            meaning: String,
+            translation: String,
+            phonetic: String = "",
+            review: FlashcardReview,
+            examples: List<Example> = emptyList(),
+            partOfSpeech: String = "",
+            noteType: String = "",
+            noteSummary: String = "",
+            register: String = "",
+            levelBand: String = "",
+            learningDomain: String = "",
+            lemma: String = "",
+            whyUseful: String = "",
+            usagePattern: String = "",
+            irregularForms: List<String> = emptyList(),
+            collocations: List<String> = emptyList(),
+            commonMistake: String = "",
+            confusableWith: List<String> = emptyList(),
+            clozeSentence: String = "",
+            sourceContext: String = "",
+            warnings: List<String> = emptyList(),
+        ): Flashcard = Flashcard(
+            id = id,
+            word = Expression.from(word).value,
+            meaning = DefinitionEn.from(meaning).value,
+            translation = IntendedMeaningEs.from(translation).value,
+            phonetic = phonetic,
+            review = review,
+            examples = examples,
+            partOfSpeech = partOfSpeech,
+            noteType = noteType,
+            noteSummary = noteSummary,
+            register = register,
+            levelBand = levelBand,
+            learningDomain = learningDomain,
+            lemma = lemma,
+            whyUseful = whyUseful,
+            usagePattern = usagePattern,
+            irregularForms = irregularForms,
+            collocations = collocations,
+            commonMistake = commonMistake,
+            confusableWith = confusableWith,
+            clozeSentence = clozeSentence,
+            sourceContext = sourceContext,
+            warnings = warnings,
+        )
+
         fun empty(clock: Clock): Flashcard = Flashcard(
             id = FlashcardId.from("empty-flashcard"),
             word = "",

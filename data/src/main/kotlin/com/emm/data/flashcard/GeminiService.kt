@@ -2,10 +2,10 @@ package com.emm.data.flashcard
 
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.cancellation.CancellationException
 
 open class GeminiService(
     private val generativeModel: GenerativeModel,
@@ -35,14 +35,14 @@ open class GeminiService(
         val totalAttempts = backoffMs.size + 1
         var lastError: Throwable? = null
         repeat(totalAttempts) { attempt ->
-            try {
+            lastError = try {
                 return withTimeout(perAttemptTimeoutMs) { block() }
             } catch (timeout: TimeoutCancellationException) {
-                lastError = timeout
+                timeout
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (t: Throwable) {
-                lastError = t
+                t
             }
             if (attempt < backoffMs.size) {
                 delay(backoffMs[attempt])
