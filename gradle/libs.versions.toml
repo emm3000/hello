@@ -29,7 +29,7 @@ workRuntimeKtx = "2.11.2"
 detekt = "1.23.8"
 detektComposeRules = "0.5.8"
 supabaseBom = "3.6.0"
-ktor = "3.4.3"
+ktor = "3.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
