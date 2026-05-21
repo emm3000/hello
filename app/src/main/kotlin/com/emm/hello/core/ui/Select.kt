@@ -225,7 +225,7 @@ fun <T> HSelect(
     }
 }
 
-private val demoItems = listOf("Vocabulario B2", "Phrasal Verbs", "Idioms", "Gramática")
+private val demoItems = listOf("Vocabulary B2", "Phrasal Verbs", "Idioms", "Grammar")
 
 @PreviewLightDark
 @Composable
@@ -236,8 +236,8 @@ private fun HSelectEmptyPreview() {
                 items = demoItems,
                 itemSelected = null,
                 onItemSelected = {},
-                label = "Mazo",
-                placeholder = "Seleccionar mazo…",
+                label = "Deck",
+                placeholder = "Select deck…",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -262,7 +262,7 @@ private fun HSelectWithValuePreview() {
                     items = demoItems,
                     itemSelected = selected1,
                     onItemSelected = { selected1 = it },
-                    label = "Mazo seleccionado",
+                    label = "Selected deck",
                 )
 
                 var selected2 by remember { mutableStateOf<String?>(null) }
@@ -270,17 +270,17 @@ private fun HSelectWithValuePreview() {
                     items = demoItems,
                     itemSelected = selected2,
                     onItemSelected = { selected2 = it },
-                    label = "Dificultad",
+                    label = "Difficulty",
                     enabled = false,
-                    placeholder = "Desactivado",
+                    placeholder = "Disabled",
                 )
 
                 HSelect(
                     items = demoItems,
                     itemSelected = null,
                     onItemSelected = {},
-                    label = "Estado accesible",
-                    errorMessage = "Seleccioná una opción válida",
+                    label = "Accessible state",
+                    errorMessage = "Select a valid option",
                 )
             }
         }

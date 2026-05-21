@@ -37,7 +37,7 @@ import com.emm.hello.core.theme.spacing
 
 private val searchBarHeight = 48.dp
 
-/** No usar HInput acá: el trailing icon dispara recomposiciones que cambian la altura. */
+/** Do not use HInput here: the trailing icon triggers recompositions that change the height. */
 @Composable
 fun HSearchBar(
     value: String,

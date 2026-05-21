@@ -45,9 +45,9 @@ private fun HSeparatorPreview() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Sección superior", style = MaterialTheme.typography.bodyMedium)
+                Text("Top section", style = MaterialTheme.typography.bodyMedium)
                 HSeparator()
-                Text("Sección inferior", style = MaterialTheme.typography.bodyMedium)
+                Text("Bottom section", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

@@ -22,9 +22,9 @@ import com.emm.hello.core.theme.HelloTheme
 enum class CardVariant { Elevated, Filled, Outlined }
 
 /**
- * Card inspirada en shadcn/ui con header/content/footer opcionales.
+ * Card inspired by shadcn/ui with optional header/content/footer.
  *
- * Uso: DeckItem en Dashboard, CardPreview en NewCard, CardDetail en FlashcardDetail.
+ * Usage: DeckItem in Dashboard, CardPreview in NewCard, CardDetail in FlashcardDetail.
  */
 @Composable
 fun HCard(
@@ -57,7 +57,7 @@ private fun cardTokens(variant: CardVariant): Triple<Color, Dp, BorderStroke?> {
     }
 }
 
-/** Header con título y subtítulo opcional. */
+/** Header with optional title and subtitle. */
 @Composable
 fun HCardHeader(
     title: String,
@@ -85,7 +85,7 @@ fun HCardHeader(
     }
 }
 
-/** Contenido principal de la card. */
+/** Main content area of the card. */
 @Composable
 fun HCardContent(
     modifier: Modifier = Modifier,
@@ -99,7 +99,7 @@ fun HCardContent(
     )
 }
 
-/** Footer alineado a la derecha por defecto. */
+/** Footer aligned to the right by default. */
 @Composable
 fun HCardFooter(
     modifier: Modifier = Modifier,

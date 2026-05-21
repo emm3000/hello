@@ -101,7 +101,7 @@ class DefaultDeckRepository(
 
             if (currentTags.isNotEmpty() || desiredTagIds.isNotEmpty()) {
                 if (desiredTagIds.isEmpty()) {
-                    // SQLDelight bindea IN() vacío como error; "__none__" no existe nunca → borra todos.
+                    // SQLDelight binds an empty IN() as an error; "__none__" never exists → deletes all.
                     tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = listOf("__none__"))
                 } else {
                     tq.deleteDeckTagsExcept(deckId = deckId, keepTagIds = desiredTagIds)
@@ -124,7 +124,7 @@ class DefaultDeckRepository(
             dq.findActiveById(deckId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: ${deckId.value}")
 
-            // Cascade soft-delete: deck → flashcards → examples (FK no propaga deletedAt).
+            // Cascade soft-delete: deck → flashcards → examples (FK does not propagate deletedAt).
             dq.softDelete(now = now, id = deckId.value)
             dq.softDeleteFlashcardsByDeck(now = now, deckId = deckId.value)
             dq.softDeleteExamplesByDeck(now = now, deckId = deckId.value)

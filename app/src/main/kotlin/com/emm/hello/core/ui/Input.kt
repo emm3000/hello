@@ -167,49 +167,49 @@ private fun HInputPreview() {
                 HInput(
                     value = name,
                     onValueChange = { name = it },
-                    label = "Nombre del mazo",
-                    placeholder = "Ej: Vocabulario de Inglés B2",
+                    label = "Deck name",
+                    placeholder = "E.g.: English B2 Vocabulary",
                 )
 
                 var word by remember { mutableStateOf("serendipity") }
                 HInput(
                     value = word,
                     onValueChange = { word = it },
-                    label = "Palabra",
-                    supportingText = "Escribe la palabra en inglés",
+                    label = "Word",
+                    supportingText = "Type the word in English",
                 )
 
                 var broken by remember { mutableStateOf("") }
                 HInput(
                     value = broken,
                     onValueChange = { broken = it },
-                    label = "Campo requerido",
-                    placeholder = "Este campo es obligatorio",
-                    errorMessage = "Este campo es obligatorio",
+                    label = "Required field",
+                    placeholder = "This field is required",
+                    errorMessage = "This field is required",
                 )
 
                 var notes by remember { mutableStateOf("") }
                 HInput(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = "Notas (multiline)",
+                    label = "Notes (multiline)",
                     singleLine = false,
                     minLines = 4,
-                    placeholder = "Escribe tus notas aquí…",
+                    placeholder = "Write your notes here…",
                 )
 
                 HInput(
-                    value = "Campo desactivado",
+                    value = "Disabled field",
                     onValueChange = {},
-                    label = "Desactivado",
+                    label = "Disabled",
                     enabled = false,
                 )
 
                 HInput(
-                    value = "Solo lectura",
+                    value = "Read only",
                     onValueChange = {},
-                    label = "Estado accesible",
-                    supportingText = "Campo compatible con lectores de pantalla",
+                    label = "Accessible state",
+                    supportingText = "Field compatible with screen readers",
                     readOnly = true,
                 )
             }

@@ -158,23 +158,23 @@ private fun HAlertVariantsPreview() {
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
                 HAlert(
-                    title = "Información",
-                    description = "Revisa los datos antes de continuar.",
+                    title = "Information",
+                    description = "Review the data before continuing.",
                     variant = AlertVariant.Default,
                 )
                 HAlert(
-                    title = "Error al generar",
-                    description = "No se pudo conectar con el servidor. Verifica tu conexión.",
+                    title = "Generation error",
+                    description = "Could not connect to the server. Check your connection.",
                     variant = AlertVariant.Destructive,
                 )
                 HAlert(
-                    title = "Atención",
-                    description = "Esta acción no se puede deshacer.",
+                    title = "Warning",
+                    description = "This action cannot be undone.",
                     variant = AlertVariant.Warning,
                 )
                 HAlert(
-                    title = "Tarjeta guardada",
-                    description = "La flashcard fue creada y añadida a tu mazo.",
+                    title = "Card saved",
+                    description = "The flashcard was created and added to your deck.",
                     variant = AlertVariant.Success,
                 )
             }

@@ -21,7 +21,7 @@ import java.util.Locale
 
 enum class STTState { IDLE, READY_TO_LISTEN, LISTENING, PROCESSING, ERROR }
 
-/** Existe como interface para stubear en Compose previews (layoutlib no incluye android.speech). */
+/** Exists as an interface to stub in Compose previews (layoutlib does not include android.speech). */
 interface SpeechToTextManager {
     val isListening: StateFlow<Boolean>
     val textResult: StateFlow<String>
@@ -55,7 +55,7 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
 
     fun init() {
         if (recognizer != null) return
-        // SpeechRecognizer.createSpeechRecognizer requires Main Thread; sin esto crashea en runtime.
+        // SpeechRecognizer.createSpeechRecognizer requires Main Thread; without this it crashes at runtime.
         mainHandler.post {
             recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
                 setRecognitionListener(this@AndroidSpeechToTextManager)
@@ -196,7 +196,7 @@ fun rememberSpeechToTextManager(
     }
 
     val manager = remember { AndroidSpeechToTextManager(context) }
-    // rememberUpdatedState: el lambda capturado en init() debe seguir apuntando al último onResult tras recomposición.
+    // rememberUpdatedState: the lambda captured in init() must keep pointing to the latest onResult after recomposition.
     val currentOnResult = rememberUpdatedState(onResult)
 
     DisposableEffect(Unit) {

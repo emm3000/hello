@@ -3,8 +3,8 @@ package com.emm.data.flashcard
 import com.google.firebase.ai.type.Schema
 
 /**
- * `optionalProperties` debe coincidir con los defaults del DTO; las regeneraciones
- * parciales usan otro `GenerativeModel` sin schema porque tienen shapes distintos.
+ * `optionalProperties` must match the DTO defaults; partial regenerations
+ * use a different `GenerativeModel` without a schema because they have different shapes.
  */
 object LearningNoteResponseSchema {
 

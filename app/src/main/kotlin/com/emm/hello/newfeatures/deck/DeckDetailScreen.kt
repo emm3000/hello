@@ -489,7 +489,7 @@ private fun DeckDetailScreenPreview() {
                             id = "2".toFlashcardId(),
                             word = "Ephemeral",
                             meaning = "Lasting for a very short time",
-                            translation = "Efímero",
+                            translation = "Ephemeral",
                             examples = listOf(),
                             phonetic = "/ɪˈfem(ə)rəl/",
                             review = FlashcardReview.empty(SystemClock),

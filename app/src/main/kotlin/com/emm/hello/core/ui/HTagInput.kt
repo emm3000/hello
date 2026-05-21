@@ -26,8 +26,8 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.spacing
 
 /**
- * Tags entran al confirmar con Enter o coma: lowercase + trim;
- * duplicados case-insensitive y strings vacíos se descartan.
+ * Tags are confirmed with Enter or comma: lowercase + trim;
+ * case-insensitive duplicates and empty strings are discarded.
  */
 @Composable
 fun HTagInput(

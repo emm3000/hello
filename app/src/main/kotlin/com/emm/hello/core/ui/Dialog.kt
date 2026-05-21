@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.emm.hello.core.theme.HelloTheme
 
-/** Pass `cancelText = null` para ocultar el botón de cancelar. */
+/** Pass `cancelText = null` to hide the cancel button. */
 @Composable
 fun HAlertDialog(
     title: String,
@@ -79,10 +79,10 @@ private fun HAlertDialogPreview() {
             var show by remember { mutableStateOf(true) }
             if (show) {
                 HAlertDialog(
-                    title = "Sesión completada",
-                    description = "¡Bien hecho! Has repasado todas las tarjetas de esta sesión.",
+                    title = "Session completed",
+                    description = "Well done! You have reviewed all the cards in this session.",
                     icon = Icons.Outlined.Check,
-                    confirmText = "Volver",
+                    confirmText = "Back",
                     cancelText = null,
                     onConfirm = { show = false },
                     onDismiss = { show = false },
@@ -100,11 +100,11 @@ private fun HAlertDialogDangerousPreview() {
             var show by remember { mutableStateOf(true) }
             if (show) {
                 HAlertDialog(
-                    title = "Eliminar mazo",
-                    description = "Esta acción no se puede deshacer. Perderás todas las tarjetas asociadas.",
+                    title = "Delete deck",
+                    description = "This action cannot be undone. You will lose all associated cards.",
                     icon = Icons.Outlined.Delete,
-                    confirmText = "Eliminar",
-                    cancelText = "Cancelar",
+                    confirmText = "Delete",
+                    cancelText = "Cancel",
                     isDangerous = true,
                     onConfirm = { show = false },
                     onDismiss = { show = false },

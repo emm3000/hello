@@ -27,8 +27,8 @@ open class GeminiService(
     }
 
     /**
-     * Llamada dedicada a la generación principal de [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto].
-     * Usa un modelo con `responseSchema` declarado para restringir enums y forma del JSON.
+     * Dedicated call for the main generation of [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto].
+     * Uses a model with a declared `responseSchema` to restrict enums and JSON shape.
      */
     open suspend fun processLearningNote(prompt: String): String {
         enforceQuota(kind = "learning_note")

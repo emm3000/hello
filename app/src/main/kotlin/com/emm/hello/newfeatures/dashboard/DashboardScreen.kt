@@ -375,7 +375,7 @@ private fun DashboardScreenPreview() {
                 decks = listOf(
                     Deck(
                         id = "1".toDeckId(),
-                        name = "Inglés B2",
+                        name = "English B2",
                         description = "Vocabulario",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
@@ -393,8 +393,8 @@ private fun DashboardScreenPreview() {
                     ),
                     Deck(
                         id = "3".toDeckId(),
-                        name = "Gramática",
-                        description = "Gramática",
+                        name = "Grammar",
+                        description = "Grammar",
                         createdAt = LocalDateTime.now(),
                         cards = listOf(),
                         cardsCount = 15,

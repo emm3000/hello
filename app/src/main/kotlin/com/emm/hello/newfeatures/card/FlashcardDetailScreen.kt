@@ -541,19 +541,19 @@ fun CardDetailScreenPreview() {
                 id = "1".toFlashcardId(),
                 word = "Aesthetic",
                 phonetic = "/esˈTHedik/",
-                translation = "Estético",
+                translation = "Aesthetic",
                 meaning = "Concerned with beauty or the appreciation of beauty.",
                 examples = listOf(
                     Example(
                         exampleId = "ex1",
                         text = "The new building has a very aesthetic design.",
-                        translation = "El nuevo edificio tiene un diseño muy estético.",
+                        translation = "The new building has a very aesthetic design.",
                         type = "",
                     ),
                     Example(
                         exampleId = "ex2",
                         text = "Her Instagram page is very aesthetic.",
-                        translation = "Su página de Instagram es muy estética.",
+                        translation = "Her Instagram page is very aesthetic.",
                         type = "",
                     ),
                 ),

@@ -7,22 +7,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /*
- * Para usar Geist (fuente de shadcn): https://vercel.com/font/geist
- * Por ahora, FontFamily.Default = Roboto del sistema.
+ * To use Geist (shadcn font): https://vercel.com/font/geist
+ * For now, FontFamily.Default = system Roboto.
  *
- * Mapeo Material3 → shadcn:
+ * Material3 → shadcn mapping:
  *
- * | Token M3        | shadcn clase         | Uso en Hello                          |
+ * | Token M3        | shadcn class         | Usage in Hello                        |
  * |-----------------|----------------------|---------------------------------------|
- * | headlineSmall   | text-2xl semibold    | Título de word en CardDetail          |
- * | titleLarge      | text-xl semibold     | TopAppBar, sección principal          |
- * | titleMedium     | text-lg medium       | Subtítulos de sección                 |
- * | titleSmall      | text-sm medium       | Labels de sección (SectionCard)       |
- * | bodyLarge       | text-base normal     | Cuerpo principal de flashcard         |
- * | bodyMedium      | text-sm normal       | Textos secundarios / onSurfaceVariant |
- * | bodySmall       | text-xs normal       | Texto secundario compacto             |
- * | labelLarge      | text-sm medium       | Texto de botones                      |
- * | labelMedium     | text-xs medium       | Badges, chips, conteos                |
+ * | headlineSmall   | text-2xl semibold    | Word title in CardDetail              |
+ * | titleLarge      | text-xl semibold     | TopAppBar, main section               |
+ * | titleMedium     | text-lg medium       | Section subtitles                     |
+ * | titleSmall      | text-sm medium       | Section labels (SectionCard)          |
+ * | bodyLarge       | text-base normal     | Main body of flashcard                |
+ * | bodyMedium      | text-sm normal       | Secondary texts / onSurfaceVariant    |
+ * | bodySmall       | text-xs normal       | Compact secondary text                |
+ * | labelLarge      | text-sm medium       | Button text                           |
+ * | labelMedium     | text-xs medium       | Badges, chips, counts                 |
  */
 private val appFontFamily: FontFamily = FontFamily.Default
 
