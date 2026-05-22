@@ -84,8 +84,9 @@ Input is always validated before generating a preview.
 `NewCardReviewScreen` renders one of these states:
 
 - preview available
-- loading
-- error
+- loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + italic-serif `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
+- quota error (`QuotaExceededState` — `!` glyph in `emberBadSoft` circle, serif headline, `TU PALABRA` surface preserving the user's word, `Crear a mano` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
+- generic error (`HAlert` Destructive variant)
 - empty state
 
 The current review allows:

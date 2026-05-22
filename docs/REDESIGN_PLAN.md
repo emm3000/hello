@@ -16,7 +16,7 @@
 | 1 — H* components | ✅ Done | `c76265a` |
 | 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
 | 2.2 — Study | ⏳ Pending | — |
-| 2.3 — New Card wizard | 🟡 In progress (sub-1 Mode + sub-2 Input + sub-3 Review done; sub-4 Loading/Error pending) | `31b09bc`, `de47991`, `9d916f8` |
+| 2.3 — New Card wizard | ✅ Done (sub-1 Mode + sub-2 Input + sub-3 Review + sub-4 Loading/Error) | `31b09bc`, `de47991`, `9d916f8`, _sub-4 pending commit_ |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ⏳ Pending | — |
 | 2.6 — New/Edit Deck | ⏳ Pending | — |
@@ -26,18 +26,17 @@
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
 
-**Resume hint — Phase 2.3 (next session):**
-The wizard is being shipped as 4 sub-commits. Three are done:
+**Phase 2.3 shipped as 4 sub-commits:**
 1. ✅ `31b09bc` Mode screen + new `HWizTop` in `core/ui` (back · 3-segment progress · `N/total` mono · uppercase subtitle).
 2. ✅ `de47991` Input screen (per-mode serif headline, BigSerifTextField 28sp italic, round mic, deck picker row, difficulty `HChip` row, sticky Continuar with `imePadding`).
-3. ✅ `9d916f8` Review screen — `WordHeader` (mono `pos · band`, 54sp serif word, mono IPA, italic serif translation), per-section `ReviewBlock` (label + edit/regen icon-buttons + read↔edit toggle italic-serif ↔ `HInput`) for Significado / Ejemplo / Patrón de uso / Error común (warn tone) / Cloze, `TARJETAS DE ESTUDIO · N` mono label with `N activas` trailing, `StudyCardRow` (HToggle + serif prompt + italic serif answer + per-row regen icon, 0.5 alpha when inactive) in a single grouped `emberSurface` with hairline dividers, sticky `Guardar tarjeta` accent CTA via `NewCardBottomBar`. Data flow untouched. Verified visually on `medium_phone` against AI-generated `compelling` note.
-
-Still pending:
-4. ⏳ **Sub-4 Loading + Error (quota) states** — restyle the loading skeleton (3 accent pulse dots + italic serif `"Pensando en cuándo se suele usar X…"` + mono ETA + skeleton lines) and the quota error (`!` glyph in `emberBadSoft` circle + serif headline + "Tu palabra" preserve-input surface + `Crear a mano` + `Avisarme mañana` + mono reset hint). The current loading skeleton already uses Ember tokens but stops short of the designer's 3-dot pulse + ETA — that's the sub-4 polish.
+3. ✅ `9d916f8` Review screen — `WordHeader` (mono `pos · band`, 54sp serif word, mono IPA, italic serif translation), per-section `ReviewBlock` (label + edit/regen icon-buttons + read↔edit toggle italic-serif ↔ `HInput`) for Significado / Ejemplo / Patrón de uso / Error común (warn tone) / Cloze, `TARJETAS DE ESTUDIO · N` mono label with `N activas` trailing, `StudyCardRow` (HToggle + serif prompt + italic serif answer + per-row regen icon, 0.5 alpha when inactive) in a single grouped `emberSurface` with hairline dividers, sticky `Guardar tarjeta` accent CTA via `NewCardBottomBar`. Data flow untouched.
+4. ✅ _sub-4 (pending commit)_ Loading + quota Error states — `LoadingPreviewSkeleton(word)` shows 3 accent pulse dots (alpha-staggered 0.25↔1.0, 900ms reverse), italic-serif `"Pensando en cuándo se suele usar {word}…"` (generic fallback when word blank), mono `SUELE TARDAR 8–12 S`, then existing shimmer skeleton. New `QuotaExceededState` composable: `!` glyph in 52dp `emberBadSoft` circle, 32sp serif headline `"Llegamos al límite diario de IA."`, geist muted body, `TU PALABRA` surface card (16dp radius, 18×16 padding, 28sp serif word), Accent `Crear a mano` + Ghost `Avisarme mañana`, mono footer `SE REINICIA EN N min` / `A LAS HH:MM` / `MAÑANA` (threshold 2h). Quota path discriminated via new `NewCardErrorUi.quotaResetAt: Instant?` propagated from `ClassifiedError`. Both error buttons wired to `onNavigateBack` until domain support exists. Verified visually on `medium_phone` (loading caught mid-API call; quota forced by writing `gen_quota_count=50` to `com.emm.data.preferences.xml`).
 
 **Verified deferrals from Phase 2.3** (need domain intent before they can ship):
 - Refresh icon on the `WordHeader` (regenerate-whole-note) — no global note-regen intent exists.
 - Section-level regen on `TARJETAS DE ESTUDIO · N` (regenerate-all-cards) — same root cause; per-card regen via `RegenerateCardClicked` covers the practical case.
+- `Crear a mano` action on the quota error → currently navigates back to Input. A true "manual mode" would need a non-AI creation path (not in any of the 3 `TypeView`s today).
+- `Avisarme mañana` → currently navigates back. Needs notification scheduling infra.
 
 When resuming, the data wiring (UiState/Intent/ViewModel/repository) is untouched and must stay that way — Phase 2 is visual-only. `HWizTop` and `HDictSense` are already reusable from `core/ui`. The `NewCardBottomBar` is already on Ember surface from sub-1.
 
