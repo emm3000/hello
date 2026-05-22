@@ -16,8 +16,8 @@
 | 1 — H* components | ✅ Done | `c76265a` |
 | 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
 | 2.2 — Study | ⏳ Pending | — |
-| 2.3 — New Card wizard | ⏳ Pending | — |
-| 2.4 — Card Detail | ➡️ **Next** | — |
+| 2.3 — New Card wizard | ➡️ **Next** | — |
+| 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ⏳ Pending | — |
 | 2.6 — New/Edit Deck | ⏳ Pending | — |
 | 2.7 — Edit Flashcard | ⏳ Pending | — |
