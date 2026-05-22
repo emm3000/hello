@@ -1,17 +1,33 @@
 package com.emm.hello.newfeatures.card
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Text
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
@@ -24,21 +40,22 @@ import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.AlertVariant
-import com.emm.hello.core.ui.BadgeVariant
-import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlert
-import com.emm.hello.core.ui.HBadge
-import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HInput
-import com.emm.hello.core.ui.HSkeleton
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.newfeatures.card.validation.IssueUiTarget
 import com.emm.hello.newfeatures.card.validation.PreviewCardField
 import com.emm.hello.newfeatures.card.validation.PreviewField
 
 private const val MAX_PREVIEW_COLLOCATIONS = 3
-private const val SKELETON_DETAIL_WIDTH = 0.4f
 
 internal data class PreviewAlertModel(
     val title: String,
@@ -84,22 +101,137 @@ internal fun EditablePreviewField(
     )
 }
 
+/**
+ * Square icon button (Ember-styled). 36dp square, surface bg, divider border,
+ * with optional accent tint when [accent] is true.
+ */
 @Composable
-internal fun RegenerateFieldButton(
-    text: String,
-    field: EditableLearningNoteField,
-    noteRegenerationTarget: PreviewRegenerationTarget?,
-    onIntent: (NewCardUiIntent) -> Unit,
+internal fun ReviewBlockIconButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    accent: Boolean = false,
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        HButton(
-            text = text,
-            onClick = { onIntent(NewCardUiIntent.RegenerateFieldClicked(field)) },
-            variant = ButtonVariant.Ghost,
-            isLoading = noteRegenerationTarget == PreviewRegenerationTarget.Field(field),
-            enabled = noteRegenerationTarget == null ||
-                noteRegenerationTarget == PreviewRegenerationTarget.Field(field),
+    val tint = if (!enabled) emberMuted else if (accent) emberAccent else emberOnBg
+    val border = if (accent) emberAccent else emberDivider
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .background(emberSurface, RoundedCornerShape(10.dp))
+            .border(1.dp, border, RoundedCornerShape(10.dp))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(16.dp),
         )
+    }
+}
+
+/**
+ * Per-section block matching the designer's "ReviewBlock" pattern: small mono label row
+ * with edit/regen icons on the right, body either italic-serif read-only or inline [HInput]
+ * editor. Body color shifts to [emberAccent] when [warn] is true.
+ */
+@Composable
+internal fun ReviewBlock(
+    label: String,
+    value: String,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    onRegenerate: (() -> Unit)? = null,
+    regenerateContentDescription: String = "",
+    isRegenerating: Boolean = false,
+    regenerateEnabled: Boolean = true,
+    warn: Boolean = false,
+    minLines: Int = 2,
+    errorMessage: String? = null,
+    supportingText: String? = null,
+) {
+    var editing by remember { mutableStateOf(false) }
+    val displayPlaceholder = "—"
+
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label.uppercase(),
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Medium,
+                fontSize = 10.5.sp,
+                letterSpacing = 0.12.em,
+                color = if (warn) emberAccent else emberMuted,
+                modifier = Modifier.weight(1f),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ReviewBlockIconButton(
+                    icon = Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.edit_card_action),
+                    onClick = { editing = !editing },
+                    accent = editing,
+                )
+                if (onRegenerate != null) {
+                    ReviewBlockIconButton(
+                        icon = Icons.Outlined.Refresh,
+                        contentDescription = regenerateContentDescription,
+                        onClick = onRegenerate,
+                        enabled = regenerateEnabled && !isRegenerating,
+                    )
+                }
+            }
+        }
+
+        if (editing) {
+            HInput(
+                value = value,
+                onValueChange = onValueChange,
+                placeholder = placeholder,
+                singleLine = minLines == 1,
+                minLines = minLines,
+                maxLines = if (minLines == 1) 1 else 6,
+                errorMessage = errorMessage,
+                supportingText = mergeSupportingTexts(supportingText, null),
+            )
+        } else {
+            val display = value.ifBlank { displayPlaceholder }
+            Text(
+                text = display,
+                fontFamily = instrumentSerif,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Normal,
+                fontSize = 18.sp,
+                lineHeight = 26.sp,
+                color = when {
+                    value.isBlank() -> emberMuted
+                    warn -> emberAccent
+                    else -> emberOnBg
+                },
+            )
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    fontFamily = geistMono,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.04.em,
+                    color = emberAccent,
+                )
+            } else if (supportingText != null) {
+                Text(
+                    text = supportingText,
+                    fontFamily = geistMono,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.04.em,
+                    color = emberMuted,
+                )
+            }
+        }
     }
 }
 
@@ -159,131 +291,6 @@ internal fun GeneratedLearningNote.cardSectionAlerts(): List<PreviewAlertModel> 
     )
 }
 
-internal fun GeneratedLearningNote.noteSectionSummary(): String {
-    val meaning = simpleDefinitionEn.value.ifBlank { intendedMeaningEs.value }
-    val useful = whyUseful.ifBlank { "Sin explicación adicional todavía." }
-    return "$meaning\n$useful"
-}
-
-internal fun GeneratedLearningNote.exampleSectionSummary(): String {
-    val sentence = exampleSentence.ifBlank { "Sin ejemplo principal." }
-    val translation = exampleTranslation.ifBlank { "Sin traducción del ejemplo." }
-    return "$sentence\n$translation"
-}
-
-internal fun GeneratedLearningNote.cardsSectionSummary(): String {
-    val activeCount = cards.count { it.isActive }
-    val firstCard = cards.firstOrNull()
-    return if (firstCard == null) {
-        "No hay tarjetas derivadas."
-    } else {
-        "$activeCount de ${cards.size} activas. Primera tarjeta: ${firstCard.cardType.displayName()}."
-    }
-}
-
-@Composable
-internal fun PreviewOverview(note: GeneratedLearningNote) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = note.expression.value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            HBadge(
-                label = note.noteType.displayName(),
-                variant = BadgeVariant.Secondary,
-            )
-        }
-
-        if (note.ipa.isNotBlank()) {
-            Text(
-                text = note.ipa,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        InfoRow(
-            label = stringResource(R.string.preview_overview_note_label),
-            value = "${note.noteType.displayName()} · ${note.partOfSpeech.displayName()}",
-        )
-        InfoRow(
-            label = stringResource(R.string.preview_overview_focus_label),
-            value = "${note.levelBand.displayName()} · ${note.domain.displayName()} · ${note.register.displayName()}",
-        )
-        InfoRow(
-            label = stringResource(R.string.preview_overview_cards_label),
-            value = "${note.cards.count { it.isActive }} activas de ${note.cards.size}",
-        )
-    }
-}
-
-@Composable
-internal fun PreviewSectionHeader(
-    step: String,
-    title: String,
-    description: String,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        HBadge(label = step, variant = BadgeVariant.Outline)
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-internal fun LoadingStepSkeleton(
-    title: String,
-    lines: Int,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        repeat(lines) { index ->
-            HSkeleton(
-                Modifier
-                    .fillMaxWidth(if (index == lines - 1) SKELETON_DETAIL_WIDTH else 1f)
-                    .height(14.dp),
-            )
-        }
-    }
-}
-
-@Composable
-internal fun InfoRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
 internal fun GeneratedLearningNote.collocationsPreview(): List<String> {
     return collocations.take(MAX_PREVIEW_COLLOCATIONS)
 }
@@ -326,17 +333,17 @@ internal fun LearningNoteType.displayName(): String {
 
 internal fun PartOfSpeechTag.displayName(): String {
     return when (this) {
-        PartOfSpeechTag.Noun -> "Sustantivo"
-        PartOfSpeechTag.Verb -> "Verbo"
-        PartOfSpeechTag.Adjective -> "Adjetivo"
-        PartOfSpeechTag.Adverb -> "Adverbio"
-        PartOfSpeechTag.Preposition -> "Preposición"
-        PartOfSpeechTag.Conjunction -> "Conjunción"
-        PartOfSpeechTag.Interjection -> "Interjección"
-        PartOfSpeechTag.PhrasalVerb -> "Phrasal verb"
-        PartOfSpeechTag.Idiom -> "Idiom"
-        PartOfSpeechTag.Chunk -> "Chunk"
-        PartOfSpeechTag.Other -> "Otro"
+        PartOfSpeechTag.Noun -> "noun"
+        PartOfSpeechTag.Verb -> "verb"
+        PartOfSpeechTag.Adjective -> "adjective"
+        PartOfSpeechTag.Adverb -> "adverb"
+        PartOfSpeechTag.Preposition -> "preposition"
+        PartOfSpeechTag.Conjunction -> "conjunction"
+        PartOfSpeechTag.Interjection -> "interjection"
+        PartOfSpeechTag.PhrasalVerb -> "phrasal verb"
+        PartOfSpeechTag.Idiom -> "idiom"
+        PartOfSpeechTag.Chunk -> "chunk"
+        PartOfSpeechTag.Other -> "otro"
     }
 }
 

@@ -4,29 +4,35 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.emm.hello.R
-import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HButtonSize
+import com.emm.hello.core.ui.HButtonVariant
+import com.emm.hello.core.ui.HWizTop
+import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 
 private const val REVIEW_STEP_NUMBER = 3
 private const val TOTAL_STEP_COUNT = 3
+private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun NewCardReviewScreen(
@@ -36,87 +42,106 @@ fun NewCardReviewScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val issueTextMapper = IssueTextMapper()
+    val hasPreview = state.learningNotePreview != null
 
-    Scaffold(
+    Surface(
         modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = stringResource(R.string.review_screen_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.step_counter,
-                                REVIEW_STEP_NUMBER,
-                                TOTAL_STEP_COUNT,
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
+        color = emberBg,
+    ) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+            HWizTop(
+                currentStep = REVIEW_STEP_NUMBER,
+                totalSteps = TOTAL_STEP_COUNT,
+                onBack = onNavigateBack,
+                subtitle = stringResource(R.string.new_card_wizard_subtitle),
             )
-        },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(
-                start = 0.dp,
-                top = innerPadding.calculateTopPadding(),
-                end = 0.dp,
-                bottom = innerPadding.calculateBottomPadding() + 24.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            when {
-                state.learningNotePreview != null -> {
-                    item {
-                        ResultPreviewSection(
-                            state = state,
-                            keyboardController = keyboardController,
-                            onIntent = onIntent,
-                        )
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    start = screenHorizontalPadding,
+                    end = screenHorizontalPadding,
+                    top = 12.dp,
+                    bottom = 24.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                when {
+                    hasPreview -> {
+                        item {
+                            ResultPreviewSection(
+                                state = state,
+                                keyboardController = keyboardController,
+                                onIntent = onIntent,
+                            )
+                        }
                     }
-                }
 
-                state.isLoading -> {
-                    item { LoadingPreviewSkeleton() }
-                }
-
-                state.error != null -> {
-                    item {
-                        HAlert(
-                            title = state.error.title,
-                            description = state.error.localizedDescription(issueTextMapper),
-                            variant = AlertVariant.Destructive,
-                        )
+                    state.isLoading -> {
+                        item { LoadingPreviewSkeleton() }
                     }
-                }
 
-                else -> {
-                    item {
-                        HAlert(
-                            title = stringResource(R.string.review_empty_title),
-                            description = stringResource(R.string.review_empty_description),
-                            variant = AlertVariant.Default,
-                        )
+                    state.error != null -> {
+                        item {
+                            HAlert(
+                                title = state.error.title,
+                                description = state.error.localizedDescription(issueTextMapper),
+                                variant = AlertVariant.Destructive,
+                            )
+                        }
+                    }
+
+                    else -> {
+                        item { ReviewEmptyState() }
                     }
                 }
             }
+
+            if (hasPreview) {
+                NewCardBottomBar {
+                    HButton(
+                        text = stringResource(R.string.save_in_deck, state.deckSelected?.name.orEmpty()),
+                        onClick = {
+                            keyboardController?.hide()
+                            onIntent(NewCardUiIntent.SaveClicked)
+                        },
+                        variant = HButtonVariant.Accent,
+                        size = HButtonSize.Lg,
+                        full = true,
+                        enabled = !state.isLoading && state.canSavePreview,
+                        isLoading = state.isLoading,
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun ReviewEmptyState() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.review_empty_title),
+            fontFamily = instrumentSerif,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            lineHeight = 28.sp,
+            color = emberOnBg,
+        )
+        Text(
+            text = stringResource(R.string.review_empty_description),
+            fontFamily = instrumentSerif,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            lineHeight = 22.sp,
+            color = emberMuted,
+        )
     }
 }
