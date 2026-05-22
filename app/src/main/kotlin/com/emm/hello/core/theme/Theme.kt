@@ -1,17 +1,13 @@
 package com.emm.hello.core.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 
 /*
- * shadcn/ui Neutral → Material 3 color roles:
+ * shadcn/ui Neutral → Material 3 color roles (light scheme kept for Phase 5):
  *   primary             → shadcn --primary       (near-black / near-white)
  *   secondary           → shadcn --secondary     (light gray)
  *   tertiary            → shadcn success green
@@ -21,11 +17,13 @@ import androidx.compose.material3.lightColorScheme as materialLightColorScheme
  *   surfaceContainer    → shadcn --card
  *   outline             → shadcn --ring
  *   outlineVariant      → shadcn --border
+ *
+ * Phase 0: dark mode is forced. The light scheme function is retained for Phase 5
+ * but the private val is intentionally not instantiated to avoid the unused-property
+ * warning while the light path is deferred.
  */
-private val lightScheme = lightColorScheme(
-    semanticColors = lightSemanticColors()
-)
 
+@Suppress("UnusedPrivateMember")
 private fun lightColorScheme(
     semanticColors: HelloSemanticColors,
 ) = materialLightColorScheme(
@@ -76,73 +74,70 @@ private fun lightColorScheme(
 )
 
 private val darkScheme = darkColorScheme(
-    semanticColors = darkSemanticColors()
+    semanticColors = darkSemanticColors(),
 )
 
 private fun darkColorScheme(
-    semanticColors: HelloSemanticColors,
+    @Suppress("UNUSED_PARAMETER") semanticColors: HelloSemanticColors,
 ) = materialDarkColorScheme(
-    primary = shadcnDarkPrimary,
-    onPrimary = shadcnDarkPrimaryFg,
-    primaryContainer = shadcnDarkSecondary,
-    onPrimaryContainer = shadcnDarkPrimary,
+    // ── Ember Dark tokens wired to Material 3 roles ──────────────────────────
+    primary = emberPrimary,
+    onPrimary = emberBg,
+    primaryContainer = emberSurface2,
+    onPrimaryContainer = emberOnBg,
 
-    secondary = shadcnDarkMuted,
-    onSecondary = shadcnDarkForeground,
-    secondaryContainer = shadcnDarkSecondary,
-    onSecondaryContainer = shadcnDarkSecondaryFg,
+    secondary = emberSurface2,
+    onSecondary = emberOnBg,
+    secondaryContainer = emberSurface2,
+    onSecondaryContainer = emberOnBg,
 
-    tertiary = semanticColors.success.accent,
-    onTertiary = shadcnBlack,
-    tertiaryContainer = semanticColors.success.container,
-    onTertiaryContainer = semanticColors.success.content,
+    tertiary = emberGood,
+    onTertiary = emberBg,
+    tertiaryContainer = emberGoodSoft,
+    onTertiaryContainer = emberGood,
 
-    error = semanticColors.destructive.accent,
-    onError = shadcnDarkDestructiveFg,
-    errorContainer = semanticColors.destructive.container,
-    onErrorContainer = semanticColors.destructive.content,
+    error = emberBad,
+    onError = emberBg,
+    errorContainer = emberBadSoft,
+    onErrorContainer = emberBad,
 
-    background = shadcnDarkBackground,
-    onBackground = shadcnDarkForeground,
-    surface = shadcnDarkBackground,
-    onSurface = shadcnDarkForeground,
+    background = emberBg,
+    onBackground = emberOnBg,
+    surface = emberSurface,
+    onSurface = emberOnBg,
 
-    surfaceVariant = shadcnDarkMuted,
-    onSurfaceVariant = shadcnDarkMutedFg,
+    surfaceVariant = emberSurface2,
+    onSurfaceVariant = emberMuted,
 
-    outline = shadcnDarkRing,
-    outlineVariant = shadcnDarkBorder,
+    outline = emberMuted,
+    outlineVariant = emberDivider,
 
-    inverseSurface = shadcnDarkPrimary,
-    inverseOnSurface = shadcnDarkPrimaryFg,
-    inversePrimary = shadcnPrimary,
+    inverseSurface = emberPrimary,
+    inverseOnSurface = emberBg,
+    inversePrimary = emberAccent,
 
-    scrim = shadcnBlack,
+    scrim = emberBg,
 
-    surfaceContainerLowest = shadcnBlack,
-    surfaceContainerLow = shadcnDarkBackground,
-    surfaceContainer = shadcnDarkCard,
-    surfaceContainerHigh = shadcnDarkSecondary,
-    surfaceContainerHighest = shadcnDarkAccent,
-    surfaceDim = shadcnDarkBackground,
-    surfaceBright = shadcnDarkCard,
+    surfaceContainerLowest = emberBg,
+    surfaceContainerLow = emberSurface,
+    surfaceContainer = emberSurface2,
+    surfaceContainerHigh = emberElev,
+    surfaceContainerHighest = emberElev,
+    surfaceDim = emberBg,
+    surfaceBright = emberSurface2,
 )
 
 @Composable
 fun HelloTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    // Phase 0: dark-only. isSystemInDarkTheme() is intentionally ignored;
+    // the parameter is kept for call-site compatibility but has no effect.
+    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = isSystemInDarkTheme(),
+    @Suppress("UNUSED_PARAMETER") dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val semanticColors = if (darkTheme) darkSemanticColors() else lightSemanticColors()
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> darkScheme
-        else -> lightScheme
-    }
+    // Always use the Ember dark scheme. Light scheme is deferred (Phase 5).
+    val colorScheme = darkScheme
+    val semanticColors = darkSemanticColors()
 
     MaterialTheme(
         colorScheme = colorScheme,
