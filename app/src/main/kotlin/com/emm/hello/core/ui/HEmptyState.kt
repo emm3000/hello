@@ -20,13 +20,16 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberFaint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.geist
@@ -55,63 +58,68 @@ fun HEmptyState(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 32.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        // Glyph
         if (glyph != null) {
             glyph()
         } else {
             DefaultGlyph()
         }
 
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(24.dp))
 
-        // Headline — optional accent inline span
         if (accentWord != null && accentWord.isNotEmpty() && headline.contains(accentWord)) {
             val before = headline.substringBefore(accentWord)
             val after = headline.substringAfter(accentWord)
             val styledText = buildAnnotatedString {
                 append(before)
-                withStyle(SpanStyle(color = emberAccent)) { append(accentWord) }
+                withStyle(
+                    SpanStyle(
+                        color = emberAccent,
+                        fontStyle = FontStyle.Italic,
+                    ),
+                ) { append(accentWord) }
                 append(after)
             }
             Text(
                 text = styledText,
                 fontFamily = instrumentSerif,
                 fontWeight = FontWeight.Normal,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
+                fontSize = 38.sp,
+                lineHeight = 40.sp,
+                letterSpacing = (-0.5).sp,
                 color = emberOnBg,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         } else {
             Text(
                 text = headline,
                 fontFamily = instrumentSerif,
                 fontWeight = FontWeight.Normal,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
+                fontSize = 38.sp,
+                lineHeight = 40.sp,
+                letterSpacing = (-0.5).sp,
                 color = emberOnBg,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
 
         if (body != null) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(14.dp))
             Text(
                 text = body,
                 fontFamily = geist,
                 fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                lineHeight = 21.sp,
+                fontSize = 13.5.sp,
+                lineHeight = 19.sp,
                 color = emberMuted,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
 
         if (primaryCta != null) {
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(26.dp))
             primaryCta()
         }
 
@@ -121,14 +129,15 @@ fun HEmptyState(
         }
 
         if (footnote != null) {
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.weight(1f, fill = true))
             Text(
-                text = footnote,
+                text = footnote.uppercase(),
                 fontFamily = geistMono,
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
-                color = emberMuted,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                letterSpacing = 0.12.em,
+                color = emberFaint,
+                textAlign = TextAlign.Start,
             )
         }
     }
@@ -140,7 +149,7 @@ private fun DefaultGlyph() {
         shape = CircleShape,
         color = emberBg,
         border = BorderStroke(1.dp, emberDivider),
-        modifier = Modifier.size(64.dp),
+        modifier = Modifier.size(52.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
@@ -148,7 +157,7 @@ private fun DefaultGlyph() {
                 fontFamily = instrumentSerif,
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 color = emberAccent,
             )
         }

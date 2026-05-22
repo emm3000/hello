@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -518,37 +519,32 @@ private fun EmptyLibraryContent(
     onCreateDeck: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        HEmptyState(
-            headline = stringResource(R.string.dashboard_empty_headline),
-            accentWord = stringResource(R.string.dashboard_empty_headline_accent),
-            body = stringResource(R.string.dashboard_empty_body),
-            footnote = stringResource(R.string.dashboard_empty_footnote),
-            primaryCta = {
-                HButton(
-                    text = stringResource(R.string.dashboard_empty_cta_primary),
-                    onClick = onNewCard,
-                    variant = HButtonVariant.Accent,
-                    size = HButtonSize.Lg,
-                    full = true,
-                )
-            },
-            ghostCta = {
-                HButton(
-                    text = stringResource(R.string.dashboard_empty_cta_ghost),
-                    onClick = onCreateDeck,
-                    variant = HButtonVariant.Ghost,
-                    size = HButtonSize.Md,
-                    full = true,
-                )
-            },
-        )
-    }
+    HEmptyState(
+        modifier = modifier.fillMaxSize(),
+        headline = stringResource(R.string.dashboard_empty_headline),
+        accentWord = stringResource(R.string.dashboard_empty_headline_accent),
+        body = stringResource(R.string.dashboard_empty_body),
+        footnote = stringResource(R.string.dashboard_empty_footnote),
+        primaryCta = {
+            HButton(
+                text = stringResource(R.string.dashboard_empty_cta_primary),
+                onClick = onNewCard,
+                variant = HButtonVariant.Accent,
+                size = HButtonSize.Lg,
+                full = true,
+                icon = Icons.Outlined.AutoAwesome,
+            )
+        },
+        ghostCta = {
+            HButton(
+                text = stringResource(R.string.dashboard_empty_cta_ghost),
+                onClick = onCreateDeck,
+                variant = HButtonVariant.Ghost,
+                size = HButtonSize.Md,
+                full = true,
+            )
+        },
+    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
