@@ -6,7 +6,7 @@
 | Role | Source of truth for the visual redesign work |
 | Source | Designer handoff bundle (`/tmp/hello-design/hello/`) + on-screen analysis |
 | Read this when | Implementing the new visual system |
-| Last verified | 2026-05-22 (Phase 2.7 close) |
+| Last verified | 2026-05-22 (Phase 2 complete — 2.8 close) |
 
 ## Progress
 
@@ -21,10 +21,15 @@
 | 2.5 — Deck Detail | ✅ Done (sub-1 chrome + Ember header + sub-2 grouped card list) | `8fbabf0`, `e58add2` |
 | 2.6 — New/Edit Deck | ✅ Done (1 commit) | `737e63d` |
 | 2.7 — Edit Flashcard | ✅ Done (1 commit) | `1c5e821` |
-| 2.8 — Settings | ⏳ Pending | — |
+| 2.8 — Settings | ✅ Done (1 commit) | `7e8d90c` |
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Phase 2.8 shipped as a single commit:**
+- ✅ `7e8d90c` (2026-05-22) — Settings. `HTopBar` (back only) replaces the M3 `TopAppBar`. New `SettingsHeader`: mono 11sp `AJUSTES` eyebrow + 44sp serif `Cómo quieres que funcione.` + 18sp italic serif `emberMuted` subtitle `Local y a tu ritmo.`. New `DataSection` `Tus datos` via `HSectionLabel` + a single `emberSurface` container (16dp radius) with two `SettingsRow`s separated by an `HSeparator`: Exportar datos (Download icon + muted sub `Crea un archivo .hello para guardar donde quieras.`) and Restaurar desde backup (Upload icon + emberBad sub `Reemplaza todo lo que hay ahora.`). Each row shows an inline 18dp accent `CircularProgressIndicator` while busy, otherwise a muted chevron. New `SettingsRow` primitive (28dp icon column + title + optional sub with Muted/Danger tone + trailing slot) ready to host `HToggle`/badge in future sections. Footer: italic serif `hecho con tinta y café` + Geist Mono `hello · 2026` in faint tone, centered. `HAlertDialog` reused for the restore confirmation with the trash icon. New strings: `settings_eyebrow`, `settings_headline`, `settings_subtitle`, `settings_section_data`, `settings_export_subtitle`, `settings_import_subtitle`, `settings_footer_tagline`, `settings_footer_meta`.
+
+**Phase 2 complete on 2026-05-22.** Remaining work is Phase 3 (missing screens / states), Phase 4 (microcopy pass), Phase 5 (cleanup).
 
 **Phase 2.7 shipped as a single commit:**
 - ✅ `1c5e821` (2026-05-22) — Edit Flashcard. Inline top bar (close × + `EDITAR TARJETA` Geist Mono + accent `Guardar` text action, muted when invalid/loading/submitting). Stack of `HInput`s: word · translation · `Row` of phonetic + part-of-speech weight 1f side-by-side · meaning multiline (4 rows). `HSectionLabel "Ejemplos · N"` with trailing accent inline `+ agregar` action (replaces the old outlined "Añadir ejemplo" button). New `ExampleEditRow` card: `emberSurface` (14dp radius, 1dp `emberDivider`) holding a 17sp Instrument Serif italic field for the English text, hairline divider, Geist 14sp field for the Spanish translation, plus a close × IconButton anchored top-end. New `DangerRow` at the bottom: `emberBadSoft` container, 1dp 35% `emberBad` border, trash icon + Geist Medium 15sp `Borrar tarjeta` in `emberBad`. Delete wiring: new `DeleteFlashcard` / `ConfirmDeleteFlashcard` / `DismissDeleteFlashcard` intents, `isDeleteConfirmationVisible` in `UiState`, `FlashcardDeleted` effect, `softDeleteFlashcardUseCase` injected through `NewModule` (reuses the existing use case already used by Card Detail). Route handles `FlashcardDeleted` by `navigator.goBack()`. Reused `HAlertDialog` with the existing `delete_flashcard_*` strings.
