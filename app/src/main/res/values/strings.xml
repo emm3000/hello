@@ -97,6 +97,9 @@
     <string name="deck_detail_stats_due_today">%1$d para hoy</string>
     <string name="deck_detail_stats_avg_interval">%1$s d. promedio</string>
     <string name="deck_detail_study_now_cta">Estudiar %1$d ahora</string>
+    <string name="deck_detail_search_toggle_open">Buscar en este mazo</string>
+    <string name="deck_detail_search_toggle_close">Cerrar búsqueda</string>
+    <string name="deck_detail_search_no_results">Nada con \"%1$s\".</string>
     <string name="edit_deck_title">Editar mazo</string>
     <string name="save_changes">Guardar cambios</string>
     <string name="delete_deck_title">Eliminar mazo</string>

@@ -19,22 +19,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -73,17 +70,14 @@ import com.emm.hello.core.theme.emberSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
-import com.emm.hello.core.theme.metadata
-import com.emm.hello.core.theme.spacing
-import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.HAlertDialog
-import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
+import com.emm.hello.core.ui.HFab
 import com.emm.hello.core.ui.HSearchBar
-import com.emm.hello.core.ui.HSectionBlock
+import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTopBar
 import java.time.Instant
@@ -112,6 +106,9 @@ fun DeckDetailScreen(
     val now = Instant.now().toEpochMilli()
     val dueCount = state.deck.cards.count { it.review.nextReviewAt <= now }
 
+    var searchExpanded by remember { mutableStateOf(false) }
+    val searchVisible = searchExpanded || isSearching
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = emberBg,
@@ -133,9 +130,9 @@ fun DeckDetailScreen(
                         start = 20.dp,
                         end = 20.dp,
                         top = 8.dp,
-                        bottom = 96.dp,
+                        bottom = 120.dp,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
                     item {
                         EmberDeckHeader(
@@ -143,66 +140,62 @@ fun DeckDetailScreen(
                             dueCount = dueCount,
                             onReview = onReview,
                         )
-                    }
-
-                    stickyHeader {
-                        SearchBar(
-                            query = state.searchQuery,
-                            onQueryChange = onSearchChange,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        Spacer(Modifier.height(26.dp))
                     }
 
                     if (state.deck.cards.isEmpty()) {
+                        item { EmptyCards(onAddCard = onAddCard) }
+                    } else {
                         item {
-                            EmptyCards(onAddCard = onAddCard)
-                        }
-                    }
-
-                    if (state.deck.cards.isNotEmpty()) {
-                        item {
-                            HSectionBlock(
-                                title = stringResource(R.string.cards_section_label),
-                                modifier = Modifier.padding(vertical = MaterialTheme.spacing.sm),
-                                trailingContent = {
-                                    val label = if (isSearching) {
-                                        "${filteredCards.size} / ${state.deck.cards.size}"
+                            CardsSectionHeader(
+                                totalCount = state.deck.cards.size,
+                                filteredCount = filteredCards.size,
+                                isSearching = isSearching,
+                                searchExpanded = searchVisible,
+                                onToggleSearch = {
+                                    if (searchVisible) {
+                                        searchExpanded = false
+                                        if (isSearching) onSearchChange("")
                                     } else {
-                                        "${state.deck.cards.size}"
+                                        searchExpanded = true
                                     }
-                                    HBadge(
-                                        label = label,
-                                        variant = BadgeVariant.Secondary,
-                                    )
                                 },
-                                showDivider = false,
                             )
+                            Spacer(Modifier.height(12.dp))
                         }
 
-                        if (filteredCards.isEmpty() && isSearching) {
+                        if (searchVisible) {
                             item {
-                                NoSearchResults(query = state.searchQuery.trim())
+                                HSearchBar(
+                                    value = state.searchQuery,
+                                    onValueChange = onSearchChange,
+                                    placeholder = stringResource(R.string.search_cards_hint),
+                                    clearContentDescription = stringResource(R.string.search_clear_content_description),
+                                )
+                                Spacer(Modifier.height(14.dp))
                             }
+                        }
+
+                        if (isSearching && filteredCards.isEmpty()) {
+                            item { NoSearchResults(query = state.searchQuery.trim()) }
                         } else {
-                            items(filteredCards, key = { card -> card.id.value }) { card ->
-                                DeckCardItem(card = card, onCardClick = { onCardClick(it) })
-                                HSeparator()
+                            item {
+                                GroupedCardList(
+                                    cards = filteredCards,
+                                    onCardClick = onCardClick,
+                                )
                             }
                         }
                     }
                 }
             }
 
-            FloatingActionButton(
+            HFab(
                 onClick = onAddCard,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 20.dp, bottom = 24.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_card))
-            }
+            )
         }
     }
 
@@ -340,8 +333,6 @@ private fun EmberDeckHeader(
                 full = true,
             )
         }
-
-        Spacer(Modifier.height(10.dp))
     }
 }
 
@@ -393,7 +384,7 @@ private fun StatsRow(
 }
 
 @Composable
-private fun StatSegment(text: String, color: androidx.compose.ui.graphics.Color) {
+private fun StatSegment(text: String, color: Color) {
     Text(
         text = text,
         fontFamily = geistMono,
@@ -424,35 +415,149 @@ private fun averageIntervalDays(cards: List<Flashcard>): Double? {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Card list helpers (unchanged in sub-1 — sub-2 will replace)
+// Cards section — HSectionLabel "Tarjetas · N" + inline search toggle
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
+private fun CardsSectionHeader(
+    totalCount: Int,
+    filteredCount: Int,
+    isSearching: Boolean,
+    searchExpanded: Boolean,
+    onToggleSearch: () -> Unit,
 ) {
-    HSearchBar(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier,
-        placeholder = stringResource(R.string.search_cards_hint),
-        clearContentDescription = stringResource(R.string.search_clear_content_description),
+    val baseLabel = stringResource(R.string.cards_section_label)
+    val countSegment = if (isSearching) "$filteredCount / $totalCount" else "$totalCount"
+    val label = "$baseLabel · $countSegment"
+    val toggleDescription = if (searchExpanded) {
+        stringResource(R.string.deck_detail_search_toggle_close)
+    } else {
+        stringResource(R.string.deck_detail_search_toggle_open)
+    }
+
+    HSectionLabel(
+        label = label,
+        action = {
+            IconButton(
+                onClick = onToggleSearch,
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    imageVector = if (searchExpanded) Icons.Default.Close else Icons.Default.Search,
+                    contentDescription = toggleDescription,
+                    tint = if (searchExpanded) emberAccent else emberMuted,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
     )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Grouped card list — single emberSurface column with hairline dividers
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun NoSearchResults(query: String) {
-    Box(
+private fun GroupedCardList(
+    cards: List<Flashcard>,
+    onCardClick: (String) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = emberSurface,
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            cards.forEachIndexed { index, card ->
+                CardListItem(
+                    card = card,
+                    onClick = { onCardClick(card.id.value) },
+                )
+                if (index != cards.lastIndex) {
+                    HSeparator(modifier = Modifier.padding(horizontal = 16.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardListItem(
+    card: Flashcard,
+    onClick: () -> Unit,
+) {
+    val formatter = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"))
+    val reviewDate = Instant.ofEpochMilli(card.review.nextReviewAt)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    val supportingText = card.translation.ifBlank { card.phonetic }
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = MaterialTheme.spacing.xxl),
-        contentAlignment = Alignment.Center,
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = card.word,
+                fontFamily = geist,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.5.sp,
+                color = emberOnBg,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (supportingText.isNotBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = supportingText,
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 14.sp,
+                    color = emberMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        Spacer(Modifier.size(12.dp))
+
+        Text(
+            text = reviewDate.format(formatter),
+            fontFamily = geistMono,
+            fontSize = 11.sp,
+            letterSpacing = 0.06.em,
+            color = emberMuted,
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty / no-results states (Ember)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun NoSearchResults(query: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 36.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
+            text = stringResource(R.string.deck_detail_search_no_results, query),
+            fontFamily = instrumentSerif,
+            fontSize = 28.sp,
+            color = emberOnBg,
+        )
+        Text(
             text = stringResource(R.string.search_no_results, query),
-            style = MaterialTheme.typography.bodyLarge,
+            fontFamily = geist,
+            fontSize = 14.sp,
             color = emberMuted,
         )
     }
@@ -463,9 +568,9 @@ private fun EmptyCards(onAddCard: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = MaterialTheme.spacing.xxl),
+            .padding(vertical = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
             text = stringResource(R.string.empty_cards_title),
@@ -485,65 +590,9 @@ private fun EmptyCards(onAddCard: () -> Unit) {
             onClick = onAddCard,
             variant = HButtonVariant.Accent,
             size = HButtonSize.Md,
+            icon = Icons.Default.Add,
         )
     }
-}
-
-@Composable
-private fun DeckCardItem(
-    card: Flashcard,
-    onCardClick: (String) -> Unit,
-) {
-    val formatter = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
-    val reviewDate = Instant.ofEpochMilli(card.review.nextReviewAt)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
-
-    ListItem(
-        headlineContent = {
-            Text(
-                text = card.word,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-            )
-        },
-        supportingContent = {
-            val hint = card.phonetic.ifBlank { card.translation }
-            if (hint.isNotEmpty()) {
-                Text(
-                    text = hint,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = emberMuted,
-                    style = MaterialTheme.typography.metadata,
-                )
-            }
-        },
-        trailingContent = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarToday,
-                    contentDescription = null,
-                    modifier = Modifier.size(13.dp),
-                    tint = emberMuted,
-                )
-                Text(
-                    text = reviewDate.format(formatter),
-                    style = MaterialTheme.typography.metadata,
-                    color = emberMuted,
-                )
-            }
-        },
-        colors = ListItemDefaults.colors(containerColor = emberSurface),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCardClick(card.id.value) },
-    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
