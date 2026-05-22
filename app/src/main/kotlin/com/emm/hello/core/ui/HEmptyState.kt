@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -78,6 +79,7 @@ fun HEmptyState(
                     SpanStyle(
                         color = emberAccent,
                         fontStyle = FontStyle.Italic,
+                        fontSynthesis = FontSynthesis.None,
                     ),
                 ) { append(accentWord) }
                 append(after)
