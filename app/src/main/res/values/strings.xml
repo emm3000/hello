@@ -164,11 +164,18 @@
     <string name="generate_error_title">Error al generar</string>
     <string name="verify_result_title">Revisa lo que generó la IA</string>
     <string name="loading_preview_badge">IA trabajando</string>
-    <string name="loading_preview_title">La IA está preparando tu tarjeta</string>
-    <string name="loading_preview_description">Primero interpreta tu entrada, luego redacta la nota base y al final arma las cards de estudio.</string>
-    <string name="loading_step_understanding_input">1. Entendiendo tu objetivo</string>
-    <string name="loading_step_building_note">2. Construyendo la nota base</string>
-    <string name="loading_step_building_cards">3. Derivando las cards de estudio</string>
+    <string name="loading_preview_thinking_for">Pensando en cuándo se suele usar %1$s…</string>
+    <string name="loading_preview_thinking_generic">Pensando en cómo armar tu tarjeta…</string>
+    <string name="loading_preview_eta">SUELE TARDAR 8–12 S</string>
+    <!-- Step 3 quota-exceeded error (sub-4) -->
+    <string name="quota_error_title">Llegamos al límite diario de IA.</string>
+    <string name="quota_error_body">Tu acceso vuelve mañana. Si querés, guardá tu palabra y armala a mano, o esperá al reinicio.</string>
+    <string name="quota_error_your_word_label">TU PALABRA</string>
+    <string name="quota_error_create_manually">Crear a mano</string>
+    <string name="quota_error_notify_tomorrow">Avisarme mañana</string>
+    <string name="quota_error_reset_at">SE REINICIA A LAS %1$s</string>
+    <string name="quota_error_reset_in">SE REINICIA EN %1$s</string>
+    <string name="quota_error_reset_unknown">SE REINICIA MAÑANA</string>
     <string name="preview_summary_title">La IA generó 1 nota y %1$d cards de estudio</string>
     <string name="preview_summary_description">Revísalo de arriba hacia abajo: primero la nota base, luego el ejemplo y al final cada tarjeta.</string>
     <string name="review_empty_title">Todavía no hay resultado para revisar</string>

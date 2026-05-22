@@ -166,7 +166,11 @@ class NewCardViewModel(
                 )
                 setState {
                     copy(
-                        error = NewCardErrorUi(title = classified.title, message = classified.message),
+                        error = NewCardErrorUi(
+                            title = classified.title,
+                            message = classified.message,
+                            quotaResetAt = classified.quotaResetAt,
+                        ),
                         isLoading = false,
                         canSavePreview = false,
                         previewGeneratedWarnings = emptyList(),
@@ -263,7 +267,11 @@ class NewCardViewModel(
                 )
                 setState {
                     copy(
-                        error = NewCardErrorUi(title = classified.title, message = classified.message),
+                        error = NewCardErrorUi(
+                            title = classified.title,
+                            message = classified.message,
+                            quotaResetAt = classified.quotaResetAt,
+                        ),
                         isLoading = false,
                         previewRegenerationTarget = null,
                     )

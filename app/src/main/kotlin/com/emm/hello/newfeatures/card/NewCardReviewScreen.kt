@@ -80,7 +80,18 @@ fun NewCardReviewScreen(
                     }
 
                     state.isLoading -> {
-                        item { LoadingPreviewSkeleton() }
+                        item { LoadingPreviewSkeleton(word = state.word) }
+                    }
+
+                    state.error?.quotaResetAt != null -> {
+                        item {
+                            QuotaExceededState(
+                                word = state.word,
+                                resetAt = state.error.quotaResetAt,
+                                onCreateManually = onNavigateBack,
+                                onNotifyTomorrow = onNavigateBack,
+                            )
+                        }
                     }
 
                     state.error != null -> {

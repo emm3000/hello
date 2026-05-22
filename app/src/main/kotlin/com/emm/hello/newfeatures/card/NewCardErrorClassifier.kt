@@ -2,9 +2,14 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.generation.GenerationQuotaExceededException
 import java.io.IOException
+import java.time.Instant
 import kotlinx.coroutines.TimeoutCancellationException
 
-internal data class ClassifiedError(val title: String, val message: String)
+internal data class ClassifiedError(
+    val title: String,
+    val message: String,
+    val quotaResetAt: Instant? = null,
+)
 
 internal object NewCardErrorClassifier {
 
@@ -51,8 +56,9 @@ internal object NewCardErrorClassifier {
 
     private fun GenerationQuotaExceededException.toClassifiedError(): ClassifiedError {
         return ClassifiedError(
-            title = "Límite diario alcanzado",
+            title = "Llegamos al límite diario de IA.",
             message = "Llegaste al máximo de $limit generaciones por día. Volvé a intentarlo mañana.",
+            quotaResetAt = resetAt,
         )
     }
 

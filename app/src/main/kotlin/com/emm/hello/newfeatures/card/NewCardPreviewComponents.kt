@@ -1,16 +1,25 @@
 package com.emm.hello.newfeatures.card
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -22,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -33,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBadSoft
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberFaint
@@ -40,27 +52,50 @@ import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HButtonSize
+import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSkeleton
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 import com.emm.hello.newfeatures.card.validation.PreviewField
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private const val RESULT_FADE_IN_DURATION_MS = 300
 private const val SKELETON_DETAIL_WIDTH = 0.45f
 private const val SKELETON_MEDIUM_WIDTH = 0.78f
+private const val PULSE_DOT_DURATION_MS = 900
+private const val PULSE_DOT_STAGGER_MS = 180
+private const val PULSE_DOT_MIN_ALPHA = 0.25f
+private const val PULSE_DOT_MAX_ALPHA = 1f
+private const val PULSE_DOT_COUNT = 3
+private const val QUOTA_RESET_HOURS_THRESHOLD = 2L
 
 @Composable
-internal fun LoadingPreviewSkeleton() {
+internal fun LoadingPreviewSkeleton(word: String) {
+    val trimmedWord = word.trim()
+    val title = if (trimmedWord.isNotEmpty()) {
+        stringResource(R.string.loading_preview_thinking_for, trimmedWord)
+    } else {
+        stringResource(R.string.loading_preview_thinking_generic)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(top = 4.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
+        PulsingDots()
         Text(
-            text = stringResource(R.string.loading_preview_title),
+            text = title,
             fontFamily = instrumentSerif,
             fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
@@ -69,11 +104,12 @@ internal fun LoadingPreviewSkeleton() {
             color = emberOnBg,
         )
         Text(
-            text = stringResource(R.string.loading_preview_description),
+            text = stringResource(R.string.loading_preview_eta),
             fontFamily = geistMono,
-            fontSize = 11.sp,
-            letterSpacing = 0.08.em,
-            color = emberMuted,
+            fontWeight = FontWeight.Normal,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberFaint,
         )
         HSeparator()
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -85,6 +121,162 @@ internal fun LoadingPreviewSkeleton() {
             HSkeleton(Modifier.fillMaxWidth().height(14.dp))
             HSkeleton(Modifier.fillMaxWidth(SKELETON_MEDIUM_WIDTH).height(14.dp))
         }
+    }
+}
+
+@Composable
+private fun PulsingDots() {
+    val transition = rememberInfiniteTransition(label = "loading_pulse")
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        repeat(PULSE_DOT_COUNT) { index ->
+            val alpha by transition.animateFloat(
+                initialValue = PULSE_DOT_MIN_ALPHA,
+                targetValue = PULSE_DOT_MAX_ALPHA,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = PULSE_DOT_DURATION_MS, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                    initialStartOffset = StartOffset(index * PULSE_DOT_STAGGER_MS),
+                ),
+                label = "loading_pulse_dot_$index",
+            )
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .alpha(alpha)
+                    .background(emberAccent, CircleShape),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun QuotaExceededState(
+    word: String,
+    resetAt: Instant?,
+    onCreateManually: () -> Unit,
+    onNotifyTomorrow: () -> Unit,
+) {
+    val trimmedWord = word.trim()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(emberBadSoft, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "!",
+                fontFamily = instrumentSerif,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Normal,
+                fontSize = 30.sp,
+                color = emberOnBg,
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.quota_error_title),
+            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 32.sp,
+            lineHeight = 36.sp,
+            letterSpacing = (-0.5).sp,
+            color = emberOnBg,
+        )
+
+        Text(
+            text = stringResource(R.string.quota_error_body),
+            fontFamily = geist,
+            fontWeight = FontWeight.Normal,
+            fontSize = 13.5.sp,
+            lineHeight = 19.sp,
+            color = emberMuted,
+        )
+
+        if (trimmedWord.isNotEmpty()) {
+            YourWordSurface(word = trimmedWord)
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            HButton(
+                text = stringResource(R.string.quota_error_create_manually),
+                onClick = onCreateManually,
+                variant = HButtonVariant.Accent,
+                size = HButtonSize.Lg,
+                full = true,
+            )
+            HButton(
+                text = stringResource(R.string.quota_error_notify_tomorrow),
+                onClick = onNotifyTomorrow,
+                variant = HButtonVariant.Ghost,
+                size = HButtonSize.Lg,
+                full = true,
+            )
+        }
+
+        Text(
+            text = formatResetHint(resetAt),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Normal,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberFaint,
+        )
+    }
+}
+
+@Composable
+private fun YourWordSurface(word: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(emberSurface)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.quota_error_your_word_label),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberMuted,
+        )
+        Text(
+            text = word,
+            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 28.sp,
+            lineHeight = 32.sp,
+            letterSpacing = (-0.3).sp,
+            color = emberOnBg,
+        )
+    }
+}
+
+@Composable
+private fun formatResetHint(resetAt: Instant?): String {
+    if (resetAt == null) return stringResource(R.string.quota_error_reset_unknown)
+    val now = Instant.now()
+    val delta = Duration.between(now, resetAt)
+    if (delta.isZero || delta.isNegative) return stringResource(R.string.quota_error_reset_unknown)
+    val hours = delta.toHours()
+    return if (hours >= QUOTA_RESET_HOURS_THRESHOLD) {
+        val localTime = LocalTime.ofInstant(resetAt, ZoneId.systemDefault())
+        val formatted = localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        stringResource(R.string.quota_error_reset_at, formatted)
+    } else {
+        val minutes = delta.toMinutes().coerceAtLeast(1)
+        stringResource(R.string.quota_error_reset_in, "$minutes min")
     }
 }
 

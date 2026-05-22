@@ -4,11 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
+import java.time.Instant
 
 data class NewCardErrorUi(
     val title: String,
     val message: String? = null,
     val validationIssues: List<ValidationIssue> = emptyList(),
+    val quotaResetAt: Instant? = null,
 )
 
 @Composable
