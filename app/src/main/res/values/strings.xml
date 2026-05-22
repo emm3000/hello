@@ -468,6 +468,15 @@
     <string name="restore_confirm_description">Vas a borrar los datos actuales y reemplazarlos con el backup. Esta acción no se puede deshacer. ¿Continuar?</string>
     <string name="restore_confirm_yes">Reemplazar</string>
     <string name="restore_confirm_no">Cancelar</string>
+    <!-- Settings Ember chrome (Phase 2.8) -->
+    <string name="settings_eyebrow">Ajustes</string>
+    <string name="settings_headline">Cómo quieres que funcione.</string>
+    <string name="settings_subtitle">Local y a tu ritmo.</string>
+    <string name="settings_section_data">Tus datos</string>
+    <string name="settings_export_subtitle">Crea un archivo .hello para guardar donde quieras.</string>
+    <string name="settings_import_subtitle">Reemplaza todo lo que hay ahora.</string>
+    <string name="settings_footer_tagline">hecho con tinta y café</string>
+    <string name="settings_footer_meta">hello · 2026</string>
     <string name="settings_content_description">Ajustes</string>
     <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
 
