@@ -2,10 +2,11 @@ package com.emm.hello.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.Font as GoogleFontFile
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -26,21 +27,18 @@ private val googleFontProvider = GoogleFont.Provider(
 // Font families
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val instrumentSerifFont = GoogleFont("Instrument Serif")
 private val geistFont = GoogleFont("Geist")
 private val geistMonoFont = GoogleFont("Geist Mono")
 
 /**
  * instrumentSerif — serif family used for display / headline roles.
- * Regular + italic weights only (the typeface ships regular + italic).
+ * Bundled as local TTFs (regular + italic) because Google Fonts' provider serves
+ * a mobile-optimised variant whose italic strokes render flatter on Skia/Android
+ * than the upstream binary the designer mocked against.
  */
 val instrumentSerif: FontFamily = FontFamily(
-    Font(googleFont = instrumentSerifFont, fontProvider = googleFontProvider),
-    Font(
-        googleFont = instrumentSerifFont,
-        fontProvider = googleFontProvider,
-        style = FontStyle.Italic,
-    ),
+    Font(R.font.instrument_serif_regular, weight = FontWeight.Normal, style = FontStyle.Normal),
+    Font(R.font.instrument_serif_italic, weight = FontWeight.Normal, style = FontStyle.Italic),
 )
 
 /**
@@ -48,12 +46,12 @@ val instrumentSerif: FontFamily = FontFamily(
  * Regular (400) and Medium (500) weights.
  */
 val geist: FontFamily = FontFamily(
-    Font(
+    GoogleFontFile(
         googleFont = geistFont,
         fontProvider = googleFontProvider,
         weight = FontWeight.Normal,
     ),
-    Font(
+    GoogleFontFile(
         googleFont = geistFont,
         fontProvider = googleFontProvider,
         weight = FontWeight.Medium,
@@ -65,7 +63,7 @@ val geist: FontFamily = FontFamily(
  * Regular (400) weight only.
  */
 val geistMono: FontFamily = FontFamily(
-    Font(googleFont = geistMonoFont, fontProvider = googleFontProvider),
+    GoogleFontFile(googleFont = geistMonoFont, fontProvider = googleFontProvider),
 )
 
 // ─────────────────────────────────────────────────────────────────────────────

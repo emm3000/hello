@@ -31,8 +31,9 @@
 - `HSectionLabel` trailing action "N con repaso ↗" (same root cause).
 
 **Confirmed visual notes from manual review on `medium_phone` and `small_phone`:**
-- Instrument Serif Regular + Italic both load from Google Fonts. `FontSynthesis.None` was pinned on the accent span so a future font-load failure surfaces as upright text instead of fake italic.
-- Visual delta vs designer's mock (slightly flatter italic strokes, less contrast) is render-engine inherent — CSS/Skia browser vs Compose/Skia native — and cannot be eliminated.
+- Instrument Serif Regular + Italic are bundled as local TTFs in `res/font/` (sourced from `google/fonts/ofl/instrumentserif`, OFL license preserved in `res/raw/instrument_serif_ofl.txt`). Geist + Geist Mono still load via the Google Fonts provider.
+- The earlier visual delta against the designer's mock (flatter italic strokes, less contrast, looser horizontal metrics) was **not** render-engine inherent: it was caused by the GMS Google Fonts provider serving a stripped, mobile-optimised cut of Instrument Serif Italic (subsetted glyph set, dropped OpenType `liga`/`calt`/stylistic-alternate tables, rebuilt hinting). Pinning the upstream TTF restores the full chancery italic forms and tighter metrics — the empty-state hero `"Empieza por una palabra."` now also fits on one line for free. `FontSynthesis.None` on the accent span is kept as a defence-in-depth: any future font-load failure surfaces as upright text instead of fake italic.
+- Rule of thumb for future fonts: **display / editorial faces → bundle the TTF locally. UI sans / mono → Google Fonts provider is fine.**
 
 ## Overview
 
@@ -92,11 +93,13 @@ Files:
 - `app/src/main/kotlin/com/emm/hello/core/theme/Theme.kt` — point dark scheme at Ember tokens. Light scheme stays as-is (deferred), but dark is forced.
 
 ### 0.2 Typography
-Add two Google Fonts: **Instrument Serif** (serif, used italic primarily) and **Geist** + **Geist Mono**. All three are on Google Fonts.
+Three families: **Instrument Serif** (display / editorial, italic-heavy) is bundled as local TTFs because the GMS Google Fonts provider serves a stripped cut that loses its chancery italic forms. **Geist** + **Geist Mono** load via the Google Fonts provider (the GMS cut is fine for UI sans / mono).
 
 Files:
-- `app/src/main/res/values/font_certs.xml` — Google Fonts cert (if not already there).
-- `app/src/main/res/font/instrument_serif.xml`, `geist.xml`, `geist_mono.xml` — downloadable font providers.
+- `app/src/main/res/values/font_certs.xml` — Google Fonts cert (still required for Geist + Geist Mono).
+- `app/src/main/res/font/geist.xml`, `geist_mono.xml` — downloadable font providers.
+- `app/src/main/res/font/instrument_serif_regular.ttf`, `instrument_serif_italic.ttf` — bundled TTFs (sourced from `google/fonts/ofl/instrumentserif`).
+- `app/src/main/res/raw/instrument_serif_ofl.txt` — SIL OFL license, packaged for attribution.
 - `app/src/main/kotlin/com/emm/hello/core/theme/Type.kt` — rebuild `Typography` with the new families and rebuild the existing tipography table mapping (now in English thanks to the prior pass).
 
 Type scale mapping:
