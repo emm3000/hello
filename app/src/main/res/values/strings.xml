@@ -111,6 +111,16 @@
     <string name="mode_selected_badge">Actual</string>
     <string name="continue_action">Continuar</string>
     <string name="step_counter">Paso %1$d de %2$d</string>
+    <!-- New Card wizard redesign — Phase 2.3 -->
+    <string name="new_card_wizard_subtitle">Nueva tarjeta</string>
+    <string name="new_card_mode_headline">¿Qué quieres aprender?</string>
+    <string name="new_card_mode_body">Elige cómo entrar a la tarjeta. La IA arma lo demás.</string>
+    <string name="new_card_mode_letter_word">A</string>
+    <string name="new_card_mode_letter_category">B</string>
+    <string name="new_card_mode_letter_ai">C</string>
+    <string name="new_card_mode_example_word">compelling</string>
+    <string name="new_card_mode_example_category">comida en un restaurante</string>
+    <string name="new_card_mode_example_ai">frases para decir “no” con educación</string>
     <string name="input_screen_title">Define tu solicitud</string>
     <string name="review_screen_title">Revisa el resultado</string>
     <string name="generate_card">Generar vista previa con IA</string>
