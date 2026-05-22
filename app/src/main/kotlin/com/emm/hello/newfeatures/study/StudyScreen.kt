@@ -23,10 +23,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Check
@@ -40,10 +40,8 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +73,7 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
@@ -85,7 +84,6 @@ import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HBadgeGroup
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HInput
-import com.emm.hello.core.ui.HProgressBar
 import com.emm.hello.core.ui.HSeparator
 import kotlin.math.ceil
 
@@ -193,49 +191,32 @@ fun StudyScreen(
         }
     }
 
-    Scaffold(
+    val sessionInProgress = sessionStage == StudyStage.Recall ||
+        sessionStage == StudyStage.Check ||
+        sessionStage == StudyStage.Grade
+    val stateLabel = when (sessionStage) {
+        StudyStage.Recall -> stringResource(R.string.study_state_label_recall)
+        StudyStage.Check -> stringResource(R.string.study_state_label_check)
+        StudyStage.Grade -> stringResource(R.string.study_state_label_grade)
+        else -> null
+    }
+
+    Surface(
         modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            stringResource(R.string.study_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.study_progress_of,
-                                state.reviewedCount,
-                                state.totalCount,
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = ::requestExit) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.exit_session_desc),
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
+        color = emberBg,
+    ) {
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .statusBarsPadding(),
         ) {
-            HProgressBar(
+            StudyTop(
                 progress = progress,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                currentCount = state.reviewedCount,
+                totalCount = state.totalCount,
+                stateLabel = stateLabel,
+                onClose = ::requestExit,
+                showCounter = sessionInProgress,
             )
 
             Surface(
@@ -244,8 +225,7 @@ fun StudyScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .navigationBarsPadding(),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                color = emberBg,
             ) {
                 Column(
                     modifier = Modifier
