@@ -18,6 +18,7 @@ Each flashcard can expand into multiple study items. The review is persisted onc
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyViewModel.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyTop.kt` (private chrome — Ember Phase 2.2 sub-1)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`

@@ -15,7 +15,7 @@
 | 0 — Tokens, fonts, theme | ✅ Done | `89a3ee6`, `d5ea716` |
 | 1 — H* components | ✅ Done | `c76265a` |
 | 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
-| 2.2 — Study | ⏳ Pending | — |
+| 2.2 — Study | ✅ Done (sub-1 StudyTop + sub-2 Start/Empty + sub-3 Recall/Check + sub-4 Grade/Mismatch) | `bf0e029`, `212d3ac`, `ab90e67`, `8999968` |
 | 2.3 — New Card wizard | ✅ Done (sub-1 Mode + sub-2 Input + sub-3 Review + sub-4 Loading/Error) | `31b09bc`, `de47991`, `9d916f8`, _sub-4 pending commit_ |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ⏳ Pending | — |
@@ -25,6 +25,20 @@
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Phase 2.2 shipped as 4 sub-commits:**
+1. ✅ `bf0e029` (2026-05-22) — StudyTop chrome: close icon + thin HProgressBar + N/total mono counter + uppercase mono state label (RECORDAR / ESCRIBIR / RESPUESTA), wrapped in emberBg Surface with statusBarsPadding. Counter hidden on Start/Empty.
+2. ✅ `212d3ac` (2026-05-22) — Start (mono REPASO DE HOY eyebrow + 44sp serif `"N tarjetas para hoy."` via plurals + mono ≈Nmin + Accent Lg Comenzar + mono supportive line) and Empty (HEmptyState `"Hoy no toca repasar."`). StartMeta data class added to keep StudyCanvas under LongParameterList.
+3. ✅ `ab90e67` (2026-05-22) — Recall (mono INGLÉS → ESPAÑOL/ESPAÑOL → INGLÉS/COMPLETA LA FRASE/FORMA DEL VERBO direction overlay + 48sp serif prompt + mono phonetic + mono "Mostrar pista" pill + Accent CTA "Responder escribiendo" or "Ver respuesta"). Check (new private StudyAnswerInput: emberSurface row with 1.5dp emberAccent border, 26sp italic serif placeholder, accent SolidColor cursor, mono ES/EN trailing indicator + Accent Comprobar + underlined "Revelar igual" ghost). FlashcardBackContent now takes the prompt so it stays visible during Check.
+4. ✅ `8999968` (2026-05-22) — Grade reveal (mono context label + 44sp serif answer + mono phonetic + italic serif supporting + mono emberGood confirm for correct typed answers) and Mismatch (two stacked emberSurface cards: ESCRIBISTE 22sp serif strikethrough emberBad + SE ESPERABA 22sp serif emberAccent, plus italic explanation). GradeChip rebuilt on Ember tokens: emberSurface chip with 1dp emberDivider border, Geist Medium 15sp label tinted per grade (emberBad/Warn/OnBg/Accent — Good intentionally neutral for bias fix), mono interval below, dashed locked-border (drawBehind + dashPathEffect) for disabled chips with emberFaint label. Dock gets mono "Desliza para calificar rápido" hint and contextual italic lock footnote.
+
+**Deferrals from Phase 2.2** (need new data plumbing or polish):
+- Direction label uses cardType as stand-in for true part-of-speech (StudyFlashcard/StudySessionItem don't carry partOfSpeech/levelBand today).
+- Start state stats row only shows estimated minutes (no `N nuevas · N repaso` split — VM doesn't expose it).
+- Empty state's "Próxima tarjeta" hint card needs a next-due-time field that doesn't exist yet.
+- FlippableCard still uses Material gradient tokens; restyling the gradient itself to pure Ember is its own follow-up.
+- Dashed locked-chip border is subtle; could use a softer ring or higher dash contrast.
+- Linguistic explanation in Mismatch is the existing `study_typed_answer_no_*_match` string, not a diff-aware explanation.
 
 **Phase 2.3 shipped as 4 sub-commits:**
 1. ✅ `31b09bc` Mode screen + new `HWizTop` in `core/ui` (back · 3-segment progress · `N/total` mono · uppercase subtitle).
