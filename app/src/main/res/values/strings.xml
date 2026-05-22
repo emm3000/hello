@@ -178,7 +178,7 @@
     <string name="lemma_label">Lema</string>
     <string name="collocations_label">Collocations</string>
     <string name="irregular_forms_label">Formas irregulares</string>
-    <string name="confusable_with_label">Se confunde con</string>
+    <string name="confusable_with_label">No confundir con</string>
     <string name="warnings_label">Advertencias</string>
     <string name="cloze_sentence_label">Cloze</string>
     <string name="source_context_label">Contexto fuente</string>
@@ -187,6 +187,19 @@
     <string name="card_detail_tab_summary">Resumen</string>
     <string name="card_detail_tab_examples">Ejemplos</string>
     <string name="card_detail_tab_study">Estudio</string>
+    <!-- Card Detail redesign — Phase 2.4 -->
+    <string name="card_detail_header_label">Tarjeta</string>
+    <string name="card_detail_examples_section_label">Ejemplos · %1$d</string>
+    <string name="card_detail_extras_section_label">Más data</string>
+    <string name="card_detail_context_section_label">Contexto</string>
+    <string name="card_detail_footer_study_cards_one">1 tarjeta de estudio</string>
+    <string name="card_detail_footer_study_cards_other">%1$d tarjetas de estudio</string>
+    <string name="card_detail_footer_warnings_one">1 con advertencia</string>
+    <string name="card_detail_footer_warnings_other">%1$d con advertencia</string>
+    <string name="card_detail_footer_next_today">próxima hoy</string>
+    <string name="card_detail_footer_next_overdue">pendiente</string>
+    <string name="card_detail_footer_next_days_one">próxima en 1 d.</string>
+    <string name="card_detail_footer_next_days_other">próxima en %1$d d.</string>
     <string name="preview_overview_note_label">Tipo de nota</string>
     <string name="preview_overview_focus_label">Enfoque de aprendizaje</string>
     <string name="preview_overview_cards_label">Cards derivadas</string>

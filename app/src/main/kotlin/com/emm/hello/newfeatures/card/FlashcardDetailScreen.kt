@@ -2,16 +2,19 @@ package com.emm.hello.newfeatures.card
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -19,24 +22,22 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
@@ -45,16 +46,30 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.ui.BadgeVariant
-import com.emm.hello.core.ui.ButtonVariant
-import com.emm.hello.core.ui.CardVariant
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberFaint
+import com.emm.hello.core.theme.emberHint
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
-import com.emm.hello.core.ui.HBadge
-import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HCard
+import com.emm.hello.core.ui.HChip
+import com.emm.hello.core.ui.HDictSense
+import com.emm.hello.core.ui.HDictSenseTone
+import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
-import com.emm.hello.core.ui.HTabBar
-import com.emm.hello.core.ui.TabBadge
+import com.emm.hello.core.ui.HTopBar
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+
+private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun FlashcardDetailScreen(
@@ -68,67 +83,49 @@ fun FlashcardDetailScreen(
     isDeleteConfirmationVisible: Boolean = false,
 ) {
     val card = flashcard.flashcard
-    Scaffold(
+
+    Surface(
         modifier = modifier.fillMaxSize(),
-        topBar = {
+        color = emberBg,
+    ) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             FlashcardDetailTopBar(
-                word = card.word,
-                onNavigateBack = onNavigateBack,
-                onEditClick = onEditClick,
-                onDeleteClick = onDeleteClick,
+                onBack = onNavigateBack,
+                onEdit = onEditClick,
+                onDelete = onDeleteClick,
             )
-        }
-    ) { innerPadding ->
-        val tabs = remember(flashcard) { availableTabs(flashcard) }
-        var selectedTab by rememberSaveable(tabs) { mutableIntStateOf(0) }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            FlashcardHeaderCard(card = card)
-
-            if (tabs.size > 1) {
-                val failedQualityChecks = flashcard.qualityChecks.count { !it.passed }
-                val badges = tabs.map { tab ->
-                    if (tab == DetailTab.Study && failedQualityChecks > 0) {
-                        TabBadge(
-                            label = stringResource(
-                                R.string.card_detail_tab_study_pending_badge,
-                                failedQualityChecks,
-                            ),
-                            variant = BadgeVariant.Destructive,
-                        )
-                    } else {
-                        null
-                    }
-                }
-                HTabBar(
-                    selectedIndex = selectedTab.coerceAtMost(tabs.lastIndex),
-                    tabs = tabs.map { stringResource(it.titleRes) },
-                    onTabSelected = { selectedTab = it },
-                    modifier = Modifier.padding(top = 8.dp),
-                    badges = badges,
-                )
-            }
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .verticalScroll(rememberScrollState()),
             ) {
-                when (tabs.getOrNull(selectedTab.coerceAtMost(tabs.lastIndex))) {
-                    DetailTab.Summary -> SummaryTabContent(flashcard)
-                    DetailTab.Examples -> ExamplesSection(card.examples)
-                    DetailTab.Study -> {
-                        StudyCardsSection(flashcard)
-                        QualityChecksSection(flashcard)
-                    }
-                    null -> Unit
+                FlashcardHero(card = card)
+
+                val senses = remember(card) { dictSensesOf(card) }
+                if (senses.isNotEmpty()) {
+                    HeroDivider()
+                    DictSensesColumn(senses = senses)
                 }
+
+                if (card.examples.isNotEmpty()) {
+                    HeroDivider()
+                    ExamplesBlock(examples = card.examples)
+                }
+
+                if (hasExtras(card)) {
+                    HeroDivider()
+                    ExtrasBlock(card = card)
+                }
+
+                if (hasContext(card)) {
+                    HeroDivider()
+                    ContextBlock(card = card)
+                }
+
+                HeroDivider()
+                FooterBlock(detail = flashcard)
+                Spacer(Modifier.height(32.dp))
             }
         }
     }
@@ -148,31 +145,35 @@ fun FlashcardDetailScreen(
 }
 
 @Composable
+private fun HeroDivider() {
+    HSeparator(
+        modifier = Modifier.padding(horizontal = screenHorizontalPadding, vertical = 24.dp),
+        color = emberDivider,
+    )
+}
+
+@Composable
 private fun FlashcardDetailTopBar(
-    word: String,
-    onNavigateBack: () -> Unit,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
-
-    MediumTopAppBar(
-        title = {
-            Text(
-                text = word,
-                fontWeight = FontWeight.SemiBold,
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-            }
-        },
+    HTopBar(
+        onBack = onBack,
         actions = {
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.edit),
+                    tint = emberPrimary,
+                )
+            }
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = stringResource(R.string.more_options),
+                    tint = emberPrimary,
                 )
             }
             DropdownMenu(
@@ -180,18 +181,10 @@ private fun FlashcardDetailTopBar(
                 onDismissRequest = { showMenu = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.edit)) },
-                    onClick = {
-                        showMenu = false
-                        onEditClick()
-                    },
-                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                )
-                DropdownMenuItem(
                     text = { Text(stringResource(R.string.delete)) },
                     onClick = {
                         showMenu = false
-                        onDeleteClick()
+                        onDelete()
                     },
                     leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
                 )
@@ -200,360 +193,485 @@ private fun FlashcardDetailTopBar(
     )
 }
 
-private enum class DetailTab(val titleRes: Int) {
-    Summary(R.string.card_detail_tab_summary),
-    Examples(R.string.card_detail_tab_examples),
-    Study(R.string.card_detail_tab_study),
-}
-
-private fun availableTabs(flashcard: FlashcardDetail): List<DetailTab> {
-    val tabs = mutableListOf(DetailTab.Summary)
-    if (flashcard.flashcard.examples.isNotEmpty()) tabs += DetailTab.Examples
-    if (flashcard.studyCards.isNotEmpty() || flashcard.qualityChecks.isNotEmpty()) {
-        tabs += DetailTab.Study
-    }
-    return tabs
-}
-
 @Composable
-private fun FlashcardHeaderCard(card: Flashcard) {
-    HCard(
+private fun FlashcardHero(card: Flashcard) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        variant = CardVariant.Elevated,
+            .padding(horizontal = screenHorizontalPadding, vertical = 16.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
+        HSectionLabel(label = stringResource(R.string.card_detail_header_label))
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = card.word.ifBlank { "—" },
+            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 56.sp,
+            lineHeight = 60.sp,
+            letterSpacing = (-0.5).sp,
+            color = emberOnBg,
+        )
+
+        val hasMetaRow = card.phonetic.isNotBlank() ||
+            card.partOfSpeech.isNotBlank() ||
+            card.levelBand.isNotBlank()
+
+        if (hasMetaRow) {
+            Spacer(Modifier.height(10.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = card.word,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
+                if (card.phonetic.isNotBlank()) {
+                    Text(
+                        text = card.phonetic,
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 13.sp,
+                        color = emberMuted,
+                    )
+                }
                 if (card.partOfSpeech.isNotBlank()) {
-                    HBadge(
-                        label = card.partOfSpeech,
-                        variant = BadgeVariant.Secondary,
+                    Text(
+                        text = card.partOfSpeech,
+                        fontFamily = instrumentSerif,
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 18.sp,
+                        color = emberAccent,
+                    )
+                }
+                if (card.levelBand.isNotBlank()) {
+                    Text(
+                        text = card.levelBand.uppercase(),
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.12.em,
+                        color = emberHint,
                     )
                 }
             }
-            if (card.phonetic.isNotBlank()) {
+        }
+
+        if (card.translation.isNotBlank()) {
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = card.translation,
+                fontFamily = instrumentSerif,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Normal,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+                color = emberOnBg,
+            )
+        }
+    }
+}
+
+private data class DictSenseItem(
+    val labelRes: Int,
+    val body: String,
+    val tone: HDictSenseTone,
+)
+
+private fun dictSensesOf(card: Flashcard): List<DictSenseItem> = buildList {
+    if (card.meaning.isNotBlank()) {
+        add(DictSenseItem(R.string.meaning_label, card.meaning, HDictSenseTone.Default))
+    }
+    if (card.usagePattern.isNotBlank()) {
+        add(DictSenseItem(R.string.usage_pattern_label, card.usagePattern, HDictSenseTone.Default))
+    }
+    if (card.whyUseful.isNotBlank()) {
+        add(DictSenseItem(R.string.why_useful_label, card.whyUseful, HDictSenseTone.Default))
+    }
+    if (card.commonMistake.isNotBlank()) {
+        add(DictSenseItem(R.string.common_mistake_label, card.commonMistake, HDictSenseTone.Warn))
+    }
+    if (card.confusableWith.isNotEmpty()) {
+        add(
+            DictSenseItem(
+                labelRes = R.string.confusable_with_label,
+                body = card.confusableWith.joinToString(", "),
+                tone = HDictSenseTone.Warn,
+            ),
+        )
+    }
+    if (card.noteSummary.isNotBlank()) {
+        add(DictSenseItem(R.string.notes_label, card.noteSummary, HDictSenseTone.Default))
+    }
+}
+
+@Composable
+private fun DictSensesColumn(senses: List<DictSenseItem>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = screenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
+    ) {
+        senses.forEachIndexed { index, sense ->
+            HDictSense(
+                index = index + 1,
+                label = stringResource(sense.labelRes),
+                body = sense.body,
+                tone = sense.tone,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExamplesBlock(examples: List<Example>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = screenHorizontalPadding),
+    ) {
+        HSectionLabel(
+            label = stringResource(R.string.card_detail_examples_section_label, examples.size),
+        )
+        Spacer(Modifier.height(16.dp))
+        examples.forEachIndexed { index, example ->
+            ExampleRow(example = example)
+            if (index < examples.lastIndex) {
+                Spacer(Modifier.height(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExampleRow(example: Example) {
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            text = "·",
+            fontFamily = instrumentSerif,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            color = emberAccent,
+            modifier = Modifier.width(20.dp),
+        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (example.text.isNotBlank()) {
                 Text(
-                    text = card.phonetic,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = example.text,
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 17.sp,
+                    lineHeight = 24.sp,
+                    color = emberOnBg,
                 )
             }
-
-            Spacer(Modifier.height(8.dp))
-            HSeparator()
-            Spacer(Modifier.height(12.dp))
-
-            DetailItem(label = stringResource(R.string.translation_label), value = card.translation)
-            Spacer(Modifier.height(12.dp))
-            DetailItem(label = stringResource(R.string.meaning_label), value = card.meaning)
-        }
-    }
-}
-
-@Composable
-private fun SummaryTabContent(flashcard: FlashcardDetail) {
-    val card = flashcard.flashcard
-    OptionalDetailSection(
-        label = stringResource(R.string.notes_label),
-        value = card.noteSummary,
-    )
-    OptionalDetailSection(
-        label = stringResource(R.string.why_useful_label),
-        value = card.whyUseful,
-    )
-    OptionalDetailSection(
-        label = stringResource(R.string.usage_pattern_label),
-        value = card.usagePattern,
-    )
-    OptionalDetailSection(
-        label = stringResource(R.string.common_mistake_label),
-        value = card.commonMistake,
-    )
-    LearningMetadataSection(flashcard)
-    RichListSection(
-        title = stringResource(R.string.collocations_label),
-        values = card.collocations,
-    )
-    RichListSection(
-        title = stringResource(R.string.irregular_forms_label),
-        values = card.irregularForms,
-    )
-    RichListSection(
-        title = stringResource(R.string.confusable_with_label),
-        values = card.confusableWith,
-    )
-    RichListSection(
-        title = stringResource(R.string.warnings_label),
-        values = card.warnings,
-    )
-    OptionalDetailSection(
-        label = stringResource(R.string.cloze_sentence_label),
-        value = card.clozeSentence,
-    )
-    OptionalDetailSection(
-        label = stringResource(R.string.source_context_label),
-        value = card.sourceContext,
-    )
-}
-
-@Composable
-private fun OptionalDetailSection(label: String, value: String) {
-    if (value.isBlank()) return
-
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    DetailItem(label = label, value = value)
-}
-
-@Composable
-private fun LearningMetadataSection(flashcard: FlashcardDetail) {
-    val card = flashcard.flashcard
-    val metadataItems = listOfNotNull(
-        card.register.takeIf(String::isNotBlank)?.let {
-            stringResource(R.string.register_label) to it
-        },
-        card.levelBand.takeIf(String::isNotBlank)?.let {
-            stringResource(R.string.level_label) to it
-        },
-        card.learningDomain.takeIf(String::isNotBlank)?.let {
-            stringResource(R.string.domain_label) to it
-        },
-        card.lemma.takeIf(String::isNotBlank)?.let {
-            stringResource(R.string.lemma_label) to it
-        },
-    )
-    if (metadataItems.isEmpty()) return
-
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.learning_metadata_label),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
-    metadataItems.forEach { (label, value) ->
-        DetailItem(label = label, value = value)
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun ExamplesSection(examples: List<Example>) {
-    if (examples.isEmpty()) return
-
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.examples_label),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
-
-    examples.forEachIndexed { index, example ->
-        key(example.exampleId) {
-            ExampleItem(index = index + 1, example = example)
-            if (index < examples.lastIndex) {
+            if (example.translation.isNotBlank()) {
                 Spacer(Modifier.height(4.dp))
+                Text(
+                    text = example.translation,
+                    fontFamily = geist,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    color = emberMuted,
+                )
             }
         }
     }
 }
 
-@Composable
-private fun StudyCardsSection(flashcard: FlashcardDetail) {
-    if (flashcard.studyCards.isEmpty()) return
+private fun hasExtras(card: Flashcard): Boolean =
+    card.collocations.isNotEmpty() ||
+        card.irregularForms.isNotEmpty() ||
+        card.warnings.isNotEmpty() ||
+        card.register.isNotBlank() ||
+        card.learningDomain.isNotBlank() ||
+        card.lemma.isNotBlank()
 
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.generated_cards_label),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
-    flashcard.studyCards.forEachIndexed { index, card ->
-        key(card.cardId) {
-            StudyCardItem(index = index + 1, card = card)
-            if (index < flashcard.studyCards.lastIndex) {
-                Spacer(Modifier.height(8.dp))
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExtrasBlock(card: Flashcard) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = screenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        HSectionLabel(label = stringResource(R.string.card_detail_extras_section_label))
+
+        if (card.collocations.isNotEmpty()) {
+            ChipFlow(
+                label = stringResource(R.string.collocations_label),
+                values = card.collocations,
+            )
+        }
+        if (card.irregularForms.isNotEmpty()) {
+            ChipFlow(
+                label = stringResource(R.string.irregular_forms_label),
+                values = card.irregularForms,
+            )
+        }
+        if (card.warnings.isNotEmpty()) {
+            BulletList(
+                label = stringResource(R.string.warnings_label),
+                values = card.warnings,
+            )
+        }
+
+        val metaPills = listOfNotNull(
+            card.register.takeIf(String::isNotBlank)?.let {
+                stringResource(R.string.register_label) to it
+            },
+            card.learningDomain.takeIf(String::isNotBlank)?.let {
+                stringResource(R.string.domain_label) to it
+            },
+            card.lemma.takeIf(String::isNotBlank)?.let {
+                stringResource(R.string.lemma_label) to it
+            },
+        )
+        if (metaPills.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                metaPills.forEach { (label, value) ->
+                    Row(verticalAlignment = Alignment.Top) {
+                        Text(
+                            text = label.uppercase(),
+                            fontFamily = geistMono,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 10.5.sp,
+                            letterSpacing = 0.12.em,
+                            color = emberMuted,
+                            modifier = Modifier.width(96.dp),
+                        )
+                        Text(
+                            text = value,
+                            fontFamily = geist,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            color = emberOnBg,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun QualityChecksSection(flashcard: FlashcardDetail) {
-    if (flashcard.qualityChecks.isEmpty()) return
-
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = stringResource(R.string.quality_checks_label),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
-    flashcard.qualityChecks.forEach { check ->
-        DetailItem(
-            label = check.code.name,
-            value = if (check.passed) {
-                stringResource(R.string.quality_check_passed, check.message)
-            } else {
-                stringResource(R.string.quality_check_failed, check.message)
-            }
+private fun ChipFlow(label: String, values: List<String>) {
+    Column {
+        Text(
+            text = label.uppercase(),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberMuted,
         )
         Spacer(Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun RichListSection(title: String, values: List<String>) {
-    if (values.isEmpty()) return
-
-    Spacer(Modifier.height(4.dp))
-    HSeparator()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Spacer(Modifier.height(8.dp))
-    values.forEach { value ->
-        Text(
-            text = "• $value",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(4.dp))
-    }
-}
-
-@Composable
-private fun StudyCardItem(index: Int, card: com.emm.domain.generation.GeneratedStudyCard) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = "$index. ${card.cardType.name}",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        DetailItem(label = stringResource(R.string.prompt_label), value = card.prompt)
-        DetailItem(label = stringResource(R.string.expected_answer_label), value = card.expectedAnswer)
-        if (card.hint.isNotBlank()) {
-            DetailItem(label = stringResource(R.string.hint_label), value = card.hint)
-        }
-    }
-}
-
-@Composable
-private fun DetailItem(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun ExampleItem(index: Int, example: Example) {
-    var showTranslation by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier.padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = "$index. ${example.text}",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        if (showTranslation) {
-            Text(
-                text = example.translation,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp),
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            val buttonText = if (showTranslation) {
-                stringResource(R.string.hide_translation)
-            } else {
-                stringResource(R.string.show_translation)
+            values.forEach { value ->
+                HChip(label = value, accent = false)
             }
-            HButton(
-                text = buttonText,
-                onClick = { showTranslation = !showTranslation },
-                variant = ButtonVariant.Ghost,
+        }
+    }
+}
+
+@Composable
+private fun BulletList(label: String, values: List<String>) {
+    Column {
+        Text(
+            text = label.uppercase(),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberMuted,
+        )
+        Spacer(Modifier.height(6.dp))
+        values.forEach { value ->
+            Row(verticalAlignment = Alignment.Top) {
+                Text(
+                    text = "·",
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 16.sp,
+                    color = emberAccent,
+                    modifier = Modifier.width(16.dp),
+                )
+                Text(
+                    text = value,
+                    fontFamily = geist,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = emberOnBg,
+                )
+            }
+        }
+    }
+}
+
+private fun hasContext(card: Flashcard): Boolean =
+    card.clozeSentence.isNotBlank() || card.sourceContext.isNotBlank()
+
+@Composable
+private fun ContextBlock(card: Flashcard) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = screenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        HSectionLabel(label = stringResource(R.string.card_detail_context_section_label))
+        if (card.clozeSentence.isNotBlank()) {
+            Text(
+                text = card.clozeSentence,
+                fontFamily = instrumentSerif,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = emberOnBg,
+            )
+        }
+        if (card.sourceContext.isNotBlank()) {
+            Text(
+                text = card.sourceContext,
+                fontFamily = geist,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                color = emberMuted,
             )
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun CardDetailScreenPreview() {
+private fun FooterBlock(detail: FlashcardDetail) {
+    val failedChecks = detail.qualityChecks.count { !it.passed }
+    val studyCardsCount = detail.studyCards.size
+
+    val parts = buildList {
+        if (studyCardsCount > 0) {
+            add(
+                FooterPart(
+                    text = footerStudyCards(studyCardsCount),
+                    accent = false,
+                ),
+            )
+        }
+        if (failedChecks > 0) {
+            add(
+                FooterPart(
+                    text = footerWarnings(failedChecks),
+                    accent = true,
+                ),
+            )
+        }
+        add(FooterPart(text = footerNextReview(detail.flashcard.review), accent = false))
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = screenHorizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        parts.forEachIndexed { index, part ->
+            Text(
+                text = part.text,
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Normal,
+                fontSize = 10.5.sp,
+                letterSpacing = 0.12.em,
+                color = if (part.accent) emberAccent else emberFaint,
+            )
+            if (index < parts.lastIndex) {
+                Text(
+                    text = " · ",
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.5.sp,
+                    color = emberFaint,
+                )
+            }
+        }
+    }
+}
+
+private data class FooterPart(val text: String, val accent: Boolean)
+
+@Composable
+private fun footerStudyCards(count: Int): String = if (count == 1) {
+    stringResource(R.string.card_detail_footer_study_cards_one)
+} else {
+    stringResource(R.string.card_detail_footer_study_cards_other, count)
+}
+
+@Composable
+private fun footerWarnings(count: Int): String = if (count == 1) {
+    stringResource(R.string.card_detail_footer_warnings_one)
+} else {
+    stringResource(R.string.card_detail_footer_warnings_other, count)
+}
+
+@Composable
+private fun footerNextReview(review: FlashcardReview): String {
+    val today = LocalDate.now()
+    val nextDate = Instant.ofEpochMilli(review.nextReviewAt)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    val days = ChronoUnit.DAYS.between(today, nextDate)
+    return when {
+        days < 0L -> stringResource(R.string.card_detail_footer_next_overdue)
+        days == 0L -> stringResource(R.string.card_detail_footer_next_today)
+        days == 1L -> stringResource(R.string.card_detail_footer_next_days_one)
+        else -> stringResource(R.string.card_detail_footer_next_days_other, days.toInt())
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun CardDetailScreenPreview() {
     HelloTheme {
         val sampleCard = FlashcardDetail(
             flashcard = Flashcard(
                 id = "1".toFlashcardId(),
                 word = "Aesthetic",
                 phonetic = "/esˈTHedik/",
-                translation = "Aesthetic",
+                translation = "Estético, visualmente atractivo.",
+                partOfSpeech = "adjective",
+                levelBand = "B2",
                 meaning = "Concerned with beauty or the appreciation of beauty.",
+                usagePattern = "Se usa para describir el atractivo visual de cosas o ambientes, " +
+                    "más común en contextos de diseño que en el habla diaria.",
+                whyUseful = "Permite hablar de gusto visual sin opinar sobre belleza intrínseca.",
+                commonMistake = "No usar como sinónimo de “bonito” a secas; es más específico.",
+                confusableWith = listOf("ascetic", "anaesthetic"),
+                collocations = listOf("aesthetic appeal", "minimalist aesthetic", "purely aesthetic"),
+                irregularForms = listOf("aesthetics (n.)", "aesthetically (adv.)"),
+                warnings = listOf("Evitar en registros muy formales si hay un término técnico mejor."),
+                register = "neutral",
+                learningDomain = "design",
+                lemma = "aesthetic",
                 examples = listOf(
                     Example(
                         exampleId = "ex1",
-                        text = "The new building has a very aesthetic design.",
-                        translation = "The new building has a very aesthetic design.",
+                        text = "The new building has a very strong aesthetic.",
+                        translation = "El nuevo edificio tiene una estética muy marcada.",
                         type = "",
                     ),
                     Example(
                         exampleId = "ex2",
                         text = "Her Instagram page is very aesthetic.",
-                        translation = "Her Instagram page is very aesthetic.",
+                        translation = "Su perfil de Instagram es muy estético.",
                         type = "",
                     ),
                 ),
