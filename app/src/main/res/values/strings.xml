@@ -121,6 +121,16 @@
     <string name="new_card_mode_example_word">compelling</string>
     <string name="new_card_mode_example_category">comida en un restaurante</string>
     <string name="new_card_mode_example_ai">frases para decir “no” con educación</string>
+    <!-- New Card wizard Input step (Phase 2.3 sub-2) -->
+    <string name="new_card_input_headline_word">Tu palabra.</string>
+    <string name="new_card_input_headline_category">Una categoría.</string>
+    <string name="new_card_input_headline_ai">Cuéntale a la IA.</string>
+    <string name="new_card_input_save_in_label">Guardar en</string>
+    <string name="new_card_input_difficulty_label">Dificultad</string>
+    <string name="new_card_input_word_placeholder">la palabra que quieres aprender…</string>
+    <string name="new_card_input_ai_placeholder">describe la situación o el patrón…</string>
+    <string name="new_card_input_category_placeholder">elegir categoría…</string>
+    <string name="new_card_input_deck_empty">Ningún mazo seleccionado</string>
     <string name="input_screen_title">Define tu solicitud</string>
     <string name="review_screen_title">Revisa el resultado</string>
     <string name="generate_card">Generar vista previa con IA</string>
