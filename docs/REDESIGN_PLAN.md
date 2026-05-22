@@ -6,7 +6,7 @@
 | Role | Source of truth for the visual redesign work |
 | Source | Designer handoff bundle (`/tmp/hello-design/hello/`) + on-screen analysis |
 | Read this when | Implementing the new visual system |
-| Last verified | 2026-05-22 |
+| Last verified | 2026-05-22 (Phase 2.5 close) |
 
 ## Progress
 
@@ -18,13 +18,22 @@
 | 2.2 — Study | ✅ Done (sub-1 StudyTop + sub-2 Start/Empty + sub-3 Recall/Check + sub-4 Grade/Mismatch) | `bf0e029`, `212d3ac`, `ab90e67`, `8999968` |
 | 2.3 — New Card wizard | ✅ Done (sub-1 Mode + sub-2 Input + sub-3 Review + sub-4 Loading/Error) | `31b09bc`, `de47991`, `9d916f8`, _sub-4 pending commit_ |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
-| 2.5 — Deck Detail | ⏳ Pending | — |
+| 2.5 — Deck Detail | ✅ Done (sub-1 chrome + Ember header + sub-2 grouped card list) | `8fbabf0`, `e58add2` |
 | 2.6 — New/Edit Deck | ⏳ Pending | — |
 | 2.7 — Edit Flashcard | ⏳ Pending | — |
 | 2.8 — Settings | ⏳ Pending | — |
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Phase 2.5 shipped as 2 sub-commits:**
+1. ✅ `8fbabf0` (2026-05-22) — Chrome + Ember header. HTopBar (back + MoreVert dropdown) wraps the screen in `emberBg` with `statusBarsPadding`. New `EmberDeckHeader`: mono 11sp `MAZO` eyebrow, 44sp serif deck name, Geist 14sp muted description, FlowRow of `HChip` tags. Hairline-bordered stats row in Geist Mono: `N tarjetas · N para hoy (accent) · X.X d. promedio` (promedio segment hidden until at least one card has been studied). Accent Lg `Estudiar N ahora` CTA full-width, only when `dueCount > 0`. New strings: `deck_detail_meta_label`, plurals `deck_detail_stats_cards`, `deck_detail_stats_due_today`, `deck_detail_stats_avg_interval`, `deck_detail_study_now_cta`.
+2. ✅ `e58add2` (2026-05-22) — Card list. `HSectionLabel "Tarjetas · N"` (count becomes `filtered / total` while searching) with a trailing `IconButton` that toggles between a muted search glyph and an accent close glyph. Tapping expands an `HSearchBar` below the label; closing also clears the query. The list lives in a single `emberSurface` column (16dp radius) with `HSeparator` between rows. New `CardListItem`: 15.5sp Geist Medium word + 14sp italic serif translation (falls back to phonetic) + 11sp Geist Mono `d MMM` (es-ES) next review date. Empty state restyled (italic serif headline + Geist body + Accent `Añadir tarjeta`); no-search-results restyled with serif `"Nada con \"X\"."` + Geist body. M3 FAB replaced by accent circular `HFab`. New strings: `deck_detail_search_toggle_open` / `_close`, `deck_detail_search_no_results`.
+
+**Deferrals from Phase 2.5** (need data plumbing or polish):
+- The "italic muted suffix" beside the deck name mentioned in the 2.5 spec is currently not rendered (Deck model has no structured sub-name field — only `name` and `description`).
+- The hairline stats row only computes `X.X d. promedio` from cards with `repetitions > 0 && interval > 0`; it stays hidden for fresh decks.
+- Search auto-focus on tap: the toggle expands the search bar but the text field still requires a second tap to receive focus (no auto-focus / `FocusRequester` plumbed yet).
 
 **Phase 2.2 shipped as 4 sub-commits:**
 1. ✅ `bf0e029` (2026-05-22) — StudyTop chrome: close icon + thin HProgressBar + N/total mono counter + uppercase mono state label (RECORDAR / ESCRIBIR / RESPUESTA), wrapped in emberBg Surface with statusBarsPadding. Counter hidden on Start/Empty.
