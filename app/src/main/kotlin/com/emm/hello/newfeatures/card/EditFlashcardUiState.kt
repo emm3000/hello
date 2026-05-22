@@ -14,6 +14,7 @@ data class EditFlashcardUiState(
     val wordError: String? = null,
     val meaningError: String? = null,
     val isSubmitting: Boolean = false,
+    val isDeleteConfirmationVisible: Boolean = false,
 ) : MviState {
     val isValid: Boolean
         get() = word.isNotBlank() && meaning.isNotBlank() && wordError == null && meaningError == null

@@ -13,4 +13,7 @@ sealed interface EditFlashcardUiIntent : MviIntent {
     data object AddExample : EditFlashcardUiIntent
     data class RemoveExample(val index: Int) : EditFlashcardUiIntent
     data object Submit : EditFlashcardUiIntent
+    data object DeleteFlashcard : EditFlashcardUiIntent
+    data object ConfirmDeleteFlashcard : EditFlashcardUiIntent
+    data object DismissDeleteFlashcard : EditFlashcardUiIntent
 }

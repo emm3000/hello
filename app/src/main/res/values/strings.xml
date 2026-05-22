@@ -485,6 +485,11 @@
     <string name="edit_flashcard_remove_example">Eliminar ejemplo</string>
     <string name="delete_flashcard_title">Eliminar tarjeta</string>
     <string name="delete_flashcard_description">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a esta tarjeta.</string>
+    <!-- Edit Flashcard Ember (Phase 2.7) -->
+    <string name="edit_flashcard_action_save">Guardar</string>
+    <string name="edit_flashcard_close_content_description">Cerrar</string>
+    <string name="edit_flashcard_add_inline">+ agregar</string>
+    <string name="edit_flashcard_delete_action">Borrar tarjeta</string>
     <string name="part_of_speech_label">Categoría gramatical</string>
 
 </resources>

@@ -212,6 +212,7 @@ fun Module.viewModels() {
             deckId = it.get(),
             flashcardRepository = get(),
             updateFlashcardUseCase = get(),
+            softDeleteFlashcardUseCase = get(),
         )
     }
     viewModel { SettingsViewModel(get(), get()) }

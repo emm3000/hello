@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.card
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.ids.toDeckId
@@ -16,6 +17,7 @@ class EditFlashcardViewModel(
     private val deckId: String,
     private val flashcardRepository: FlashcardRepository,
     private val updateFlashcardUseCase: UpdateFlashcardUseCase,
+    private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
 ) : MviViewModel<EditFlashcardUiState, EditFlashcardUiIntent, EditFlashcardUiEffect>(
     initialState = EditFlashcardUiState(),
 ) {
@@ -39,6 +41,9 @@ class EditFlashcardViewModel(
             EditFlashcardUiIntent.AddExample -> handleAddExample()
             is EditFlashcardUiIntent.RemoveExample -> handleRemoveExample(intent.index)
             EditFlashcardUiIntent.Submit -> handleSubmit()
+            EditFlashcardUiIntent.DeleteFlashcard -> setState { copy(isDeleteConfirmationVisible = true) }
+            EditFlashcardUiIntent.ConfirmDeleteFlashcard -> handleDelete()
+            EditFlashcardUiIntent.DismissDeleteFlashcard -> setState { copy(isDeleteConfirmationVisible = false) }
         }
     }
 
@@ -106,6 +111,18 @@ class EditFlashcardViewModel(
         val current = currentState.examples
         if (index !in current.indices) return
         setState { copy(examples = current.toMutableList().apply { removeAt(index) }) }
+    }
+
+    private fun handleDelete() = viewModelScope.launch {
+        setState { copy(isDeleteConfirmationVisible = false) }
+        runCatching {
+            softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
+        }.onSuccess {
+            sendEffect(EditFlashcardUiEffect.FlashcardDeleted)
+        }.onFailure { error ->
+            logError(TAG, "handleDelete:error ${error.message}", error)
+            sendEffect(EditFlashcardUiEffect.ShowMessage(error.message ?: "No se pudo eliminar la tarjeta"))
+        }
     }
 
     private fun handleSubmit() = viewModelScope.launch {

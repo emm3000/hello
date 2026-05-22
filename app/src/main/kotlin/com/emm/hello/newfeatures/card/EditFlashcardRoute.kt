@@ -28,6 +28,7 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String, deckId: Strin
         vm.effect.collect { effect ->
             when (effect) {
                 EditFlashcardUiEffect.NavigateBack -> navigator.goBack()
+                EditFlashcardUiEffect.FlashcardDeleted -> navigator.goBack()
                 is EditFlashcardUiEffect.ShowMessage -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
