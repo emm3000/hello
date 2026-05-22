@@ -72,6 +72,16 @@
     <string name="tags_label">Etiquetas</string>
     <string name="tags_placeholder">Ej: inglés, trabajo, viajes</string>
     <string name="tags_supporting_text">Enter o coma para agregar. Mínúsculas, sin duplicados.</string>
+    <!-- New/Edit Deck Ember chrome (Phase 2.6) -->
+    <string name="new_deck_top_label">Mazo nuevo</string>
+    <string name="new_deck_headline">Un mazo nuevo.</string>
+    <string name="edit_deck_top_label">Editar mazo</string>
+    <string name="edit_deck_headline">Editar mazo.</string>
+    <string name="new_deck_action_create">Crear</string>
+    <string name="new_deck_action_save">Guardar</string>
+    <string name="new_deck_close_content_description">Cerrar</string>
+    <string name="new_deck_tag_placeholder">+ agregar…</string>
+    <string name="new_deck_tag_remove_content_description">Quitar etiqueta %1$s</string>
 
     <!-- Deck Detail Screen -->
     <string name="deck_detail_title_fallback">Mazo</string>
