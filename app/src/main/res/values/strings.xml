@@ -345,6 +345,16 @@
     <string name="study_recall_cta_type">Responder escribiendo</string>
     <string name="study_check_lang_indicator_en">EN</string>
     <string name="study_check_lang_indicator_es">ES</string>
+    <!-- Study Grade + Grade-Mismatch states (Ember redesign Phase 2.2 sub-4) -->
+    <string name="study_grade_answer_label_recognition">SIGNIFICADO</string>
+    <string name="study_grade_answer_label_production">EXPRESIÓN EN INGLÉS</string>
+    <string name="study_grade_answer_label_cloze">PALABRA FALTANTE</string>
+    <string name="study_grade_answer_label_form">FORMA CORRECTA</string>
+    <string name="study_grade_swipe_hint">Desliza para calificar rápido</string>
+    <string name="study_grade_lock_easy_footnote">Como tu respuesta coincidió, Otra vez queda bloqueada hoy.</string>
+    <string name="study_grade_lock_hard_footnote">Como tu respuesta no coincidió, Bien y Fácil quedan bloqueadas hoy.</string>
+    <string name="study_grade_mismatch_you_wrote">ESCRIBISTE</string>
+    <string name="study_grade_mismatch_expected">SE ESPERABA</string>
     <string name="tap_to_reveal">Toca para revelar</string>
     <string name="study_progress_of">%1$d de %2$d</string>
     <string name="study_start_title">Listo para repasar</string>

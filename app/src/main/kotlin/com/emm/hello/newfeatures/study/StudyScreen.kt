@@ -37,11 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,9 +50,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
@@ -69,6 +68,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -86,17 +86,19 @@ import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBad
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberFaint
+import com.emm.hello.core.theme.emberGood
 import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.emberWarn
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
-import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
 import com.emm.hello.core.ui.HAlert
@@ -107,14 +109,12 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
-import com.emm.hello.core.ui.HSeparator
 import kotlin.math.ceil
 
 private const val CARD_TRANSITION_DURATION_MS = 220
 private const val CARD_EXIT_FADE_DURATION_MS = 160
 private const val CARD_ENTER_SCALE = 0.96f
 private const val CARD_EXIT_SCALE = 0.92f
-private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val MAX_RELATED_FORMS = 3
 private val studyDockMinHeight = 220.dp
 private val startHeaderSpacing = 14.dp
@@ -123,6 +123,10 @@ private val recallPromptLineHeight = 54.sp
 private val answerInputBorderWidth = 1.5.dp
 private val answerInputFontSize = 26.sp
 private val answerInputLineHeight = 32.sp
+private val gradeAnswerFontSize = 44.sp
+private val gradeAnswerLineHeight = 50.sp
+private val gradeChipDashWidth = 6.dp
+private val gradeChipDashGap = 4.dp
 
 private data class CardViewState(
     val cardFace: CardFace,
@@ -467,6 +471,7 @@ private fun StudyCanvas(
                                     studyCard = item?.studyCard,
                                     prompt = item?.studyCard?.prompt
                                         ?: item?.flashcard?.word.orEmpty(),
+                                    typedAnswer = typedAnswerState.typedAnswer,
                                     typedAnswerChecked = typedAnswerState.typedAnswerChecked,
                                     typedAnswerCorrect = typedAnswerState.typedAnswerCorrect,
                                 )
@@ -622,23 +627,40 @@ private fun StudyActionDock(
                         typedAnswerChecked = typedAnswerState.typedAnswerChecked,
                         typedAnswerCorrect = typedAnswerState.typedAnswerCorrect,
                     ) ?: ReviewGradePolicy()
-                    if (
-                        needsTypedAnswer &&
-                        typedAnswerState.typedAnswer.isBlank() &&
-                        typedAnswerState.typedAnswerChecked
-                    ) {
-                        Text(
-                            text = stringResource(R.string.study_skip_guidance),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                     AnswerButtons(
                         enabledGrades = gradePolicy.enabledGrades,
-                        guidance = gradePolicy.guidance,
                         intervalPreviews = intervalPreviews,
                         onReviewAnswer = callbacks.onReviewAnswer,
                     )
+                    val isLocked = needsTypedAnswer && typedAnswerState.typedAnswerChecked
+                    val footnoteRes = when {
+                        !isLocked -> null
+                        typedAnswerState.typedAnswerCorrect -> R.string.study_grade_lock_easy_footnote
+                        else -> R.string.study_grade_lock_hard_footnote
+                    }
+                    Text(
+                        text = stringResource(R.string.study_grade_swipe_hint),
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 10.5.sp,
+                        letterSpacing = 0.12.em,
+                        color = emberFaint,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (footnoteRes != null) {
+                        Text(
+                            text = stringResource(footnoteRes),
+                            fontFamily = geist,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.5.sp,
+                            lineHeight = 17.sp,
+                            color = emberMuted,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         }
@@ -793,21 +815,28 @@ private fun FlashcardBackContent(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
     prompt: String,
+    typedAnswer: String,
     typedAnswerChecked: Boolean,
     typedAnswerCorrect: Boolean,
 ) {
     val needsTypedAnswer = studyCard?.needsTypedAnswer == true
     val shouldRevealAnswer = !needsTypedAnswer || typedAnswerChecked
+    val isMismatch = needsTypedAnswer && typedAnswerChecked && !typedAnswerCorrect
     val primaryText = studyCard?.expectedAnswer ?: card?.translation.orEmpty()
-    val answerLabel = studyCard?.answerLabel()
+    val answerLabel = studyCard?.gradeAnswerLabel()
         ?: stringResource(R.string.study_answer_label_default)
     val resultMessage = studyCard?.typedAnswerResultMessage(typedAnswerCorrect).orEmpty()
     val supportingText = studyCard?.supportingBackText(card).orEmpty()
+    val backPhonetic = if (studyCard?.sourceField != "word" && card?.phonetic?.isNotBlank() == true) {
+        card.phonetic
+    } else {
+        ""
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -823,38 +852,82 @@ private fun FlashcardBackContent(
                 textAlign = TextAlign.Center,
             )
         }
-        if (shouldRevealAnswer) {
+        if (shouldRevealAnswer && isMismatch) {
+            MismatchCards(
+                typed = typedAnswer,
+                expected = primaryText,
+            )
+            if (resultMessage.isNotBlank()) {
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    text = resultMessage,
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    color = emberMuted,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        if (shouldRevealAnswer && !isMismatch) {
             Text(
                 text = answerLabel,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Medium,
+                fontSize = 10.5.sp,
+                letterSpacing = 0.12.em,
+                color = emberMuted,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
                 text = primaryText,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
+                fontFamily = instrumentSerif,
+                fontWeight = FontWeight.Normal,
+                fontSize = gradeAnswerFontSize,
+                lineHeight = gradeAnswerLineHeight,
+                letterSpacing = (-0.5).sp,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = emberOnBg,
             )
 
-            if (needsTypedAnswer) {
+            if (backPhonetic.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
-                TypedAnswerResultRow(
-                    isCorrect = typedAnswerCorrect,
-                    message = resultMessage,
+                Text(
+                    text = backPhonetic,
+                    fontFamily = geistMono,
+                    fontSize = 13.sp,
+                    color = emberHint,
+                    textAlign = TextAlign.Center,
                 )
             }
 
             if (supportingText.isNotBlank()) {
-                Spacer(Modifier.height(12.dp))
-                HSeparator(modifier = Modifier.fillMaxWidth(MEANING_SEPARATOR_WIDTH_FRACTION))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
                     text = supportingText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    color = emberMuted,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            val showMatchMessage = !isMismatch && needsTypedAnswer && typedAnswerCorrect
+            if (showMatchMessage && resultMessage.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = resultMessage,
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.08.em,
+                    color = emberGood,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -870,37 +943,56 @@ private fun FlashcardBackContent(
 }
 
 @Composable
-private fun TypedAnswerResultRow(
-    isCorrect: Boolean,
-    message: String,
-) {
-    val tint = if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-    val icon = if (isCorrect) Icons.Outlined.Check else Icons.Outlined.Close
-    val iconDescription = stringResource(
-        if (isCorrect) R.string.study_correct_icon_desc else R.string.study_incorrect_icon_desc
-    )
-    val prefixRes = if (isCorrect) {
-        R.string.study_typed_answer_correct_prefix
-    } else {
-        R.string.study_typed_answer_incorrect_prefix
-    }
-    val prefix = stringResource(prefixRes)
-    val fullMessage = if (message.isBlank()) prefix else "$prefix · $message"
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+private fun MismatchCards(typed: String, expected: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = iconDescription,
-            tint = tint,
-            modifier = Modifier.height(18.dp),
+        MismatchRow(
+            label = stringResource(R.string.study_grade_mismatch_you_wrote),
+            value = typed.ifBlank { "—" },
+            valueColor = emberBad,
+            strikethrough = true,
+        )
+        MismatchRow(
+            label = stringResource(R.string.study_grade_mismatch_expected),
+            value = expected,
+            valueColor = emberAccent,
+            strikethrough = false,
+        )
+    }
+}
+
+@Composable
+private fun MismatchRow(
+    label: String,
+    value: String,
+    valueColor: Color,
+    strikethrough: Boolean,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(emberSurface, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = label,
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.12.em,
+            color = emberMuted,
         )
         Text(
-            text = fullMessage,
-            style = MaterialTheme.typography.bodyMedium,
-            color = tint,
-            textAlign = TextAlign.Center,
+            text = value,
+            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            lineHeight = 28.sp,
+            color = valueColor,
+            textDecoration = if (strikethrough) TextDecoration.LineThrough else TextDecoration.None,
         )
     }
 }
@@ -1004,13 +1096,13 @@ private fun GeneratedStudyCard.formSupportText(card: Flashcard?): String {
 }
 
 @Composable
-private fun GeneratedStudyCard.answerLabel(): String {
+private fun GeneratedStudyCard.gradeAnswerLabel(): String {
     return stringResource(
         when (cardType) {
-            StudyCardType.Recognition -> R.string.study_answer_label_recognition
-            StudyCardType.Production -> R.string.study_answer_label_production
-            StudyCardType.Cloze -> R.string.study_answer_label_cloze
-            StudyCardType.Form -> R.string.study_answer_label_form
+            StudyCardType.Recognition -> R.string.study_grade_answer_label_recognition
+            StudyCardType.Production -> R.string.study_grade_answer_label_production
+            StudyCardType.Cloze -> R.string.study_grade_answer_label_cloze
+            StudyCardType.Form -> R.string.study_grade_answer_label_form
         }
     )
 }
@@ -1063,7 +1155,6 @@ private fun GeneratedStudyCard.typedAnswerResultMessage(isCorrect: Boolean): Str
 private fun AnswerButtons(
     modifier: Modifier = Modifier,
     enabledGrades: Set<ReviewGrade> = ReviewGrade.entries.toSet(),
-    guidance: String = "",
     intervalPreviews: Map<ReviewGrade, Long> = emptyMap(),
     onReviewAnswer: (ReviewGrade) -> Unit = {},
 ) {
@@ -1071,13 +1162,6 @@ private fun AnswerButtons(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (guidance.isNotBlank()) {
-            Text(
-                text = guidance,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1127,85 +1211,92 @@ private fun GradeChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tokens = gradeChipTokens(grade)
-    val alpha = if (enabled) 1f else GRADE_CHIP_DISABLED_ALPHA
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.heightIn(min = gradeChipMinHeight),
-        shape = MaterialTheme.shapes.medium,
-        color = tokens.container.copy(alpha = alpha),
-        contentColor = tokens.content,
+    val accent = gradeAccentColor(grade)
+    val labelRes = gradeLabelRes(grade)
+    val shape = RoundedCornerShape(14.dp)
+    val borderColor = if (enabled) emberDivider else emberDivider
+    val containerColor = if (enabled) emberSurface else Color.Transparent
+    val labelColor = if (enabled) accent else emberFaint
+    val intervalColor = if (enabled) emberMuted else emberFaint
+    val cornerRadius = 14.dp
+    val chipModifier = modifier
+        .heightIn(min = gradeChipMinHeight)
+        .clip(shape)
+        .background(containerColor, shape)
+        .then(
+            if (enabled) {
+                Modifier.border(1.dp, borderColor, shape)
+            } else {
+                Modifier.dashedBorder(
+                    color = borderColor,
+                    cornerRadius = cornerRadius,
+                    dashWidth = gradeChipDashWidth,
+                    dashGap = gradeChipDashGap,
+                )
+            }
+        )
+        .clickable(enabled = enabled, onClick = onClick)
+        .padding(horizontal = 12.dp, vertical = 14.dp)
+
+    Column(
+        modifier = chipModifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                imageVector = tokens.icon,
-                contentDescription = null,
-                tint = tokens.content,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .size(18.dp),
-            )
-            Spacer(Modifier.weight(1f, fill = false))
-            Text(
-                text = stringResource(tokens.labelRes),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = tokens.content,
-            )
-            Text(
-                text = formatInterval(intervalDays),
-                style = MaterialTheme.typography.labelSmall,
-                color = tokens.content.copy(alpha = GRADE_CHIP_INTERVAL_ALPHA),
-            )
-        }
+        Text(
+            text = stringResource(labelRes),
+            fontFamily = geist,
+            fontWeight = FontWeight.Medium,
+            fontSize = 15.sp,
+            color = labelColor,
+        )
+        Text(
+            text = formatInterval(intervalDays),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Normal,
+            fontSize = 10.5.sp,
+            letterSpacing = 0.08.em,
+            color = intervalColor,
+        )
     }
 }
-
-private data class GradeChipTokens(
-    val container: Color,
-    val content: Color,
-    val icon: ImageVector,
-    val labelRes: Int,
-)
 
 @Composable
-private fun gradeChipTokens(grade: ReviewGrade): GradeChipTokens {
-    val cs = MaterialTheme.colorScheme
-    val warning = MaterialTheme.semanticColors.warning
-    return when (grade) {
-        ReviewGrade.AGAIN -> GradeChipTokens(
-            container = cs.errorContainer,
-            content = cs.onErrorContainer,
-            icon = Icons.Outlined.Refresh,
-            labelRes = R.string.grade_again,
-        )
-        ReviewGrade.HARD -> GradeChipTokens(
-            container = warning.container,
-            content = warning.content,
-            icon = Icons.Outlined.Warning,
-            labelRes = R.string.grade_hard,
-        )
-        ReviewGrade.GOOD -> GradeChipTokens(
-            container = cs.primaryContainer,
-            content = cs.onPrimaryContainer,
-            icon = Icons.Rounded.CheckCircle,
-            labelRes = R.string.grade_good,
-        )
-        ReviewGrade.EASY -> GradeChipTokens(
-            container = cs.secondaryContainer,
-            content = cs.onSecondaryContainer,
-            icon = Icons.Rounded.Bolt,
-            labelRes = R.string.grade_easy,
-        )
-    }
+private fun gradeAccentColor(grade: ReviewGrade): Color = when (grade) {
+    ReviewGrade.AGAIN -> emberBad
+    ReviewGrade.HARD -> emberWarn
+    ReviewGrade.GOOD -> emberOnBg
+    ReviewGrade.EASY -> emberAccent
 }
+
+private fun gradeLabelRes(grade: ReviewGrade): Int = when (grade) {
+    ReviewGrade.AGAIN -> R.string.grade_again
+    ReviewGrade.HARD -> R.string.grade_hard
+    ReviewGrade.GOOD -> R.string.grade_good
+    ReviewGrade.EASY -> R.string.grade_easy
+}
+
+private fun Modifier.dashedBorder(
+    color: Color,
+    cornerRadius: Dp,
+    dashWidth: Dp,
+    dashGap: Dp,
+): Modifier = this.then(
+    Modifier.drawBehind {
+        val stroke = Stroke(
+            width = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(
+                intervals = floatArrayOf(dashWidth.toPx(), dashGap.toPx()),
+                phase = 0f,
+            ),
+        )
+        drawRoundRect(
+            color = color,
+            cornerRadius = CornerRadius(cornerRadius.toPx()),
+            style = stroke,
+        )
+    },
+)
 
 @Composable
 private fun formatInterval(days: Long?): String {
@@ -1225,8 +1316,6 @@ private fun formatInterval(days: Long?): String {
     }
 }
 
-private const val GRADE_CHIP_DISABLED_ALPHA = 0.4f
-private const val GRADE_CHIP_INTERVAL_ALPHA = 0.75f
 private val gradeChipMinHeight = 92.dp
 private const val DAYS_IN_WEEK = 7L
 private const val DAYS_IN_MONTH = 30L
