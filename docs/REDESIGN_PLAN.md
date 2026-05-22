@@ -8,6 +8,32 @@
 | Read this when | Implementing the new visual system |
 | Last verified | 2026-05-21 |
 
+## Progress
+
+| Phase | Status | Commits |
+|---|---|---|
+| 0 — Tokens, fonts, theme | ✅ Done | `89a3ee6`, `d5ea716` |
+| 1 — H* components | ✅ Done | `c76265a` |
+| 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196` |
+| 2.2 — Study | ⏳ Pending | — |
+| 2.3 — New Card wizard | ⏳ Pending | — |
+| 2.4 — Card Detail | ➡️ **Next** | — |
+| 2.5 — Deck Detail | ⏳ Pending | — |
+| 2.6 — New/Edit Deck | ⏳ Pending | — |
+| 2.7 — Edit Flashcard | ⏳ Pending | — |
+| 2.8 — Settings | ⏳ Pending | — |
+| 3 — Missing screens/states | ⏳ Pending | — |
+| 4 — Microcopy pass | ⏳ Pending | — |
+| 5 — Cleanup | ⏳ Pending | — |
+
+**Verified deferrals from Phase 2.1** (need domain change before they can ship):
+- Per-deck due count on `DeckRow` (`Deck` model has no `dueCount` field).
+- `HSectionLabel` trailing action "N con repaso ↗" (same root cause).
+
+**Confirmed visual notes from manual review on `medium_phone` and `small_phone`:**
+- Instrument Serif Regular + Italic both load from Google Fonts. `FontSynthesis.None` was pinned on the accent span so a future font-load failure surfaces as upright text instead of fake italic.
+- Visual delta vs designer's mock (slightly flatter italic strokes, less contrast) is render-engine inherent — CSS/Skia browser vs Compose/Skia native — and cannot be eliminated.
+
 ## Overview
 
 Full visual rework of the app to the **"Ember dark"** identity proposed by the designer. Replaces the current generic Material 3 look with an editorial, warm-dark, typography-driven system. Scope is **dark-only** for now (light mode deferred). Architecture, navigation, and features stay the same — this is a visual + microcopy pass, not a feature rebuild.
