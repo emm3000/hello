@@ -6,7 +6,7 @@
 | Role | Source of truth for the visual redesign work |
 | Source | Designer handoff bundle (`/tmp/hello-design/hello/`) + on-screen analysis |
 | Read this when | Implementing the new visual system |
-| Last verified | 2026-05-21 |
+| Last verified | 2026-05-22 |
 
 ## Progress
 
@@ -16,7 +16,7 @@
 | 1 — H* components | ✅ Done | `c76265a` |
 | 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
 | 2.2 — Study | ⏳ Pending | — |
-| 2.3 — New Card wizard | 🟡 In progress (sub-1 Mode + sub-2 Input done; sub-3 Review + sub-4 Loading/Error pending) | `31b09bc`, `de47991` |
+| 2.3 — New Card wizard | 🟡 In progress (sub-1 Mode + sub-2 Input + sub-3 Review done; sub-4 Loading/Error pending) | `31b09bc`, `de47991`, `9d916f8` |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ⏳ Pending | — |
 | 2.6 — New/Edit Deck | ⏳ Pending | — |
@@ -27,15 +27,19 @@
 | 5 — Cleanup | ⏳ Pending | — |
 
 **Resume hint — Phase 2.3 (next session):**
-The wizard is being shipped as 4 sub-commits. Two are done:
+The wizard is being shipped as 4 sub-commits. Three are done:
 1. ✅ `31b09bc` Mode screen + new `HWizTop` in `core/ui` (back · 3-segment progress · `N/total` mono · uppercase subtitle).
 2. ✅ `de47991` Input screen (per-mode serif headline, BigSerifTextField 28sp italic, round mic, deck picker row, difficulty `HChip` row, sticky Continuar with `imePadding`).
+3. ✅ `9d916f8` Review screen — `WordHeader` (mono `pos · band`, 54sp serif word, mono IPA, italic serif translation), per-section `ReviewBlock` (label + edit/regen icon-buttons + read↔edit toggle italic-serif ↔ `HInput`) for Significado / Ejemplo / Patrón de uso / Error común (warn tone) / Cloze, `TARJETAS DE ESTUDIO · N` mono label with `N activas` trailing, `StudyCardRow` (HToggle + serif prompt + italic serif answer + per-row regen icon, 0.5 alpha when inactive) in a single grouped `emberSurface` with hairline dividers, sticky `Guardar tarjeta` accent CTA via `NewCardBottomBar`. Data flow untouched. Verified visually on `medium_phone` against AI-generated `compelling` note.
 
 Still pending:
-3. ⏳ **Sub-3 Review screen** — restyle `NewCardReviewScreen.kt` + `NewCardPreviewShared.kt` + `NewCardPreviewComponents.kt` + `NewCardPreviewCards.kt` (~1300 lines total). Spec § 2.3 step 3: mono `adjective · B2` row + refresh icon, 54sp serif word, mono phonetic, italic serif translation, per-section `ReviewBlock` with edit + regen icons (block-scoped), `HSectionLabel "Tarjetas de estudio · N"` with section-level regen, `StudyCardRow` per card with toggle/prompt/italic answer/per-row regen, sticky `Guardar tarjeta` accent CTA with gradient mask.
-4. ⏳ **Sub-4 Loading + Error (quota) states** — restyle the loading skeleton (3 accent pulse dots + italic serif `"Pensando en cuándo se suele usar X…"` + mono ETA + skeleton lines) and the quota error (`!` glyph in `emberBadSoft` circle + serif headline + "Tu palabra" preserve-input surface + `Crear a mano` + `Avisarme mañana` + mono reset hint).
+4. ⏳ **Sub-4 Loading + Error (quota) states** — restyle the loading skeleton (3 accent pulse dots + italic serif `"Pensando en cuándo se suele usar X…"` + mono ETA + skeleton lines) and the quota error (`!` glyph in `emberBadSoft` circle + serif headline + "Tu palabra" preserve-input surface + `Crear a mano` + `Avisarme mañana` + mono reset hint). The current loading skeleton already uses Ember tokens but stops short of the designer's 3-dot pulse + ETA — that's the sub-4 polish.
 
-When resuming, start by `Read`-ing `NewCardReviewScreen.kt` and the three Preview* files to understand the regen/edit intent dispatch (the data wiring stays intact, only chrome changes). `HWizTop` and `HDictSense` are already reusable from `core/ui`. The `NewCardBottomBar` is already on Ember surface from sub-1.
+**Verified deferrals from Phase 2.3** (need domain intent before they can ship):
+- Refresh icon on the `WordHeader` (regenerate-whole-note) — no global note-regen intent exists.
+- Section-level regen on `TARJETAS DE ESTUDIO · N` (regenerate-all-cards) — same root cause; per-card regen via `RegenerateCardClicked` covers the practical case.
+
+When resuming, the data wiring (UiState/Intent/ViewModel/repository) is untouched and must stay that way — Phase 2 is visual-only. `HWizTop` and `HDictSense` are already reusable from `core/ui`. The `NewCardBottomBar` is already on Ember surface from sub-1.
 
 **Verified deferrals from Phase 2.1** (need domain change before they can ship):
 - Per-deck due count on `DeckRow` (`Deck` model has no `dueCount` field).
