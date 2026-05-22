@@ -54,12 +54,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
@@ -74,6 +77,12 @@ import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberFaint
+import com.emm.hello.core.theme.emberHint
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
@@ -83,6 +92,9 @@ import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
 import com.emm.hello.core.ui.HBadgeGroup
 import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HButtonSize
+import com.emm.hello.core.ui.HButtonVariant
+import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSeparator
 import kotlin.math.ceil
@@ -94,6 +106,7 @@ private const val CARD_EXIT_SCALE = 0.92f
 private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val MAX_RELATED_FORMS = 3
 private val studyDockMinHeight = 220.dp
+private val startHeaderSpacing = 14.dp
 
 private data class CardViewState(
     val cardFace: CardFace,
@@ -109,6 +122,11 @@ private data class TypedAnswerState(
     val typedAnswer: String,
     val typedAnswerChecked: Boolean,
     val typedAnswerCorrect: Boolean,
+)
+
+private data class StartMeta(
+    val totalCount: Int,
+    val estimatedMinutes: Int,
 )
 
 private data class StudyDockCallbacks(
@@ -237,7 +255,10 @@ fun StudyScreen(
                     StudyCanvas(
                         sessionStage = sessionStage,
                         currentItem = currentItem,
-                        totalCount = state.totalCount,
+                        startMeta = StartMeta(
+                            totalCount = state.totalCount,
+                            estimatedMinutes = estimatedMinutes,
+                        ),
                         cardViewState = CardViewState(
                             cardFace = cardFace,
                             progress = progress,
@@ -310,8 +331,6 @@ fun StudyScreen(
                                 }
                             },
                         ),
-                        estimatedMinutes = estimatedMinutes,
-                        totalCount = state.totalCount,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -365,7 +384,7 @@ private enum class StudyStage {
 private fun StudyCanvas(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
-    totalCount: Int,
+    startMeta: StartMeta,
     cardViewState: CardViewState,
     typedAnswerState: TypedAnswerState,
     audioState: AudioState,
@@ -379,7 +398,8 @@ private fun StudyCanvas(
     Box(modifier = modifier) {
         when (sessionStage) {
             StudyStage.Start -> StudyStartCard(
-                totalCount = totalCount,
+                totalCount = startMeta.totalCount,
+                estimatedMinutes = startMeta.estimatedMinutes,
             )
             StudyStage.Empty -> StudyEmptyState()
             StudyStage.Recall,
@@ -488,8 +508,6 @@ private fun StudyActionDock(
     intervalPreviews: Map<ReviewGrade, Long>,
     typedAnswerState: TypedAnswerState,
     callbacks: StudyDockCallbacks,
-    estimatedMinutes: Int,
-    totalCount: Int,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(
@@ -512,39 +530,24 @@ private fun StudyActionDock(
         ) {
             when (stage) {
                 StudyStage.Start -> {
-                    Text(
-                        text = stringResource(R.string.study_start_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.study_start_desc,
-                            totalCount,
-                            estimatedMinutes,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                     HButton(
-                        text = stringResource(R.string.study_start_cta),
+                        text = stringResource(R.string.study_start_cta_short),
                         onClick = callbacks.onStartSession,
-                        modifier = Modifier.fillMaxWidth(),
+                        variant = HButtonVariant.Accent,
+                        size = HButtonSize.Lg,
+                        full = true,
+                    )
+                    Text(
+                        text = stringResource(R.string.study_start_supportive),
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.08.em,
+                        color = emberFaint,
                     )
                 }
 
-                StudyStage.Empty -> {
-                    Text(
-                        text = stringResource(R.string.study_empty_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = stringResource(R.string.study_empty_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                StudyStage.Empty -> Unit
 
                 StudyStage.Recall -> {
                     if (currentItem?.studyCard?.needsTypedAnswer == true) {
@@ -623,32 +626,46 @@ private fun StudyActionDock(
 }
 
 @Composable
-private fun StudyStartCard(totalCount: Int) {
+private fun StudyStartCard(totalCount: Int, estimatedMinutes: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 4.dp, vertical = 24.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(startHeaderSpacing),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            HBadge(
-                label = totalCount.toString(),
-                variant = BadgeVariant.Secondary,
+            Text(
+                text = stringResource(R.string.study_start_eyebrow),
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Medium,
+                fontSize = 10.5.sp,
+                letterSpacing = 0.12.em,
+                color = emberMuted,
             )
             Text(
-                text = stringResource(R.string.study_start_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
+                text = pluralStringResource(
+                    R.plurals.study_start_headline_count,
+                    totalCount,
+                    totalCount,
+                ),
+                fontFamily = instrumentSerif,
+                fontWeight = FontWeight.Normal,
+                fontSize = 44.sp,
+                lineHeight = 48.sp,
+                letterSpacing = (-0.5).sp,
+                color = emberOnBg,
             )
             Text(
-                text = stringResource(R.string.study_prompt_guidance),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                text = stringResource(R.string.study_start_stat_minutes, estimatedMinutes),
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Normal,
+                fontSize = 13.sp,
+                letterSpacing = 0.04.em,
+                color = emberHint,
             )
         }
     }
@@ -656,30 +673,11 @@ private fun StudyStartCard(totalCount: Int) {
 
 @Composable
 private fun StudyEmptyState() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.study_empty_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = stringResource(R.string.study_empty_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
+    HEmptyState(
+        modifier = Modifier.fillMaxSize(),
+        headline = stringResource(R.string.study_empty_headline),
+        body = stringResource(R.string.study_empty_body),
+    )
 }
 
 @Composable
