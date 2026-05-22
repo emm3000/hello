@@ -16,7 +16,7 @@
 | 1 — H* components | ✅ Done | `c76265a` |
 | 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
 | 2.2 — Study | ⏳ Pending | — |
-| 2.3 — New Card wizard | ➡️ **Next** | — |
+| 2.3 — New Card wizard | 🟡 In progress (sub-1 Mode + sub-2 Input done; sub-3 Review + sub-4 Loading/Error pending) | `31b09bc`, `de47991` |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ⏳ Pending | — |
 | 2.6 — New/Edit Deck | ⏳ Pending | — |
@@ -25,6 +25,17 @@
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Resume hint — Phase 2.3 (next session):**
+The wizard is being shipped as 4 sub-commits. Two are done:
+1. ✅ `31b09bc` Mode screen + new `HWizTop` in `core/ui` (back · 3-segment progress · `N/total` mono · uppercase subtitle).
+2. ✅ `de47991` Input screen (per-mode serif headline, BigSerifTextField 28sp italic, round mic, deck picker row, difficulty `HChip` row, sticky Continuar with `imePadding`).
+
+Still pending:
+3. ⏳ **Sub-3 Review screen** — restyle `NewCardReviewScreen.kt` + `NewCardPreviewShared.kt` + `NewCardPreviewComponents.kt` + `NewCardPreviewCards.kt` (~1300 lines total). Spec § 2.3 step 3: mono `adjective · B2` row + refresh icon, 54sp serif word, mono phonetic, italic serif translation, per-section `ReviewBlock` with edit + regen icons (block-scoped), `HSectionLabel "Tarjetas de estudio · N"` with section-level regen, `StudyCardRow` per card with toggle/prompt/italic answer/per-row regen, sticky `Guardar tarjeta` accent CTA with gradient mask.
+4. ⏳ **Sub-4 Loading + Error (quota) states** — restyle the loading skeleton (3 accent pulse dots + italic serif `"Pensando en cuándo se suele usar X…"` + mono ETA + skeleton lines) and the quota error (`!` glyph in `emberBadSoft` circle + serif headline + "Tu palabra" preserve-input surface + `Crear a mano` + `Avisarme mañana` + mono reset hint).
+
+When resuming, start by `Read`-ing `NewCardReviewScreen.kt` and the three Preview* files to understand the regen/edit intent dispatch (the data wiring stays intact, only chrome changes). `HWizTop` and `HDictSense` are already reusable from `core/ui`. The `NewCardBottomBar` is already on Ember surface from sub-1.
 
 **Verified deferrals from Phase 2.1** (need domain change before they can ship):
 - Per-deck due count on `DeckRow` (`Deck` model has no `dueCount` field).
