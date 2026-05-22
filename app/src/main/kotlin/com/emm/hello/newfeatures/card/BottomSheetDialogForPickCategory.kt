@@ -1,44 +1,52 @@
 package com.emm.hello.newfeatures.card
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import com.emm.data.catalog.StaticCategories
 import com.emm.hello.R
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberElev
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.instrumentSerif
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetDialogForPickCategory(
     onDismissRequest: (Boolean) -> Unit,
@@ -56,6 +64,8 @@ fun BottomSheetDialogForPickCategory(
             modifier = Modifier.statusBarsPadding(),
             onDismissRequest = dismiss,
             sheetState = sheetState,
+            containerColor = emberElev,
+            dragHandle = null,
         ) {
             val view = LocalView.current
             (view.parent as? DialogWindowProvider)?.window?.let { window ->
@@ -65,11 +75,11 @@ fun BottomSheetDialogForPickCategory(
                     insetsController.isAppearanceLightNavigationBars = false
                 }
             }
-            AccountSelectorContent(
+            CategoryListContent(
                 categories = accounts,
                 selectedCategory = selectedCategory,
-                onAccountSelected = { onAction(it) },
-                dismiss = {
+                onCategorySelected = { category ->
+                    onAction(category)
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         if (!sheetState.isVisible) dismiss()
                     }
@@ -80,85 +90,79 @@ fun BottomSheetDialogForPickCategory(
 }
 
 @Composable
-fun AccountSelectorContent(
-    modifier: Modifier = Modifier,
+private fun CategoryListContent(
     categories: List<StaticCategories>,
-    selectedCategory: StaticCategories? = null,
-    onAccountSelected: (StaticCategories) -> Unit,
-    dismiss: () -> Unit,
+    selectedCategory: StaticCategories?,
+    onCategorySelected: (StaticCategories) -> Unit,
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp, vertical = 18.dp),
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            IconButton(onClick = dismiss) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = stringResource(R.string.close),
-                    tint = MaterialTheme.colorScheme.onSurface,
+        Text(
+            text = stringResource(R.string.categories_bottom_sheet_title).uppercase(),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.12.em,
+            color = emberMuted,
+        )
+        Spacer(Modifier.height(16.dp))
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 480.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            items(items = categories, key = { it.id }) { category ->
+                val isSelected = category == selectedCategory
+                CategoryRow(
+                    category = category,
+                    isSelected = isSelected,
+                    onClick = { onCategorySelected(category) },
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(emberDivider),
                 )
             }
-            Text(
-                modifier = Modifier.align(Alignment.Center),
-                text = stringResource(R.string.categories_bottom_sheet_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
         }
-
-        Spacer(Modifier.height(20.dp))
-
-        FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            categories.forEach { category ->
-                key(category.id) {
-                    CategoryChip(
-                        account = category,
-                        isSelected = category == selectedCategory,
-                    ) { selected ->
-                        onAccountSelected(selected)
-                        dismiss()
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
     }
 }
 
 @Composable
-fun CategoryChip(
-    account: StaticCategories,
-    isSelected: Boolean = false,
-    onCardClick: (StaticCategories) -> Unit,
+private fun CategoryRow(
+    category: StaticCategories,
+    isSelected: Boolean,
+    onClick: () -> Unit,
 ) {
-    // Intentionally local: today it only expresses selection within the category sheet.
-    Surface(
-        shape = RoundedCornerShape(100.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = if (isSelected) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        },
+    Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(100.dp))
-            .clickable { onCardClick(account) },
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = account.name,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            text = category.name,
+            modifier = Modifier.weight(1f),
+            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            lineHeight = 28.sp,
+            color = emberOnBg,
         )
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Outlined.Check,
+                contentDescription = null,
+                tint = emberAccent,
+                modifier = Modifier.size(22.dp),
+            )
+        } else {
+            Spacer(Modifier.size(22.dp))
+        }
     }
 }

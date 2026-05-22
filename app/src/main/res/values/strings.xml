@@ -401,8 +401,11 @@
     <string name="grade_hard">Difícil</string>
     <string name="grade_good">Bien</string>
     <string name="grade_easy">Fácil</string>
-    <string name="session_completed_title">¡Sesión completada! 🎉</string>
-    <string name="session_completed_desc">Has repasado %1$d tarjetas. ¡Sigue así!</string>
+    <string name="session_completed_eyebrow">Sesión completada</string>
+    <string name="session_completed_title">Listo.</string>
+    <string name="session_completed_desc">Repasaste %1$d tarjetas.</string>
+    <string name="session_completed_cta">Volver</string>
+    <string name="session_completed_stat_label">Tarjetas repasadas</string>
     <string name="study_typed_answer_label_default">Tu respuesta</string>
     <string name="study_typed_answer_placeholder_default">Escribe tu respuesta</string>
     <string name="study_typed_answer_label_recognition">Significado</string>

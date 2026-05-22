@@ -49,7 +49,6 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBad
 import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberPrimary

@@ -291,6 +291,8 @@ private fun InputPrimaryField(
             placeholder = stringResource(R.string.new_card_input_word_placeholder),
             enabled = !state.isLoading,
             errorMessage = errorMessage,
+            isListening = isListening,
+            listeningLabel = stringResource(R.string.listening_placeholder),
             trailing = {
                 MicButton(isListening = isListening, onClick = onMicToggle)
             },
@@ -322,15 +324,27 @@ private fun BigSerifTextField(
     enabled: Boolean = true,
     singleLine: Boolean = true,
     errorMessage: String? = null,
+    isListening: Boolean = false,
+    listeningLabel: String? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val borderColor = if (errorMessage != null) emberBad else emberAccent
+    val pulseTransition = rememberInfiniteTransition(label = "input-listening-pulse")
+    val borderWidth by pulseTransition.animateFloat(
+        initialValue = if (isListening) 1.5f else 1.5f,
+        targetValue = if (isListening) 3.0f else 1.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "input-border-width",
+    )
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(emberSurface, RoundedCornerShape(16.dp))
-                .border(1.5.dp, borderColor, RoundedCornerShape(16.dp))
+                .border(borderWidth.dp, borderColor, RoundedCornerShape(16.dp))
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -379,6 +393,16 @@ private fun BigSerifTextField(
                 fontFamily = geist,
                 fontSize = 12.sp,
                 color = emberBad,
+            )
+        } else if (isListening && listeningLabel != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = listeningLabel.uppercase(),
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                letterSpacing = 0.12.em,
+                color = emberAccent,
             )
         }
     }

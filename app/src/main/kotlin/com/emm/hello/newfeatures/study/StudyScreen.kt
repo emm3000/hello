@@ -36,7 +36,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -89,6 +89,7 @@ import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBad
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberElev
 import com.emm.hello.core.theme.emberFaint
 import com.emm.hello.core.theme.emberGood
 import com.emm.hello.core.theme.emberHint
@@ -359,18 +360,9 @@ fun StudyScreen(
     }
 
     if (showFinishDialog) {
-        HAlertDialog(
-            title = stringResource(R.string.session_completed_title),
-            description = stringResource(R.string.session_completed_desc, state.totalCount),
-            icon = Icons.Outlined.Check,
-            confirmText = stringResource(R.string.back),
-            cancelText = null,
-            onConfirm = {
-                onFinishDialogDismissed()
-            },
-            onDismiss = {
-                onFinishDialogDismissed()
-            },
+        SessionFinishedDialog(
+            totalCount = state.totalCount,
+            onDismiss = onFinishDialogDismissed,
         )
     }
 
@@ -389,6 +381,86 @@ fun StudyScreen(
                 showExitConfirmation = false
             },
         )
+    }
+}
+
+@Composable
+private fun SessionFinishedDialog(
+    totalCount: Int,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            color = emberElev,
+            shape = RoundedCornerShape(20.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                Text(
+                    text = stringResource(R.string.session_completed_eyebrow).uppercase(),
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.12.em,
+                    color = emberMuted,
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.session_completed_title),
+                    fontFamily = instrumentSerif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 44.sp,
+                    lineHeight = (44 * 1.04f).sp,
+                    letterSpacing = (-0.5).sp,
+                    color = emberOnBg,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.session_completed_desc, totalCount),
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 20.sp,
+                    color = emberMuted,
+                )
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(emberSurface, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = totalCount.toString(),
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 22.sp,
+                        color = emberAccent,
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(R.string.session_completed_stat_label).uppercase(),
+                        fontFamily = geistMono,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.12.em,
+                        color = emberMuted,
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
+                HButton(
+                    text = stringResource(R.string.session_completed_cta),
+                    onClick = onDismiss,
+                    variant = HButtonVariant.Accent,
+                    full = true,
+                )
+            }
+        }
     }
 }
 

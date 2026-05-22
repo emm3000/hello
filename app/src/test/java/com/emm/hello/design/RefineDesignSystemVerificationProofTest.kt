@@ -13,42 +13,34 @@ class RefineDesignSystemVerificationProofTest {
 
     @Test
     fun `proven pattern is promoted`() {
+        // Post Ember redesign: the promoted components still live in core/ui. HSectionBlock has no
+        // consumers anymore (the redesigned screens use bespoke layouts), but HStatCard is still
+        // consumed by the dashboard stats row.
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/SectionBlock.kt"))).isTrue()
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/StatCard.kt"))).isTrue()
 
-        val sectionBlockConsumers = listOf(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
-            "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
-        ).filter { read(it).contains("HSectionBlock(") }
-
-        assertThat(sectionBlockConsumers).hasSize(2)
-        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt"))
+        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt"))
             .contains("HStatCard(")
     }
 
     @Test
     fun `weak reuse stays local`() {
+        // Phase 3.4 (Ember restyle) removed the chip pattern entirely: the category bottom sheet now
+        // uses serif rows + accent check instead. Assertion now guards that no chip resurrected in
+        // core/ui, and that no usage remains anywhere in app/src/main/kotlin.
         val categoryChipUsages = kotlinFilesUnder("app/src/main/kotlin")
             .filter { file -> file.toFile().readText().contains("CategoryChip(") }
             .map(::relativePath)
 
-        assertThat(categoryChipUsages).containsExactly(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/card/BottomSheetDialogForPickCategory.kt"
-        )
-        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/BottomSheetDialogForPickCategory.kt"))
-            .contains("Intencionalmente local")
+        assertThat(categoryChipUsages).isEmpty()
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/CategoryChip.kt"))).isFalse()
     }
 
     @Test
     fun `initial rollout boundary holds`() {
-        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt"))
-            .contains("HSectionBlock(")
-
-        val deckDetailSource = read("app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt")
-        assertThat(deckDetailSource).contains("HSectionBlock(")
-        assertThat(deckDetailSource).contains("HStatCard(")
-
+        // Post Ember redesign: StudyScreen is still the explicit boundary — the promoted components
+        // must not leak into it. NewCardInputStepScreen and DeckDetailScreen no longer consume
+        // HSectionBlock either (Phase 2 redesigned both with bespoke layouts).
         val studySource = read("app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt")
         assertThat(studySource).doesNotContain("HSectionBlock(")
         assertThat(studySource).doesNotContain("HStatCard(")
@@ -56,16 +48,14 @@ class RefineDesignSystemVerificationProofTest {
 
     @Test
     fun `out of scope work is rejected`() {
+        // Post Ember redesign: HSectionBlock has no consumers (kept in core/ui as a reusable shell
+        // but unused). HStatCard is consumed only by the dashboard.
         val sectionBlockImports = filesContaining("import com.emm.hello.core.ui.HSectionBlock")
-        assertThat(sectionBlockImports).containsExactly(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt",
-            "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
-        )
+        assertThat(sectionBlockImports).isEmpty()
 
         val statCardImports = filesContaining("import com.emm.hello.core.ui.HStatCard")
         assertThat(statCardImports).containsExactly(
             "app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt",
-            "app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt",
         )
 
         val promotedPatternUsageOutsideApp = kotlinFilesUnder("data/src")

@@ -12,6 +12,8 @@ import com.emm.hello.MainActivity
 import com.emm.hello.R
 import org.koin.core.context.GlobalContext
 
+private const val EMBER_ACCENT_ARGB = 0xFFCC7A4A.toInt()
+
 class DueCardsReminderWorker(
     context: Context,
     params: WorkerParameters,
@@ -50,6 +52,8 @@ class DueCardsReminderWorker(
 
         val notification = NotificationCompat.Builder(context, STUDY_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(EMBER_ACCENT_ARGB)
+            .setColorized(false)
             .setContentTitle(context.getString(R.string.notification_reminder_title))
             .setContentText(body)
             .setContentIntent(contentIntent)
