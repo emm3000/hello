@@ -11,6 +11,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +28,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -31,9 +38,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -51,14 +56,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -76,17 +85,20 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberFaint
 import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.BadgeVariant
-import com.emm.hello.core.ui.ButtonVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HBadge
@@ -95,7 +107,6 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
-import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSeparator
 import kotlin.math.ceil
 
@@ -107,6 +118,11 @@ private const val MEANING_SEPARATOR_WIDTH_FRACTION = 0.5f
 private const val MAX_RELATED_FORMS = 3
 private val studyDockMinHeight = 220.dp
 private val startHeaderSpacing = 14.dp
+private val recallPromptFontSize = 48.sp
+private val recallPromptLineHeight = 54.sp
+private val answerInputBorderWidth = 1.5.dp
+private val answerInputFontSize = 26.sp
+private val answerInputLineHeight = 32.sp
 
 private data class CardViewState(
     val cardFace: CardFace,
@@ -449,6 +465,8 @@ private fun StudyCanvas(
                                 FlashcardBackContent(
                                     card = item?.flashcard,
                                     studyCard = item?.studyCard,
+                                    prompt = item?.studyCard?.prompt
+                                        ?: item?.flashcard?.word.orEmpty(),
                                     typedAnswerChecked = typedAnswerState.typedAnswerChecked,
                                     typedAnswerCorrect = typedAnswerState.typedAnswerCorrect,
                                 )
@@ -456,12 +474,16 @@ private fun StudyCanvas(
                         )
                     }
                     currentItem?.studyCard?.cardType?.let { type ->
-                        HBadge(
-                            label = type.label,
-                            variant = BadgeVariant.Outline,
+                        Text(
+                            text = stringResource(type.directionLabelRes()),
+                            fontFamily = geistMono,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 10.5.sp,
+                            letterSpacing = 0.12.em,
+                            color = emberMuted,
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .padding(12.dp),
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
                         )
                     }
                     TtsFloatingButton(
@@ -550,49 +572,47 @@ private fun StudyActionDock(
                 StudyStage.Empty -> Unit
 
                 StudyStage.Recall -> {
-                    if (currentItem?.studyCard?.needsTypedAnswer == true) {
-                        HButton(
-                            text = stringResource(R.string.study_answer_cta),
-                            onClick = callbacks.onRevealAnswer,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    val needsTyped = currentItem?.studyCard?.needsTypedAnswer == true
+                    val recallCtaRes = if (needsTyped) {
+                        R.string.study_recall_cta_type
                     } else {
-                        TapToRevealHint(modifier = Modifier.fillMaxWidth())
+                        R.string.study_recall_cta_reveal
                     }
+                    HButton(
+                        text = stringResource(recallCtaRes),
+                        onClick = callbacks.onRevealAnswer,
+                        variant = HButtonVariant.Accent,
+                        size = HButtonSize.Lg,
+                        full = true,
+                    )
                 }
 
                 StudyStage.Check -> {
                     val studyCard = currentItem?.studyCard
                     val flashcard = currentItem?.flashcard
-                    Text(
-                        text = stringResource(R.string.study_answer_guidance),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    val typedLabel = studyCard?.typedAnswerLabel()
-                        ?: stringResource(R.string.study_typed_answer_label_default)
-                    val typedPlaceholder = studyCard?.typedAnswerPlaceholder(flashcard)
+                    val placeholder = studyCard?.typedAnswerPlaceholder(flashcard)
                         ?: stringResource(R.string.study_typed_answer_placeholder_default)
-                    HInput(
+                    val langIndicator = stringResource(
+                        studyCard?.cardType.langIndicatorRes(),
+                    )
+                    StudyAnswerInput(
                         value = typedAnswerState.typedAnswer,
                         onValueChange = callbacks.onTypedAnswerChange,
-                        label = typedLabel,
-                        placeholder = typedPlaceholder,
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { callbacks.onCheckTypedAnswer() }),
+                        placeholder = placeholder,
+                        langIndicator = langIndicator,
+                        onSubmit = callbacks.onCheckTypedAnswer,
                     )
                     HButton(
                         text = stringResource(R.string.study_check_answer),
                         onClick = callbacks.onCheckTypedAnswer,
-                        modifier = Modifier.fillMaxWidth(),
+                        variant = HButtonVariant.Accent,
+                        size = HButtonSize.Lg,
+                        full = true,
                         enabled = typedAnswerState.typedAnswer.isNotBlank(),
                     )
-                    HButton(
+                    GhostUnderlineButton(
                         text = stringResource(R.string.study_reveal_anyway),
                         onClick = callbacks.onSkipTypedAnswer,
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = ButtonVariant.Ghost,
                     )
                 }
 
@@ -696,52 +716,49 @@ private fun FlashcardFrontContent(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 56.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 64.dp),
         ) {
-            CardTypePromptBlock(
-                card = card,
-                studyCard = studyCard,
-            )
-            Spacer(Modifier.height(16.dp))
             Text(
                 text = prompt,
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
+                fontFamily = instrumentSerif,
+                fontWeight = FontWeight.Normal,
+                fontSize = recallPromptFontSize,
+                lineHeight = recallPromptLineHeight,
+                letterSpacing = (-0.5).sp,
+                color = emberOnBg,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
             )
             if (phonetic.isNotBlank()) {
-                Spacer(Modifier.height(6.dp))
                 Text(
                     text = phonetic,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    color = emberHint,
                     textAlign = TextAlign.Center,
                 )
             }
             if (frontSupport.isNotBlank()) {
-                Spacer(Modifier.height(12.dp))
-                IconButton(
-                    onClick = { showSupport = !showSupport },
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(top = 6.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = stringResource(R.string.study_show_hint_desc),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ShowHintPill(
+                        expanded = showSupport,
+                        onClick = { showSupport = !showSupport },
                     )
-                }
-                if (showSupport) {
-                    Spacer(Modifier.height(4.dp))
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    ) {
+                    if (showSupport) {
                         Text(
                             text = frontSupport,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontFamily = instrumentSerif,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 16.sp,
+                            lineHeight = 22.sp,
+                            color = emberMuted,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         )
                     }
                 }
@@ -751,9 +768,31 @@ private fun FlashcardFrontContent(
 }
 
 @Composable
+private fun ShowHintPill(expanded: Boolean, onClick: () -> Unit) {
+    val labelRes = if (expanded) R.string.study_recall_hide_hint else R.string.study_recall_show_hint
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = emberSurface,
+        border = BorderStroke(1.dp, emberDivider),
+    ) {
+        Text(
+            text = stringResource(labelRes),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.08.em,
+            color = emberMuted,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+        )
+    }
+}
+
+@Composable
 private fun FlashcardBackContent(
     card: Flashcard?,
     studyCard: GeneratedStudyCard?,
+    prompt: String,
     typedAnswerChecked: Boolean,
     typedAnswerCorrect: Boolean,
 ) {
@@ -772,6 +811,18 @@ private fun FlashcardBackContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        if (!shouldRevealAnswer) {
+            Text(
+                text = prompt,
+                fontFamily = instrumentSerif,
+                fontWeight = FontWeight.Normal,
+                fontSize = recallPromptFontSize,
+                lineHeight = recallPromptLineHeight,
+                letterSpacing = (-0.5).sp,
+                color = emberOnBg,
+                textAlign = TextAlign.Center,
+            )
+        }
         if (shouldRevealAnswer) {
             Text(
                 text = answerLabel,
@@ -851,55 +902,6 @@ private fun TypedAnswerResultRow(
             color = tint,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun CardTypePromptBlock(
-    card: Flashcard?,
-    studyCard: GeneratedStudyCard?,
-) {
-    when (studyCard?.cardType) {
-        StudyCardType.Cloze -> {
-            Text(
-                text = stringResource(R.string.study_cloze_prompt_title),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
-
-        StudyCardType.Form -> {
-            val formHints = buildList {
-                addAll(card?.irregularForms.orEmpty())
-                if (card?.usagePattern?.isNotBlank() == true) {
-                    add(card.usagePattern)
-                }
-            }.distinct()
-
-            if (formHints.isNotEmpty()) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.study_form_hints_title),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    HBadgeGroup {
-                        formHints.take(2).forEach { hint ->
-                            HBadge(
-                                label = hint,
-                                variant = BadgeVariant.Secondary,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        else -> Unit
     }
 }
 
@@ -1026,18 +1028,6 @@ private fun GeneratedStudyCard.supportingBackText(card: Flashcard?): String {
 }
 
 @Composable
-private fun GeneratedStudyCard.typedAnswerLabel(): String {
-    return stringResource(
-        when (cardType) {
-            StudyCardType.Recognition -> R.string.study_typed_answer_label_recognition
-            StudyCardType.Production -> R.string.study_typed_answer_label_production
-            StudyCardType.Cloze -> R.string.study_typed_answer_label_cloze
-            StudyCardType.Form -> R.string.study_typed_answer_label_form
-        }
-    )
-}
-
-@Composable
 private fun GeneratedStudyCard.typedAnswerPlaceholder(card: Flashcard?): String {
     return when (cardType) {
         StudyCardType.Recognition -> stringResource(R.string.study_typed_answer_placeholder_recognition)
@@ -1066,33 +1056,6 @@ private fun GeneratedStudyCard.typedAnswerResultMessage(isCorrect: Boolean): Str
         EvaluationMode.Exact -> stringResource(R.string.study_typed_answer_no_exact_match)
         EvaluationMode.FlexibleText -> stringResource(R.string.study_typed_answer_no_flexible_match)
         EvaluationMode.ManualSelfCheck -> ""
-    }
-}
-
-@Composable
-private fun TapToRevealHint(modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.TouchApp,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = stringResource(R.string.tap_to_reveal),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
 }
 
@@ -1296,10 +1259,92 @@ private fun StudyScreenPreview() {
     }
 }
 
-private val StudyCardType.label: String
-    get() = when (this) {
-        StudyCardType.Recognition -> "Recognition"
-        StudyCardType.Production -> "Production"
-        StudyCardType.Cloze -> "Cloze"
-        StudyCardType.Form -> "Form"
+private fun StudyCardType.directionLabelRes(): Int = when (this) {
+    StudyCardType.Recognition -> R.string.study_direction_en_to_es
+    StudyCardType.Production -> R.string.study_direction_es_to_en
+    StudyCardType.Cloze -> R.string.study_direction_cloze
+    StudyCardType.Form -> R.string.study_direction_form
+}
+
+private fun StudyCardType?.langIndicatorRes(): Int = when (this) {
+    StudyCardType.Recognition -> R.string.study_check_lang_indicator_es
+    StudyCardType.Production -> R.string.study_check_lang_indicator_en
+    StudyCardType.Cloze -> R.string.study_check_lang_indicator_en
+    StudyCardType.Form -> R.string.study_check_lang_indicator_en
+    null -> R.string.study_check_lang_indicator_en
+}
+
+@Composable
+private fun StudyAnswerInput(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    langIndicator: String,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(emberSurface, RoundedCornerShape(16.dp))
+            .border(answerInputBorderWidth, emberAccent, RoundedCornerShape(16.dp))
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            if (value.isEmpty()) {
+                Text(
+                    text = placeholder,
+                    fontFamily = instrumentSerif,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = answerInputFontSize,
+                    lineHeight = answerInputLineHeight,
+                    color = emberMuted,
+                )
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                textStyle = TextStyle(
+                    fontFamily = instrumentSerif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = answerInputFontSize,
+                    lineHeight = answerInputLineHeight,
+                    color = emberOnBg,
+                ),
+                cursorBrush = SolidColor(emberAccent),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onSubmit() }),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = langIndicator,
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.12.em,
+            color = emberFaint,
+        )
     }
+}
+
+@Composable
+private fun GhostUnderlineButton(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        fontFamily = geist,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.5.sp,
+        color = emberMuted,
+        textDecoration = TextDecoration.Underline,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+    )
+}
