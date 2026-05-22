@@ -27,12 +27,34 @@
     <string name="create_first_deck">Crear primer mazo</string>
     <string name="new_card_content_description">Nueva tarjeta</string>
     <string name="new_deck_content_description">Nuevo mazo</string>
-    <string name="dashboard_search_placeholder">Buscar mazos por nombre</string>
-    <string name="dashboard_search_clear_content_description">Limpiar búsqueda de mazos</string>
-    <string name="dashboard_search_icon_content_description">Buscar mazos</string>
+    <string name="dashboard_search_placeholder">Buscar mazo o palabra</string>
+    <string name="dashboard_search_clear_content_description">Limpiar búsqueda</string>
+    <string name="dashboard_search_icon_content_description">Buscar</string>
     <string name="dashboard_clear_filters">Limpiar filtros</string>
     <string name="dashboard_no_results_title">No hay resultados</string>
-    <string name="dashboard_no_results_description">Probá limpiar o ajustar los filtros.</string>
+    <string name="dashboard_no_results_description">Prueba otra palabra o ajusta los filtros.</string>
+    <!-- Dashboard redesign — Phase 2.1 -->
+    <string name="dashboard_hero_accent_part">para repasar</string>
+    <string name="dashboard_hero_separator">,</string>
+    <string name="dashboard_hero_muted_part">el resto puede esperar.</string>
+    <string name="dashboard_hero_calm">Tu biblioteca, calmada.</string>
+    <string name="dashboard_study_now">Estudiar ahora</string>
+    <string name="dashboard_deck_count_button">%1$d mazos</string>
+    <string name="dashboard_chip_all">todos</string>
+    <string name="dashboard_section_your_decks">Tus mazos</string>
+    <string name="dashboard_fab_label">Nueva tarjeta</string>
+    <!-- Dashboard empty state (no decks) -->
+    <string name="dashboard_empty_headline">Empieza por una palabra.</string>
+    <string name="dashboard_empty_headline_accent">una palabra</string>
+    <string name="dashboard_empty_body">Escribes una palabra en inglés, una situación, o una categoría — la IA arma la ficha completa con ejemplos y patrones de uso.</string>
+    <string name="dashboard_empty_cta_primary">Crear primera tarjeta</string>
+    <string name="dashboard_empty_cta_ghost">Crear mazo vacío</string>
+    <string name="dashboard_empty_footnote">O importa un backup en ajustes</string>
+    <!-- Dashboard no-results state -->
+    <string name="dashboard_no_results_headline">Nada con %1$s.</string>
+    <string name="dashboard_no_results_body">Prueba otra palabra, o crea una tarjeta con esta.</string>
+    <string name="dashboard_no_results_body_with_tag">Prueba otra palabra, quita la etiqueta %1$s, o crea una tarjeta con esta.</string>
+    <string name="dashboard_no_results_cta">Crear con %1$s</string>
 
     <!-- Decks Screen -->
     <string name="my_decks">Mis Mazos</string>
