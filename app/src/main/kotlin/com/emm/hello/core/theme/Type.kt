@@ -9,6 +9,7 @@ import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.emm.hello.R
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Google Fonts provider (Phase 0)
