@@ -6,7 +6,7 @@
 | Role | Source of truth for the visual redesign work |
 | Source | Designer handoff bundle (`/tmp/hello-design/hello/`) + on-screen analysis |
 | Read this when | Implementing the new visual system |
-| Last verified | 2026-05-22 (Phase 2.6 close) |
+| Last verified | 2026-05-22 (Phase 2.7 close) |
 
 ## Progress
 
@@ -20,11 +20,14 @@
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ✅ Done (sub-1 chrome + Ember header + sub-2 grouped card list) | `8fbabf0`, `e58add2` |
 | 2.6 — New/Edit Deck | ✅ Done (1 commit) | `737e63d` |
-| 2.7 — Edit Flashcard | ⏳ Pending | — |
+| 2.7 — Edit Flashcard | ✅ Done (1 commit) | `1c5e821` |
 | 2.8 — Settings | ⏳ Pending | — |
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Phase 2.7 shipped as a single commit:**
+- ✅ `1c5e821` (2026-05-22) — Edit Flashcard. Inline top bar (close × + `EDITAR TARJETA` Geist Mono + accent `Guardar` text action, muted when invalid/loading/submitting). Stack of `HInput`s: word · translation · `Row` of phonetic + part-of-speech weight 1f side-by-side · meaning multiline (4 rows). `HSectionLabel "Ejemplos · N"` with trailing accent inline `+ agregar` action (replaces the old outlined "Añadir ejemplo" button). New `ExampleEditRow` card: `emberSurface` (14dp radius, 1dp `emberDivider`) holding a 17sp Instrument Serif italic field for the English text, hairline divider, Geist 14sp field for the Spanish translation, plus a close × IconButton anchored top-end. New `DangerRow` at the bottom: `emberBadSoft` container, 1dp 35% `emberBad` border, trash icon + Geist Medium 15sp `Borrar tarjeta` in `emberBad`. Delete wiring: new `DeleteFlashcard` / `ConfirmDeleteFlashcard` / `DismissDeleteFlashcard` intents, `isDeleteConfirmationVisible` in `UiState`, `FlashcardDeleted` effect, `softDeleteFlashcardUseCase` injected through `NewModule` (reuses the existing use case already used by Card Detail). Route handles `FlashcardDeleted` by `navigator.goBack()`. Reused `HAlertDialog` with the existing `delete_flashcard_*` strings.
 
 **Phase 2.6 shipped as a single commit:**
 - ✅ `737e63d` (2026-05-22) — New/Edit Deck. Inline top bar (close × + uppercase Geist Mono title `MAZO NUEVO` / `EDITAR MAZO` + Geist Medium 15sp accent text action `Crear` / `Guardar`, ghost when invalid). 44sp serif headline `Un mazo nuevo.` / `Editar mazo.`. `DeckNameField`: `emberSurface` card with 1.5dp `emberAccent` border, 14dp radius, 22sp Instrument Serif italic value and same-style placeholder, accent caret; auto-focused on first composition in Create mode via `FocusRequester` + `LaunchedEffect` (Edit mode skips auto-focus to avoid stealing focus from a pre-filled value). Description keeps `HInput` (3-line min). New `EmberTagsField`: mono `ETIQUETAS` label, a single `emberSurface` container (1dp `emberDivider`, 14dp radius) holding a `FlowRow` of accent removable `HChip`s and an inline mini text field whose placeholder is `+ agregar…`; Enter or comma commits (lowercased, trimmed, dedup). Supporting text moved outside the container.
