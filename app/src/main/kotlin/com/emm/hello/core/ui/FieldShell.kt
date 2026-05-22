@@ -17,6 +17,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
@@ -33,6 +39,7 @@ internal fun FieldShell(
     supportingText: String? = null,
     errorMessage: String? = null,
     enabled: Boolean = true,
+    monoLabel: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val helperText = errorMessage ?: supportingText
@@ -43,11 +50,27 @@ internal fun FieldShell(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
     ) {
         if (label != null) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-                color = fieldShellLabelColor(isError = isError, enabled = enabled),
-            )
+            if (monoLabel) {
+                // Uppercase Geist Mono label — Ember spec
+                Text(
+                    text = label.uppercase(),
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 10.5.sp,
+                    letterSpacing = 0.12.em,
+                    color = if (isError) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        emberMuted
+                    },
+                )
+            } else {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = fieldShellLabelColor(isError = isError, enabled = enabled),
+                )
+            }
         }
 
         content()
@@ -82,11 +105,10 @@ internal fun fieldShellBorderColor(
     enabled: Boolean,
     isActive: Boolean,
 ): Color {
-    val colorScheme = MaterialTheme.colorScheme
     val targetColor = when {
-        isError -> colorScheme.error
-        isActive -> colorScheme.outline
-        else -> colorScheme.outlineVariant
+        isError -> MaterialTheme.colorScheme.error
+        isActive -> emberAccent
+        else -> emberDivider
     }.let { color ->
         if (enabled) color else color.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
     }
@@ -112,8 +134,7 @@ internal fun fieldShellContentColor(enabled: Boolean): Color {
 
 @Composable
 internal fun fieldShellPlaceholderColor(enabled: Boolean): Color {
-    val colorScheme = MaterialTheme.colorScheme
-    val baseColor = colorScheme.onSurfaceVariant.copy(alpha = FIELD_SHELL_PLACEHOLDER_ALPHA)
+    val baseColor = emberMuted
     return if (enabled) baseColor else baseColor.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
 }
 

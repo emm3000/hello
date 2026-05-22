@@ -4,64 +4,94 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.emm.hello.R
+import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.helloShapes
-import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberAccentSoft
+import com.emm.hello.core.theme.emberGood
+import com.emm.hello.core.theme.emberGoodSoft
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberWarn
+import com.emm.hello.core.theme.emberWarnSoft
+import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.semanticColors
-import com.emm.hello.core.theme.spacing
 
+// ── Legacy enum kept for backwards compatibility ───────────────────────────
 enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success, Tertiary }
 
+// ── Ember badge tones ──────────────────────────────────────────────────────
+enum class HBadgeTone { Accent, Good, Warn, Muted }
+
+private val badgeShape = RoundedCornerShape(11.dp)
+private val mutedBg = Color(red = 244, green = 239, blue = 230, alpha = 15)
+
+/**
+ * Ember-styled badge. 22dp height, 11dp radius, Geist Mono 11sp.
+ * Tones: accent | good | warn | muted — soft bg + non-soft fg.
+ */
+@Composable
+fun HBadge(
+    label: String,
+    modifier: Modifier = Modifier,
+    tone: HBadgeTone = HBadgeTone.Accent,
+) {
+    val (bg, fg) = when (tone) {
+        HBadgeTone.Accent -> emberAccentSoft to emberAccent
+        HBadgeTone.Good -> emberGoodSoft to emberGood
+        HBadgeTone.Warn -> emberWarnSoft to emberWarn
+        HBadgeTone.Muted -> mutedBg to emberMuted
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = badgeShape,
+        color = bg,
+        contentColor = fg,
+    ) {
+        Text(
+            text = label,
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.2.sp,
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+        )
+    }
+}
+
+// ── Legacy overload — keeps feature screens compiling unchanged ────────────
+
+/**
+ * Legacy string-label overload mapping old [BadgeVariant] to Ember tokens.
+ */
 @Composable
 fun HBadge(
     label: String,
     modifier: Modifier = Modifier,
     variant: BadgeVariant = BadgeVariant.Default,
 ) {
-    val (containerColor, contentColor) = badgeColors(variant)
-    val stateDescription = badgeStateDescription(variant)
+    val tone = variant.toEmberTone()
+    HBadge(label = label, modifier = modifier, tone = tone)
+}
 
-    Surface(
-        modifier = modifier.semantics {
-            if (stateDescription != null) {
-                this.stateDescription = stateDescription
-            }
-        },
-        shape = MaterialTheme.helloShapes.pill,
-        color = containerColor,
-        contentColor = contentColor,
-        border = if (variant == BadgeVariant.Outline) {
-            androidx.compose.foundation.BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
-            )
-        } else {
-            null
-        },
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.metadata.copy(fontWeight = FontWeight.SemiBold),
-            modifier = Modifier.padding(
-                horizontal = MaterialTheme.spacing.md,
-                vertical = MaterialTheme.spacing.xs,
-            ),
-        )
-    }
+private fun BadgeVariant.toEmberTone(): HBadgeTone = when (this) {
+    BadgeVariant.Default -> HBadgeTone.Accent
+    BadgeVariant.Secondary -> HBadgeTone.Muted
+    BadgeVariant.Destructive -> HBadgeTone.Muted
+    BadgeVariant.Outline -> HBadgeTone.Muted
+    BadgeVariant.Warning -> HBadgeTone.Warn
+    BadgeVariant.Success -> HBadgeTone.Good
+    BadgeVariant.Tertiary -> HBadgeTone.Good
 }
 
 @Composable
@@ -79,38 +109,20 @@ internal fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun badgeStateDescription(variant: BadgeVariant): String? {
-    return when (variant) {
-        BadgeVariant.Default,
-        BadgeVariant.Secondary,
-        BadgeVariant.Outline -> null
-        BadgeVariant.Destructive -> stringResource(R.string.error_label)
-        BadgeVariant.Warning -> stringResource(R.string.warning_label)
-        BadgeVariant.Success -> stringResource(R.string.success_label)
-        BadgeVariant.Tertiary -> null
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun HBadgeVariantsPreview() {
+private fun HBadgeEmberTonesPreview() {
     HelloTheme {
-        Surface {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-            ) {
-                BadgeVariant.entries.forEach { variant ->
-                    HBadge(
-                        label = variant.name,
-                        variant = variant,
-                        modifier = Modifier.wrapContentWidth(),
-                    )
-                }
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HBadge(label = "acento", tone = HBadgeTone.Accent)
+            HBadge(label = "bien", tone = HBadgeTone.Good)
+            HBadge(label = "aviso", tone = HBadgeTone.Warn)
+            HBadge(label = "inactivo", tone = HBadgeTone.Muted)
         }
     }
 }

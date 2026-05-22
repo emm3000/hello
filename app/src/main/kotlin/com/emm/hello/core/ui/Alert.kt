@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
@@ -27,22 +28,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.emberBad
+import com.emm.hello.core.theme.emberBadSoft
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberElev
+import com.emm.hello.core.theme.emberGood
+import com.emm.hello.core.theme.emberGoodSoft
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.emberWarn
+import com.emm.hello.core.theme.emberWarnSoft
 import com.emm.hello.core.theme.metadata
-import com.emm.hello.core.theme.semanticColors
 import com.emm.hello.core.theme.spacing
 
 enum class AlertVariant { Default, Destructive, Warning, Success }
 
+private val alertShape = RoundedCornerShape(12.dp)
+
 /**
- * Alert / callout inspired by shadcn/ui.
- *
- * Usage: error messages in the new card flow ([AlertVariant.Destructive]),
- *        general information, action confirmations.
+ * Ember-styled alert. Retokened to use Ember soft-bg tones.
  */
 @Composable
 fun HAlert(
@@ -53,7 +60,7 @@ fun HAlert(
     icon: ImageVector? = null,
 ) {
     val (bg, contentColor, iconColor) = alertTokens(variant)
-    val stateDescription = alertStateDescription(variant)
+    val stateDesc = alertStateDescription(variant)
 
     val animBg by animateColorAsState(targetValue = bg, label = "alert_bg")
 
@@ -61,11 +68,11 @@ fun HAlert(
         modifier = modifier
             .fillMaxWidth()
             .semantics {
-                if (stateDescription != null) {
-                    this.stateDescription = stateDescription
+                if (stateDesc != null) {
+                    this.stateDescription = stateDesc
                 }
             },
-        shape = MaterialTheme.helloShapes.container,
+        shape = alertShape,
         color = animBg,
         contentColor = contentColor,
     ) {
@@ -111,28 +118,11 @@ fun HAlert(
 
 @Composable
 private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
-    val cs = MaterialTheme.colorScheme
     return when (variant) {
-        AlertVariant.Default -> Triple(
-            cs.surfaceContainerHigh,
-            cs.onSurface,
-            cs.onSurfaceVariant,
-        )
-        AlertVariant.Destructive -> Triple(
-            cs.errorContainer,
-            cs.onErrorContainer,
-            cs.error,
-        )
-        AlertVariant.Warning -> Triple(
-            MaterialTheme.semanticColors.warning.container,
-            MaterialTheme.semanticColors.warning.content,
-            MaterialTheme.semanticColors.warning.accent,
-        )
-        AlertVariant.Success -> Triple(
-            cs.tertiaryContainer,
-            cs.onTertiaryContainer,
-            cs.tertiary,
-        )
+        AlertVariant.Default -> Triple(emberElev, emberOnBg, emberOnBg.copy(alpha = 0.6f))
+        AlertVariant.Destructive -> Triple(emberBadSoft, emberBad, emberBad)
+        AlertVariant.Warning -> Triple(emberWarnSoft, emberWarn, emberWarn)
+        AlertVariant.Success -> Triple(emberGoodSoft, emberGood, emberGood)
     }
 }
 
@@ -146,11 +136,11 @@ private fun alertStateDescription(variant: AlertVariant): String? {
     }
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HAlertVariantsPreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,23 +148,23 @@ private fun HAlertVariantsPreview() {
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
                 HAlert(
-                    title = "Information",
-                    description = "Review the data before continuing.",
+                    title = "Información",
+                    description = "Revisa los datos antes de continuar.",
                     variant = AlertVariant.Default,
                 )
                 HAlert(
-                    title = "Generation error",
-                    description = "Could not connect to the server. Check your connection.",
+                    title = "Error al generar",
+                    description = "No se pudo conectar. Verifica tu conexión.",
                     variant = AlertVariant.Destructive,
                 )
                 HAlert(
-                    title = "Warning",
-                    description = "This action cannot be undone.",
+                    title = "Aviso",
+                    description = "Esta acción no se puede deshacer.",
                     variant = AlertVariant.Warning,
                 )
                 HAlert(
-                    title = "Card saved",
-                    description = "The flashcard was created and added to your deck.",
+                    title = "Tarjeta guardada",
+                    description = "La tarjeta fue creada y añadida a tu mazo.",
                     variant = AlertVariant.Success,
                 )
             }

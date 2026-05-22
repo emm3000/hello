@@ -1,60 +1,80 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberSurface
 
+// ── Legacy enum kept for backwards compatibility ───────────────────────────
 enum class CardVariant { Elevated, Filled, Outlined }
 
 /**
- * Card inspired by shadcn/ui with optional header/content/footer.
- *
- * Usage: DeckItem in Dashboard, CardPreview in NewCard, CardDetail in FlashcardDetail.
+ * Ember-styled card. Surface bg, 16dp radius, hairline divider border.
+ * Optional [due] flag adds a 3dp accent left border for the "due" state.
  */
 @Composable
 fun HCard(
     modifier: Modifier = Modifier,
-    variant: CardVariant = CardVariant.Elevated,
-    cornerRadius: Dp = 12.dp,
+    due: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val (containerColor, tonalElevation, border) = cardTokens(variant)
-
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(cornerRadius),
-        color = containerColor,
-        tonalElevation = tonalElevation,
-        shadowElevation = if (variant == CardVariant.Elevated) 2.dp else 0.dp,
-        border = border,
-    ) {
-        Column(content = content)
+    Box(modifier = modifier) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = emberSurface,
+            border = BorderStroke(1.dp, emberDivider),
+        ) {
+            Column(content = content)
+        }
+        if (due) {
+            // Accent left border — sits inside the card's left edge
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .fillMaxHeight()
+                    .background(
+                        color = emberAccent,
+                        shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp),
+                    ),
+            )
+        }
     }
 }
 
+/**
+ * Legacy overload — maps old [CardVariant] onto the Ember HCard so existing
+ * call sites (feature screens) keep compiling unchanged.
+ */
 @Composable
-private fun cardTokens(variant: CardVariant): Triple<Color, Dp, BorderStroke?> {
-    val cs = MaterialTheme.colorScheme
-    return when (variant) {
-        CardVariant.Elevated -> Triple(cs.surfaceContainerLow, 0.dp, null)
-        CardVariant.Filled -> Triple(cs.surfaceContainerHighest, 0.dp, null)
-        CardVariant.Outlined -> Triple(cs.surface, 0.dp, BorderStroke(1.dp, cs.outlineVariant))
-    }
+fun HCard(
+    modifier: Modifier = Modifier,
+    @Suppress("UNUSED_PARAMETER") variant: CardVariant = CardVariant.Elevated,
+    @Suppress("UNUSED_PARAMETER") cornerRadius: Dp = 16.dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    HCard(modifier = modifier, due = false, content = content)
 }
 
 /** Header with optional title and subtitle. */
@@ -67,17 +87,17 @@ fun HCardHeader(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurface,
         )
         if (description != null) {
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
             )
@@ -94,12 +114,12 @@ fun HCardContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 0.dp),
+            .padding(horizontal = 18.dp, vertical = 0.dp),
         content = content,
     )
 }
 
-/** Footer aligned to the right by default. */
+/** Footer area of the card. */
 @Composable
 fun HCardFooter(
     modifier: Modifier = Modifier,
@@ -108,69 +128,39 @@ fun HCardFooter(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
         content = content,
     )
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HCardVariantsPreview() {
+private fun HCardPreview() {
     HelloTheme {
-        Surface {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                CardVariant.entries.forEach { variant ->
-                    HCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = variant,
-                    ) {
-                        HCardContent {
-                            Text(
-                                text = variant.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 12.dp),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun HCardWithSlotsPreview() {
-    HelloTheme {
-        Surface {
-            HCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                variant = CardVariant.Elevated,
-            ) {
-                HCardHeader(
-                    title = "Serendipity",
-                    description = "/ˌserənˈdɪpɪti/ · Noun",
-                )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(emberBg)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            HCard(modifier = Modifier.fillMaxWidth()) {
+                HCardHeader(title = "Serendipity", description = "/ˌserənˈdɪpɪti/ · Sustantivo")
                 HCardContent {
                     Text(
-                        text = "The occurrence of events by chance in a happy or beneficial way.",
+                        text = "La ocurrencia de eventos afortunados de manera casual.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 12.dp),
                     )
                 }
-                HCardFooter {
-                    HButton(
-                        text = "Ver detalle",
-                        onClick = {},
-                        variant = ButtonVariant.Outline,
-                        modifier = Modifier.fillMaxWidth(),
+            }
+            HCard(modifier = Modifier.fillMaxWidth(), due = true) {
+                HCardHeader(title = "Ephemeral", description = "5 tarjetas para hoy")
+                HCardContent {
+                    Text(
+                        text = "Que dura poco tiempo.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 12.dp),
                     )
                 }
             }

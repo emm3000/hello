@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,13 +33,24 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.emm.hello.core.theme.helloShapes
-import com.emm.hello.core.theme.spacing
+import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.emberSurface
 
-private val searchBarHeight = 48.dp
+private val searchBarHeight = 46.dp
+private val searchBarRadius = 22.dp
+private val searchBarShape = RoundedCornerShape(searchBarRadius)
 
-/** Do not use HInput here: the trailing icon triggers recompositions that change the height. */
+/**
+ * Ember-styled search bar. 44–48dp height, 22dp radius, surface bg with divider border.
+ * Focused: 1.5dp accent border, accent search icon, accent cursor blink animation.
+ */
 @Composable
 fun HSearchBar(
     value: String,
@@ -48,46 +61,49 @@ fun HSearchBar(
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    clearContentDescription: String = "Clear search",
+    clearContentDescription: String = "Limpiar búsqueda",
     leadingIconContentDescription: String? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
     val borderColor by animateColorAsState(
-        targetValue = when {
-            isFocused -> MaterialTheme.colorScheme.outline
-            else -> MaterialTheme.colorScheme.outlineVariant
-        },
+        targetValue = if (isFocused) emberAccent else emberDivider,
         animationSpec = tween(durationMillis = 150),
         label = "search_bar_border",
+    )
+    val borderWidth = if (isFocused) 1.5.dp else 1.dp
+    val iconTint by animateColorAsState(
+        targetValue = if (isFocused) emberAccent else emberMuted,
+        animationSpec = tween(150),
+        label = "search_icon_tint",
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(searchBarHeight)
-            .clip(MaterialTheme.helloShapes.control)
+            .clip(searchBarShape)
             .border(
-                width = 1.dp,
+                width = borderWidth,
                 color = borderColor,
-                shape = MaterialTheme.helloShapes.control,
+                shape = searchBarShape,
             )
-            .background(color = MaterialTheme.colorScheme.surface)
-            .padding(horizontal = MaterialTheme.spacing.md)
-            .semantics { contentDescription = "Search input" },
+            .background(emberSurface)
+            .padding(horizontal = 16.dp)
+            .semantics { contentDescription = "Campo de búsqueda" },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = leadingIconContentDescription,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(20.dp),
+            tint = iconTint,
+            modifier = Modifier.size(17.dp),
         )
 
         Box(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = MaterialTheme.spacing.sm)
+                .padding(horizontal = 10.dp)
                 .onFocusChanged { isFocused = it.isFocused },
             contentAlignment = Alignment.CenterStart,
         ) {
@@ -95,7 +111,7 @@ fun HSearchBar(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = emberMuted,
                 )
             }
             BasicTextField(
@@ -103,13 +119,13 @@ fun HSearchBar(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.surface),
+                    .background(emberSurface),
                 enabled = enabled,
                 readOnly = readOnly,
                 singleLine = singleLine,
                 keyboardOptions = keyboardOptions,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = emberOnBg),
+                cursorBrush = SolidColor(emberAccent),
             )
         }
 
@@ -121,8 +137,40 @@ fun HSearchBar(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = clearContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
+                    tint = emberMuted,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HSearchBarPreview() {
+    HelloTheme {
+        Surface(color = emberBg) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                HSearchBar(
+                    value = "",
+                    onValueChange = {},
+                    placeholder = "Buscar mazos…",
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HSearchBarWithValuePreview() {
+    HelloTheme {
+        Surface(color = emberBg) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                HSearchBar(
+                    value = "serendipity",
+                    onValueChange = {},
+                    placeholder = "Buscar mazos…",
                 )
             }
         }

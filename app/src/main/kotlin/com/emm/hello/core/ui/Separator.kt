@@ -11,20 +11,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
 
 /**
- * Horizontal separator inspired by shadcn/ui `<Separator />`.
- *
- * Usage: between sections in the new card flow, between fields in FlashcardDetailScreen.
+ * 1dp ember-divider separator. [margin] controls the vertical spacing around it.
  */
 @Composable
 fun HSeparator(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.outlineVariant,
+    color: Color = emberDivider,
     thickness: Dp = 1.dp,
 ) {
     HorizontalDivider(
@@ -34,20 +34,20 @@ fun HSeparator(
     )
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HSeparatorPreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Top section", style = MaterialTheme.typography.bodyMedium)
+                Text("Sección superior", style = MaterialTheme.typography.bodyMedium)
                 HSeparator()
-                Text("Bottom section", style = MaterialTheme.typography.bodyMedium)
+                Text("Sección inferior", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

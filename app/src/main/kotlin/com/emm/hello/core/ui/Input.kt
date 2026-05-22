@@ -26,9 +26,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.spacing
 
 @Composable
@@ -45,6 +47,7 @@ fun HInput(
     singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    rows: Int = 1,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -54,6 +57,11 @@ fun HInput(
 ) {
     val isError = errorMessage != null
     val isFocused by interactionSource.collectIsFocusedAsState()
+
+    val effectiveSingleLine = singleLine && rows <= 1
+    val effectiveMinLines = if (rows > 1) rows else minLines
+    val effectiveMaxLines = if (rows > 1) rows else maxLines
+
     val borderColor = fieldShellBorderColor(
         isError = isError,
         enabled = enabled,
@@ -66,6 +74,7 @@ fun HInput(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
+        monoLabel = true,
     ) {
         BasicTextField(
             value = value,
@@ -81,22 +90,22 @@ fun HInput(
                 },
             enabled = enabled,
             readOnly = readOnly,
-            singleLine = singleLine,
-            minLines = minLines,
-            maxLines = maxLines,
+            singleLine = effectiveSingleLine,
+            minLines = effectiveMinLines,
+            maxLines = effectiveMaxLines,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             interactionSource = interactionSource,
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = fieldShellContentColor(enabled)),
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+            cursorBrush = SolidColor(emberAccent),
             decorationBox = { innerTextField ->
                 InputDecoration(
                     value = value,
                     placeholder = placeholder,
                     leadingIcon = leadingIcon,
                     trailingIcon = trailingIcon,
-                    singleLine = singleLine,
+                    singleLine = effectiveSingleLine,
                     placeholderColor = fieldShellPlaceholderColor(enabled),
                     innerTextField = innerTextField,
                 )
@@ -152,11 +161,11 @@ private fun InputDecoration(
     }
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HInputPreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -167,50 +176,42 @@ private fun HInputPreview() {
                 HInput(
                     value = name,
                     onValueChange = { name = it },
-                    label = "Deck name",
-                    placeholder = "E.g.: English B2 Vocabulary",
+                    label = "Nombre del mazo",
+                    placeholder = "Ej: Vocabulario inglés B2",
                 )
 
                 var word by remember { mutableStateOf("serendipity") }
                 HInput(
                     value = word,
                     onValueChange = { word = it },
-                    label = "Word",
-                    supportingText = "Type the word in English",
+                    label = "Palabra",
+                    supportingText = "Escribe la palabra en inglés",
                 )
 
                 var broken by remember { mutableStateOf("") }
                 HInput(
                     value = broken,
                     onValueChange = { broken = it },
-                    label = "Required field",
-                    placeholder = "This field is required",
-                    errorMessage = "This field is required",
+                    label = "Campo obligatorio",
+                    placeholder = "Este campo es obligatorio",
+                    errorMessage = "Este campo es obligatorio",
                 )
 
                 var notes by remember { mutableStateOf("") }
                 HInput(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = "Notes (multiline)",
+                    label = "Notas",
                     singleLine = false,
-                    minLines = 4,
-                    placeholder = "Write your notes here…",
+                    rows = 3,
+                    placeholder = "Escribe tus notas aquí…",
                 )
 
                 HInput(
-                    value = "Disabled field",
+                    value = "Campo desactivado",
                     onValueChange = {},
-                    label = "Disabled",
+                    label = "Desactivado",
                     enabled = false,
-                )
-
-                HInput(
-                    value = "Read only",
-                    onValueChange = {},
-                    label = "Accessible state",
-                    supportingText = "Field compatible with screen readers",
-                    readOnly = true,
                 )
             }
         }

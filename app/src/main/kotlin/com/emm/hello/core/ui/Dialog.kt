@@ -1,5 +1,6 @@
 package com.emm.hello.core.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
@@ -16,8 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberElev
+import com.emm.hello.core.theme.instrumentSerif
+
+private val dialogShape = RoundedCornerShape(16.dp)
 
 /** Pass `cancelText = null` to hide the cancel button. */
 @Composable
@@ -35,11 +41,16 @@ fun HAlertDialog(
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismiss,
+        shape = dialogShape,
+        containerColor = emberElev,
         icon = icon?.let { { Icon(it, contentDescription = null) } },
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = instrumentSerif,
+                    fontWeight = FontWeight.Normal,
+                ),
             )
         },
         text = description?.let {
@@ -55,7 +66,8 @@ fun HAlertDialog(
             HButton(
                 text = confirmText,
                 onClick = onConfirm,
-                variant = if (isDangerous) ButtonVariant.Destructive else ButtonVariant.Default,
+                variant = if (isDangerous) HButtonVariant.Ghost else HButtonVariant.Accent,
+                danger = isDangerous,
             )
         },
         dismissButton = cancelText?.let {
@@ -63,15 +75,14 @@ fun HAlertDialog(
                 HButton(
                     text = it,
                     onClick = onDismiss,
-                    variant = ButtonVariant.Ghost,
+                    variant = HButtonVariant.Ghost,
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     )
 }
 
-@PreviewLightDark
+@Preview
 @Composable
 private fun HAlertDialogPreview() {
     HelloTheme {
@@ -79,10 +90,10 @@ private fun HAlertDialogPreview() {
             var show by remember { mutableStateOf(true) }
             if (show) {
                 HAlertDialog(
-                    title = "Session completed",
-                    description = "Well done! You have reviewed all the cards in this session.",
+                    title = "Sesión completada",
+                    description = "¡Bien hecho! Repasaste todas las tarjetas de esta sesión.",
                     icon = Icons.Outlined.Check,
-                    confirmText = "Back",
+                    confirmText = "Volver",
                     cancelText = null,
                     onConfirm = { show = false },
                     onDismiss = { show = false },
@@ -92,7 +103,7 @@ private fun HAlertDialogPreview() {
     }
 }
 
-@PreviewLightDark
+@Preview
 @Composable
 private fun HAlertDialogDangerousPreview() {
     HelloTheme {
@@ -100,11 +111,11 @@ private fun HAlertDialogDangerousPreview() {
             var show by remember { mutableStateOf(true) }
             if (show) {
                 HAlertDialog(
-                    title = "Delete deck",
-                    description = "This action cannot be undone. You will lose all associated cards.",
+                    title = "Borrar mazo",
+                    description = "Esta acción no se puede deshacer. Perderás todas las tarjetas asociadas.",
                     icon = Icons.Outlined.Delete,
-                    confirmText = "Delete",
-                    cancelText = "Cancel",
+                    confirmText = "Borrar",
+                    cancelText = "Cancelar",
                     isDangerous = true,
                     onConfirm = { show = false },
                     onDismiss = { show = false },

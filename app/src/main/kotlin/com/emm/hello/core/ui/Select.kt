@@ -31,9 +31,13 @@ import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberElev
+import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.spacing
 
 private const val COLLAPSED_ARROW_ROTATION_DEGREES = 180f
@@ -62,6 +66,7 @@ fun HSelectTrigger(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
+        monoLabel = true,
     ) {
         Box(
             modifier = fieldShellContainerModifier(borderColor = borderColor)
@@ -112,12 +117,7 @@ fun HSelectTrigger(
 }
 
 /**
- * Dropdown selector inspired by shadcn/ui `<Select />`.
- *
- * Uses an external label like [HInput], with the same visual language:
- * - 1dp outlineVariant border → animated outline on focus/open
- * - Transparent background, minimum height 48dp
- * - Rotated chevron when expanded
+ * Dropdown selector retokened to Ember. Behavior unchanged.
  */
 @Composable
 fun <T> HSelect(
@@ -146,6 +146,7 @@ fun <T> HSelect(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
+        monoLabel = true,
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -199,6 +200,7 @@ fun <T> HSelect(
             DropdownMenu(
                 expanded = isExpanded,
                 onDismissRequest = { isExpanded = false },
+                containerColor = emberElev,
             ) {
                 items.forEach { option ->
                     DropdownMenuItem(
@@ -207,9 +209,9 @@ fun <T> HSelect(
                                 text = itemLabel(option),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (itemSelected == option) {
-                                    MaterialTheme.colorScheme.primary
+                                    emberAccent
                                 } else {
-                                    MaterialTheme.colorScheme.onSurface
+                                    emberPrimary
                                 },
                                 fontWeight = if (itemSelected == option) FontWeight.SemiBold else FontWeight.Normal,
                             )
@@ -225,19 +227,19 @@ fun <T> HSelect(
     }
 }
 
-private val demoItems = listOf("Vocabulary B2", "Phrasal Verbs", "Idioms", "Grammar")
+private val demoItems = listOf("Vocabulario B2", "Verbos frasales", "Modismos", "Gramática")
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HSelectEmptyPreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             HSelect(
                 items = demoItems,
                 itemSelected = null,
                 onItemSelected = {},
-                label = "Deck",
-                placeholder = "Select deck…",
+                label = "Mazo",
+                placeholder = "Selecciona un mazo…",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -246,41 +248,32 @@ private fun HSelectEmptyPreview() {
     }
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HSelectWithValuePreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
             ) {
-                var selected1 by remember { mutableStateOf<String?>(demoItems.first()) }
+                var selected by remember { mutableStateOf<String?>(demoItems.first()) }
                 HSelect(
                     items = demoItems,
-                    itemSelected = selected1,
-                    onItemSelected = { selected1 = it },
-                    label = "Selected deck",
-                )
-
-                var selected2 by remember { mutableStateOf<String?>(null) }
-                HSelect(
-                    items = demoItems,
-                    itemSelected = selected2,
-                    onItemSelected = { selected2 = it },
-                    label = "Difficulty",
-                    enabled = false,
-                    placeholder = "Disabled",
+                    itemSelected = selected,
+                    onItemSelected = { selected = it },
+                    label = "Mazo seleccionado",
                 )
 
                 HSelect(
                     items = demoItems,
                     itemSelected = null,
                     onItemSelected = {},
-                    label = "Accessible state",
-                    errorMessage = "Select a valid option",
+                    label = "Dificultad",
+                    enabled = false,
+                    placeholder = "Desactivado",
                 )
             }
         }

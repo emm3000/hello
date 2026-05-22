@@ -11,37 +11,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.emberDivider
 
 /**
- * shadcn/ui-style progress bar with rounded corners and smooth animation.
- *
- * Replaces the default Material 3 `LinearProgressIndicator` with a more
- * premium look that aligns with the existing HCard/HButton design system.
+ * Ember progress bar. 2dp default height, accent fill, emberDivider track.
  */
 @Composable
 fun HProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    height: Dp = 6.dp,
-    cornerRadius: Dp = 100.dp,
-    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    height: Dp = 2.dp,
+    cornerRadius: Dp = 1.dp,
+    trackColor: Color = emberDivider,
+    indicatorColor: Color = emberAccent,
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 400),
-        label = "progressAnimation",
+        animationSpec = tween(durationMillis = 300),
+        label = "progress",
     )
 
     val shape = RoundedCornerShape(cornerRadius)
@@ -63,11 +62,11 @@ fun HProgressBar(
     }
 }
 
-@PreviewLightDark
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HProgressBarPreview() {
     HelloTheme {
-        Surface {
+        Surface(color = emberBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,9 +74,11 @@ private fun HProgressBarPreview() {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 HProgressBar(progress = 0f)
-                HProgressBar(progress = 0.3f)
-                HProgressBar(progress = 0.7f)
+                HProgressBar(progress = 0.25f)
+                HProgressBar(progress = 0.6f)
                 HProgressBar(progress = 1f)
+                // Thicker variant for study bar
+                HProgressBar(progress = 0.45f, height = 4.dp)
             }
         }
     }
