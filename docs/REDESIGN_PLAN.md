@@ -6,7 +6,7 @@
 | Role | Source of truth for the visual redesign work |
 | Source | Designer handoff bundle (`/tmp/hello-design/hello/`) + on-screen analysis |
 | Read this when | Implementing the new visual system |
-| Last verified | 2026-05-22 (Phase 2.5 close) |
+| Last verified | 2026-05-22 (Phase 2.6 close) |
 
 ## Progress
 
@@ -19,12 +19,15 @@
 | 2.3 — New Card wizard | ✅ Done (sub-1 Mode + sub-2 Input + sub-3 Review + sub-4 Loading/Error) | `31b09bc`, `de47991`, `9d916f8`, _sub-4 pending commit_ |
 | 2.4 — Card Detail | ✅ Done (dict-style scroll, new HDictSense) | `f295744` |
 | 2.5 — Deck Detail | ✅ Done (sub-1 chrome + Ember header + sub-2 grouped card list) | `8fbabf0`, `e58add2` |
-| 2.6 — New/Edit Deck | ⏳ Pending | — |
+| 2.6 — New/Edit Deck | ✅ Done (1 commit) | `737e63d` |
 | 2.7 — Edit Flashcard | ⏳ Pending | — |
 | 2.8 — Settings | ⏳ Pending | — |
 | 3 — Missing screens/states | ⏳ Pending | — |
 | 4 — Microcopy pass | ⏳ Pending | — |
 | 5 — Cleanup | ⏳ Pending | — |
+
+**Phase 2.6 shipped as a single commit:**
+- ✅ `737e63d` (2026-05-22) — New/Edit Deck. Inline top bar (close × + uppercase Geist Mono title `MAZO NUEVO` / `EDITAR MAZO` + Geist Medium 15sp accent text action `Crear` / `Guardar`, ghost when invalid). 44sp serif headline `Un mazo nuevo.` / `Editar mazo.`. `DeckNameField`: `emberSurface` card with 1.5dp `emberAccent` border, 14dp radius, 22sp Instrument Serif italic value and same-style placeholder, accent caret; auto-focused on first composition in Create mode via `FocusRequester` + `LaunchedEffect` (Edit mode skips auto-focus to avoid stealing focus from a pre-filled value). Description keeps `HInput` (3-line min). New `EmberTagsField`: mono `ETIQUETAS` label, a single `emberSurface` container (1dp `emberDivider`, 14dp radius) holding a `FlowRow` of accent removable `HChip`s and an inline mini text field whose placeholder is `+ agregar…`; Enter or comma commits (lowercased, trimmed, dedup). Supporting text moved outside the container.
 
 **Phase 2.5 shipped as 2 sub-commits:**
 1. ✅ `8fbabf0` (2026-05-22) — Chrome + Ember header. HTopBar (back + MoreVert dropdown) wraps the screen in `emberBg` with `statusBarsPadding`. New `EmberDeckHeader`: mono 11sp `MAZO` eyebrow, 44sp serif deck name, Geist 14sp muted description, FlowRow of `HChip` tags. Hairline-bordered stats row in Geist Mono: `N tarjetas · N para hoy (accent) · X.X d. promedio` (promedio segment hidden until at least one card has been studied). Accent Lg `Estudiar N ahora` CTA full-width, only when `dueCount > 0`. New strings: `deck_detail_meta_label`, plurals `deck_detail_stats_cards`, `deck_detail_stats_due_today`, `deck_detail_stats_avg_interval`, `deck_detail_study_now_cta`.
