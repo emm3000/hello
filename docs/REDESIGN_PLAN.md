@@ -14,7 +14,7 @@
 |---|---|---|
 | 0 — Tokens, fonts, theme | ✅ Done | `89a3ee6`, `d5ea716` |
 | 1 — H* components | ✅ Done | `c76265a` |
-| 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196` |
+| 2.1 — Dashboard | ✅ Done (empty-state polished against designer mock) | `9bbfea1`, `416bef5`, `e09f196`, `4e6fb75` |
 | 2.2 — Study | ⏳ Pending | — |
 | 2.3 — New Card wizard | ⏳ Pending | — |
 | 2.4 — Card Detail | ➡️ **Next** | — |
