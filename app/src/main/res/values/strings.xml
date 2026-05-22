@@ -191,7 +191,7 @@
     <string name="loading_preview_eta">SUELE TARDAR 8–12 S</string>
     <!-- Step 3 quota-exceeded error (sub-4) -->
     <string name="quota_error_title">Llegamos al límite diario de IA.</string>
-    <string name="quota_error_body">Tu acceso vuelve mañana. Si querés, guardá tu palabra y armala a mano, o esperá al reinicio.</string>
+    <string name="quota_error_body">Tu acceso vuelve mañana. Si quieres, guarda tu palabra y ármala a mano, o espera al reinicio.</string>
     <string name="quota_error_your_word_label">TU PALABRA</string>
     <string name="quota_error_create_manually">Crear a mano</string>
     <string name="quota_error_notify_tomorrow">Avisarme mañana</string>
@@ -301,14 +301,14 @@
     <string name="show_translation">Ver traducción</string>
     <string name="hide_translation">Ocultar traducción</string>
     <string name="categories_bottom_sheet_title">Categorías</string>
-    <string name="validation_empty_user_text">Debés ingresar el texto que querés aprender.</string>
+    <string name="validation_empty_user_text">Debes ingresar el texto que quieres aprender.</string>
     <string name="validation_word_input_contains_whitespace">El input parece contener varias palabras; quizá conviene tratarlo como frase.</string>
-    <string name="validation_phrase_input_too_short">La frase parece demasiado corta; revisá si en realidad es una palabra.</string>
+    <string name="validation_phrase_input_too_short">La frase parece demasiado corta; revisa si en realidad es una palabra.</string>
     <string name="validation_sentence_input_too_short">Una entrada tipo oración necesita más contexto para generar una nota útil.</string>
-    <string name="validation_missing_disambiguation">Este término es ambiguo; agregá el significado deseado o una oración de contexto.</string>
-    <string name="validation_missing_communicative_intent">Debés indicar una intención comunicativa para este tipo de entrada.</string>
-    <string name="validation_communicative_goal_too_short">Describí mejor el objetivo comunicativo para obtener contenido más útil.</string>
-    <string name="validation_context_sentence_too_short">La oración de contexto es muy corta; intentá dar más información de uso real.</string>
+    <string name="validation_missing_disambiguation">Este término es ambiguo; agrega el significado deseado o una oración de contexto.</string>
+    <string name="validation_missing_communicative_intent">Debes indicar una intención comunicativa para este tipo de entrada.</string>
+    <string name="validation_communicative_goal_too_short">Describe mejor el objetivo comunicativo para obtener contenido más útil.</string>
+    <string name="validation_context_sentence_too_short">La oración de contexto es muy corta; intenta dar más información de uso real.</string>
     <string name="validation_missing_note_id">La nota generada debe tener un id.</string>
     <string name="validation_missing_expression">La nota generada debe tener una expresión objetivo.</string>
     <string name="validation_missing_intended_meaning">La nota generada debe tener un significado intencional en español.</string>
@@ -327,7 +327,7 @@
     <string name="validation_missing_expected_form_card">La nota debe incluir una tarjeta activa de forma.</string>
     <string name="validation_empty_card_prompt">Cada tarjeta derivada debe tener un prompt.</string>
     <string name="validation_empty_card_answer">Cada tarjeta derivada debe tener una respuesta esperada.</string>
-    <string name="validation_inactive_card">La nota contiene una tarjeta inactiva; revisá si debe persistirse.</string>
+    <string name="validation_inactive_card">La nota contiene una tarjeta inactiva; revisa si debe persistirse.</string>
     <string name="validation_missing_single_meaning_quality_check">La nota debe incluir la verificación de significado único.</string>
     <string name="validation_missing_required_quality_check">Falta un quality check requerido.</string>
     <string name="validation_no_active_cards">La nota generada debe incluir al menos una tarjeta activa.</string>
@@ -336,7 +336,7 @@
     <string name="validation_duplicate_active_card">Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.</string>
     <string name="validation_duplicate_exact_card_in_deck">Ya existe una tarjeta equivalente en este mazo (misma expresion, significado y tipo).</string>
     <string name="validation_too_many_active_cards">La nota tiene demasiadas tarjetas activas; conviene mantener entre 2 y 4.</string>
-    <string name="validation_answer_too_long_for_recall">La respuesta esperada es larga; intentá apuntar a una expresión más concreta.</string>
+    <string name="validation_answer_too_long_for_recall">La respuesta esperada es larga; intenta apuntar a una expresión más concreta.</string>
 
     <!-- Study Screen -->
     <string name="study_title">Repaso</string>
@@ -355,7 +355,7 @@
     <string name="study_start_cta_short">Comenzar</string>
     <string name="study_start_supportive">Sesión local. Tu progreso se guarda solo en este dispositivo.</string>
     <string name="study_empty_headline">Hoy no toca repasar.</string>
-    <string name="study_empty_body">Vuelve mañana para mantener el ritmo, o creá una tarjeta nueva si querés sumar al día.</string>
+    <string name="study_empty_body">Vuelve mañana para mantener el ritmo, o crea una tarjeta nueva si quieres sumar al día.</string>
     <!-- Study Recall + Check direction labels (Ember redesign Phase 2.2 sub-3) -->
     <string name="study_direction_es_to_en">ESPAÑOL → INGLÉS</string>
     <string name="study_direction_en_to_es">INGLÉS → ESPAÑOL</string>
@@ -380,21 +380,21 @@
     <string name="tap_to_reveal">Toca para revelar</string>
     <string name="study_progress_of">%1$d de %2$d</string>
     <string name="study_start_title">Listo para repasar</string>
-    <string name="study_start_desc">Sesion local enfocada. Vas a revisar %1$d tarjetas en unos %2$d min.</string>
-    <string name="study_start_cta">Empezar sesion</string>
+    <string name="study_start_desc">Sesión local enfocada. Vas a revisar %1$d tarjetas en unos %2$d min.</string>
+    <string name="study_start_cta">Empezar sesión</string>
     <string name="study_prompt_guidance">Intenta recordar antes de mirar la respuesta.</string>
-    <string name="study_answer_guidance">Escribe tu respuesta y comprobala antes de calificarte.</string>
+    <string name="study_answer_guidance">Escribe tu respuesta y compruébala antes de calificarte.</string>
     <string name="study_skip_guidance">No escribiste respuesta. Califica manualmente tu recuerdo.</string>
     <string name="study_reveal_answer">Revelar respuesta</string>
     <string name="study_answer_cta">Responder</string>
     <string name="study_check_answer">Comprobar</string>
     <string name="study_reveal_anyway">Revelar igual</string>
-    <string name="study_exit_confirm_title">Salir de la sesion?</string>
-    <string name="study_exit_confirm_desc">Tu progreso ya aplicado se conserva, pero perderas el ritmo actual.</string>
+    <string name="study_exit_confirm_title">¿Salir de la sesión?</string>
+    <string name="study_exit_confirm_desc">Tu progreso ya aplicado se conserva, pero perderás el ritmo actual.</string>
     <string name="study_exit_confirm_leave">Salir</string>
     <string name="study_keep_going">Seguir</string>
     <string name="study_empty_title">No hay tarjetas para repasar</string>
-    <string name="study_empty_desc">Cuando tengas tarjetas pendientes, la sesion aparecera aqui.</string>
+    <string name="study_empty_desc">Cuando tengas tarjetas pendientes, la sesión aparecerá aquí.</string>
     <string name="stop_speech_desc">Detener</string>
     <string name="speak_desc">Pronunciar</string>
     <string name="grade_again">Otra vez</string>
@@ -448,11 +448,11 @@
 
     <!-- Notifications -->
     <string name="notification_channel_name">Recordatorios de estudio</string>
-    <string name="notification_channel_description">Aviso diario cuando tenés cards listas para repasar.</string>
+    <string name="notification_channel_description">Aviso diario cuando tienes tarjetas listas para repasar.</string>
     <string name="notification_reminder_title">Tu repaso del día</string>
     <plurals name="notification_reminder_body">
-        <item quantity="one">Tenés %1$d card para repasar hoy.</item>
-        <item quantity="other">Tenés %1$d cards para repasar hoy.</item>
+        <item quantity="one">Tienes %1$d tarjeta para repasar hoy.</item>
+        <item quantity="other">Tienes %1$d tarjetas para repasar hoy.</item>
     </plurals>
     <string name="card_detail_tab_study_pending_badge">%1$d</string>
 
@@ -462,7 +462,7 @@
     <!-- Settings Screen -->
     <string name="settings_title">Ajustes</string>
     <string name="backup_section_title">Backup</string>
-    <string name="backup_section_description">Exportá o restaurá tus datos.</string>
+    <string name="backup_section_description">Exporta o restaura tus datos.</string>
     <string name="backup_warning_title">Atención</string>
     <string name="backup_warning_description">Restaurar un backup reemplaza TODOS los datos actuales. Esta acción no se puede deshacer.</string>
     <string name="export_data">Exportar datos</string>
