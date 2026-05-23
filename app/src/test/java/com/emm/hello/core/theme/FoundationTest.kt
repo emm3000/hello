@@ -6,21 +6,12 @@ import org.junit.Test
 class FoundationTest {
 
     @Test
-    fun `light semantic colors map named roles`() {
-        val colors = lightSemanticColors()
+    fun `ember semantic colors map named roles`() {
+        val colors = emberSemanticColors()
 
-        assertThat(colors.success).isEqualTo(lightSuccessSemanticColor)
-        assertThat(colors.warning).isEqualTo(lightWarningSemanticColor)
-        assertThat(colors.destructive).isEqualTo(lightDestructiveSemanticColor)
-    }
-
-    @Test
-    fun `dark semantic colors map named roles`() {
-        val colors = darkSemanticColors()
-
-        assertThat(colors.success).isEqualTo(darkSuccessSemanticColor)
-        assertThat(colors.warning).isEqualTo(darkWarningSemanticColor)
-        assertThat(colors.destructive).isEqualTo(darkDestructiveSemanticColor)
+        assertThat(colors.success).isEqualTo(emberSuccessSemanticColor)
+        assertThat(colors.warning).isEqualTo(emberWarningSemanticColor)
+        assertThat(colors.destructive).isEqualTo(emberDestructiveSemanticColor)
     }
 
     @Test

@@ -110,6 +110,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.text.google.fonts)
+    // Brings Theme.Material3.* XML parent themes for the app launcher/system chrome.
+    // Compose owns runtime styling; this is only needed for splash + status bar defaults.
+    implementation(libs.material)
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
