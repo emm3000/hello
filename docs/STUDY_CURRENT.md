@@ -16,12 +16,17 @@ Each flashcard can expand into multiple study items. The review is persisted onc
 
 ## Key files
 
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyViewModel.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyTop.kt` (private chrome — Ember Phase 2.2 sub-1)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudySessionItem.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyAnswerPolicy.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/FlippableCard.kt`
 
 ## Current state
 
@@ -31,6 +36,7 @@ Each flashcard can expand into multiple study items. The review is persisted onc
 - `reviewedCount`
 - `totalCount`
 - `sessionFinished`
+- `intervalPreviews: Map<ReviewGrade, Long>` — interval previews shown under each grade chip
 
 The heavy logic lives in `StudyScreen` and `StudyViewModel`.
 
@@ -122,6 +128,33 @@ Current behaviors:
 - if there's already progress, back shows an exit confirmation
 - when the session ends, `SessionFinished` is emitted
 - closing the final dialog or back emits `NavigateBack`
+
+### Exit-confirmation dialog (Phase 4 microcopy)
+
+Rendered via `HAlertDialog` (`isDangerous = true`) with:
+
+- title: "¿Salir de la sesión?"
+- description: "perderás el ritmo actual."
+- confirm: `study_exit_confirm_leave`
+- cancel: `study_keep_going`
+
+### Session-finished dialog
+
+A custom `SessionFinishedDialog` (private composable in `StudyScreen.kt`) replaces the previous `HAlertDialog`. It renders inside a `Dialog` with `emberElev` surface and shows:
+
+- mono eyebrow `session_completed_eyebrow`
+- serif headline `session_completed_title` ("Listo.")
+- italic serif subtitle `session_completed_desc` ("Repasaste N tarjetas.")
+- a stats row on `emberSurface` with the total count in `emberAccent` plus a mono label
+- a full-width `HButton` (`Accent` variant) as the "Volver" CTA, which calls `onDismiss`
+
+### Back content sub-composables (Phase 5b split)
+
+`FlashcardBackContent` now only picks one of three sub-composables based on whether the answer should be revealed and whether the typed answer matched:
+
+- `FlashcardBackPrompt` — front prompt re-shown when the answer must stay hidden
+- `FlashcardBackMismatch` — mismatch cards plus result message when the typed answer is wrong
+- `FlashcardBackReveal` — answer label + primary text + optional phonetic, supporting text, success message and `CardTypeAnswerSupport`
 
 ## Current effects
 

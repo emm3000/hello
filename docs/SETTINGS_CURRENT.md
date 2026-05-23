@@ -12,6 +12,8 @@
 
 `Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF). It's the only feature that interacts with OS `Uri`s.
 
+The screen follows the Ember dark redesign (Phase 2.8): mono eyebrow + serif headline + italic serif subtitle, a single `emberSurface` "Tus datos" section with the export and import rows separated by an `HSeparator`, and a footer with a serif italic tagline plus a muted mono meta line. The import row's subtitle ("Reemplazar todo lo que hay ahora") is rendered in `emberBad` to signal the destructive nature of the action.
+
 ## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/settings/SettingsRoute.kt`
@@ -32,7 +34,7 @@
 
 - `isExporting`
 - `isImporting`
-- `showConfirmDialog`
+- `isConfirmDialogVisible`
 - `pendingImportUri: Uri?`
 
 ## Export flow

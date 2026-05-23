@@ -16,27 +16,41 @@
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardScreen.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardViewModel.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardUiIntent.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardUiEffect.kt`
 
 ## State and criteria
 
 `DashboardUiState` consolidates into a single source:
 
+- `decks` (rendered list)
+- `totalDeckCount`
+- `isLoading`
 - `searchQuery`
 - `selectedTags`
 - `availableTags`
-- `decks` (rendered list)
-- `totalDeckCount`
+- `isFiltering`
 - `emptyState` (`LibraryEmpty`, `NoResults`, `None`)
+- `stats` (`DashboardStats?` — cards studied/due today, current streak, cards due this week)
 
-The rendered list is computed from active criteria (query + tags), not from parallel sources.
+The rendered list is computed from active criteria (query + tags), not from parallel sources. `DashboardUiEffect` is currently an empty sealed interface (no effects emitted).
+
+## Intents
+
+- `QueryChanged(value)` — updates `searchQuery` and feeds the search criteria flow.
+- `TagToggled(tag)` — normalizes the tag (`trim().lowercase()`) and toggles it in `selectedTags`.
+- `ClearFilters` — clears `searchQuery` + `selectedTags` and resets criteria to defaults.
+
+The `ViewModel` also exposes `onVisible()`, which the screen invokes via a `LaunchedEffect(Unit)` to load `DashboardStats` via `GetDashboardStatsUseCase` on entry.
 
 ## Search and filters
 
 - search by deck name, case-insensitive
 - tag filters with intersection (match ALL)
+- criteria flow is debounced (~120 ms) and de-duplicated before hitting `GetFilteredDecksUseCase`
 - `ClearFilters` action clears query + tags in a single step
 
 ## Filter persistence decision
@@ -55,11 +69,15 @@ Reason: keep behavior predictable and avoid stale state across sessions while th
 
 ## Reused UI components
 
-The UI uses shared components from `core/ui`:
+The UI uses shared components from `core/ui` (Ember dark redesign, Phase 2.1):
 
 - `HSearchBar`
-- `HTagChip`
-- `HButton`
-- `HBadge`
+- `HChip` (tag chips, including the `todos` chip)
+- `HButton` (`Accent` / `Secondary` / `Ghost`)
+- `HCard` (deck rows)
+- `HFab` (primary "New card" entry point)
+- `HEmptyState` (`LibraryEmpty` editorial state)
+- `HSectionLabel` ("Tus mazos")
+- `HStatCard` (inside `DashboardStatsSection`)
 
-No raw Material3 components are introduced for search/filter controls.
+The screen renders three top-level branches driven by `state.emptyState`: `EmptyLibraryContent` (`LibraryEmpty`), `NoResultsContent` (`NoResults`), and `PopulatedContent` (default). The FAB is hidden in the `LibraryEmpty` branch since the empty state provides its own CTA. Raw Material3 is only used for `Icon`/`IconButton` chrome (settings gear in the wordmark row).

@@ -10,7 +10,7 @@
 
 ## Summary
 
-`Edit Flashcard` loads an existing card, lets you edit its basic fields and examples, validates live, and persists the change via `UpdateFlashcardUseCase`. Opened from `Card Detail`.
+`Edit Flashcard` loads an existing card, lets you edit its basic fields and examples, validates live, and persists the change via `UpdateFlashcardUseCase`. It also exposes an in-screen "Borrar tarjeta" danger row that soft-deletes the card via `SoftDeleteFlashcardUseCase` after a confirmation dialog. Opened from `Card Detail`.
 
 ## Key files
 
@@ -29,6 +29,7 @@
 - editable fields: `word`, `meaning`, `translation`, `phonetic`, `partOfSpeech`, `examples: List<Example>`
 - errors: `wordError`, `meaningError`
 - `isSubmitting`
+- `isDeleteConfirmationVisible` (toggles the soft-delete confirmation dialog)
 - `isValid` (computed): `word` and `meaning` non-empty and no errors
 
 ## Load
@@ -53,6 +54,9 @@ Supported intents:
 - `AddExample` — appends an empty `Example`
 - `RemoveExample(index)` — bounded by `examples.indices`
 - `Submit` — short-circuits if `!isValid || isSubmitting`
+- `DeleteFlashcard` — opens the soft-delete confirmation dialog (sets `isDeleteConfirmationVisible = true`)
+- `ConfirmDeleteFlashcard` — runs `SoftDeleteFlashcardUseCase` and emits `FlashcardDeleted` on success
+- `DismissDeleteFlashcard` — closes the confirmation dialog
 
 ## Submit
 
@@ -69,10 +73,23 @@ Supported intents:
 `EditFlashcardUiEffect`:
 
 - `NavigateBack`
+- `FlashcardDeleted`
 - `ShowMessage(text)`
+
+## Delete
+
+`handleDelete()` (triggered by `ConfirmDeleteFlashcard`):
+
+- clears `isDeleteConfirmationVisible`
+- calls `SoftDeleteFlashcardUseCase(flashcardId)`
+- on success: emits `FlashcardDeleted`
+- on error: `ShowMessage`
+
+The screen body renders a `DangerRow` ("Borrar tarjeta", `emberBadSoft` background + `emberBad` icon/text) below the examples section that dispatches `DeleteFlashcard`. Confirmation uses `HAlertDialog` in dangerous variant.
 
 ## Persistence
 
 - Read: `FlashcardRepository.fetchById` (local).
 - Write: `UpdateFlashcardUseCase` (local).
+- Soft delete: `SoftDeleteFlashcardUseCase` (local).
 - No remote sync involved.

@@ -45,7 +45,7 @@ Two sibling flows on the same `deck` feature:
 - `deck: Deck` (empty default with `SystemClock`)
 - `hasSessionEnabled` (true if any card has `nextReviewAt <= now`)
 - `searchQuery`
-- `showDeleteConfirmation`
+- `isDeleteConfirmationVisible`
 
 ### Loading
 
@@ -87,8 +87,8 @@ The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards
 
 Only if `formMode is DeckFormMode.Edit`:
 
-- `DeckRepository.findById(deckId).first()`
-- populates `name`, `description`, `tags` from the loaded deck
+- `DeckRepository.fetchById(deckId.toDeckId()).first()`
+- populates `name`, `description`, `tags` (mapped from `Tag.value`) from the loaded deck
 
 ### Actions
 
@@ -101,7 +101,7 @@ Intents:
 
 ### Submit
 
-- `DeckFormMode.Create` → `DeckRepository.addDeck(CreateDeckInput(...))` → reset state + `NavigateBack`
+- `DeckFormMode.Create` → `DeckRepository.create(CreateDeckInput(...))` → reset state + `NavigateBack`
 - `DeckFormMode.Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` → `NavigateBack`
 
 ### Effects

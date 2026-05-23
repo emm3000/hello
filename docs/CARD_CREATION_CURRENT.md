@@ -63,8 +63,8 @@ Current gating:
 
 Current support:
 
-- microphone in word inputs
-- static categories via bottom sheet
+- microphone in word inputs. While `sttManager.isListening == true`, the big serif input grows a pulsing `emberAccent` ring around it and renders an uppercase Geist Mono "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with `emberAccent`, and pulses (Phase 3.2).
+- static categories via bottom sheet (`BottomSheetDialogForPickCategory`). Restyled in Phase 3.4: full-bleed `ModalBottomSheet` over `emberElev`, mono uppercase title, Instrument Serif 22sp category rows separated by `emberDivider`, and the selected row marks itself with an `emberAccent` `Outlined.Check` icon. No chips.
 - simple difficulty mapped to `LevelBand`
 
 ## Domain input
