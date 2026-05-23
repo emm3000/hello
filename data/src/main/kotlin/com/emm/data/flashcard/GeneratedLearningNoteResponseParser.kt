@@ -4,6 +4,7 @@ import com.emm.data.flashcard.iadto.GeneratedLearningNoteDto
 import com.emm.data.flashcard.iadto.GeneratedLearningNoteResponseDto
 import com.emm.data.flashcard.iadto.GeneratedNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.GeneratedStudyCardDto
+import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
@@ -32,8 +33,9 @@ object GeneratedLearningNoteResponseParser {
             val response = json.decodeFromString<GeneratedLearningNoteResponseDto>(raw)
             val data = response.data
             if (!response.success || data == null) {
-                val message = response.error?.message ?: "Unknown AI error"
-                throw IllegalArgumentException(message)
+                val message = response.error?.message
+                    ?: "La IA necesita más contexto para generar la tarjeta."
+                throw AmbiguousGenerationInputException(reason = message)
             }
             data.toValidatedDomain()
         } catch (error: SerializationException) {

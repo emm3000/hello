@@ -14,7 +14,7 @@ import com.google.firebase.ai.type.generationConfig
 import org.koin.dsl.module
 
 private const val MODEL_NAME = "gemini-2.5-flash-lite"
-private const val DEFAULT_TEMPERATURE = 0.1f
+private const val DEFAULT_TEMPERATURE = 0f
 private const val DEFAULT_TOP_P = 0.95f
 
 /**

@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.card
 
+import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GenerationQuotaExceededException
 import java.io.IOException
 import java.time.Instant
@@ -15,6 +16,7 @@ internal object NewCardErrorClassifier {
 
     fun classifyGenerationFailure(error: Throwable, fallbackMessage: String): ClassifiedError {
         error.findQuotaExceeded()?.let { return it.toClassifiedError() }
+        error.findAmbiguousInput()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
@@ -33,6 +35,7 @@ internal object NewCardErrorClassifier {
         fallbackMessage: String,
     ): ClassifiedError {
         error.findQuotaExceeded()?.let { return it.toClassifiedError() }
+        error.findAmbiguousInput()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
@@ -52,6 +55,24 @@ internal object NewCardErrorClassifier {
             current = current.cause?.takeIf { it !== current }
         }
         return null
+    }
+
+    private fun Throwable.findAmbiguousInput(): AmbiguousGenerationInputException? {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is AmbiguousGenerationInputException) return current
+            current = current.cause?.takeIf { it !== current }
+        }
+        return null
+    }
+
+    private fun AmbiguousGenerationInputException.toClassifiedError(): ClassifiedError {
+        return ClassifiedError(
+            title = "Necesito más contexto",
+            message = reason.ifBlank {
+                "Probá dar más detalle: una palabra, frase o intención comunicativa."
+            },
+        )
     }
 
     private fun GenerationQuotaExceededException.toClassifiedError(): ClassifiedError {

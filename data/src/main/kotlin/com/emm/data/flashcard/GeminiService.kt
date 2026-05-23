@@ -38,6 +38,48 @@ open class GeminiService(
         }
     }
 
+    /**
+     * Like [processLearningNote] but parses the response inside the retry loop:
+     * if the model returns a malformed payload (missing required field, wrong type),
+     * we retry the whole call instead of surfacing the error to the user.
+     */
+    open suspend fun <T> processLearningNoteWithParser(
+        prompt: String,
+        parse: (String) -> T,
+    ): T {
+        enforceQuota(kind = "learning_note")
+        val totalAttempts = backoffMs.size + 1
+        var lastError: Throwable? = null
+        var lastRaw = ""
+        repeat(totalAttempts) { attempt ->
+            try {
+                val raw = withTimeout(perAttemptTimeoutMs) {
+                    learningNoteModel.generateContent(prompt).text.orEmpty()
+                }
+                lastRaw = raw
+                return parse(raw)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                lastError = t
+            }
+            if (attempt < backoffMs.size) {
+                delay(backoffMs[attempt])
+            }
+        }
+        val error = lastError ?: IllegalStateException("Learning note generation failed without throwable")
+        if (lastRaw.isNotEmpty()) {
+            telemetry.recordParseFailure(
+                kind = "learning_note",
+                rawResponse = lastRaw.take(MAX_RAW_RESPONSE_CHARS),
+                cause = error,
+            )
+        } else {
+            telemetry.recordCallFailure(kind = "learning_note", attempts = totalAttempts, cause = error)
+        }
+        throw error
+    }
+
     private suspend fun enforceQuota(kind: String) {
         val outcome = quota.tryConsume()
         if (outcome is GenerationQuota.Outcome.Exceeded) {
@@ -70,6 +112,7 @@ open class GeminiService(
 
     private companion object {
         const val DEFAULT_TIMEOUT_MS: Long = 15_000L
+        const val MAX_RAW_RESPONSE_CHARS: Int = 8_000
         val DEFAULT_BACKOFF_MS: List<Long> = listOf(1_000L, 2_000L, 4_000L)
     }
 }

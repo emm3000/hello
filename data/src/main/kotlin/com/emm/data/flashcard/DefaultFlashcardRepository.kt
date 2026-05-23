@@ -251,8 +251,7 @@ class DefaultFlashcardRepository(
     override suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote =
         withContext(Dispatchers.IO) {
             val prompt = Prompt.buildLearningNotePrompt(input)
-            val response = geminiService.processLearningNote(prompt)
-            parseWithTelemetry(kind = "learning_note", rawResponse = response) {
+            geminiService.processLearningNoteWithParser(prompt) { response ->
                 GeneratedLearningNoteResponseParser.parse(response, json)
             }
         }
