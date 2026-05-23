@@ -895,15 +895,7 @@ private fun FlashcardBackContent(
     val shouldRevealAnswer = !needsTypedAnswer || typedAnswerChecked
     val isMismatch = needsTypedAnswer && typedAnswerChecked && !typedAnswerCorrect
     val primaryText = studyCard?.expectedAnswer ?: card?.translation.orEmpty()
-    val answerLabel = studyCard?.gradeAnswerLabel()
-        ?: stringResource(R.string.study_answer_label_default)
     val resultMessage = studyCard?.typedAnswerResultMessage(typedAnswerCorrect).orEmpty()
-    val supportingText = studyCard?.supportingBackText(card).orEmpty()
-    val backPhonetic = if (studyCard?.sourceField != "word" && card?.phonetic?.isNotBlank() == true) {
-        card.phonetic
-    } else {
-        ""
-    }
 
     Column(
         modifier = Modifier
@@ -912,105 +904,138 @@ private fun FlashcardBackContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        if (!shouldRevealAnswer) {
-            Text(
-                text = prompt,
-                fontFamily = instrumentSerif,
-                fontWeight = FontWeight.Normal,
-                fontSize = recallPromptFontSize,
-                lineHeight = recallPromptLineHeight,
-                letterSpacing = (-0.5).sp,
-                color = emberOnBg,
-                textAlign = TextAlign.Center,
-            )
-        }
-        if (shouldRevealAnswer && isMismatch) {
-            MismatchCards(
+        when {
+            !shouldRevealAnswer -> FlashcardBackPrompt(prompt = prompt)
+            isMismatch -> FlashcardBackMismatch(
                 typed = typedAnswer,
                 expected = primaryText,
+                resultMessage = resultMessage,
             )
-            if (resultMessage.isNotBlank()) {
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    text = resultMessage,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    color = emberMuted,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            else -> FlashcardBackReveal(
+                card = card,
+                studyCard = studyCard,
+                primaryText = primaryText,
+                resultMessage = resultMessage,
+                showMatchMessage = needsTypedAnswer && typedAnswerCorrect,
+            )
         }
-        if (shouldRevealAnswer && !isMismatch) {
-            Text(
-                text = answerLabel,
-                fontFamily = geistMono,
-                fontWeight = FontWeight.Medium,
-                fontSize = 10.5.sp,
-                letterSpacing = 0.12.em,
-                color = emberMuted,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = primaryText,
-                fontFamily = instrumentSerif,
-                fontWeight = FontWeight.Normal,
-                fontSize = gradeAnswerFontSize,
-                lineHeight = gradeAnswerLineHeight,
-                letterSpacing = (-0.5).sp,
-                textAlign = TextAlign.Center,
-                color = emberOnBg,
-            )
+    }
+}
 
-            if (backPhonetic.isNotBlank()) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = backPhonetic,
-                    fontFamily = geistMono,
-                    fontSize = 13.sp,
-                    color = emberHint,
-                    textAlign = TextAlign.Center,
-                )
-            }
+@Composable
+private fun FlashcardBackPrompt(prompt: String) {
+    Text(
+        text = prompt,
+        fontFamily = instrumentSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = recallPromptFontSize,
+        lineHeight = recallPromptLineHeight,
+        letterSpacing = (-0.5).sp,
+        color = emberOnBg,
+        textAlign = TextAlign.Center,
+    )
+}
 
-            if (supportingText.isNotBlank()) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = supportingText,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    lineHeight = 22.sp,
-                    color = emberMuted,
-                    textAlign = TextAlign.Center,
-                )
-            }
+@Composable
+private fun FlashcardBackMismatch(
+    typed: String,
+    expected: String,
+    resultMessage: String,
+) {
+    MismatchCards(typed = typed, expected = expected)
+    if (resultMessage.isNotBlank()) {
+        Spacer(Modifier.height(14.dp))
+        Text(
+            text = resultMessage,
+            fontFamily = instrumentSerif,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
+            color = emberMuted,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
 
-            val showMatchMessage = !isMismatch && needsTypedAnswer && typedAnswerCorrect
-            if (showMatchMessage && resultMessage.isNotBlank()) {
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = resultMessage,
-                    fontFamily = geistMono,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    letterSpacing = 0.08.em,
-                    color = emberGood,
-                    textAlign = TextAlign.Center,
-                )
-            }
+@Composable
+private fun FlashcardBackReveal(
+    card: Flashcard?,
+    studyCard: GeneratedStudyCard?,
+    primaryText: String,
+    resultMessage: String,
+    showMatchMessage: Boolean,
+) {
+    val answerLabel = studyCard?.gradeAnswerLabel()
+        ?: stringResource(R.string.study_answer_label_default)
+    val supportingText = studyCard?.supportingBackText(card).orEmpty()
+    val backPhonetic = if (studyCard?.sourceField != "word" && card?.phonetic?.isNotBlank() == true) {
+        card.phonetic
+    } else {
+        ""
+    }
 
-            studyCard?.let {
-                CardTypeAnswerSupport(
-                    card = card,
-                    studyCard = it,
-                )
-            }
-        }
+    Text(
+        text = answerLabel,
+        fontFamily = geistMono,
+        fontWeight = FontWeight.Medium,
+        fontSize = 10.5.sp,
+        letterSpacing = 0.12.em,
+        color = emberMuted,
+        textAlign = TextAlign.Center,
+    )
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = primaryText,
+        fontFamily = instrumentSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = gradeAnswerFontSize,
+        lineHeight = gradeAnswerLineHeight,
+        letterSpacing = (-0.5).sp,
+        textAlign = TextAlign.Center,
+        color = emberOnBg,
+    )
+
+    if (backPhonetic.isNotBlank()) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = backPhonetic,
+            fontFamily = geistMono,
+            fontSize = 13.sp,
+            color = emberHint,
+            textAlign = TextAlign.Center,
+        )
+    }
+
+    if (supportingText.isNotBlank()) {
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = supportingText,
+            fontFamily = instrumentSerif,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            lineHeight = 22.sp,
+            color = emberMuted,
+            textAlign = TextAlign.Center,
+        )
+    }
+
+    if (showMatchMessage && resultMessage.isNotBlank()) {
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = resultMessage,
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.08.em,
+            color = emberGood,
+            textAlign = TextAlign.Center,
+        )
+    }
+
+    studyCard?.let {
+        CardTypeAnswerSupport(card = card, studyCard = it)
     }
 }
 

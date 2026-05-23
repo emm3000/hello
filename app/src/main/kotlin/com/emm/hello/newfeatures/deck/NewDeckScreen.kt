@@ -359,7 +359,6 @@ private fun EmberTagsField(
                             inputValue = raw
                         }
                     },
-                    onCommit = commitTag,
                     onDoneAction = {
                         commitTag()
                         focusManager.clearFocus()
@@ -381,7 +380,6 @@ private fun EmberTagsField(
 private fun TagInline(
     value: String,
     onValueChange: (String) -> Unit,
-    onCommit: () -> Unit,
     onDoneAction: () -> Unit,
 ) {
     val placeholder = stringResource(R.string.new_deck_tag_placeholder)
