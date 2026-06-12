@@ -64,6 +64,8 @@ import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
+import com.emm.data.onboarding.DataStoreOnboardingStateRepository
+import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
@@ -121,6 +123,7 @@ fun Module.repository() {
     factoryOf(::DataStore)
     factoryOf(::ExportBackupDataSource) bind BackupExporter::class
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
+    factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     single { AppStartupCoordinator(get()) }
 }
 

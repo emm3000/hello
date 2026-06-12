@@ -2,6 +2,10 @@ package com.emm.data.remote
 
 import android.content.SharedPreferences
 
+private const val KEY_DEFAULT_DECK = "DEFAULT_DECK"
+private const val KEY_SEEN_ONBOARDING = "HAS_SEEN_ONBOARDING"
+private const val KEY_SEEN_GRADE_HINT = "HAS_SEEN_GRADE_HINT"
+
 class DataStore(
     private val sharedPreferences: SharedPreferences,
 ) {
@@ -9,12 +13,24 @@ class DataStore(
     private val editor: SharedPreferences.Editor by lazy { sharedPreferences.edit() }
 
     var defaultDeck
-        get() = sharedPreferences.getString("DEFAULT_DECK", "").orEmpty()
+        get() = sharedPreferences.getString(KEY_DEFAULT_DECK, "").orEmpty()
         set(value) {
-            editor.putString("DEFAULT_DECK", value).apply()
+            editor.putString(KEY_DEFAULT_DECK, value).apply()
         }
 
     fun clearDefaultDeck() {
-        editor.remove("DEFAULT_DECK").apply()
+        editor.remove(KEY_DEFAULT_DECK).apply()
     }
+
+    var hasSeenOnboarding: Boolean
+        get() = sharedPreferences.getBoolean(KEY_SEEN_ONBOARDING, false)
+        set(value) {
+            editor.putBoolean(KEY_SEEN_ONBOARDING, value).apply()
+        }
+
+    var hasSeenGradeHint: Boolean
+        get() = sharedPreferences.getBoolean(KEY_SEEN_GRADE_HINT, false)
+        set(value) {
+            editor.putBoolean(KEY_SEEN_GRADE_HINT, value).apply()
+        }
 }
