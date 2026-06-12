@@ -243,6 +243,30 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
     }
 
+    @Test
+    fun `grade hint stays hidden on second and subsequent cards when gradeHintSeen is true`() = runTest {
+        val repo = FakeOnboardingStateRepository(gradeHintSeen = true)
+        val viewModel = makeViewModel(
+            listOf(studyFlashcard("a"), studyFlashcard("b")),
+            onboardingRepo = repo,
+        )
+        advanceUntilIdle()
+
+        // First Grade stage — hint must be hidden
+        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
+        advanceUntilIdle()
+
+        // Second Grade stage — hint must still be hidden
+        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private fun makeViewModel(
