@@ -83,6 +83,7 @@ import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -112,16 +113,16 @@ fun Module.repository() {
     } bind DeckRepository::class
     factoryOf(::DefaultTagRepository) bind com.emm.domain.deck.TagRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
-    factoryOf(::DefaultFlashcardRepository)
-    factory<FlashcardRepository> { get<DefaultFlashcardRepository>() }
-    factory<StudySessionRepository> { get<DefaultFlashcardRepository>() }
-    factory<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
+    singleOf(::DefaultFlashcardRepository)
+    single<FlashcardRepository> { get<DefaultFlashcardRepository>() }
+    single<StudySessionRepository> { get<DefaultFlashcardRepository>() }
+    single<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultStudyStatsRepository) bind StudyStatsRepository::class
     factoryOf(::DefaultLocalIdentityInitializer) bind LocalIdentityInitializer::class
     factoryOf(::LocalDeviceIdentityProvider)
-    factoryOf(::DataStore)
+    singleOf(::DataStore)
     factoryOf(::ExportBackupDataSource) bind BackupExporter::class
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class

@@ -10,27 +10,25 @@ class DataStore(
     private val sharedPreferences: SharedPreferences,
 ) {
 
-    private val editor: SharedPreferences.Editor by lazy { sharedPreferences.edit() }
-
     var defaultDeck
         get() = sharedPreferences.getString(KEY_DEFAULT_DECK, "").orEmpty()
         set(value) {
-            editor.putString(KEY_DEFAULT_DECK, value).apply()
+            sharedPreferences.edit().putString(KEY_DEFAULT_DECK, value).apply()
         }
 
     fun clearDefaultDeck() {
-        editor.remove(KEY_DEFAULT_DECK).apply()
+        sharedPreferences.edit().remove(KEY_DEFAULT_DECK).apply()
     }
 
     var hasSeenOnboarding: Boolean
         get() = sharedPreferences.getBoolean(KEY_SEEN_ONBOARDING, false)
         set(value) {
-            editor.putBoolean(KEY_SEEN_ONBOARDING, value).apply()
+            sharedPreferences.edit().putBoolean(KEY_SEEN_ONBOARDING, value).apply()
         }
 
     var hasSeenGradeHint: Boolean
         get() = sharedPreferences.getBoolean(KEY_SEEN_GRADE_HINT, false)
         set(value) {
-            editor.putBoolean(KEY_SEEN_GRADE_HINT, value).apply()
+            sharedPreferences.edit().putBoolean(KEY_SEEN_GRADE_HINT, value).apply()
         }
 }
