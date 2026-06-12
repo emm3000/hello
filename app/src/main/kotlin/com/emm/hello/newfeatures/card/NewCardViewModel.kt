@@ -326,12 +326,12 @@ class NewCardViewModel(
                     copy(
                         error = NewCardErrorUi(
                             title = "Error al guardar",
-                            message = e.message ?: "No se pudo guardar la tarjeta",
+                            message = "No se pudo guardar la tarjeta",
                         ),
                         isLoading = false,
                     )
                 }
-                sendEffect(NewCardUiEffect.ShowMessage(e.message ?: "No se pudo guardar la tarjeta"))
+                sendEffect(NewCardUiEffect.ShowMessage("No se pudo guardar la tarjeta"))
             }
         }
     }

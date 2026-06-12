@@ -112,7 +112,7 @@ class NewDeckViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(NewDeckUiEffect.ShowMessage::class.java)
-        assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("boom")
+        assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("No se pudo crear el mazo")
         assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(repository.createCalls).isEqualTo(1)
     }

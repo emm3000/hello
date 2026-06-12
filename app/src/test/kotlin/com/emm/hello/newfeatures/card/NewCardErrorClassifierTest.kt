@@ -40,13 +40,13 @@ class NewCardErrorClassifierTest {
     }
 
     @Test
-    fun `parse exception keeps AI title and uses error message`() {
+    fun `parse exception keeps AI title and uses fallback message`() {
         val classified = NewCardErrorClassifier.classifyGenerationFailure(
             error = IllegalStateException("invalid enum value"),
             fallbackMessage = "fallback",
         )
         assertEquals("Respuesta inválida de IA", classified.title)
-        assertEquals("invalid enum value", classified.message)
+        assertEquals("fallback", classified.message)
     }
 
     @Test

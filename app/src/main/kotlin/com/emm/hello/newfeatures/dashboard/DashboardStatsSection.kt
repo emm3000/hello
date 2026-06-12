@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.emm.domain.study.DashboardStats
+import com.emm.hello.R
 import com.emm.hello.core.ui.HStatCard
 
 @Composable
@@ -24,13 +26,13 @@ fun DashboardStatsSection(
         ) {
             HStatCard(
                 value = "${stats.cardsStudiedToday}",
-                label = "Studied today",
+                label = stringResource(R.string.dashboard_stat_studied_today),
                 modifier = Modifier
                     .weight(1f),
             )
             HStatCard(
                 value = "${stats.cardsDueToday}",
-                label = "Due today",
+                label = stringResource(R.string.dashboard_stat_due_today),
                 modifier = Modifier
                     .weight(1f),
             )
@@ -40,13 +42,13 @@ fun DashboardStatsSection(
         ) {
             HStatCard(
                 value = "${stats.currentStreak}",
-                label = "Day streak",
+                label = stringResource(R.string.dashboard_stat_day_streak),
                 modifier = Modifier
                     .weight(1f),
             )
             HStatCard(
                 value = "${stats.cardsDueThisWeek}",
-                label = "Due this week",
+                label = stringResource(R.string.dashboard_stat_due_this_week),
                 modifier = Modifier
                     .weight(1f),
             )

@@ -41,7 +41,7 @@ class FlashcardDetailViewModel(
             runCatching { flashcardRepository.fetchById(flashcardId.toFlashcardId()) }
                 .onSuccess { flashcard -> setState { copy(flashcard = flashcard) } }
                 .onFailure {
-                    sendEffect(FlashcardDetailUiEffect.LoadFailed(it.message ?: "load_failed"))
+                    sendEffect(FlashcardDetailUiEffect.LoadFailed("No se pudo cargar la tarjeta"))
                 }
         }
     }
@@ -55,7 +55,7 @@ class FlashcardDetailViewModel(
         }.onFailure { error ->
             logError(TAG, "deleteFlashcard:error ${error.message}", error)
             sendEffect(
-                FlashcardDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar la tarjeta")
+                FlashcardDetailUiEffect.ShowMessage("No se pudo eliminar la tarjeta")
             )
         }
     }

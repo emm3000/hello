@@ -32,11 +32,11 @@ class SettingsViewModel(
             setState { copy(isExporting = true) }
             exportDataSource.export(uri)
                 .onSuccess {
-                    sendEffect(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
+                    sendEffect(SettingsUiEffect.ShowSuccess("Backup exportado correctamente"))
                 }
                 .onFailure { error ->
                     logError(TAG, "export:error ${error.message}", error)
-                    sendEffect(SettingsUiEffect.ShowError(error.message ?: "Export failed"))
+                    sendEffect(SettingsUiEffect.ShowError("No se pudo exportar el backup"))
                 }
             setState { copy(isExporting = false) }
         }
@@ -54,7 +54,7 @@ class SettingsViewModel(
             setState { copy(isImporting = true) }
             importDataSource.import(uri)
                 .onSuccess {
-                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restored successfully"))
+                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restaurado correctamente"))
                 }
                 .onFailure { error ->
                     logError(TAG, "import:error ${error.message}", error)
@@ -70,8 +70,8 @@ class SettingsViewModel(
 
     private fun humanizeImportError(error: Throwable): String = when {
         error is IncompatibleSchemaException || hasCause<IncompatibleSchemaException>(error) ->
-            "Este backup fue creado con otra versión de la app. Actualizá la app e intentá de nuevo."
-        else -> error.message ?: "No se pudo restaurar el backup."
+            "Este backup fue creado con otra versión de la app. Actualiza la app e intenta de nuevo."
+        else -> "No se pudo restaurar el backup."
     }
 
     private inline fun <reified T : Throwable> hasCause(error: Throwable): Boolean {

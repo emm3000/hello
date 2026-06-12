@@ -66,7 +66,7 @@ class DeckDetailViewModel(
             sendEffect(DeckDetailUiEffect.DeckDeleted)
         }.onFailure { error ->
             logError(TAG, "deleteDeck:error ${error.message}", error)
-            sendEffect(DeckDetailUiEffect.ShowMessage(error.message ?: "No se pudo eliminar el mazo"))
+            sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo eliminar el mazo"))
         }
     }
 }

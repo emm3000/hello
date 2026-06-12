@@ -57,7 +57,6 @@ class StudyAnswerPolicyTest {
             ReviewGrade.GOOD,
             ReviewGrade.EASY,
         )
-        assertThat(policy.guidance).contains("mínima disponible es Hard")
     }
 
     @Test
@@ -71,7 +70,6 @@ class StudyAnswerPolicyTest {
             ReviewGrade.AGAIN,
             ReviewGrade.HARD,
         )
-        assertThat(policy.guidance).contains("Good y Easy")
     }
 
     @Test
@@ -82,7 +80,6 @@ class StudyAnswerPolicyTest {
         )
 
         assertThat(policy.enabledGrades).containsExactlyElementsIn(ReviewGrade.entries)
-        assertThat(policy.guidance).isEmpty()
     }
 
     private fun productionCard(

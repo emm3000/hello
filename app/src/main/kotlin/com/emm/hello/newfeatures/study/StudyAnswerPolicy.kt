@@ -8,7 +8,6 @@ private val allReviewGrades = ReviewGrade.entries.toSet()
 
 internal data class ReviewGradePolicy(
     val enabledGrades: Set<ReviewGrade> = allReviewGrades,
-    val guidance: String = "",
 )
 
 internal val GeneratedStudyCard.needsTypedAnswer: Boolean
@@ -25,12 +24,10 @@ internal fun GeneratedStudyCard.gradePolicy(
     return if (typedAnswerCorrect) {
         ReviewGradePolicy(
             enabledGrades = setOf(ReviewGrade.HARD, ReviewGrade.GOOD, ReviewGrade.EASY),
-            guidance = "Como la respuesta coincidió, la nota mínima disponible es Hard.",
         )
     } else {
         ReviewGradePolicy(
             enabledGrades = setOf(ReviewGrade.AGAIN, ReviewGrade.HARD),
-            guidance = "Como la respuesta no coincidió, Good y Easy quedan bloqueadas.",
         )
     }
 }

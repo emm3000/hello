@@ -51,7 +51,7 @@ class NewDeckViewModel(
         }.onFailure { error ->
             logError(TAG, "loadDeck:error ${error.message}", error)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo cargar el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
         }
     }
 
@@ -80,7 +80,7 @@ class NewDeckViewModel(
         }.onFailure { error ->
             logError(TAG, "createDeck:error ${error.message}", error)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo crear el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo crear el mazo"))
         }
     }
 
@@ -100,7 +100,7 @@ class NewDeckViewModel(
         }.onFailure { error ->
             logError(TAG, "updateDeck:error ${error.message}", error)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage(error.message ?: "No se pudo actualizar el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo actualizar el mazo"))
         }
     }
 }

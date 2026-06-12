@@ -67,7 +67,7 @@ class EditFlashcardViewModel(
         }.onFailure { error ->
             logError(TAG, "loadFlashcard:error ${error.message}", error)
             setState { copy(isLoading = false) }
-            sendEffect(EditFlashcardUiEffect.ShowMessage(error.message ?: "No se pudo cargar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo cargar la tarjeta"))
         }
     }
 
@@ -121,7 +121,7 @@ class EditFlashcardViewModel(
             sendEffect(EditFlashcardUiEffect.FlashcardDeleted)
         }.onFailure { error ->
             logError(TAG, "handleDelete:error ${error.message}", error)
-            sendEffect(EditFlashcardUiEffect.ShowMessage(error.message ?: "No se pudo eliminar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo eliminar la tarjeta"))
         }
     }
 
@@ -148,7 +148,7 @@ class EditFlashcardViewModel(
         }.onFailure { error ->
             logError(TAG, "handleSubmit:error ${error.message}", error)
             setState { copy(isSubmitting = false) }
-            sendEffect(EditFlashcardUiEffect.ShowMessage(error.message ?: "No se pudo actualizar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo actualizar la tarjeta"))
         }
     }
 }

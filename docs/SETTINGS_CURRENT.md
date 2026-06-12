@@ -44,8 +44,8 @@ The screen follows the Ember dark redesign (Phase 2.8): mono eyebrow + serif hea
 3. `SettingsViewModel.onExportUri`:
    - `isExporting = true`
    - `BackupExporter.export(uri)`
-   - `onSuccess` → `ShowSuccess("Backup exported successfully")`
-   - `onFailure` → `ShowError(message)` + log
+   - `onSuccess` → `ShowSuccess("Backup exportado correctamente")`
+   - `onFailure` → `ShowError("No se pudo exportar el backup")` + log
 
 ## Import flow
 
@@ -53,7 +53,9 @@ The screen follows the Ember dark redesign (Phase 2.8): mono eyebrow + serif hea
 2. When a `Uri` is resolved, the `Route` calls `viewModel.onImportUri(uri)`.
 3. `onImportUri` stores `pendingImportUri` and shows the confirmation dialog.
 4. User confirms:
-   - `ConfirmImport` → `BackupImporter.import(uri)` with success/error feedback
+   - `ConfirmImport` → `BackupImporter.import(uri)`
+     - `onSuccess` → `ShowSuccess("Backup restaurado correctamente")`
+     - `onFailure` → `ShowError(humanizeImportError(error))` + log; `humanizeImportError` returns a fixed Spanish string — `IncompatibleSchemaException` (or a cause of it) maps to a version-mismatch message, all other errors map to `"No se pudo restaurar el backup."`. Raw `error.message` is never surfaced to the UI.
    - `CancelImport` → clears `pendingImportUri` and closes the dialog
 
 ## Effects

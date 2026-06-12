@@ -20,12 +20,12 @@ internal object NewCardErrorClassifier {
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
-                message = "No pudimos contactar al asistente. Verificá tu conexión y reintentá.",
+                message = "No pudimos contactar al asistente. Verifica tu conexión y reintenta.",
             )
         }
         return ClassifiedError(
             title = "Respuesta inválida de IA",
-            message = error.message ?: fallbackMessage,
+            message = fallbackMessage,
         )
     }
 
@@ -39,12 +39,12 @@ internal object NewCardErrorClassifier {
         if (error.isNetworkRelated()) {
             return ClassifiedError(
                 title = "Sin conexión",
-                message = "No pudimos contactar al asistente. Verificá tu conexión y reintentá.",
+                message = "No pudimos contactar al asistente. Verifica tu conexión y reintenta.",
             )
         }
         return ClassifiedError(
             title = failureTitle,
-            message = error.message ?: fallbackMessage,
+            message = fallbackMessage,
         )
     }
 
@@ -70,7 +70,7 @@ internal object NewCardErrorClassifier {
         return ClassifiedError(
             title = "Necesito más contexto",
             message = reason.ifBlank {
-                "Probá dar más detalle: una palabra, frase o intención comunicativa."
+                "Prueba dar más detalle: una palabra, frase o intención comunicativa."
             },
         )
     }
@@ -78,7 +78,7 @@ internal object NewCardErrorClassifier {
     private fun GenerationQuotaExceededException.toClassifiedError(): ClassifiedError {
         return ClassifiedError(
             title = "Llegamos al límite diario de IA.",
-            message = "Llegaste al máximo de $limit generaciones por día. Volvé a intentarlo mañana.",
+            message = "Llegaste al máximo de $limit generaciones por día. Vuelve a intentarlo mañana.",
             quotaResetAt = resetAt,
         )
     }
