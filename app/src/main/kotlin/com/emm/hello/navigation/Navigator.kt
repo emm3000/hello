@@ -13,4 +13,9 @@ class Navigator(
     fun goBack() {
         backStack.removeLastOrNull()
     }
+
+    fun replaceAll(destination: NavKey) {
+        backStack.clear()
+        backStack.add(destination)
+    }
 }

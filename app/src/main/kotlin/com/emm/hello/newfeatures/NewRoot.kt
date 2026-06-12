@@ -40,13 +40,17 @@ import com.emm.hello.newfeatures.deck.DeckDetailDestination
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckDestination
 import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.onboarding.OnboardingDestination
+import com.emm.hello.newfeatures.onboarding.OnboardingRoute
 import com.emm.hello.newfeatures.settings.SettingsDestination
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyDestination
 import com.emm.hello.newfeatures.study.StudyRoute
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
+import com.emm.domain.onboarding.OnboardingStateRepository
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 private const val NAV_TRANSITION_DURATION_MS = 350
 
@@ -65,7 +69,9 @@ fun NewRoot() {
 
 @Composable
 private fun AppNavigation() {
-    val backStack = rememberNavBackStack(DashboardRoute)
+    val onboardingState: OnboardingStateRepository = koinInject()
+    val startKey = remember { if (onboardingState.hasSeenWelcome()) DashboardRoute else OnboardingRoute }
+    val backStack = rememberNavBackStack(startKey)
     val navigator = remember(backStack) { Navigator(backStack) }
 
     NavDisplay(
@@ -107,6 +113,7 @@ private fun AppNavigation() {
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
+            entry<OnboardingRoute> { OnboardingDestination(navigator) }
             entry<DashboardRoute> { DashboardDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<NewCardRoute> { NewCardDestination(navigator) }
