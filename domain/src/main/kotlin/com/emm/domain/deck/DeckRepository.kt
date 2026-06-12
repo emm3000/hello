@@ -11,7 +11,7 @@ interface DeckRepository {
 
     suspend fun softDeleteDeck(deckId: DeckId)
 
-    fun fetchById(deckId: DeckId): Flow<Deck>
+    fun fetchById(deckId: DeckId): Flow<Deck?>
 
     fun fetchAll(): Flow<List<Deck>>
 

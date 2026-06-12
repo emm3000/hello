@@ -23,6 +23,7 @@ import com.emm.domain.time.Clock
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,6 +31,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDateTime
 
 class DeckDetailViewModelTest {
 
@@ -169,6 +171,36 @@ class DeckDetailViewModelTest {
         review = FlashcardReview.empty(fixedClock),
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `deck deleted while observed emits no crash — state remains`() = runTest {
+        val repo = FakeDeckRepoNullable()
+        val realDeck = Deck(
+            id = DeckId.from("deck-1"),
+            name = "Spanish",
+            description = "",
+            createdAt = LocalDateTime.parse("2026-03-18T10:00:00"),
+            cards = emptyList(),
+            cardsCount = 0L,
+        )
+        val viewModel = DeckDetailViewModel(
+            deckId = "deck-1",
+            getDeckDetailUseCase = GetDeckDetailUseCase(repo, FakeCardRepo()),
+            observeFlashcardsWithReviewUseCase = ObserveFlashcardsWithReviewUseCase(FakeStudyRepo()),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repo),
+        )
+        // Emit real deck so combine fires and state is populated
+        repo.emitDeck(realDeck)
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.deck.id.value).isEqualTo("deck-1")
+
+        // Emit null to simulate post-deletion query returning nothing
+        repo.emitNull()
+        advanceUntilIdle()
+        // filterNotNull dropped the null emission; state still holds the real deck
+        assertThat(viewModel.state.value.deck.id.value).isEqualTo("deck-1")
+    }
+
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -186,7 +218,21 @@ class DeckDetailViewModelTest {
 
     private class FakeDeckRepo : DeckRepository {
         override suspend fun create(deck: com.emm.domain.deck.CreateDeckInput) = Unit
-        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        override fun fetchById(deckId: DeckId): Flow<Deck?> = emptyFlow()
+        override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
+        override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
+        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override suspend fun update(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+    }
+
+    private class FakeDeckRepoNullable : DeckRepository {
+        private val flow = MutableSharedFlow<Deck?>(replay = 1)
+        fun emitDeck(deck: Deck) { flow.tryEmit(deck) }
+        fun emitNull() { flow.tryEmit(null) }
+        override fun fetchById(deckId: DeckId): Flow<Deck?> = flow
+        override suspend fun create(deck: com.emm.domain.deck.CreateDeckInput) = Unit
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
@@ -211,9 +257,11 @@ class DeckDetailViewModelTest {
         override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     }
 
-    private class FakeStudyRepo : StudySessionRepository {
+    private class FakeStudyRepo(
+        private val items: List<StudyFlashcard> = emptyList(),
+    ) : StudySessionRepository {
         override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> =
-            flowOf(emptyList())
+            flowOf(items)
         override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = emptyList()
     }
 }

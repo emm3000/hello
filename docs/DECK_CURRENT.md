@@ -51,8 +51,10 @@ Two sibling flows on the same `deck` feature:
 
 `DeckDetailViewModel.init` combines two flows:
 
-- `GetDeckDetailUseCase(deckId)` — deck info + cards
+- `GetDeckDetailUseCase(deckId)` — deck info + cards; returns `Flow<Deck?>` (nullable after `DefaultDeckRepository.fetchById` was changed to `mapToOneOrNull`)
 - `ObserveFlashcardsWithReviewUseCase(deckId)` — flashcards with review schedule
+
+The combine transform returns `null` when `GetDeckDetailUseCase` emits `null` (deck deleted mid-session); `.filterNotNull()` drops those emissions so state is never updated with a missing deck.
 
 The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards with the one from the study flow, keeping the rest of the fields.
 
@@ -63,6 +65,8 @@ The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards
 - `DeleteDeck` → opens confirmation
 - `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emits `DeckDeleted`
 - `DismissDeleteDeck` → closes confirmation
+
+`DeckDetailRoute` guards `onReview` and `onCardClick` against the `"empty-deck"` sentinel (the default placeholder `deckId` in `DeckDetailUiState`): neither navigation fires while the deck has not yet loaded from the DB. This prevents a crash when the deck is soft-deleted while the detail screen is open.
 
 ### Effects
 

@@ -40,6 +40,11 @@ class NewDeckViewModel(
         runCatching {
             deckRepository.fetchById(deckId.toDeckId()).first()
         }.onSuccess { deck ->
+            if (deck == null) {
+                setState { copy(isLoading = false) }
+                sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
+                return@onSuccess
+            }
             setState {
                 copy(
                     name = deck.name,

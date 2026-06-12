@@ -11,14 +11,14 @@ class GetDeckDetailUseCase(
     private val cardRepository: FlashcardRepository,
 ) {
 
-    operator fun invoke(deckId: String): Flow<Deck> {
+    operator fun invoke(deckId: String): Flow<Deck?> {
         val typedDeckId = deckId.toDeckId()
 
         return combine(
             flow = repository.fetchById(typedDeckId),
             flow2 = cardRepository.fetchByDeckId(typedDeckId)
-        ) { deck: Deck, cards: List<Flashcard> ->
-            deck.copy(cards = cards)
+        ) { deck: Deck?, cards: List<Flashcard> ->
+            deck?.copy(cards = cards)
         }
     }
 }

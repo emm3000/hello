@@ -11,6 +11,7 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -30,11 +31,16 @@ class DeckDetailViewModel(
         combine(
             flow = getDeckDetailUseCase(deckId),
             flow2 = fetchSessionCards(),
-            transform = { deck, (sessionCards, hasSessionEnabled) ->
-                val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
-                deck.copy(cards = mergedCards) to hasSessionEnabled
+            transform = { deck: com.emm.domain.deck.Deck?, (sessionCards, hasSessionEnabled) ->
+                if (deck == null) {
+                    null
+                } else {
+                    val mergedCards = mergeDeckCardsById(deck.cards, sessionCards)
+                    deck.copy(cards = mergedCards) to hasSessionEnabled
+                }
             }
         )
+            .filterNotNull()
             .onEach { (deck, hasSessionEnabled) ->
                 setState { copy(deck = deck, hasSessionEnabled = hasSessionEnabled) }
             }

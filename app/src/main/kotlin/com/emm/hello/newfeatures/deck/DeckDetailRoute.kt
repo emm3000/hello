@@ -45,15 +45,21 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
 
     DeckDetailScreen(
         onNavigateBack = { navigator.goBack() },
-        onReview = { navigator.navigateTo(StudyRoute(uiState.deck.id.value)) },
+        onReview = {
+            if (uiState.deck.id.value != "empty-deck") {
+                navigator.navigateTo(StudyRoute(uiState.deck.id.value))
+            }
+        },
         state = uiState,
         onCardClick = { cardId ->
-            navigator.navigateTo(
-                CardDetailRoute(
-                    cardId = cardId,
-                    deckId = uiState.deck.id.value,
-                ),
-            )
+            if (uiState.deck.id.value != "empty-deck") {
+                navigator.navigateTo(
+                    CardDetailRoute(
+                        cardId = cardId,
+                        deckId = uiState.deck.id.value,
+                    ),
+                )
+            }
         },
         onAddCard = { navigator.navigateTo(NewCardRoute) },
         onSearchChange = { vm.onIntent(DeckDetailUiIntent.SearchCardsChanged(it)) },

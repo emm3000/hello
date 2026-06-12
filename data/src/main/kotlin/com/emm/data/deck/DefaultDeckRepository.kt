@@ -2,7 +2,7 @@ package com.emm.data.deck
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.emm.data.DeckQueries
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
@@ -133,14 +133,14 @@ class DefaultDeckRepository(
         }
     }
 
-    override fun fetchById(deckId: DeckId): Flow<Deck> {
+    override fun fetchById(deckId: DeckId): Flow<Deck?> {
         val deckFlow = dq.findActiveById(deckId.value)
             .asFlow()
-            .mapToOne(Dispatchers.IO)
-            .map { entity -> entity.toDomain() }
+            .mapToOneOrNull(Dispatchers.IO)
+            .map { entity -> entity?.toDomain() }
         val tagsFlow = tagRepository.fetchTagsForDeck(deckId)
         return combine(deckFlow, tagsFlow) { deck, tags ->
-            deck.copy(tags = tags)
+            deck?.copy(tags = tags)
         }
     }
 
