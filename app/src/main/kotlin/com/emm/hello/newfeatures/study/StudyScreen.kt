@@ -1604,9 +1604,16 @@ private fun GradeHintCard(
                     color = emberAccent,
                 )
             }
-            GhostUnderlineButton(
+            Text(
                 text = stringResource(R.string.study_grade_hint_dismiss),
-                onClick = onDismiss,
+                fontFamily = geist,
+                fontWeight = FontWeight.Normal,
+                fontSize = 13.5.sp,
+                color = emberMuted,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .clickable(onClick = onDismiss)
+                    .padding(start = 12.dp, top = 2.dp),
             )
         }
     }
