@@ -109,6 +109,7 @@ import com.emm.hello.core.ui.HBadgeGroup
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
+import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HEmptyState
 import kotlin.math.ceil
 
@@ -167,6 +168,7 @@ fun StudyScreen(
     onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
+    onGradeHintDismissed: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
@@ -319,6 +321,7 @@ fun StudyScreen(
                         sessionStage = sessionStage,
                         currentItem = currentItem,
                         intervalPreviews = state.intervalPreviews,
+                        isGradeHintVisible = state.isGradeHintVisible,
                         typedAnswerState = TypedAnswerState(
                             typedAnswer = typedAnswer,
                             typedAnswerChecked = typedAnswerChecked,
@@ -355,6 +358,7 @@ fun StudyScreen(
                                 }
                             },
                         ),
+                        onGradeHintDismissed = onGradeHintDismissed,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -608,8 +612,10 @@ private fun StudyActionDock(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
     intervalPreviews: Map<ReviewGrade, Long>,
+    isGradeHintVisible: Boolean,
     typedAnswerState: TypedAnswerState,
     callbacks: StudyDockCallbacks,
+    onGradeHintDismissed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(
@@ -705,6 +711,9 @@ private fun StudyActionDock(
                 }
 
                 StudyStage.Grade -> {
+                    if (isGradeHintVisible) {
+                        GradeHintCard(onDismiss = onGradeHintDismissed)
+                    }
                     val needsTypedAnswer = currentItem?.studyCard?.needsTypedAnswer == true
                     val gradePolicy = currentItem?.studyCard?.gradePolicy(
                         typedAnswerChecked = typedAnswerState.typedAnswerChecked,
@@ -798,10 +807,12 @@ private fun StudyStartCard(totalCount: Int, estimatedMinutes: Int) {
 
 @Composable
 private fun StudyEmptyState() {
+    val srsConceptLine = stringResource(R.string.onboarding_srs_concept)
+    val studyEmptyBody = stringResource(R.string.study_empty_body)
     HEmptyState(
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
-        body = stringResource(R.string.study_empty_body),
+        body = "$srsConceptLine\n\n$studyEmptyBody",
     )
 }
 
@@ -1544,4 +1555,93 @@ private fun GhostUnderlineButton(text: String, onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
     )
+}
+
+@Composable
+private fun GradeHintCard(
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    HCard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.study_grade_hint_title).uppercase(),
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 10.5.sp,
+                    letterSpacing = 0.12.em,
+                    color = emberMuted,
+                )
+                Spacer(Modifier.height(4.dp))
+                GradeHintRow(
+                    label = stringResource(R.string.grade_again),
+                    effect = stringResource(R.string.study_grade_hint_again_effect),
+                    color = emberBad,
+                )
+                GradeHintRow(
+                    label = stringResource(R.string.grade_hard),
+                    effect = stringResource(R.string.study_grade_hint_hard_effect),
+                    color = emberWarn,
+                )
+                GradeHintRow(
+                    label = stringResource(R.string.grade_good),
+                    effect = stringResource(R.string.study_grade_hint_good_effect),
+                    color = emberOnBg,
+                )
+                GradeHintRow(
+                    label = stringResource(R.string.grade_easy),
+                    effect = stringResource(R.string.study_grade_hint_easy_effect),
+                    color = emberAccent,
+                )
+            }
+            GhostUnderlineButton(
+                text = stringResource(R.string.study_grade_hint_dismiss),
+                onClick = onDismiss,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GradeHintRow(
+    label: String,
+    effect: String,
+    color: Color,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            fontFamily = geist,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.5.sp,
+            color = color,
+        )
+        Text(
+            text = "·",
+            fontFamily = geist,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.5.sp,
+            color = emberFaint,
+        )
+        Text(
+            text = effect,
+            fontFamily = geist,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.5.sp,
+            color = emberMuted,
+        )
+    }
 }

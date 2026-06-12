@@ -9,4 +9,5 @@ data class StudyUiState(
     val totalCount: Int = 0,
     val sessionFinished: Boolean = false,
     val intervalPreviews: Map<ReviewGrade, Long> = emptyMap(),
+    val isGradeHintVisible: Boolean = false,
 ) : MviState

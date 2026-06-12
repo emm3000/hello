@@ -5,6 +5,7 @@ import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.study.PreviewNextInterval
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
@@ -20,6 +21,7 @@ class StudyViewModel(
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
     private val clock: Clock,
+    private val onboardingState: OnboardingStateRepository,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -28,6 +30,7 @@ class StudyViewModel(
     private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
     private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
     private val reviewsByFlashcardId = mutableMapOf<FlashcardId, FlashcardReview>()
+    private var gradeHintLatched: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -38,7 +41,9 @@ class StudyViewModel(
                 sf.toStudySessionItems()
             }
             studyItemsForToday.addAll(items)
-            setState { copy(totalCount = items.size) }
+            val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
+            gradeHintLatched = showHint
+            setState { copy(totalCount = items.size, isGradeHintVisible = showHint) }
             showNextCard()
         }
     }
@@ -63,6 +68,7 @@ class StudyViewModel(
             StudyUiIntent.BackClicked,
             StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
+            StudyUiIntent.GradeHintDismissed -> dismissGradeHint()
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 item = intent.item,
                 reviewResult = intent.reviewGrade,
@@ -70,7 +76,17 @@ class StudyViewModel(
         }
     }
 
+    private fun dismissGradeHint() {
+        if (!gradeHintLatched) return
+        gradeHintLatched = false
+        onboardingState.markGradeHintSeen()
+        setState { copy(isGradeHintVisible = false) }
+    }
+
     private fun processReviewAnswer(item: StudySessionItem?, reviewResult: ReviewGrade) = viewModelScope.launch {
+        if (gradeHintLatched) {
+            dismissGradeHint()
+        }
         val flashcardId = item?.flashcardId ?: return@launch
         aggregatedGradesByFlashcardId[flashcardId] = moreConservativeGrade(
             current = aggregatedGradesByFlashcardId[flashcardId],

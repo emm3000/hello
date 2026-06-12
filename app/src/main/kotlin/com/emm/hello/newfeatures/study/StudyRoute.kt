@@ -52,6 +52,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
             )
         },
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
+        onGradeHintDismissed = { vm.onIntent(StudyUiIntent.GradeHintDismissed) },
         state = uiState.value,
         showFinishDialog = showFinishDialog,
     )

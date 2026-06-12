@@ -200,6 +200,7 @@ fun Module.viewModels() {
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),
             clock = get(),
+            onboardingState = get(),
         )
     }
     viewModel {

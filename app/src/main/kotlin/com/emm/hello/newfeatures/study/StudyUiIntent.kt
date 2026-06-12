@@ -7,6 +7,7 @@ sealed interface StudyUiIntent : MviIntent {
     data object BackClicked : StudyUiIntent
     data object FinishDialogDismissed : StudyUiIntent
     data object CreateCardClicked : StudyUiIntent
+    data object GradeHintDismissed : StudyUiIntent
 
     data class ReviewAnswered(
         val item: StudySessionItem?,
