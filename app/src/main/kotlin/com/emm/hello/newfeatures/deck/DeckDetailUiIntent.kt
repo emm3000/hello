@@ -8,4 +8,5 @@ sealed interface DeckDetailUiIntent : MviIntent {
     data object DeleteDeck : DeckDetailUiIntent
     data object ConfirmDeleteDeck : DeckDetailUiIntent
     data object DismissDeleteDeck : DeckDetailUiIntent
+    data class UndoDeleteCard(val flashcardId: String, val deletedAt: Long) : DeckDetailUiIntent
 }

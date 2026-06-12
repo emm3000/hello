@@ -14,6 +14,7 @@
 
 ## Key files
 
+- `app/src/main/kotlin/com/emm/hello/newfeatures/shared/UndoEventHolder.kt` (shared singleton — also used by deck/card flows)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt`
@@ -46,14 +47,20 @@ The rendered list is computed from active criteria (query + tags), not from para
 - `TagToggled(tag)` — normalizes the tag (`trim().lowercase()`) and toggles it in `selectedTags`.
 - `ClearFilters` — clears `searchQuery` + `selectedTags` and resets criteria to defaults.
 - `StudyClicked` — picks the first deck from `allDecks` and emits `NavigateToStudy(deckId)`; no-op if the list is empty.
+- `UndoDeleteDeck(deckId, deletedAt)` — calls `RestoreDeckUseCase` to reverse a soft-delete using the cascade timestamp.
 
 ## Effects
 
 `DashboardUiEffect`:
 
 - `NavigateToStudy(deckId: String)` — collected in `DashboardDestination` via `LaunchedEffect(Unit)`; navigates to `StudyRoute(deckId)`.
+- `ShowUndoDeckDeleted(deckName, deckId, deletedAt)` — produced when `DashboardViewModel` receives a `UndoEvent.DeckDeleted` from `UndoEventHolder`; triggers a `SnackbarHost` snackbar ("Mazo X eliminado" + "Deshacer" action) in `DashboardScreen`.
 
 `DashboardRoute` wires `onStudy = { vm.onIntent(StudyClicked) }` and passes it down to `DashboardScreen`, which forwards it to the stats section's "Estudiar ahora" CTA. Previously that CTA called `newCard` directly (navigating to `NewCardRoute`).
+
+## Undo delete deck
+
+`DashboardViewModel` collects `UndoEvent.DeckDeleted` events from the app-level `UndoEventHolder` singleton (a `MutableSharedFlow` with `extraBufferCapacity = 1`, no replay) and converts them into `ShowUndoDeckDeleted` effects. `DashboardScreen` renders a `SnackbarHost`; tapping "Deshacer" dispatches `UndoDeleteDeck(deckId, deletedAt)`, which calls `RestoreDeckUseCase`.
 
 The `ViewModel` also exposes `onVisible()`, which the screen invokes via a `LaunchedEffect(Unit)` to load `DashboardStats` via `GetDashboardStatsUseCase` on entry.
 

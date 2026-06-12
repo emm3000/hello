@@ -4,13 +4,18 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -23,11 +28,27 @@ class DeckDetailViewModel(
     getDeckDetailUseCase: GetDeckDetailUseCase,
     private val observeFlashcardsWithReviewUseCase: ObserveFlashcardsWithReviewUseCase,
     private val softDeleteDeckUseCase: SoftDeleteDeckUseCase,
+    private val restoreFlashcardUseCase: RestoreFlashcardUseCase,
+    private val undoEventHolder: UndoEventHolder,
 ) : MviViewModel<DeckDetailUiState, DeckDetailUiIntent, DeckDetailUiEffect>(
     initialState = DeckDetailUiState(),
 ) {
 
     init {
+        // Collect card-deleted undo events so this screen can offer undo for flashcard deletions
+        // that happened in CardDetail (which navigates back here).
+        undoEventHolder.events
+            .filterIsInstance<UndoEvent.CardDeleted>()
+            .onEach { event ->
+                sendEffect(
+                    DeckDetailUiEffect.ShowUndoCardDeleted(
+                        flashcardId = event.flashcardId,
+                        deletedAt = event.deletedAt,
+                    )
+                )
+            }
+            .launchIn(viewModelScope)
+
         combine(
             flow = getDeckDetailUseCase(deckId),
             flow2 = fetchSessionCards(),
@@ -61,6 +82,7 @@ class DeckDetailViewModel(
             DeckDetailUiIntent.DeleteDeck -> setState { copy(isDeleteConfirmationVisible = true) }
             DeckDetailUiIntent.ConfirmDeleteDeck -> deleteDeck()
             DeckDetailUiIntent.DismissDeleteDeck -> setState { copy(isDeleteConfirmationVisible = false) }
+            is DeckDetailUiIntent.UndoDeleteCard -> undoDeleteCard(intent.flashcardId, intent.deletedAt)
         }
     }
 
@@ -68,12 +90,29 @@ class DeckDetailViewModel(
         setState { copy(isDeleteConfirmationVisible = false) }
         runCatching {
             softDeleteDeckUseCase(deckId.toDeckId())
-        }.onSuccess {
+        }.onSuccess { deletedAt ->
+            undoEventHolder.tryEmit(
+                UndoEvent.DeckDeleted(
+                    deckId = deckId,
+                    deletedAt = deletedAt,
+                    deckName = currentState.deck.name,
+                )
+            )
             sendEffect(DeckDetailUiEffect.DeckDeleted)
         }.onFailure { error ->
             logError(TAG, "deleteDeck:error ${error.message}", error)
             sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo eliminar el mazo"))
         }
+    }
+
+    private fun undoDeleteCard(flashcardId: String, deletedAt: Long) = viewModelScope.launch {
+        runCatching {
+            restoreFlashcardUseCase(flashcardId.toFlashcardId(), deletedAt)
+        }.onFailure { error ->
+            logError(TAG, "undoDeleteCard:error ${error.message}", error)
+            sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo restaurar la tarjeta"))
+        }
+        // On success, the reactive flashcard flow (ObserveFlashcardsWithReviewUseCase) refreshes automatically.
     }
 }
 

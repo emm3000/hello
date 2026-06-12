@@ -6,12 +6,15 @@ import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import kotlinx.coroutines.launch
 
 class FlashcardDetailViewModel(
     private val flashcardId: String,
     private val flashcardRepository: FlashcardRepository,
     private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
+    private val undoEventHolder: UndoEventHolder,
 ) : MviViewModel<FlashcardDetailUiState, FlashcardDetailUiIntent, FlashcardDetailUiEffect>(
     initialState = FlashcardDetailUiState(),
 ) {
@@ -50,7 +53,10 @@ class FlashcardDetailViewModel(
         setState { copy(isDeleteConfirmationVisible = false) }
         runCatching {
             softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
-        }.onSuccess {
+        }.onSuccess { deletedAt ->
+            undoEventHolder.tryEmit(
+                UndoEvent.CardDeleted(flashcardId = flashcardId, deletedAt = deletedAt)
+            )
             sendEffect(FlashcardDetailUiEffect.FlashcardDeleted)
         }.onFailure { error ->
             logError(TAG, "deleteFlashcard:error ${error.message}", error)

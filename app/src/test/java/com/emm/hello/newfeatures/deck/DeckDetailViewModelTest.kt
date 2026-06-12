@@ -1,25 +1,29 @@
 package com.emm.hello.newfeatures.deck
 
+import app.cash.turbine.test
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DeckSearchCriteria
-import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
+import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
-import com.emm.hello.MainDispatcherRule
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
-import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.time.Clock
+import com.emm.hello.MainDispatcherRule
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -183,11 +187,14 @@ class DeckDetailViewModelTest {
             cards = emptyList(),
             cardsCount = 0L,
         )
+        val cardRepo = FakeCardRepo()
         val viewModel = DeckDetailViewModel(
             deckId = "deck-1",
-            getDeckDetailUseCase = GetDeckDetailUseCase(repo, FakeCardRepo()),
+            getDeckDetailUseCase = GetDeckDetailUseCase(repo, cardRepo),
             observeFlashcardsWithReviewUseCase = ObserveFlashcardsWithReviewUseCase(FakeStudyRepo()),
             softDeleteDeckUseCase = SoftDeleteDeckUseCase(repo),
+            restoreFlashcardUseCase = RestoreFlashcardUseCase(cardRepo),
+            undoEventHolder = UndoEventHolder(),
         )
         // Emit real deck so combine fires and state is populated
         repo.emitDeck(realDeck)
@@ -204,16 +211,53 @@ class DeckDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun makeViewModel(): DeckDetailViewModel {
-        val deckRepo = FakeDeckRepo()
-        val cardRepo = FakeCardRepo()
+    private fun makeViewModel(
+        deckRepo: FakeDeckRepo = FakeDeckRepo(),
+        cardRepo: FakeCardRepo = FakeCardRepo(),
+        undoEventHolder: UndoEventHolder = UndoEventHolder(),
+    ): DeckDetailViewModel {
         val studyRepo = FakeStudyRepo()
         return DeckDetailViewModel(
             deckId = "deck-1",
             getDeckDetailUseCase = GetDeckDetailUseCase(deckRepo, cardRepo),
             observeFlashcardsWithReviewUseCase = ObserveFlashcardsWithReviewUseCase(studyRepo),
             softDeleteDeckUseCase = SoftDeleteDeckUseCase(deckRepo),
+            restoreFlashcardUseCase = RestoreFlashcardUseCase(cardRepo),
+            undoEventHolder = undoEventHolder,
         )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `deleteDeck emits DeckDeleted undo event to holder`() = runTest {
+        val holder = UndoEventHolder()
+        val deckRepo = FakeDeckRepo()
+        val viewModel = makeViewModel(deckRepo = deckRepo, undoEventHolder = holder)
+        advanceUntilIdle()
+
+        holder.events.test {
+            viewModel.onIntent(DeckDetailUiIntent.ConfirmDeleteDeck)
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertThat(event).isInstanceOf(UndoEvent.DeckDeleted::class.java)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `CardDeleted undo event from holder emits ShowUndoCardDeleted effect`() = runTest {
+        val holder = UndoEventHolder()
+        val viewModel = makeViewModel(undoEventHolder = holder)
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            holder.tryEmit(UndoEvent.CardDeleted(flashcardId = "card-1", deletedAt = 888L))
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(DeckDetailUiEffect.ShowUndoCardDeleted::class.java)
+            val undoEffect = effect as DeckDetailUiEffect.ShowUndoCardDeleted
+            assertThat(undoEffect.flashcardId).isEqualTo("card-1")
+            assertThat(undoEffect.deletedAt).isEqualTo(888L)
+        }
     }
 
     private class FakeDeckRepo : DeckRepository {
@@ -224,7 +268,8 @@ class DeckDetailViewModelTest {
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
         override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
         override suspend fun update(input: UpdateDeckInput) = Unit
-        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
     }
 
     private class FakeDeckRepoNullable : DeckRepository {
@@ -238,7 +283,8 @@ class DeckDetailViewModelTest {
         override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
         override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
         override suspend fun update(input: UpdateDeckInput) = Unit
-        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
     }
 
     private class FakeCardRepo : FlashcardRepository {
@@ -253,7 +299,8 @@ class DeckDetailViewModelTest {
             flashcardId: FlashcardId,
         ) = Unit
         override suspend fun update(input: UpdateFlashcardInput) = Unit
-        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
+        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
+        override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
         override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     }
 

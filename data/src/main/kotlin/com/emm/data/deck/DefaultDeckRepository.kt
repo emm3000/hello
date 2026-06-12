@@ -117,19 +117,31 @@ class DefaultDeckRepository(
         }
     }
 
-    override suspend fun softDeleteDeck(deckId: DeckId) = withContext(Dispatchers.IO) {
+    override suspend fun softDeleteDeck(deckId: DeckId): Long = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
 
         db.transactionWithResult {
             dq.findActiveById(deckId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Deck not found or already deleted: ${deckId.value}")
 
-            // Cascade soft-delete: deck → flashcards → examples (FK does not propagate deletedAt).
-            dq.softDelete(now = now, id = deckId.value)
-            dq.softDeleteFlashcardsByDeck(now = now, deckId = deckId.value)
+            // Cascade soft-delete (FK does not propagate deletedAt). Examples must go first:
+            // softDeleteExamplesByDeck selects live flashcards, which stop matching once
+            // softDeleteFlashcardsByDeck marks them deleted.
             dq.softDeleteExamplesByDeck(now = now, deckId = deckId.value)
+            dq.softDeleteFlashcardsByDeck(now = now, deckId = deckId.value)
+            dq.softDelete(now = now, id = deckId.value)
 
-            Unit
+            now
+        }
+    }
+
+    override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = withContext(Dispatchers.IO) {
+        db.transaction {
+            // Restore only rows stamped with the exact cascade timestamp — rows deleted
+            // earlier (different deletedAt) are intentionally left deleted.
+            dq.restoreExamplesByDeck(deletedAt = deletedAt, deckId = deckId.value)
+            dq.restoreFlashcardsByDeck(deckId = deckId.value, deletedAt = deletedAt)
+            dq.restoreDeck(id = deckId.value, deletedAt = deletedAt)
         }
     }
 

@@ -13,6 +13,7 @@ import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -37,6 +38,7 @@ class FlashcardDetailViewModelTest {
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(detail),
             softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
+            undoEventHolder = UndoEventHolder(),
         )
 
         assertThat(viewModel.state.value.flashcard.flashcard.id.value).isEqualTo("card-1")
@@ -49,6 +51,7 @@ class FlashcardDetailViewModelTest {
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(shouldFail = true),
             softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
+            undoEventHolder = UndoEventHolder(),
         )
 
         viewModel.effect.test {
@@ -70,7 +73,8 @@ class FlashcardDetailViewModelTest {
         }
         override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
         override suspend fun update(input: UpdateFlashcardInput) = throw UnsupportedOperationException()
-        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
+        override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
+        override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
         override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
         override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     }

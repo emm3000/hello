@@ -171,3 +171,15 @@ UPDATE FlashcardExample
 SET deletedAt = :now
 WHERE flashcardId = :flashcardId
   AND deletedAt IS NULL;
+
+restoreFlashcard:
+UPDATE Flashcard
+SET deletedAt = NULL
+WHERE id = :id
+  AND deletedAt = :deletedAt;
+
+restoreExamplesByFlashcard:
+UPDATE FlashcardExample
+SET deletedAt = NULL
+WHERE flashcardId = :flashcardId
+  AND deletedAt = :deletedAt;

@@ -140,6 +140,7 @@ class NewDeckViewModelTest {
         override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
         override suspend fun update(input: UpdateDeckInput) = Unit
-        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
     }
 }

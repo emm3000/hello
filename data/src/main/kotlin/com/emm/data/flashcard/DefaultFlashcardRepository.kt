@@ -165,7 +165,7 @@ class DefaultFlashcardRepository(
         dao.countDueFlashcards(now = nowMillis).executeAsOne()
     }
 
-    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = withContext(Dispatchers.IO) {
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
 
         db.transactionWithResult {
@@ -178,7 +178,15 @@ class DefaultFlashcardRepository(
             dao.softDelete(now = now, id = flashcardId.value)
             dao.softDeleteExamplesByFlashcard(now = now, flashcardId = flashcardId.value)
 
-            Unit
+            now
+        }
+    }
+
+    override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = withContext(Dispatchers.IO) {
+        db.transaction {
+            // Restore only rows stamped with the exact cascade timestamp.
+            dao.restoreExamplesByFlashcard(flashcardId = flashcardId.value, deletedAt = deletedAt)
+            dao.restoreFlashcard(id = flashcardId.value, deletedAt = deletedAt)
         }
     }
 

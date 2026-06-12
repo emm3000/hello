@@ -5,9 +5,10 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DeckSearchCriteria
-import com.emm.domain.deck.Tag
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetFilteredDecksUseCase
+import com.emm.domain.deck.RestoreDeckUseCase
+import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
@@ -15,6 +16,8 @@ import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -220,12 +223,15 @@ class DashboardViewModelTest {
     }
 
     private fun makeViewModel(
-        deckRepo: FakeDeckRepo = FakeDeckRepo(),
+        deckRepo: DeckRepository = FakeDeckRepo(),
         statsUseCase: GetDashboardStatsUseCase = makeDefaultStatsUseCase(),
+        undoEventHolder: UndoEventHolder = UndoEventHolder(),
     ): DashboardViewModel = DashboardViewModel(
         getDecksUseCase = GetDecksUseCase(deckRepo),
         getFilteredDecksUseCase = GetFilteredDecksUseCase(deckRepo),
         getDashboardStatsUseCase = statsUseCase,
+        restoreDeckUseCase = RestoreDeckUseCase(deckRepo),
+        undoEventHolder = undoEventHolder,
     )
 
     private fun sampleDeck(
@@ -279,7 +285,53 @@ class DashboardViewModelTest {
         override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
         override suspend fun update(input: UpdateDeckInput) = Unit
-        override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
+    }
+
+    private class SpyDeckRepo(private val onRestore: () -> Unit) : DeckRepository {
+        private val deckFlow = MutableStateFlow<List<Deck>>(emptyList())
+        override suspend fun create(deck: CreateDeckInput) = Unit
+        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
+        override fun deckWithFlashcardCount(): Flow<List<Deck>> = deckFlow
+        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = deckFlow
+        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
+        override suspend fun update(input: UpdateDeckInput) = Unit
+        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = onRestore()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `DeckDeleted undo event from holder emits ShowUndoDeckDeleted effect`() = runTest {
+        val holder = UndoEventHolder()
+        val viewModel = makeViewModel(undoEventHolder = holder)
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            holder.tryEmit(UndoEvent.DeckDeleted(deckId = "d1", deletedAt = 999L, deckName = "Spanish"))
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(ShowUndoDeckDeleted::class.java)
+            val undoEffect = effect as ShowUndoDeckDeleted
+            assertThat(undoEffect.deckId).isEqualTo("d1")
+            assertThat(undoEffect.deletedAt).isEqualTo(999L)
+            assertThat(undoEffect.deckName).isEqualTo("Spanish")
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `UndoDeleteDeck intent calls restoreDeckUseCase`() = runTest {
+        var restoreCalled = false
+        val deckRepo = SpyDeckRepo(onRestore = { restoreCalled = true })
+        val viewModel = makeViewModel(deckRepo = deckRepo)
+        advanceUntilIdle()
+
+        viewModel.onIntent(UndoDeleteDeck(deckId = "d1", deletedAt = 999L))
+        advanceUntilIdle()
+
+        assertThat(restoreCalled).isTrue()
     }
 
     private class FakeStatsRepo(

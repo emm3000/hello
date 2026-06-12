@@ -31,6 +31,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -89,6 +91,7 @@ import java.util.Locale
 fun DeckDetailScreen(
     modifier: Modifier = Modifier,
     state: DeckDetailUiState = DeckDetailUiState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onNavigateBack: () -> Unit = {},
     onReview: () -> Unit = {},
     onCardClick: (String) -> Unit = {},
@@ -195,6 +198,13 @@ fun DeckDetailScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 20.dp, bottom = 24.dp),
+            )
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 88.dp),
             )
         }
     }

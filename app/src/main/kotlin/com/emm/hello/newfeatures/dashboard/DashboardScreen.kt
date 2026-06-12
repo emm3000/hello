@@ -24,9 +24,12 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -74,6 +77,7 @@ import java.time.LocalDateTime
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     state: DashboardUiState = DashboardUiState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     newCard: () -> Unit = {},
     onStudy: () -> Unit = {},
     onDeckDetail: (String) -> Unit = {},
@@ -140,6 +144,13 @@ fun DashboardScreen(
                     .padding(end = 20.dp, bottom = 24.dp),
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 88.dp),
+        )
     }
 }
 

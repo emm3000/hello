@@ -6,7 +6,7 @@ class SoftDeleteFlashcardUseCase(
     private val flashcardRepository: FlashcardRepository,
 ) {
 
-    suspend operator fun invoke(flashcardId: FlashcardId) {
-        flashcardRepository.softDeleteFlashcard(flashcardId)
+    suspend operator fun invoke(flashcardId: FlashcardId): Long {
+        return flashcardRepository.softDeleteFlashcard(flashcardId)
     }
 }

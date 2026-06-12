@@ -122,7 +122,7 @@
     <string name="edit_deck_title">Editar mazo</string>
     <string name="save_changes">Guardar cambios</string>
     <string name="delete_deck_title">Eliminar mazo</string>
-    <string name="delete_deck_description">Esta acción no se puede deshacer. Se eliminarán todas las tarjetas asociadas.</string>
+    <string name="delete_deck_description">Se eliminará el mazo y sus tarjetas. Puedes deshacer justo después.</string>
 
     <!-- Flashcards -->
     <string name="new_card_title">Nueva tarjeta</string>
@@ -520,12 +520,17 @@
     <string name="edit_flashcard_example_number">Ejemplo %1$d</string>
     <string name="edit_flashcard_remove_example">Eliminar ejemplo</string>
     <string name="delete_flashcard_title">Eliminar tarjeta</string>
-    <string name="delete_flashcard_description">Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a esta tarjeta.</string>
+    <string name="delete_flashcard_description">Se eliminará la tarjeta y sus datos. Puedes deshacer justo después.</string>
     <!-- Edit Flashcard Ember (Phase 2.7) -->
     <string name="edit_flashcard_action_save">Guardar</string>
     <string name="edit_flashcard_close_content_description">Cerrar</string>
     <string name="edit_flashcard_add_inline">+ agregar</string>
     <string name="edit_flashcard_delete_action">Borrar tarjeta</string>
     <string name="part_of_speech_label">Categoría gramatical</string>
+
+    <!-- Undo snackbar -->
+    <string name="undo_action_label">Deshacer</string>
+    <string name="undo_deck_deleted_message">Mazo \"%1$s\" eliminado</string>
+    <string name="undo_card_deleted_message">Tarjeta eliminada</string>
 
 </resources>

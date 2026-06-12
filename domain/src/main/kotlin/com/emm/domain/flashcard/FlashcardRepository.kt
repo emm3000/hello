@@ -15,7 +15,9 @@ interface FlashcardRepository {
 
     suspend fun update(input: UpdateFlashcardInput)
 
-    suspend fun softDeleteFlashcard(flashcardId: FlashcardId)
+    suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long
+
+    suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long)
 
     suspend fun countDueFlashcards(nowMillis: Long): Long
 

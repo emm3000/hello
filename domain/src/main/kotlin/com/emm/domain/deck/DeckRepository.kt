@@ -9,7 +9,9 @@ interface DeckRepository {
 
     suspend fun update(input: UpdateDeckInput)
 
-    suspend fun softDeleteDeck(deckId: DeckId)
+    suspend fun softDeleteDeck(deckId: DeckId): Long
+
+    suspend fun restoreDeck(deckId: DeckId, deletedAt: Long)
 
     fun fetchById(deckId: DeckId): Flow<Deck?>
 

@@ -27,6 +27,7 @@ import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.GetFilteredDecksUseCase
+import com.emm.domain.deck.RestoreDeckUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
@@ -38,6 +39,7 @@ import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.CountDueFlashcardsUseCase
+import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
@@ -63,6 +65,7 @@ import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.card.NewCardViewModel
@@ -84,6 +87,7 @@ import org.koin.dsl.module
 val newModule = module {
     single { provideSqlDriver(androidContext()) }
     single<HelloDb> { provideDb(get()) }
+    single { UndoEventHolder() }
 
     repository()
     useCases()
@@ -160,8 +164,10 @@ fun Module.useCases() {
     factoryOf(::GetDashboardStatsUseCase)
     factoryOf(::UpdateDeckUseCase)
     factoryOf(::SoftDeleteDeckUseCase)
+    factoryOf(::RestoreDeckUseCase)
     factoryOf(::UpdateFlashcardUseCase)
     factoryOf(::SoftDeleteFlashcardUseCase)
+    factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
 }
 
@@ -174,7 +180,7 @@ fun Module.viewModels() {
             formMode = params.get(),
         )
     }
-    viewModel { DashboardViewModel(get(), get(), get()) }
+    viewModel { DashboardViewModel(get(), get(), get(), get(), get()) }
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),
@@ -198,6 +204,8 @@ fun Module.viewModels() {
             getDeckDetailUseCase = get(),
             observeFlashcardsWithReviewUseCase = get(),
             softDeleteDeckUseCase = get(),
+            restoreFlashcardUseCase = get(),
+            undoEventHolder = get(),
         )
     }
     viewModel {
@@ -205,6 +213,7 @@ fun Module.viewModels() {
             flashcardId = it.get(),
             flashcardRepository = get(),
             softDeleteFlashcardUseCase = get(),
+            undoEventHolder = get(),
         )
     }
     viewModel {

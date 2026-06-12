@@ -4,14 +4,20 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.GetFilteredDecksUseCase
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.RestoreDeckUseCase
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.hello.core.mvi.MviViewModel
+import com.emm.hello.logging.logError
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -25,6 +31,8 @@ class DashboardViewModel(
     getDecksUseCase: GetDecksUseCase,
     private val getFilteredDecksUseCase: GetFilteredDecksUseCase,
     private val getDashboardStatsUseCase: GetDashboardStatsUseCase,
+    private val restoreDeckUseCase: RestoreDeckUseCase,
+    private val undoEventHolder: UndoEventHolder,
 ) : MviViewModel<DashboardUiState, DashboardUiIntent, DashboardUiEffect>(
     initialState = DashboardUiState(isLoading = true),
 ) {
@@ -33,6 +41,20 @@ class DashboardViewModel(
     private var allDecks: List<com.emm.domain.deck.Deck> = emptyList()
 
     init {
+        // Collect deck-deleted undo events emitted by DeckDetailViewModel after a soft-delete.
+        undoEventHolder.events
+            .filterIsInstance<UndoEvent.DeckDeleted>()
+            .onEach { event ->
+                sendEffect(
+                    ShowUndoDeckDeleted(
+                        deckName = event.deckName,
+                        deckId = event.deckId,
+                        deletedAt = event.deletedAt,
+                    )
+                )
+            }
+            .launchIn(viewModelScope)
+
         combine(
             flow = getDecksUseCase(),
             flow2 = criteria
@@ -82,7 +104,18 @@ class DashboardViewModel(
                 val target = allDecks.firstOrNull() ?: return
                 sendEffect(NavigateToStudy(target.id.value))
             }
+
+            is UndoDeleteDeck -> undoDeleteDeck(intent.deckId, intent.deletedAt)
         }
+    }
+
+    private fun undoDeleteDeck(deckId: String, deletedAt: Long) = viewModelScope.launch {
+        runCatching {
+            restoreDeckUseCase(deckId.toDeckId(), deletedAt)
+        }.onFailure { error ->
+            logError(TAG, "undoDeleteDeck:error ${error.message}", error)
+        }
+        // On success the reactive deck list refreshes automatically via getDecksUseCase Flow.
     }
 
     private fun buildState(
@@ -121,3 +154,5 @@ class DashboardViewModel(
         return DashboardEmptyState.None
     }
 }
+
+private const val TAG = "DashboardViewModel"

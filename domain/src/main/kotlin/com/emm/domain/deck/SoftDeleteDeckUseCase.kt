@@ -6,7 +6,7 @@ class SoftDeleteDeckUseCase(
     private val deckRepository: DeckRepository,
 ) {
 
-    suspend operator fun invoke(deckId: DeckId) {
-        deckRepository.softDeleteDeck(deckId)
+    suspend operator fun invoke(deckId: DeckId): Long {
+        return deckRepository.softDeleteDeck(deckId)
     }
 }

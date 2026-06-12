@@ -63,8 +63,9 @@ The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards
 - `SearchCardsChanged(query)` — updates local filter (matching by `word`, `translation`, `meaning`, case-insensitive)
 - `EditDeck` → emits `NavigateToEditDeck(deckId)`
 - `DeleteDeck` → opens confirmation
-- `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emits `DeckDeleted`
+- `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emits `DeckDeleted` to `DeckDetailUiEffect` and emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
 - `DismissDeleteDeck` → closes confirmation
+- `UndoDeleteCard(flashcardId, deletedAt)` — calls `RestoreFlashcardUseCase` to reverse a soft-delete using the cascade timestamp.
 
 `DeckDetailRoute` guards `onReview` and `onCardClick` against the `"empty-deck"` sentinel (the default placeholder `deckId` in `DeckDetailUiState`): neither navigation fires while the deck has not yet loaded from the DB. This prevents a crash when the deck is soft-deleted while the detail screen is open.
 
@@ -75,6 +76,11 @@ The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards
 - `NavigateToEditDeck(deckId)`
 - `DeckDeleted`
 - `ShowMessage(text)`
+- `ShowUndoCardDeleted(flashcardId, deletedAt)` — produced when `DeckDetailViewModel` receives a `UndoEvent.CardDeleted` from `UndoEventHolder`; triggers a snackbar ("Tarjeta eliminada" + "Deshacer") in `DeckDetailScreen`.
+
+### Undo delete card
+
+`DeckDetailViewModel` collects `UndoEvent.CardDeleted` from `UndoEventHolder` and emits `ShowUndoCardDeleted`. Tapping "Deshacer" dispatches `UndoDeleteCard(flashcardId, deletedAt)`, which calls `RestoreFlashcardUseCase`.
 
 ## New / Edit Deck
 

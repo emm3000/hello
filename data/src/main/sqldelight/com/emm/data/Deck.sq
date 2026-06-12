@@ -118,3 +118,21 @@ WHERE flashcardId IN (
       AND deletedAt IS NULL
 )
 AND deletedAt IS NULL;
+
+restoreDeck:
+UPDATE Deck
+SET deletedAt = NULL
+WHERE id = :id
+  AND deletedAt = :deletedAt;
+
+restoreFlashcardsByDeck:
+UPDATE Flashcard
+SET deletedAt = NULL
+WHERE deckId = :deckId
+  AND deletedAt = :deletedAt;
+
+restoreExamplesByDeck:
+UPDATE FlashcardExample
+SET deletedAt = NULL
+WHERE deletedAt = :deletedAt
+  AND flashcardId IN (SELECT id FROM Flashcard WHERE deckId = :deckId);

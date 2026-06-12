@@ -11,3 +11,5 @@ data class TagToggled(val tag: String) : DashboardUiIntent
 data object ClearFilters : DashboardUiIntent
 
 data object StudyClicked : DashboardUiIntent
+
+data class UndoDeleteDeck(val deckId: String, val deletedAt: Long) : DashboardUiIntent

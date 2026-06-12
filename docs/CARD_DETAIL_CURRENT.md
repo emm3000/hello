@@ -41,7 +41,7 @@
 
 - `EditFlashcard` (edit icon in top bar, no longer in dropdown) → emits `NavigateToEditFlashcard(flashcardId)`
 - `DeleteFlashcard` (inside "more" dropdown) → opens confirmation dialog (`isDeleteConfirmationVisible = true`)
-- `ConfirmDeleteFlashcard` → uses `SoftDeleteFlashcardUseCase` and emits `FlashcardDeleted`
+- `ConfirmDeleteFlashcard` → uses `SoftDeleteFlashcardUseCase`, emits `FlashcardDeleted` effect, and also emits `UndoEvent.CardDeleted` to `UndoEventHolder` so `DeckDetailViewModel` can show an undo snackbar
 - `DismissDeleteFlashcard` → closes dialog
 
 ## Effects

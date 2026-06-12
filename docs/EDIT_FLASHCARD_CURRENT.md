@@ -85,6 +85,8 @@ Supported intents:
 - on success: emits `FlashcardDeleted`
 - on error: `ShowMessage`
 
+`EditFlashcardViewModel` does **not** emit to `UndoEventHolder`. Undo for card deletion is only wired in `FlashcardDetailViewModel`; deleting from the edit screen navigates away immediately without an undo opportunity.
+
 The screen body renders a `DangerRow` ("Borrar tarjeta", `emberBadSoft` background + `emberBad` icon/text) below the examples section that dispatches `DeleteFlashcard`. Confirmation uses `HAlertDialog` in dangerous variant.
 
 ## Persistence

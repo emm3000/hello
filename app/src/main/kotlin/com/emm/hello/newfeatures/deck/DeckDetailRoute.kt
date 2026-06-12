@@ -1,16 +1,24 @@
 package com.emm.hello.newfeatures.deck
 
 import android.widget.Toast
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.hello.R
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.study.StudyRoute
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -26,6 +34,10 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
 
     val uiState: DeckDetailUiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val undoLabel = stringResource(R.string.undo_action_label)
+    val cardDeletedMsg = stringResource(R.string.undo_card_deleted_message)
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -39,11 +51,29 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
                 is DeckDetailUiEffect.ShowMessage -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
+                is DeckDetailUiEffect.ShowUndoCardDeleted -> {
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = cardDeletedMsg,
+                            actionLabel = undoLabel,
+                            duration = SnackbarDuration.Long,
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            vm.onIntent(
+                                DeckDetailUiIntent.UndoDeleteCard(
+                                    flashcardId = effect.flashcardId,
+                                    deletedAt = effect.deletedAt,
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 
     DeckDetailScreen(
+        snackbarHostState = snackbarHostState,
         onNavigateBack = { navigator.goBack() },
         onReview = {
             if (uiState.deck.id.value != "empty-deck") {
