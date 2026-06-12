@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.card.NewCardRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -31,6 +32,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
                 StudyUiEffect.SessionFinished -> {
                     showFinishDialog = true
                 }
+                StudyUiEffect.NavigateToNewCard -> navigator.navigateTo(NewCardRoute)
             }
         }
     }
@@ -49,6 +51,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
                 )
             )
         },
+        onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         state = uiState.value,
         showFinishDialog = showFinishDialog,
     )

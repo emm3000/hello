@@ -8,6 +8,8 @@ import com.emm.data.catalog.staticCategories
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.core.mvi.MviState
 
+private const val QUOTA_LOW_THRESHOLD = 10
+
 sealed interface PreviewRegenerationTarget {
     data object Example : PreviewRegenerationTarget
     data object Cloze : PreviewRegenerationTarget
@@ -36,4 +38,8 @@ data class NewCardUiState(
     val previewWarningIssues: List<ValidationIssue> = emptyList(),
     val canSavePreview: Boolean = false,
     val previewRegenerationTarget: PreviewRegenerationTarget? = null,
-) : MviState
+    val quotaRemaining: Int = Int.MAX_VALUE,
+) : MviState {
+    val showQuotaWarning: Boolean
+        get() = quotaRemaining in 1..QUOTA_LOW_THRESHOLD
+}

@@ -492,6 +492,7 @@ class NewCardViewModelTest {
                 validateGeneratedLearningNoteUseCase = validateGeneratedLearningNoteUseCase,
             ),
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            generationQuota = com.emm.domain.generation.GenerationQuota.AlwaysAllow,
         )
     }
 

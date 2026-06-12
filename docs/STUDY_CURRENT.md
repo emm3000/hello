@@ -156,9 +156,24 @@ A custom `SessionFinishedDialog` (private composable in `StudyScreen.kt`) replac
 - `FlashcardBackMismatch` — mismatch cards plus result message when the typed answer is wrong
 - `FlashcardBackReveal` — answer label + primary text + optional phonetic, supporting text, success message and `CardTypeAnswerSupport`
 
+## Empty stage CTA
+
+When `StudyStage.Empty`, `StudyActionDock` renders a full-width `HButton` (Secondary / Lg) with label `study_empty_create_card_cta` ("Crear una tarjeta"). Tapping it fires `StudyUiIntent.CreateCardClicked`.
+
+## Current intents
+
+`StudyUiIntent`:
+
+- `BackClicked` — emits `NavigateBack`
+- `FinishDialogDismissed` — emits `NavigateBack`
+- `CreateCardClicked` — emits `NavigateToNewCard`
+- `ReviewAnswered(item, reviewGrade)`
+- `TypedAnswerChanged(answer)`
+
 ## Current effects
 
 `StudyUiEffect` currently exposes:
 
 - `NavigateBack`
 - `SessionFinished`
+- `NavigateToNewCard` — collected in `StudyDestination`; navigates to `NewCardRoute`

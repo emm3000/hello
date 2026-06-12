@@ -157,6 +157,7 @@ private data class StudyDockCallbacks(
     val onReviewAnswer: (ReviewGrade) -> Unit,
     val onTypedAnswerChange: (String) -> Unit,
     val onCheckTypedAnswer: () -> Unit,
+    val onCreateCard: () -> Unit,
 )
 
 @Composable
@@ -165,6 +166,7 @@ fun StudyScreen(
     onBackRequested: () -> Unit = {},
     onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
+    onCreateCard: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
@@ -340,6 +342,7 @@ fun StudyScreen(
                                 typedAnswer = it
                                 typedAnswerChecked = false
                             },
+                            onCreateCard = onCreateCard,
                             onCheckTypedAnswer = {
                                 currentStudyCard?.let { activeCard ->
                                     typedAnswerCorrect = matchesTypedAnswer(
@@ -646,7 +649,15 @@ private fun StudyActionDock(
                     )
                 }
 
-                StudyStage.Empty -> Unit
+                StudyStage.Empty -> {
+                    HButton(
+                        text = stringResource(R.string.study_empty_create_card_cta),
+                        onClick = callbacks.onCreateCard,
+                        variant = HButtonVariant.Secondary,
+                        size = HButtonSize.Lg,
+                        full = true,
+                    )
+                }
 
                 StudyStage.Recall -> {
                     val needsTyped = currentItem?.studyCard?.needsTypedAnswer == true

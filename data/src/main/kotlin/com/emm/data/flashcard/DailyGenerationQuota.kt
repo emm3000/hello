@@ -31,6 +31,13 @@ class DailyGenerationQuota(
         return GenerationQuota.Outcome.Allowed
     }
 
+    override fun remainingToday(): Int {
+        val today = LocalDate.now(clock)
+        val storedDate = preferences.getString(KEY_DATE, null)
+        val countToday = if (storedDate == today.toString()) preferences.getInt(KEY_COUNT, 0) else 0
+        return maxOf(0, limit - countToday)
+    }
+
     companion object {
         const val DEFAULT_LIMIT: Int = 50
         const val KEY_DATE: String = "gen_quota_date"

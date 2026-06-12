@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.card
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.generation.GenerationQuota
 import com.emm.domain.validation.DomainValidationException
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
@@ -14,6 +15,7 @@ class NewCardViewModel(
     getDecksUseCase: GetDecksUseCase,
     private val generationDependencies: NewCardGenerationDependencies,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+    private val generationQuota: GenerationQuota,
 ) : MviViewModel<NewCardUiState, NewCardUiIntent, NewCardUiEffect>(
     initialState = NewCardUiState(),
 ) {
@@ -35,6 +37,8 @@ class NewCardViewModel(
                 }
             }
             .launchIn(viewModelScope)
+
+        setState { copy(quotaRemaining = generationQuota.remainingToday()) }
     }
 
     override fun onIntent(intent: NewCardUiIntent) {
@@ -146,7 +150,10 @@ class NewCardViewModel(
                 }
             }
             is NewCardPreviewResult.PreviewReady -> {
-                setState { withPreviewValidation(result.preview, result.validation) }
+                setState {
+                    withPreviewValidation(result.preview, result.validation)
+                        .copy(quotaRemaining = generationQuota.remainingToday())
+                }
             }
             is NewCardPreviewResult.DomainError -> {
                 setState {

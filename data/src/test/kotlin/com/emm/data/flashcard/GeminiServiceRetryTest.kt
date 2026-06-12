@@ -83,6 +83,7 @@ class GeminiServiceRetryTest {
         val resetAt = Instant.parse("2026-05-17T00:00:00Z")
         val quota = object : GenerationQuota {
             override suspend fun tryConsume() = GenerationQuota.Outcome.Exceeded(limit = 50, resetAt = resetAt)
+            override fun remainingToday(): Int = 0
         }
 
         val service = newService(model, quota = quota)

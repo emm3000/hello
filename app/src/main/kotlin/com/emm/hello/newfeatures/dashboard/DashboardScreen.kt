@@ -54,6 +54,7 @@ import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
+import androidx.compose.ui.res.pluralStringResource
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -240,11 +241,13 @@ private fun PopulatedContent(
                     size = HButtonSize.Md,
                     enabled = dueCount > 0,
                 )
-                HButton(
-                    text = stringResource(R.string.dashboard_deck_count_button, deckCount),
-                    onClick = { /* no-op: shows total deck count */ },
-                    variant = HButtonVariant.Secondary,
-                    size = HButtonSize.Md,
+                Text(
+                    text = pluralStringResource(R.plurals.dashboard_deck_count, deckCount, deckCount),
+                    fontFamily = geistMono,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    letterSpacing = 0.06.em,
+                    color = emberMuted,
                 )
             }
             Spacer(Modifier.height(22.dp))

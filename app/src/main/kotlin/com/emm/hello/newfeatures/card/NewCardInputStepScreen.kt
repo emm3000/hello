@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -228,18 +229,34 @@ fun NewCardInputStepScreen(
             Column(modifier = Modifier.imePadding()) {
                 SnackbarHost(snackbarHostState)
                 NewCardBottomBar {
-                    HButton(
-                        text = stringResource(R.string.continue_action),
-                        onClick = {
-                            keyboardController?.hide()
-                            onGenerate()
-                        },
-                        variant = HButtonVariant.Accent,
-                        size = HButtonSize.Lg,
-                        full = true,
-                        enabled = isGenerateEnabled,
-                        isLoading = state.isLoading,
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.showQuotaWarning) {
+                            Text(
+                                text = pluralStringResource(
+                                    R.plurals.new_card_quota_remaining_warning,
+                                    state.quotaRemaining,
+                                    state.quotaRemaining,
+                                ),
+                                fontFamily = geistMono,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 11.sp,
+                                letterSpacing = 0.08.em,
+                                color = emberMuted,
+                            )
+                        }
+                        HButton(
+                            text = stringResource(R.string.continue_action),
+                            onClick = {
+                                keyboardController?.hide()
+                                onGenerate()
+                            },
+                            variant = HButtonVariant.Accent,
+                            size = HButtonSize.Lg,
+                            full = true,
+                            enabled = isGenerateEnabled,
+                            isLoading = state.isLoading,
+                        )
+                    }
                 }
             }
         }
@@ -659,9 +676,7 @@ private fun DifficultySection(state: NewCardUiState, onIntent: (NewCardUiIntent)
             difficult.forEach { level ->
                 val isActive = state.difficulty == level
                 HChip(
-                    label = level.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                    },
+                    label = difficultyDisplayLabel(level),
                     active = isActive,
                     accent = isActive,
                     onClick = { onIntent(NewCardUiIntent.DifficultySelected(level)) },
@@ -679,4 +694,11 @@ internal fun List<ValidationIssue>.inputMessageOrNull(
     val issue = firstOrNull { issueTextMapper.map(it).target == IssueUiTarget.Input(target) }
         ?: return null
     return stringResource(issueTextMapper.map(issue).textResId)
+}
+
+private fun difficultyDisplayLabel(level: String): String = when (level) {
+    "basico" -> "Básico"
+    "intermedio" -> "Intermedio"
+    "avanzado" -> "Avanzado"
+    else -> level.replaceFirstChar { if (it.isLowerCase()) it.uppercaseChar().toString() else it.toString() }
 }

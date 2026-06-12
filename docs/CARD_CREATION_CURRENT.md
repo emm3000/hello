@@ -53,6 +53,7 @@ Current `TypeView` modes:
 - inputs based on `TypeView`
 - deck selection
 - default-deck checkbox
+- optional quota warning text (Geist Mono 11sp, `emberMuted`) above the Generate CTA — rendered when `state.showQuotaWarning` is true (i.e. `quotaRemaining` is in 1..10); copy comes from `new_card_quota_remaining_warning` plurals
 - `Generate` CTA
 
 Current gating:
@@ -67,7 +68,16 @@ Current support:
 
 - microphone in word inputs. While `sttManager.isListening == true`, the big serif input grows a pulsing `emberAccent` ring around it and renders an uppercase Geist Mono "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with `emberAccent`, and pulses (added in the Ember redesign Phase 3, commit `29c4443`).
 - static categories via bottom sheet (`BottomSheetDialogForPickCategory`). Full-bleed `ModalBottomSheet` over `emberElev`, mono uppercase title, Instrument Serif 22sp category rows separated by `emberDivider`, and the selected row marks itself with an `emberAccent` `Outlined.Check` icon. No chips (added in the Ember redesign Phase 3, commit `29c4443`).
-- simple difficulty mapped to `LevelBand`
+- simple difficulty mapped to `LevelBand`; difficulty chip labels go through `difficultyDisplayLabel()` (display layer, not stored): `"basico"` → `"Básico"`, `"intermedio"` → `"Intermedio"`, `"avanzado"` → `"Avanzado"`
+
+## UiState quota fields
+
+`NewCardUiState` gained two quota-awareness members:
+
+- `quotaRemaining: Int` — defaults to `Int.MAX_VALUE`; updated at init and after each successful preview via `GenerationQuota.remainingToday()` (non-consuming read)
+- `showQuotaWarning: Boolean` (computed) — `true` when `quotaRemaining in 1..10`
+
+`NewCardViewModel` receives `GenerationQuota` via constructor injection.
 
 ## Domain input
 
@@ -87,7 +97,7 @@ Input is always validated before generating a preview.
 
 - preview available
 - loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + italic-serif `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
-- quota error (`QuotaExceededState` — `!` glyph in `emberBadSoft` circle, serif headline, `TU PALABRA` surface preserving the user's word, `Crear a mano` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
+- quota error (`QuotaExceededState` — `!` glyph in `emberBadSoft` circle, serif headline, `TU PALABRA` surface preserving the user's word, `Volver a editar` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
 - generic error (`HAlert` Destructive variant) + `HButton` "Reintentar" (`R.string.retry_action`, Secondary/Md/full) that refires `GenerateClicked`
 - empty state
 

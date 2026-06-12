@@ -62,6 +62,7 @@ class StudyViewModel(
         when (intent) {
             StudyUiIntent.BackClicked,
             StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
+            StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 item = intent.item,
                 reviewResult = intent.reviewGrade,

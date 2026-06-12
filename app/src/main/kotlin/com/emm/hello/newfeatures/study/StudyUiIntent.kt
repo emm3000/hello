@@ -6,6 +6,7 @@ import com.emm.hello.core.mvi.MviIntent
 sealed interface StudyUiIntent : MviIntent {
     data object BackClicked : StudyUiIntent
     data object FinishDialogDismissed : StudyUiIntent
+    data object CreateCardClicked : StudyUiIntent
 
     data class ReviewAnswered(
         val item: StudySessionItem?,

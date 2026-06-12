@@ -180,6 +180,7 @@ fun Module.viewModels() {
             getDecksUseCase = get(),
             generationDependencies = get(),
             defaultDeckSelectionRepository = get(),
+            generationQuota = get(),
         )
     }
     viewModel {

@@ -45,14 +45,17 @@
     <string name="dashboard_hero_muted_part">el resto puede esperar.</string>
     <string name="dashboard_hero_calm">Tu biblioteca, calmada.</string>
     <string name="dashboard_study_now">Estudiar ahora</string>
-    <string name="dashboard_deck_count_button">%1$d mazos</string>
+    <plurals name="dashboard_deck_count">
+        <item quantity="one">%d mazo</item>
+        <item quantity="other">%d mazos</item>
+    </plurals>
     <string name="dashboard_chip_all">todos</string>
     <string name="dashboard_section_your_decks">Tus mazos</string>
     <string name="dashboard_fab_label">Nueva tarjeta</string>
     <!-- Dashboard empty state (no decks) -->
     <string name="dashboard_empty_headline">Empieza por una palabra.</string>
     <string name="dashboard_empty_headline_accent">una palabra</string>
-    <string name="dashboard_empty_body">Escribes una palabra en inglés, una situación, o una categoría — la IA arma la ficha completa con ejemplos y patrones de uso.</string>
+    <string name="dashboard_empty_body">Escribes una palabra en inglés, una situación, o una categoría — la IA arma la tarjeta completa con ejemplos y patrones de uso.</string>
     <string name="dashboard_empty_cta_primary">Crear primera tarjeta</string>
     <string name="dashboard_empty_cta_ghost">Crear mazo vacío</string>
     <string name="dashboard_empty_footnote">O importa un backup en ajustes</string>
@@ -197,11 +200,16 @@
     <string name="loading_preview_thinking_for">Pensando en cuándo se suele usar %1$s…</string>
     <string name="loading_preview_thinking_generic">Pensando en cómo armar tu tarjeta…</string>
     <string name="loading_preview_eta">SUELE TARDAR 8–12 S</string>
+    <!-- Quota warning in step 2 -->
+    <plurals name="new_card_quota_remaining_warning">
+        <item quantity="one">Te queda 1 generación hoy.</item>
+        <item quantity="other">Te quedan %d generaciones hoy.</item>
+    </plurals>
     <!-- Step 3 quota-exceeded error (sub-4) -->
     <string name="quota_error_title">Llegamos al límite diario de IA.</string>
     <string name="quota_error_body">Tu acceso vuelve mañana. Si quieres, guarda tu palabra y ármala a mano, o espera al reinicio.</string>
     <string name="quota_error_your_word_label">TU PALABRA</string>
-    <string name="quota_error_create_manually">Crear a mano</string>
+    <string name="quota_error_create_manually">Volver a editar</string>
     <string name="quota_error_notify_tomorrow">Avisarme mañana</string>
     <string name="quota_error_reset_at">SE REINICIA A LAS %1$s</string>
     <string name="quota_error_reset_in">SE REINICIA EN %1$s</string>
@@ -233,11 +241,11 @@
     <string name="level_label">Nivel</string>
     <string name="domain_label">Dominio</string>
     <string name="lemma_label">Lema</string>
-    <string name="collocations_label">Collocations</string>
+    <string name="collocations_label">Combinaciones frecuentes</string>
     <string name="irregular_forms_label">Formas irregulares</string>
     <string name="confusable_with_label">No confundir con</string>
     <string name="warnings_label">Advertencias</string>
-    <string name="cloze_sentence_label">Cloze</string>
+    <string name="cloze_sentence_label">Completar la frase</string>
     <string name="source_context_label">Contexto fuente</string>
     <string name="generated_cards_label">Tarjetas derivadas</string>
     <string name="quality_checks_label">Validaciones de calidad</string>
@@ -317,34 +325,34 @@
     <string name="validation_missing_communicative_intent">Debes indicar una intención comunicativa para este tipo de entrada.</string>
     <string name="validation_communicative_goal_too_short">Describe mejor el objetivo comunicativo para obtener contenido más útil.</string>
     <string name="validation_context_sentence_too_short">La oración de contexto es muy corta; intenta dar más información de uso real.</string>
-    <string name="validation_missing_note_id">La nota generada debe tener un id.</string>
-    <string name="validation_missing_expression">La nota generada debe tener una expresión objetivo.</string>
-    <string name="validation_missing_intended_meaning">La nota generada debe tener un significado intencional en español.</string>
-    <string name="validation_missing_definition">La nota generada debe tener una definición simple en inglés.</string>
-    <string name="validation_missing_why_useful">La nota generada debe explicar por qué vale la pena estudiarla.</string>
-    <string name="validation_missing_example_sentence">La nota generada debe incluir un ejemplo principal.</string>
-    <string name="validation_missing_example_translation">La nota generada debe incluir la traducción del ejemplo.</string>
-    <string name="validation_missing_cards">La nota generada debe incluir tarjetas derivadas.</string>
-    <string name="validation_missing_quality_checks">La nota generada debe incluir verificaciones de calidad.</string>
-    <string name="validation_missing_usage_pattern">La nota generada debe incluir un patrón de uso.</string>
-    <string name="validation_missing_cloze_sentence">La nota generada debe incluir una oración cloze.</string>
-    <string name="validation_missing_expected_card_type">La nota debe incluir una tarjeta activa del tipo esperado.</string>
-    <string name="validation_missing_expected_recognition_card">La nota debe incluir una tarjeta activa de reconocimiento.</string>
-    <string name="validation_missing_expected_production_card">La nota debe incluir una tarjeta activa de producción.</string>
-    <string name="validation_missing_expected_cloze_card">La nota debe incluir una tarjeta activa de cloze.</string>
-    <string name="validation_missing_expected_form_card">La nota debe incluir una tarjeta activa de forma.</string>
-    <string name="validation_empty_card_prompt">Cada tarjeta derivada debe tener un prompt.</string>
-    <string name="validation_empty_card_answer">Cada tarjeta derivada debe tener una respuesta esperada.</string>
-    <string name="validation_inactive_card">La nota contiene una tarjeta inactiva; revisa si debe persistirse.</string>
-    <string name="validation_missing_single_meaning_quality_check">La nota debe incluir la verificación de significado único.</string>
-    <string name="validation_missing_required_quality_check">Falta un quality check requerido.</string>
-    <string name="validation_no_active_cards">La nota generada debe incluir al menos una tarjeta activa.</string>
-    <string name="validation_failed_quality_check">La nota no puede guardarse si algún quality check falla.</string>
-    <string name="validation_card_prompt_matches_answer">La tarjeta no genera recuperación real porque el prompt coincide con la respuesta esperada.</string>
-    <string name="validation_duplicate_active_card">Hay tarjetas activas redundantes con el mismo prompt y respuesta esperada.</string>
-    <string name="validation_duplicate_exact_card_in_deck">Ya existe una tarjeta equivalente en este mazo (misma expresion, significado y tipo).</string>
-    <string name="validation_too_many_active_cards">La nota tiene demasiadas tarjetas activas; conviene mantener entre 2 y 4.</string>
-    <string name="validation_answer_too_long_for_recall">La respuesta esperada es larga; intenta apuntar a una expresión más concreta.</string>
+    <string name="validation_missing_note_id">La tarjeta generada está incompleta. Genera de nuevo.</string>
+    <string name="validation_missing_expression">La tarjeta generada no tiene expresión. Genera de nuevo.</string>
+    <string name="validation_missing_intended_meaning">Falta el significado en español. Genera de nuevo.</string>
+    <string name="validation_missing_definition">Falta la definición en inglés. Genera de nuevo.</string>
+    <string name="validation_missing_why_useful">La tarjeta no explica por qué vale estudiarla. Genera de nuevo.</string>
+    <string name="validation_missing_example_sentence">La tarjeta no tiene ejemplo de uso. Genera de nuevo.</string>
+    <string name="validation_missing_example_translation">La tarjeta no tiene traducción del ejemplo. Genera de nuevo.</string>
+    <string name="validation_missing_cards">La tarjeta generada no incluye ejercicios de estudio. Genera de nuevo.</string>
+    <string name="validation_missing_quality_checks">La tarjeta generada está incompleta. Genera de nuevo.</string>
+    <string name="validation_missing_usage_pattern">La tarjeta no tiene patrón de uso. Genera de nuevo o agrega uno.</string>
+    <string name="validation_missing_cloze_sentence">La tarjeta no tiene ejercicio de completar. Genera de nuevo.</string>
+    <string name="validation_missing_expected_card_type">Falta un ejercicio del tipo esperado. Genera de nuevo.</string>
+    <string name="validation_missing_expected_recognition_card">Falta el ejercicio de reconocimiento. Genera de nuevo.</string>
+    <string name="validation_missing_expected_production_card">Falta el ejercicio de producción. Genera de nuevo.</string>
+    <string name="validation_missing_expected_cloze_card">Falta el ejercicio de completar. Genera de nuevo.</string>
+    <string name="validation_missing_expected_form_card">Falta el ejercicio de forma. Genera de nuevo.</string>
+    <string name="validation_empty_card_prompt">Uno de los ejercicios no tiene pregunta. Edítalo antes de guardar.</string>
+    <string name="validation_empty_card_answer">Uno de los ejercicios no tiene respuesta. Edítalo antes de guardar.</string>
+    <string name="validation_inactive_card">Hay un ejercicio pausado en la tarjeta. Actívalo o elimínalo.</string>
+    <string name="validation_missing_single_meaning_quality_check">La tarjeta generada está incompleta. Genera de nuevo.</string>
+    <string name="validation_missing_required_quality_check">La tarjeta generada está incompleta. Genera de nuevo.</string>
+    <string name="validation_no_active_cards">La tarjeta debe tener al menos un ejercicio activo.</string>
+    <string name="validation_failed_quality_check">La tarjeta no pasó la revisión de calidad. Edita o genera de nuevo.</string>
+    <string name="validation_card_prompt_matches_answer">La pregunta y la respuesta son iguales. Edita el ejercicio antes de guardar.</string>
+    <string name="validation_duplicate_active_card">Hay ejercicios repetidos con la misma pregunta y respuesta. Elimina el duplicado.</string>
+    <string name="validation_duplicate_exact_card_in_deck">Ya tienes una tarjeta igual en este mazo.</string>
+    <string name="validation_too_many_active_cards">Demasiados ejercicios activos; lo ideal es entre 2 y 4. Pausa los que no necesitas.</string>
+    <string name="validation_answer_too_long_for_recall">La respuesta es muy larga. Intenta acotarla a lo esencial.</string>
 
     <!-- Study Screen -->
     <string name="study_title">Repaso</string>
@@ -364,6 +372,7 @@
     <string name="study_start_supportive">Sesión local. Tu progreso se guarda solo en este dispositivo.</string>
     <string name="study_empty_headline">Hoy no toca repasar.</string>
     <string name="study_empty_body">Vuelve mañana para mantener el ritmo, o crea una tarjeta nueva si quieres sumar al día.</string>
+    <string name="study_empty_create_card_cta">Crear una tarjeta</string>
     <!-- Study Recall + Check direction labels (Ember redesign Phase 2.2 sub-3) -->
     <string name="study_direction_es_to_en">ESPAÑOL → INGLÉS</string>
     <string name="study_direction_en_to_es">INGLÉS → ESPAÑOL</string>
