@@ -382,10 +382,15 @@ class DefaultFlashcardRepository(
             .mapToList(Dispatchers.IO)
             .map { list ->
                 list.map {
+                    // Never-reviewed cards (no projection row) count as due now.
+                    // lastReviewedAt must come from the DB row: stamping it with the current
+                    // clock breaks the nextReviewAt >= lastReviewedAt invariant for cards
+                    // whose stored nextReviewAt is already in the past.
                     toStudyFlashcard(
                         it,
                         FlashcardReview.empty(SystemClock).copy(
-                            nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli()
+                            lastReviewedAt = it.lastReviewedAt ?: 0L,
+                            nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli(),
                         ),
                     )
                 }

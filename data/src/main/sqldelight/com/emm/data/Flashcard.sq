@@ -119,7 +119,7 @@ WHERE f.deckId = :deckId
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 flashcardsWithReview:
-SELECT f.*, rp.nextReviewAt
+SELECT f.*, rp.nextReviewAt, rp.lastReviewedAt
 FROM Flashcard f
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
