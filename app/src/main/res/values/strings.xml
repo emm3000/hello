@@ -533,4 +533,16 @@
     <string name="undo_deck_deleted_message">Mazo \"%1$s\" eliminado</string>
     <string name="undo_card_deleted_message">Tarjeta eliminada</string>
 
+    <!-- Onboarding carousel (Phase 2) -->
+    <string name="onboarding_decks_title">Tus mazos</string>
+    <string name="onboarding_decks_body">Un mazo agrupa tarjetas de un mismo tema. Crea uno por cada cosa que quieras aprender.</string>
+    <string name="onboarding_srs_title">Repaso espaciado</string>
+    <string name="onboarding_srs_body">Te mostramos cada tarjeta justo antes de que la olvides. Mientras más la recuerdes, más se espacia.</string>
+    <string name="onboarding_grading_title">Tú calificas</string>
+    <string name="onboarding_grading_body">Al responder, dinos qué tan fácil fue. Eso ajusta cuándo vuelves a verla.</string>
+    <string name="onboarding_cta_next">Siguiente</string>
+    <string name="onboarding_cta_start">Empezar</string>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_page_indicator_description">Página %1$d de %2$d</string>
+
 </resources>

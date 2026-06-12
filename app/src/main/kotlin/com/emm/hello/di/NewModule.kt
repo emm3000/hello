@@ -67,6 +67,7 @@ import com.emm.data.export.ImportBackupDataSource
 import com.emm.data.onboarding.DataStoreOnboardingStateRepository
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
+import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
@@ -229,6 +230,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { SettingsViewModel(get(), get()) }
+    viewModel { OnboardingViewModel(get()) }
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {

@@ -1,22 +1,43 @@
 package com.emm.hello.newfeatures.onboarding
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.dashboard.DashboardRoute
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 @Serializable
 data object OnboardingRoute : NavKey
 
-/**
- * Placeholder destination for OnboardingRoute. Replaced by the full carousel in PR #2.
- */
-@Suppress("UnusedParameter")
 @Composable
 fun OnboardingDestination(navigator: Navigator) {
-    // TODO(PR#2): replace with full OnboardingScreen composable
-    Box(modifier = Modifier.fillMaxSize())
+    val vm: OnboardingViewModel = koinViewModel()
+    val state: OnboardingUiState by vm.state.collectAsStateWithLifecycle()
+
+    val pagerState = rememberPagerState(pageCount = { state.pages.size })
+
+    // Collect one-shot effects from the ViewModel
+    LaunchedEffect(Unit) {
+        vm.effect.collect { effect ->
+            when (effect) {
+                is OnboardingUiEffect.ScrollToPage -> {
+                    pagerState.animateScrollToPage(effect.page)
+                }
+                is OnboardingUiEffect.NavigateToDashboard -> {
+                    navigator.replaceAll(DashboardRoute)
+                }
+            }
+        }
+    }
+
+    OnboardingScreen(
+        state = state,
+        pagerState = pagerState,
+        onIntent = vm::onIntent,
+    )
 }
