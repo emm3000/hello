@@ -535,11 +535,13 @@ private fun EmptyLibraryContent(
     onCreateDeck: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val deckConceptLine = stringResource(R.string.onboarding_deck_concept)
+    val dashboardBody = stringResource(R.string.dashboard_empty_body)
     HEmptyState(
         modifier = modifier.fillMaxSize(),
         headline = stringResource(R.string.dashboard_empty_headline),
         accentWord = stringResource(R.string.dashboard_empty_headline_accent),
-        body = stringResource(R.string.dashboard_empty_body),
+        body = "$deckConceptLine\n\n$dashboardBody",
         footnote = stringResource(R.string.dashboard_empty_footnote),
         primaryCta = {
             HButton(
