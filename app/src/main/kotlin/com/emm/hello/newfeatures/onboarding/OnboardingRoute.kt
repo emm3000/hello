@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.onboarding
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +22,9 @@ fun OnboardingDestination(navigator: Navigator) {
 
     val pagerState = rememberPagerState(pageCount = { state.pages.size })
 
+    // Intercept system back — ViewModel decides: page back or close
+    BackHandler { vm.onIntent(OnboardingUiIntent.BackPressed) }
+
     // Collect one-shot effects from the ViewModel
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -30,6 +34,9 @@ fun OnboardingDestination(navigator: Navigator) {
                 }
                 is OnboardingUiEffect.NavigateToDashboard -> {
                     navigator.replaceAll(DashboardRoute)
+                }
+                is OnboardingUiEffect.CloseOnboarding -> {
+                    navigator.goBack()
                 }
             }
         }

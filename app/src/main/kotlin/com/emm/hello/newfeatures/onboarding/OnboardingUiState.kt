@@ -10,7 +10,7 @@ import com.emm.hello.core.mvi.MviState
  * [isLastPage] is derived; true only when the user is on the final page.
  */
 data class OnboardingUiState(
-    val pages: List<OnboardingPage> = OnboardingPage.all,
+    val pages: List<OnboardingPage> = OnboardingPage.entries,
     val currentPage: Int = 0,
 ) : MviState {
     val isLastPage: Boolean

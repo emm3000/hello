@@ -7,8 +7,10 @@ import com.emm.hello.core.mvi.MviEffect
  *
  * - [ScrollToPage] — tells the Route to animate the pager to the given page index
  * - [NavigateToDashboard] — tells the Route to replace the back stack with Dashboard
+ * - [CloseOnboarding] — tells the Route to navigate back (system back on first slide)
  */
 sealed interface OnboardingUiEffect : MviEffect {
     data class ScrollToPage(val page: Int) : OnboardingUiEffect
     data object NavigateToDashboard : OnboardingUiEffect
+    data object CloseOnboarding : OnboardingUiEffect
 }

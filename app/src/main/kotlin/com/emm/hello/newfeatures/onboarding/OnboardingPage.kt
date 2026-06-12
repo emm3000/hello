@@ -26,10 +26,5 @@ enum class OnboardingPage(
         titleRes = R.string.onboarding_grading_title,
         bodyRes = R.string.onboarding_grading_body,
         illustration = OnboardingIllustration.Grading,
-    );
-
-    companion object {
-        /** Stable ordered list used to populate pager pages. */
-        val all: List<OnboardingPage> = entries
-    }
+    ),
 }

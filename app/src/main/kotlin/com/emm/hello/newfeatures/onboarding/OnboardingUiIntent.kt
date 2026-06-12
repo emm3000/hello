@@ -10,10 +10,12 @@ import com.emm.hello.core.mvi.MviIntent
  * - [NextClicked] — primary CTA tapped (advances on non-last page, finishes on last)
  * - [SkipClicked] — skip action tapped from any page
  * - [FinishClicked] — explicit "Empezar" CTA on the last page
+ * - [BackPressed] — system back pressed while carousel is visible
  */
 sealed interface OnboardingUiIntent : MviIntent {
     data class PageChanged(val page: Int) : OnboardingUiIntent
     data object NextClicked : OnboardingUiIntent
     data object SkipClicked : OnboardingUiIntent
     data object FinishClicked : OnboardingUiIntent
+    data object BackPressed : OnboardingUiIntent
 }

@@ -15,6 +15,7 @@ class OnboardingViewModel(
             is OnboardingUiIntent.NextClicked -> onNextClicked()
             is OnboardingUiIntent.SkipClicked -> finishOnboarding()
             is OnboardingUiIntent.FinishClicked -> finishOnboarding()
+            is OnboardingUiIntent.BackPressed -> onBackPressed()
         }
     }
 
@@ -34,5 +35,14 @@ class OnboardingViewModel(
     private fun finishOnboarding() {
         onboardingState.markWelcomeSeen()
         sendEffect(OnboardingUiEffect.NavigateToDashboard)
+    }
+
+    private fun onBackPressed() {
+        val page = currentState.currentPage
+        if (page > 0) {
+            sendEffect(OnboardingUiEffect.ScrollToPage(page - 1))
+        } else {
+            sendEffect(OnboardingUiEffect.CloseOnboarding)
+        }
     }
 }

@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -179,11 +181,6 @@ private fun OnboardingIllustrationPlaceholder(
     illustration: OnboardingIllustration,
     modifier: Modifier = Modifier,
 ) {
-    val label = when (illustration) {
-        OnboardingIllustration.Decks -> "Decks illustration"
-        OnboardingIllustration.SpacedRepetition -> "Spaced repetition illustration"
-        OnboardingIllustration.Grading -> "Grading illustration"
-    }
     Box(
         modifier = modifier
             .size(illustrationSize)
@@ -192,7 +189,7 @@ private fun OnboardingIllustrationPlaceholder(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = label.take(2).uppercase(),
+            text = illustration.name.take(2).uppercase(),
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontFamily = instrumentSerif,
                 fontStyle = FontStyle.Italic,
@@ -212,8 +209,13 @@ private fun PageDotIndicator(
     currentPage: Int,
     modifier: Modifier = Modifier,
 ) {
+    val indicatorDescription = stringResource(
+        R.string.onboarding_page_indicator_description,
+        currentPage + 1,
+        pageCount,
+    )
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = indicatorDescription },
         horizontalArrangement = Arrangement.spacedBy(dotSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -266,7 +268,7 @@ private fun OnboardingScreenPreview() {
     HelloTheme {
         OnboardingScreen(
             state = OnboardingUiState(),
-            pagerState = rememberPagerState { OnboardingPage.all.size },
+            pagerState = rememberPagerState { OnboardingPage.entries.size },
             onIntent = {},
         )
     }
@@ -276,12 +278,12 @@ private fun OnboardingScreenPreview() {
 @Composable
 private fun OnboardingScreenLastPagePreview() {
     HelloTheme {
-        val state = OnboardingUiState(currentPage = OnboardingPage.all.lastIndex)
+        val state = OnboardingUiState(currentPage = OnboardingPage.entries.lastIndex)
         OnboardingScreen(
             state = state,
             pagerState = rememberPagerState(
-                initialPage = OnboardingPage.all.lastIndex,
-                pageCount = { OnboardingPage.all.size },
+                initialPage = OnboardingPage.entries.lastIndex,
+                pageCount = { OnboardingPage.entries.size },
             ),
             onIntent = {},
         )
