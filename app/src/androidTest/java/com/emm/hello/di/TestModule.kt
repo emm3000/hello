@@ -6,7 +6,7 @@ import com.emm.data.HelloDb
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.flashcard.GeminiService
-import com.emm.data.localfirst.LocalIdentityInitializer
+import com.emm.domain.localfirst.LocalIdentityInitializer
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 

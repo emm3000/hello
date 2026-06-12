@@ -1,6 +1,6 @@
 package com.emm.data.flashcard
 
-import com.emm.data.catalog.communicativeIntents
+import com.emm.domain.catalog.communicativeIntents
 
 object Prompt {
 

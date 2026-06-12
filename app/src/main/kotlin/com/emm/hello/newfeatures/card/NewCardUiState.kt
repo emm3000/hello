@@ -2,9 +2,9 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.generation.GeneratedLearningNote
-import com.emm.data.catalog.StaticCategories
-import com.emm.data.catalog.difficult
-import com.emm.data.catalog.staticCategories
+import com.emm.domain.catalog.StaticCategories
+import com.emm.domain.catalog.difficult
+import com.emm.domain.catalog.staticCategories
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.core.mvi.MviState
 

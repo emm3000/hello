@@ -1,7 +1,7 @@
 package com.emm.hello.startup
 
-import com.emm.data.localfirst.LocalIdentityInitializer
-import com.emm.data.localfirst.LocalIdentityState
+import com.emm.domain.localfirst.LocalIdentityInitializer
+import com.emm.domain.localfirst.LocalIdentityState
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi

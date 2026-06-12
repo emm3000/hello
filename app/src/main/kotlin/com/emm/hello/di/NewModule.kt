@@ -15,7 +15,7 @@ import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
-import com.emm.data.localfirst.LocalIdentityInitializer
+import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CreateFlashcardUseCase

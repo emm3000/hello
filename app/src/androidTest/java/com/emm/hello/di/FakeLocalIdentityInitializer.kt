@@ -1,7 +1,7 @@
 package com.emm.hello.di
 
-import com.emm.data.localfirst.LocalIdentityInitializer
-import com.emm.data.localfirst.LocalIdentityState
+import com.emm.domain.localfirst.LocalIdentityInitializer
+import com.emm.domain.localfirst.LocalIdentityState
 
 /**
  * Fake [LocalIdentityInitializer] that completes immediately during tests,

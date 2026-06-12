@@ -1,7 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
-import com.emm.data.catalog.StaticCategories
+import com.emm.domain.catalog.StaticCategories
 import com.emm.hello.core.mvi.MviIntent
 
 enum class EditableLearningNoteField {

@@ -1,4 +1,4 @@
-package com.emm.data.flashcard
+package com.emm.domain.telemetry
 
 interface GeminiTelemetry {
 

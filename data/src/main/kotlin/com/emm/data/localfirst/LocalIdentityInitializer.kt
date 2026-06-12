@@ -1,15 +1,8 @@
 package com.emm.data.localfirst
 
 import com.emm.data.HelloDb
-
-interface LocalIdentityInitializer {
-    suspend fun ensureReady(): LocalIdentityState
-}
-
-data class LocalIdentityState(
-    val deviceId: String,
-    val createdInstallation: Boolean,
-)
+import com.emm.domain.localfirst.LocalIdentityInitializer
+import com.emm.domain.localfirst.LocalIdentityState
 
 class DefaultLocalIdentityInitializer(
     private val db: HelloDb,

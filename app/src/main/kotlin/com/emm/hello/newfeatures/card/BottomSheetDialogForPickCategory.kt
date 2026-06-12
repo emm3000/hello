@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
-import com.emm.data.catalog.StaticCategories
+import com.emm.domain.catalog.StaticCategories
 import com.emm.hello.R
 import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberDivider

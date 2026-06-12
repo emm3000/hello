@@ -10,7 +10,7 @@ import com.emm.domain.flashcard.LearningGoal
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.RegenerableNoteField
 import com.emm.domain.generation.RegisterPreference
-import com.emm.data.catalog.StaticCategories
+import com.emm.domain.catalog.StaticCategories
 import java.text.Normalizer
 
 private const val DEFAULT_COMMUNICATIVE_INTENT_ID = "social_small_talk"

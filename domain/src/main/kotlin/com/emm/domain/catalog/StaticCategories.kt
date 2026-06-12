@@ -1,4 +1,4 @@
-package com.emm.data.catalog
+package com.emm.domain.catalog
 
 data class StaticCategories(
     val id: Int,

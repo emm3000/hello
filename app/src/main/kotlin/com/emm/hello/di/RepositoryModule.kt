@@ -2,7 +2,7 @@ package com.emm.hello.di
 
 import com.emm.data.flashcard.DailyGenerationQuota
 import com.emm.data.flashcard.GeminiService
-import com.emm.data.flashcard.GeminiTelemetry
+import com.emm.domain.telemetry.GeminiTelemetry
 import com.emm.data.flashcard.LearningNoteResponseSchema
 import com.emm.domain.generation.GenerationQuota
 import com.emm.hello.telemetry.CrashlyticsGeminiTelemetry

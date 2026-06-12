@@ -1,6 +1,6 @@
 package com.emm.hello.telemetry
 
-import com.emm.data.flashcard.GeminiTelemetry
+import com.emm.domain.telemetry.GeminiTelemetry
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 class CrashlyticsGeminiTelemetry(

@@ -2,6 +2,7 @@ package com.emm.data.flashcard
 
 import com.emm.domain.generation.GenerationQuota
 import com.emm.domain.generation.GenerationQuotaExceededException
+import com.emm.domain.telemetry.GeminiTelemetry
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
 import kotlinx.coroutines.TimeoutCancellationException
