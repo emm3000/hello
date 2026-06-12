@@ -103,6 +103,7 @@ fun NewCardInputStepScreen(
     onIntent: (NewCardUiIntent) -> Unit,
     onGenerate: () -> Unit,
     onNavigateBack: () -> Unit,
+    onCreateDeck: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -209,7 +210,7 @@ fun NewCardInputStepScreen(
                     }
                 }
 
-                item { DeckPickerSection(state = state, onIntent = onIntent) }
+                item { DeckPickerSection(state = state, onIntent = onIntent, onCreateDeck = onCreateDeck) }
 
                 item { DifficultySection(state = state, onIntent = onIntent) }
 
@@ -518,7 +519,11 @@ private fun ContextInputs(
 }
 
 @Composable
-private fun DeckPickerSection(state: NewCardUiState, onIntent: (NewCardUiIntent) -> Unit) {
+private fun DeckPickerSection(
+    state: NewCardUiState,
+    onIntent: (NewCardUiIntent) -> Unit,
+    onCreateDeck: () -> Unit,
+) {
     Column {
         HSectionLabel(label = stringResource(R.string.new_card_input_save_in_label))
         Spacer(Modifier.height(10.dp))
@@ -527,6 +532,7 @@ private fun DeckPickerSection(state: NewCardUiState, onIntent: (NewCardUiIntent)
             selected = state.deckSelected,
             enabled = !state.isLoading,
             onSelect = { onIntent(NewCardUiIntent.DeckSelected(it)) },
+            onCreateDeck = onCreateDeck,
         )
     }
 }
@@ -537,7 +543,51 @@ private fun DeckPickerRow(
     selected: com.emm.domain.deck.Deck?,
     enabled: Boolean,
     onSelect: (com.emm.domain.deck.Deck) -> Unit,
+    onCreateDeck: () -> Unit,
 ) {
+    if (decks.isEmpty()) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(emberSurface, RoundedCornerShape(14.dp))
+                    .border(1.dp, emberAccent, RoundedCornerShape(14.dp))
+                    .clickable(enabled = enabled, onClick = onCreateDeck)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Bookmark,
+                    contentDescription = null,
+                    tint = emberAccent,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.size(14.dp))
+                Text(
+                    text = stringResource(R.string.new_card_input_create_deck_cta),
+                    fontFamily = geist,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    color = emberAccent,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = emberAccent,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.new_card_input_no_decks_hint),
+                fontFamily = geist,
+                fontSize = 12.sp,
+                color = emberMuted,
+            )
+        }
+        return
+    }
     var expanded by remember { mutableStateOf(false) }
     Box {
         Row(

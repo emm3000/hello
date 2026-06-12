@@ -61,6 +61,8 @@ Current gating:
 - `WithCategories`: requires deck
 - `WithAiHelp`: requires deck and `aiRequest`
 
+**Zero-deck inline CTA**: when the deck list is empty, `DeckPickerRow` renders a tappable row ("Crear un mazo" — `R.string.new_card_input_create_deck_cta`) plus a hint text (`R.string.new_card_input_no_decks_hint`). Tapping navigates to `NewDeckRoute()` via `onCreateDeck` propagated from `NewCardDestination → NewCardInputStepScreen → DeckPickerSection → DeckPickerRow`.
+
 Current support:
 
 - microphone in word inputs. While `sttManager.isListening == true`, the big serif input grows a pulsing `emberAccent` ring around it and renders an uppercase Geist Mono "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with `emberAccent`, and pulses (added in the Ember redesign Phase 3, commit `29c4443`).
@@ -86,7 +88,7 @@ Input is always validated before generating a preview.
 - preview available
 - loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + italic-serif `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
 - quota error (`QuotaExceededState` — `!` glyph in `emberBadSoft` circle, serif headline, `TU PALABRA` surface preserving the user's word, `Crear a mano` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
-- generic error (`HAlert` Destructive variant)
+- generic error (`HAlert` Destructive variant) + `HButton` "Reintentar" (`R.string.retry_action`, Secondary/Md/full) that refires `GenerateClicked`
 - empty state
 
 The current review allows:
@@ -120,6 +122,10 @@ Validation is recomputed after each edit or regeneration.
 - `CloseFlow`
 
 `GenerateClicked` fires `OpenReview` before resolving the result, so the review step also contains loading and errors.
+
+**In-flight guard**: `GenerateClicked` and all `runPreviewWorkflowUpdate` regen actions are no-ops when `currentState.isLoading == true`, preventing duplicate in-flight requests.
+
+**Error copy** (as of this change): invalid-AI-response title is `"No se pudo procesar la respuesta de IA"`; generation failure fallback is `"No se pudo generar la tarjeta. Inténtalo de nuevo."`; regen failure messages follow the pattern `"No se pudo regenerar [X]. Inténtalo de nuevo."`.
 
 ## Relevant model
 

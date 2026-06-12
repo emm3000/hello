@@ -30,6 +30,7 @@ class DashboardViewModel(
 ) {
 
     private val criteria = MutableStateFlow(DeckSearchCriteria())
+    private var allDecks: List<com.emm.domain.deck.Deck> = emptyList()
 
     init {
         combine(
@@ -75,6 +76,12 @@ class DashboardViewModel(
                 setState { copy(searchQuery = "", selectedTags = emptySet()) }
                 criteria.value = DeckSearchCriteria()
             }
+
+            StudyClicked -> {
+                // No per-deck due counts in dashboard state; falls back to first deck
+                val target = allDecks.firstOrNull() ?: return
+                sendEffect(NavigateToStudy(target.id.value))
+            }
         }
     }
 
@@ -82,6 +89,7 @@ class DashboardViewModel(
         allDecks: List<com.emm.domain.deck.Deck>,
         filteredDecks: List<com.emm.domain.deck.Deck>,
     ): DashboardUiState {
+        this.allDecks = allDecks
         val availableTags = allDecks
             .flatMap { deck -> deck.tags.map { tag -> tag.value } }
             .distinct()

@@ -132,6 +132,7 @@ class NewCardViewModel(
     }
 
     private fun generateFlashcard() = viewModelScope.launch {
+        if (currentState.isLoading) return@launch
         setState { clearPreviewState(error = null, isLoading = true) }
         sendEffect(NewCardUiEffect.OpenReview)
 
@@ -151,7 +152,7 @@ class NewCardViewModel(
                 setState {
                     clearPreviewState(
                         error = NewCardErrorUi(
-                            title = "Respuesta inválida de IA",
+                            title = "No se pudo procesar la respuesta de IA",
                             validationIssues = result.issues,
                         ),
                     )
@@ -162,7 +163,7 @@ class NewCardViewModel(
                 logError(TAG, "generateFlashcard:error ${error.message}", error)
                 val classified = NewCardErrorClassifier.classifyGenerationFailure(
                     error = error,
-                    fallbackMessage = "No se pudo generar una learning note válida.",
+                    fallbackMessage = "No se pudo generar la tarjeta. Inténtalo de nuevo.",
                 )
                 setState {
                     copy(
@@ -187,8 +188,8 @@ class NewCardViewModel(
         runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Example,
             actionName = "regenerateExample",
-            failureTitle = "Error al regenerar ejemplo",
-            fallbackMessage = "No se pudo regenerar el ejemplo.",
+            failureTitle = "No se pudo regenerar el ejemplo",
+            fallbackMessage = "No se pudo regenerar el ejemplo. Inténtalo de nuevo.",
         ) { previewWorkflow.regenerateExample(currentState) }
     }
 
@@ -196,8 +197,8 @@ class NewCardViewModel(
         runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Cloze,
             actionName = "regenerateCloze",
-            failureTitle = "Error al regenerar cloze",
-            fallbackMessage = "No se pudo regenerar el cloze.",
+            failureTitle = "No se pudo regenerar",
+            fallbackMessage = "No se pudo regenerar. Inténtalo de nuevo.",
         ) { previewWorkflow.regenerateCloze(currentState) }
     }
 
@@ -205,8 +206,8 @@ class NewCardViewModel(
         runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Card(cardId),
             actionName = "regenerateCard",
-            failureTitle = "Error al regenerar card",
-            fallbackMessage = "No se pudo regenerar la card.",
+            failureTitle = "No se pudo regenerar la tarjeta",
+            fallbackMessage = "No se pudo regenerar la tarjeta. Inténtalo de nuevo.",
             metadata = "cardId=$cardId",
         ) { previewWorkflow.regenerateCard(currentState, cardId) }
     }
@@ -215,8 +216,8 @@ class NewCardViewModel(
         runPreviewWorkflowUpdate(
             target = PreviewRegenerationTarget.Field(field),
             actionName = "regenerateField",
-            failureTitle = "Error al regenerar campo",
-            fallbackMessage = "No se pudo regenerar el campo.",
+            failureTitle = "No se pudo regenerar el campo",
+            fallbackMessage = "No se pudo regenerar el campo. Inténtalo de nuevo.",
             metadata = "field=$field",
         ) { previewWorkflow.regenerateField(currentState, field) }
     }
@@ -229,6 +230,7 @@ class NewCardViewModel(
         metadata: String = "",
         action: suspend () -> NewCardPreviewUpdateResult,
     ) {
+        if (currentState.isLoading) return
         val preview = currentState.learningNotePreview ?: return
         val logContext = buildString {
             append("noteId=${preview.noteId}")

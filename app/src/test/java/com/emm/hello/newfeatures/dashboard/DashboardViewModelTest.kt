@@ -158,6 +158,31 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `StudyClicked with decks emits NavigateToStudy with first deck id`() = runTest {
+        val deck = sampleDeck(id = "deck-42", name = "English", tags = emptyList())
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deck)))
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyClicked)
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
+            assertThat((effect as NavigateToStudy).deckId).isEqualTo("deck-42")
+        }
+    }
+
+    @Test
+    fun `StudyClicked with no decks emits no effect`() = runTest {
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyClicked)
+            expectNoEvents()
+        }
+    }
+
+    @Test
     fun `onVisible fetches stats and updates state`() = runTest {
         val fixedNow = Instant.parse("2026-05-04T12:00:00Z")
         val clock = Clock { fixedNow }

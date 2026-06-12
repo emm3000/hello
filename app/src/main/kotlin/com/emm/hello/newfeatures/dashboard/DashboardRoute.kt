@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.dashboard
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
@@ -9,6 +10,7 @@ import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
+import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -21,9 +23,18 @@ fun DashboardDestination(navigator: Navigator) {
 
     val uiState: DashboardUiState by vm.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        vm.effect.collect { effect ->
+            when (effect) {
+                is NavigateToStudy -> navigator.navigateTo(StudyRoute(effect.deckId))
+            }
+        }
+    }
+
     DashboardScreen(
         state = uiState,
         newCard = { navigator.navigateTo(NewCardRoute) },
+        onStudy = { vm.onIntent(StudyClicked) },
         onDeckDetail = { navigator.navigateTo(DeckDetailRoute(it)) },
         onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
         onSettings = { navigator.navigateTo(SettingsRoute) },

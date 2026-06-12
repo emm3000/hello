@@ -102,6 +102,15 @@ fun NewCardReviewScreen(
                                 variant = AlertVariant.Destructive,
                             )
                         }
+                        item {
+                            HButton(
+                                text = stringResource(R.string.retry_action),
+                                onClick = { onIntent(NewCardUiIntent.GenerateClicked) },
+                                variant = HButtonVariant.Secondary,
+                                size = HButtonSize.Md,
+                                full = true,
+                            )
+                        }
                     }
 
                     else -> {

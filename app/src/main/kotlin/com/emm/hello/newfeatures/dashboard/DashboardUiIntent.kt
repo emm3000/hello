@@ -9,3 +9,5 @@ data class QueryChanged(val value: String) : DashboardUiIntent
 data class TagToggled(val tag: String) : DashboardUiIntent
 
 data object ClearFilters : DashboardUiIntent
+
+data object StudyClicked : DashboardUiIntent

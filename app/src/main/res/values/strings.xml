@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hello MOtherfuck...</string>
+    <string name="app_name">Hello</string>
 
     <!-- General -->
     <string name="save">Guardar</string>
@@ -159,6 +159,8 @@
     <string name="new_card_input_ai_placeholder">describe la situación o el patrón…</string>
     <string name="new_card_input_category_placeholder">elegir categoría…</string>
     <string name="new_card_input_deck_empty">Ningún mazo seleccionado</string>
+    <string name="new_card_input_create_deck_cta">Crear un mazo</string>
+    <string name="new_card_input_no_decks_hint">Necesitas un mazo para guardar la tarjeta. Créalo aquí.</string>
     <string name="input_screen_title">Define tu solicitud</string>
     <string name="review_screen_title">Revisa el resultado</string>
     <string name="generate_card">Generar vista previa con IA</string>
@@ -493,6 +495,8 @@
     <string name="settings_import_error_generic">No se pudo restaurar el backup</string>
     <string name="settings_import_error_incompatible">Este backup fue creado con otra versión de la app. Actualiza la app e intenta de nuevo.</string>
     <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
+
+    <string name="retry_action">Reintentar</string>
 
     <!-- Flashcard edit/delete -->
     <string name="edit_flashcard_title">Editar tarjeta</string>

@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.deck.NewDeckRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -64,6 +65,7 @@ fun NewCardDestination(navigator: Navigator) {
                 onIntent = vm::onIntent,
                 onGenerate = { vm.onIntent(NewCardUiIntent.GenerateClicked) },
                 onNavigateBack = { currentStep = NewCardFlowStep.Mode },
+                onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
             )
         }
 
