@@ -28,7 +28,7 @@
 |---|---|
 | Size | Medium (~1.5 h) |
 | Blocks | Nothing |
-| Blocked by | Notifications Sprint 1 (already done, `9cddeb6`) |
+| Blocked by | Notifications Sprint 1 (already done, `29d11c1`) |
 | Full plan | `docs/NOTIFICATIONS_PLAN.md` Sprint 2 + Follow-ups |
 
 **Tasks:**
@@ -201,4 +201,4 @@
 
 - **Privacy URL (audit S1-T7)**: blocked on the user until `docs/privacy-policy.md` is published at a public URL. Once you give me the URL, I'll add the meta-data to the manifest in 5 minutes.
 - **F2 device validation**: I need your hardware. Pass me whatever you find and I'll refine.
-- **F3 HARD color**: already closed in commit `5f33a94`.
+- **F3 HARD color**: already closed (tinted overlay during swipe-to-grade and warning color for HARD).

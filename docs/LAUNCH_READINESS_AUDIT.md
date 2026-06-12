@@ -6,8 +6,9 @@
 | Role | Full pre-launch audit + atomic phased plan |
 | Source of Truth | Yes (until everything closes) |
 | Read this when | You're working on any pre-launch hardening task |
-| Last verified against code | 2026-05-14 |
+| Last verified against code | 2026-06-11 |
 | Sprint 1 progress | 6/8 done (T1, T2, T4, T5, T6, T8) · T3 discarded · T7 in progress (draft published, missing URL + manifest + Data Safety form) |
+| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T3, T5, T6 open · S2-T4 done (SCHEDULER.md) |
 
 ## TL;DR
 
@@ -159,7 +160,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** check `POST_NOTIFICATIONS` — if no notifications are implemented, remove it. Check `RECORD_AUDIO` — confirm STT (`rememberSpeechToTextManager`) is still active in the NewCard wizard; if disabled, drop it.
 - **Criterion:** the app requests only what it uses. Play Console doesn't flag unjustified permissions.
 - **Estimate:** 30 min.
-- **Status:** [x] — `POST_NOTIFICATIONS` removed from the manifest and the orphan `LaunchedEffect` in `DashboardRoute` deleted (no notifications were implemented). `RECORD_AUDIO` kept (STT active in `NewCardInputStepScreen`). `READ/WRITE_EXTERNAL_STORAGE` with `maxSdkVersion=32` stay (legacy < Android 13 usage). Commit `8e8e5dd`.
+- **Status:** [x] — `POST_NOTIFICATIONS` removed from the manifest and the orphan `LaunchedEffect` in `DashboardRoute` deleted (no notifications were implemented at the time). `RECORD_AUDIO` kept (STT active in `NewCardInputStepScreen`). `READ/WRITE_EXTERNAL_STORAGE` with `maxSdkVersion=32` stay (legacy < Android 13 usage). Commit `8e8e5dd`. **Update (2026-06-11):** `POST_NOTIFICATIONS` was re-added intentionally in commit `29d11c1` when the daily-reminder notification feature (Sprint 1) shipped. The permission is now backed by actual notification code and is no longer a launch-blocker concern.
 
 ---
 

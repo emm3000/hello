@@ -6,11 +6,11 @@
 | Role | Atomic plan to implement the daily due-cards notification |
 | Source of Truth | Yes (until all tasks close) |
 | Read this when | You're going to touch `WorkManager`, `NotificationChannel`, or `Settings` for opt-in |
-| Last verified against code | 2026-05-16 |
+| Last verified against code | 2026-06-11 |
 
 ## TL;DR
 
-`POST_NOTIFICATIONS` is declared in the original plan but **not in the current manifest** (verified). There is no notification infra. This iteration adds: permission, channel, periodic worker that counts globally due cards, scheduler at startup. **No time picker or deep link in v1** — fixed trigger at 19:00 local, tap opens the app on the main screen.
+**Sprint 1 complete** (shipped in `29d11c1`). `POST_NOTIFICATIONS` is declared in `AndroidManifest.xml` (verified). Notification infra is live: channel, periodic worker that counts globally due cards, scheduler at startup. **No time picker or deep link in v1** — fixed trigger at 19:00 local, tap opens the app on the main screen. Sprint 2 (settings toggle + i18n strings) is pending.
 
 ## Explicit decisions
 
@@ -32,7 +32,7 @@
     3. Create a simple white vector `ic_notification.xml` (24×24). Otherwise, use `R.mipmap.ic_launcher` as fallback (not recommended per guidelines).
 - **Criterion:** build passes. The app requests notification permission on first use (automatically from Android 13+ when posting is attempted).
 - **Estimate:** 15 min.
-- **Status:** [ ]
+- **Status:** [x] — shipped in `29d11c1`.
 
 ### N1-T2: NotificationChannel registered in App.onCreate
 
@@ -43,7 +43,7 @@
     3. Call it from `App.onCreate()` after `FirebaseApp.initializeApp`.
 - **Criterion:** opening Settings > App > Notifications shows "Study reminders" as a category.
 - **Estimate:** 20 min.
-- **Status:** [ ]
+- **Status:** [x] — shipped in `29d11c1`.
 - **Depends on:** N1-T1.
 
 ### N1-T3: Global due-cards count query + use case
@@ -65,7 +65,7 @@
     4. Test: `CountDueFlashcardsUseCaseTest` with a fake repo.
 - **Criterion:** test green. Counts cards with `nextReviewAt IS NULL` (new) plus cards with `nextReviewAt <= now`.
 - **Estimate:** 30 min.
-- **Status:** [ ]
+- **Status:** [x] — shipped in `29d11c1`.
 
 ### N1-T4: DueCardsReminderWorker
 
@@ -77,7 +77,7 @@
     4. Constant notification ID (`STUDY_REMINDER_NOTIFICATION_ID = 1001`) → re-posts over the previous one if the user doesn't open it.
 - **Criterion:** running the worker manually from a unit-style test (or WorkManager test runner) with count > 0 produces a visible notification.
 - **Estimate:** 45 min.
-- **Status:** [ ]
+- **Status:** [x] — shipped in `29d11c1`.
 - **Depends on:** N1-T2, N1-T3.
 
 ### N1-T5: Scheduler at app startup (PeriodicWorkRequest 24h, first run at 19:00)
@@ -89,7 +89,7 @@
     3. Call from `App.onCreate()` after `startKoin`.
 - **Criterion:** `adb shell dumpsys jobscheduler | grep emm` shows the scheduled job. Change the clock to 19:00 and the notification appears within the 1h window.
 - **Estimate:** 30 min.
-- **Status:** [ ]
+- **Status:** [x] — shipped in `29d11c1`.
 - **Depends on:** N1-T4.
 
 ## Sprint 2 — Opt-out + polish (goal: 1.5 h)

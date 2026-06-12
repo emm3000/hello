@@ -89,4 +89,4 @@ Modified value (key unchanged):
 
 - `confusable_with_label` → "No confundir con" (was "Se confunde con") to match the Warn-tone `HDictSense` block.
 
-The legacy `card_detail_tab_*`, `notes_label`, `cloze_sentence_label`, `source_context_label`, `learning_metadata_label`, `register_label`, `level_label`, `domain_label`, `lemma_label`, `generated_cards_label`, `quality_checks_label`, `prompt_label`, `expected_answer_label`, `hint_label`, `show_translation`, `hide_translation` keys are kept for now — some are still referenced from `NewCardPreviewComponents.kt` / `NewCardPreviewCards.kt` and will be revisited in Phase 5 cleanup.
+The legacy `notes_label`, `cloze_sentence_label`, `source_context_label`, `learning_metadata_label`, `register_label`, `level_label`, `domain_label`, `lemma_label`, `generated_cards_label`, `quality_checks_label`, `prompt_label`, `expected_answer_label`, `hint_label`, `show_translation`, `hide_translation` keys remain in `strings.xml` — some are still referenced from `NewCardPreviewComponents.kt` / `NewCardPreviewCards.kt`. The Phase 5 cleanup (`fe221b3`) did not remove them because they are still in use.

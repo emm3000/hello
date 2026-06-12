@@ -46,8 +46,8 @@ Don't assume:
 
 ### Naming convention
 
-- **Public composables**: `H` prefix (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). This is the hard rule.
-- **Files**: currently inconsistent — most without prefix (`Button.kt`, `Input.kt`, `Badge.kt`, `Card.kt`) and 4 with prefix (`HSearchBar.kt`, `HTagChip.kt`, `HTagInput.kt`, `HLoadingSpinner.kt`). For new files prefer **no prefix** (aligns with the majority and with the `Input.kt` template).
+- **Public composables**: `H` prefix (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). This is the hard rule. Never call raw Material3 components from feature screens.
+- **Files**: mixed — 12 files use the `H` prefix (`HTopBar.kt`, `HSearchBar.kt`, `HEmptyState.kt`, etc.) and 15 do not (`Button.kt`, `Input.kt`, `Card.kt`, etc.). When touching an existing component, follow the file-naming pattern already established for that component family. New standalone shared components use `H`-prefixed files (e.g. `HFoo.kt`).
 - **Exception without `H*` composable**: `FieldShell` — internal building block, template for inputs.
 
 ### Hierarchy for new designs
@@ -171,8 +171,9 @@ Before committing, check:
 ## Current toolchain
 
 - Java 17
-- AGP `9.2.0`
+- AGP `9.2.1`
 - Kotlin `2.3.21`
+- compileSdk `36`
 
 ## Commits
 
