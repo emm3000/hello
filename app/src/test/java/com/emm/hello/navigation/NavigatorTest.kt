@@ -59,4 +59,32 @@ class NavigatorTest {
         assertEquals(3, backStack.size)
         assertEquals(listOf(RouteA, RouteB("1"), RouteB("2")), backStack)
     }
+
+    // ── replaceAll ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `replaceAll from single-entry stack results in size 1 with new destination`() {
+        val backStack: SnapshotStateList<NavKey> = mutableListOf<NavKey>(RouteA).toMutableStateList()
+        val navigator = Navigator(backStack)
+
+        navigator.replaceAll(RouteB("dashboard"))
+
+        assertEquals(1, backStack.size)
+        assertEquals(RouteB("dashboard"), backStack.last())
+    }
+
+    @Test
+    fun `replaceAll from multi-entry stack clears all and leaves only new destination`() {
+        val backStack: SnapshotStateList<NavKey> = mutableListOf<NavKey>(
+            RouteA,
+            RouteB("1"),
+            RouteB("2"),
+        ).toMutableStateList()
+        val navigator = Navigator(backStack)
+
+        navigator.replaceAll(RouteA)
+
+        assertEquals(1, backStack.size)
+        assertEquals(RouteA, backStack.last())
+    }
 }

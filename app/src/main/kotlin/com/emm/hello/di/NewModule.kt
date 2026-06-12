@@ -124,7 +124,7 @@ fun Module.repository() {
     factoryOf(::ExportBackupDataSource) bind BackupExporter::class
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
-    single { AppStartupCoordinator(get()) }
+    single { AppStartupCoordinator(get(), get()) }
 }
 
 fun Module.useCases() {

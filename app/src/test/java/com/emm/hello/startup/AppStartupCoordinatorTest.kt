@@ -2,6 +2,7 @@ package com.emm.hello.startup
 
 import com.emm.data.localfirst.LocalIdentityInitializer
 import com.emm.data.localfirst.LocalIdentityState
+import com.emm.domain.onboarding.OnboardingStateRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -12,10 +13,12 @@ import org.junit.Test
 class AppStartupCoordinatorTest {
 
     @Test
-    fun `startup prepares local identity and reports ready`() = runTest {
+    fun `startup prepares local identity and reports ready with hasSeenWelcome false`() = runTest {
         val localIdentityInitializer = FakeLocalIdentityInitializer()
+        val onboardingRepo = FakeOnboardingStateRepository(welcomeSeen = false)
         val subject = AppStartupCoordinator(
             localIdentityInitializer = localIdentityInitializer,
+            onboardingStateRepository = onboardingRepo,
             scope = this,
         )
 
@@ -23,7 +26,23 @@ class AppStartupCoordinatorTest {
         advanceUntilIdle()
 
         assertThat(localIdentityInitializer.calls).isEqualTo(1)
-        assertThat(subject.state.value).isEqualTo(AppStartupState.Ready)
+        assertThat(subject.state.value).isEqualTo(AppStartupState.Ready(hasSeenWelcome = false))
+    }
+
+    @Test
+    fun `startup ready state carries hasSeenWelcome true when flag is set`() = runTest {
+        val localIdentityInitializer = FakeLocalIdentityInitializer()
+        val onboardingRepo = FakeOnboardingStateRepository(welcomeSeen = true)
+        val subject = AppStartupCoordinator(
+            localIdentityInitializer = localIdentityInitializer,
+            onboardingStateRepository = onboardingRepo,
+            scope = this,
+        )
+
+        subject.start()
+        advanceUntilIdle()
+
+        assertThat(subject.state.value).isEqualTo(AppStartupState.Ready(hasSeenWelcome = true))
     }
 
     @Test
@@ -31,6 +50,7 @@ class AppStartupCoordinatorTest {
         val localIdentityInitializer = FakeLocalIdentityInitializer(shouldFail = true)
         val subject = AppStartupCoordinator(
             localIdentityInitializer = localIdentityInitializer,
+            onboardingStateRepository = FakeOnboardingStateRepository(),
             scope = this,
         )
 
@@ -43,13 +63,8 @@ class AppStartupCoordinatorTest {
         )
     }
 
-    private class FakeLocalIdentityInitializer : LocalIdentityInitializer {
-        constructor(shouldFail: Boolean = false) {
-            this.shouldFail = shouldFail
-        }
-
+    private class FakeLocalIdentityInitializer(private val shouldFail: Boolean = false) : LocalIdentityInitializer {
         var calls: Int = 0
-        private var shouldFail: Boolean = false
 
         override suspend fun ensureReady(): LocalIdentityState {
             calls += 1
@@ -59,5 +74,15 @@ class AppStartupCoordinatorTest {
                 createdInstallation = true,
             )
         }
+    }
+
+    private class FakeOnboardingStateRepository(
+        private val welcomeSeen: Boolean = false,
+        private val gradeHintSeen: Boolean = false,
+    ) : OnboardingStateRepository {
+        override fun hasSeenWelcome(): Boolean = welcomeSeen
+        override fun markWelcomeSeen() = Unit
+        override fun hasSeenGradeHint(): Boolean = gradeHintSeen
+        override fun markGradeHintSeen() = Unit
     }
 }

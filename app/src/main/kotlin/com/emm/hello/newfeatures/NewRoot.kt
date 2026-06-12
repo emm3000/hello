@@ -48,9 +48,7 @@ import com.emm.hello.newfeatures.study.StudyDestination
 import com.emm.hello.newfeatures.study.StudyRoute
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
-import com.emm.domain.onboarding.OnboardingStateRepository
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 private const val NAV_TRANSITION_DURATION_MS = 350
 
@@ -63,14 +61,13 @@ fun NewRoot() {
             message = startupState.message,
             onRetry = startupViewModel::retry,
         )
-        is AppStartupState.Ready -> AppNavigation()
+        is AppStartupState.Ready -> AppNavigation(hasSeenWelcome = startupState.hasSeenWelcome)
     }
 }
 
 @Composable
-private fun AppNavigation() {
-    val onboardingState: OnboardingStateRepository = koinInject()
-    val startKey = remember { if (onboardingState.hasSeenWelcome()) DashboardRoute else OnboardingRoute }
+private fun AppNavigation(hasSeenWelcome: Boolean) {
+    val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) DashboardRoute else OnboardingRoute }
     val backStack = rememberNavBackStack(startKey)
     val navigator = remember(backStack) { Navigator(backStack) }
 

@@ -1,6 +1,7 @@
 package com.emm.hello.startup
 
 import com.emm.data.localfirst.LocalIdentityInitializer
+import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,7 @@ import kotlinx.coroutines.sync.withLock
 
 class AppStartupCoordinator(
     private val localIdentityInitializer: LocalIdentityInitializer,
+    private val onboardingStateRepository: OnboardingStateRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
     private val startMutex = Mutex()
@@ -29,7 +31,9 @@ class AppStartupCoordinator(
                 runCatching {
                     localIdentityInitializer.ensureReady()
                 }.onSuccess {
-                    mutableState.value = AppStartupState.Ready
+                    mutableState.value = AppStartupState.Ready(
+                        hasSeenWelcome = onboardingStateRepository.hasSeenWelcome(),
+                    )
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)
                     mutableState.value = AppStartupState.Error(
@@ -43,7 +47,7 @@ class AppStartupCoordinator(
 
 sealed interface AppStartupState {
     data object Initializing : AppStartupState
-    data object Ready : AppStartupState
+    data class Ready(val hasSeenWelcome: Boolean) : AppStartupState
     data class Error(val message: String) : AppStartupState
 }
 
