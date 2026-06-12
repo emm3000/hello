@@ -12,4 +12,6 @@ data object ClearFilters : DashboardUiIntent
 
 data object StudyClicked : DashboardUiIntent
 
+data object ScreenVisible : DashboardUiIntent
+
 data class UndoDeleteDeck(val deckId: String, val deletedAt: Long) : DashboardUiIntent

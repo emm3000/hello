@@ -20,14 +20,16 @@ class SettingsViewModel(
 
     override fun onIntent(intent: SettingsUiIntent) {
         when (intent) {
-            is SettingsUiIntent.ExportData -> { /* SAF picker handled by Route */ }
-            is SettingsUiIntent.ImportData -> { /* handled by Route SAF launcher */ }
+            is SettingsUiIntent.ExportData -> sendEffect(SettingsUiEffect.LaunchExportPicker)
+            is SettingsUiIntent.ImportData -> sendEffect(SettingsUiEffect.LaunchImportPicker)
+            is SettingsUiIntent.ExportUriReceived -> exportToUri(intent.uri)
+            is SettingsUiIntent.ImportUriReceived -> setState { copy(isConfirmDialogVisible = true, pendingImportUri = intent.uri) }
             is SettingsUiIntent.ConfirmImport -> confirmImport()
             is SettingsUiIntent.CancelImport -> cancelImport()
         }
     }
 
-    fun onExportUri(uri: Uri) {
+    private fun exportToUri(uri: Uri) {
         viewModelScope.launch {
             setState { copy(isExporting = true) }
             exportDataSource.export(uri)
@@ -40,10 +42,6 @@ class SettingsViewModel(
                 }
             setState { copy(isExporting = false) }
         }
-    }
-
-    fun onImportUri(uri: Uri) {
-        setState { copy(isConfirmDialogVisible = true, pendingImportUri = uri) }
     }
 
     private fun confirmImport() {

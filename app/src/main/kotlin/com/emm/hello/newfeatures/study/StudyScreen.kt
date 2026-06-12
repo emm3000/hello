@@ -164,11 +164,14 @@ private data class StudyDockCallbacks(
 @Composable
 fun StudyScreen(
     modifier: Modifier = Modifier,
-    onBackRequested: () -> Unit = {},
+    onRequestExit: () -> Unit = {},
     onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
     onGradeHintDismissed: () -> Unit = {},
+    onStartSession: () -> Unit = {},
+    onConfirmExit: () -> Unit = {},
+    onDismissExitConfirmation: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
@@ -181,8 +184,6 @@ fun StudyScreen(
     var typedAnswer by remember { mutableStateOf("") }
     var typedAnswerChecked by remember { mutableStateOf(false) }
     var typedAnswerCorrect by remember { mutableStateOf(false) }
-    var sessionStarted by remember { mutableStateOf(false) }
-    var showExitConfirmation by remember { mutableStateOf(false) }
 
     val progress = if (state.totalCount > 0) {
         state.reviewedCount.toFloat() / state.totalCount.toFloat()
@@ -201,15 +202,15 @@ fun StudyScreen(
     val currentStudyCard = currentItem?.studyCard
     val needsTypedAnswer = currentStudyCard?.needsTypedAnswer == true
     val sessionStage = remember(
-        sessionStarted,
+        state.sessionStarted,
         state.currentItem,
         state.totalCount,
         cardFace,
         typedAnswerChecked,
     ) {
         when {
-            !sessionStarted && state.totalCount == 0 -> StudyStage.Empty
-            !sessionStarted -> StudyStage.Start
+            !state.sessionStarted && state.totalCount == 0 -> StudyStage.Empty
+            !state.sessionStarted -> StudyStage.Start
             state.currentItem == null -> StudyStage.Empty
             cardFace == CardFace.Front -> StudyStage.Recall
             needsTypedAnswer && !typedAnswerChecked -> StudyStage.Check
@@ -224,14 +225,6 @@ fun StudyScreen(
 
     val estimatedMinutes = remember(state.totalCount) {
         maxOf(1, ceil(state.totalCount / 4f).toInt())
-    }
-
-    fun requestExit() {
-        if (state.reviewedCount > 0 || sessionStarted) {
-            showExitConfirmation = true
-        } else {
-            onBackRequested()
-        }
     }
 
     val sessionInProgress = sessionStage == StudyStage.Recall ||
@@ -258,7 +251,7 @@ fun StudyScreen(
                 currentCount = state.reviewedCount,
                 totalCount = state.totalCount,
                 stateLabel = stateLabel,
-                onClose = ::requestExit,
+                onClose = onRequestExit,
                 showCounter = sessionInProgress,
             )
 
@@ -328,7 +321,7 @@ fun StudyScreen(
                             typedAnswerCorrect = typedAnswerCorrect,
                         ),
                         callbacks = StudyDockCallbacks(
-                            onStartSession = { sessionStarted = true },
+                            onStartSession = onStartSession,
                             onRevealAnswer = {
                                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 cardFace = CardFace.Back
@@ -373,20 +366,15 @@ fun StudyScreen(
         )
     }
 
-    if (showExitConfirmation) {
+    if (state.showExitConfirmation) {
         HAlertDialog(
             title = stringResource(R.string.study_exit_confirm_title),
             description = stringResource(R.string.study_exit_confirm_desc),
             confirmText = stringResource(R.string.study_exit_confirm_leave),
             cancelText = stringResource(R.string.study_keep_going),
             isDangerous = true,
-            onConfirm = {
-                showExitConfirmation = false
-                onBackRequested()
-            },
-            onDismiss = {
-                showExitConfirmation = false
-            },
+            onConfirm = onConfirmExit,
+            onDismiss = onDismissExitConfirmation,
         )
     }
 }

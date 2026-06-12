@@ -186,7 +186,7 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `onVisible fetches stats and updates state`() = runTest {
+    fun `ScreenVisible intent fetches stats and updates state`() = runTest {
         val fixedNow = Instant.parse("2026-05-04T12:00:00Z")
         val clock = Clock { fixedNow }
 
@@ -212,7 +212,7 @@ class DashboardViewModelTest {
 
         assertThat(viewModel.state.value.stats).isNull()
 
-        viewModel.onVisible()
+        viewModel.onIntent(ScreenVisible)
         advanceUntilIdle()
 
         assertThat(viewModel.state.value.stats).isNotNull()

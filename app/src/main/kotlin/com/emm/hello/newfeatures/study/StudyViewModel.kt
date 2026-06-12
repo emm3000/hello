@@ -30,7 +30,6 @@ class StudyViewModel(
     private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
     private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
     private val reviewsByFlashcardId = mutableMapOf<FlashcardId, FlashcardReview>()
-    private var gradeHintLatched: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -42,7 +41,6 @@ class StudyViewModel(
             }
             studyItemsForToday.addAll(items)
             val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
-            gradeHintLatched = showHint
             setState { copy(totalCount = items.size, isGradeHintVisible = showHint) }
             showNextCard()
         }
@@ -65,10 +63,16 @@ class StudyViewModel(
 
     override fun onIntent(intent: StudyUiIntent) {
         when (intent) {
-            StudyUiIntent.BackClicked,
             StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
             StudyUiIntent.GradeHintDismissed -> dismissGradeHint()
+            StudyUiIntent.StartSession -> setState { copy(sessionStarted = true) }
+            StudyUiIntent.RequestExit -> requestExit()
+            StudyUiIntent.ConfirmExit -> {
+                setState { copy(showExitConfirmation = false) }
+                sendEffect(StudyUiEffect.NavigateBack)
+            }
+            StudyUiIntent.DismissExitConfirmation -> setState { copy(showExitConfirmation = false) }
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 item = intent.item,
                 reviewResult = intent.reviewGrade,
@@ -76,15 +80,23 @@ class StudyViewModel(
         }
     }
 
+    private fun requestExit() {
+        val state = currentState
+        if (state.reviewedCount > 0 || state.sessionStarted) {
+            setState { copy(showExitConfirmation = true) }
+        } else {
+            sendEffect(StudyUiEffect.NavigateBack)
+        }
+    }
+
     private fun dismissGradeHint() {
-        if (!gradeHintLatched) return
-        gradeHintLatched = false
+        if (!currentState.isGradeHintVisible) return
         onboardingState.markGradeHintSeen()
         setState { copy(isGradeHintVisible = false) }
     }
 
     private fun processReviewAnswer(item: StudySessionItem?, reviewResult: ReviewGrade) = viewModelScope.launch {
-        if (gradeHintLatched) {
+        if (currentState.isGradeHintVisible) {
             dismissGradeHint()
         }
         val flashcardId = item?.flashcardId ?: return@launch

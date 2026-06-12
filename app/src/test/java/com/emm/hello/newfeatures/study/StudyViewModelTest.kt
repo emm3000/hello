@@ -44,14 +44,43 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `back clicked emits navigate back effect`() = runTest {
+    fun `request exit before session starts emits navigate back effect`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
 
         viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.BackClicked)
+            viewModel.onIntent(StudyUiIntent.RequestExit)
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
         }
+    }
+
+    @Test
+    fun `request exit after session starts shows confirmation instead of navigating back`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
+        advanceUntilIdle()
+
+        viewModel.onIntent(StudyUiIntent.StartSession)
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyUiIntent.RequestExit)
+            expectNoEvents()
+        }
+        assertThat(viewModel.state.value.showExitConfirmation).isTrue()
+    }
+
+    @Test
+    fun `confirm exit hides confirmation and emits navigate back effect`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
+        advanceUntilIdle()
+
+        viewModel.onIntent(StudyUiIntent.StartSession)
+        viewModel.onIntent(StudyUiIntent.RequestExit)
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyUiIntent.ConfirmExit)
+            assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
+        }
+        assertThat(viewModel.state.value.showExitConfirmation).isFalse()
     }
 
     @Test

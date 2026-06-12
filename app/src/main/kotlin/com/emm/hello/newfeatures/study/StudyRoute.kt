@@ -38,7 +38,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
     }
 
     StudyScreen(
-        onBackRequested = { vm.onIntent(StudyUiIntent.BackClicked) },
+        onRequestExit = { vm.onIntent(StudyUiIntent.RequestExit) },
         onFinishDialogDismissed = {
             showFinishDialog = false
             vm.onIntent(StudyUiIntent.FinishDialogDismissed)
@@ -53,6 +53,9 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
         },
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         onGradeHintDismissed = { vm.onIntent(StudyUiIntent.GradeHintDismissed) },
+        onStartSession = { vm.onIntent(StudyUiIntent.StartSession) },
+        onConfirmExit = { vm.onIntent(StudyUiIntent.ConfirmExit) },
+        onDismissExitConfirmation = { vm.onIntent(StudyUiIntent.DismissExitConfirmation) },
         state = uiState.value,
         showFinishDialog = showFinishDialog,
     )

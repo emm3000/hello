@@ -64,7 +64,7 @@ fun DashboardDestination(navigator: Navigator) {
         onDeckDetail = { navigator.navigateTo(DeckDetailRoute(it)) },
         onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
-        onVisible = { vm.onVisible() },
+        onVisible = { vm.onIntent(ScreenVisible) },
         onSearchQueryChanged = { vm.onIntent(QueryChanged(it)) },
         onTagToggled = { vm.onIntent(TagToggled(it)) },
         onClearFilters = { vm.onIntent(ClearFilters) },

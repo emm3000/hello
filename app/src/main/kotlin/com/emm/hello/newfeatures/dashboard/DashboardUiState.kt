@@ -6,6 +6,7 @@ import com.emm.hello.core.mvi.MviState
 
 data class DashboardUiState(
     val decks: List<Deck> = emptyList(),
+    val allDecks: List<Deck> = emptyList(),
     val totalDeckCount: Int = 0,
     val isLoading: Boolean = true,
     val searchQuery: String = "",

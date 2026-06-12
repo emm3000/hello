@@ -38,7 +38,6 @@ class DashboardViewModel(
 ) {
 
     private val criteria = MutableStateFlow(DeckSearchCriteria())
-    private var allDecks: List<com.emm.domain.deck.Deck> = emptyList()
 
     init {
         // Collect deck-deleted undo events emitted by DeckDetailViewModel after a soft-delete.
@@ -67,15 +66,10 @@ class DashboardViewModel(
             .launchIn(viewModelScope)
     }
 
-    fun onVisible() {
-        viewModelScope.launch {
-            val stats = getDashboardStatsUseCase()
-            setState { copy(stats = stats) }
-        }
-    }
-
     override fun onIntent(intent: DashboardUiIntent) {
         when (intent) {
+            ScreenVisible -> loadStats()
+
             is QueryChanged -> {
                 setState { copy(searchQuery = intent.value) }
                 criteria.update { current -> current.copy(query = intent.value) }
@@ -101,11 +95,18 @@ class DashboardViewModel(
 
             StudyClicked -> {
                 // No per-deck due counts in dashboard state; falls back to first deck
-                val target = allDecks.firstOrNull() ?: return
+                val target = currentState.allDecks.firstOrNull() ?: return
                 sendEffect(NavigateToStudy(target.id.value))
             }
 
             is UndoDeleteDeck -> undoDeleteDeck(intent.deckId, intent.deletedAt)
+        }
+    }
+
+    private fun loadStats() {
+        viewModelScope.launch {
+            val stats = getDashboardStatsUseCase()
+            setState { copy(stats = stats) }
         }
     }
 
@@ -122,7 +123,6 @@ class DashboardViewModel(
         allDecks: List<com.emm.domain.deck.Deck>,
         filteredDecks: List<com.emm.domain.deck.Deck>,
     ): DashboardUiState {
-        this.allDecks = allDecks
         val availableTags = allDecks
             .flatMap { deck -> deck.tags.map { tag -> tag.value } }
             .distinct()
@@ -132,6 +132,7 @@ class DashboardViewModel(
         val isFiltering = current.searchQuery.isNotBlank() || current.selectedTags.isNotEmpty()
         return current.copy(
             decks = filteredDecks,
+            allDecks = allDecks,
             totalDeckCount = allDecks.size,
             availableTags = availableTags,
             isLoading = false,

@@ -29,13 +29,13 @@ fun SettingsDestination(navigator: Navigator) {
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
     ) { uri: Uri? ->
-        uri?.let { vm.onExportUri(it) }
+        uri?.let { vm.onIntent(SettingsUiIntent.ExportUriReceived(it)) }
     }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri: Uri? ->
-        uri?.let { vm.onImportUri(it) }
+        uri?.let { vm.onIntent(SettingsUiIntent.ImportUriReceived(it)) }
     }
 
     LaunchedEffect(Unit) {
@@ -47,6 +47,12 @@ fun SettingsDestination(navigator: Navigator) {
                 is SettingsUiEffect.ShowError -> {
                     scope.launch { snackbarHostState.showSnackbar(effect.message) }
                 }
+                SettingsUiEffect.LaunchExportPicker -> {
+                    exportLauncher.launch("hello-backup-${System.currentTimeMillis()}.json")
+                }
+                SettingsUiEffect.LaunchImportPicker -> {
+                    importLauncher.launch(arrayOf("application/json"))
+                }
             }
         }
     }
@@ -54,8 +60,8 @@ fun SettingsDestination(navigator: Navigator) {
     SettingsScreen(
         state = uiState,
         snackbarHostState = snackbarHostState,
-        onExport = { exportLauncher.launch("hello-backup-${System.currentTimeMillis()}.json") },
-        onImport = { importLauncher.launch(arrayOf("application/json")) },
+        onExport = { vm.onIntent(SettingsUiIntent.ExportData) },
+        onImport = { vm.onIntent(SettingsUiIntent.ImportData) },
         onConfirmImport = { vm.onIntent(SettingsUiIntent.ConfirmImport) },
         onDismissImport = { vm.onIntent(SettingsUiIntent.CancelImport) },
         onNavigateBack = { navigator.goBack() },
