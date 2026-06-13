@@ -23,7 +23,9 @@ class SettingsViewModel(
             is SettingsUiIntent.ExportData -> sendEffect(SettingsUiEffect.LaunchExportPicker)
             is SettingsUiIntent.ImportData -> sendEffect(SettingsUiEffect.LaunchImportPicker)
             is SettingsUiIntent.ExportUriReceived -> exportToUri(intent.uri)
-            is SettingsUiIntent.ImportUriReceived -> setState { copy(isConfirmDialogVisible = true, pendingImportUri = intent.uri) }
+            is SettingsUiIntent.ImportUriReceived -> setState {
+                copy(isConfirmDialogVisible = true, pendingImportUri = intent.uri)
+            }
             is SettingsUiIntent.ConfirmImport -> confirmImport()
             is SettingsUiIntent.CancelImport -> cancelImport()
         }
