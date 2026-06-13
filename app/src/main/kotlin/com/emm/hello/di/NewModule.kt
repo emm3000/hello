@@ -10,8 +10,10 @@ import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
+import com.emm.data.flashcard.DefaultFlashcardGenerationRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
+import com.emm.data.flashcard.DefaultStudySessionRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
@@ -79,6 +81,7 @@ import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -113,10 +116,20 @@ fun Module.repository() {
     } bind DeckRepository::class
     factoryOf(::DefaultTagRepository) bind com.emm.domain.deck.TagRepository::class
     factoryOf(::DefaultDeckSelectionPreferencesRepository) bind DefaultDeckSelectionRepository::class
-    singleOf(::DefaultFlashcardRepository)
-    single<FlashcardRepository> { get<DefaultFlashcardRepository>() }
-    single<StudySessionRepository> { get<DefaultFlashcardRepository>() }
-    single<FlashcardGenerationRepository> { get<DefaultFlashcardRepository>() }
+    single<FlashcardRepository> {
+        DefaultFlashcardRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
+    }
+    single<StudySessionRepository> {
+        DefaultStudySessionRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
+    }
+    single<FlashcardGenerationRepository> {
+        DefaultFlashcardGenerationRepository(
+            geminiService = get(),
+            json = get(),
+            telemetry = get(),
+            ioDispatcher = Dispatchers.IO,
+        )
+    }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultStudyStatsRepository) bind StudyStatsRepository::class

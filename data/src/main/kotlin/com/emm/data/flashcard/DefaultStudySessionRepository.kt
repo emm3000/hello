@@ -1,0 +1,58 @@
+package com.emm.data.flashcard
+
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import com.emm.data.HelloDb
+import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.ids.DeckId
+import com.emm.domain.study.StudyFlashcard
+import com.emm.domain.study.StudySessionRepository
+import com.emm.domain.time.SystemClock
+import java.time.Instant
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+
+class DefaultStudySessionRepository(
+    private val db: HelloDb,
+    private val json: Json,
+    private val ioDispatcher: CoroutineDispatcher,
+) : StudySessionRepository {
+
+    private val dao = db.flashcardQueries
+
+    override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = withContext(ioDispatcher) {
+        val flashcardsToReviewByDeck = dao.flashcardsToReviewByDeck(
+            deckId = deckId.value,
+            now = Instant.now().toEpochMilli(),
+        ).executeAsList()
+
+        flashcardsToReviewByDeck.map {
+            val review: FlashcardReview = mapFlashcardReview(it)
+            toStudyFlashcard(it, review, json)
+        }
+    }
+
+    override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> {
+        return dao.flashcardsWithReview(deckId.value).asFlow()
+            .mapToList(ioDispatcher)
+            .map { list ->
+                list.map {
+                    // Never-reviewed cards (no projection row) count as due now.
+                    // lastReviewedAt must come from the DB row: stamping it with the current
+                    // clock breaks the nextReviewAt >= lastReviewedAt invariant for cards
+                    // whose stored nextReviewAt is already in the past.
+                    toStudyFlashcard(
+                        it,
+                        FlashcardReview.empty(SystemClock).copy(
+                            lastReviewedAt = it.lastReviewedAt ?: 0L,
+                            nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli(),
+                        ),
+                        json,
+                    )
+                }
+            }
+    }
+}

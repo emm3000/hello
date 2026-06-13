@@ -3,7 +3,7 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.domain.ids.DeckId
-import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -19,17 +19,17 @@ import java.util.UUID
 class FlashcardWithReviewMappingTest {
 
     private lateinit var db: HelloDb
-    private lateinit var subject: DefaultFlashcardRepository
+    private lateinit var subject: DefaultStudySessionRepository
 
     @Before
     fun setUp() {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
-        subject = DefaultFlashcardRepository(
+        subject = DefaultStudySessionRepository(
             db = db,
-            geminiService = mockk<GeminiService>(),
             json = Json,
+            ioDispatcher = Dispatchers.IO,
         )
     }
 

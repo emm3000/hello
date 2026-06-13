@@ -19,7 +19,7 @@ private const val DEFAULT_TOP_P = 0.95f
 
 /**
  * Provides shared infrastructure dependencies.
- * GeminiService is used by DefaultFlashcardRepository.
+ * GeminiService is used by DefaultFlashcardGenerationRepository.
  * - `generativeModel`: used for partial regenerations (variable shape).
  * - `learningNoteModel`: applies `responseSchema` for the main generation call.
  */

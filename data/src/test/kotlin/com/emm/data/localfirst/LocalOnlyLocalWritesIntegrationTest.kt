@@ -6,12 +6,11 @@ import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
-import com.emm.data.flashcard.GeminiService
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.ids.toDeckId
-import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -49,8 +48,8 @@ class LocalOnlyLocalWritesIntegrationTest {
         val deckRepository = DefaultDeckRepository(db = db, tagRepository = tagRepository)
         val flashcardRepository = DefaultFlashcardRepository(
             db = db,
-            geminiService = mockk<GeminiService>(),
             json = Json,
+            ioDispatcher = Dispatchers.IO,
         )
         val reviewRepository = DefaultFlashcardReviewRepository(db = db)
 
@@ -167,8 +166,8 @@ class LocalOnlyLocalWritesIntegrationTest {
             val deckRepository = DefaultDeckRepository(db = firstDb, tagRepository = firstTagRepository)
             val flashcardRepository = DefaultFlashcardRepository(
                 db = firstDb,
-                geminiService = mockk<GeminiService>(),
                 json = Json,
+                ioDispatcher = Dispatchers.IO,
             )
             val reviewRepository = DefaultFlashcardReviewRepository(db = firstDb)
 
