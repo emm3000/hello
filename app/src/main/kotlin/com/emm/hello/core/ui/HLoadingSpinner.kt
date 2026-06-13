@@ -13,16 +13,19 @@ import com.emm.hello.core.theme.HelloTheme
 
 /**
  * Minimal indeterminate spinner inspired by shadcn/ui.
- * 48dp default size for standalone loading states.
+ *
+ * @param size explicit size; defaults to 48dp for standalone loading states.
+ *   Pass a smaller value (e.g. 18dp) for inline / row-level spinners.
  */
 @Composable
 fun HLoadingSpinner(
     modifier: Modifier = Modifier,
+    size: Dp = 48.dp,
     color: Color = MaterialTheme.colorScheme.primary,
     strokeWidth: Dp = 3.dp,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(48.dp),
+        modifier = modifier.size(size),
         color = color,
         strokeWidth = strokeWidth,
     )

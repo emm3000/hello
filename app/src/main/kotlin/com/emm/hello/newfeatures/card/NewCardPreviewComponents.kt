@@ -21,8 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import com.emm.hello.core.ui.HBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -380,7 +380,7 @@ private fun LearningNotePreview(
     }
 
     if (selectedCard != null) {
-        ModalBottomSheet(
+        HBottomSheet(
             onDismissRequest = { selectedCardId = null },
             containerColor = emberBg,
         ) {

@@ -11,11 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -75,6 +79,33 @@ fun HCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     HCard(modifier = modifier, due = false, content = content)
+}
+
+/**
+ * Elevated HCard overload for cases that require a real drop shadow, a custom
+ * shape, or a custom container color (e.g. animated flip cards). Delegates to
+ * M3 [Card] so [elevation] produces an actual shadow rather than a tonal shift.
+ *
+ * Use this variant only when the standard [HCard] cannot express the needed
+ * appearance (different corner radius, Material elevation, or dynamic border).
+ */
+@Composable
+fun HCard(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(16.dp),
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    elevation: Dp = 0.dp,
+    border: BorderStroke? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        modifier = modifier,
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        border = border,
+        content = content,
+    )
 }
 
 /** Header with optional title and subtitle. */

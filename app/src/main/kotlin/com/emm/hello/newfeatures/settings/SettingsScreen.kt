@@ -23,7 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Upload
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
@@ -57,6 +56,7 @@ import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTopBar
@@ -266,8 +266,8 @@ private fun SettingsRow(
         }
 
         if (isBusy) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
+            HLoadingSpinner(
+                size = 18.dp,
                 color = emberAccent,
                 strokeWidth = 2.dp,
             )

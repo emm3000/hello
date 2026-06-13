@@ -19,9 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.emm.hello.core.ui.HBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,7 +60,7 @@ fun BottomSheetDialogForPickCategory(
     val dismiss: () -> Unit = { onDismissRequest(false) }
 
     if (showBottomSheet) {
-        ModalBottomSheet(
+        HBottomSheet(
             modifier = Modifier.statusBarsPadding(),
             onDismissRequest = dismiss,
             sheetState = sheetState,

@@ -15,10 +15,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.emm.hello.core.ui.HCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,7 +94,7 @@ fun FlippableCard(
         label = "dragOffset",
     )
 
-    Card(
+    HCard(
         modifier = modifier
             .onSizeChanged { widthPx = it.width }
             .clickable(
@@ -124,12 +123,8 @@ fun FlippableCard(
                 translationX = if (cardFace == CardFace.Back) animatedOffset else 0f
             },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-        ),
+        containerColor = MaterialTheme.colorScheme.surface,
+        elevation = 4.dp,
         border = BorderStroke(1.dp, borderColor),
     ) {
         Box(
