@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 private const val SEARCH_DEBOUNCE_MS = 120L
@@ -111,10 +112,12 @@ class DashboardViewModel(
     }
 
     private fun undoDeleteDeck(deckId: String, deletedAt: Long) = viewModelScope.launch {
-        runCatching {
+        try {
             restoreDeckUseCase(deckId.toDeckId(), deletedAt)
-        }.onFailure { error ->
-            logError(TAG, "undoDeleteDeck:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "undoDeleteDeck:error ${e.message}", e)
         }
         // On success the reactive deck list refreshes automatically via getDecksUseCase Flow.
     }

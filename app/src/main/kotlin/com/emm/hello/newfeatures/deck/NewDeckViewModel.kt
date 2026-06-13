@@ -9,6 +9,7 @@ import com.emm.domain.ids.toDeckId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.first
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 class NewDeckViewModel(
@@ -37,13 +38,12 @@ class NewDeckViewModel(
     private fun loadDeck() = viewModelScope.launch {
         val deckId = (currentState.formMode as DeckFormMode.Edit).deckId
         setState { copy(isLoading = true) }
-        runCatching {
-            deckRepository.fetchById(deckId.toDeckId()).first()
-        }.onSuccess { deck ->
+        try {
+            val deck = deckRepository.fetchById(deckId.toDeckId()).first()
             if (deck == null) {
                 setState { copy(isLoading = false) }
                 sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
-                return@onSuccess
+                return@launch
             }
             setState {
                 copy(
@@ -53,8 +53,10 @@ class NewDeckViewModel(
                     isLoading = false,
                 )
             }
-        }.onFailure { error ->
-            logError(TAG, "loadDeck:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "loadDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
             sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
         }
@@ -72,18 +74,20 @@ class NewDeckViewModel(
     }
 
     private suspend fun createDeck(state: NewDeckUiState) {
-        runCatching {
-            val input = CreateDeckInput(
-                name = state.name,
-                description = state.description,
-                tags = state.tags,
+        try {
+            deckRepository.create(
+                CreateDeckInput(
+                    name = state.name,
+                    description = state.description,
+                    tags = state.tags,
+                )
             )
-            deckRepository.create(input)
-        }.onSuccess {
             setState { NewDeckUiState() }
             sendEffect(NewDeckUiEffect.NavigateBack)
-        }.onFailure { error ->
-            logError(TAG, "createDeck:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "createDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
             sendEffect(NewDeckUiEffect.ShowMessage("No se pudo crear el mazo"))
         }
@@ -91,7 +95,7 @@ class NewDeckViewModel(
 
     private suspend fun updateDeck(state: NewDeckUiState) {
         val deckId = (state.formMode as DeckFormMode.Edit).deckId
-        runCatching {
+        try {
             updateDeckUseCase(
                 UpdateDeckInput(
                     deckId = deckId.toDeckId(),
@@ -100,10 +104,11 @@ class NewDeckViewModel(
                     tags = state.tags,
                 )
             )
-        }.onSuccess {
             sendEffect(NewDeckUiEffect.NavigateBack)
-        }.onFailure { error ->
-            logError(TAG, "updateDeck:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "updateDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
             sendEffect(NewDeckUiEffect.ShowMessage("No se pudo actualizar el mazo"))
         }

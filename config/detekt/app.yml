@@ -1,3 +1,9 @@
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - RuntimeException
+
 complexity:
   LongMethod:
     active: false

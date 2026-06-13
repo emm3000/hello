@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -88,9 +89,8 @@ class DeckDetailViewModel(
 
     private fun deleteDeck() = viewModelScope.launch {
         setState { copy(isDeleteConfirmationVisible = false) }
-        runCatching {
-            softDeleteDeckUseCase(deckId.toDeckId())
-        }.onSuccess { deletedAt ->
+        try {
+            val deletedAt = softDeleteDeckUseCase(deckId.toDeckId())
             undoEventHolder.tryEmit(
                 UndoEvent.DeckDeleted(
                     deckId = deckId,
@@ -99,17 +99,21 @@ class DeckDetailViewModel(
                 )
             )
             sendEffect(DeckDetailUiEffect.DeckDeleted)
-        }.onFailure { error ->
-            logError(TAG, "deleteDeck:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "deleteDeck:error ${e.message}", e)
             sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo eliminar el mazo"))
         }
     }
 
     private fun undoDeleteCard(flashcardId: String, deletedAt: Long) = viewModelScope.launch {
-        runCatching {
+        try {
             restoreFlashcardUseCase(flashcardId.toFlashcardId(), deletedAt)
-        }.onFailure { error ->
-            logError(TAG, "undoDeleteCard:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "undoDeleteCard:error ${e.message}", e)
             sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo restaurar la tarjeta"))
         }
         // On success, the reactive flashcard flow (ObserveFlashcardsWithReviewUseCase) refreshes automatically.

@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.validation.DomainValidationException
+import kotlin.coroutines.cancellation.CancellationException
 
 class NewCardPreviewWorkflow(
     private val generationDependencies: NewCardGenerationDependencies,
@@ -16,21 +17,17 @@ class NewCardPreviewWorkflow(
             )
         }
 
-        return runCatching {
-            generationDependencies.generateLearningNotePreviewUseCase(input = inputValidation.value)
-        }.fold(
-            onSuccess = { preview ->
-                val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(preview)
-                NewCardPreviewResult.PreviewReady(preview = preview, validation = previewValidation)
-            },
-            onFailure = { error ->
-                if (error is DomainValidationException) {
-                    NewCardPreviewResult.DomainError(error.issues)
-                } else {
-                    NewCardPreviewResult.UnexpectedError(error)
-                }
-            },
-        )
+        return try {
+            val preview = generationDependencies.generateLearningNotePreviewUseCase(input = inputValidation.value)
+            val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(preview)
+            NewCardPreviewResult.PreviewReady(preview = preview, validation = previewValidation)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: DomainValidationException) {
+            NewCardPreviewResult.DomainError(e.issues)
+        } catch (e: Throwable) {
+            NewCardPreviewResult.UnexpectedError(e)
+        }
     }
 
     suspend fun regenerateExample(state: NewCardUiState): NewCardPreviewUpdateResult {
@@ -101,21 +98,17 @@ class NewCardPreviewWorkflow(
     ): NewCardPreviewUpdateResult {
         val preview = state.learningNotePreview ?: return NewCardPreviewUpdateResult.NoPreview
 
-        return runCatching {
-            transform(state, preview)
-        }.fold(
-            onSuccess = { updatedPreview ->
-                val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(updatedPreview)
-                NewCardPreviewUpdateResult.Updated(preview = updatedPreview, validation = previewValidation)
-            },
-            onFailure = { error ->
-                if (error is DomainValidationException) {
-                    NewCardPreviewUpdateResult.DomainError(error.issues)
-                } else {
-                    NewCardPreviewUpdateResult.UnexpectedError(error)
-                }
-            },
-        )
+        return try {
+            val updatedPreview = transform(state, preview)
+            val previewValidation = generationDependencies.validateGeneratedLearningNoteUseCase(updatedPreview)
+            NewCardPreviewUpdateResult.Updated(preview = updatedPreview, validation = previewValidation)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: DomainValidationException) {
+            NewCardPreviewUpdateResult.DomainError(e.issues)
+        } catch (e: Throwable) {
+            NewCardPreviewUpdateResult.UnexpectedError(e)
+        }
     }
 }
 

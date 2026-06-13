@@ -8,6 +8,7 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
 import com.emm.hello.newfeatures.shared.UndoEventHolder
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 class FlashcardDetailViewModel(
@@ -41,25 +42,30 @@ class FlashcardDetailViewModel(
 
     private fun loadFlashcard() {
         viewModelScope.launch {
-            runCatching { flashcardRepository.fetchById(flashcardId.toFlashcardId()) }
-                .onSuccess { flashcard -> setState { copy(flashcard = flashcard) } }
-                .onFailure {
-                    sendEffect(FlashcardDetailUiEffect.LoadFailed("No se pudo cargar la tarjeta"))
-                }
+            try {
+                val flashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId())
+                setState { copy(flashcard = flashcard) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                logError(TAG, "loadFlashcard:error ${e.message}", e)
+                sendEffect(FlashcardDetailUiEffect.LoadFailed("No se pudo cargar la tarjeta"))
+            }
         }
     }
 
     private fun deleteFlashcard() = viewModelScope.launch {
         setState { copy(isDeleteConfirmationVisible = false) }
-        runCatching {
-            softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
-        }.onSuccess { deletedAt ->
+        try {
+            val deletedAt = softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
             undoEventHolder.tryEmit(
                 UndoEvent.CardDeleted(flashcardId = flashcardId, deletedAt = deletedAt)
             )
             sendEffect(FlashcardDetailUiEffect.FlashcardDeleted)
-        }.onFailure { error ->
-            logError(TAG, "deleteFlashcard:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "deleteFlashcard:error ${e.message}", e)
             sendEffect(
                 FlashcardDetailUiEffect.ShowMessage("No se pudo eliminar la tarjeta")
             )

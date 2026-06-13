@@ -9,6 +9,7 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 class NewCardViewModel(
@@ -308,40 +309,39 @@ class NewCardViewModel(
             return@launch
         }
         setState { copy(isLoading = true, error = null) }
-        runCatching {
+        try {
             generationDependencies.createFlashcardUseCase(
                 deckId = deckId,
                 learningNote = learningNotePreview,
             )
-        }.onSuccess {
             setState { resetAfterSave() }
             sendEffect(NewCardUiEffect.ShowMessage("Tarjeta creada"))
             sendEffect(NewCardUiEffect.CloseFlow)
-        }.onFailure { e ->
-            if (e is DomainValidationException) {
-                setState {
-                    withPreviewValidation(
-                        preview = learningNotePreview,
-                        validation = previewValidation,
-                        error = NewCardErrorUi(
-                            title = "Preview no guardable",
-                            validationIssues = e.issues,
-                        ),
-                    )
-                }
-            } else {
-                logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
-                setState {
-                    copy(
-                        error = NewCardErrorUi(
-                            title = "Error al guardar",
-                            message = "No se pudo guardar la tarjeta",
-                        ),
-                        isLoading = false,
-                    )
-                }
-                sendEffect(NewCardUiEffect.ShowMessage("No se pudo guardar la tarjeta"))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: DomainValidationException) {
+            setState {
+                withPreviewValidation(
+                    preview = learningNotePreview,
+                    validation = previewValidation,
+                    error = NewCardErrorUi(
+                        title = "Preview no guardable",
+                        validationIssues = e.issues,
+                    ),
+                )
             }
+        } catch (e: Throwable) {
+            logError(TAG, "saveFlashcard:error noteId=${learningNotePreview.noteId} ${e.message}", e)
+            setState {
+                copy(
+                    error = NewCardErrorUi(
+                        title = "Error al guardar",
+                        message = "No se pudo guardar la tarjeta",
+                    ),
+                    isLoading = false,
+                )
+            }
+            sendEffect(NewCardUiEffect.ShowMessage("No se pudo guardar la tarjeta"))
         }
     }
 }

@@ -10,6 +10,7 @@ import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 class EditFlashcardViewModel(
@@ -49,9 +50,8 @@ class EditFlashcardViewModel(
 
     private fun loadFlashcard() = viewModelScope.launch {
         setState { copy(isLoading = true) }
-        runCatching {
-            flashcardRepository.fetchById(flashcardId.toFlashcardId())
-        }.onSuccess { detail ->
+        try {
+            val detail = flashcardRepository.fetchById(flashcardId.toFlashcardId())
             val card = detail.flashcard
             setState {
                 copy(
@@ -64,8 +64,10 @@ class EditFlashcardViewModel(
                     isLoading = false,
                 )
             }
-        }.onFailure { error ->
-            logError(TAG, "loadFlashcard:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "loadFlashcard:error ${e.message}", e)
             setState { copy(isLoading = false) }
             sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo cargar la tarjeta"))
         }
@@ -115,12 +117,13 @@ class EditFlashcardViewModel(
 
     private fun handleDelete() = viewModelScope.launch {
         setState { copy(isDeleteConfirmationVisible = false) }
-        runCatching {
+        try {
             softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
-        }.onSuccess {
             sendEffect(EditFlashcardUiEffect.FlashcardDeleted)
-        }.onFailure { error ->
-            logError(TAG, "handleDelete:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "handleDelete:error ${e.message}", e)
             sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo eliminar la tarjeta"))
         }
     }
@@ -130,7 +133,7 @@ class EditFlashcardViewModel(
         if (!current.isValid || current.isSubmitting) return@launch
 
         setState { copy(isSubmitting = true) }
-        runCatching {
+        try {
             updateFlashcardUseCase(
                 UpdateFlashcardInput(
                     flashcardId = flashcardId.toFlashcardId(),
@@ -143,10 +146,11 @@ class EditFlashcardViewModel(
                     examples = current.examples,
                 )
             )
-        }.onSuccess {
             sendEffect(EditFlashcardUiEffect.NavigateBack)
-        }.onFailure { error ->
-            logError(TAG, "handleSubmit:error ${error.message}", error)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "handleSubmit:error ${e.message}", e)
             setState { copy(isSubmitting = false) }
             sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo actualizar la tarjeta"))
         }
