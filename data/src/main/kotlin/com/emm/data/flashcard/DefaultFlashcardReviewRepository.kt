@@ -43,8 +43,13 @@ class DefaultFlashcardReviewRepository(
                 repetitions = flashcardReview.repetitions,
                 lapses = flashcardReview.lapses,
                 createdAt = now,
+                // TODO(PR3/T-17): replace 0 with real ReviewGrade ordinal (1..4) from FsrsCard scheduler.
+                rating = 0L,
             )
-            localFirstQueries.upsertReviewProjection(
+            // Insert the row if it does not exist yet (brand-new card); defaults apply for state/stability/difficulty.
+            // Then unconditionally update the SM-2/scheduling columns, leaving state/stability/difficulty untouched.
+            // TODO(PR3/T-17): replace with a single full FSRS update once the scheduler provides real values.
+            localFirstQueries.insertReviewProjectionIfAbsent(
                 flashcardId = flashcardReview.flashcardId.value,
                 lastReviewedAt = flashcardReview.lastReviewedAt,
                 nextReviewAt = flashcardReview.nextReviewAt,
@@ -54,6 +59,17 @@ class DefaultFlashcardReviewRepository(
                 lapses = flashcardReview.lapses,
                 sourceEventId = eventId,
                 updatedAt = now,
+            )
+            localFirstQueries.updateReviewProjectionScheduling(
+                lastReviewedAt = flashcardReview.lastReviewedAt,
+                nextReviewAt = flashcardReview.nextReviewAt,
+                easeFactor = flashcardReview.easeFactor,
+                interval = flashcardReview.interval,
+                repetitions = flashcardReview.repetitions,
+                lapses = flashcardReview.lapses,
+                sourceEventId = eventId,
+                updatedAt = now,
+                flashcardId = flashcardReview.flashcardId.value,
             )
         }
         Unit

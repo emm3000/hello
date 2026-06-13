@@ -246,7 +246,7 @@ class ExportImportIntegrationTest {
             updatedAt = 200L,
             deletedAt = null,
         )
-        db.localFirstQueries.upsertReviewProjection(
+        db.localFirstQueries.insertReviewProjectionFull(
             flashcardId = "card-review",
             lastReviewedAt = 1000L,
             nextReviewAt = 2000L,
@@ -256,6 +256,9 @@ class ExportImportIntegrationTest {
             lapses = 0L,
             sourceEventId = "event-1",
             updatedAt = 2000L,
+            state = "REVIEW",
+            stability = 1.0,
+            difficulty = 5.0,
         )
 
         val exportUri = Uri.parse("content://test/review-export.json")
@@ -276,6 +279,10 @@ class ExportImportIntegrationTest {
         assertEquals("card-review", projections[0].flashcardId)
         assertEquals(2000L, projections[0].nextReviewAt)
         assertEquals(2.5, projections[0].easeFactor, 0.001)
+        // FIX C4: assert FSRS columns survive the export→import round-trip
+        assertEquals("REVIEW", projections[0].state)
+        assertEquals(1.0, projections[0].stability, 0.001)
+        assertEquals(5.0, projections[0].difficulty, 0.001)
     }
 
     @Test
@@ -520,7 +527,7 @@ class ExportImportIntegrationTest {
             createdAt = 500L,
         )
 
-        db.localFirstQueries.upsertReviewProjection(
+        db.localFirstQueries.insertReviewProjectionFull(
             flashcardId = "card-1",
             lastReviewedAt = 1000L,
             nextReviewAt = 2000L,
@@ -530,6 +537,9 @@ class ExportImportIntegrationTest {
             lapses = 0L,
             sourceEventId = "event-1",
             updatedAt = 2000L,
+            state = "REVIEW",
+            stability = 1.0,
+            difficulty = 5.0,
         )
     }
 

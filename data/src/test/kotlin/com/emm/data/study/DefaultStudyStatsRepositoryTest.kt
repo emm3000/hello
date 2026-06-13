@@ -229,11 +229,12 @@ class DefaultStudyStatsRepositoryTest {
             repetitions = 1,
             lapses = 0,
             createdAt = reviewedAt,
+            rating = 0L,
         )
     }
 
     private fun insertProjection(flashcardId: String, nextReviewAt: Long) {
-        db.localFirstQueries.upsertReviewProjection(
+        db.localFirstQueries.insertReviewProjectionFull(
             flashcardId = flashcardId,
             lastReviewedAt = nextReviewAt - 86400000,
             nextReviewAt = nextReviewAt,
@@ -243,6 +244,9 @@ class DefaultStudyStatsRepositoryTest {
             lapses = 0,
             sourceEventId = UUID.randomUUID().toString(),
             updatedAt = nextReviewAt,
+            state = "REVIEW",
+            stability = 1.0,
+            difficulty = 5.0,
         )
     }
 

@@ -147,6 +147,7 @@ class ExportBackupDataSource(
                         repetitions = it.repetitions,
                         lapses = it.lapses,
                         createdAt = it.createdAt,
+                        rating = it.rating,
                     )
                 )
             }
@@ -165,6 +166,9 @@ class ExportBackupDataSource(
                         lapses = it.lapses,
                         sourceEventId = it.sourceEventId,
                         updatedAt = it.updatedAt,
+                        state = it.state,
+                        stability = it.stability,
+                        difficulty = it.difficulty,
                     )
                 )
             }

@@ -1,0 +1,58 @@
+-- Migration 1 → 2 (file 1.sqm): Add FSRS-6 columns to ReviewProjection and ReviewEvent.
+--
+-- Design rules:
+--   • Additive-only (ALTER ADD COLUMN); no existing column is dropped or renamed.
+--   • Legacy SM-2 columns (easeFactor, interval, repetitions, lapses) are kept — used for seeding.
+--   • nextReviewAt of every existing row is left UNCHANGED.
+--   • Never-reviewed cards (no ReviewProjection row) stay NEW / due-now via the DEFAULT.
+
+-- ── Step 1: schema changes ──────────────────────────────────────────────────
+
+ALTER TABLE ReviewProjection
+    ADD COLUMN state TEXT NOT NULL DEFAULT 'NEW';
+
+ALTER TABLE ReviewProjection
+    ADD COLUMN stability REAL NOT NULL DEFAULT 0.0;
+
+ALTER TABLE ReviewProjection
+    ADD COLUMN difficulty REAL NOT NULL DEFAULT 0.0;
+
+ALTER TABLE ReviewEvent
+    ADD COLUMN rating INTEGER NOT NULL DEFAULT 0;
+-- rating: 1=AGAIN, 2=HARD, 3=GOOD, 4=EASY; 0 = legacy rows where real grade was not stored.
+
+-- ── Step 2: seed existing ReviewProjection rows from SM-2 columns ──────────
+--
+-- Seeding rules (rows that have a ReviewProjection — i.e. were reviewed at least once):
+--
+--   state:
+--     • interval <= 0          → 'NEW'       (never really graduated; edge case)
+--     • interval = 1 AND lapses > 0  → 'RELEARNING'  (re-learning step after a lapse)
+--     • otherwise              → 'REVIEW'    (graduated card, long-term memory)
+--
+--   stability ≈ interval (stability is the number of days to retain at 0.90;
+--     interval is already the scheduled days-to-next-review at ~0.90 retention,
+--     so it is a direct proxy). Floored at 0.001 to avoid division-by-zero in
+--     the FSRS forgetting-curve formula R(t,S) = (1 + FACTOR*t/S)^DECAY.
+--     stability = MIN(MAX(CAST(interval AS REAL), 0.001), 36500.0)
+--     Floored at 0.001 to avoid division-by-zero; capped at 36500.0 (~100 years) so that
+--     an inflated legacy interval cannot produce a card that is never due.
+--
+--   difficulty (inverse linear map from SM-2 easeFactor range [1.3, 2.7] → FSRS [1, 10]):
+--     easeFactor = 2.7 (very easy)  ↔  difficulty ≈ 1.0  (low difficulty)
+--     easeFactor = 1.3 (very hard)  ↔  difficulty ≈ 10.0 (high difficulty)
+--
+--     Monotonic inverse formula:
+--       difficulty = 10.0 - (easeFactor - 1.3) * (9.0 / 1.4)
+--                  = 10.0 - (easeFactor - 1.3) * 6.42857...
+--     Clamped to [1.0, 10.0] via MIN/MAX to handle out-of-range SM-2 values.
+
+UPDATE ReviewProjection
+SET
+    state = CASE
+        WHEN interval <= 0 THEN 'NEW'
+        WHEN interval = 1 AND lapses > 0 THEN 'RELEARNING'
+        ELSE 'REVIEW'
+    END,
+    stability = MIN(MAX(CAST(interval AS REAL), 0.001), 36500.0),
+    difficulty = MIN(10.0, MAX(1.0, 10.0 - (easeFactor - 1.3) * (9.0 / 1.4)));

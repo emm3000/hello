@@ -152,13 +152,19 @@ class ImportBackupDataSource(
                 repetitions = event.repetitions,
                 lapses = event.lapses,
                 createdAt = event.createdAt,
+                // Backup files from schema v1 lack a rating column; default to 0 (legacy unknown).
+                // TODO(PR3/T-20): bump BackupEnvelope.schemaVersion and read real rating from ReviewEventDto.
+                rating = event.rating,
             )
         }
     }
 
     private fun insertReviewProjections(projections: List<ReviewProjectionDto>) {
         projections.forEach { proj ->
-            db.localFirstQueries.upsertReviewProjection(
+            // No SM-2 seeding here; state/stability/difficulty come from the DTO
+            // (defaults 'NEW'/0.0/0.0 for old backups). On-device legacy seeding is done by the 1.sqm migration.
+            // TODO(PR3/T-20): bump BackupEnvelope.schemaVersion and read real state/stability/difficulty.
+            db.localFirstQueries.insertReviewProjectionFull(
                 flashcardId = proj.flashcardId,
                 lastReviewedAt = proj.lastReviewedAt,
                 nextReviewAt = proj.nextReviewAt,
@@ -168,6 +174,9 @@ class ImportBackupDataSource(
                 lapses = proj.lapses,
                 sourceEventId = proj.sourceEventId,
                 updatedAt = proj.updatedAt,
+                state = proj.state,
+                stability = proj.stability,
+                difficulty = proj.difficulty,
             )
         }
     }

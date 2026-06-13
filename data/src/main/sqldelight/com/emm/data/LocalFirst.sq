@@ -227,6 +227,8 @@ CREATE TABLE ReviewEvent (
     repetitions INTEGER NOT NULL,
     lapses INTEGER NOT NULL,
     createdAt INTEGER NOT NULL,
+    -- FSRS-6 (schema v2): real review grade; 1=AGAIN,2=HARD,3=GOOD,4=EASY; 0=legacy rows.
+    rating INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (eventId),
     FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE
 );
@@ -246,8 +248,10 @@ INSERT INTO ReviewEvent (
     interval,
     repetitions,
     lapses,
-    createdAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    createdAt,
+    rating
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+-- rating: pass the real ReviewGrade ordinal (1..4) in PR3; pass 0 for legacy/unknown in the interim.
 
 findReviewEventById:
 SELECT * FROM ReviewEvent
@@ -268,6 +272,10 @@ CREATE TABLE ReviewProjection (
     lapses INTEGER NOT NULL,
     sourceEventId TEXT NOT NULL,
     updatedAt INTEGER NOT NULL,
+    -- FSRS-6 (schema v2): card state + seeded stability/difficulty from SM-2 fields.
+    state TEXT NOT NULL DEFAULT 'NEW',
+    stability REAL NOT NULL DEFAULT 0.0,
+    difficulty REAL NOT NULL DEFAULT 0.0,
     PRIMARY KEY (flashcardId),
     FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE,
     FOREIGN KEY (sourceEventId) REFERENCES ReviewEvent(eventId) ON DELETE CASCADE
@@ -276,8 +284,13 @@ CREATE TABLE ReviewProjection (
 CREATE INDEX idx_ReviewProjection_nextReviewAt
 ON ReviewProjection(nextReviewAt);
 
-upsertReviewProjection:
-INSERT OR REPLACE INTO ReviewProjection (
+-- Inserts a brand-new ReviewProjection row only if one does not already exist for this flashcard.
+-- state/stability/difficulty use table DEFAULTs ('NEW'/0.0/0.0) so migration-seeded FSRS values
+-- are never overwritten on an existing row.
+-- Called together with updateReviewProjectionScheduling inside a transaction.
+-- TODO(PR3/T-17): replace this pair with a full FSRS upsert once the scheduler provides real values.
+insertReviewProjectionIfAbsent:
+INSERT OR IGNORE INTO ReviewProjection (
     flashcardId,
     lastReviewedAt,
     nextReviewAt,
@@ -288,6 +301,39 @@ INSERT OR REPLACE INTO ReviewProjection (
     sourceEventId,
     updatedAt
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Updates only the SM-2/scheduling columns on an existing ReviewProjection row.
+-- state/stability/difficulty are intentionally NOT touched so migration-seeded FSRS values survive.
+updateReviewProjectionScheduling:
+UPDATE ReviewProjection
+SET
+    lastReviewedAt = ?,
+    nextReviewAt = ?,
+    easeFactor = ?,
+    interval = ?,
+    repetitions = ?,
+    lapses = ?,
+    sourceEventId = ?,
+    updatedAt = ?
+WHERE flashcardId = ?;
+
+-- Full insert used by the backup-import path (table is cleared before import, so no conflict occurs).
+-- Accepts all FSRS columns explicitly so backup-serialized state/stability/difficulty are preserved.
+insertReviewProjectionFull:
+INSERT INTO ReviewProjection (
+    flashcardId,
+    lastReviewedAt,
+    nextReviewAt,
+    easeFactor,
+    interval,
+    repetitions,
+    lapses,
+    sourceEventId,
+    updatedAt,
+    state,
+    stability,
+    difficulty
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewProjectionByFlashcardId:
 SELECT * FROM ReviewProjection

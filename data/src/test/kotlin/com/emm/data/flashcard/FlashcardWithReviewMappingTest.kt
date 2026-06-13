@@ -111,7 +111,7 @@ class FlashcardWithReviewMappingTest {
     }
 
     private fun insertProjection(flashcardId: String, lastReviewedAt: Long, nextReviewAt: Long) {
-        db.localFirstQueries.upsertReviewProjection(
+        db.localFirstQueries.insertReviewProjectionFull(
             flashcardId = flashcardId,
             lastReviewedAt = lastReviewedAt,
             nextReviewAt = nextReviewAt,
@@ -121,6 +121,9 @@ class FlashcardWithReviewMappingTest {
             lapses = 0L,
             sourceEventId = UUID.randomUUID().toString(),
             updatedAt = lastReviewedAt,
+            state = "REVIEW",
+            stability = 1.0,
+            difficulty = 5.0,
         )
     }
 }

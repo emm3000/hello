@@ -99,6 +99,8 @@ data class ReviewEventDto(
     val repetitions: Long,
     val lapses: Long,
     val createdAt: Long,
+    // FSRS-6 (schema v2): 1=AGAIN, 2=HARD, 3=GOOD, 4=EASY; 0=legacy. Default allows v1 backup imports.
+    val rating: Long = 0L,
 )
 
 @Serializable
@@ -112,4 +114,8 @@ data class ReviewProjectionDto(
     val lapses: Long,
     val sourceEventId: String,
     val updatedAt: Long,
+    // FSRS-6 (schema v2): card scheduling state. Default allows v1 backup imports.
+    val state: String = "NEW",
+    val stability: Double = 0.0,
+    val difficulty: Double = 0.0,
 )
