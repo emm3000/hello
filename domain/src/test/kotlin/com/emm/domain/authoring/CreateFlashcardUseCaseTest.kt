@@ -191,7 +191,8 @@ private class FakeFlashcardRepository : FlashcardRepository {
     }
 
     override suspend fun update(input: UpdateFlashcardInput) = Unit
-    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
+    override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
 }
 

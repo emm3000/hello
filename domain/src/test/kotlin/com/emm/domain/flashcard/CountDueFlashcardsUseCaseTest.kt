@@ -45,6 +45,7 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("not used")
     override suspend fun update(input: UpdateFlashcardInput) = error("not used")
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = error("not used")
+    override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = error("not used")
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = error("not used")
     override suspend fun countDueFlashcards(nowMillis: Long): Long {
         lastQueriedNow = nowMillis

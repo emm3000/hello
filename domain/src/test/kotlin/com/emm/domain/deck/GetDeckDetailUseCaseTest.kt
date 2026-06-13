@@ -49,7 +49,7 @@ class GetDeckDetailUseCaseTest {
         val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
 
         useCase("deck-1").test {
-            val result = awaitItem()
+            val result = awaitItem()!!
             assertEquals(2, result.cards.size)
             assertEquals("deck-1", deckRepository.lastFindByIdArg?.value)
             assertEquals("deck-1", flashcardRepository.lastFetchByDeckIdArg?.value)
@@ -77,7 +77,7 @@ class GetDeckDetailUseCaseTest {
         val useCase = GetDeckDetailUseCase(deckRepository, flashcardRepository)
 
         useCase("deck-1").test {
-            val first = awaitItem()
+            val first = awaitItem()!!
             assertEquals("deck-1", first.id.value)
             assertEquals("Main", first.name)
             assertEquals(1, first.cards.size)
@@ -87,7 +87,7 @@ class GetDeckDetailUseCaseTest {
                 sampleCard(id = "card-2"),
             )
 
-            val second = awaitItem()
+            val second = awaitItem()!!
             assertEquals("deck-1", second.id.value)
             assertEquals("Main", second.name)
             assertEquals(2, second.cards.size)
@@ -155,7 +155,8 @@ private class FakeDeckRepository : DeckRepository {
     override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
     override suspend fun update(input: UpdateDeckInput) = Unit
-    override suspend fun softDeleteDeck(deckId: DeckId) = Unit
+    override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+    override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
 }
 
 private class FakeFlashcardRepository : FlashcardRepository {
@@ -190,7 +191,8 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
 
     override suspend fun update(input: UpdateFlashcardInput) = Unit
-    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = Unit
+    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
+    override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
 }
 
