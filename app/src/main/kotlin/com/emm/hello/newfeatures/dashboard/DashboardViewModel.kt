@@ -1,10 +1,12 @@
 package com.emm.hello.newfeatures.dashboard
 
 import androidx.lifecycle.viewModelScope
+import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.GetFilteredDecksUseCase
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.RestoreDeckUseCase
+import com.emm.domain.deck.Tag
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.hello.core.mvi.MviViewModel
@@ -123,11 +125,11 @@ class DashboardViewModel(
     }
 
     private fun buildState(
-        allDecks: List<com.emm.domain.deck.Deck>,
-        filteredDecks: List<com.emm.domain.deck.Deck>,
+        allDecks: List<Deck>,
+        filteredDecks: List<Deck>,
     ): DashboardUiState {
         val availableTags = allDecks
-            .flatMap { deck -> deck.tags.map { tag -> tag.value } }
+            .flatMap { deck -> deck.tags.map(Tag::value) }
             .distinct()
             .sorted()
 

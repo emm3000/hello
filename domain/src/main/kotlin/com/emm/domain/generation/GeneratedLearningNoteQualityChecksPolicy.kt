@@ -8,7 +8,7 @@ class GeneratedLearningNoteQualityChecksPolicy {
 
     fun collectIssues(note: GeneratedLearningNote): List<ValidationIssue.Error> {
         val errors = mutableListOf<ValidationIssue.Error>()
-        val presentCodes = note.qualityChecks.map { it.code }.toSet()
+        val presentCodes = note.qualityChecks.map(GeneratedNoteQualityCheck::code).toSet()
 
         if (!presentCodes.contains(GeneratedNoteQualityCode.SingleMeaning)) {
             errors += ValidationIssue.Error(

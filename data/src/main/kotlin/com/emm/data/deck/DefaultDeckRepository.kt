@@ -162,7 +162,7 @@ class DefaultDeckRepository(
             .asFlow()
             .mapToList(Dispatchers.IO)
             .map { entities ->
-                entities.map { it.toDomain() }
+                entities.map(DeckEntity::toDomain)
             }
     }
 

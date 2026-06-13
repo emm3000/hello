@@ -24,7 +24,7 @@ class DefaultFlashcardReviewRepository(
             .allReviewProjections()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map { projections -> projections.map { it.toDomainFromProjection() } }
+            .map { projections -> projections.map(ReviewProjectionEntity::toDomainFromProjection) }
     }
 
     override suspend fun update(flashcardReview: FlashcardReview) = withContext(Dispatchers.IO) {

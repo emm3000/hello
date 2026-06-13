@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.toDeckId
@@ -49,7 +50,7 @@ class NewDeckViewModel(
                 copy(
                     name = deck.name,
                     description = deck.description,
-                    tags = deck.tags.map { tag -> tag.value },
+                    tags = deck.tags.map(Tag::value),
                     isLoading = false,
                 )
             }

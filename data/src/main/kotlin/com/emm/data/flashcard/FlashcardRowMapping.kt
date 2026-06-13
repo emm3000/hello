@@ -235,14 +235,14 @@ internal fun decodeStringList(raw: String?, json: Json): List<String> {
 internal fun decodeStudyCards(raw: String?, json: Json): List<GeneratedStudyCard> {
     if (raw.isNullOrBlank()) return emptyList()
     return runCatching {
-        json.decodeFromString<List<StoredStudyCardDto>>(raw).map { dto -> dto.toDomain() }
+        json.decodeFromString<List<StoredStudyCardDto>>(raw).map(StoredStudyCardDto::toDomain)
     }.getOrDefault(emptyList())
 }
 
 internal fun decodeQualityChecks(raw: String?, json: Json): List<GeneratedNoteQualityCheck> {
     if (raw.isNullOrBlank()) return emptyList()
     return runCatching {
-        json.decodeFromString<List<StoredNoteQualityCheckDto>>(raw).map { dto -> dto.toDomain() }
+        json.decodeFromString<List<StoredNoteQualityCheckDto>>(raw).map(StoredNoteQualityCheckDto::toDomain)
     }.getOrDefault(emptyList())
 }
 

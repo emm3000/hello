@@ -9,6 +9,6 @@ data class DeckSearchCriteria(
     val normalizedQuery: String = query.trim().lowercase(Locale.ROOT)
     val normalizedSelectedTags: Set<String> = selectedTags
         .map { it.trim().lowercase(Locale.ROOT) }
-        .filter { it.isNotBlank() }
+        .filter(String::isNotBlank)
         .toSet()
 }

@@ -60,5 +60,5 @@ fun String.toDomainTagsFromCsv(): List<Tag> {
         .map { it.trim() }
         .filter { it.isNotBlank() }
         .distinct()
-        .map { Tag(value = it) }
+        .map(::Tag)
 }
