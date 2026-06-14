@@ -65,6 +65,7 @@ import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HFab
+import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSectionLabel
 import java.time.LocalDateTime
@@ -99,8 +100,12 @@ fun DashboardScreen(
             // Top row: wordmark + settings icon
             WordmarkRow(onSettings = onSettings)
 
-            // Body: three states
+            // Body: loading + three states
             when {
+                state.isLoading && state.decks.isEmpty() -> {
+                    LoadingContent(modifier = Modifier.weight(1f))
+                }
+
                 state.emptyState == DashboardEmptyState.LibraryEmpty -> {
                     EmptyLibraryContent(
                         modifier = Modifier.weight(1f),
@@ -526,6 +531,20 @@ private fun DeckRowFooter(deck: Deck) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Loading state (cold start — stats not yet available)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun LoadingContent(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        HLoadingSpinner(color = emberAccent)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Empty library state (no decks yet)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -738,6 +757,19 @@ private fun DashboardScreenPreview() {
                     ),
                 ),
                 availableTags = listOf("formal", "gramática", "trabajo", "viaje"),
+            ),
+        )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun DashboardScreenLoadingPreview() {
+    HelloTheme {
+        DashboardScreen(
+            state = DashboardUiState(
+                isLoading = true,
+                decks = emptyList(),
             ),
         )
     }
