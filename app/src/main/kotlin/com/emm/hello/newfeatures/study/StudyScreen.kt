@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.study
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -111,6 +112,7 @@ import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HEmptyState
+import com.emm.hello.core.ui.HLoadingSpinner
 import kotlin.math.ceil
 
 private const val CARD_TRANSITION_DURATION_MS = 220
@@ -159,6 +161,7 @@ private data class StudyDockCallbacks(
     val onTypedAnswerChange: (String) -> Unit,
     val onCheckTypedAnswer: () -> Unit,
     val onCreateCard: () -> Unit,
+    val onRetryLoad: () -> Unit,
 )
 
 @Composable
@@ -170,11 +173,22 @@ fun StudyScreen(
     onCreateCard: () -> Unit = {},
     onGradeHintDismissed: () -> Unit = {},
     onStartSession: () -> Unit = {},
+    onRetryLoad: () -> Unit = {},
     onConfirmExit: () -> Unit = {},
     onDismissExitConfirmation: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
+    // Route both system/predictive back and the on-screen X through the same exit guard.
+    // When the confirmation dialog is up, back dismisses it; otherwise it requests exit
+    // (which shows the dialog if a session is in progress, or navigates back if not).
+    BackHandler {
+        if (state.showExitConfirmation) {
+            onDismissExitConfirmation()
+        } else {
+            onRequestExit()
+        }
+    }
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
     val isSpeaking by tts.isSpeaking.collectAsStateWithLifecycle()
     val ttsReady by tts.isReady.collectAsStateWithLifecycle()
@@ -202,6 +216,8 @@ fun StudyScreen(
     val currentStudyCard = currentItem?.studyCard
     val needsTypedAnswer = currentStudyCard?.needsTypedAnswer == true
     val sessionStage = remember(
+        state.isLoading,
+        state.loadError,
         state.sessionStarted,
         state.currentItem,
         state.totalCount,
@@ -209,6 +225,8 @@ fun StudyScreen(
         typedAnswerChecked,
     ) {
         when {
+            state.isLoading -> StudyStage.Loading
+            state.loadError != null -> StudyStage.Error
             !state.sessionStarted && state.totalCount == 0 -> StudyStage.Empty
             !state.sessionStarted -> StudyStage.Start
             state.currentItem == null -> StudyStage.Empty
@@ -339,6 +357,7 @@ fun StudyScreen(
                                 typedAnswerChecked = false
                             },
                             onCreateCard = onCreateCard,
+                            onRetryLoad = onRetryLoad,
                             onCheckTypedAnswer = {
                                 currentStudyCard?.let { activeCard ->
                                     typedAnswerCorrect = matchesTypedAnswer(
@@ -460,6 +479,8 @@ private fun SessionFinishedDialog(
 }
 
 private enum class StudyStage {
+    Loading,
+    Error,
     Start,
     Empty,
     Recall,
@@ -484,6 +505,8 @@ private fun StudyCanvas(
 ) {
     Box(modifier = modifier) {
         when (sessionStage) {
+            StudyStage.Loading -> StudyLoadingState()
+            StudyStage.Error -> StudyErrorState()
             StudyStage.Start -> StudyStartCard(
                 totalCount = startMeta.totalCount,
                 estimatedMinutes = startMeta.estimatedMinutes,
@@ -625,6 +648,18 @@ private fun StudyActionDock(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (stage) {
+                StudyStage.Loading -> Unit
+
+                StudyStage.Error -> {
+                    HButton(
+                        text = stringResource(R.string.study_error_retry),
+                        onClick = callbacks.onRetryLoad,
+                        variant = HButtonVariant.Accent,
+                        size = HButtonSize.Lg,
+                        full = true,
+                    )
+                }
+
                 StudyStage.Start -> {
                     HButton(
                         text = stringResource(R.string.study_start_cta_short),
@@ -801,6 +836,25 @@ private fun StudyEmptyState() {
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
         body = "$srsConceptLine\n\n$studyEmptyBody",
+    )
+}
+
+@Composable
+private fun StudyLoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        HLoadingSpinner(color = emberAccent)
+    }
+}
+
+@Composable
+private fun StudyErrorState() {
+    HEmptyState(
+        modifier = Modifier.fillMaxSize(),
+        headline = stringResource(R.string.study_error_headline),
+        body = stringResource(R.string.study_error_body),
     )
 }
 
@@ -1433,6 +1487,8 @@ private fun StudyScreenPreview() {
     HelloTheme {
         StudyScreen(
             state = StudyUiState(
+                isLoading = false,
+                sessionStarted = true,
                 currentItem = StudySessionItem(
                     flashcardId = "1".toFlashcardId(),
                     review = FlashcardReview.empty(SystemClock),

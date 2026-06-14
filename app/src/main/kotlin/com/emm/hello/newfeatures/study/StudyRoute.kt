@@ -14,13 +14,28 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Study session target.
+ *
+ * [deckId] null means "study all cards due today across every deck" (the global Dashboard CTA).
+ * A non-null [deckId] studies only that deck (the per-deck DeckDetail CTA).
+ */
 @Serializable
-data class StudyRoute(val deckId: String) : NavKey
+data class StudyRoute(val deckId: String? = null) : NavKey {
+    companion object {
+        /**
+         * Sentinel passed to Koin/[StudyViewModel] for the all-decks session, since Koin parameter
+         * injection ([parametersOf]) resolves a non-null [String]. The route layer keeps [deckId]
+         * nullable; [StudyDestination] normalizes null to this sentinel before injection.
+         */
+        const val ALL_DUE_DECKS: String = "__all_due_decks__"
+    }
+}
 
 @Composable
-fun StudyDestination(navigator: Navigator, deckId: String) {
+fun StudyDestination(navigator: Navigator, deckId: String?) {
     val vm: StudyViewModel = koinViewModel(
-        parameters = { parametersOf(deckId) }
+        parameters = { parametersOf(deckId ?: StudyRoute.ALL_DUE_DECKS) }
     )
     val uiState = vm.state.collectAsStateWithLifecycle()
     var showFinishDialog by remember { mutableStateOf(false) }
@@ -54,6 +69,7 @@ fun StudyDestination(navigator: Navigator, deckId: String) {
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         onGradeHintDismissed = { vm.onIntent(StudyUiIntent.GradeHintDismissed) },
         onStartSession = { vm.onIntent(StudyUiIntent.StartSession) },
+        onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
         onConfirmExit = { vm.onIntent(StudyUiIntent.ConfirmExit) },
         onDismissExitConfirmation = { vm.onIntent(StudyUiIntent.DismissExitConfirmation) },
         state = uiState.value,

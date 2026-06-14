@@ -1,6 +1,7 @@
 package com.emm.data.flashcard
 
 import com.emm.data.FlashcardWithExamples
+import com.emm.data.FlashcardsToReviewAllDecks
 import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
@@ -166,6 +167,26 @@ internal fun toStudyFlashcard(
 }
 
 internal fun toStudyFlashcard(
+    entity: FlashcardsToReviewAllDecks,
+    review: FlashcardReview,
+    json: Json,
+): StudyFlashcard {
+    return StudyFlashcard(
+        flashcardId = entity.id.toFlashcardId(),
+        word = entity.word,
+        phonetic = entity.phonetic.orEmpty(),
+        meaning = entity.meaning,
+        translation = entity.translation.orEmpty(),
+        review = review,
+        studyCards = decodeStudyCards(entity.studyCardsJson, json),
+        usagePattern = entity.usagePattern.orEmpty(),
+        whyUseful = entity.whyUseful.orEmpty(),
+        sourceContext = entity.sourceContext.orEmpty(),
+        irregularForms = decodeStringList(entity.irregularFormsJson, json),
+    )
+}
+
+internal fun toStudyFlashcard(
     entity: com.emm.data.FlashcardsWithReview,
     review: FlashcardReview,
     json: Json,
@@ -204,6 +225,30 @@ internal fun toExampleOrNull(item: FlashcardWithExamples): Example? {
 }
 
 internal fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {
+    val hasMissingField = listOf(
+        deck.flashcardId,
+        deck.lastReviewedAt,
+        deck.nextReviewAt,
+        deck.easeFactor,
+        deck.interval,
+        deck.repetitions,
+        deck.lapses,
+    ).any { it == null }
+
+    if (hasMissingField) return FlashcardReview.empty(SystemClock)
+
+    return FlashcardReview(
+        flashcardId = (deck.flashcardId ?: "empty-flashcard").toFlashcardId(),
+        lastReviewedAt = deck.lastReviewedAt ?: 0L,
+        nextReviewAt = deck.nextReviewAt ?: 0L,
+        easeFactor = deck.easeFactor ?: 0.0,
+        interval = deck.interval ?: 0L,
+        repetitions = deck.repetitions ?: 0L,
+        lapses = deck.lapses ?: 0L,
+    )
+}
+
+internal fun mapFlashcardReview(deck: FlashcardsToReviewAllDecks): FlashcardReview {
     val hasMissingField = listOf(
         deck.flashcardId,
         deck.lastReviewedAt,

@@ -13,11 +13,13 @@ import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.core.mvi.MviViewModel
+import com.emm.hello.logging.logError
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 class StudyViewModel(
     deckId: String,
-    studySessionRepository: StudySessionRepository,
+    private val studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
     private val clock: Clock,
@@ -26,14 +28,24 @@ class StudyViewModel(
     initialState = StudyUiState(),
 ) {
 
+    // Null target == study all cards due today across decks (global Dashboard CTA).
+    // Non-null == single deck (per-deck DeckDetail CTA). See StudyRoute.ALL_DUE_DECKS.
+    private val deckId: String? = deckId.takeUnless { it == StudyRoute.ALL_DUE_DECKS }
+
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
     private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
     private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
     private val reviewsByFlashcardId = mutableMapOf<FlashcardId, FlashcardReview>()
 
     init {
-        viewModelScope.launch {
-            val studyFlashcards: List<StudyFlashcard> = studySessionRepository.sessionToday(deckId.toDeckId())
+        loadSession()
+    }
+
+    private fun loadSession() = viewModelScope.launch {
+        resetSessionAccumulators()
+        setState { copy(isLoading = true, loadError = null, reviewedCount = 0, sessionFinished = false) }
+        try {
+            val studyFlashcards: List<StudyFlashcard> = fetchSession()
             val items = studyFlashcards.flatMap { sf ->
                 reviewsByFlashcardId[sf.flashcardId] = sf.review
                 pendingItemsByFlashcardId[sf.flashcardId] = sf.studyCards.count { it.isActive }
@@ -41,8 +53,29 @@ class StudyViewModel(
             }
             studyItemsForToday.addAll(items)
             val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
-            setState { copy(totalCount = items.size, isGradeHintVisible = showHint) }
+            setState { copy(isLoading = false, totalCount = items.size, isGradeHintVisible = showHint) }
             showNextCard()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "loadSession:error ${e.message}", e)
+            setState { copy(isLoading = false, loadError = StudyLoadError.SessionLoadFailed) }
+        }
+    }
+
+    private fun resetSessionAccumulators() {
+        studyItemsForToday.clear()
+        pendingItemsByFlashcardId.clear()
+        aggregatedGradesByFlashcardId.clear()
+        reviewsByFlashcardId.clear()
+    }
+
+    private suspend fun fetchSession(): List<StudyFlashcard> {
+        val target = deckId
+        return if (target == null) {
+            studySessionRepository.sessionTodayAllDecks()
+        } else {
+            studySessionRepository.sessionToday(target.toDeckId())
         }
     }
 
@@ -67,6 +100,7 @@ class StudyViewModel(
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
             StudyUiIntent.GradeHintDismissed -> dismissGradeHint()
             StudyUiIntent.StartSession -> setState { copy(sessionStarted = true) }
+            StudyUiIntent.RetryLoad -> loadSession()
             StudyUiIntent.RequestExit -> requestExit()
             StudyUiIntent.ConfirmExit -> {
                 setState { copy(showExitConfirmation = false) }
@@ -138,3 +172,5 @@ private val ReviewGrade.priority: Int
         ReviewGrade.GOOD -> 2
         ReviewGrade.EASY -> 3
     }
+
+private const val TAG = "StudyViewModel"

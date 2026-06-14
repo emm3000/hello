@@ -9,6 +9,8 @@ import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyRoute
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -46,5 +48,14 @@ class NavKeyContractTest {
         assertTrue(deck is NavKey)
         assertTrue(card is NavKey)
         assertTrue(editFlashcard is NavKey)
+        assertEquals("deck-123", study.deckId)
+    }
+
+    @Test
+    fun `StudyRoute defaults to the all-decks target`() {
+        val allDecks = StudyRoute()
+
+        assertTrue(allDecks is NavKey)
+        assertNull(allDecks.deckId)
     }
 }

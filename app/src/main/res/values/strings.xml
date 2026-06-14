@@ -410,6 +410,9 @@
     <string name="study_exit_confirm_desc">Tu progreso ya aplicado se conserva, pero perderás el ritmo actual.</string>
     <string name="study_exit_confirm_leave">Salir</string>
     <string name="study_keep_going">Seguir</string>
+    <string name="study_error_headline">No pudimos cargar tu sesión.</string>
+    <string name="study_error_body">Hubo un problema al leer tus tarjetas. Vuelve a intentarlo.</string>
+    <string name="study_error_retry">Reintentar</string>
     <string name="study_empty_title">No hay tarjetas para repasar</string>
     <string name="study_empty_desc">Cuando tengas tarjetas pendientes, la sesión aparecerá aquí.</string>
     <string name="stop_speech_desc">Detener</string>

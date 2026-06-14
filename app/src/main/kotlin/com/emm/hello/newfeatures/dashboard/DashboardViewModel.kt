@@ -13,6 +13,7 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
 import com.emm.hello.newfeatures.shared.UndoEventHolder
+import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,9 +98,10 @@ class DashboardViewModel(
             }
 
             StudyClicked -> {
-                // No per-deck due counts in dashboard state; falls back to first deck
-                val target = currentState.allDecks.firstOrNull() ?: return
-                sendEffect(NavigateToStudy(target.id.value))
+                // The global CTA keys off stats.cardsDueToday (across all decks), so the session
+                // must study ALL cards due today — not an arbitrary first deck. ALL_DUE_DECKS is the
+                // sentinel StudyViewModel resolves to the all-decks session.
+                sendEffect(NavigateToStudy(StudyRoute.ALL_DUE_DECKS))
             }
 
             is UndoDeleteDeck -> undoDeleteDeck(intent.deckId, intent.deletedAt)

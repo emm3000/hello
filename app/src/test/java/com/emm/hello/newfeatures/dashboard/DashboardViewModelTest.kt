@@ -18,6 +18,7 @@ import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.newfeatures.shared.UndoEvent
 import com.emm.hello.newfeatures.shared.UndoEventHolder
+import com.emm.hello.newfeatures.study.StudyRoute
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -161,7 +162,7 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `StudyClicked with decks emits NavigateToStudy with first deck id`() = runTest {
+    fun `StudyClicked emits NavigateToStudy with all-due-decks target`() = runTest {
         val deck = sampleDeck(id = "deck-42", name = "English", tags = emptyList())
         val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = listOf(deck)))
         advanceUntilIdle()
@@ -170,18 +171,20 @@ class DashboardViewModelTest {
             viewModel.onIntent(StudyClicked)
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
-            assertThat((effect as NavigateToStudy).deckId).isEqualTo("deck-42")
+            assertThat((effect as NavigateToStudy).deckId).isEqualTo(StudyRoute.ALL_DUE_DECKS)
         }
     }
 
     @Test
-    fun `StudyClicked with no decks emits no effect`() = runTest {
+    fun `StudyClicked with no decks still emits all-due-decks target`() = runTest {
         val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
         advanceUntilIdle()
 
         viewModel.effect.test {
             viewModel.onIntent(StudyClicked)
-            expectNoEvents()
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
+            assertThat((effect as NavigateToStudy).deckId).isEqualTo(StudyRoute.ALL_DUE_DECKS)
         }
     }
 

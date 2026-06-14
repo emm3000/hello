@@ -310,5 +310,6 @@ class DeckDetailViewModelTest {
         override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> =
             flowOf(items)
         override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = emptyList()
+        override suspend fun sessionTodayAllDecks(): List<StudyFlashcard> = emptyList()
     }
 }

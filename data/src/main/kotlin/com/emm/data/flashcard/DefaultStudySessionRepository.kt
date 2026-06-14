@@ -35,6 +35,17 @@ class DefaultStudySessionRepository(
         }
     }
 
+    override suspend fun sessionTodayAllDecks(): List<StudyFlashcard> = withContext(ioDispatcher) {
+        val flashcardsToReviewAllDecks = dao.flashcardsToReviewAllDecks(
+            now = Instant.now().toEpochMilli(),
+        ).executeAsList()
+
+        flashcardsToReviewAllDecks.map {
+            val review: FlashcardReview = mapFlashcardReview(it)
+            toStudyFlashcard(it, review, json)
+        }
+    }
+
     override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> {
         return dao.flashcardsWithReview(deckId.value).asFlow()
             .mapToList(ioDispatcher)

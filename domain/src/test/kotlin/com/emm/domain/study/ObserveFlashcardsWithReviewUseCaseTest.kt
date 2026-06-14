@@ -31,6 +31,8 @@ private class FakeStudySessionForObserveRepository : StudySessionRepository {
 
     override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = emptyList()
 
+    override suspend fun sessionTodayAllDecks(): List<StudyFlashcard> = emptyList()
+
     override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> {
         lastFlashcardWithReviewDeckId = deckId
         return emptyFlow()

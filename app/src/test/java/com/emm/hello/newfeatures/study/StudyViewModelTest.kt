@@ -213,6 +213,102 @@ class StudyViewModelTest {
         assertThat(reviewRepo.updates.single().flashcardId.value).isEqualTo("a")
     }
 
+    // ── Target resolution (per-deck vs all-decks) ──────────────────────────────
+
+    @Test
+    fun `non-sentinel deckId loads the per-deck session`() = runTest {
+        val repo = FakeStudySessionRepo(listOf(studyFlashcard("a")))
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            studySessionRepository = repo,
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            clock = fixedClock,
+            onboardingState = FakeOnboardingStateRepository(),
+        )
+        advanceUntilIdle()
+
+        assertThat(repo.sessionTodayCalledWith?.value).isEqualTo("deck-1")
+        assertThat(repo.sessionTodayAllDecksCalled).isFalse()
+    }
+
+    @Test
+    fun `all-due-decks sentinel loads the all-decks session`() = runTest {
+        val repo = FakeStudySessionRepo(
+            studyFlashcards = emptyList(),
+            allDecksFlashcards = listOf(studyFlashcard("a"), studyFlashcard("b")),
+        )
+        val viewModel = StudyViewModel(
+            deckId = StudyRoute.ALL_DUE_DECKS,
+            studySessionRepository = repo,
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            clock = fixedClock,
+            onboardingState = FakeOnboardingStateRepository(),
+        )
+        advanceUntilIdle()
+
+        assertThat(repo.sessionTodayAllDecksCalled).isTrue()
+        assertThat(repo.sessionTodayCalledWith).isNull()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(2)
+    }
+
+    // ── Loading / error ────────────────────────────────────────────────────────
+
+    @Test
+    fun `successful load clears isLoading and leaves no error`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.loadError).isNull()
+    }
+
+    @Test
+    fun `failed load sets error and clears isLoading without showing empty`() = runTest {
+        val repo = FakeStudySessionRepo(
+            studyFlashcards = emptyList(),
+            sessionTodayError = IllegalStateException("db read failed"),
+        )
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            studySessionRepository = repo,
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            clock = fixedClock,
+            onboardingState = FakeOnboardingStateRepository(),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
+        assertThat(viewModel.state.value.totalCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `retry after failure reloads and clears the error`() = runTest {
+        val repo = RecoveringStudySessionRepo(
+            recoveredFlashcards = listOf(studyFlashcard("a")),
+        )
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            studySessionRepository = repo,
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            clock = fixedClock,
+            onboardingState = FakeOnboardingStateRepository(),
+        )
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
+
+        viewModel.onIntent(StudyUiIntent.RetryLoad)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.loadError).isNull()
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(1)
+    }
+
     // ── Grade hint ───────────────────────────────────────────────────────────
 
     @Test
@@ -333,8 +429,43 @@ class StudyViewModelTest {
         evaluationMode = EvaluationMode.ManualSelfCheck,
     )
 
-    private class FakeStudySessionRepo(private val studyFlashcards: List<StudyFlashcard>) : StudySessionRepository {
-        override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> = studyFlashcards
+    private class FakeStudySessionRepo(
+        private val studyFlashcards: List<StudyFlashcard>,
+        private val allDecksFlashcards: List<StudyFlashcard> = studyFlashcards,
+        private val sessionTodayError: Throwable? = null,
+        private val allDecksError: Throwable? = null,
+    ) : StudySessionRepository {
+        var sessionTodayCalledWith: DeckId? = null
+        var sessionTodayAllDecksCalled: Boolean = false
+
+        override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> {
+            sessionTodayCalledWith = deckId
+            sessionTodayError?.let { throw it }
+            return studyFlashcards
+        }
+
+        override suspend fun sessionTodayAllDecks(): List<StudyFlashcard> {
+            sessionTodayAllDecksCalled = true
+            allDecksError?.let { throw it }
+            return allDecksFlashcards
+        }
+
+        override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> = emptyFlow()
+    }
+
+    /** Throws on the first [sessionToday] call, returns [recoveredFlashcards] on later calls. */
+    private class RecoveringStudySessionRepo(
+        private val recoveredFlashcards: List<StudyFlashcard>,
+    ) : StudySessionRepository {
+        private var calls = 0
+
+        override suspend fun sessionToday(deckId: DeckId): List<StudyFlashcard> {
+            calls += 1
+            if (calls == 1) error("db read failed")
+            return recoveredFlashcards
+        }
+
+        override suspend fun sessionTodayAllDecks(): List<StudyFlashcard> = recoveredFlashcards
         override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> = emptyFlow()
     }
 
