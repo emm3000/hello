@@ -207,7 +207,7 @@ private fun EditFlashcardBody(
             onValueChange = { onIntent(EditFlashcardUiIntent.WordChanged(it)) },
             label = stringResource(R.string.word_label),
             placeholder = stringResource(R.string.edit_flashcard_word_placeholder),
-            errorMessage = state.wordError,
+            errorMessage = state.wordError?.let { stringResource(it) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -254,7 +254,7 @@ private fun EditFlashcardBody(
             onValueChange = { onIntent(EditFlashcardUiIntent.MeaningChanged(it)) },
             label = stringResource(R.string.meaning_label),
             placeholder = stringResource(R.string.edit_flashcard_meaning_placeholder),
-            errorMessage = state.meaningError,
+            errorMessage = state.meaningError?.let { stringResource(it) },
             singleLine = false,
             minLines = 4,
             modifier = Modifier.fillMaxWidth(),

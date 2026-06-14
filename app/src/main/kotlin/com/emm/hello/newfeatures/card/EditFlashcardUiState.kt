@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.card
 
+import androidx.annotation.StringRes
 import com.emm.domain.flashcard.Example
 import com.emm.hello.core.mvi.MviState
 
@@ -11,8 +12,8 @@ data class EditFlashcardUiState(
     val phonetic: String = "",
     val partOfSpeech: String = "",
     val examples: List<Example> = emptyList(),
-    val wordError: String? = null,
-    val meaningError: String? = null,
+    @param:StringRes val wordError: Int? = null,
+    @param:StringRes val meaningError: Int? = null,
     val isSubmitting: Boolean = false,
     val isDeleteConfirmationVisible: Boolean = false,
 ) : MviState {

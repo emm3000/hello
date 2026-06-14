@@ -536,6 +536,21 @@
     <string name="undo_deck_deleted_message">Mazo \"%1$s\" eliminado</string>
     <string name="undo_card_deleted_message">Tarjeta eliminada</string>
 
+    <!-- Deck/card feedback (errors, validation, success) -->
+    <string name="error_load_card">No se pudo cargar la tarjeta</string>
+    <string name="error_save_card">No se pudo actualizar la tarjeta</string>
+    <string name="error_delete_card">No se pudo eliminar la tarjeta</string>
+    <string name="error_restore_card">No se pudo restaurar la tarjeta</string>
+    <string name="validation_word_required">La palabra es obligatoria</string>
+    <string name="validation_meaning_required">El significado es obligatorio</string>
+    <string name="error_load_deck">No se pudo cargar el mazo</string>
+    <string name="error_create_deck">No se pudo crear el mazo</string>
+    <string name="error_update_deck">No se pudo actualizar el mazo</string>
+    <string name="error_delete_deck">No se pudo eliminar el mazo</string>
+    <string name="deck_created_message">Mazo creado</string>
+    <string name="deck_updated_message">Mazo actualizado</string>
+    <string name="card_updated_message">Tarjeta actualizada</string>
+
     <!-- Onboarding carousel (Phase 2) -->
     <string name="onboarding_decks_title">Tus mazos</string>
     <string name="onboarding_decks_body">Un mazo agrupa tarjetas de un mismo tema. Crea uno por cada cosa que quieras aprender.</string>

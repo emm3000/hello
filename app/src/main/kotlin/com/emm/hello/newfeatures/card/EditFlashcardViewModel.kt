@@ -8,6 +8,7 @@ import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -69,17 +70,17 @@ class EditFlashcardViewModel(
         } catch (e: Throwable) {
             logError(TAG, "loadFlashcard:error ${e.message}", e)
             setState { copy(isLoading = false) }
-            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo cargar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_load_card))
         }
     }
 
     private fun handleWordChanged(word: String) {
-        val error = if (word.isBlank()) "La palabra es obligatoria" else null
+        val error = if (word.isBlank()) R.string.validation_word_required else null
         setState { copy(word = word, wordError = error) }
     }
 
     private fun handleMeaningChanged(meaning: String) {
-        val error = if (meaning.isBlank()) "El significado es obligatorio" else null
+        val error = if (meaning.isBlank()) R.string.validation_meaning_required else null
         setState { copy(meaning = meaning, meaningError = error) }
     }
 
@@ -124,7 +125,7 @@ class EditFlashcardViewModel(
             throw e
         } catch (e: Throwable) {
             logError(TAG, "handleDelete:error ${e.message}", e)
-            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo eliminar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_delete_card))
         }
     }
 
@@ -146,13 +147,14 @@ class EditFlashcardViewModel(
                     examples = current.examples,
                 )
             )
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.card_updated_message))
             sendEffect(EditFlashcardUiEffect.NavigateBack)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
             logError(TAG, "handleSubmit:error ${e.message}", e)
             setState { copy(isSubmitting = false) }
-            sendEffect(EditFlashcardUiEffect.ShowMessage("No se pudo actualizar la tarjeta"))
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_save_card))
         }
     }
 }

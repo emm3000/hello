@@ -7,6 +7,7 @@ import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.toDeckId
+import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.flow.first
@@ -43,7 +44,7 @@ class NewDeckViewModel(
             val deck = deckRepository.fetchById(deckId.toDeckId()).first()
             if (deck == null) {
                 setState { copy(isLoading = false) }
-                sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
+                sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_load_deck))
                 return@launch
             }
             setState {
@@ -59,7 +60,7 @@ class NewDeckViewModel(
         } catch (e: Throwable) {
             logError(TAG, "loadDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo cargar el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_load_deck))
         }
     }
 
@@ -84,13 +85,14 @@ class NewDeckViewModel(
                 )
             )
             setState { NewDeckUiState() }
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.deck_created_message))
             sendEffect(NewDeckUiEffect.NavigateBack)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
             logError(TAG, "createDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo crear el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_create_deck))
         }
     }
 
@@ -105,13 +107,14 @@ class NewDeckViewModel(
                     tags = state.tags,
                 )
             )
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.deck_updated_message))
             sendEffect(NewDeckUiEffect.NavigateBack)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
             logError(TAG, "updateDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
-            sendEffect(NewDeckUiEffect.ShowMessage("No se pudo actualizar el mazo"))
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_update_deck))
         }
     }
 }

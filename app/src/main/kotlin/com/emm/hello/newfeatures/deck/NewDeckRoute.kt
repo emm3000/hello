@@ -29,7 +29,7 @@ fun NewDeckDestination(navigator: Navigator, deckId: String? = null) {
             when (effect) {
                 NewDeckUiEffect.NavigateBack -> navigator.goBack()
                 is NewDeckUiEffect.ShowMessage -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
             }
         }

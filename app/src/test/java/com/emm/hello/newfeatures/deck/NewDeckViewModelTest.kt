@@ -9,12 +9,15 @@ import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.R
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -25,7 +28,7 @@ class NewDeckViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `submit success resets state and emits navigate back effect`() = runTest {
+    fun `submit success resets state and emits success message then navigate back effect`() = runTest {
         val repository = FakeDeckRepository()
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
@@ -36,11 +39,14 @@ class NewDeckViewModelTest {
         viewModel.onIntent(NewDeckUiIntent.NameChanged("My deck"))
         viewModel.onIntent(NewDeckUiIntent.DescriptionChanged("Optional"))
 
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        val effectsDeferred = backgroundScope.async { viewModel.effect.take(2).toList() }
         viewModel.onIntent(NewDeckUiIntent.Submit)
 
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(NewDeckUiEffect.NavigateBack)
+        val effects = effectsDeferred.await()
+        assertThat(effects).containsExactly(
+            NewDeckUiEffect.ShowMessage(R.string.deck_created_message),
+            NewDeckUiEffect.NavigateBack,
+        ).inOrder()
         assertThat(viewModel.state.value.name).isEmpty()
         assertThat(viewModel.state.value.description).isEmpty()
         assertThat(viewModel.state.value.isLoading).isFalse()
@@ -59,11 +65,14 @@ class NewDeckViewModelTest {
         viewModel.onIntent(NewDeckUiIntent.NameChanged("Travel Deck"))
         viewModel.onIntent(NewDeckUiIntent.TagsChanged(listOf("  Spanish ", "TRAVEL", "spanish")))
 
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        val effectsDeferred = backgroundScope.async { viewModel.effect.take(2).toList() }
         viewModel.onIntent(NewDeckUiIntent.Submit)
 
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(NewDeckUiEffect.NavigateBack)
+        val effects = effectsDeferred.await()
+        assertThat(effects).containsExactly(
+            NewDeckUiEffect.ShowMessage(R.string.deck_created_message),
+            NewDeckUiEffect.NavigateBack,
+        ).inOrder()
         // Tags should be normalized: lowercase, trimmed, deduplicated
         assertThat(repository.lastAdded?.tags).isEqualTo(listOf("spanish", "travel"))
     }
@@ -112,7 +121,7 @@ class NewDeckViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(NewDeckUiEffect.ShowMessage::class.java)
-        assertThat((effect as NewDeckUiEffect.ShowMessage).message).isEqualTo("No se pudo crear el mazo")
+        assertThat((effect as NewDeckUiEffect.ShowMessage).messageRes).isEqualTo(R.string.error_create_deck)
         assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(repository.createCalls).isEqualTo(1)
     }

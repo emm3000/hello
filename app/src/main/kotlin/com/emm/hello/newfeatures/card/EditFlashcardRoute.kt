@@ -30,7 +30,7 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String, deckId: Strin
                 EditFlashcardUiEffect.NavigateBack -> navigator.goBack()
                 EditFlashcardUiEffect.FlashcardDeleted -> navigator.goBack()
                 is EditFlashcardUiEffect.ShowMessage -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
             }
         }

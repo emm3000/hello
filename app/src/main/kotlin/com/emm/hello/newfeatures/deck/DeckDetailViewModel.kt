@@ -9,6 +9,7 @@ import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.StudyFlashcard
+import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
@@ -103,7 +104,7 @@ class DeckDetailViewModel(
             throw e
         } catch (e: Throwable) {
             logError(TAG, "deleteDeck:error ${e.message}", e)
-            sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo eliminar el mazo"))
+            sendEffect(DeckDetailUiEffect.ShowMessage(R.string.error_delete_deck))
         }
     }
 
@@ -114,7 +115,7 @@ class DeckDetailViewModel(
             throw e
         } catch (e: Throwable) {
             logError(TAG, "undoDeleteCard:error ${e.message}", e)
-            sendEffect(DeckDetailUiEffect.ShowMessage("No se pudo restaurar la tarjeta"))
+            sendEffect(DeckDetailUiEffect.ShowMessage(R.string.error_restore_card))
         }
         // On success, the reactive flashcard flow (ObserveFlashcardsWithReviewUseCase) refreshes automatically.
     }

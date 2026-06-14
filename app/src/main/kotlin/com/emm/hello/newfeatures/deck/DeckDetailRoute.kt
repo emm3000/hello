@@ -49,7 +49,7 @@ fun DeckDetailDestination(navigator: Navigator, deckId: String) {
                     navigator.goBack()
                 }
                 is DeckDetailUiEffect.ShowMessage -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
                 is DeckDetailUiEffect.ShowUndoCardDeleted -> {
                     scope.launch {
