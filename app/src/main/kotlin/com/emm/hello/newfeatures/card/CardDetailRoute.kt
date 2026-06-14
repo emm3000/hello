@@ -46,6 +46,7 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
 
     FlashcardDetailScreen(
         flashcard = uiState.flashcard,
+        isLoading = uiState.isLoading,
         onNavigateBack = { navigator.goBack() },
         onEditClick = { vm.onIntent(FlashcardDetailUiIntent.EditFlashcard) },
         onDeleteClick = { vm.onIntent(FlashcardDetailUiIntent.DeleteFlashcard) },

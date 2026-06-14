@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
@@ -77,7 +75,9 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
+import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HFab
+import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
@@ -246,27 +246,29 @@ private fun DeckDetailTopBar(
                         tint = emberPrimary,
                     )
                 }
-                DropdownMenu(
+                HDropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.edit)) },
-                        onClick = {
-                            showMenu = false
-                            onEditClick()
-                        },
-                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.delete)) },
-                        onClick = {
-                            showMenu = false
-                            onDeleteClick()
-                        },
-                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                    )
-                }
+                    items = listOf(
+                        HMenuItem(
+                            label = stringResource(R.string.edit),
+                            icon = Icons.Outlined.Edit,
+                            onClick = {
+                                showMenu = false
+                                onEditClick()
+                            },
+                        ),
+                        HMenuItem(
+                            label = stringResource(R.string.delete),
+                            icon = Icons.Outlined.Delete,
+                            isDestructive = true,
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            },
+                        ),
+                    ),
+                )
             }
         },
     )

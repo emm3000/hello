@@ -18,8 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -61,6 +59,9 @@ import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HDictSense
 import com.emm.hello.core.ui.HDictSenseTone
+import com.emm.hello.core.ui.HDropdownMenu
+import com.emm.hello.core.ui.HLoadingSpinner
+import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTopBar
@@ -75,6 +76,7 @@ private val screenHorizontalPadding = 20.dp
 fun FlashcardDetailScreen(
     modifier: Modifier = Modifier,
     flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
+    isLoading: Boolean = false,
     onNavigateBack: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
@@ -95,37 +97,41 @@ fun FlashcardDetailScreen(
                 onDelete = onDeleteClick,
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                FlashcardHero(card = card)
+            if (isLoading) {
+                LoadingBody()
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    FlashcardHero(card = card)
 
-                val senses = remember(card) { dictSensesOf(card) }
-                if (senses.isNotEmpty()) {
+                    val senses = remember(card) { dictSensesOf(card) }
+                    if (senses.isNotEmpty()) {
+                        HeroDivider()
+                        DictSensesColumn(senses = senses)
+                    }
+
+                    if (card.examples.isNotEmpty()) {
+                        HeroDivider()
+                        ExamplesBlock(examples = card.examples)
+                    }
+
+                    if (hasExtras(card)) {
+                        HeroDivider()
+                        ExtrasBlock(card = card)
+                    }
+
+                    if (hasContext(card)) {
+                        HeroDivider()
+                        ContextBlock(card = card)
+                    }
+
                     HeroDivider()
-                    DictSensesColumn(senses = senses)
+                    FooterBlock(detail = flashcard)
+                    Spacer(Modifier.height(32.dp))
                 }
-
-                if (card.examples.isNotEmpty()) {
-                    HeroDivider()
-                    ExamplesBlock(examples = card.examples)
-                }
-
-                if (hasExtras(card)) {
-                    HeroDivider()
-                    ExtrasBlock(card = card)
-                }
-
-                if (hasContext(card)) {
-                    HeroDivider()
-                    ContextBlock(card = card)
-                }
-
-                HeroDivider()
-                FooterBlock(detail = flashcard)
-                Spacer(Modifier.height(32.dp))
             }
         }
     }
@@ -141,6 +147,17 @@ fun FlashcardDetailScreen(
             onConfirm = onConfirmDelete,
             onDismiss = onDismissDelete,
         )
+    }
+}
+
+@Composable
+private fun LoadingBody() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        HLoadingSpinner(color = emberAccent)
     }
 }
 
@@ -176,19 +193,21 @@ private fun FlashcardDetailTopBar(
                     tint = emberPrimary,
                 )
             }
-            DropdownMenu(
+            HDropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.delete)) },
-                    onClick = {
-                        showMenu = false
-                        onDelete()
-                    },
-                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                )
-            }
+                items = listOf(
+                    HMenuItem(
+                        label = stringResource(R.string.delete),
+                        icon = Icons.Outlined.Delete,
+                        isDestructive = true,
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        },
+                    ),
+                ),
+            )
         },
     )
 }

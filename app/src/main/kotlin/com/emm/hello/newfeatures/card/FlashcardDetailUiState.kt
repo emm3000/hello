@@ -7,5 +7,6 @@ import com.emm.hello.core.mvi.MviState
 
 data class FlashcardDetailUiState(
     val flashcard: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
+    val isLoading: Boolean = true,
     val isDeleteConfirmationVisible: Boolean = false,
 ) : MviState

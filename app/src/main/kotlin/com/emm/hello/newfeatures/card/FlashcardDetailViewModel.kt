@@ -44,7 +44,7 @@ class FlashcardDetailViewModel(
         viewModelScope.launch {
             try {
                 val flashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId())
-                setState { copy(flashcard = flashcard) }
+                setState { copy(flashcard = flashcard, isLoading = false) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
