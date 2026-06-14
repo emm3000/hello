@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.card
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +31,17 @@ fun NewCardDestination(navigator: Navigator) {
     val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var currentStep by rememberSaveable { mutableStateOf(NewCardFlowStep.Mode) }
+
+    // Mirror the HWizTop back arrow for system/predictive back: step within the
+    // wizard instead of popping NewCardRoute and discarding typed input. Disabled
+    // on the first step so the gesture falls through to goBack(), matching the arrow.
+    BackHandler(enabled = currentStep != NewCardFlowStep.Mode) {
+        currentStep = when (currentStep) {
+            NewCardFlowStep.Review -> NewCardFlowStep.Input
+            NewCardFlowStep.Input -> NewCardFlowStep.Mode
+            NewCardFlowStep.Mode -> NewCardFlowStep.Mode
+        }
+    }
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->

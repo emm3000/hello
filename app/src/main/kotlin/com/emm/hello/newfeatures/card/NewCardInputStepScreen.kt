@@ -35,8 +35,6 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material.icons.outlined.Bookmark
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -73,7 +70,6 @@ import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBad
 import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberSurface
@@ -88,6 +84,7 @@ import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSectionLabel
+import com.emm.hello.core.ui.HSelect
 import com.emm.hello.core.ui.HWizTop
 import com.emm.hello.newfeatures.card.validation.InputField
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
@@ -117,7 +114,7 @@ fun NewCardInputStepScreen(
     val sttError by sttManager.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
-    val micPermissionDeniedMessage = "Necesitamos permiso de micrófono para dictar."
+    val micPermissionDeniedMessage = stringResource(R.string.mic_permission_denied)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -541,78 +538,43 @@ private fun DeckPickerSection(
     onIntent: (NewCardUiIntent) -> Unit,
     onCreateDeck: () -> Unit,
 ) {
-    Column {
-        HSectionLabel(label = stringResource(R.string.new_card_input_save_in_label))
-        Spacer(Modifier.height(10.dp))
-        DeckPickerRow(
-            decks = state.decks,
-            selected = state.deckSelected,
-            enabled = !state.isLoading,
-            onSelect = { onIntent(NewCardUiIntent.DeckSelected(it)) },
-            onCreateDeck = onCreateDeck,
-        )
-    }
-}
-
-@Composable
-private fun DeckPickerRow(
-    decks: List<com.emm.domain.deck.Deck>,
-    selected: com.emm.domain.deck.Deck?,
-    enabled: Boolean,
-    onSelect: (com.emm.domain.deck.Deck) -> Unit,
-    onCreateDeck: () -> Unit,
-) {
-    if (decks.isEmpty()) {
+    if (state.decks.isEmpty()) {
         Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(emberSurface, RoundedCornerShape(14.dp))
-                    .border(1.dp, emberAccent, RoundedCornerShape(14.dp))
-                    .clickable(enabled = enabled, onClick = onCreateDeck)
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Bookmark,
-                    contentDescription = null,
-                    tint = emberAccent,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(Modifier.size(14.dp))
-                Text(
-                    text = stringResource(R.string.new_card_input_create_deck_cta),
-                    fontFamily = geist,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = emberAccent,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = emberAccent,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = stringResource(R.string.new_card_input_no_decks_hint),
-                fontFamily = geist,
-                fontSize = 12.sp,
-                color = emberMuted,
+            HSectionLabel(label = stringResource(R.string.new_card_input_save_in_label))
+            Spacer(Modifier.height(10.dp))
+            EmptyDeckCreateCta(
+                enabled = !state.isLoading,
+                onCreateDeck = onCreateDeck,
             )
         }
         return
     }
-    var expanded by remember { mutableStateOf(false) }
-    Box {
+    // HSelect renders the "Guardar en" label inside its FieldShell, so the
+    // standalone HSectionLabel is only used for the empty-decks branch above.
+    HSelect(
+        items = state.decks,
+        itemSelected = state.deckSelected,
+        onItemSelected = { onIntent(NewCardUiIntent.DeckSelected(it)) },
+        label = stringResource(R.string.new_card_input_save_in_label),
+        enabled = !state.isLoading,
+        itemLabel = { it.name },
+        placeholder = stringResource(R.string.new_card_input_deck_empty),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun EmptyDeckCreateCta(
+    enabled: Boolean,
+    onCreateDeck: () -> Unit,
+) {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(emberSurface, RoundedCornerShape(14.dp))
-                .border(1.dp, emberDivider, RoundedCornerShape(14.dp))
-                .clickable(enabled = enabled) { expanded = true }
+                .border(1.dp, emberAccent, RoundedCornerShape(14.dp))
+                .clickable(enabled = enabled, onClick = onCreateDeck)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -623,47 +585,28 @@ private fun DeckPickerRow(
                 modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.size(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = selected?.name ?: stringResource(R.string.new_card_input_deck_empty),
-                    fontFamily = geist,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = emberOnBg,
-                )
-                val metadata = selected?.description?.takeIf(String::isNotBlank)
-                if (metadata != null) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = metadata,
-                        fontFamily = geistMono,
-                        fontSize = 11.sp,
-                        letterSpacing = 0.04.em,
-                        color = emberMuted,
-                    )
-                }
-            }
+            Text(
+                text = stringResource(R.string.new_card_input_create_deck_cta),
+                fontFamily = geist,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = emberAccent,
+                modifier = Modifier.weight(1f),
+            )
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = null,
-                tint = emberMuted,
+                tint = emberAccent,
                 modifier = Modifier.size(20.dp),
             )
         }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            decks.forEach { deck ->
-                DropdownMenuItem(
-                    text = { Text(deck.name) },
-                    onClick = {
-                        onSelect(deck)
-                        expanded = false
-                    },
-                )
-            }
-        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.new_card_input_no_decks_hint),
+            fontFamily = geist,
+            fontSize = 12.sp,
+            color = emberMuted,
+        )
     }
 }
 
