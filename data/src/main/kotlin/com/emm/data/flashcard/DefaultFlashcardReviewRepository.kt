@@ -4,8 +4,10 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
-import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.study.ReviewGrade
+import com.emm.domain.study.toFsrsRating
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,7 +21,7 @@ class DefaultFlashcardReviewRepository(
 
     private val localFirstQueries = db.localFirstQueries
 
-    override fun all(): Flow<List<FlashcardReview>> {
+    override fun all(): Flow<List<FsrsCard>> {
         return localFirstQueries
             .allReviewProjections()
             .asFlow()
@@ -27,51 +29,63 @@ class DefaultFlashcardReviewRepository(
             .map { projections -> projections.map(ReviewProjectionEntity::toDomainFromProjection) }
     }
 
-    override suspend fun update(flashcardReview: FlashcardReview) = withContext(Dispatchers.IO) {
+    override suspend fun update(card: FsrsCard, grade: ReviewGrade) = withContext(Dispatchers.IO) {
         val now = Instant.now().toEpochMilli()
         val eventId = UUID.randomUUID().toString()
 
         db.transaction {
             localFirstQueries.insertReviewEvent(
                 eventId = eventId,
-                flashcardId = flashcardReview.flashcardId.value,
-                grade = "review",
-                reviewedAt = flashcardReview.lastReviewedAt,
-                nextReviewAt = flashcardReview.nextReviewAt,
-                easeFactor = flashcardReview.easeFactor,
-                interval = flashcardReview.interval,
-                repetitions = flashcardReview.repetitions,
-                lapses = flashcardReview.lapses,
+                flashcardId = card.flashcardId.value,
+                grade = grade.name,
+                reviewedAt = card.lastReviewedAt,
+                nextReviewAt = card.nextReviewAt,
+                easeFactor = LEGACY_EASE_FACTOR_PLACEHOLDER,
+                interval = card.interval,
+                repetitions = card.reps,
+                lapses = card.lapses,
                 createdAt = now,
-                // TODO(PR3/T-17): replace 0 with real ReviewGrade ordinal (1..4) from FsrsCard scheduler.
-                rating = 0L,
+                rating = grade.toFsrsRating().toLong(),
             )
-            // Insert the row if it does not exist yet (brand-new card); defaults apply for state/stability/difficulty.
-            // Then unconditionally update the SM-2/scheduling columns, leaving state/stability/difficulty untouched.
-            // TODO(PR3/T-17): replace with a single full FSRS update once the scheduler provides real values.
-            localFirstQueries.insertReviewProjectionIfAbsent(
-                flashcardId = flashcardReview.flashcardId.value,
-                lastReviewedAt = flashcardReview.lastReviewedAt,
-                nextReviewAt = flashcardReview.nextReviewAt,
-                easeFactor = flashcardReview.easeFactor,
-                interval = flashcardReview.interval,
-                repetitions = flashcardReview.repetitions,
-                lapses = flashcardReview.lapses,
+            // Insert the row if it does not exist yet (brand-new card), then unconditionally
+            // overwrite every FSRS column with the scheduler's freshly computed values. SQLite
+            // UPSERT (ON CONFLICT) is unavailable on SQLDelight's bundled dialect, hence the pair.
+            localFirstQueries.insertReviewProjectionFullIfAbsent(
+                flashcardId = card.flashcardId.value,
+                lastReviewedAt = card.lastReviewedAt,
+                nextReviewAt = card.nextReviewAt,
+                easeFactor = LEGACY_EASE_FACTOR_PLACEHOLDER,
+                interval = card.interval,
+                repetitions = card.reps,
+                lapses = card.lapses,
                 sourceEventId = eventId,
                 updatedAt = now,
+                state = card.state.name,
+                stability = card.stability,
+                difficulty = card.difficulty,
             )
-            localFirstQueries.updateReviewProjectionScheduling(
-                lastReviewedAt = flashcardReview.lastReviewedAt,
-                nextReviewAt = flashcardReview.nextReviewAt,
-                easeFactor = flashcardReview.easeFactor,
-                interval = flashcardReview.interval,
-                repetitions = flashcardReview.repetitions,
-                lapses = flashcardReview.lapses,
+            localFirstQueries.updateReviewProjectionFull(
+                lastReviewedAt = card.lastReviewedAt,
+                nextReviewAt = card.nextReviewAt,
+                easeFactor = LEGACY_EASE_FACTOR_PLACEHOLDER,
+                interval = card.interval,
+                repetitions = card.reps,
+                lapses = card.lapses,
                 sourceEventId = eventId,
                 updatedAt = now,
-                flashcardId = flashcardReview.flashcardId.value,
+                state = card.state.name,
+                stability = card.stability,
+                difficulty = card.difficulty,
+                flashcardId = card.flashcardId.value,
             )
         }
         Unit
+    }
+
+    private companion object {
+        // Legacy SM-2 column kept for the seeding migration's read path; FSRS scheduling no
+        // longer derives anything from it. A fixed mid-range placeholder avoids resurrecting
+        // SM-2 semantics while keeping the NOT NULL legacy column populated.
+        const val LEGACY_EASE_FACTOR_PLACEHOLDER = 2.5
     }
 }

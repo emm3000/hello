@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class FlashcardFactoryTest {
 
-    private val review = FlashcardReview.empty(SystemClock)
+    private val review = FsrsCard.new("card-1".toFlashcardId(), SystemClock)
 
     @Test
     fun `create accepts valid word meaning and translation`() {

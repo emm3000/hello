@@ -3,11 +3,10 @@ package com.emm.data.flashcard
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.HelloDb
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.DeckId
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
-import com.emm.domain.time.SystemClock
 import java.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -30,8 +29,8 @@ class DefaultStudySessionRepository(
         ).executeAsList()
 
         flashcardsToReviewByDeck.map {
-            val review: FlashcardReview = mapFlashcardReview(it)
-            toStudyFlashcard(it, review, json)
+            val card: FsrsCard = mapFsrsCard(it)
+            toStudyFlashcard(it, card, json)
         }
     }
 
@@ -41,8 +40,8 @@ class DefaultStudySessionRepository(
         ).executeAsList()
 
         flashcardsToReviewAllDecks.map {
-            val review: FlashcardReview = mapFlashcardReview(it)
-            toStudyFlashcard(it, review, json)
+            val card: FsrsCard = mapFsrsCard(it)
+            toStudyFlashcard(it, card, json)
         }
     }
 
@@ -51,18 +50,10 @@ class DefaultStudySessionRepository(
             .mapToList(ioDispatcher)
             .map { list ->
                 list.map {
-                    // Never-reviewed cards (no projection row) count as due now.
-                    // lastReviewedAt must come from the DB row: stamping it with the current
-                    // clock breaks the nextReviewAt >= lastReviewedAt invariant for cards
-                    // whose stored nextReviewAt is already in the past.
-                    toStudyFlashcard(
-                        it,
-                        FlashcardReview.empty(SystemClock).copy(
-                            lastReviewedAt = it.lastReviewedAt ?: 0L,
-                            nextReviewAt = it.nextReviewAt ?: Instant.now().toEpochMilli(),
-                        ),
-                        json,
-                    )
+                    // mapFsrsCard reuses the same null-guarded mapping as the due-card queries:
+                    // never-reviewed cards (no projection row) resolve to a fresh FsrsCard.new(...).
+                    val card: FsrsCard = mapFsrsCard(it)
+                    toStudyFlashcard(it, card, json)
                 }
             }
     }

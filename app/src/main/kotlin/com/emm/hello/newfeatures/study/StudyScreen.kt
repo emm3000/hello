@@ -76,7 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.toFlashcardId
@@ -1491,7 +1491,7 @@ private fun StudyScreenPreview() {
                 sessionStarted = true,
                 currentItem = StudySessionItem(
                     flashcardId = "1".toFlashcardId(),
-                    review = FlashcardReview.empty(SystemClock),
+                    review = FsrsCard.new("1".toFlashcardId(), SystemClock),
                     studyCard = GeneratedStudyCard(
                         cardId = "study-card-1",
                         cardType = StudyCardType.Recognition,

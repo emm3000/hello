@@ -145,6 +145,132 @@ class ImportBackupDataSourceTest {
         assertTrue(exception is IncompatibleSchemaException)
         assertTrue(exception!!.message!!.contains("99"))
         assertTrue(exception.message!!.contains("1"))
+        assertTrue(exception.message!!.contains("2"))
+    }
+
+    @Test
+    fun `import accepts schema version 2`() = runTest {
+        val backupJson = """
+            {
+              "schemaVersion": 2,
+              "exportedAt": 1234567890,
+              "decks": [],
+              "flashcards": [],
+              "examples": [],
+              "tags": [],
+              "deckTags": [],
+              "reviewEvents": [],
+              "reviewProjections": []
+            }
+        """.trimIndent()
+
+        val importUri = Uri.parse("content://test/import.json")
+        provideInputStream(importUri, backupJson)
+
+        val result = dataSource.import(importUri)
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `import of schema v2 backup preserves real FSRS fields verbatim`() = runTest {
+        val backupJson = """
+            {
+              "schemaVersion": 2,
+              "exportedAt": 1234567890,
+              "decks": [],
+              "flashcards": [],
+              "examples": [],
+              "tags": [],
+              "deckTags": [],
+              "reviewEvents": [
+                {"eventId": "event-1", "flashcardId": "card-1", "grade": "GOOD", "reviewedAt": 1000, "nextReviewAt": 2000, "easeFactor": 2.5, "interval": 10, "repetitions": 1, "lapses": 0, "createdAt": 1000, "rating": 3}
+              ],
+              "reviewProjections": [
+                {"flashcardId": "card-1", "lastReviewedAt": 1000, "nextReviewAt": 2000, "easeFactor": 2.5, "interval": 10, "repetitions": 1, "lapses": 0, "sourceEventId": "event-1", "updatedAt": 2000, "state": "REVIEW", "stability": 12.5, "difficulty": 4.2}
+              ]
+            }
+        """.trimIndent()
+
+        val importUri = Uri.parse("content://test/import.json")
+        provideInputStream(importUri, backupJson)
+
+        dataSource.import(importUri)
+
+        val event = db.localFirstQueries.findReviewEventsByFlashcardId("card-1").executeAsOne()
+        assertEquals(3L, event.rating)
+
+        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId("card-1").executeAsOne()
+        assertEquals("REVIEW", projection.state)
+        assertEquals(12.5, projection.stability, 0.0001)
+        assertEquals(4.2, projection.difficulty, 0.0001)
+    }
+
+    @Test
+    fun `import of schema v1 backup seeds FSRS fields from legacy SM-2 columns`() = runTest {
+        // interval=10, easeFactor=2.5 -> stability=10.0, difficulty~=2.2857, state=REVIEW
+        // (same seeding formula as the 1.sqm on-device migration).
+        val backupJson = """
+            {
+              "schemaVersion": 1,
+              "exportedAt": 1234567890,
+              "decks": [],
+              "flashcards": [],
+              "examples": [],
+              "tags": [],
+              "deckTags": [],
+              "reviewEvents": [
+                {"eventId": "event-1", "flashcardId": "card-1", "grade": "review", "reviewedAt": 1000, "nextReviewAt": 2000, "easeFactor": 2.5, "interval": 10, "repetitions": 5, "lapses": 0, "createdAt": 1000}
+              ],
+              "reviewProjections": [
+                {"flashcardId": "card-1", "lastReviewedAt": 1000, "nextReviewAt": 2000, "easeFactor": 2.5, "interval": 10, "repetitions": 5, "lapses": 0, "sourceEventId": "event-1", "updatedAt": 2000}
+              ]
+            }
+        """.trimIndent()
+
+        val importUri = Uri.parse("content://test/import.json")
+        provideInputStream(importUri, backupJson)
+
+        val result = dataSource.import(importUri)
+        assertTrue(result.isSuccess)
+
+        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId("card-1").executeAsOne()
+        assertEquals("REVIEW", projection.state)
+        assertEquals(10.0, projection.stability, 0.001)
+        assertEquals(2.286, projection.difficulty, 0.01)
+        // nextReviewAt must survive untouched, exactly like the on-device migration.
+        assertEquals(2000L, projection.nextReviewAt)
+
+        // v1 backups have no rating column; the legacy/unknown default (0) applies.
+        val event = db.localFirstQueries.findReviewEventsByFlashcardId("card-1").executeAsOne()
+        assertEquals(0L, event.rating)
+    }
+
+    @Test
+    fun `import of schema v1 backup seeds NEW state for a never-graduated card`() = runTest {
+        val backupJson = """
+            {
+              "schemaVersion": 1,
+              "exportedAt": 1234567890,
+              "decks": [],
+              "flashcards": [],
+              "examples": [],
+              "tags": [],
+              "deckTags": [],
+              "reviewEvents": [],
+              "reviewProjections": [
+                {"flashcardId": "card-new", "lastReviewedAt": 0, "nextReviewAt": 0, "easeFactor": 2.5, "interval": 0, "repetitions": 0, "lapses": 0, "sourceEventId": "event-0", "updatedAt": 0}
+              ]
+            }
+        """.trimIndent()
+
+        val importUri = Uri.parse("content://test/import.json")
+        provideInputStream(importUri, backupJson)
+
+        dataSource.import(importUri)
+
+        val projection = db.localFirstQueries.findReviewProjectionByFlashcardId("card-new").executeAsOne()
+        assertEquals("NEW", projection.state)
     }
 
     @Test

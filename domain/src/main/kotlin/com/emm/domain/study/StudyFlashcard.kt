@@ -1,6 +1,6 @@
 package com.emm.domain.study
 
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.ids.FlashcardId
 
@@ -10,7 +10,7 @@ data class StudyFlashcard(
     val phonetic: String,
     val meaning: String,
     val translation: String,
-    val review: FlashcardReview,
+    val review: FsrsCard,
     val studyCards: List<GeneratedStudyCard>,
     val usagePattern: String = "",
     val whyUseful: String = "",

@@ -259,7 +259,8 @@ class DefaultFlashcardRepository(
             ?: throw NoSuchElementException("Flashcard not found")
 
         val examples: List<Example> = flashcardEntities.mapNotNull(::toExampleOrNull)
-        val flashcard = toDomainDetail(first, examples, json)
+        val review = mapFsrsCard(first)
+        val flashcard = toDomainDetail(first, examples, json, review)
         FlashcardDetail(
             flashcard = flashcard,
             studyCards = decodeStudyCards(first.studyCardsJson, json),

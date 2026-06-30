@@ -11,7 +11,7 @@ import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.ids.DeckId
@@ -136,10 +136,10 @@ class DeckDetailViewModelTest {
 
     @Test
     fun `merge deck cards by id preserves all deck cards when session list is shorter`() {
-        val baseReview = FlashcardReview.empty(fixedClock).copy(nextReviewAt = 10L)
-        val updatedReview = FlashcardReview.empty(fixedClock).copy(nextReviewAt = 99L)
+        val baseReview = FsrsCard.new("a".toFlashcardId(), fixedClock).copy(nextReviewAt = 10L)
+        val updatedReview = FsrsCard.new("a".toFlashcardId(), fixedClock).copy(nextReviewAt = 99L)
         val cardA = flashcard(id = "a", review = baseReview)
-        val cardB = flashcard(id = "b", review = baseReview)
+        val cardB = flashcard(id = "b", review = baseReview.copy(flashcardId = "b".toFlashcardId()))
 
         val merged = mergeDeckCardsById(
             deckCards = listOf(cardA, cardB),
@@ -151,7 +151,7 @@ class DeckDetailViewModelTest {
         assertThat(merged[1].review).isSameInstanceAs(cardB.review)
     }
 
-    private fun flashcard(id: String, review: FlashcardReview): Flashcard = Flashcard(
+    private fun flashcard(id: String, review: FsrsCard): Flashcard = Flashcard(
         id = id.toFlashcardId(),
         word = id,
         meaning = "",
@@ -172,7 +172,7 @@ class DeckDetailViewModelTest {
         translation = translation,
         examples = emptyList(),
         phonetic = "",
-        review = FlashcardReview.empty(fixedClock),
+        review = FsrsCard.new("test".toFlashcardId(), fixedClock),
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)

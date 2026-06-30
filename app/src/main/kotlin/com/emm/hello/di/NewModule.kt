@@ -47,6 +47,7 @@ import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
+import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
 import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
@@ -144,6 +145,9 @@ fun Module.repository() {
 
 fun Module.useCases() {
     single<Clock> { SystemClock }
+    // Phase 1 hardcodes the default FSRS-6 parameters (retention 0.90); a future Settings
+    // screen may inject per-user parameters here without changing the use case seam.
+    single { FsrsParameters.DEFAULT }
     factoryOf(::FlashcardGenerationDisambiguationPolicy)
     factoryOf(::FlashcardGenerationInputTypeRulesPolicy)
     factoryOf(::FlashcardGenerationContextSentencePolicy)
@@ -215,6 +219,7 @@ fun Module.viewModels() {
             flashcardReviewRepository = get(),
             clock = get(),
             onboardingState = get(),
+            fsrsParameters = get(),
         )
     }
     viewModel {

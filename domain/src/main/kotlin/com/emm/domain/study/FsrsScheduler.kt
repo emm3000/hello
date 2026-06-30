@@ -38,7 +38,7 @@ object FsrsScheduler {
         params: FsrsParameters = FsrsParameters.DEFAULT,
     ): FsrsCard {
         val w = params.weights
-        val gradeInt = grade.toFsrsInt()
+        val gradeInt = grade.toFsrsRating()
         val now = clock.now()
         val nowMs = now.toEpochMilli()
         val elapsedDays = elapsedDays(card.lastReviewedAt, nowMs)
@@ -308,13 +308,6 @@ object FsrsScheduler {
     private fun elapsedDays(lastReviewedAtMs: Long, nowMs: Long): Double {
         val diffMs = (nowMs - lastReviewedAtMs).coerceAtLeast(0L)
         return diffMs.toDouble() / MILLIS_PER_DAY
-    }
-
-    private fun ReviewGrade.toFsrsInt(): Int = when (this) {
-        ReviewGrade.AGAIN -> GRADE_AGAIN
-        ReviewGrade.HARD -> GRADE_HARD
-        ReviewGrade.GOOD -> GRADE_GOOD
-        ReviewGrade.EASY -> GRADE_EASY
     }
 
     private const val GRADE_AGAIN = 1

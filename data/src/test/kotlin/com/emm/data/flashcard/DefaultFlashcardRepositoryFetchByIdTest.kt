@@ -2,10 +2,8 @@ package com.emm.data.flashcard
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
-import com.emm.domain.flashcard.FsrsState
-import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toFlashcardId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -14,20 +12,20 @@ import org.junit.Test
 import java.util.UUID
 
 /**
- * Regression for the deck-detail crash: cards whose stored nextReviewAt is already in the
- * past must map without violating the FsrsCard nextReviewAt >= lastReviewedAt invariant.
+ * Regression for the Card Detail "next review" bug: fetchById must surface the flashcard's
+ * REAL ReviewProjection (when one exists), not an always-now FsrsCard.new(...) stub.
  */
-class FlashcardWithReviewMappingTest {
+class DefaultFlashcardRepositoryFetchByIdTest {
 
     private lateinit var db: HelloDb
-    private lateinit var subject: DefaultStudySessionRepository
+    private lateinit var subject: DefaultFlashcardRepository
 
     @Before
     fun setUp() {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
-        subject = DefaultStudySessionRepository(
+        subject = DefaultFlashcardRepository(
             db = db,
             json = Json,
             ioDispatcher = Dispatchers.IO,
@@ -35,50 +33,27 @@ class FlashcardWithReviewMappingTest {
     }
 
     @Test
-    fun `reviewed card with past nextReviewAt maps without crashing`() = runTest {
+    fun `fetchById surfaces the persisted review projection, not now`() = runTest {
         val deckId = insertDeck()
         val cardId = insertFlashcard(deckId)
-        // Both timestamps deep in the past relative to the real clock.
         insertProjection(cardId, lastReviewedAt = 1_000L, nextReviewAt = 2_000L)
 
-        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
+        val detail = subject.fetchById(cardId.toFlashcardId())
 
-        assertEquals(1, cards.size)
-        assertEquals(1_000L, cards.first().review.lastReviewedAt)
-        assertEquals(2_000L, cards.first().review.nextReviewAt)
+        assertEquals(1_000L, detail.flashcard.review.lastReviewedAt)
+        assertEquals(2_000L, detail.flashcard.review.nextReviewAt)
     }
 
     @Test
-    fun `never-reviewed card maps as due now`() = runTest {
+    fun `fetchById keeps a fresh FsrsCard for a never-reviewed card`() = runTest {
         val deckId = insertDeck()
-        insertFlashcard(deckId)
+        val cardId = insertFlashcard(deckId)
 
         val before = System.currentTimeMillis()
-        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
+        val detail = subject.fetchById(cardId.toFlashcardId())
 
-        assertEquals(1, cards.size)
-        // No ReviewProjection row: falls back to FsrsCard.new(...), which stamps BOTH
-        // lastReviewedAt and nextReviewAt with "now" (see mapFsrsCard's null-guard).
-        val review = cards.first().review
-        assert(review.lastReviewedAt >= before) { "expected lastReviewedAt ~now, was ${review.lastReviewedAt}" }
+        val review = detail.flashcard.review
         assert(review.nextReviewAt >= before) { "expected nextReviewAt ~now, was ${review.nextReviewAt}" }
-    }
-
-    @Test
-    fun `reviewed card retains real FSRS fields, not a permanently NEW stub`() = runTest {
-        val deckId = insertDeck()
-        val cardId = insertFlashcard(deckId)
-        insertProjection(cardId, lastReviewedAt = 1_000L, nextReviewAt = 2_000L)
-
-        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
-
-        val review = cards.first().review
-        assertEquals(FsrsState.REVIEW, review.state)
-        assertEquals(1.0, review.stability, 0.0)
-        assertEquals(5.0, review.difficulty, 0.0)
-        assertEquals(1L, review.interval)
-        assertEquals(1L, review.reps)
-        assertEquals(0L, review.lapses)
     }
 
     // ─── helpers ─────────────────────────────────────────────────────────────

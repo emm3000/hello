@@ -8,8 +8,10 @@ import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsState
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.study.ReviewGrade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -74,16 +76,18 @@ class LocalOnlyLocalWritesIntegrationTest {
             )
         )
 
-        val review = FlashcardReview(
+        val card = FsrsCard(
             flashcardId = flashcardId,
+            state = FsrsState.REVIEW,
+            stability = 1.0,
+            difficulty = 5.0,
             lastReviewedAt = 200L,
             nextReviewAt = 300L,
-            easeFactor = 2.6,
             interval = 1L,
-            repetitions = 1L,
+            reps = 1L,
             lapses = 0L,
         )
-        reviewRepository.update(review)
+        reviewRepository.update(card, ReviewGrade.GOOD)
 
         val storedFlashcard = flashcardRepository.fetchById(flashcardId).flashcard
         val reviewProjection = db.localFirstQueries.findReviewProjectionByFlashcardId(flashcardId.value).executeAsOne()
@@ -97,7 +101,14 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals("greeting", storedFlashcard.meaning)
         assertEquals(flashcardId.value, reviewProjection.flashcardId)
         assertEquals(300L, reviewProjection.nextReviewAt)
+        // Real FSRS fields are persisted (replaces the old hardcoded SM-2 defaults).
+        assertEquals("REVIEW", reviewProjection.state)
+        assertEquals(1.0, reviewProjection.stability, 0.0)
+        assertEquals(5.0, reviewProjection.difficulty, 0.0)
         assertEquals(flashcardId.value, reviewEvent.flashcardId)
+        // Real grade is persisted — the hardcoded "review" literal must not appear.
+        assertEquals("GOOD", reviewEvent.grade)
+        assertEquals(3L, reviewEvent.rating)
         assertNotNull(db.flashcardQueries.findById(flashcardId.value).executeAsOneOrNull())
     }
 
@@ -184,15 +195,18 @@ class LocalOnlyLocalWritesIntegrationTest {
                 )
             )
             reviewRepository.update(
-                FlashcardReview(
+                FsrsCard(
                     flashcardId = persistedFlashcardId,
+                    state = FsrsState.REVIEW,
+                    stability = 1.0,
+                    difficulty = 5.0,
                     lastReviewedAt = 10L,
                     nextReviewAt = 20L,
-                    easeFactor = 2.5,
                     interval = 1L,
-                    repetitions = 1L,
+                    reps = 1L,
                     lapses = 0L,
-                )
+                ),
+                ReviewGrade.GOOD,
             )
             persistedFlashcardId
         } finally {

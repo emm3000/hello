@@ -1,6 +1,8 @@
 package com.emm.domain.study
 
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsParameters
+import com.emm.domain.flashcard.FsrsState
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.Clock
 import org.junit.Assert.assertEquals
@@ -10,103 +12,73 @@ import java.time.Instant
 
 class ScheduleFlashcardReviewUseCaseTest {
 
-    private val fixedNow = Instant.parse("2026-05-04T12:30:45Z")
+    private val fixedNow = Instant.parse("2026-06-12T12:00:00Z")
     private val useCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow })
 
     @Test
-    fun `invoke when again resets repetitions and sets one day interval`() {
-        val review = baseReview().copy(
-            easeFactor = 2.1,
-            repetitions = 7L,
-            interval = 20L,
-            lapses = 2L,
-        )
+    fun `invoke schedules a NEW card with GOOD and returns LEARNING state`() {
+        val card = FsrsCard.new("card-1".toFlashcardId(), Clock { fixedNow })
 
-        val result = useCase(review = review, grade = ReviewGrade.AGAIN, flashcardId = "card-1".toFlashcardId())
+        val result = useCase(card, ReviewGrade.GOOD, "card-1".toFlashcardId())
 
-        assertEquals("card-1", result.flashcardId.value)
-        assertEquals(review.easeFactor, result.easeFactor, 0.0001)
-        assertEquals(0L, result.repetitions)
-        assertEquals(1L, result.interval)
-        assertEquals(3L, result.lapses)
-        assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
-        assertEquals(86_400_000L, result.nextReviewAt - result.lastReviewedAt)
+        assertEquals(FsrsState.LEARNING, result.state)
+        assertTrue(result.stability > 0.0)
     }
 
     @Test
-    fun `invoke when good and second repetition sets six day interval`() {
-        val review = baseReview().copy(
-            easeFactor = 2.5,
-            repetitions = 1L,
-            interval = 1L,
-        )
+    fun `invoke schedules a REVIEW card with AGAIN and returns RELEARNING`() {
+        val card = reviewCard("card-2".toFlashcardId())
 
-        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-2".toFlashcardId())
+        val result = useCase(card, ReviewGrade.AGAIN, "card-2".toFlashcardId())
 
-        assertEquals("card-2", result.flashcardId.value)
-        assertEquals(2L, result.repetitions)
-        assertEquals(6L, result.interval)
-        assertEquals(2.5, result.easeFactor, 0.0001)
-        assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
-        assertEquals(6L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
-    }
-
-    @Test
-    fun `invoke when easy after second review increases ease and rounds interval`() {
-        val review = baseReview().copy(
-            easeFactor = 2.5,
-            repetitions = 2L,
-            interval = 6L,
-            lapses = 1L,
-        )
-
-        val result = useCase(review = review, grade = ReviewGrade.EASY, flashcardId = "card-3".toFlashcardId())
-
-        assertEquals("card-3", result.flashcardId.value)
-        assertEquals(3L, result.repetitions)
-        assertEquals(16L, result.interval)
-        assertEquals(2.6, result.easeFactor, 0.0001)
+        assertEquals(FsrsState.RELEARNING, result.state)
         assertEquals(1L, result.lapses)
+    }
+
+    @Test
+    fun `invoke sets lastReviewedAt to clock now`() {
+        val card = FsrsCard.new("card-3".toFlashcardId(), Clock { fixedNow })
+
+        val result = useCase(card, ReviewGrade.GOOD, "card-3".toFlashcardId())
+
         assertEquals(fixedNow.toEpochMilli(), result.lastReviewedAt)
-        assertEquals(16L * 86_400_000L, result.nextReviewAt - result.lastReviewedAt)
     }
 
     @Test
-    fun `invoke when hard at minimum ease keeps ease at exactly 1,3 (floor enforced)`() {
-        val review = baseReview().copy(
-            easeFactor = 1.3,
-            repetitions = 5L,
-            interval = 8L,
-        )
+    fun `invoke replaces flashcardId with the provided id`() {
+        val card = FsrsCard.new("original".toFlashcardId(), Clock { fixedNow })
 
-        val result = useCase(review = review, grade = ReviewGrade.HARD, flashcardId = "card-4".toFlashcardId())
+        val result = useCase(card, ReviewGrade.GOOD, "new-id".toFlashcardId())
 
-        assertEquals("card-4", result.flashcardId.value)
-        assertEquals(1.3, result.easeFactor, 0.0001)
+        assertEquals("new-id", result.flashcardId.value)
     }
 
     @Test
-    fun `invoke always schedules next review after last reviewed time`() {
-        val review = baseReview().copy(
-            easeFactor = 2.2,
-            repetitions = 3L,
-            interval = 10L,
-            lapses = 1L,
+    fun `invoke uses DEFAULT params when none provided`() {
+        val card = FsrsCard.new("card-4".toFlashcardId(), Clock { fixedNow })
+
+        val resultDefault = useCase(card, ReviewGrade.GOOD, "card-4".toFlashcardId())
+        val resultExplicit = FsrsScheduler.schedule(
+            card = card,
+            grade = ReviewGrade.GOOD,
+            flashcardId = "card-4".toFlashcardId(),
+            clock = Clock { fixedNow },
+            params = FsrsParameters.DEFAULT,
         )
 
-        val result = useCase(review = review, grade = ReviewGrade.GOOD, flashcardId = "card-5".toFlashcardId())
-
-        assertEquals("card-5", result.flashcardId.value)
-        assertTrue(result.nextReviewAt > result.lastReviewedAt)
+        assertEquals(resultExplicit.stability, resultDefault.stability, 1e-9)
+        assertEquals(resultExplicit.interval, resultDefault.interval)
     }
 
-    private fun baseReview(): FlashcardReview = FlashcardReview(
-        flashcardId = "base".toFlashcardId(),
-        lastReviewedAt = 0L,
-        nextReviewAt = 0L,
-        easeFactor = 2.5,
-        interval = 0L,
-        repetitions = 0L,
+    private fun reviewCard(id: com.emm.domain.ids.FlashcardId) = FsrsCard(
+        flashcardId = id,
+        state = FsrsState.REVIEW,
+        stability = 10.0,
+        difficulty = 5.0,
+        lastReviewedAt = fixedNow.toEpochMilli() - 10 * 86_400_000L,
+        nextReviewAt = fixedNow.toEpochMilli(),
+        interval = 10L,
+        reps = 3L,
         lapses = 0L,
     )
 }

@@ -99,7 +99,7 @@ class ExportBackupDataSourceTest {
     }
 
     @Test
-    fun `export writes valid JSON with schema version 1`() = runTest {
+    fun `export writes valid JSON with schema version 2`() = runTest {
         val outputUri = Uri.parse("content://test/export.json")
         val capturedOutput = captureOutputStream(outputUri)
 
@@ -107,7 +107,7 @@ class ExportBackupDataSourceTest {
 
         assertTrue(result.isSuccess)
         val writtenJson = capturedOutput.toString()
-        assertTrue(writtenJson.contains("\"schemaVersion\": 1"))
+        assertTrue(writtenJson.contains("\"schemaVersion\": 2"))
     }
 
     @Test

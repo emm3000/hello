@@ -11,7 +11,7 @@ data class Flashcard(
     val translation: String,
     val examples: List<Example>,
     val phonetic: String,
-    val review: FlashcardReview,
+    val review: FsrsCard,
     val partOfSpeech: String = "",
     val noteType: String = "",
     val noteSummary: String = "",
@@ -39,7 +39,7 @@ data class Flashcard(
             meaning: String,
             translation: String,
             phonetic: String = "",
-            review: FlashcardReview,
+            review: FsrsCard,
             examples: List<Example> = emptyList(),
             partOfSpeech: String = "",
             noteType: String = "",
@@ -83,15 +83,18 @@ data class Flashcard(
             warnings = warnings,
         )
 
-        fun empty(clock: Clock): Flashcard = Flashcard(
-            id = FlashcardId.from("empty-flashcard"),
-            word = "",
-            meaning = "",
-            translation = "",
-            examples = emptyList(),
-            phonetic = "",
-            review = FlashcardReview.empty(clock),
-        )
+        fun empty(clock: Clock): Flashcard {
+            val id = FlashcardId.from("empty-flashcard")
+            return Flashcard(
+                id = id,
+                word = "",
+                meaning = "",
+                translation = "",
+                examples = emptyList(),
+                phonetic = "",
+                review = FsrsCard.new(id, clock),
+            )
+        }
 
         val Empty: Flashcard
             get() = empty(SystemClock)

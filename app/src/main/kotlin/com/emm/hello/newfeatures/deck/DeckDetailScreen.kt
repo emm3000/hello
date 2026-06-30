@@ -55,7 +55,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.Tag
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
@@ -420,7 +420,7 @@ private fun StatSeparator() {
 private fun averageIntervalDays(cards: List<Flashcard>): Double? {
     val intervals = cards.mapNotNull { card ->
         val interval = card.review.interval
-        if (card.review.repetitions > 0 && interval > 0) interval else null
+        if (card.review.reps > 0 && interval > 0) interval else null
     }
     if (intervals.isEmpty()) return null
     return intervals.average()
@@ -636,7 +636,7 @@ private fun DeckDetailScreenPreview() {
                                 ),
                             ),
                             phonetic = "/ˌserənˈdɪpɪti/",
-                            review = FlashcardReview.empty(SystemClock),
+                            review = FsrsCard.new("1".toFlashcardId(), SystemClock),
                         ),
                         Flashcard.create(
                             id = "2".toFlashcardId(),
@@ -645,7 +645,7 @@ private fun DeckDetailScreenPreview() {
                             translation = "Efímero",
                             examples = listOf(),
                             phonetic = "/ɪˈfem(ə)rəl/",
-                            review = FlashcardReview.empty(SystemClock),
+                            review = FsrsCard.new("1".toFlashcardId(), SystemClock),
                         ),
                     ),
                 ),

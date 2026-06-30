@@ -1,14 +1,14 @@
 package com.emm.hello.newfeatures.study
 
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.study.StudyFlashcard
 
 data class StudySessionItem(
     val flashcardId: FlashcardId,
-    val review: FlashcardReview,
+    val review: FsrsCard,
     val studyCard: GeneratedStudyCard,
     val word: String,
     val phonetic: String,

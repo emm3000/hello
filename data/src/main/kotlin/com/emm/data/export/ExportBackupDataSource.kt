@@ -14,7 +14,9 @@ class ExportBackupDataSource(
 ) : BackupExporter {
     private companion object {
         const val BATCH_SIZE = 1000L
-        const val SUPPORTED_VERSION = 1
+
+        // Schema v2 (FSRS-6): ReviewEventDto.rating + ReviewProjectionDto.state/stability/difficulty.
+        const val SUPPORTED_VERSION = 2
     }
 
     private val json = Json {

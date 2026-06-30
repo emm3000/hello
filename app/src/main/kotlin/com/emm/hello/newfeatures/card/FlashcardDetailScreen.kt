@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
@@ -642,7 +642,7 @@ private fun footerWarnings(count: Int): String = if (count == 1) {
 }
 
 @Composable
-private fun footerNextReview(review: FlashcardReview): String {
+private fun footerNextReview(review: FsrsCard): String {
     val today = LocalDate.now()
     val nextDate = Instant.ofEpochMilli(review.nextReviewAt)
         .atZone(ZoneId.systemDefault())
@@ -694,7 +694,7 @@ private fun CardDetailScreenPreview() {
                         type = "",
                     ),
                 ),
-                review = FlashcardReview.empty(SystemClock),
+                review = FsrsCard.new("1".toFlashcardId(), SystemClock),
             ),
         )
         FlashcardDetailScreen(flashcard = sampleCard)

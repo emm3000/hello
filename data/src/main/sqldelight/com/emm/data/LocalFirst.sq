@@ -251,7 +251,7 @@ INSERT INTO ReviewEvent (
     createdAt,
     rating
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
--- rating: pass the real ReviewGrade ordinal (1..4) in PR3; pass 0 for legacy/unknown in the interim.
+-- rating: the real ReviewGrade.toFsrsRating() value (1..4); 0 for legacy/unknown rows only.
 
 findReviewEventById:
 SELECT * FROM ReviewEvent
@@ -284,12 +284,13 @@ CREATE TABLE ReviewProjection (
 CREATE INDEX idx_ReviewProjection_nextReviewAt
 ON ReviewProjection(nextReviewAt);
 
--- Inserts a brand-new ReviewProjection row only if one does not already exist for this flashcard.
--- state/stability/difficulty use table DEFAULTs ('NEW'/0.0/0.0) so migration-seeded FSRS values
--- are never overwritten on an existing row.
--- Called together with updateReviewProjectionScheduling inside a transaction.
--- TODO(PR3/T-17): replace this pair with a full FSRS upsert once the scheduler provides real values.
-insertReviewProjectionIfAbsent:
+-- Inserts a brand-new ReviewProjection row with every FSRS-relevant column (including
+-- state/stability/difficulty). No-op if a row already exists for this flashcard — paired with
+-- updateReviewProjectionFull inside a transaction (real review-write path,
+-- DefaultFlashcardReviewRepository), which always supplies the scheduler's freshly computed
+-- FsrsCard fields. SQLDelight's bundled SQLite dialect predates native UPSERT (3.24+), hence the
+-- two-statement insert-if-absent + unconditional-update pattern instead of ON CONFLICT.
+insertReviewProjectionFullIfAbsent:
 INSERT OR IGNORE INTO ReviewProjection (
     flashcardId,
     lastReviewedAt,
@@ -299,12 +300,14 @@ INSERT OR IGNORE INTO ReviewProjection (
     repetitions,
     lapses,
     sourceEventId,
-    updatedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    updatedAt,
+    state,
+    stability,
+    difficulty
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
--- Updates only the SM-2/scheduling columns on an existing ReviewProjection row.
--- state/stability/difficulty are intentionally NOT touched so migration-seeded FSRS values survive.
-updateReviewProjectionScheduling:
+-- Unconditionally overwrites every FSRS-relevant column on an existing ReviewProjection row.
+updateReviewProjectionFull:
 UPDATE ReviewProjection
 SET
     lastReviewedAt = ?,
@@ -314,7 +317,10 @@ SET
     repetitions = ?,
     lapses = ?,
     sourceEventId = ?,
-    updatedAt = ?
+    updatedAt = ?,
+    state = ?,
+    stability = ?,
+    difficulty = ?
 WHERE flashcardId = ?;
 
 -- Full insert used by the backup-import path (table is cleared before import, so no conflict occurs).

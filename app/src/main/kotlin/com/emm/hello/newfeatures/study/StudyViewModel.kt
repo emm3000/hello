@@ -1,8 +1,9 @@
 package com.emm.hello.newfeatures.study
 
 import androidx.lifecycle.viewModelScope
-import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.onboarding.OnboardingStateRepository
@@ -24,6 +25,7 @@ class StudyViewModel(
     private val flashcardReviewRepository: FlashcardReviewRepository,
     private val clock: Clock,
     private val onboardingState: OnboardingStateRepository,
+    private val fsrsParameters: FsrsParameters = FsrsParameters.DEFAULT,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -35,7 +37,7 @@ class StudyViewModel(
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
     private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
     private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
-    private val reviewsByFlashcardId = mutableMapOf<FlashcardId, FlashcardReview>()
+    private val cardsByFlashcardId = mutableMapOf<FlashcardId, FsrsCard>()
 
     init {
         loadSession()
@@ -47,7 +49,7 @@ class StudyViewModel(
         try {
             val studyFlashcards: List<StudyFlashcard> = fetchSession()
             val items = studyFlashcards.flatMap { sf ->
-                reviewsByFlashcardId[sf.flashcardId] = sf.review
+                cardsByFlashcardId[sf.flashcardId] = sf.review
                 pendingItemsByFlashcardId[sf.flashcardId] = sf.studyCards.count { it.isActive }
                 sf.toStudySessionItems()
             }
@@ -67,7 +69,7 @@ class StudyViewModel(
         studyItemsForToday.clear()
         pendingItemsByFlashcardId.clear()
         aggregatedGradesByFlashcardId.clear()
-        reviewsByFlashcardId.clear()
+        cardsByFlashcardId.clear()
     }
 
     private suspend fun fetchSession(): List<StudyFlashcard> {
@@ -83,8 +85,8 @@ class StudyViewModel(
         setState {
             val nextItem = studyItemsForToday.removeFirstOrNull()
             val previews = nextItem?.let { item ->
-                val liveReview = reviewsByFlashcardId[item.flashcardId] ?: item.review
-                PreviewNextInterval.previewAll(liveReview, clock)
+                val liveCard = cardsByFlashcardId[item.flashcardId] ?: item.review
+                PreviewNextInterval.previewAll(liveCard, clock, fsrsParameters)
             } ?: emptyMap()
             copy(currentItem = nextItem, intervalPreviews = previews)
         }
@@ -144,15 +146,15 @@ class StudyViewModel(
 
         if (remainingItems == 0) {
             val finalGrade = aggregatedGradesByFlashcardId.remove(flashcardId) ?: reviewResult
-            val persistedReview = reviewsByFlashcardId.getValue(flashcardId)
-            val newReview: FlashcardReview = scheduleFlashcardReviewUseCase(
-                review = persistedReview,
+            val persistedCard = cardsByFlashcardId.getValue(flashcardId)
+            val newCard: FsrsCard = scheduleFlashcardReviewUseCase(
+                card = persistedCard,
                 grade = finalGrade,
                 flashcardId = flashcardId,
             )
-            flashcardReviewRepository.update(newReview)
+            flashcardReviewRepository.update(newCard, finalGrade)
             pendingItemsByFlashcardId.remove(flashcardId)
-            reviewsByFlashcardId.remove(flashcardId)
+            cardsByFlashcardId.remove(flashcardId)
         }
 
         setState { copy(reviewedCount = reviewedCount + 1) }

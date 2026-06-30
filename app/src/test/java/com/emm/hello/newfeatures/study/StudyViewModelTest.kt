@@ -2,8 +2,9 @@ package com.emm.hello.newfeatures.study
 
 import app.cash.turbine.test
 import com.emm.domain.generation.EvaluationMode
-import com.emm.domain.flashcard.FlashcardReview
 import com.emm.domain.flashcard.FlashcardReviewRepository
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.toFlashcardId
@@ -184,6 +185,7 @@ class StudyViewModelTest {
             flashcardReviewRepository = reviewRepo,
             clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -210,7 +212,9 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         assertThat(reviewRepo.updates).hasSize(1)
-        assertThat(reviewRepo.updates.single().flashcardId.value).isEqualTo("a")
+        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
+        // Conservative aggregation: HARD (priority 1) beats EASY (priority 3) — the worse grade wins.
+        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.HARD)
     }
 
     // ── Target resolution (per-deck vs all-decks) ──────────────────────────────
@@ -225,6 +229,7 @@ class StudyViewModelTest {
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
             clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -245,6 +250,7 @@ class StudyViewModelTest {
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
             clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -277,6 +283,7 @@ class StudyViewModelTest {
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
             clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -297,6 +304,7 @@ class StudyViewModelTest {
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
             clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
@@ -404,6 +412,7 @@ class StudyViewModelTest {
         flashcardReviewRepository = FakeFlashcardReviewRepo(),
         clock = fixedClock,
         onboardingState = onboardingRepo,
+        fsrsParameters = FsrsParameters.DEFAULT,
     )
 
     private fun studyFlashcard(
@@ -417,7 +426,7 @@ class StudyViewModelTest {
         phonetic = "",
         meaning = "",
         translation = "",
-        review = FlashcardReview.empty(fixedClock),
+        review = FsrsCard.new(id.toFlashcardId(), fixedClock),
         studyCards = studyCards,
     )
 
@@ -470,10 +479,10 @@ class StudyViewModelTest {
     }
 
     private class FakeFlashcardReviewRepo : FlashcardReviewRepository {
-        val updates = mutableListOf<FlashcardReview>()
-        override fun all(): Flow<List<FlashcardReview>> = emptyFlow()
-        override suspend fun update(flashcardReview: FlashcardReview) {
-            updates += flashcardReview
+        val updates = mutableListOf<Pair<FsrsCard, ReviewGrade>>()
+        override fun all(): Flow<List<FsrsCard>> = emptyFlow()
+        override suspend fun update(card: FsrsCard, grade: ReviewGrade) {
+            updates += card to grade
         }
     }
 }

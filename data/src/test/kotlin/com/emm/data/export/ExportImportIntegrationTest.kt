@@ -265,10 +265,7 @@ class ExportImportIntegrationTest {
         exportDS.export(exportUri)
         val exportedJson = baos.toString()
 
-        db.exportQueries.deleteAllFlashcardExamples()
-        db.exportQueries.deleteAllFlashcards()
-        db.exportQueries.deleteAllDecks()
-        db.exportQueries.deleteAllReviewProjections()
+        clearAllTables()
 
         val importUri = Uri.parse("content://test/review-import.json")
         provideInputStream(exportedJson)

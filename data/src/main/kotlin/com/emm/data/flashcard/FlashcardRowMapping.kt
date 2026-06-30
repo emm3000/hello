@@ -7,7 +7,8 @@ import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsState
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -21,7 +22,7 @@ import kotlinx.serialization.json.Json
 internal fun toDomainSummary(
     entity: FlashcardEntity,
     json: Json,
-    review: FlashcardReview = FlashcardReview.empty(SystemClock),
+    review: FsrsCard = FsrsCard.new(entity.id.toFlashcardId(), SystemClock),
 ): Flashcard {
     return Flashcard(
         id = entity.id.toFlashcardId(),
@@ -52,7 +53,7 @@ internal fun toDomainSummary(
 
 internal fun toDomainSummary(
     entity: FlashcardsToReviewByDeck,
-    review: FlashcardReview,
+    review: FsrsCard,
     json: Json,
 ): Flashcard {
     return Flashcard(
@@ -84,7 +85,7 @@ internal fun toDomainSummary(
 
 internal fun toDomainSummary(
     entity: com.emm.data.FlashcardsWithReview,
-    review: FlashcardReview,
+    review: FsrsCard,
     json: Json,
 ): Flashcard {
     return Flashcard(
@@ -118,6 +119,7 @@ internal fun toDomainDetail(
     entity: FlashcardWithExamples,
     examples: List<Example>,
     json: Json,
+    review: FsrsCard,
 ): Flashcard {
     return Flashcard(
         id = entity.id.toFlashcardId(),
@@ -126,7 +128,7 @@ internal fun toDomainDetail(
         translation = entity.translation.orEmpty(),
         phonetic = entity.phonetic.orEmpty(),
         examples = examples,
-        review = FlashcardReview.empty(SystemClock),
+        review = review,
         partOfSpeech = entity.partOfSpeech.orEmpty(),
         noteType = entity.type.orEmpty(),
         noteSummary = entity.note.orEmpty(),
@@ -148,7 +150,7 @@ internal fun toDomainDetail(
 
 internal fun toStudyFlashcard(
     entity: FlashcardsToReviewByDeck,
-    review: FlashcardReview,
+    review: FsrsCard,
     json: Json,
 ): StudyFlashcard {
     return StudyFlashcard(
@@ -168,7 +170,7 @@ internal fun toStudyFlashcard(
 
 internal fun toStudyFlashcard(
     entity: FlashcardsToReviewAllDecks,
-    review: FlashcardReview,
+    review: FsrsCard,
     json: Json,
 ): StudyFlashcard {
     return StudyFlashcard(
@@ -188,7 +190,7 @@ internal fun toStudyFlashcard(
 
 internal fun toStudyFlashcard(
     entity: com.emm.data.FlashcardsWithReview,
-    review: FlashcardReview,
+    review: FsrsCard,
     json: Json,
 ): StudyFlashcard {
     return StudyFlashcard(
@@ -224,50 +226,134 @@ internal fun toExampleOrNull(item: FlashcardWithExamples): Example? {
     )
 }
 
-internal fun mapFlashcardReview(deck: FlashcardsToReviewByDeck): FlashcardReview {
+/**
+ * Maps the joined ReviewProjection columns of a due-card query row to an [FsrsCard].
+ *
+ * The LEFT JOIN means every ReviewProjection column is nullable in the generated row type;
+ * a never-reviewed card (no ReviewProjection row at all) has every field null and maps to a
+ * fresh [FsrsCard.new]. `nextReviewAt` is intentionally NOT stamped with "now" here: a
+ * never-reviewed card or a card whose stored nextReviewAt is already in the past must keep
+ * surfacing as due — clobbering it with the live clock would break the
+ * `nextReviewAt >= lastReviewedAt` invariant once real review data is read elsewhere.
+ */
+internal fun mapFsrsCard(deck: FlashcardsToReviewByDeck): FsrsCard {
     val hasMissingField = listOf(
         deck.flashcardId,
         deck.lastReviewedAt,
         deck.nextReviewAt,
-        deck.easeFactor,
         deck.interval,
         deck.repetitions,
         deck.lapses,
+        deck.state,
+        deck.stability,
+        deck.difficulty,
     ).any { it == null }
 
-    if (hasMissingField) return FlashcardReview.empty(SystemClock)
+    if (hasMissingField) return FsrsCard.new((deck.flashcardId ?: "empty-flashcard").toFlashcardId(), SystemClock)
 
-    return FlashcardReview(
-        flashcardId = (deck.flashcardId ?: "empty-flashcard").toFlashcardId(),
+    return FsrsCard(
+        flashcardId = deck.flashcardId.orEmpty().toFlashcardId(),
+        state = enumValueOrDefault(deck.state.orEmpty(), FsrsState.NEW),
+        stability = deck.stability ?: 0.0,
+        difficulty = deck.difficulty ?: 0.0,
         lastReviewedAt = deck.lastReviewedAt ?: 0L,
         nextReviewAt = deck.nextReviewAt ?: 0L,
-        easeFactor = deck.easeFactor ?: 0.0,
         interval = deck.interval ?: 0L,
-        repetitions = deck.repetitions ?: 0L,
+        reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
     )
 }
 
-internal fun mapFlashcardReview(deck: FlashcardsToReviewAllDecks): FlashcardReview {
+internal fun mapFsrsCard(deck: FlashcardsToReviewAllDecks): FsrsCard {
     val hasMissingField = listOf(
         deck.flashcardId,
         deck.lastReviewedAt,
         deck.nextReviewAt,
-        deck.easeFactor,
         deck.interval,
         deck.repetitions,
         deck.lapses,
+        deck.state,
+        deck.stability,
+        deck.difficulty,
     ).any { it == null }
 
-    if (hasMissingField) return FlashcardReview.empty(SystemClock)
+    if (hasMissingField) return FsrsCard.new((deck.flashcardId ?: "empty-flashcard").toFlashcardId(), SystemClock)
 
-    return FlashcardReview(
-        flashcardId = (deck.flashcardId ?: "empty-flashcard").toFlashcardId(),
+    return FsrsCard(
+        flashcardId = deck.flashcardId.orEmpty().toFlashcardId(),
+        state = enumValueOrDefault(deck.state.orEmpty(), FsrsState.NEW),
+        stability = deck.stability ?: 0.0,
+        difficulty = deck.difficulty ?: 0.0,
         lastReviewedAt = deck.lastReviewedAt ?: 0L,
         nextReviewAt = deck.nextReviewAt ?: 0L,
-        easeFactor = deck.easeFactor ?: 0.0,
         interval = deck.interval ?: 0L,
-        repetitions = deck.repetitions ?: 0L,
+        reps = deck.repetitions ?: 0L,
+        lapses = deck.lapses ?: 0L,
+    )
+}
+
+/**
+ * Maps the joined ReviewProjection columns of the deck-detail "with review" query row to an
+ * [FsrsCard]. Mirrors the [FlashcardsToReviewByDeck]/[FlashcardsToReviewAllDecks] overloads above:
+ * a never-reviewed card (no ReviewProjection row) maps to a fresh [FsrsCard.new].
+ */
+internal fun mapFsrsCard(deck: com.emm.data.FlashcardsWithReview): FsrsCard {
+    val hasMissingField = listOf(
+        deck.flashcardId,
+        deck.lastReviewedAt,
+        deck.nextReviewAt,
+        deck.interval,
+        deck.repetitions,
+        deck.lapses,
+        deck.state,
+        deck.stability,
+        deck.difficulty,
+    ).any { it == null }
+
+    if (hasMissingField) return FsrsCard.new((deck.flashcardId ?: "empty-flashcard").toFlashcardId(), SystemClock)
+
+    return FsrsCard(
+        flashcardId = deck.flashcardId.orEmpty().toFlashcardId(),
+        state = enumValueOrDefault(deck.state.orEmpty(), FsrsState.NEW),
+        stability = deck.stability ?: 0.0,
+        difficulty = deck.difficulty ?: 0.0,
+        lastReviewedAt = deck.lastReviewedAt ?: 0L,
+        nextReviewAt = deck.nextReviewAt ?: 0L,
+        interval = deck.interval ?: 0L,
+        reps = deck.repetitions ?: 0L,
+        lapses = deck.lapses ?: 0L,
+    )
+}
+
+/**
+ * Maps the joined ReviewProjection columns of the Card Detail "with examples" query row to an
+ * [FsrsCard]. Mirrors the [FlashcardsToReviewByDeck]/[FlashcardsToReviewAllDecks] overloads above:
+ * a never-reviewed card (no ReviewProjection row) maps to a fresh [FsrsCard.new].
+ */
+internal fun mapFsrsCard(deck: FlashcardWithExamples): FsrsCard {
+    val hasMissingField = listOf(
+        deck.flashcardId,
+        deck.lastReviewedAt,
+        deck.nextReviewAt,
+        deck.interval,
+        deck.repetitions,
+        deck.lapses,
+        deck.state,
+        deck.stability,
+        deck.difficulty,
+    ).any { it == null }
+
+    if (hasMissingField) return FsrsCard.new((deck.flashcardId ?: "empty-flashcard").toFlashcardId(), SystemClock)
+
+    return FsrsCard(
+        flashcardId = deck.flashcardId.orEmpty().toFlashcardId(),
+        state = enumValueOrDefault(deck.state.orEmpty(), FsrsState.NEW),
+        stability = deck.stability ?: 0.0,
+        difficulty = deck.difficulty ?: 0.0,
+        lastReviewedAt = deck.lastReviewedAt ?: 0L,
+        nextReviewAt = deck.nextReviewAt ?: 0L,
+        interval = deck.interval ?: 0L,
+        reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
     )
 }

@@ -12,7 +12,19 @@ class ImportBackupDataSource(
     private val contentResolver: ContentResolver,
 ) : BackupImporter {
     private companion object {
-        const val SUPPORTED_VERSION = 1
+        const val SCHEMA_V1 = 1
+        const val SCHEMA_V2 = 2
+        val SUPPORTED_VERSIONS = SCHEMA_V1..SCHEMA_V2
+
+        // Mirrors the seeding formula in 1.sqm (migration 1->2) so that a v1 backup
+        // (no FSRS columns) imported onto a v2 install gets the same seeded state/stability/
+        // difficulty an on-device migration would have produced from the same SM-2 fields.
+        const val SEEDED_STABILITY_FLOOR = 0.001
+        const val SEEDED_STABILITY_CEILING = 36500.0
+        const val MIN_DIFFICULTY = 1.0
+        const val MAX_DIFFICULTY = 10.0
+        const val MIN_EASE_FACTOR = 1.3
+        const val DIFFICULTY_SPAN = 9.0 / 1.4
     }
 
     private val json = Json {
@@ -43,7 +55,7 @@ class ImportBackupDataSource(
             insertTags(envelope.tags)
             insertDeckTags(envelope.deckTags)
             insertReviewEvents(envelope.reviewEvents)
-            insertReviewProjections(envelope.reviewProjections)
+            insertReviewProjections(envelope.reviewProjections, isLegacySchema = envelope.schemaVersion < SCHEMA_V2)
         }
     }
 
@@ -152,18 +164,19 @@ class ImportBackupDataSource(
                 repetitions = event.repetitions,
                 lapses = event.lapses,
                 createdAt = event.createdAt,
-                // Backup files from schema v1 lack a rating column; default to 0 (legacy unknown).
-                // TODO(PR3/T-20): bump BackupEnvelope.schemaVersion and read real rating from ReviewEventDto.
+                // v1 backups lack a rating column; the DTO default (0L = legacy/unknown) applies.
                 rating = event.rating,
             )
         }
     }
 
-    private fun insertReviewProjections(projections: List<ReviewProjectionDto>) {
+    private fun insertReviewProjections(projections: List<ReviewProjectionDto>, isLegacySchema: Boolean) {
         projections.forEach { proj ->
-            // No SM-2 seeding here; state/stability/difficulty come from the DTO
-            // (defaults 'NEW'/0.0/0.0 for old backups). On-device legacy seeding is done by the 1.sqm migration.
-            // TODO(PR3/T-20): bump BackupEnvelope.schemaVersion and read real state/stability/difficulty.
+            val (state, stability, difficulty) = if (isLegacySchema) {
+                seedFsrsFromLegacy(interval = proj.interval, lapses = proj.lapses, easeFactor = proj.easeFactor)
+            } else {
+                Triple(proj.state, proj.stability, proj.difficulty)
+            }
             db.localFirstQueries.insertReviewProjectionFull(
                 flashcardId = proj.flashcardId,
                 lastReviewedAt = proj.lastReviewedAt,
@@ -174,16 +187,34 @@ class ImportBackupDataSource(
                 lapses = proj.lapses,
                 sourceEventId = proj.sourceEventId,
                 updatedAt = proj.updatedAt,
-                state = proj.state,
-                stability = proj.stability,
-                difficulty = proj.difficulty,
+                state = state,
+                stability = stability,
+                difficulty = difficulty,
             )
         }
     }
 
+    /**
+     * Seeds FSRS state/stability/difficulty from legacy SM-2 fields, mirroring the on-device
+     * migration formula in `data/src/main/sqldelight/com/emm/data/1.sqm` exactly so a v1 backup
+     * restored onto a v2 install ends up with the same values an in-place upgrade would have
+     * produced.
+     */
+    private fun seedFsrsFromLegacy(interval: Long, lapses: Long, easeFactor: Double): Triple<String, Double, Double> {
+        val state = when {
+            interval <= 0L -> "NEW"
+            interval == 1L && lapses > 0L -> "RELEARNING"
+            else -> "REVIEW"
+        }
+        val stability = interval.toDouble().coerceIn(SEEDED_STABILITY_FLOOR, SEEDED_STABILITY_CEILING)
+        val difficulty = (MAX_DIFFICULTY - (easeFactor - MIN_EASE_FACTOR) * DIFFICULTY_SPAN)
+            .coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
+        return Triple(state, stability, difficulty)
+    }
+
     private fun validateSchemaVersion(actualVersion: Int) {
-        if (actualVersion != SUPPORTED_VERSION) {
-            throw IncompatibleSchemaException(actualVersion)
+        if (actualVersion !in SUPPORTED_VERSIONS) {
+            throw IncompatibleSchemaException(actualVersion, SUPPORTED_VERSIONS)
         }
     }
 }

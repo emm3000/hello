@@ -6,7 +6,7 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.FlashcardReview
+import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -197,13 +197,14 @@ private class FakeFlashcardRepository : FlashcardRepository {
 }
 
 private fun sampleCard(id: String): Flashcard {
+    val flashcardId = id.toFlashcardId()
     return Flashcard(
-        id = id.toFlashcardId(),
+        id = flashcardId,
         word = "borrow",
         meaning = "to take and return",
         translation = "pedir prestado",
         examples = emptyList(),
         phonetic = "",
-        review = FlashcardReview.empty(Clock { Instant.EPOCH }),
+        review = FsrsCard.new(flashcardId, Clock { Instant.EPOCH }),
     )
 }

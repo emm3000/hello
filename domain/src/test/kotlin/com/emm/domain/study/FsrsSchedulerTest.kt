@@ -83,6 +83,15 @@ class FsrsSchedulerTest {
     }
 
     @Test
+    fun `T03 initial stability for each grade matches weights indexed by toFsrsRating`() {
+        // Guards against FsrsScheduler drifting from ReviewGrade's public grade-integer source.
+        ReviewGrade.entries.forEach { grade ->
+            val result = FsrsScheduler.schedule(newCard(), grade, flashcardId, clock, params)
+            assertEquals(params.weights[grade.toFsrsRating() - 1], result.stability, EPSILON)
+        }
+    }
+
+    @Test
     fun `T03 first rating initial difficulty D0 is clamped to 1 10`() {
         ReviewGrade.entries.forEach { grade ->
             val result = FsrsScheduler.schedule(newCard(), grade, flashcardId, clock, params)
