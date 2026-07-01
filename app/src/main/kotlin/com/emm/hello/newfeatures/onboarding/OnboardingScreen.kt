@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,10 +28,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -150,7 +151,7 @@ private fun OnboardingPageContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        OnboardingIllustrationPlaceholder(illustration = page.illustration)
+        OnboardingIllustrationArt(illustration = page.illustration)
 
         Spacer(modifier = Modifier.height(40.dp))
 
@@ -173,11 +174,11 @@ private fun OnboardingPageContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Illustration placeholder — replaced by real assets when available
+// Illustration — transparent line-art on the ember disc
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun OnboardingIllustrationPlaceholder(
+private fun OnboardingIllustrationArt(
     illustration: OnboardingIllustration,
     modifier: Modifier = Modifier,
 ) {
@@ -188,13 +189,10 @@ private fun OnboardingIllustrationPlaceholder(
             .background(emberSurface2),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = illustration.name.take(2).uppercase(),
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
-            ),
-            color = emberFaint,
+        Image(
+            painter = painterResource(illustration.drawableRes),
+            contentDescription = null,
+            modifier = Modifier.size(illustrationSize),
         )
     }
 }
