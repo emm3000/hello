@@ -562,6 +562,7 @@
     <string name="onboarding_cta_start">Empezar</string>
     <string name="onboarding_skip">Saltar</string>
     <string name="onboarding_page_indicator_description">Página %1$d de %2$d</string>
+    <string name="onboarding_seed_deck_name">Primeras palabras</string>
 
     <!-- Grade hint (JIT onboarding) -->
     <string name="study_grade_hint_title">¿Qué hace cada botón?</string>

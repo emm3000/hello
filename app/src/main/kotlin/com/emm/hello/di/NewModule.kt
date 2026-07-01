@@ -17,7 +17,9 @@ import com.emm.data.flashcard.DefaultStudySessionRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
+import com.emm.data.seed.DefaultSeedDataInitializer
 import com.emm.domain.localfirst.LocalIdentityInitializer
+import com.emm.domain.seed.SeedDataInitializer
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CreateFlashcardUseCase
@@ -63,6 +65,7 @@ import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
 import com.emm.domain.time.SystemClock
 import com.emm.hello.BuildConfig
+import com.emm.hello.R
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
@@ -140,7 +143,15 @@ fun Module.repository() {
     factoryOf(::ExportBackupDataSource) bind BackupExporter::class
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
-    single { AppStartupCoordinator(get(), get()) }
+    single<SeedDataInitializer> {
+        DefaultSeedDataInitializer(
+            deckRepository = get(),
+            flashcardRepository = get(),
+            dataStore = get(),
+            deckName = androidContext().getString(R.string.onboarding_seed_deck_name),
+        )
+    }
+    single { AppStartupCoordinator(get(), get(), get()) }
 }
 
 fun Module.useCases() {

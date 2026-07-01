@@ -3,6 +3,7 @@ package com.emm.hello.startup
 import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.localfirst.LocalIdentityState
 import com.emm.domain.onboarding.OnboardingStateRepository
+import com.emm.domain.seed.SeedDataInitializer
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -15,9 +16,11 @@ class AppStartupCoordinatorTest {
     @Test
     fun `startup prepares local identity and reports ready with hasSeenWelcome false`() = runTest {
         val localIdentityInitializer = FakeLocalIdentityInitializer()
+        val seedDataInitializer = FakeSeedDataInitializer()
         val onboardingRepo = FakeOnboardingStateRepository(welcomeSeen = false)
         val subject = AppStartupCoordinator(
             localIdentityInitializer = localIdentityInitializer,
+            seedDataInitializer = seedDataInitializer,
             onboardingStateRepository = onboardingRepo,
             scope = this,
         )
@@ -26,6 +29,7 @@ class AppStartupCoordinatorTest {
         advanceUntilIdle()
 
         assertThat(localIdentityInitializer.calls).isEqualTo(1)
+        assertThat(seedDataInitializer.calls).isEqualTo(1)
         assertThat(subject.state.value).isEqualTo(AppStartupState.Ready(hasSeenWelcome = false))
     }
 
@@ -35,6 +39,7 @@ class AppStartupCoordinatorTest {
         val onboardingRepo = FakeOnboardingStateRepository(welcomeSeen = true)
         val subject = AppStartupCoordinator(
             localIdentityInitializer = localIdentityInitializer,
+            seedDataInitializer = FakeSeedDataInitializer(),
             onboardingStateRepository = onboardingRepo,
             scope = this,
         )
@@ -50,6 +55,7 @@ class AppStartupCoordinatorTest {
         val localIdentityInitializer = FakeLocalIdentityInitializer(shouldFail = true)
         val subject = AppStartupCoordinator(
             localIdentityInitializer = localIdentityInitializer,
+            seedDataInitializer = FakeSeedDataInitializer(),
             onboardingStateRepository = FakeOnboardingStateRepository(),
             scope = this,
         )
@@ -73,6 +79,14 @@ class AppStartupCoordinatorTest {
                 deviceId = "device-1",
                 createdInstallation = true,
             )
+        }
+    }
+
+    private class FakeSeedDataInitializer : SeedDataInitializer {
+        var calls: Int = 0
+
+        override suspend fun ensureSeeded() {
+            calls += 1
         }
     }
 

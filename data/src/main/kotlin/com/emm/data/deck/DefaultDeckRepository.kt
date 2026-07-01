@@ -34,7 +34,7 @@ class DefaultDeckRepository(
 
     override suspend fun create(deck: CreateDeckInput) = withContext(Dispatchers.IO) {
         val now: Long = Instant.now().toEpochMilli()
-        val newId: String = UUID.randomUUID().toString()
+        val newId: String = deck.id?.value ?: UUID.randomUUID().toString()
 
         db.transaction {
             dq.insert(
