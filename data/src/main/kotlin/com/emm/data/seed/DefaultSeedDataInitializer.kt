@@ -67,7 +67,7 @@ class DefaultSeedDataInitializer(
         // The app targets Spanish speakers learning English, so this content is not localized.
         val STARTER_CARDS: List<StarterCard> = listOf(
             StarterCard("hello", "hola", "A friendly greeting used when you meet someone.", "/həˈloʊ/", "interjection"),
-            StarterCard("water", "agua", "The clear liquid that fills rivers and seas and falls as rain.", "/ˈwɔːtər/", "noun"),
+            StarterCard("water", "agua", "The clear liquid that fills rivers and falls as rain.", "/ˈwɔːtər/", "noun"),
             StarterCard("friend", "amigo/a", "Someone you know well and like, outside your family.", "/frɛnd/", "noun"),
             StarterCard("to eat", "comer", "To put food in your mouth and swallow it.", "/iːt/", "verb"),
             StarterCard("house", "casa", "A building where people live.", "/haʊs/", "noun"),
