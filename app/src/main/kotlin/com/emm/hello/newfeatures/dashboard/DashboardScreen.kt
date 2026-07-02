@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.dashboard
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -562,6 +564,13 @@ private fun EmptyLibraryContent(
         accentWord = stringResource(R.string.dashboard_empty_headline_accent),
         body = "$deckConceptLine\n\n$dashboardBody",
         footnote = stringResource(R.string.dashboard_empty_footnote),
+        glyph = {
+            Image(
+                painter = painterResource(R.drawable.mascot_wave),
+                contentDescription = null,
+                modifier = Modifier.size(96.dp),
+            )
+        },
         primaryCta = {
             HButton(
                 text = stringResource(R.string.dashboard_empty_cta_primary),
