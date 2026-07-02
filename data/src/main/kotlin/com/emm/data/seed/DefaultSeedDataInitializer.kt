@@ -48,31 +48,40 @@ class DefaultSeedDataInitializer(
                 id = deckId,
             ),
         )
-        STARTER_CARDS.forEach { (english, spanish) ->
+        STARTER_CARDS.forEach { card ->
             flashcardRepository.create(
                 CreateFlashcardInput(
                     deckId = deckId,
-                    word = english,
-                    meaning = "",
-                    translation = spanish,
-                    phonetic = "",
+                    word = card.word,
+                    meaning = card.meaning,
+                    translation = card.translation,
+                    phonetic = card.phonetic,
+                    partOfSpeech = card.partOfSpeech,
                 ),
             )
         }
     }
 
     private companion object {
-        // Front (English) to back (Spanish). Fixed learning content: the app targets Spanish
-        // speakers learning English, so these pairs are not localized.
-        val STARTER_CARDS: List<Pair<String, String>> = listOf(
-            "hello" to "hola",
-            "water" to "agua",
-            "friend" to "amigo/a",
-            "to eat" to "comer",
-            "house" to "casa",
-            "book" to "libro",
-            "to work" to "trabajar",
-            "thank you" to "gracias",
+        // Front (English) with an English gloss, IPA and part of speech; back is Spanish.
+        // The app targets Spanish speakers learning English, so this content is not localized.
+        val STARTER_CARDS: List<StarterCard> = listOf(
+            StarterCard("hello", "hola", "A friendly greeting used when you meet someone.", "/həˈloʊ/", "interjection"),
+            StarterCard("water", "agua", "The clear liquid that fills rivers and seas and falls as rain.", "/ˈwɔːtər/", "noun"),
+            StarterCard("friend", "amigo/a", "Someone you know well and like, outside your family.", "/frɛnd/", "noun"),
+            StarterCard("to eat", "comer", "To put food in your mouth and swallow it.", "/iːt/", "verb"),
+            StarterCard("house", "casa", "A building where people live.", "/haʊs/", "noun"),
+            StarterCard("book", "libro", "A set of printed pages bound together to read.", "/bʊk/", "noun"),
+            StarterCard("to work", "trabajar", "To do a job, usually to earn money.", "/wɜːrk/", "verb"),
+            StarterCard("thank you", "gracias", "A phrase you say to show gratitude.", "/ˈθæŋk juː/", "phrase"),
         )
     }
 }
+
+private data class StarterCard(
+    val word: String,
+    val translation: String,
+    val meaning: String,
+    val phonetic: String,
+    val partOfSpeech: String,
+)
