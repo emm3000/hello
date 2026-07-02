@@ -23,8 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -67,6 +65,7 @@ import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HFab
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSectionLabel
@@ -205,14 +204,13 @@ private fun WordmarkRow(
             },
         )
 
-        IconButton(onClick = onSettings) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_content_description),
-                tint = emberMuted,
-                modifier = Modifier.size(20.dp),
-            )
-        }
+        HIconButton(
+            icon = Icons.Default.Settings,
+            contentDescription = stringResource(R.string.settings_content_description),
+            onClick = onSettings,
+            tint = emberMuted,
+            iconSize = 20.dp,
+        )
     }
 }
 

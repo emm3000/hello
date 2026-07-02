@@ -18,8 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,7 +49,6 @@ import com.emm.hello.core.theme.emberFaint
 import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -60,6 +57,7 @@ import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HDictSense
 import com.emm.hello.core.ui.HDictSenseTone
 import com.emm.hello.core.ui.HDropdownMenu
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSectionLabel
@@ -179,20 +177,16 @@ private fun FlashcardDetailTopBar(
     HTopBar(
         onBack = onBack,
         actions = {
-            IconButton(onClick = onEdit) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = stringResource(R.string.edit),
-                    tint = emberPrimary,
-                )
-            }
-            IconButton(onClick = { showMenu = true }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.more_options),
-                    tint = emberPrimary,
-                )
-            }
+            HIconButton(
+                icon = Icons.Outlined.Edit,
+                contentDescription = stringResource(R.string.edit),
+                onClick = onEdit,
+            )
+            HIconButton(
+                icon = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.more_options),
+                onClick = { showMenu = true },
+            )
             HDropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },

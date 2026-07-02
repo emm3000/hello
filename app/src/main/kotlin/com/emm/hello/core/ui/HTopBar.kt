@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,17 +57,13 @@ fun HTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            IconButton(
+            HIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Volver",
                 onClick = onBack,
-                modifier = Modifier.size(backButtonSize),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = emberPrimary,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
+                iconSize = 20.dp,
+                buttonSize = backButtonSize,
+            )
         } else {
             Spacer(Modifier.size(backButtonSize))
         }
@@ -133,13 +127,11 @@ private fun HTopBarMonoPreview() {
                 title = "Ajustes",
                 mono = true,
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Más opciones",
-                            tint = emberPrimary,
-                        )
-                    }
+                    HIconButton(
+                        icon = Icons.Default.MoreVert,
+                        contentDescription = "Más opciones",
+                        onClick = {},
+                    )
                 },
             )
         }

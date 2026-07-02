@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -130,17 +129,14 @@ fun HSearchBar(
         }
 
         if (value.isNotEmpty()) {
-            IconButton(
+            HIconButton(
+                icon = Icons.Default.Close,
+                contentDescription = clearContentDescription,
                 onClick = { onValueChange("") },
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = clearContentDescription,
-                    tint = emberMuted,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
+                tint = emberMuted,
+                iconSize = 16.dp,
+                buttonSize = 32.dp,
+            )
         }
     }
 }

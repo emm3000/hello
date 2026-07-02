@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -28,8 +27,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +66,7 @@ import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HChip
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
 
 @Composable
@@ -199,16 +197,12 @@ private fun NewDeckTopBar(
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(
+        HIconButton(
+            icon = Icons.Default.Close,
+            contentDescription = stringResource(R.string.new_deck_close_content_description),
             onClick = onClose,
-            modifier = Modifier.size(44.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.new_deck_close_content_description),
-                tint = emberPrimary,
-            )
-        }
+            buttonSize = 44.dp,
+        )
 
         Text(
             text = title.uppercase(),

@@ -38,8 +38,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -114,6 +112,7 @@ import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HEmptyState
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import kotlin.math.ceil
 
@@ -616,16 +615,14 @@ private fun TtsFloatingButton(
     val description = stringResource(
         if (isSpeaking) R.string.stop_speech_desc else R.string.speak_desc,
     )
-    IconButton(
+    HIconButton(
+        icon = if (isSpeaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+        contentDescription = description,
         onClick = { if (isSpeaking) onStop() else onSpeak() },
-        enabled = audioState.ttsReady,
         modifier = modifier,
-    ) {
-        Icon(
-            imageVector = if (isSpeaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
-            contentDescription = description,
-        )
-    }
+        tint = emberOnBg,
+        enabled = audioState.ttsReady,
+    )
 }
 
 @Composable

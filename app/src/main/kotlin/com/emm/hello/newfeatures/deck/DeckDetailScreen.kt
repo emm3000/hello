@@ -28,8 +28,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -79,6 +77,7 @@ import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HFab
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSectionLabel
@@ -241,13 +240,11 @@ private fun DeckDetailTopBar(
         onBack = onNavigateBack,
         actions = {
             Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.more_options),
-                        tint = emberPrimary,
-                    )
-                }
+                HIconButton(
+                    icon = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.more_options),
+                    onClick = { showMenu = true },
+                )
                 HDropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
@@ -452,17 +449,14 @@ private fun CardsSectionHeader(
     HSectionLabel(
         label = label,
         action = {
-            IconButton(
+            HIconButton(
+                icon = if (searchExpanded) Icons.Default.Close else Icons.Default.Search,
+                contentDescription = toggleDescription,
                 onClick = onToggleSearch,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = if (searchExpanded) Icons.Default.Close else Icons.Default.Search,
-                    contentDescription = toggleDescription,
-                    tint = if (searchExpanded) emberAccent else emberMuted,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+                tint = if (searchExpanded) emberAccent else emberMuted,
+                iconSize = 18.dp,
+                buttonSize = 36.dp,
+            )
         },
     )
 }

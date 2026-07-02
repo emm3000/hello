@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,8 +27,8 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HProgressBar
 
 private val barHeight = 56.dp
@@ -61,17 +59,13 @@ internal fun StudyTop(
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(
+            HIconButton(
+                icon = Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.exit_session_desc),
                 onClick = onClose,
-                modifier = Modifier.size(closeButtonSize),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.exit_session_desc),
-                    tint = emberPrimary,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
+                iconSize = 20.dp,
+                buttonSize = closeButtonSize,
+            )
 
             HProgressBar(
                 progress = progress,

@@ -26,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,12 +53,12 @@ import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.emberSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
 import com.emm.hello.core.ui.HSectionLabel
 
@@ -129,16 +128,12 @@ private fun EditFlashcardTopBar(
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(
+        HIconButton(
+            icon = Icons.Default.Close,
+            contentDescription = stringResource(R.string.edit_flashcard_close_content_description),
             onClick = onClose,
-            modifier = Modifier.size(44.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.edit_flashcard_close_content_description),
-                tint = emberPrimary,
-            )
-        }
+            buttonSize = 44.dp,
+        )
 
         Text(
             text = title,
@@ -365,19 +360,15 @@ private fun ExampleEditRow(
             )
         }
 
-        IconButton(
+        HIconButton(
+            icon = Icons.Default.Close,
+            contentDescription = stringResource(R.string.edit_flashcard_remove_example),
             onClick = onRemove,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(36.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.edit_flashcard_remove_example),
-                tint = emberMuted,
-                modifier = Modifier.size(16.dp),
-            )
-        }
+            modifier = Modifier.align(Alignment.TopEnd),
+            tint = emberMuted,
+            iconSize = 16.dp,
+            buttonSize = 36.dp,
+        )
     }
 }
 
