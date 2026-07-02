@@ -25,7 +25,7 @@ val localOnlyMode: Boolean = providers.gradleProperty("hello.localOnlyMode")
 
 configure<ApplicationExtension> {
     namespace = "com.emm.hello"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.emm.hello"
