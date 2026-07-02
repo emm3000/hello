@@ -217,6 +217,42 @@ class StudyViewModelTest {
         assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.HARD)
     }
 
+    @Test
+    fun `flashcard with no study cards persists the review once when graded`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            studySessionRepository = FakeStudySessionRepo(
+                listOf(studyFlashcard(id = "a", studyCards = emptyList())),
+            ),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            flashcardReviewRepository = reviewRepo,
+            clock = fixedClock,
+            onboardingState = FakeOnboardingStateRepository(),
+            fsrsParameters = FsrsParameters.DEFAULT,
+        )
+        advanceUntilIdle()
+
+        // The fallback synthesizes a single basic item so a seeded card with no generated
+        // content is still studiable and, crucially, still schedulable.
+        assertThat(viewModel.state.value.totalCount).isEqualTo(1)
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
+        advanceUntilIdle()
+
+        // Regression: the pending-item count must track the produced items (1), not the raw
+        // studyCards (0). Otherwise remainingItems goes 0 -> -1, never hits 0, and the grade
+        // is silently dropped — the card stays perpetually due.
+        assertThat(reviewRepo.updates).hasSize(1)
+        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
+        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.GOOD)
+    }
+
     // ── Target resolution (per-deck vs all-decks) ──────────────────────────────
 
     @Test

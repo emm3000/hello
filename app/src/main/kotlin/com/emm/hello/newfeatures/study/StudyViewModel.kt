@@ -50,8 +50,13 @@ class StudyViewModel(
             val studyFlashcards: List<StudyFlashcard> = fetchSession()
             val items = studyFlashcards.flatMap { sf ->
                 cardsByFlashcardId[sf.flashcardId] = sf.review
-                pendingItemsByFlashcardId[sf.flashcardId] = sf.studyCards.count { it.isActive }
-                sf.toStudySessionItems()
+                val sessionItems = sf.toStudySessionItems()
+                // Count the items actually produced, not the raw studyCards: a card with no
+                // generated content still yields one basic fallback item. Keying the pending
+                // count off studyCards would leave it at 0, so remainingItems goes 0 -> -1,
+                // never hits 0, and the review is never persisted (dropped grade).
+                pendingItemsByFlashcardId[sf.flashcardId] = sessionItems.size
+                sessionItems
             }
             studyItemsForToday.addAll(items)
             val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
