@@ -13,6 +13,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -414,6 +416,14 @@ private fun SessionFinishedDialog(
                     .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
+                Image(
+                    painter = painterResource(R.drawable.mascot_celebrate),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(104.dp),
+                )
+                Spacer(Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.session_completed_eyebrow).uppercase(),
                     fontFamily = geistMono,
@@ -836,6 +846,13 @@ private fun StudyEmptyState() {
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
         body = "$srsConceptLine\n\n$studyEmptyBody",
+        glyph = {
+            Image(
+                painter = painterResource(R.drawable.mascot_rest),
+                contentDescription = null,
+                modifier = Modifier.size(96.dp),
+            )
+        },
     )
 }
 
