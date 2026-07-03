@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +53,7 @@ import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HDictSense
@@ -67,8 +69,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-
-private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun FlashcardDetailScreen(
@@ -162,7 +162,7 @@ private fun LoadingBody() {
 @Composable
 private fun HeroDivider() {
     HSeparator(
-        modifier = Modifier.padding(horizontal = screenHorizontalPadding, vertical = 24.dp),
+        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenGutter, vertical = 24.dp),
         color = emberDivider,
     )
 }
@@ -211,7 +211,7 @@ private fun FlashcardHero(card: Flashcard) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding, vertical = 16.dp),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter, vertical = 16.dp),
     ) {
         HSectionLabel(label = stringResource(R.string.card_detail_header_label))
         Spacer(Modifier.height(12.dp))
@@ -320,7 +320,7 @@ private fun DictSensesColumn(senses: List<DictSenseItem>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         senses.forEachIndexed { index, sense ->
@@ -339,7 +339,7 @@ private fun ExamplesBlock(examples: List<Example>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
     ) {
         HSectionLabel(
             label = stringResource(R.string.card_detail_examples_section_label, examples.size),
@@ -407,7 +407,7 @@ private fun ExtrasBlock(card: Flashcard) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         HSectionLabel(label = stringResource(R.string.card_detail_extras_section_label))
@@ -538,7 +538,7 @@ private fun ContextBlock(card: Flashcard) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         HSectionLabel(label = stringResource(R.string.card_detail_context_section_label))
@@ -594,7 +594,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = screenHorizontalPadding),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         parts.forEachIndexed { index, part ->

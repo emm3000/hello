@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +23,7 @@ import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.instrumentSerif
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
@@ -32,7 +34,6 @@ import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 
 private const val REVIEW_STEP_NUMBER = 3
 private const val TOTAL_STEP_COUNT = 3
-private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun NewCardReviewScreen(
@@ -61,8 +62,8 @@ fun NewCardReviewScreen(
                     .fillMaxWidth()
                     .weight(1f),
                 contentPadding = PaddingValues(
-                    start = screenHorizontalPadding,
-                    end = screenHorizontalPadding,
+                    start = MaterialTheme.spacing.screenGutter,
+                    end = MaterialTheme.spacing.screenGutter,
                     top = 12.dp,
                     bottom = 24.dp,
                 ),

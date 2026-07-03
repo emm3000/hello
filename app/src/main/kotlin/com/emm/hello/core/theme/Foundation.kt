@@ -33,6 +33,7 @@ data class HelloSpacing(
     val lg: Dp,
     val xl: Dp,
     val xxl: Dp,
+    val screenGutter: Dp,
 )
 
 @Immutable
@@ -63,6 +64,7 @@ internal val defaultHelloSpacing = HelloSpacing(
     lg = 16.dp,
     xl = 24.dp,
     xxl = 32.dp,
+    screenGutter = 20.dp,
 )
 
 internal val defaultHelloShapes = HelloShapes(

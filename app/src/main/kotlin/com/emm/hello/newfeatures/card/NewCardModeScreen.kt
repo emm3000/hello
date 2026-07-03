@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +42,11 @@ import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.instrumentSerif
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HWizTop
-
-private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun NewCardModeScreen(
@@ -72,8 +72,8 @@ fun NewCardModeScreen(
                     .fillMaxSize()
                     .weight(1f),
                 contentPadding = PaddingValues(
-                    start = screenHorizontalPadding,
-                    end = screenHorizontalPadding,
+                    start = MaterialTheme.spacing.screenGutter,
+                    end = MaterialTheme.spacing.screenGutter,
                     top = 12.dp,
                     bottom = 32.dp,
                 ),

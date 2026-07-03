@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -76,6 +77,7 @@ import com.emm.hello.core.theme.emberSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
@@ -92,8 +94,6 @@ import com.emm.hello.newfeatures.card.validation.IssueUiTarget
 import com.emm.domain.validation.ValidationIssue
 import kotlinx.coroutines.launch
 import java.util.Locale
-
-private val screenHorizontalPadding = 20.dp
 
 @Composable
 fun NewCardInputStepScreen(
@@ -178,8 +178,8 @@ fun NewCardInputStepScreen(
                     .fillMaxSize()
                     .weight(1f),
                 contentPadding = PaddingValues(
-                    start = screenHorizontalPadding,
-                    end = screenHorizontalPadding,
+                    start = MaterialTheme.spacing.screenGutter,
+                    end = MaterialTheme.spacing.screenGutter,
                     top = 12.dp,
                     bottom = 24.dp,
                 ),
