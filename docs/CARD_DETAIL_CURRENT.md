@@ -10,7 +10,7 @@
 
 ## Summary
 
-`Card Detail` shows a saved flashcard as an editorial dictionary entry and lets you edit or delete it (soft delete). It opens from the deck detail or from the dashboard. Layout follows the Ember dark redesign (`docs/REDESIGN_PLAN.md` § 2.4) — single vertical scroll, no tabs.
+`Card Detail` shows a saved flashcard as an editorial dictionary entry and lets you edit or delete it (soft delete). It opens from the deck detail or from the dashboard. Layout follows the Ember dark redesign — single vertical scroll, no tabs.
 
 ## Key files
 
@@ -27,6 +27,7 @@
 `FlashcardDetailUiState` holds:
 
 - `flashcard: FlashcardDetail` (empty default with `SystemClock`)
+- `isLoading: Boolean = true`
 - `isDeleteConfirmationVisible`
 
 ## Loading
@@ -35,7 +36,10 @@
 
 - fires `FlashcardDetailUiIntent.Load`
 - calls `FlashcardRepository.fetchById(flashcardId)`
+- on success sets `flashcard` and flips `isLoading = false`
 - on error emits `LoadFailed(message)`
+
+`isLoading` starts at `true`, so the screen never flashes the empty-flashcard default: while it is `true`, `FlashcardDetailScreen` keeps the top bar and renders `LoadingBody()` instead of the entry body.
 
 ## Actions
 

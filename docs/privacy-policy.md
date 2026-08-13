@@ -53,6 +53,8 @@ Hello requests the following Android permissions:
 
 - **Internet** — required to call Firebase AI for flashcard generation and to send crash/analytics telemetry.
 - **Record audio** (`RECORD_AUDIO`) — used only when you tap the microphone button in the new-card screen to dictate the source word. Audio is processed by Android's on-device speech recognizer and never sent by Hello to any server.
+- **Network state** (`ACCESS_NETWORK_STATE`) — used to check whether a connection is available before attempting a flashcard generation request.
+- **Notifications** (`POST_NOTIFICATIONS`, Android 13 and above) — used only to show the local daily study reminder. Reminders are generated on your device; no notification content leaves it.
 - **Read/Write external storage** (Android 12 and below only) — used to read backup files you select for import and to write backup files you export.
 
 You can revoke any permission at any time from Android Settings.

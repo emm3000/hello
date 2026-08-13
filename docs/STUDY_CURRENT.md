@@ -32,54 +32,62 @@ Each flashcard can expand into multiple study items. The review is persisted onc
 
 `StudyUiState` holds:
 
+- `isLoading: Boolean = true` — session load in flight
+- `loadError: StudyLoadError?` — `SessionLoadFailed`; distinguishes a failed read from a genuinely empty due queue
 - `currentItem`
 - `reviewedCount`
 - `totalCount`
 - `sessionFinished`
 - `intervalPreviews: Map<ReviewGrade, Long>` — interval previews shown under each grade chip
+- `isGradeHintVisible: Boolean` — first-session grade hint card
+- `sessionStarted: Boolean` — set by `StartSession`, gates the Start stage
+- `showExitConfirmation: Boolean`
 
 The heavy logic lives in `StudyScreen` and `StudyViewModel`.
 
 ## Session load
 
-`StudyViewModel`:
+`StudyViewModel` is constructed with a `deckId: String`. `StudyRoute.ALL_DUE_DECKS` (`"__all_due_decks__"`) is the sentinel Koin receives for the all-decks session; the viewmodel normalizes it back to `null`.
 
-- fetches flashcards via `GetStudySessionUseCase(deckId)`
-- expands each flashcard into `StudySessionItem`s
+`loadSession()` (called from `init`, and again by `RetryLoad`):
+
+- resets the accumulators and sets `isLoading = true`, `loadError = null`
+- fetches via `studySessionRepository.sessionTodayAllDecks()` when the target is `null`, otherwise `studySessionRepository.sessionToday(deckId.toDeckId())`
+- expands each `StudyFlashcard` into `StudySessionItem`s and caches its `FsrsCard` by `flashcardId`
 - stores a local `ArrayDeque` queue
-- initializes `totalCount`
+- initializes `totalCount` and computes `isGradeHintVisible` from `onboardingState.hasSeenGradeHint()`
 - shows the first available item
+- on any throwable (except `CancellationException`) logs and sets `loadError = SessionLoadFailed`
 
 ## Progress model
 
 For each flashcard, the viewmodel keeps:
 
-- pending items by `flashcardId`
+- pending items by `flashcardId` (counted from the items actually produced, so a card with no generated content still reaches 0)
 - the most conservative aggregated grade per `flashcardId`
-- a reference to the original flashcard
+- the persisted `FsrsCard` per `flashcardId`
 
 When the last item of a flashcard is answered:
 
-- computes the most conservative final grade
-- schedules a new review with `ScheduleFlashcardReviewUseCase`
-- persists it with `UpdateFlashcardReviewUseCase`
+- computes the most conservative final grade (`AGAIN < HARD < GOOD < EASY`)
+- schedules a new `FsrsCard` with `ScheduleFlashcardReviewUseCase(card, grade, flashcardId)`
+- persists it with `flashcardReviewRepository.update(newCard, finalGrade)`
+- drops the flashcard from the pending and card caches
 
 ## Visual stages
 
-`StudyScreen` uses these local stages:
+`StudyScreen` uses a private `StudyStage` enum, resolved in this order:
 
-- `Start`
-- `Empty`
-- `Recall`
-- `Check`
-- `Grade`
+1. `Loading` — `state.isLoading`
+2. `Error` — `state.loadError != null`
+3. `Empty` — not started and `totalCount == 0`
+4. `Start` — not started
+5. `Empty` — no `currentItem`
+6. `Recall` — card face is Front
+7. `Check` — the card needs a typed answer and it hasn't been checked
+8. `Grade` — otherwise
 
-The stage depends on:
-
-- whether the session has started
-- whether there's a current item
-- whether the card needs a typed answer
-- whether the typed answer has been checked
+`Loading` renders `StudyLoadingState()`, `Error` renders `StudyErrorState()` with a retry CTA wired to `RetryLoad`, and `Start` renders `StudyStartCard` whose CTA fires `StartSession`.
 
 ## Current interaction flow
 
@@ -164,11 +172,17 @@ When `StudyStage.Empty`, `StudyActionDock` renders a full-width `HButton` (Secon
 
 `StudyUiIntent`:
 
-- `BackClicked` — emits `NavigateBack`
 - `FinishDialogDismissed` — emits `NavigateBack`
 - `CreateCardClicked` — emits `NavigateToNewCard`
+- `GradeHintDismissed` — marks the hint seen and hides it
+- `StartSession` — sets `sessionStarted = true`
+- `RetryLoad` — re-runs `loadSession()`
+- `RequestExit` — shows the exit confirmation if there is progress (`reviewedCount > 0 || sessionStarted`), otherwise emits `NavigateBack`
+- `ConfirmExit` — hides the confirmation and emits `NavigateBack`
+- `DismissExitConfirmation` — hides the confirmation
 - `ReviewAnswered(item, reviewGrade)`
-- `TypedAnswerChanged(answer)`
+
+There is no `BackClicked` or `TypedAnswerChanged` intent: back goes through `RequestExit`, and the typed answer is local `StudyScreen` state.
 
 ## Current effects
 

@@ -50,7 +50,7 @@
 - Stack: Jetpack Navigation 3 (`NavDisplay`, `rememberNavBackStack`).
 - Backstack wrapper: `Navigator` class (`app/.../navigation/Navigator.kt`).
 - Transitions: horizontal slide (350ms) for push/pop/predictive-pop.
-- Active routes: `DashboardRoute`, `StudyRoute(deckId)`, `NewCardRoute`, `NewDeckRoute(deckId)`, `DeckDetailRoute(deckId)`, `CardDetailRoute(cardId, deckId)`, `EditFlashcardRoute(cardId, deckId)`, `SettingsRoute`.
+- Active routes: `OnboardingRoute`, `DashboardRoute`, `StudyRoute(deckId: String? = null)` (`null` = study every due card across all decks), `NewCardRoute`, `NewDeckRoute(deckId)`, `DeckDetailRoute(deckId)`, `CardDetailRoute(cardId, deckId)`, `EditFlashcardRoute(cardId, deckId)`, `SettingsRoute`.
 - Decorators: `rememberSaveableStateHolderNavEntryDecorator` + `rememberViewModelStoreNavEntryDecorator`.
 - Startup gate: `NewRoot` observes `AppStartupViewModel` and shows loading/error before `AppNavigation`.
 
@@ -58,9 +58,11 @@
 
 Current flow:
 
-`App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady()`
+`App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady() -> SeedDataInitializer.ensureSeeded()`
 
-There are no other mandatory product stages in startup.
+On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `DashboardRoute`. On failure it emits `AppStartupState.Error`.
+
+There are no other mandatory product stages in startup, and none of them requires the network.
 
 ## Current persistence
 
@@ -70,11 +72,12 @@ There are no other mandatory product stages in startup.
 
 ### SQLDelight migrations
 
-- Baseline (`schemaVersion = 1`) dumped in `data/src/main/sqldelight/databases/1.db`. It's the snapshot of the current `.sq` files and must be committed.
+- Current schema version is **2**. Snapshots live in `data/src/main/sqldelight/databases/`: `1.db` (the original baseline) and `2.db` (the current schema). Both must stay committed.
+- Migrations live next to the `.sq` files in `data/src/main/sqldelight/com/emm/data/`. Today there is one: `1.sqm` (v1 -> v2), which adds the FSRS-6 columns (`state`, `stability`, `difficulty`, …) to `ReviewProjection`/`ReviewEvent` additively and seeds them from the legacy SM-2 columns without changing any `nextReviewAt`.
 - `verifyMigrations = true` in `data/build.gradle.kts`: every PR that modifies `.sq` must regenerate the corresponding `.db` and add an `N.sqm` with the required `ALTER`/`CREATE`.
 - Schema change policy:
   1. Edit the `.sq` with the change.
-  2. Create `data/src/main/sqldelight/migrations/N.sqm` (where `N` is the current version before the bump) with idempotent SQL that migrates `v(N)` -> `v(N+1)`.
+  2. Create `data/src/main/sqldelight/com/emm/data/N.sqm` (where `N` is the current version before the bump) with idempotent SQL that migrates `v(N)` -> `v(N+1)`.
   3. Run `./gradlew :data:generateDebugHelloDbSchema` to produce `(N+1).db`.
   4. Validate with `./gradlew :data:verifySqlDelightMigration`.
 - Never delete previous `.db` files: they are the source for `verifyMigrations`.

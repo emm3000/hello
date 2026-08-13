@@ -28,6 +28,7 @@
 `DashboardUiState` consolidates into a single source:
 
 - `decks` (rendered list)
+- `allDecks` (unfiltered list, refreshed on every emission of the combine flow; source for `totalDeckCount` and `availableTags`)
 - `totalDeckCount`
 - `isLoading`
 - `searchQuery`
@@ -39,14 +40,15 @@
 
 The rendered list is computed from active criteria (query + tags), not from parallel sources.
 
-`DashboardViewModel` also maintains a private `allDecks` list (updated on every emission of the combine flow) to support the `StudyClicked` handler without requiring due-count data in state.
+`allDecks` is a public field of `DashboardUiState`, not a private viewmodel list: `buildState(allDecks, filteredDecks)` writes both lists into the same state on every emission.
 
 ## Intents
 
 - `QueryChanged(value)` — updates `searchQuery` and feeds the search criteria flow.
 - `TagToggled(tag)` — normalizes the tag (`trim().lowercase()`) and toggles it in `selectedTags`.
 - `ClearFilters` — clears `searchQuery` + `selectedTags` and resets criteria to defaults.
-- `StudyClicked` — picks the first deck from `allDecks` and emits `NavigateToStudy(deckId)`; no-op if the list is empty.
+- `ScreenVisible` — loads `DashboardStats` via `GetDashboardStatsUseCase`.
+- `StudyClicked` — emits `NavigateToStudy(StudyRoute.ALL_DUE_DECKS)`. The global CTA keys off `stats.cardsDueToday` (across all decks), so it studies every card due today instead of an arbitrary first deck; `StudyViewModel` resolves the sentinel to the all-decks session.
 - `UndoDeleteDeck(deckId, deletedAt)` — calls `RestoreDeckUseCase` to reverse a soft-delete using the cascade timestamp.
 
 ## Effects
@@ -62,7 +64,7 @@ The rendered list is computed from active criteria (query + tags), not from para
 
 `DashboardViewModel` collects `UndoEvent.DeckDeleted` events from the app-level `UndoEventHolder` singleton (a `MutableSharedFlow` with `extraBufferCapacity = 1`, no replay) and converts them into `ShowUndoDeckDeleted` effects. `DashboardScreen` renders a `SnackbarHost`; tapping "Deshacer" dispatches `UndoDeleteDeck(deckId, deletedAt)`, which calls `RestoreDeckUseCase`.
 
-The `ViewModel` also exposes `onVisible()`, which the screen invokes via a `LaunchedEffect(Unit)` to load `DashboardStats` via `GetDashboardStatsUseCase` on entry.
+Stats loading goes through the normal MVI channel: `DashboardRoute` wires the screen's `onVisible` callback to `vm.onIntent(ScreenVisible)` (the viewmodel no longer exposes an `onVisible()` method), and the viewmodel loads `DashboardStats` via `GetDashboardStatsUseCase`.
 
 ## Search and filters
 

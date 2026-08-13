@@ -20,9 +20,12 @@
 
 `AppStartupCoordinator.start()` only does this:
 
-1. ensures local install identity
-2. marks the app as ready if it succeeds
-3. exposes local error if it fails
+1. ensures local install identity (`LocalIdentityInitializer.ensureReady()`)
+2. seeds starter data if the install is empty (`SeedDataInitializer.ensureSeeded()`)
+3. marks the app as ready if both succeed, carrying `hasSeenWelcome` read from `OnboardingStateRepository`
+4. exposes local error if it fails
+
+All three steps are local; none of them touches the network.
 
 ## Exists today
 

@@ -27,17 +27,15 @@ Global sources of truth still live at the root:
 - `DECK_CURRENT.md`: current state of the `Deck Detail` and `New/Edit Deck` flows
 - `STUDY_CURRENT.md`: current state of the `Study` flow
 - `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup)
-- `SCHEDULER.md`: documents the spaced-repetition scheduling algorithm (current behavior)
+- `ONBOARDING_CURRENT.md`: current state of the first-run onboarding flow (welcome gate + seeded starter deck)
 
 ## Plans & history (not source of truth)
 
 These documents capture planning context, decisions, and delivery history. They are kept for traceability but never override `*_CURRENT.md` files or the code.
 
-- `REDESIGN_PLAN.md` — Status: **Closed**. Full history of the Ember dark visual redesign (Phases 0–5).
 - `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.
 - `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 complete; Sprint 2 (settings toggle, i18n) pending.
-- `STUDY_UX_ITERATION.md` — Status: **Closed**. Design iteration history for the Study screen interaction.
 - `privacy-policy.md` — Status: **Draft**. Minimal privacy policy covering local data, Firebase AI/Gemini, Crashlytics and Analytics. Pending public URL and Play Console Data Safety form.
 
 ## Rule

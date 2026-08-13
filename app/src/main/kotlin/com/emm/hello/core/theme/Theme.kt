@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 
 /*
- * Ember Dark color scheme. The app is dark-only by design (REDESIGN_PLAN.md);
+ * Ember Dark color scheme. The app is dark-only by design;
  * the previous shadcn/light scheme was removed in Phase 5. Material 3 color
  * roles are wired to Ember tokens so any third-party Compose surface that
  * pulls from MaterialTheme.colorScheme inherits the palette automatically.

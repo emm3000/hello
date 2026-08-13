@@ -8,7 +8,7 @@
 | Read this when | You're working on any pre-launch hardening task |
 | Last verified against code | 2026-06-11 |
 | Sprint 1 progress | 6/8 done (T1, T2, T4, T5, T6, T8) · T3 discarded · T7 in progress (draft published, missing URL + manifest + Data Safety form) |
-| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T3, T5, T6 open · S2-T4 done (SCHEDULER.md) |
+| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T3, T5, T6 open · S2-T4 closed by the FSRS-6 migration |
 
 ## TL;DR
 
@@ -16,7 +16,7 @@
 
 | Layer | Score | Status |
 |---|---|---|
-| Domain | 7.5/10 | Solid. Firm value objects, separated policies. Cracks in anemic `Flashcard` + undocumented SM-2 scheduler. |
+| Domain | 7.5/10 | Solid. Firm value objects, separated policies. Remaining crack: anemic `Flashcard`. The scheduler crack is closed — SM-2 was replaced by `FsrsScheduler`. |
 | Data | 8/10 | Clean schema, consistent soft-delete, tested backup round-trip. 2 real hotfixes. |
 | AI / Prompts | 6/10 | Good architecture, but model too lightweight + self-sealed quality checks + fragile error handling. Weakest layer. |
 | Architecture | 7/10 | Boundaries respected, coherent DI, MVI without overengineering. Missing observability and release hardening. |
@@ -36,7 +36,7 @@
 
 **Cracks**
 - 🟡 `Flashcard` is anemic: `word/meaning/translation` are raw `String`s without invariants (`domain/src/main/kotlin/com/emm/domain/flashcard/Flashcard.kt`). The value objects already exist; they're just not used in the main aggregate.
-- 🟡 `SpacedRepetitionScheduler` uses a simplified SM-2 with an undocumented custom formula (`domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`). The ease delta (`0.1 - qualityDistance * (0.08 + qualityDistance * 0.02)`) has no reference paper. For a study app, that's the heart.
+- ✅ **Resolved.** The simplified SM-2 scheduler is gone: scheduling now runs on `domain/src/main/kotlin/com/emm/domain/study/FsrsScheduler.kt` (FSRS-6), covered by `FsrsSchedulerTest` and `FsrsSchedulerGoldenTest`.
 - 🟢 `UpdateFlashcardUseCase` and `SoftDeleteFlashcardUseCase` are trivial forwarders wrapping the repo. They add no logic.
 - 🟢 Inconsistent naming between policies: `FlashcardGeneration*Policy` vs `GeneratedLearningNote*Policy`. Not blocking, adds cognitive friction.
 
@@ -50,9 +50,9 @@
 - `LocalDeviceIdentity` thread-safe (`INSERT OR IGNORE`, fixed singletonId).
 
 **Cracks**
-- 🔴 No `migrations/` folder under `data/src/main/sqldelight/`. If v1.0 ships and v1.1 changes schema, upgrade breaks. The baseline must be created BEFORE there are users.
+- ✅ **Resolved.** Migrations exist: `data/src/main/sqldelight/com/emm/data/1.sqm` (v1 -> v2, FSRS-6) with committed snapshots `databases/1.db` and `databases/2.db`, plus `verifyMigrations = true`.
 - 🔴 `DeckTag` does not propagate soft-delete: `Tag` has `deletedAt` but `DeckTag` does not. `ON DELETE CASCADE` only fires on a hard delete. The export includes orphan `DeckTag`s.
-- 🟡 No `schemaVersion` validation on import; a v2 backup imported in v1 can truncate the DB.
+- ✅ **Resolved.** `ImportBackupDataSource.validateSchemaVersion` rejects anything outside `SUPPORTED_VERSIONS` (v1..v2) with `IncompatibleSchemaException`, and seeds FSRS fields for legacy v1 envelopes.
 - 🟢 Static catalogs (`StaticCategories`, `CommunicativeIntent`) without i18n.
 
 ### 1.3 AI / Prompts (`data/.../flashcard/`)
@@ -66,7 +66,7 @@
 
 **Critical cracks**
 - 🔴 The `gemini-2.5-flash-lite` model is the weakest in the 2.5 family. Expect ~30% mediocre notes (literal translations, textbook examples, occasionally wrong IPA). Switch to `gemini-2.5-flash`.
-- 🔴 No `responseSchema` in `generationConfig` (`app/.../di/RepositoryModule.kt:30-31`, only `responseMimeType = "application/json"`). The model can return enums with inconsistent casing; the parser blows up with a generic `IllegalArgumentException`.
+- ✅ **Resolved.** `RepositoryModule.kt` now builds two models: the generic one keeps only `responseMimeType = "application/json"`, while `learningNoteModel` also sets `responseSchema = LearningNoteResponseSchema.schema` for the main generation call.
 - 🔴 Fragile error handling in `GeminiService`: if Gemini returns null/error, returns `""`, parser throws without original cause. No retry, no backoff, no explicit timeout, no log of the raw response.
 - 🟡 Quality checks are **self-sealed**: the prompt asks the model to fill `passed: true/false` for its own outputs. `QualityChecksPolicy` only reads the model's decision. Useful bureaucracy but not validation.
 - 🟡 Mixed language (es/en) in the same prompt. Spanish inputs interpolated into an English system prompt confuse the model.
@@ -85,7 +85,7 @@
 - 🔴 `App.kt` only starts Koin + `AppStartupCoordinator.start()`. Firebase Crashlytics and Analytics are in gradle but **never initialized**. Without these, launching = flying blind.
 - 🔴 `app/proguard-rules.pro` and `data/proguard-rules.pro` are empty (just comments). On release with minify, Firebase AI / kotlinx-serialization / SQLDelight can break at runtime.
 - 🟡 No timeout in startup: if `LocalIdentityInitializer.ensureReady()` hangs, infinite loading.
-- 🟡 `POST_NOTIFICATIONS` permission in `AndroidManifest.xml` without notifications implemented. Play Console will ask.
+- ✅ **Resolved.** `POST_NOTIFICATIONS` is now backed by the shipped daily-reminder feature (see S1-T8), so it is no longer an unjustified permission.
 - 🟡 ViewModels lack unit tests. Only domain is well covered.
 - 🟢 No privacy policy URL in `AndroidManifest`. Required by Play Store (Data Safety section).
 
@@ -137,7 +137,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** configure `schemaOutputDirectory` + `verifyMigrations = true` in the sqldelight block. Generate baseline with `./gradlew :data:generateDebugHelloDbSchema`. Document policy in `ARCHITECTURE.md`.
 - **Criterion:** `./gradlew :data:verifySqlDelightMigration` passes. Document policy in `ARCHITECTURE.md`: "every schema change requires a corresponding `N.sqm`".
 - **Estimate:** 1 h.
-- **Status:** [x] — `schemaOutputDirectory.set(file("src/main/sqldelight/databases"))` + `verifyMigrations.set(true)` added to the `sqldelight` block in `data/build.gradle.kts`. Baseline `1.db` generated and committed under `data/src/main/sqldelight/databases/`. `verifySqlDelightMigration` passes. Migration policy documented in `ARCHITECTURE.md`. Decision: no empty `1.sqm` was created (would bump schema to v2 with no real changes); the baseline `.db` is enough for `verifyMigrations` to detect future divergences.
+- **Status:** [x] — `schemaOutputDirectory.set(file("src/main/sqldelight/databases"))` + `verifyMigrations.set(true)` added to the `sqldelight` block in `data/build.gradle.kts`. Baseline `1.db` generated and committed under `data/src/main/sqldelight/databases/`. `verifySqlDelightMigration` passes. Migration policy documented in `ARCHITECTURE.md`. At the time no empty `1.sqm` was created (it would have bumped the schema to v2 with no real changes). **Update:** the FSRS-6 work later added a real `1.sqm` (v1 -> v2) and the `databases/2.db` snapshot, so the migration chain is now exercised end to end.
 
 #### S1-T6: Soft-delete cascade in `DeckTag`
 - **Files:** `data/src/main/sqldelight/com/emm/data/Export.sq`, `data/src/test/kotlin/com/emm/data/export/ExportImportIntegrationTest.kt`.
@@ -197,7 +197,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** comment in the file explaining: the SM-2 variant used, rationale for the ease-delta coefficients, how `nextInterval` is computed. If the decision is to migrate to standard SM-2 or FSRS, decide here and track as an S3 task.
 - **Criterion:** an external dev can read the file and understand the algorithm without additional grepping.
 - **Estimate:** 1-2 h.
-- **Status:** [x] — `docs/SCHEDULER.md` covers: grade→quality mapping (non-canonical, HARD passes by design), easeAdjustment table per grade, constants with their meaning, step-by-step algorithm, edge cases covered by tests, invariants guaranteed by `FlashcardReview`, known limitations (no leech model, monotonic clock assumed, integer-day intervals), criteria for evaluating FSRS migration. Also removed the tautology `assertTrue(easeFactor >= 1.3)` from the use case test (replaced with exact assert at 1.3).
+- **Status:** [x] — superseded and closed by the FSRS migration (see S3-T3). `SpacedRepetitionScheduler` no longer exists; the algorithm now lives in `domain/src/main/kotlin/com/emm/domain/study/FsrsScheduler.kt`, which is self-documenting and pinned by `FsrsSchedulerGoldenTest`. The standalone `docs/SCHEDULER.md` was deleted as obsolete.
 
 #### S2-T5: Startup with timeout
 - **File:** `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt`
@@ -229,7 +229,7 @@ These tasks do NOT block launch. Prioritize by signals from real users.
 
 #### S3-T3: Decide between standard SM-2 / FSRS
 - Validate with retention feedback whether the current scheduler performs. If not, migrate to FSRS (modern Anki) with default parameter tables.
-- **Status:** [ ]
+- **Status:** [x] — decided and shipped: FSRS-6. `FsrsScheduler` + `FsrsCard`/`FsrsParameters` replace SM-2, `ScheduleFlashcardReviewUseCase` returns an `FsrsCard`, and migration `1.sqm` (v1 -> v2) seeds the FSRS columns from the legacy SM-2 fields without moving any `nextReviewAt`.
 
 #### S3-T4: Version prompts
 - Add `promptVersion` to each generated note. Enables A/B testing and tracking quality regressions per prompt version.

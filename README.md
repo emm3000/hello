@@ -13,7 +13,7 @@ Android app in Kotlin + Jetpack Compose for studying with decks and flashcards.
 
 - local-first single-device product
 - `HelloDb` is the source of truth for reads and writes
-- startup only ensures local install identity
+- startup ensures local install identity, seeds starter data and reads the onboarding flag (`hasSeenWelcome`)
 - no active runtime for remote sync, pairing or remote bootstrap
 
 ## Modules

@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Ember Dark palette — Phase 0 tokens
-// Hex and RGBA values taken verbatim from REDESIGN_PLAN.md § 0.1.
+// Hex and RGBA values are the frozen Ember dark palette; treat this file as their source of truth.
 // NOTE: emberFaint uses 0.55 opacity (bumped from designer's 0.40 for WCAG AA).
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -34,7 +34,7 @@ Don't assume:
 ## Current startup
 
 - `App -> Koin -> AppStartupCoordinator.start()`
-- startup only initializes local install identity
+- startup initializes local install identity (`LocalIdentityInitializer.ensureReady()`), seeds starter data (`SeedDataInitializer.ensureSeeded()`) and exposes `hasSeenWelcome` from `OnboardingStateRepository` in `AppStartupState.Ready`
 
 ## Feature conventions
 
@@ -47,7 +47,7 @@ Don't assume:
 ### Naming convention
 
 - **Public composables**: `H` prefix (`HInput`, `HButton`, `HBadge`, `HCard`, etc.). This is the hard rule. Never call raw Material3 components from feature screens.
-- **Files**: mixed — 12 files use the `H` prefix (`HTopBar.kt`, `HSearchBar.kt`, `HEmptyState.kt`, etc.) and 15 do not (`Button.kt`, `Input.kt`, `Card.kt`, etc.). When touching an existing component, follow the file-naming pattern already established for that component family. New standalone shared components use `H`-prefixed files (e.g. `HFoo.kt`).
+- **Files**: mixed — of the 31 files in `core/ui/`, 16 use the `H` prefix (`HTopBar.kt`, `HSearchBar.kt`, `HEmptyState.kt`, etc.) and 15 do not (`Button.kt`, `Input.kt`, `Card.kt`, etc.). When touching an existing component, follow the file-naming pattern already established for that component family. New standalone shared components use `H`-prefixed files (e.g. `HFoo.kt`).
 - **Exception without `H*` composable**: `FieldShell` — internal building block, template for inputs.
 
 ### Hierarchy for new designs
@@ -172,8 +172,8 @@ Before committing, check:
 
 - Java 17
 - AGP `9.2.1`
-- Kotlin `2.3.21`
-- compileSdk `36`
+- Kotlin `2.4.0`
+- compileSdk `37` / targetSdk `36` / minSdk `26`
 
 ## Commits
 
