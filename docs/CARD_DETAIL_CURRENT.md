@@ -10,7 +10,7 @@
 
 ## Summary
 
-`Card Detail` shows a saved flashcard as an editorial dictionary entry and lets you edit or delete it (soft delete). It opens from the deck detail or from the dashboard. Layout follows the Ember dark redesign — single vertical scroll, no tabs.
+`Card Detail` shows a saved flashcard as a dictionary entry and lets you edit or delete it (soft delete). It opens from the deck detail or from the dashboard. Single vertical scroll, no tabs.
 
 ## Key files
 
@@ -57,19 +57,21 @@
 - `FlashcardDeleted`
 - `ShowMessage(text)`
 
-## Layout (Ember dark, Phase 2.4)
+## Layout
+
+Type sizes, families and color tokens are not repeated here; `FlashcardDetailScreen.kt` and `core/theme/` are the only source for them.
 
 Single `Column` inside a `verticalScroll`. All blocks share `horizontal padding = 20.dp`. Sections are separated by `HSeparator` with 24.dp vertical margin.
 
 | Block | Content | Notes |
 |---|---|---|
 | `HTopBar` | back · edit · more (delete in dropdown) | Transparent, status bar padding included by the parent `Column`. |
-| Hero | `HSectionLabel("Tarjeta")` + 56sp Instrument Serif word + meta row (phonetic Geist Mono 13sp, `partOfSpeech` italic serif 18sp accent, `levelBand` Geist Mono 11sp emberHint) + 22sp italic serif `translation`. | Meta row + translation rendered only if their fields are non-blank. |
+| Hero | `HSectionLabel("Tarjeta")`, the word, a meta row (phonetic, `partOfSpeech`, `levelBand`), then `translation`. | Meta row and translation render only if their fields are non-blank. |
 | Dict senses | Dynamic numbered list using `HDictSense`. Drawn only when at least one field below is non-empty. | Order: `meaning` (Default), `usagePattern` (Default), `whyUseful` (Default), `commonMistake` (Warn), `confusableWith` joined by `, ` (Warn), `noteSummary` (Default). Indices restart at 1 and only count non-empty entries. |
-| Examples | `HSectionLabel("Ejemplos · N")` + each example as italic serif EN (Instrument Serif 17sp italic) + muted Geist 13sp ES. | Skipped if `examples` is empty. |
+| Examples | `HSectionLabel("Ejemplos · N")` + each example as EN over a muted ES translation. | Skipped if `examples` is empty. |
 | Extras | `HSectionLabel("Más data")` + per-list sublabels (mono uppercase) for `collocations` and `irregularForms` (rendered as `HChip` flow rows), a bullet list for `warnings`, then mono-label rows for `register`/`learningDomain`/`lemma`. | Block hidden entirely if all sources are empty. |
-| Context | `HSectionLabel("Contexto")` + italic serif cloze + muted Geist source context. | Skipped if both fields are blank. |
-| Footer | Mono row `"N tarjetas de estudio · K con advertencia · próxima en Xd"`. | Pieces appear conditionally; failed-check count is rendered in accent when `> 0`, otherwise the whole row is emberFaint. |
+| Context | `HSectionLabel("Contexto")` + the cloze over a muted source context. | Skipped if both fields are blank. |
+| Footer | Mono row `"N tarjetas de estudio · K con advertencia · próxima en Xd"`. | Pieces appear conditionally; failed-check count is rendered in accent when `> 0`, otherwise the whole row is instrumentFaint. |
 
 ## Persistence
 

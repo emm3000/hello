@@ -89,7 +89,7 @@ Reason: keep behavior predictable and avoid stale state across sessions while th
 
 ## Reused UI components
 
-The UI uses shared components from `core/ui` (Ember dark redesign, Phase 2.1):
+The UI uses shared components from `core/ui` (redesign Phase 2.1):
 
 - `HSearchBar`
 - `HChip` (tag chips, including the `todos` chip)

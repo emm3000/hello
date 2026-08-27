@@ -32,6 +32,7 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `flashcardId`, `review: FsrsCard`
 - `word`, `phonetic`, `meaning`, `translation`
 - `usagePattern`, `irregularForms`
+- `partOfSpeech`, `example`, `exampleTranslation`
 
 `StudyFlashcard.toStudySessionItem()` builds it. The flashcard's generated study cards (`studyCards`) are not part of the session: a card with several generated study cards and a card with none are both one item and one grade.
 
@@ -45,8 +46,6 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `reviewedCount` — cards graded so far
 - `totalCount` — cards in the session (equals the due count the Dashboard shows)
 - `sessionFinished`
-- `intervalPreviews: Map<ReviewGrade, Long>` — interval previews shown under each grade chip
-- `isGradeHintVisible: Boolean` — first-session grade hint card
 
 ## Session load
 
@@ -54,10 +53,10 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 `loadSession()` (called from `init`, and again by `RetryLoad`):
 
-- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`
+- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `sessionFinished = false`
 - fetches via `studySessionRepository.sessionTodayAllDecks()` when the target is `null`, otherwise `studySessionRepository.sessionToday(deckId.toDeckId())`
 - maps each `StudyFlashcard` to one `StudySessionItem` and queues them in an `ArrayDeque`
-- sets `totalCount` to the number of cards and computes `isGradeHintVisible` from `onboardingState.hasSeenGradeHint()`
+- sets `totalCount` to the number of cards
 - shows the first card
 - on any throwable (except `CancellationException`) logs and sets `loadError = SessionLoadFailed`
 
@@ -87,14 +86,19 @@ The `StudyTop` counter reads `position/total` for the card on screen ("3/10") an
 
 ## Card faces
 
-- **Front**: the word in Instrument Serif plus the IPA in Geist Mono. Tapping the card or the "Ver respuesta" CTA flips it.
-- **Back**: mono `SIGNIFICADO` eyebrow, the translation (serif, primary), the IPA, the English meaning (italic serif, secondary), irregular forms inline when present ("Formas relacionadas: went, gone") and `usagePattern` as a supporting line when present.
+- **Front**: the word, then the IPA in mono. Tapping the card or the "Ver respuesta" CTA flips it.
+- **Back**: two beats first, then reference. The `translation` alone, then `example` with the target word emphasised by weight (`highlightWordInExample`) over a muted `exampleTranslation`. Below that, everything optional and muted: a mono `IPA · partOfSpeech` line, `meaning`, irregular forms as a mono line ("Formas relacionadas: went, gone") and `usagePattern`. No accent color appears on this face, and nothing on it is emphasised by color.
 
 A static mono `INGLÉS → ESPAÑOL` overlay sits top-left of the card; the TTS button top-right speaks the word.
 
 ## Grade dock
 
-In `Grade`, `StudyActionDock` renders `AnswerButtons`: four `GradeChip`s (`AGAIN` / `HARD` / `GOOD` / `EASY`) with their interval preview from `intervalPreviews`, plus a mono "Desliza para calificar rápido" hint. `FlippableCard` also grades by horizontal swipe on the back face. The first-session `GradeHintCard` explains the four buttons and is dismissed by `GradeHintDismissed` or by the first answer.
+In `Grade`, `StudyActionDock` renders `AnswerButtons`: two neutral buttons of equal width, plus a mono "Desliza para calificar rápido" hint. Their anatomy is fixed by `.claude/rules/ui-components.md`, not chosen per screen.
+
+- `GradeForgotButton` ("No la sabía") sits on the page background with a hairline border and fires `AGAIN`.
+- `GradeKnewButton` ("La sabía") sits on the raised surface and fires `GOOD`; a long press fires `EASY` with `HapticFeedbackType.LongPress`.
+
+Neither is red, green or accent — they differ by fill weight and position only. `HARD` is unreachable from the dock, and `EASY` has no button of its own. `FlippableCard` also grades by horizontal swipe on the back face, with two zones matching the two buttons.
 
 ## Navigation and exit
 
@@ -104,13 +108,13 @@ In `Grade`, `StudyActionDock` renders `AnswerButtons`: four `GradeChip`s (`AGAIN
 
 ### Session-finished dialog
 
-`SessionFinishedDialog` (private composable in `StudyScreen.kt`) renders inside a `Dialog` with `emberElev` surface and shows:
+`SessionFinishedDialog` (private composable in `StudyScreen.kt`) renders inside a `Dialog` with `instrumentElev` surface and shows:
 
 - the celebrating mascot
 - mono eyebrow `session_completed_eyebrow`
-- serif headline `session_completed_title` ("Listo.")
-- italic serif subtitle `session_completed_desc` ("Repasaste N tarjetas.")
-- a stats row on `emberSurface` with the total count in `emberAccent` plus a mono label
+- headline `session_completed_title` ("Listo.")
+- subtitle `session_completed_desc` ("Repasaste N tarjetas.")
+- a stats row on `instrumentSurface` with the total count in `instrumentAccent` plus a mono label
 - a full-width `HButton` (`Accent` variant) as the "Volver" CTA, which calls `onDismiss`
 
 ## Empty stage CTA
@@ -123,7 +127,6 @@ When `StudyStage.Empty`, `StudyActionDock` renders a full-width `HButton` (Secon
 
 - `FinishDialogDismissed` — emits `NavigateBack`
 - `CreateCardClicked` — emits `NavigateToNewCard`
-- `GradeHintDismissed` — marks the hint seen and hides it
 - `RetryLoad` — re-runs `loadSession()`
 - `ExitClicked` — emits `NavigateBack`
 - `ReviewAnswered(item, reviewGrade)`

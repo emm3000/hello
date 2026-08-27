@@ -53,7 +53,7 @@ Current `TypeView` modes:
 - inputs based on `TypeView`
 - deck selection
 - default-deck checkbox
-- optional quota warning text (Geist Mono 11sp, `emberMuted`) above the Generate CTA — rendered when `state.showQuotaWarning` is true (i.e. `quotaRemaining` is in 1..10); copy comes from `new_card_quota_remaining_warning` plurals
+- optional quota warning text above the Generate CTA — rendered when `state.showQuotaWarning` is true (i.e. `quotaRemaining` is in 1..10); copy comes from `new_card_quota_remaining_warning` plurals
 - `Generate` CTA
 
 Current gating:
@@ -66,8 +66,8 @@ Current gating:
 
 Current support:
 
-- microphone in word inputs. While `sttManager.isListening == true`, the big serif input grows a pulsing `emberAccent` ring around it and renders an uppercase Geist Mono "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with `emberAccent`, and pulses (added in the Ember redesign Phase 3, commit `29c4443`).
-- static categories via bottom sheet (`BottomSheetDialogForPickCategory`). Full-bleed `ModalBottomSheet` over `emberElev`, mono uppercase title, Instrument Serif 22sp category rows separated by `emberDivider`, and the selected row marks itself with an `emberAccent` `Outlined.Check` icon. No chips (added in the Ember redesign Phase 3, commit `29c4443`).
+- microphone in word inputs. While `sttManager.isListening == true`, the word input grows a pulsing accent ring and renders an uppercase "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with the accent, and pulses (added in the redesign's Phase 3, commit `29c4443`).
+- static categories via bottom sheet (`BottomSheetDialogForPickCategory`). Full-bleed `ModalBottomSheet` with a mono uppercase title and one row per category, and the selected row marks itself with an accent `Outlined.Check` icon. No chips (added in the redesign's Phase 3, commit `29c4443`).
 - simple difficulty mapped to `LevelBand`; difficulty chip labels go through `difficultyDisplayLabel()` (display layer, not stored): `"basico"` → `"Básico"`, `"intermedio"` → `"Intermedio"`, `"avanzado"` → `"Avanzado"`
 
 ## UiState quota fields
@@ -96,8 +96,8 @@ Input is always validated before generating a preview.
 `NewCardReviewScreen` renders one of these states:
 
 - preview available
-- loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + italic-serif `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
-- quota error (`QuotaExceededState` — `!` glyph in `emberBadSoft` circle, serif headline, `TU PALABRA` surface preserving the user's word, `Volver a editar` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
+- loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
+- quota error (`QuotaExceededState` — `!` glyph in an `instrumentBadSoft` circle, a headline, a `TU PALABRA` surface preserving the user's word, `Volver a editar` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
 - generic error (`HAlert` Destructive variant) + `HButton` "Reintentar" (`R.string.retry_action`, Secondary/Md/full) that refires `GenerateClicked`
 - empty state
 

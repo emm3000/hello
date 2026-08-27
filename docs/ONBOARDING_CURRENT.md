@@ -98,7 +98,3 @@ Finishing always means the same two steps: `onboardingState.markWelcomeSeen()` t
 - `CloseOnboarding` — `navigator.goBack()`
 
 `OnboardingDestination` also installs a `BackHandler` that forwards system back to `BackPressed`, letting the viewmodel decide between paging back and closing.
-
-## Related one-time hint
-
-`OnboardingStateRepository` also stores the Study screen's grade hint (`hasSeenGradeHint` / `markGradeHintSeen`), consumed by `StudyViewModel` to show `isGradeHintVisible` once. It shares the repository but is not part of this flow — see `docs/STUDY_CURRENT.md`.

@@ -33,7 +33,7 @@ Global sources of truth still live at the root:
 
 These documents capture planning context, decisions, and delivery history. They are kept for traceability but never override `*_CURRENT.md` files or the code.
 
-- `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phase 1 (Study session) in progress.
+- `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phase 1 (Study session) done, Phase 2 (Capture) next.
 - `DESIGN_BRIEF.md` — Status: **Active**. Visual direction and design rationale for the English-learning redesign; source of truth for visual decisions, input for the design canvas.
 - `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features; ordering now deferred to `RESTRUCTURE_PLAN.md`.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.

@@ -6,7 +6,7 @@
 | Role | Plan and delivery history of the session-first product restructure |
 | Source of Truth | Yes for phase scope and order; `*_CURRENT.md` and the code win for behavior |
 | Read this when | You're picking up the next restructure phase or auditing a shipped one |
-| Last verified | 2026-08-26 |
+| Last verified | 2026-08-27 |
 
 ## Why
 
@@ -18,7 +18,7 @@ The app was organized around managing a collection (decks, tags, filters, a seve
 - Search matched deck names, not card content.
 - Grading needed a hint card to explain four buttons plus interval previews.
 
-The foundation is sound and stays: `:domain` (FSRS-6, value objects, use cases), `:data` (schema, backup, AI), `core/ui/H*` + Ember theme, notifications.
+The foundation is sound and stays: `:domain` (FSRS-6, value objects, use cases), `:data` (schema, backup, AI), `core/ui/H*` + the Instrument theme, notifications.
 
 ## Target
 
@@ -37,11 +37,11 @@ Study session: 1 flashcard = 1 visible review = 1 grade. Two grade buttons (`AGA
 | Phase | Scope | Status | Commits |
 |---|---|---|---|
 | 0 — Plan | This document, roadmap re-pointed | ✅ Done | — |
-| 1 — Study session | Single review per flashcard, no `Start` stage, binary grading with long-press easy, example + part of speech on the card back | 🔄 In progress | — |
+| 1 — Study session | Single review per flashcard, no `Start` stage, binary grading with long-press easy, example + part of speech on the card back | ✅ Done | `64cfe69`, `d93a1dc`, `9be2a1b`, `d3adb9c`, `b94bee8` |
 | 2 — Capture | Single-field capture, background AI enrichment worker, mode selector removed | ⏳ Pending | — |
 | 3 — Hoy | Session-first home replacing Dashboard; unify the three duplicated due-count queries | ⏳ Pending | — |
 | 4 — Biblioteca | All-cards list with content search; absorbs Deck Detail; decks as optional filter | ⏳ Pending | — |
-| 5 — Cleanup | Dead code (mode screen, deck tags, `PreviewNextInterval` if unused), docs resync, roadmap close | ⏳ Pending | — |
+| 5 — Cleanup | Dead code (mode screen, deck tags), docs resync, roadmap close | ⏳ Pending | — |
 
 ## Phase 1 — Study session
 
@@ -52,6 +52,8 @@ Work units, each green on `./gradlew detekt testDebugUnitTest :domain:test` befo
 3. `feat(study)` — `StudyFlashcard` gains `partOfSpeech`, `example`, `exampleTranslation` (additive read model, one new query, no migration). The card back shows translation, meaning, `IPA · POS`, the example and irregular forms.
 
 Deliberately unchanged: `ReviewGrade` keeps four values (FSRS rating is ordinal-based); `GeneratedStudyCard`s keep being generated and stored, the session ignores them until Phase 2 decides.
+
+Shipped: unit 1 as `64cfe69`, unit 2 as `d93a1dc` + `9be2a1b`, unit 3 as `d3adb9c` + `b94bee8`. `HARD` is now unreachable from the dock — it survives only as an FSRS ordinal and in backup import. `PreviewNextInterval` went with unit 2 and no longer exists.
 
 ## Deferred (was in `FEATURE_ROADMAP.md`)
 
