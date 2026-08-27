@@ -44,7 +44,6 @@ import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSurface2
 import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 
@@ -157,7 +156,7 @@ private fun OnboardingPageContent(
 
         Text(
             text = stringResource(page.titleRes),
-            style = MaterialTheme.typography.headlineMedium.copy(fontFamily = instrumentSerif),
+            style = MaterialTheme.typography.headlineMedium,
             color = instrumentOnBg,
             textAlign = TextAlign.Center,
         )

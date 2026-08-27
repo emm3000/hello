@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,7 +68,6 @@ import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
@@ -274,7 +272,6 @@ private fun DeckDetailTopBar(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Ember deck header — mono label · 44sp serif name · description · tags · stats · CTA
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -304,10 +301,10 @@ private fun InstrumentDeckHeader(
 
         Text(
             text = deckName,
-            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 44.sp,
             lineHeight = (44 * 1.04f).sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentPrimary,
         )
 
@@ -521,8 +518,6 @@ private fun CardListItem(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = supportingText,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontSize = 14.sp,
                     color = instrumentMuted,
                     maxLines = 1,
@@ -558,7 +553,7 @@ private fun NoSearchResults(query: String) {
     ) {
         Text(
             text = stringResource(R.string.deck_detail_search_no_results, query),
-            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 28.sp,
             color = instrumentOnBg,
         )
@@ -587,8 +582,7 @@ private fun EmptyCards(onAddCard: () -> Unit) {
         )
         Text(
             text = stringResource(R.string.empty_cards_title),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 28.sp,
             color = instrumentOnBg,
         )

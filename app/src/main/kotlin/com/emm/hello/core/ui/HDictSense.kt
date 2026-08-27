@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,16 +26,9 @@ import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentWarn
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 
 enum class HDictSenseTone { Default, Warn }
 
-/**
- * Dictionary-entry sense block. Italic serif numeral on the left, mono uppercase
- * label + sans body on the right. Two tones:
- * - [HDictSenseTone.Default] — numeral and label in accent / muted (definitions, usage).
- * - [HDictSenseTone.Warn] — numeral and label in warn (common mistakes, "no confundir con").
- */
 @Composable
 fun HDictSense(
     index: Int,
@@ -60,9 +52,7 @@ fun HDictSense(
     ) {
         Text(
             text = index.toString(),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 26.sp,
             lineHeight = 28.sp,
             color = numeralColor,

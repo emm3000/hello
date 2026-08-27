@@ -29,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,7 +50,6 @@ import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HChip
@@ -216,11 +214,10 @@ private fun FlashcardHero(card: Flashcard) {
         Spacer(Modifier.height(12.dp))
         Text(
             text = card.word.ifBlank { "—" },
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 56.sp,
             lineHeight = 60.sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentOnBg,
         )
 
@@ -246,8 +243,6 @@ private fun FlashcardHero(card: Flashcard) {
                 if (card.partOfSpeech.isNotBlank()) {
                     Text(
                         text = card.partOfSpeech,
-                        fontFamily = instrumentSerif,
-                        fontStyle = FontStyle.Italic,
                         fontWeight = FontWeight.Normal,
                         fontSize = 18.sp,
                         color = instrumentAccent,
@@ -270,8 +265,6 @@ private fun FlashcardHero(card: Flashcard) {
             Spacer(Modifier.height(14.dp))
             Text(
                 text = card.translation,
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
@@ -358,8 +351,6 @@ private fun ExampleRow(example: Example) {
     Row(verticalAlignment = Alignment.Top) {
         Text(
             text = "·",
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             color = instrumentAccent,
@@ -369,8 +360,6 @@ private fun ExampleRow(example: Example) {
             if (example.text.isNotBlank()) {
                 Text(
                     text = example.text,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
                     lineHeight = 24.sp,
@@ -509,8 +498,6 @@ private fun BulletList(label: String, values: List<String>) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = "·",
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
                     color = instrumentAccent,
@@ -544,8 +531,6 @@ private fun ContextBlock(card: Flashcard) {
         if (card.clozeSentence.isNotBlank()) {
             Text(
                 text = card.clozeSentence,
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,

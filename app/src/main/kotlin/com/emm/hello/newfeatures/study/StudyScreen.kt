@@ -57,7 +57,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -88,7 +87,6 @@ import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.instrumentSurface2
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -305,18 +303,15 @@ private fun SessionFinishedDialog(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.session_completed_title),
-                    fontFamily = instrumentSerif,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
-                    letterSpacing = (-0.5).sp,
+                    letterSpacing = (-0.02).em,
                     color = instrumentOnBg,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.session_completed_desc, totalCount),
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 20.sp,
                     color = instrumentMuted,
@@ -617,11 +612,10 @@ private fun FlashcardFront(word: String, phonetic: String) {
         ) {
             Text(
                 text = word,
-                fontFamily = instrumentSerif,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = recallPromptFontSize,
                 lineHeight = recallPromptLineHeight,
-                letterSpacing = (-0.5).sp,
+                letterSpacing = (-0.02).em,
                 color = instrumentOnBg,
                 textAlign = TextAlign.Center,
             )
@@ -651,11 +645,10 @@ private fun FlashcardBack(item: StudySessionItem) {
     ) {
         Text(
             text = item.translation,
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = gradeAnswerFontSize,
             lineHeight = gradeAnswerLineHeight,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             textAlign = TextAlign.Center,
             color = instrumentOnBg,
         )

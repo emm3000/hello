@@ -35,7 +35,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -53,7 +52,6 @@ import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -95,8 +93,6 @@ internal fun LoadingPreviewSkeleton(word: String) {
         PulsingDots()
         Text(
             text = title,
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
@@ -173,9 +169,7 @@ internal fun QuotaExceededState(
         ) {
             Text(
                 text = "!",
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 30.sp,
                 color = instrumentOnBg,
             )
@@ -183,11 +177,10 @@ internal fun QuotaExceededState(
 
         Text(
             text = stringResource(R.string.quota_error_title),
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp,
             lineHeight = 36.sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentOnBg,
         )
 
@@ -252,11 +245,10 @@ private fun YourWordSurface(word: String) {
         )
         Text(
             text = word,
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 28.sp,
             lineHeight = 32.sp,
-            letterSpacing = (-0.3).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentOnBg,
         )
     }
@@ -451,11 +443,10 @@ private fun WordHeader(note: GeneratedLearningNote) {
 
         Text(
             text = note.expression.value.ifBlank { "—" },
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 54.sp,
             lineHeight = 58.sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentOnBg,
         )
 
@@ -472,8 +463,6 @@ private fun WordHeader(note: GeneratedLearningNote) {
         if (note.intendedMeaningEs.value.isNotBlank()) {
             Text(
                 text = note.intendedMeaningEs.value,
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
@@ -521,8 +510,6 @@ private fun SignificadoBlock(
         Spacer(Modifier.height(12.dp))
         Text(
             text = note.simpleDefinitionEn.value,
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
@@ -568,8 +555,6 @@ private fun EjemploBlock(
         Spacer(Modifier.height(8.dp))
         Text(
             text = note.exampleTranslation,
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,

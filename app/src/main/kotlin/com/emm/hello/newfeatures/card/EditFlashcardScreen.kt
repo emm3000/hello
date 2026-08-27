@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -56,7 +55,6 @@ import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
@@ -301,8 +299,6 @@ private fun ExamplesSection(
     if (examples.isEmpty()) {
         Text(
             text = stringResource(R.string.edit_flashcard_no_examples),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontSize = 16.sp,
             color = instrumentMuted,
         )
@@ -382,8 +378,6 @@ private fun ItalicSerifField(
         if (value.isEmpty()) {
             Text(
                 text = placeholder,
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontSize = 17.sp,
                 color = instrumentMuted,
             )
@@ -394,8 +388,6 @@ private fun ItalicSerifField(
             singleLine = false,
             maxLines = 3,
             textStyle = TextStyle(
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontSize = 17.sp,
                 lineHeight = 24.sp,
                 color = instrumentOnBg,

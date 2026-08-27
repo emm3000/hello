@@ -43,7 +43,6 @@ import com.emm.hello.core.theme.instrumentElev
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,7 +147,6 @@ private fun CategoryRow(
         Text(
             text = category.name,
             modifier = Modifier.weight(1f),
-            fontFamily = instrumentSerif,
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,

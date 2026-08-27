@@ -56,7 +56,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -76,7 +75,6 @@ import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
@@ -277,11 +275,10 @@ private fun InputHero(typeView: TypeView) {
     }
     Text(
         text = stringResource(headlineRes),
-        fontFamily = instrumentSerif,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 38.sp,
         lineHeight = 42.sp,
-        letterSpacing = (-0.5).sp,
+        letterSpacing = (-0.02).em,
         color = instrumentOnBg,
     )
 }
@@ -367,9 +364,7 @@ private fun BigSerifTextField(
                 if (value.isEmpty()) {
                     Text(
                         text = placeholder,
-                        fontFamily = instrumentSerif,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 26.sp,
                         lineHeight = 32.sp,
                         color = instrumentMuted,
@@ -382,9 +377,7 @@ private fun BigSerifTextField(
                     singleLine = singleLine,
                     maxLines = if (singleLine) 1 else 4,
                     textStyle = TextStyle(
-                        fontFamily = instrumentSerif,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 28.sp,
                         lineHeight = 34.sp,
                         color = instrumentOnBg,
@@ -473,9 +466,7 @@ private fun CategoryPickerRow(
     ) {
         Text(
             text = value.ifBlank { placeholder },
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 26.sp,
             lineHeight = 32.sp,
             color = if (value.isBlank()) instrumentMuted else instrumentOnBg,

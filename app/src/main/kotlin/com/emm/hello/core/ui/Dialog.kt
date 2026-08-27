@@ -16,12 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentSerif
 
 private val dialogShape = RoundedCornerShape(16.dp)
 
@@ -47,10 +45,7 @@ fun HAlertDialog(
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontFamily = instrumentSerif,
-                    fontWeight = FontWeight.Normal,
-                ),
+                style = MaterialTheme.typography.headlineSmall,
             )
         },
         text = description?.let {

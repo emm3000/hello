@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -54,7 +53,6 @@ import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
@@ -134,7 +132,6 @@ fun SettingsScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Header — mono eyebrow · serif headline · italic serif subtitle
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -152,17 +149,15 @@ private fun SettingsHeader() {
         Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.settings_headline),
-            fontFamily = instrumentSerif,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 44.sp,
             lineHeight = (44 * 1.04f).sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentPrimary,
         )
         Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.settings_subtitle),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontSize = 18.sp,
             color = instrumentMuted,
         )
@@ -300,8 +295,6 @@ private fun SettingsFooter() {
     ) {
         Text(
             text = stringResource(R.string.settings_footer_tagline),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontSize = 16.sp,
             color = instrumentMuted,
         )

@@ -29,9 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.instrumentAccent
@@ -41,7 +41,6 @@ import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
@@ -113,11 +112,10 @@ private fun HeroHeader() {
     ) {
         Text(
             text = stringResource(R.string.new_card_mode_headline),
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 38.sp,
             lineHeight = 42.sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentOnBg,
         )
         Spacer(Modifier.height(12.dp))
@@ -185,9 +183,7 @@ private fun ModeOptionCard(
     ) {
         Text(
             text = stringResource(option.letterRes),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp,
             lineHeight = 32.sp,
             color = if (isSelected) instrumentAccent else instrumentMuted,
@@ -213,8 +209,6 @@ private fun ModeOptionCard(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(option.exampleRes),
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 15.sp,
                 color = instrumentAccent,

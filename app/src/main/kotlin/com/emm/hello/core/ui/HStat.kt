@@ -17,14 +17,9 @@ import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.instrumentSerif
 
 enum class HStatTone { Default, Accent, Muted }
 
-/**
- * Inline Instrument Serif 26sp number + Geist 12.5sp muted label.
- * Tones: default | accent | muted.
- */
 @Composable
 fun HStat(
     num: String,
@@ -45,8 +40,7 @@ fun HStat(
     ) {
         Text(
             text = num,
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 26.sp,
             lineHeight = 26.sp,
             color = numColor,

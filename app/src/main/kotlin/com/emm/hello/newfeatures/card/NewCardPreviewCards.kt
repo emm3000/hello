@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -30,7 +29,6 @@ import com.emm.hello.core.theme.instrumentFaint
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HToggle
@@ -84,7 +82,6 @@ internal fun StudyCardRow(
             if (card.prompt.isNotBlank()) {
                 Text(
                     text = card.prompt,
-                    fontFamily = instrumentSerif,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
                     lineHeight = 22.sp,
@@ -95,8 +92,6 @@ internal fun StudyCardRow(
             if (card.expectedAnswer.isNotBlank()) {
                 Text(
                     text = card.expectedAnswer,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
@@ -166,8 +161,6 @@ internal fun GeneratedStudyCardEditorSheet(
         )
         Text(
             text = card.cardType.description(),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 20.sp,
             lineHeight = 26.sp,

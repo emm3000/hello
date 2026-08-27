@@ -35,15 +35,7 @@ import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 
-/**
- * Reusable empty state. Optional glyph slot, serif headline, muted body,
- * optional CTA slots, optional mono footnote.
- *
- * Default glyph: `·` centered in a 64dp bordered circle with accent Instrument Serif italic 32sp.
- * [headline] supports an [accentWord] for inline accent color (e.g. "Nada con \"X\"").
- */
 @Composable
 fun HEmptyState(
     headline: String,
@@ -86,22 +78,20 @@ fun HEmptyState(
             }
             Text(
                 text = styledText,
-                fontFamily = instrumentSerif,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
-                letterSpacing = (-0.5).sp,
+                letterSpacing = (-0.02).em,
                 color = instrumentOnBg,
                 textAlign = TextAlign.Start,
             )
         } else {
             Text(
                 text = headline,
-                fontFamily = instrumentSerif,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
-                letterSpacing = (-0.5).sp,
+                letterSpacing = (-0.02).em,
                 color = instrumentOnBg,
                 textAlign = TextAlign.Start,
             )
@@ -156,9 +146,7 @@ private fun DefaultGlyph() {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = "·",
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 28.sp,
                 color = instrumentAccent,
             )

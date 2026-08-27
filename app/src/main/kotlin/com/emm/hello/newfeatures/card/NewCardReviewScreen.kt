@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,7 +21,6 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
@@ -148,8 +146,6 @@ private fun ReviewEmptyState() {
     ) {
         Text(
             text = stringResource(R.string.review_empty_title),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
@@ -157,8 +153,6 @@ private fun ReviewEmptyState() {
         )
         Text(
             text = stringResource(R.string.review_empty_description),
-            fontFamily = instrumentSerif,
-            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,

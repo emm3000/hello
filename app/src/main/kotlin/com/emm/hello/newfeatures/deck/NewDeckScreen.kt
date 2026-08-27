@@ -44,7 +44,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -64,7 +63,6 @@ import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
@@ -131,10 +129,10 @@ fun NewDeckScreen(
             ) {
                 Text(
                     text = headline,
-                    fontFamily = instrumentSerif,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
-                    letterSpacing = (-0.5).sp,
+                    letterSpacing = (-0.02).em,
                     color = instrumentPrimary,
                 )
 
@@ -230,7 +228,6 @@ private fun NewDeckTopBar(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Deck name — 22sp italic serif input with accent border
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -260,8 +257,6 @@ private fun DeckNameField(
             if (value.isEmpty()) {
                 Text(
                     text = placeholder,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontSize = 22.sp,
                     color = instrumentMuted,
                 )
@@ -271,8 +266,6 @@ private fun DeckNameField(
                 onValueChange = onValueChange,
                 singleLine = true,
                 textStyle = TextStyle(
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontSize = 22.sp,
                     lineHeight = 28.sp,
                     color = instrumentOnBg,

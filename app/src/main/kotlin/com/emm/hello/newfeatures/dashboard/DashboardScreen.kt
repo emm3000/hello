@@ -36,7 +36,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +55,6 @@ import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentSerif
 import androidx.compose.ui.res.pluralStringResource
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
@@ -176,13 +174,10 @@ private fun WordmarkRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // "Hello." — italic serif, accent period
         Text(
             text = buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
-                        fontStyle = FontStyle.Italic,
                         fontSize = 22.sp,
                         color = instrumentPrimary,
                         letterSpacing = (-0.2).sp,
@@ -192,8 +187,6 @@ private fun WordmarkRow(
                 }
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
-                        fontStyle = FontStyle.Italic,
                         fontSize = 22.sp,
                         color = instrumentAccent,
                         letterSpacing = (-0.2).sp,
@@ -320,7 +313,6 @@ private fun LazyListScope.deckRows(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hero block — editorial serif headline
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -336,40 +328,40 @@ private fun HeroBlock(dueCount: Int) {
             text = buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 46.sp,
                         color = instrumentPrimary,
-                        letterSpacing = (-0.5).sp,
+                        letterSpacing = (-0.02).em,
                     ),
                 ) {
                     append(part1)
                 }
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 46.sp,
                         color = instrumentAccent,
-                        letterSpacing = (-0.5).sp,
+                        letterSpacing = (-0.02).em,
                     ),
                 ) {
                     append(part2)
                 }
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 46.sp,
                         color = instrumentPrimary,
-                        letterSpacing = (-0.5).sp,
+                        letterSpacing = (-0.02).em,
                     ),
                 ) {
                     append(separator)
                 }
                 withStyle(
                     SpanStyle(
-                        fontFamily = instrumentSerif,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 46.sp,
                         color = instrumentMuted,
-                        letterSpacing = (-0.5).sp,
+                        letterSpacing = (-0.02).em,
                     ),
                 ) {
                     append("\n$part3")
@@ -381,11 +373,10 @@ private fun HeroBlock(dueCount: Int) {
         // Zero due: calm alternative copy
         Text(
             text = stringResource(R.string.dashboard_hero_calm),
-            fontFamily = instrumentSerif,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 46.sp,
             lineHeight = (46 * 1.04f).sp,
-            letterSpacing = (-0.5).sp,
+            letterSpacing = (-0.02).em,
             color = instrumentMuted,
         )
     }
@@ -451,7 +442,6 @@ internal fun DeckRow(
             // Title
             Text(
                 text = deck.name,
-                fontFamily = instrumentSerif,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 color = instrumentPrimary,
@@ -461,11 +451,8 @@ internal fun DeckRow(
 
             if (deck.description.isNotBlank()) {
                 Spacer(Modifier.height(4.dp))
-                // Description — italic serif muted
                 Text(
                     text = deck.description,
-                    fontFamily = instrumentSerif,
-                    fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
                     color = instrumentMuted,
@@ -652,31 +639,30 @@ private fun NoResultsContent(
                         val after = headlineText.substringAfter(accentSpan)
                         withStyle(
                             SpanStyle(
-                                fontFamily = instrumentSerif,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 36.sp,
                                 color = instrumentPrimary,
-                                letterSpacing = (-0.4).sp,
+                                letterSpacing = (-0.02).em,
                             ),
                         ) {
                             append(before)
                         }
                         withStyle(
                             SpanStyle(
-                                fontFamily = instrumentSerif,
-                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 36.sp,
                                 color = instrumentAccent,
-                                letterSpacing = (-0.4).sp,
+                                letterSpacing = (-0.02).em,
                             ),
                         ) {
                             append(accentSpan)
                         }
                         withStyle(
                             SpanStyle(
-                                fontFamily = instrumentSerif,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 36.sp,
                                 color = instrumentPrimary,
-                                letterSpacing = (-0.4).sp,
+                                letterSpacing = (-0.02).em,
                             ),
                         ) {
                             append(after)
