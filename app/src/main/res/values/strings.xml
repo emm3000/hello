@@ -40,17 +40,21 @@
     <string name="dashboard_no_results_title">No hay resultados</string>
     <string name="dashboard_no_results_description">Prueba otra palabra o ajusta los filtros.</string>
     <!-- Dashboard redesign — Phase 2.1 -->
-    <string name="dashboard_hero_accent_part">para repasar</string>
-    <string name="dashboard_hero_separator">,</string>
-    <string name="dashboard_hero_muted_part">el resto puede esperar.</string>
-    <string name="dashboard_hero_calm">Tu biblioteca, calmada.</string>
+    <string name="dashboard_hero_calm">Nada que repasar hoy.</string>
     <string name="dashboard_study_now">Estudiar ahora</string>
-    <plurals name="dashboard_deck_count">
-        <item quantity="one">%d mazo</item>
-        <item quantity="other">%d mazos</item>
+    <plurals name="dashboard_card_count">
+        <item quantity="one">%d tarjeta</item>
+        <item quantity="other">%d tarjetas</item>
     </plurals>
+    <string name="dashboard_session_supporting">%1$s · ~%2$d min</string>
+    <string name="dashboard_next_due_later_today">Lo próximo: %1$s más tarde hoy</string>
+    <string name="dashboard_next_due_tomorrow">Lo próximo: %1$s mañana</string>
+    <string name="dashboard_next_due_in_days">Lo próximo: %1$s en %2$d días</string>
+    <string name="dashboard_next_due_none">Nada programado todavía</string>
+    <string name="dashboard_resting_cta">Capturar una palabra</string>
     <string name="dashboard_chip_all">todos</string>
     <string name="dashboard_section_your_decks">Tus mazos</string>
+    <string name="dashboard_section_progress">Tu progreso</string>
     <string name="dashboard_fab_label">Nueva tarjeta</string>
     <!-- Dashboard empty state (no decks) -->
     <string name="dashboard_empty_headline">Empieza por una palabra.</string>

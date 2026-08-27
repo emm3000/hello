@@ -53,6 +53,7 @@ enum class HButtonSize(val heightDp: Dp, val horizontalPadding: Dp, val fontSize
     Sm(36.dp, 14.dp, 13),
     Md(48.dp, 22.dp, 15),
     Lg(56.dp, 28.dp, 16),
+    Xl(88.dp, 28.dp, 18),
 }
 
 private const val DISABLED_ALPHA = 0.38f

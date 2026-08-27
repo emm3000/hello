@@ -46,6 +46,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.Tag
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.DashboardStats
+import com.emm.domain.study.NextDueBatch
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.instrumentAccent
@@ -133,6 +134,7 @@ fun DashboardScreen(
                         onTagToggled = onTagToggled,
                         onClearFilters = onClearFilters,
                         onStudy = onStudy,
+                        onCapture = newCard,
                     )
                 }
             }
@@ -219,45 +221,25 @@ private fun PopulatedContent(
     onTagToggled: (String) -> Unit,
     onClearFilters: () -> Unit,
     onStudy: () -> Unit,
+    onCapture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val dueCount = state.stats?.cardsDueToday ?: 0
-    val deckCount = state.totalDeckCount
-
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        // Hero block
         item {
-            Spacer(Modifier.height(14.dp))
-            HeroBlock(dueCount = dueCount)
             Spacer(Modifier.height(18.dp))
-        }
-
-        // CTA row: Estudiar ahora + N mazos
-        item {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HButton(
-                    text = stringResource(R.string.dashboard_study_now),
-                    onClick = onStudy,
-                    variant = HButtonVariant.Accent,
-                    size = HButtonSize.Md,
-                    enabled = dueCount > 0,
+            if (state.hasSessionReady) {
+                SessionCta(
+                    dueCount = state.cardsDueToday,
+                    estimatedMinutes = state.estimatedSessionMinutes,
+                    onStudy = onStudy,
                 )
-                Text(
-                    text = pluralStringResource(R.plurals.dashboard_deck_count, deckCount, deckCount),
-                    fontFamily = geistMono,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 12.sp,
-                    letterSpacing = 0.06.em,
-                    color = instrumentMuted,
-                )
+            } else {
+                RestingHero(nextDue = state.nextDue, onCapture = onCapture)
             }
             Spacer(Modifier.height(22.dp))
         }
@@ -298,8 +280,105 @@ private fun PopulatedContent(
         // Deck rows
         deckRows(state.decks, onDeckDetail)
 
+        // Metrics sit below the fold: they reward after the session instead of
+        // competing with the CTA. See docs/DESIGN_BRIEF.md, "Hoy — the hero is the action".
+        val stats = state.stats
+        if (stats != null) {
+            item {
+                Spacer(Modifier.height(28.dp))
+                HSectionLabel(label = stringResource(R.string.dashboard_section_progress))
+                Spacer(Modifier.height(10.dp))
+                DashboardStatsSection(stats = stats)
+            }
+        }
+
         item { Spacer(Modifier.height(100.dp)) }
     }
+}
+
+@Composable
+private fun SessionCta(
+    dueCount: Int,
+    estimatedMinutes: Int,
+    onStudy: () -> Unit,
+) {
+    HButton(
+        onClick = onStudy,
+        variant = HButtonVariant.Accent,
+        size = HButtonSize.Xl,
+        full = true,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.dashboard_study_now),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                letterSpacing = (-0.01).em,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(
+                    R.string.dashboard_session_supporting,
+                    pluralStringResource(R.plurals.dashboard_card_count, dueCount, dueCount),
+                    estimatedMinutes,
+                ).uppercase(),
+                fontFamily = geistMono,
+                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                letterSpacing = 0.1.em,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RestingHero(
+    nextDue: NextDueBatch?,
+    onCapture: () -> Unit,
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.dashboard_hero_calm),
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 32.sp,
+            lineHeight = (32 * 1.06f).sp,
+            letterSpacing = (-0.02).em,
+            color = instrumentMuted,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = nextDueLabel(nextDue),
+            fontFamily = geistMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            letterSpacing = 0.1.em,
+            color = instrumentFaint,
+        )
+        Spacer(Modifier.height(20.dp))
+        HButton(
+            text = stringResource(R.string.dashboard_resting_cta),
+            onClick = onCapture,
+            variant = HButtonVariant.Accent,
+            size = HButtonSize.Lg,
+            full = true,
+        )
+    }
+}
+
+@Composable
+private fun nextDueLabel(nextDue: NextDueBatch?): String {
+    if (nextDue == null) return stringResource(R.string.dashboard_next_due_none).uppercase()
+
+    val cards: String = pluralStringResource(
+        R.plurals.dashboard_card_count,
+        nextDue.cardCount,
+        nextDue.cardCount,
+    )
+    return when (nextDue.daysFromToday) {
+        0 -> stringResource(R.string.dashboard_next_due_later_today, cards)
+        1 -> stringResource(R.string.dashboard_next_due_tomorrow, cards)
+        else -> stringResource(R.string.dashboard_next_due_in_days, cards, nextDue.daysFromToday)
+    }.uppercase()
 }
 
 private fun LazyListScope.deckRows(
@@ -309,76 +388,6 @@ private fun LazyListScope.deckRows(
     items(decks, key = { it.id.value }) { deck ->
         DeckRow(deck = deck, onClick = { onDeckDetail(deck.id.value) })
         Spacer(Modifier.height(10.dp))
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun HeroBlock(dueCount: Int) {
-    if (dueCount > 0) {
-        // "{N} para repasar, el resto puede esperar."
-        val part1 = "$dueCount "
-        val part2 = stringResource(R.string.dashboard_hero_accent_part)
-        val separator = stringResource(R.string.dashboard_hero_separator)
-        val part3 = stringResource(R.string.dashboard_hero_muted_part)
-
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 46.sp,
-                        color = instrumentPrimary,
-                        letterSpacing = (-0.02).em,
-                    ),
-                ) {
-                    append(part1)
-                }
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 46.sp,
-                        color = instrumentAccent,
-                        letterSpacing = (-0.02).em,
-                    ),
-                ) {
-                    append(part2)
-                }
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 46.sp,
-                        color = instrumentPrimary,
-                        letterSpacing = (-0.02).em,
-                    ),
-                ) {
-                    append(separator)
-                }
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 46.sp,
-                        color = instrumentMuted,
-                        letterSpacing = (-0.02).em,
-                    ),
-                ) {
-                    append("\n$part3")
-                }
-            },
-            lineHeight = (46 * 1.04f).sp,
-        )
-    } else {
-        // Zero due: calm alternative copy
-        Text(
-            text = stringResource(R.string.dashboard_hero_calm),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 46.sp,
-            lineHeight = (46 * 1.04f).sp,
-            letterSpacing = (-0.02).em,
-            color = instrumentMuted,
-        )
     }
 }
 

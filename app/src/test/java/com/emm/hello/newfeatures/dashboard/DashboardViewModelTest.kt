@@ -12,6 +12,7 @@ import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
@@ -223,6 +224,40 @@ class DashboardViewModelTest {
         assertThat(viewModel.state.value.stats?.cardsDueToday).isEqualTo(3)
         assertThat(viewModel.state.value.stats?.currentStreak).isEqualTo(7)
         assertThat(viewModel.state.value.stats?.cardsDueThisWeek).isEqualTo(12)
+    }
+
+    @Test
+    fun `session supporting context derives from the due count`() = runTest {
+        val viewModel = makeViewModel(deckRepo = FakeDeckRepo(decks = emptyList()))
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.hasSessionReady).isFalse()
+        assertThat(viewModel.state.value.cardsDueToday).isEqualTo(0)
+        assertThat(viewModel.state.value.estimatedSessionMinutes).isEqualTo(0)
+    }
+
+    @Test
+    fun `estimated session minutes round up and never fall below one`() {
+        assertThat(stateDueing(0).estimatedSessionMinutes).isEqualTo(0)
+        assertThat(stateDueing(1).estimatedSessionMinutes).isEqualTo(1)
+        assertThat(stateDueing(4).estimatedSessionMinutes).isEqualTo(1)
+        assertThat(stateDueing(5).estimatedSessionMinutes).isEqualTo(2)
+        assertThat(stateDueing(8).estimatedSessionMinutes).isEqualTo(2)
+        assertThat(stateDueing(23).estimatedSessionMinutes).isEqualTo(6)
+
+        assertThat(stateDueing(0).hasSessionReady).isFalse()
+        assertThat(stateDueing(1).hasSessionReady).isTrue()
+    }
+
+    private fun stateDueing(cardsDueToday: Int): DashboardUiState {
+        return DashboardUiState(
+            stats = DashboardStats(
+                cardsStudiedToday = 0,
+                cardsDueToday = cardsDueToday,
+                currentStreak = 0,
+                cardsDueThisWeek = cardsDueToday,
+            ),
+        )
     }
 
     private fun makeViewModel(
