@@ -27,7 +27,7 @@ Hello is a personal English-learning app built on personal capture: the user sav
 | **Notion** | Hierarchy carried by typography, not by color. Near-monochrome. Zero ornament. | Its density on primary surfaces. |
 | **Starlink (Android)** | Deep near-black, generous air, precise and instrument-like. | Metrics as the hero. Hello's hero is an action, not a dashboard. |
 
-Shared and adopted: dark, neutral, unornamented. The discipline in both apps comes from **how little color they use**, not from which hue — which is why Hello can stay warm without breaking the reference.
+Shared and adopted: dark, cold-neutral, unornamented. The discipline in both apps comes from **how little color they use**, and both are neutral rather than warm — the redesign follows them on both counts.
 
 ## Identity
 
@@ -44,51 +44,68 @@ Consequences to handle in implementation:
 | Session-finished screen | `21a12ac` | A non-illustrated completion moment |
 | Study empty state | `21a12ac` | Typographic empty state |
 
-### The warm palette stays
+### The palette goes cold and neutral
 
-Removing the mascot does **not** mean repainting the app cold. With the mascot gone, the accent becomes the only carrier of identity, and a cold blue on near-black is the most generic dark-app look available. A restrained warm accent keeps Hello recognizable at zero cost to the reference discipline — and avoids a full token migration that would buy no learning benefit.
+Direction chosen on 2026-08-27 after comparing four candidates on the same screen: **Instrument** — the Starlink-leaning direction.
 
-`app/src/main/kotlin/com/emm/hello/core/theme/Color.kt` is kept. Only the mascot goes.
+The first draft kept the warm Ember palette on the argument that the accent was the only remaining carrier of identity once the mascot was gone. That was wrong for this product. Both stated references are cold and neutral, and warm-tinted greys with a terracotta accent read as neither. Keeping them would also have preserved the exact look the owner said never convinced them.
+
+The Ember palette in `app/src/main/kotlin/com/emm/hello/core/theme/Color.kt` is replaced, not renamed.
 
 ## Color rules
 
-The existing palette already satisfies the parts of dark-theme design that are actually evidence-backed, and should not be "modernized" away:
+The table below is the **migration target**, not a permanent reference. Once these values land in `core/theme/Color.kt`, that file is the source of truth and this table is superseded — do not read hex codes from here to write code, and do not maintain both.
 
-- `emberBg` = `#0F0E0C` — warm near-black, **not** pure black.
-- `emberPrimary` = `#F4EFE6` — warm off-white, **not** pure white.
-- `emberAccent` = `#CC7A4A` — desaturated terracotta, no neon.
+| Role | Value | Note |
+|---|---|---|
+| Background | `#08090A` | Cold near-black, **not** pure black |
+| Surface | `#101315` | Cards, inputs |
+| Surface raised | `#181B1E` | Chips, secondary controls |
+| Border / divider | `rgba(255,255,255,0.08)` | Hairlines only |
+| Primary text | `#F2F5F7` | Off-white, **not** pure white |
+| Body text | `#DDE3E8` | |
+| Muted | `#79838B` | Labels, secondary copy |
+| Faint | `rgba(255,255,255,0.45)` | Metadata |
+| Accent | `#6BA3D6` | Steel blue, desaturated |
+| Accent soft | `rgba(107,163,214,0.14)` | Selected states |
+| On accent | `#06181F` | Text on the accent fill |
 
-Pure black paired with pure white causes halation — text appears to bleed and vibrate, markedly worse for readers with astigmatism. Saturated accents on dark backgrounds increase visual fatigue, which is why Material 3 asks for desaturated accents in dark themes. The palette already complies.
+Radii: 12px on containers, 4px on controls. Small radii carry the instrument feel; the previous 8/12/100 set softens it.
+
+Pure black paired with pure white causes halation — text appears to bleed and vibrate, markedly worse for readers with astigmatism. Saturated accents on dark backgrounds increase visual fatigue, which is why Material 3 asks for desaturated accents in dark themes. Both values above respect that.
 
 Hue choice beyond that is **identity, not pedagogy**. Claims that a given hue improves focus or motivation have weak, poorly-replicated, culturally-variable support. Do not justify a color decision with them.
 
 ### Rule 1 — grade buttons carry no semantic color
 
-Neither grade button is red or green. They are differentiated by weight, position and label only.
+Neither grade button is red or green. They are differentiated by fill weight and position only: the left one sits on the page background with a hairline border, the right one on `#181B1E`.
 
-Rationale, and this is the most important rule in this document: **in spaced repetition, forgetting is the mechanism working, not an error.** Failing retrieval and then re-encountering the word is precisely where learning happens. Painting "No la sabía" in `emberBad` marks the honest answer as failure, and users respond by lying to the algorithm — pressing "la sabía" to avoid the red. That feeds FSRS false input, which corrupts scheduling, which damages real learning. The cost is data integrity, not aesthetics.
+Rationale, and this is the most important rule in this document: **in spaced repetition, forgetting is the mechanism working, not an error.** Failing retrieval and then re-encountering the word is precisely where learning happens. Painting "No la sabía" as an error marks the honest answer as failure, and users respond by lying to the algorithm — pressing "la sabía" to avoid the red. That feeds FSRS false input, which corrupts scheduling, which damages real learning. The cost is data integrity, not aesthetics.
 
 Secondary reason: red/green coding fails for roughly 8% of men (red-green color deficiency), and WCAG 1.4.1 requires that color never be the sole carrier of meaning.
 
 ### Rule 2 — one accent job per screen
 
-The accent marks the primary action. If the accent appears in five places on a screen, it marks nothing.
+The accent marks the primary action: the Hoy CTA, "Ver respuesta", "Guardar", the active tab, a selected chip. It appears **nowhere on the study back face** — at the moment of self-grading nothing should stand out.
+
+The study progress bar is `rgba(255,255,255,0.45)`, not accent, so it never competes with the primary action.
 
 ### Rule 3 — semantic colors are for the system, not for self-assessment
 
-`emberGood` / `emberWarn` / `emberBad` stay for genuine system states: load errors, destructive actions, warnings. They are never used to score the user's own recall.
+Success, warning and destructive colors stay for genuine system states: load errors, destructive actions, warnings. They are never used to score the user's own recall.
 
 ## Typography
 
-Three families already ship and map cleanly onto a Notion-style hierarchy. Keep them:
+Two families, down from three. **Instrument Serif is dropped**: a display serif pulls the app toward editorial warmth, which is the opposite of the chosen direction.
 
 | Family | Role |
 |---|---|
-| Instrument Serif (`instrument_serif_regular.ttf`, `_italic.ttf`) | Content. The word, the translation, headlines. |
-| Geist (`geist.xml`) | Interface. Labels, buttons, body copy. |
-| Geist Mono (`geist_mono.xml`) | Metadata. Eyebrows, IPA, counters, technical lines. |
+| Geist (`geist.xml`) | Everything readable. Headlines at weight 600 with `-0.02em` to `-0.03em` tracking, body and labels at 400/500. |
+| Geist Mono (`geist_mono.xml`) | All metadata: eyebrows, IPA, counters, due dates, the session count. Uppercase at `+0.14em`. |
 
-Hierarchy is expressed by family, size and weight — not by color.
+Hierarchy is expressed by family, size, weight and tracking — not by color. Mono carries more weight here than in the first draft: precise metadata is a large part of what makes the direction read as an instrument.
+
+Consequence for implementation: `instrument_serif_regular.ttf` and `instrument_serif_italic.ttf` become dead assets, and every `displayLarge` / `displayMedium` / `displaySmall` / `headline*` role in `Type.kt` is re-pointed to Geist.
 
 ## Surfaces
 
@@ -179,7 +196,7 @@ Decisions this brief deliberately does not make:
 1. **Density on primary surfaces.** Notion is dense, Starlink is spacious, and Hoy/Study must pick a point between them. Proposal to validate visually: Starlink-level air on Hoy and Study, Notion-level density on Biblioteca. Not yet decided.
 2. **The launcher mark** replacing the ember icon.
 3. **The completion moment** for a finished session, now that the celebrating mascot is gone.
-4. **Whether `ember*` token names are renamed.** Cosmetic churn with no behavioral effect; defer.
+4. **How the token migration is staged.** The `ember*` names now hold cold values, so the rename is no longer cosmetic — decide whether to rename in the same commit as the value swap or after.
 
 ## Rule
 
