@@ -360,6 +360,7 @@ countCardsDueBy:
 SELECT COUNT(*) FROM Flashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE f.deletedAt IS NULL
+  AND f.enrichmentStatus = 'ENRICHED'
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :nowMillis);
 
 -- Count flashcards due within a future window [nowMillis, endMillis).
@@ -370,6 +371,7 @@ countCardsDueInRange:
 SELECT COUNT(*) FROM Flashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE f.deletedAt IS NULL
+  AND f.enrichmentStatus = 'ENRICHED'
   AND rp.nextReviewAt >= :nowMillis AND rp.nextReviewAt < :endMillis;
 
 -- Return distinct review dates (as epoch millis at start-of-day) in descending order.

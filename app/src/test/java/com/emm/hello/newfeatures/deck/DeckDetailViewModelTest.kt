@@ -209,6 +209,60 @@ class DeckDetailViewModelTest {
         assertThat(viewModel.state.value.deck.id.value).isEqualTo("deck-1")
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `hasSessionEnabled is false when the only due-looking card is PENDING, but the card still lists`() = runTest {
+        val now: Long = Instant.now().toEpochMilli()
+        val pendingReview: FsrsCard = FsrsCard.new("card-1".toFlashcardId(), fixedClock)
+            .copy(nextReviewAt = now - 1_000L)
+        val pendingCard = Flashcard(
+            id = "card-1".toFlashcardId(),
+            word = "word",
+            meaning = "meaning",
+            translation = "",
+            examples = emptyList(),
+            phonetic = "",
+            review = pendingReview,
+            enrichmentStatus = EnrichmentStatus.PENDING,
+        )
+        val pendingStudyFlashcard = StudyFlashcard(
+            flashcardId = "card-1".toFlashcardId(),
+            word = "word",
+            phonetic = "",
+            meaning = "meaning",
+            translation = "",
+            review = pendingReview,
+            studyCards = emptyList(),
+            enrichmentStatus = EnrichmentStatus.PENDING,
+        )
+        val deckRepo = FakeDeckRepoNullable()
+        val cardRepo = FakeCardRepo(cardsByDeck = listOf(pendingCard))
+        val studyRepo = FakeStudyRepo(items = listOf(pendingStudyFlashcard))
+        val viewModel = DeckDetailViewModel(
+            deckId = "deck-1",
+            getDeckDetailUseCase = GetDeckDetailUseCase(deckRepo, cardRepo),
+            observeFlashcardsWithReviewUseCase = ObserveFlashcardsWithReviewUseCase(studyRepo),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(deckRepo),
+            restoreFlashcardUseCase = RestoreFlashcardUseCase(cardRepo),
+            undoEventHolder = UndoEventHolder(),
+        )
+
+        deckRepo.emitDeck(
+            Deck(
+                id = DeckId.from("deck-1"),
+                name = "Spanish",
+                description = "",
+                createdAt = LocalDateTime.parse("2026-03-18T10:00:00"),
+                cards = emptyList(),
+                cardsCount = 0L,
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.hasSessionEnabled).isFalse()
+        assertThat(viewModel.state.value.deck.cards.map { it.id }).containsExactly("card-1".toFlashcardId())
+    }
+
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -288,9 +342,11 @@ class DeckDetailViewModelTest {
         override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
     }
 
-    private class FakeCardRepo : FlashcardRepository {
+    private class FakeCardRepo(
+        private val cardsByDeck: List<Flashcard> = emptyList(),
+    ) : FlashcardRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()
-        override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = flowOf(emptyList())
+        override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = flowOf(cardsByDeck)
         override suspend fun fetchById(id: FlashcardId): FlashcardDetail =
             throw NotImplementedError()
         override suspend fun create(input: com.emm.domain.flashcard.CreateFlashcardInput): FlashcardId =

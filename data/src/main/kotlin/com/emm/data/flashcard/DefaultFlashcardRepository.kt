@@ -231,9 +231,10 @@ class DefaultFlashcardRepository(
     }
 
     private fun populate(examples: List<Example>, flashcardId: String) {
+        val now: Long = Instant.now().toEpochMilli()
+        dao.softDeleteExamplesByFlashcard(now = now, flashcardId = flashcardId)
         examples.forEach {
-            val now = Instant.now().toEpochMilli()
-            val exampleId = UUID.randomUUID().toString()
+            val exampleId: String = UUID.randomUUID().toString()
             exampleDao.insert(
                 id = exampleId,
                 flashcardId = flashcardId,

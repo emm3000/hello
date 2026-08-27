@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.ids.toDeckId
@@ -72,8 +73,11 @@ class DeckDetailViewModel(
 
     private fun fetchSessionCards(): Flow<Pair<List<Flashcard>, Boolean>> =
         observeFlashcardsWithReviewUseCase(deckId).map { studyFlashcards ->
-            val flashcards = studyFlashcards.map { it.toFlashcard() }
-            val hasSessionEnabled = studyFlashcards.any { it.review.nextReviewAt <= Instant.now().toEpochMilli() }
+            val flashcards: List<Flashcard> = studyFlashcards.map { it.toFlashcard() }
+            val nowMillis: Long = Instant.now().toEpochMilli()
+            val hasSessionEnabled: Boolean = studyFlashcards.any {
+                it.enrichmentStatus == EnrichmentStatus.ENRICHED && it.review.nextReviewAt <= nowMillis
+            }
             flashcards to hasSessionEnabled
         }
 

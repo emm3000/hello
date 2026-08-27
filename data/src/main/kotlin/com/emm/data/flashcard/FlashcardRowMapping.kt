@@ -173,6 +173,7 @@ internal fun toStudyFlashcard(
         partOfSpeech = entity.partOfSpeech.orEmpty(),
         example = entity.exampleText.orEmpty(),
         exampleTranslation = entity.exampleTranslation.orEmpty(),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -196,6 +197,7 @@ internal fun toStudyFlashcard(
         partOfSpeech = entity.partOfSpeech.orEmpty(),
         example = entity.exampleText.orEmpty(),
         exampleTranslation = entity.exampleTranslation.orEmpty(),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -219,6 +221,7 @@ internal fun toStudyFlashcard(
         partOfSpeech = entity.partOfSpeech.orEmpty(),
         example = entity.exampleText.orEmpty(),
         exampleTranslation = entity.exampleTranslation.orEmpty(),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 

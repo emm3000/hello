@@ -1,5 +1,6 @@
 package com.emm.domain.study
 
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.ids.FlashcardId
@@ -19,4 +20,5 @@ data class StudyFlashcard(
     val partOfSpeech: String = "",
     val example: String = "",
     val exampleTranslation: String = "",
+    val enrichmentStatus: EnrichmentStatus = EnrichmentStatus.ENRICHED,
 )

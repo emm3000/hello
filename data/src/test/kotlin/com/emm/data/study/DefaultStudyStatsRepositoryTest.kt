@@ -114,6 +114,16 @@ class DefaultStudyStatsRepositoryTest {
     }
 
     @Test
+    fun `countCardsDueToday excludes un-enriched cards`() = runTest {
+        val deckId = "deck-a"
+        insertDeck(deckId)
+        insertFlashcard(flashcardId = "card-pending", deckId = deckId, enrichmentStatus = "PENDING")
+        insertFlashcard(flashcardId = "card-enriched", deckId = deckId, enrichmentStatus = "ENRICHED")
+
+        assertEquals(1, subject.countCardsDueToday())
+    }
+
+    @Test
     fun `countCardsDueThisWeek counts cards due in next 7 days`() = runTest {
         val now = Instant.now().toEpochMilli()
         val threeDays = 3L * 86400 * 1000
@@ -185,7 +195,12 @@ class DefaultStudyStatsRepositoryTest {
         )
     }
 
-    private fun insertFlashcard(flashcardId: String, deckId: String, deleted: Boolean = false) {
+    private fun insertFlashcard(
+        flashcardId: String,
+        deckId: String,
+        deleted: Boolean = false,
+        enrichmentStatus: String = "ENRICHED",
+    ) {
         db.flashcardQueries.create(
             id = flashcardId,
             deckId = deckId,
@@ -211,7 +226,7 @@ class DefaultStudyStatsRepositoryTest {
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,
-            enrichmentStatus = "ENRICHED",
+            enrichmentStatus = enrichmentStatus,
             createdAt = 0L,
             updatedAt = 0L,
             deletedAt = if (deleted) 1L else null,
