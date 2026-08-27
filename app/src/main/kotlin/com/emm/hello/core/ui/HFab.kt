@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,15 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.emberAccent
+import com.emm.hello.core.theme.emberOnAccent
 import com.emm.hello.core.theme.geist
 
-private val fabIconFg = Color(0xFF15110D)
-
-/**
- * Ember FAB. Visual-only (caller positions it).
- * 60dp circular when no [label]; pill with label otherwise.
- * emberAccent bg, dark foreground, drop shadow.
- */
 @Composable
 fun HFab(
     onClick: () -> Unit,
@@ -44,7 +37,7 @@ fun HFab(
             modifier = modifier,
             shape = RoundedCornerShape(28.dp),
             containerColor = emberAccent,
-            contentColor = fabIconFg,
+            contentColor = emberOnAccent,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 14.dp,
                 pressedElevation = 6.dp,
@@ -75,7 +68,7 @@ fun HFab(
             modifier = modifier.size(60.dp),
             shape = RoundedCornerShape(30.dp),
             containerColor = emberAccent,
-            contentColor = fabIconFg,
+            contentColor = emberOnAccent,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 14.dp,
                 pressedElevation = 6.dp,

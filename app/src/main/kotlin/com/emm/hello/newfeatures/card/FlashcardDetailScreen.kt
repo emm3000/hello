@@ -47,7 +47,6 @@ import com.emm.hello.core.theme.emberAccent
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.geist
@@ -261,7 +260,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
-                        color = emberHint,
+                        color = emberMuted,
                     )
                 }
             }

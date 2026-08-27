@@ -79,7 +79,6 @@ import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberDivider
 import com.emm.hello.core.theme.emberElev
 import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberHint
 import com.emm.hello.core.theme.emberMuted
 import com.emm.hello.core.theme.emberOnBg
 import com.emm.hello.core.theme.emberSurface
@@ -643,7 +642,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
                     fontFamily = geistMono,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = emberHint,
+                    color = emberMuted,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -686,7 +685,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 text = item.phonetic,
                 fontFamily = geistMono,
                 fontSize = 13.sp,
-                color = emberHint,
+                color = emberMuted,
                 textAlign = TextAlign.Center,
             )
         }

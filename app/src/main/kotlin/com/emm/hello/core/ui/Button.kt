@@ -39,6 +39,7 @@ import com.emm.hello.core.theme.emberBad
 import com.emm.hello.core.theme.emberBg
 import com.emm.hello.core.theme.emberElev
 import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.emberOnAccent
 import com.emm.hello.core.theme.emberPrimary
 import com.emm.hello.core.theme.geist
 
@@ -55,7 +56,6 @@ enum class HButtonSize(val heightDp: Dp, val horizontalPadding: Dp, val fontSize
 }
 
 private const val DISABLED_ALPHA = 0.38f
-private val emberButtonFg = Color(0xFF15110D)
 
 /**
  * Ember-styled HButton. Pill radius (height/2), variants primary/accent/secondary/ghost,
@@ -229,7 +229,7 @@ private fun emberButtonTokens(
     )
     HButtonVariant.Accent -> ButtonTokens(
         containerColor = emberAccent,
-        contentColor = emberButtonFg,
+        contentColor = emberOnAccent,
         border = null,
     )
     HButtonVariant.Secondary -> ButtonTokens(
