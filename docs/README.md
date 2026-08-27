@@ -14,7 +14,7 @@ This directory describes only currently implemented behavior.
 Global sources of truth still live at the root:
 
 1. `README.md`
-2. `AGENTS.md`
+2. `CLAUDE.md`
 3. `ARCHITECTURE.md`
 4. `LOCAL_FIRST.md`
 

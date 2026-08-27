@@ -22,6 +22,10 @@ google-services.json
 .atl/
 .agent/
 .agents/
-.claude/
+.claude/*
+!.claude/agents/
+!.claude/commands/
+!.claude/rules/
+!.claude/settings.json
 skills-lock.json
 openspec/

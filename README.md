@@ -24,18 +24,20 @@ Android app in Kotlin + Jetpack Compose for studying with decks and flashcards.
 
 ## Reading order
 
-1. `AGENTS.md`
+1. `CLAUDE.md`
 2. `ARCHITECTURE.md`
 3. `LOCAL_FIRST.md`
 4. `docs/README.md`
+5. `docs/DESIGN_BRIEF.md`
 
 ## Active docs
 
-- `AGENTS.md`: operating rules for the repo
+- `CLAUDE.md`: operating manifest; detailed code rules live in `.claude/rules/`
 - `ARCHITECTURE.md`: current technical structure
 - `LOCAL_FIRST.md`: current runtime contract
 - `docs/CARD_CREATION_CURRENT.md`: current card creation flow
 - `docs/STUDY_CURRENT.md`: current study flow
+- `docs/DESIGN_BRIEF.md`: visual direction and design rationale
 
 ## Don't assume
 

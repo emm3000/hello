@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash list:*)",
+      "Bash(git remote -v)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(file:*)",
+      "Bash(tree:*)",
+      "Bash(adb devices)",
+      "Bash(adb logcat:*)",
+      "Bash(adb shell:*)",
+      "Bash(./gradlew detekt)",
+      "Bash(./gradlew test)",
+      "Bash(./gradlew testDebugUnitTest)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(./gradlew lint)",
+      "Bash(./gradlew :app:dependencies)",
+      "Bash(./gradlew :data:dependencies)",
+      "Bash(./gradlew :domain:dependencies)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "Read(./keystore.properties)",
+      "Read(./local.properties)",
+      "Read(./key/**)"
+    ]
+  }
+}

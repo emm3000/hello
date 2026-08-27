@@ -280,7 +280,7 @@ All Sprint 1 items closed + S2-T1 + S2-T6 verified on a real device.
 
 ## 5. Related documents
 
-- `AGENTS.md` — operating rules
+- `CLAUDE.md` — operating manifest (rules in `.claude/rules/`)
 - `ARCHITECTURE.md` — technical structure
 - `LOCAL_FIRST.md` — runtime contract
 - `README.md` — repo entry point

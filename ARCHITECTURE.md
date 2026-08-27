@@ -15,6 +15,13 @@
 - SQLDelight (`HelloDb`)
 - Firebase AI with `gemini-2.5-flash-lite`
 
+## Toolchain
+
+- Java 17
+- AGP `9.2.1`
+- Kotlin `2.4.0`
+- compileSdk `37` / targetSdk `36` / minSdk `26`
+
 ## Modules
 
 ### `app`
