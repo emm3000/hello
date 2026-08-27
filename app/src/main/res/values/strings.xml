@@ -374,10 +374,6 @@
     <string name="study_error_retry">Reintentar</string>
     <string name="stop_speech_desc">Detener</string>
     <string name="speak_desc">Pronunciar</string>
-    <string name="grade_again">Otra vez</string>
-    <string name="grade_hard">Difícil</string>
-    <string name="grade_good">Bien</string>
-    <string name="grade_easy">Fácil</string>
     <string name="study_grade_forgot">No la sabía</string>
     <string name="study_grade_knew">La sabía</string>
     <string name="session_completed_eyebrow">Sesión completada</string>
@@ -484,14 +480,6 @@
     <string name="onboarding_skip">Saltar</string>
     <string name="onboarding_page_indicator_description">Página %1$d de %2$d</string>
     <string name="onboarding_seed_deck_name">Primeras palabras</string>
-
-    <!-- Grade hint (JIT onboarding) -->
-    <string name="study_grade_hint_title">¿Qué hace cada botón?</string>
-    <string name="study_grade_hint_again_effect">la repites pronto</string>
-    <string name="study_grade_hint_hard_effect">vuelves antes</string>
-    <string name="study_grade_hint_good_effect">ritmo normal</string>
-    <string name="study_grade_hint_easy_effect">se espacia más</string>
-    <string name="study_grade_hint_dismiss">Entendido</string>
 
     <!-- Empty-state concept lines -->
     <string name="onboarding_deck_concept">Un mazo agrupa tarjetas de un mismo tema.</string>

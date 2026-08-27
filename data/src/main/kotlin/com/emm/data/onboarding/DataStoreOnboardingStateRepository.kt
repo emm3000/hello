@@ -12,10 +12,4 @@ class DataStoreOnboardingStateRepository(
     override fun markWelcomeSeen() {
         dataStore.hasSeenOnboarding = true
     }
-
-    override fun hasSeenGradeHint(): Boolean = dataStore.hasSeenGradeHint
-
-    override fun markGradeHintSeen() {
-        dataStore.hasSeenGradeHint = true
-    }
 }

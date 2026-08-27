@@ -92,11 +92,8 @@ class AppStartupCoordinatorTest {
 
     private class FakeOnboardingStateRepository(
         private val welcomeSeen: Boolean = false,
-        private val gradeHintSeen: Boolean = false,
     ) : OnboardingStateRepository {
         override fun hasSeenWelcome(): Boolean = welcomeSeen
         override fun markWelcomeSeen() = Unit
-        override fun hasSeenGradeHint(): Boolean = gradeHintSeen
-        override fun markGradeHintSeen() = Unit
     }
 }

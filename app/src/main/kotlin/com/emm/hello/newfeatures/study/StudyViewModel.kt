@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toDeckId
-import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
@@ -19,7 +18,6 @@ class StudyViewModel(
     private val studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
-    private val onboardingState: OnboardingStateRepository,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -41,8 +39,7 @@ class StudyViewModel(
         try {
             val items = fetchSession().map { it.toStudySessionItem() }
             studyItemsForToday.addAll(items)
-            val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
-            setState { copy(isLoading = false, totalCount = items.size, isGradeHintVisible = showHint) }
+            setState { copy(isLoading = false, totalCount = items.size) }
             showNextCard()
         } catch (e: CancellationException) {
             throw e
@@ -77,7 +74,6 @@ class StudyViewModel(
         when (intent) {
             StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
-            StudyUiIntent.GradeHintDismissed -> dismissGradeHint()
             StudyUiIntent.RetryLoad -> loadSession()
             StudyUiIntent.ExitClicked -> sendEffect(StudyUiEffect.NavigateBack)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
@@ -87,16 +83,7 @@ class StudyViewModel(
         }
     }
 
-    private fun dismissGradeHint() {
-        if (!currentState.isGradeHintVisible) return
-        onboardingState.markGradeHintSeen()
-        setState { copy(isGradeHintVisible = false) }
-    }
-
     private fun processReviewAnswer(item: StudySessionItem?, grade: ReviewGrade) = viewModelScope.launch {
-        if (currentState.isGradeHintVisible) {
-            dismissGradeHint()
-        }
         val reviewedItem = item ?: return@launch
         val newCard: FsrsCard = scheduleFlashcardReviewUseCase(
             card = reviewedItem.review,

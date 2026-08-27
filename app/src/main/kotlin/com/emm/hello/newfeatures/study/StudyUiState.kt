@@ -9,7 +9,6 @@ data class StudyUiState(
     val reviewedCount: Int = 0,
     val totalCount: Int = 0,
     val sessionFinished: Boolean = false,
-    val isGradeHintVisible: Boolean = false,
 ) : MviState
 
 /**

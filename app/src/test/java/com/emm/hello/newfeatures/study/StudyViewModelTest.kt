@@ -8,7 +8,6 @@ import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toFlashcardId
-import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
@@ -304,7 +303,6 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            onboardingState = FakeOnboardingStateRepository(),
         )
         advanceUntilIdle()
 
@@ -323,7 +321,6 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            onboardingState = FakeOnboardingStateRepository(),
         )
         advanceUntilIdle()
 
@@ -354,7 +351,6 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            onboardingState = FakeOnboardingStateRepository(),
         )
         advanceUntilIdle()
 
@@ -373,7 +369,6 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            onboardingState = FakeOnboardingStateRepository(),
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
@@ -386,99 +381,16 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.totalCount).isEqualTo(1)
     }
 
-    // ── Grade hint ───────────────────────────────────────────────────────────
-
-    @Test
-    fun `grade hint shows when flag is false and session has cards`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = false)
-        val viewModel = makeViewModel(listOf(studyFlashcard("a")), onboardingRepo = repo)
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isTrue()
-    }
-
-    @Test
-    fun `grade hint does not show when flag is already true`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = true)
-        val viewModel = makeViewModel(listOf(studyFlashcard("a")), onboardingRepo = repo)
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-    }
-
-    @Test
-    fun `GradeHintDismissed marks hint seen and hides it`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = false)
-        val viewModel = makeViewModel(listOf(studyFlashcard("a")), onboardingRepo = repo)
-        advanceUntilIdle()
-
-        viewModel.onIntent(StudyUiIntent.GradeHintDismissed)
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-        assertThat(repo.gradeHintSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `first review answer marks grade hint seen and hides it`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = false)
-        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")), onboardingRepo = repo)
-        advanceUntilIdle()
-
-        viewModel.onIntent(
-            StudyUiIntent.ReviewAnswered(
-                item = viewModel.state.value.currentItem,
-                reviewGrade = ReviewGrade.GOOD,
-            )
-        )
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-        assertThat(repo.gradeHintSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `grade hint does not show for empty session`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = false)
-        val viewModel = makeViewModel(emptyList(), onboardingRepo = repo)
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-    }
-
-    @Test
-    fun `grade hint stays hidden on second and subsequent cards when gradeHintSeen is true`() = runTest {
-        val repo = FakeOnboardingStateRepository(gradeHintSeen = true)
-        val viewModel = makeViewModel(
-            listOf(studyFlashcard("a"), studyFlashcard("b")),
-            onboardingRepo = repo,
-        )
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-
-        viewModel.onIntent(
-            StudyUiIntent.ReviewAnswered(
-                item = viewModel.state.value.currentItem,
-                reviewGrade = ReviewGrade.GOOD,
-            )
-        )
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
-    }
-
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private fun makeViewModel(
         cards: List<StudyFlashcard>,
-        onboardingRepo: OnboardingStateRepository = FakeOnboardingStateRepository(),
         reviewRepo: FlashcardReviewRepository = FakeFlashcardReviewRepo(),
     ): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         flashcardReviewRepository = reviewRepo,
-        onboardingState = onboardingRepo,
     )
 
     private fun studyFlashcard(
@@ -550,19 +462,5 @@ class StudyViewModelTest {
         override suspend fun update(card: FsrsCard, grade: ReviewGrade) {
             updates += card to grade
         }
-    }
-}
-
-private class FakeOnboardingStateRepository(
-    private var gradeHintSeen: Boolean = false,
-) : OnboardingStateRepository {
-    var gradeHintSeenCalled: Boolean = false
-
-    override fun hasSeenWelcome(): Boolean = true
-    override fun markWelcomeSeen() = Unit
-    override fun hasSeenGradeHint(): Boolean = gradeHintSeen
-    override fun markGradeHintSeen() {
-        gradeHintSeenCalled = true
-        gradeHintSeen = true
     }
 }

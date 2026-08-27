@@ -265,21 +265,12 @@ class OnboardingViewModelTest {
 
 private class FakeOnboardingStateRepository : OnboardingStateRepository {
     var welcomeSeen: Boolean = false
-    var gradeHintSeen: Boolean = false
     var welcomeSeenCalled: Boolean = false
-    var gradeHintSeenCalled: Boolean = false
 
     override fun hasSeenWelcome(): Boolean = welcomeSeen
 
     override fun markWelcomeSeen() {
         welcomeSeenCalled = true
         welcomeSeen = true
-    }
-
-    override fun hasSeenGradeHint(): Boolean = gradeHintSeen
-
-    override fun markGradeHintSeen() {
-        gradeHintSeenCalled = true
-        gradeHintSeen = true
     }
 }

@@ -55,27 +55,4 @@ class DataStoreOnboardingStateRepositoryTest {
 
         verify(exactly = 2) { editor.putBoolean("HAS_SEEN_ONBOARDING", true) }
     }
-
-    // ── hasSeenGradeHint ──────────────────────────────────────────────────────
-
-    @Test
-    fun `hasSeenGradeHint returns false by default`() {
-        every { prefs.getBoolean("HAS_SEEN_GRADE_HINT", false) } returns false
-
-        val repo = buildRepo()
-
-        assertFalse(repo.hasSeenGradeHint())
-    }
-
-    @Test
-    fun `markGradeHintSeen writes true and apply is called`() {
-        val stored = slot<Boolean>()
-        every { editor.putBoolean("HAS_SEEN_GRADE_HINT", capture(stored)) } returns editor
-
-        val repo = buildRepo()
-        repo.markGradeHintSeen()
-
-        assertTrue(stored.captured)
-        verify { editor.apply() }
-    }
 }

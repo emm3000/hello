@@ -55,7 +55,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -72,7 +71,6 @@ import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBad
 import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentDivider
 import com.emm.hello.core.theme.instrumentElev
@@ -82,14 +80,12 @@ import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.instrumentSurface2
-import com.emm.hello.core.theme.instrumentWarn
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
-import com.emm.hello.core.ui.HCard
 import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
@@ -128,7 +124,6 @@ fun StudyScreen(
     onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
-    onGradeHintDismissed: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
@@ -242,7 +237,6 @@ fun StudyScreen(
 
                     StudyActionDock(
                         sessionStage = sessionStage,
-                        isGradeHintVisible = state.isGradeHintVisible,
                         callbacks = StudyDockCallbacks(
                             onRevealAnswer = {
                                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -255,7 +249,6 @@ fun StudyScreen(
                             onCreateCard = onCreateCard,
                             onRetryLoad = onRetryLoad,
                         ),
-                        onGradeHintDismissed = onGradeHintDismissed,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -494,9 +487,7 @@ private fun TtsFloatingButton(
 @Composable
 private fun StudyActionDock(
     sessionStage: StudyStage,
-    isGradeHintVisible: Boolean,
     callbacks: StudyDockCallbacks,
-    onGradeHintDismissed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(
@@ -551,9 +542,6 @@ private fun StudyActionDock(
                 }
 
                 StudyStage.Grade -> {
-                    if (isGradeHintVisible) {
-                        GradeHintCard(onDismiss = onGradeHintDismissed)
-                    }
                     AnswerButtons(
                         onReviewAnswer = callbacks.onReviewAnswer,
                     )
@@ -824,102 +812,6 @@ private fun StudyScreenPreview() {
                 reviewedCount = 3,
                 totalCount = 10,
             ),
-        )
-    }
-}
-
-@Composable
-private fun GradeHintCard(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HCard(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.study_grade_hint_title).uppercase(),
-                    fontFamily = geistMono,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 10.5.sp,
-                    letterSpacing = 0.12.em,
-                    color = instrumentMuted,
-                )
-                Spacer(Modifier.height(4.dp))
-                GradeHintRow(
-                    label = stringResource(R.string.grade_again),
-                    effect = stringResource(R.string.study_grade_hint_again_effect),
-                    color = instrumentBad,
-                )
-                GradeHintRow(
-                    label = stringResource(R.string.grade_hard),
-                    effect = stringResource(R.string.study_grade_hint_hard_effect),
-                    color = instrumentWarn,
-                )
-                GradeHintRow(
-                    label = stringResource(R.string.grade_good),
-                    effect = stringResource(R.string.study_grade_hint_good_effect),
-                    color = instrumentOnBg,
-                )
-                GradeHintRow(
-                    label = stringResource(R.string.grade_easy),
-                    effect = stringResource(R.string.study_grade_hint_easy_effect),
-                    color = instrumentAccent,
-                )
-            }
-            Text(
-                text = stringResource(R.string.study_grade_hint_dismiss),
-                fontFamily = geist,
-                fontWeight = FontWeight.Normal,
-                fontSize = 13.5.sp,
-                color = instrumentMuted,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier
-                    .clickable(onClick = onDismiss)
-                    .padding(start = 12.dp, top = 2.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun GradeHintRow(
-    label: String,
-    effect: String,
-    color: Color,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            fontFamily = geist,
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.5.sp,
-            color = color,
-        )
-        Text(
-            text = "·",
-            fontFamily = geist,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.5.sp,
-            color = instrumentFaint,
-        )
-        Text(
-            text = effect,
-            fontFamily = geist,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.5.sp,
-            color = instrumentMuted,
         )
     }
 }
