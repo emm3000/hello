@@ -8,8 +8,6 @@ import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
-import com.emm.domain.deck.DeckSearchCriteria
-import com.emm.domain.deck.Tag
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.UpdateDeckInput
@@ -58,7 +56,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -440,10 +437,6 @@ class NewCardViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = flowOf(listOf(deck))
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = flowOf(listOf(deck))
-
-        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(listOf(deck))
-
-        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
         override suspend fun update(input: UpdateDeckInput) = Unit
         override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L

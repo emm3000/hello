@@ -54,41 +54,6 @@ SELECT t.* FROM Tag t
 JOIN DeckTag dt ON dt.tagId = t.id
 WHERE dt.deckId = ? AND t.deletedAt IS NULL;
 
-observeFiltered:
-SELECT
-    Deck.id,
-    Deck.name,
-    Deck.description,
-    Deck.createdAt,
-    COUNT(DISTINCT Flashcard.id) AS flashcardCount,
-    COALESCE(GROUP_CONCAT(DISTINCT Tag.name), '') AS tagsCsv
-FROM Deck
-LEFT JOIN Flashcard
-  ON Flashcard.deckId = Deck.id
-  AND Flashcard.deletedAt IS NULL
-LEFT JOIN DeckTag
-  ON DeckTag.deckId = Deck.id
-LEFT JOIN Tag
-  ON Tag.id = DeckTag.tagId
-  AND Tag.deletedAt IS NULL
-WHERE Deck.deletedAt IS NULL
-  AND (:query = '' OR LOWER(Deck.name) LIKE '%' || :query || '%')
-  AND (
-    :selectedTagCount = 0
-    OR Deck.id IN (
-      SELECT dtf.deckId
-      FROM DeckTag AS dtf
-      JOIN Tag AS tf
-        ON tf.id = dtf.tagId
-        AND tf.deletedAt IS NULL
-      WHERE LOWER(tf.name) IN :normalizedTagNames
-      GROUP BY dtf.deckId
-      HAVING COUNT(DISTINCT LOWER(tf.name)) = :selectedTagCount
-    )
-  )
-GROUP BY Deck.id
-ORDER BY Deck.createdAt DESC;
-
 update:
 UPDATE Deck
 SET name = :name,

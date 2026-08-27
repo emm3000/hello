@@ -3,9 +3,7 @@ package com.emm.hello.newfeatures.deck
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
-import com.emm.domain.deck.DeckSearchCriteria
 import com.emm.domain.deck.SoftDeleteDeckUseCase
-import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.DeckId
@@ -222,10 +220,6 @@ class NewDeckViewModelTest {
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
-
-        override fun observeFiltered(criteria: DeckSearchCriteria): Flow<List<Deck>> = flowOf(emptyList())
-
-        override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
         override suspend fun update(input: UpdateDeckInput) = Unit
         var softDeletedDeckId: DeckId? = null

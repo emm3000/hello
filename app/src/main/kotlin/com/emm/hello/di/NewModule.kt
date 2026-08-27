@@ -34,9 +34,7 @@ import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
-import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.GetDecksUseCase
-import com.emm.domain.deck.GetFilteredDecksUseCase
 import com.emm.domain.deck.RestoreDeckUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.UpdateDeckUseCase
@@ -185,7 +183,6 @@ fun Module.useCases() {
     factoryOf(::GeneratedLearningNoteQualityChecksPolicy)
     factoryOf(::GeneratedLearningNoteMapper)
     factoryOf(::GetDecksUseCase)
-    factoryOf(::GetFilteredDecksUseCase)
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::CaptureFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
@@ -212,7 +209,6 @@ fun Module.useCases() {
             validateGeneratedLearningNoteUseCase = get(),
         )
     }
-    factoryOf(::GetDeckDetailUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
     factory { GetDashboardStatsUseCase(get(), get()) }

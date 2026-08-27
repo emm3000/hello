@@ -49,7 +49,7 @@ fun DeckEntity.toDomain(): Deck = Deck(
     createdAt = createdAt.toLocalDateTime(),
     cards = emptyList(),
     cardsCount = 0L,
-    tags = emptyList(), // Tags loaded via fetchTagsForDeck separately
+    tags = emptyList(),
 )
 
 fun List<DeckEntity>.toDomain(): List<Deck> = map(DeckEntity::toDomain)

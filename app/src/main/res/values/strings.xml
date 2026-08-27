@@ -2,17 +2,12 @@
     <string name="app_name">Hello</string>
 
     <!-- General -->
-    <string name="save">Guardar</string>
-    <string name="back">Atrás</string>
     <string name="cancel">Cancelar</string>
-    <string name="loading">Cargando...</string>
     <string name="error_label">Error</string>
     <string name="success_label">Éxito</string>
     <string name="warning_label">Advertencia</string>
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
-    <string name="close">Cerrar</string>
-    <string name="ok">Aceptar</string>
 
     <!-- Dashboard Stats Section -->
     <string name="dashboard_stat_studied_today">Estudiadas hoy</string>
@@ -21,24 +16,6 @@
     <string name="dashboard_stat_due_this_week">Para esta semana</string>
 
     <!-- Dashboard Screen -->
-    <string name="dashboard_title">Mis mazos</string>
-    <string name="new_deck">Nuevo mazo</string>
-    <string name="decks_section_label">Mazos</string>
-    <string name="cards_ready_label">%1$d tarjetas listas</string>
-    <string name="deck_count_format">en %1$d %2$s</string>
-    <string name="deck_plural_one">mazo</string>
-    <string name="deck_plural_other">mazos</string>
-    <string name="empty_decks_title">Sin mazos todavía</string>
-    <string name="empty_decks_description">Crea un mazo para empezar a estudiar</string>
-    <string name="create_first_deck">Crear primer mazo</string>
-    <string name="new_card_content_description">Nueva tarjeta</string>
-    <string name="new_deck_content_description">Nuevo mazo</string>
-    <string name="dashboard_search_placeholder">Buscar mazo o palabra</string>
-    <string name="dashboard_search_clear_content_description">Limpiar búsqueda</string>
-    <string name="dashboard_search_icon_content_description">Buscar</string>
-    <string name="dashboard_clear_filters">Limpiar filtros</string>
-    <string name="dashboard_no_results_title">No hay resultados</string>
-    <string name="dashboard_no_results_description">Prueba otra palabra o ajusta los filtros.</string>
     <!-- Dashboard redesign — Phase 2.1 -->
     <string name="dashboard_hero_calm">Nada que repasar hoy.</string>
     <string name="dashboard_study_now">Estudiar ahora</string>
@@ -52,31 +29,15 @@
     <string name="dashboard_next_due_in_days">Lo próximo: %1$s en %2$d días</string>
     <string name="dashboard_next_due_none">Nada programado todavía</string>
     <string name="dashboard_resting_cta">Capturar una palabra</string>
-    <string name="dashboard_chip_all">todos</string>
-    <string name="dashboard_section_your_decks">Tus mazos</string>
     <string name="dashboard_section_progress">Tu progreso</string>
     <string name="dashboard_fab_label">Nueva tarjeta</string>
     <!-- Dashboard empty state (no decks) -->
-    <string name="dashboard_empty_headline">Empieza por una palabra.</string>
-    <string name="dashboard_empty_headline_accent">una palabra</string>
-    <string name="dashboard_empty_body">Escribes una palabra en inglés, una situación, o una categoría — la IA arma la tarjeta completa con ejemplos y patrones de uso.</string>
-    <string name="dashboard_empty_cta_primary">Crear primera tarjeta</string>
-    <string name="dashboard_empty_cta_ghost">Crear mazo vacío</string>
-    <string name="dashboard_empty_footnote">O importa un backup en ajustes</string>
     <!-- Dashboard no-results state -->
-    <string name="dashboard_no_results_headline">Nada con %1$s.</string>
-    <string name="dashboard_no_results_body">Prueba otra palabra, o crea una tarjeta con esta.</string>
-    <string name="dashboard_no_results_body_with_tag">Prueba otra palabra, quita la etiqueta %1$s, o crea una tarjeta con esta.</string>
-    <string name="dashboard_no_results_cta">Crear con %1$s</string>
 
     <!-- Decks Screen -->
-    <string name="my_decks">Mis Mazos</string>
-    <string name="create_new_deck">Crear nuevo mazo</string>
     <string name="cards_count">%1$s tarjetas</string>
-    <string name="completion_percentage">%1$d%% completado</string>
 
     <!-- New Deck Screen -->
-    <string name="new_deck_title">Nuevo mazo</string>
     <string name="deck_name_label">Nombre del mazo</string>
     <string name="deck_name_placeholder">Ej: Vocabulario de Inglés B2</string>
     <string name="deck_description_label">Descripción</string>
@@ -94,44 +55,19 @@
     <string name="new_deck_action_save">Guardar</string>
     <string name="new_deck_close_content_description">Cerrar</string>
     <string name="new_deck_tag_placeholder">+ agregar…</string>
-    <string name="new_deck_tag_remove_content_description">Quitar etiqueta %1$s</string>
 
     <!-- Deck Detail Screen -->
-    <string name="deck_detail_title_fallback">Mazo</string>
-    <string name="search_cards_hint">Buscar tarjetas…</string>
-    <string name="search_clear_content_description">Limpiar búsqueda</string>
-    <string name="search_no_results">No hay tarjetas que coincidan con \'%1$s\'</string>
-    <string name="review_status_ready">✓ Listo</string>
-    <string name="review_status_up_to_date">Al día</string>
-    <string name="review_status_label">estado de repaso</string>
-    <string name="start_review">Empezar repaso</string>
-    <string name="no_pending_cards">Sin tarjetas pendientes</string>
-    <string name="empty_cards_title">Sin tarjetas</string>
-    <string name="empty_cards_description">Añade la primera tarjeta a este mazo</string>
-    <string name="add_card">Añadir tarjeta</string>
-    <string name="cards_section_label">Tarjetas</string>
     <string name="more_options">Más opciones</string>
     <!-- Deck Detail Ember header (Phase 2.5 sub-1) -->
-    <string name="deck_detail_meta_label">Mazo</string>
     <plurals name="deck_detail_stats_cards">
         <item quantity="one">%1$d tarjeta</item>
         <item quantity="other">%1$d tarjetas</item>
     </plurals>
-    <string name="deck_detail_stats_due_today">%1$d para hoy</string>
-    <string name="deck_detail_stats_avg_interval">%1$s d. promedio</string>
-    <string name="deck_detail_study_now_cta">Estudiar %1$d ahora</string>
-    <string name="deck_detail_search_toggle_open">Buscar en este mazo</string>
-    <string name="deck_detail_search_toggle_close">Cerrar búsqueda</string>
-    <string name="deck_detail_search_no_results">Nada con \"%1$s\".</string>
-    <string name="edit_deck_title">Editar mazo</string>
-    <string name="save_changes">Guardar cambios</string>
     <string name="delete_deck_title">Eliminar mazo</string>
     <string name="delete_deck_description">Se eliminará el mazo y sus tarjetas. Puedes deshacer justo después.</string>
 
     <!-- Flashcards -->
-    <string name="new_card_title">Nueva tarjeta</string>
     <string name="continue_action">Continuar</string>
-    <string name="step_counter">Paso %1$d de %2$d</string>
     <!-- New Card wizard redesign — Phase 2.3 -->
     <string name="new_card_wizard_subtitle">Nueva tarjeta</string>
     <!-- New Card wizard Input step (Phase 2.3 sub-2) -->
@@ -142,16 +78,7 @@
     <string name="new_card_input_deck_empty">Ningún mazo seleccionado</string>
     <string name="new_card_input_create_deck_cta">Crear un mazo</string>
     <string name="new_card_input_no_decks_hint">Necesitas un mazo para guardar la tarjeta. Créalo aquí.</string>
-    <string name="input_screen_title">Define tu solicitud</string>
-    <string name="review_screen_title">Revisa el resultado</string>
-    <string name="generate_card">Generar vista previa con IA</string>
-    <string name="input_section_title">Entrada</string>
-    <string name="input_section_word_description">Dale a la IA la expresión exacta. Puedes añadir significado o contexto para que el resultado sea más preciso.</string>
-    <string name="input_section_category_description">Pide una tarjeta por tema o situación. La IA propondrá una nota útil dentro de esa categoría.</string>
-    <string name="input_section_ai_description">Cuéntale a la IA qué situación quieres practicar. Puede ser en español o en inglés y la app propondrá una tarjeta útil.</string>
     <string name="word_label">Palabra o frase en inglés</string>
-    <string name="word_placeholder">Ej: Hello, Good morning…</string>
-    <string name="word_supporting_text">Campo principal. Escribe la palabra o frase que quieres estudiar.</string>
     <string name="intended_meaning_label">Significado deseado</string>
     <string name="intended_meaning_placeholder">Ej: obtener, recoger, pedir prestado…</string>
     <string name="intended_meaning_supporting_text">Opcional. Úsalo si la expresión tiene varios significados.</string>
@@ -159,22 +86,6 @@
     <string name="context_sentence_placeholder">Ej: I need to pick up my sister after class.</string>
     <string name="context_sentence_supporting_text">Opcional. Ayuda a la IA a escoger el uso correcto.</string>
     <string name="listening_placeholder">Escuchando…</string>
-    <string name="category_label">Categoría</string>
-    <string name="category_supporting_text">Selecciona la situación o el tema desde el que quieres que la IA cree la tarjeta.</string>
-    <string name="ai_request_label">Qué quieres aprender</string>
-    <string name="ai_request_placeholder">Ej: Quiero aprender frases para pedir comida en un restaurante</string>
-    <string name="ai_request_supporting_text">Escribe en español o inglés el tema, situación o necesidad. La IA elegirá una expresión útil para tu flash card.</string>
-    <string name="difficulty_label">Dificultad</string>
-    <string name="difficulty_supporting_text">Ajusta el nivel esperado del vocabulario, ejemplo y cards derivadas.</string>
-    <string name="ai_difficulty_supporting_text">El nivel ayuda a que la IA ajuste vocabulario, ejemplo y tarjetas derivadas.</string>
-    <string name="destination_section_title">Destino</string>
-    <string name="destination_section_description">Elige el mazo donde se guardará la tarjeta cuando apruebes el preview.</string>
-    <string name="deck_label">Mazo</string>
-    <string name="select_deck_placeholder">Seleccionar mazo…</string>
-    <string name="default_deck_checkbox">Marcar como mazo por defecto</string>
-    <string name="generate_error_title">Error al generar</string>
-    <string name="verify_result_title">Revisa lo que generó la IA</string>
-    <string name="loading_preview_badge">IA trabajando</string>
     <string name="loading_preview_thinking_for">Pensando en cuándo se suele usar %1$s…</string>
     <string name="loading_preview_thinking_generic">Pensando en cómo armar tu tarjeta…</string>
     <string name="loading_preview_eta">SUELE TARDAR 8–12 S</string>
@@ -192,21 +103,10 @@
     <string name="quota_error_reset_at">SE REINICIA A LAS %1$s</string>
     <string name="quota_error_reset_in">SE REINICIA EN %1$s</string>
     <string name="quota_error_reset_unknown">SE REINICIA MAÑANA</string>
-    <string name="preview_summary_title">La IA generó 1 nota y %1$d cards de estudio</string>
-    <string name="preview_summary_description">Revísalo de arriba hacia abajo: primero la nota base, luego el ejemplo y al final cada tarjeta.</string>
     <string name="review_empty_title">Todavía no hay resultado para revisar</string>
     <string name="review_empty_description">Vuelve al paso anterior y genera una vista previa con IA.</string>
-    <string name="review_active_cards_badge">%1$d de %2$d activas</string>
-    <string name="review_error_badge">%1$d errores</string>
-    <string name="review_warning_badge">%1$d advertencias</string>
-    <string name="review_status_fix_title">Corrige esto antes de guardar</string>
-    <string name="review_status_warning_title">Revisa esto antes de guardar</string>
-    <string name="review_status_ready_title">Lista para guardar</string>
-    <string name="review_status_ready_description">La tarjeta ya se entiende bien y no tiene bloqueos de guardado.</string>
-    <string name="save_blocked_summary">Corrige %1$d problemas para poder guardar.</string>
     <string name="save_in_deck">Guardar en %1$s</string>
     <string name="voice_input_desc">Entrada de voz</string>
-    <string name="card_created_feedback">Tarjeta creada ✅</string>
     <string name="phonetics_label">Fonética</string>
     <string name="meaning_label">Significado</string>
     <string name="translation_label">Traducción</string>
@@ -214,22 +114,13 @@
     <string name="why_useful_label">Por qué sirve</string>
     <string name="usage_pattern_label">Patrón de uso</string>
     <string name="common_mistake_label">Error común</string>
-    <string name="learning_metadata_label">Metadata de aprendizaje</string>
     <string name="register_label">Registro</string>
-    <string name="level_label">Nivel</string>
     <string name="domain_label">Dominio</string>
     <string name="lemma_label">Lema</string>
     <string name="collocations_label">Combinaciones frecuentes</string>
     <string name="irregular_forms_label">Formas irregulares</string>
     <string name="confusable_with_label">No confundir con</string>
     <string name="warnings_label">Advertencias</string>
-    <string name="cloze_sentence_label">Completar la frase</string>
-    <string name="source_context_label">Contexto fuente</string>
-    <string name="generated_cards_label">Tarjetas derivadas</string>
-    <string name="quality_checks_label">Validaciones de calidad</string>
-    <string name="card_detail_tab_summary">Resumen</string>
-    <string name="card_detail_tab_examples">Ejemplos</string>
-    <string name="card_detail_tab_study">Estudio</string>
     <!-- Card Detail redesign — Phase 2.4 -->
     <string name="card_detail_header_label">Tarjeta</string>
     <string name="card_detail_examples_section_label">Ejemplos · %1$d</string>
@@ -243,36 +134,7 @@
     <string name="card_detail_footer_next_overdue">pendiente</string>
     <string name="card_detail_footer_next_days_one">próxima en 1 d.</string>
     <string name="card_detail_footer_next_days_other">próxima en %1$d d.</string>
-    <string name="preview_overview_note_label">Tipo de nota</string>
-    <string name="preview_overview_focus_label">Enfoque de aprendizaje</string>
-    <string name="preview_overview_cards_label">Cards derivadas</string>
-    <string name="preview_step_note_badge">Paso 1</string>
-    <string name="preview_step_note_title">Nota base</string>
-    <string name="preview_step_note_description">Aquí defines el significado principal y el contexto que va a sostener las cards.</string>
-    <string name="preview_step_example_badge">Paso 2</string>
-    <string name="preview_step_example_title">Ejemplo de uso</string>
-    <string name="preview_step_example_description">Este ejemplo le muestra al usuario cómo suena la expresión en una situación real.</string>
-    <string name="preview_step_cards_badge">Paso 3</string>
-    <string name="preview_step_cards_title">Cards de estudio</string>
-    <string name="preview_step_cards_description">Cada tarjeta entrena un ángulo distinto. Revisa qué verá el usuario y qué respuesta espera la app.</string>
-    <string name="preview_section_show">Mostrar detalle</string>
-    <string name="preview_section_hide">Ocultar detalle</string>
-    <string name="quality_check_passed">Cumple: %1$s</string>
-    <string name="quality_check_failed">No cumple: %1$s</string>
-    <string name="preview_not_saveable_title">Preview no guardable</string>
-    <string name="preview_warnings_title">Advertencias del preview</string>
-    <string name="preview_warnings_inline_summary">Revisa las advertencias marcadas dentro del preview antes de guardar.</string>
-    <string name="preview_warning_item_title">Advertencia</string>
-    <string name="prompt_label">Prompt</string>
-    <string name="expected_answer_label">Respuesta esperada</string>
-    <string name="hint_label">Pista</string>
-    <string name="generated_card_title">Tarjeta %1$d de %2$d</string>
-    <string name="card_issue_count">%1$d alertas</string>
-    <string name="card_ready_badge">Lista</string>
-    <string name="card_active_badge">Activa</string>
-    <string name="card_inactive_badge">Pausada</string>
     <string name="card_explanation_title">Qué practica esta tarjeta</string>
-    <string name="card_source_label">Se basa en</string>
     <string name="include_card_in_study_label">Usar en repaso</string>
     <string name="edit_card_action">Editar</string>
     <string name="regenerate_card_action">Regenerar tarjeta</string>
@@ -285,16 +147,11 @@
     <string name="card_hint_label">Ayuda opcional</string>
     <string name="card_hint_placeholder">Pista breve para orientar al usuario si hace falta</string>
     <string name="card_hint_supporting_text">Se muestra como apoyo; no es obligatorio.</string>
-    <string name="show_passed_checks">Ver %1$d validaciones completadas</string>
-    <string name="hide_passed_checks">Ocultar %1$d validaciones completadas</string>
     <string name="regenerate_why_useful">Regenerar por qué sirve</string>
     <string name="regenerate_usage_pattern">Regenerar patrón de uso</string>
     <string name="regenerate_common_mistake">Regenerar error común</string>
     <string name="example_sentence_label">Frase de ejemplo</string>
     <string name="example_translation_label">Traducción del ejemplo</string>
-    <string name="show_translation">Ver traducción</string>
-    <string name="hide_translation">Ocultar traducción</string>
-    <string name="categories_bottom_sheet_title">Categorías</string>
     <string name="validation_empty_user_text">Debes ingresar el texto que quieres aprender.</string>
     <string name="validation_word_input_contains_whitespace">El input parece contener varias palabras; quizá conviene tratarlo como frase.</string>
     <string name="validation_phrase_input_too_short">La frase parece demasiado corta; revisa si en realidad es una palabra.</string>
@@ -369,17 +226,11 @@
         <item quantity="one">Tienes %1$d tarjeta para repasar hoy.</item>
         <item quantity="other">Tienes %1$d tarjetas para repasar hoy.</item>
     </plurals>
-    <string name="card_detail_tab_study_pending_badge">%1$d</string>
 
     <!-- Notes -->
     <string name="notes_label">Notas</string>
 
     <!-- Settings Screen -->
-    <string name="settings_title">Ajustes</string>
-    <string name="backup_section_title">Backup</string>
-    <string name="backup_section_description">Exporta o restaura tus datos.</string>
-    <string name="backup_warning_title">Atención</string>
-    <string name="backup_warning_description">Restaurar un backup reemplaza TODOS los datos actuales. Esta acción no se puede deshacer.</string>
     <string name="export_data">Exportar datos</string>
     <string name="restore_backup">Restaurar desde backup</string>
     <string name="restore_confirm_title">¿Reemplazar todos los datos?</string>
@@ -396,11 +247,6 @@
     <string name="settings_footer_tagline">hecho con tinta y café</string>
     <string name="settings_footer_meta">hello · 2026</string>
     <string name="settings_content_description">Ajustes</string>
-    <string name="settings_export_success">Backup exportado correctamente</string>
-    <string name="settings_export_error">No se pudo exportar el backup</string>
-    <string name="settings_import_success">Backup restaurado correctamente</string>
-    <string name="settings_import_error_generic">No se pudo restaurar el backup</string>
-    <string name="settings_import_error_incompatible">Este backup fue creado con otra versión de la app. Actualiza la app e intenta de nuevo.</string>
     <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
 
     <string name="retry_action">Reintentar</string>
@@ -414,8 +260,6 @@
     <string name="edit_flashcard_phonetic_placeholder">Ej: /ˌserənˈdɪpɪti/</string>
     <string name="edit_flashcard_part_of_speech_placeholder">Ej: noun, verb</string>
     <string name="edit_flashcard_no_examples">No hay ejemplos</string>
-    <string name="edit_flashcard_add_example">Añadir ejemplo</string>
-    <string name="edit_flashcard_example_number">Ejemplo %1$d</string>
     <string name="edit_flashcard_remove_example">Eliminar ejemplo</string>
     <string name="delete_flashcard_title">Eliminar tarjeta</string>
     <string name="delete_flashcard_description">Se eliminará la tarjeta y sus datos. Puedes deshacer justo después.</string>
@@ -460,7 +304,6 @@
     <string name="onboarding_seed_deck_name">Primeras palabras</string>
 
     <!-- Empty-state concept lines -->
-    <string name="onboarding_deck_concept">Un mazo agrupa tarjetas de un mismo tema.</string>
     <string name="onboarding_srs_concept">Te mostramos cada tarjeta justo antes de que la olvides.</string>
 
     <!-- Capture -->
