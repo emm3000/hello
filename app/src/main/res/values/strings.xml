@@ -494,8 +494,14 @@
     <string name="capture_save">Guardar</string>
     <string name="capture_saved_message">Guardada. La estamos completando.</string>
     <string name="capture_retry">Reintentar</string>
-    <string name="capture_backlog_pending">%1$d completándose en segundo plano</string>
-    <string name="capture_backlog_failed">%1$d quedaron sin completar</string>
+    <plurals name="capture_backlog_pending">
+        <item quantity="one">%1$d se está completando en segundo plano</item>
+        <item quantity="other">%1$d se están completando en segundo plano</item>
+    </plurals>
+    <plurals name="capture_backlog_failed">
+        <item quantity="one">%1$d quedó sin completar</item>
+        <item quantity="other">%1$d quedaron sin completar</item>
+    </plurals>
     <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
     <string name="capture_error_empty">Escribe una palabra primero.</string>
     <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>

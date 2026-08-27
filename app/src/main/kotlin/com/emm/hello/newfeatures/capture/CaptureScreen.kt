@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -179,7 +180,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
         ) {
             if (state.pending > 0) {
                 Text(
-                    text = stringResource(R.string.capture_backlog_pending, state.pending),
+                    text = pluralStringResource(R.plurals.capture_backlog_pending, state.pending, state.pending),
                     style = MaterialTheme.typography.bodyMedium,
                     fontFamily = geist,
                     color = instrumentMuted,
@@ -193,7 +194,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.capture_backlog_failed, state.failed),
+                        text = pluralStringResource(R.plurals.capture_backlog_failed, state.failed, state.failed),
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = geist,
                         color = instrumentOnBg,

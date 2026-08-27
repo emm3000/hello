@@ -29,7 +29,7 @@ object FlashcardEnrichmentScheduler {
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             UNIQUE_WORK_PREFIX + flashcardId.value,
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request,
         )
     }
