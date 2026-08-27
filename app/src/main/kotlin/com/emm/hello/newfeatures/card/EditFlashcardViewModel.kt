@@ -6,7 +6,6 @@ import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
-import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
@@ -16,7 +15,6 @@ import kotlinx.coroutines.launch
 
 class EditFlashcardViewModel(
     private val flashcardId: String,
-    private val deckId: String,
     private val flashcardRepository: FlashcardRepository,
     private val updateFlashcardUseCase: UpdateFlashcardUseCase,
     private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
@@ -138,7 +136,6 @@ class EditFlashcardViewModel(
             updateFlashcardUseCase(
                 UpdateFlashcardInput(
                     flashcardId = flashcardId.toFlashcardId(),
-                    deckId = deckId.toDeckId(),
                     word = current.word,
                     meaning = current.meaning,
                     translation = current.translation,

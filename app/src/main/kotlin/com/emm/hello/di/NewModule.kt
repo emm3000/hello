@@ -22,7 +22,9 @@ import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.seed.SeedDataInitializer
 import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
+import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
+import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
@@ -170,6 +172,8 @@ fun Module.useCases() {
     factoryOf(::GetDecksUseCase)
     factoryOf(::GetFilteredDecksUseCase)
     factoryOf(::CreateFlashcardUseCase)
+    factoryOf(::CaptureFlashcardUseCase)
+    factoryOf(::EnrichCapturedFlashcardUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
     factoryOf(::ValidateFlashcardGenerationInputUseCase)
@@ -251,7 +255,6 @@ fun Module.viewModels() {
     viewModel {
         EditFlashcardViewModel(
             flashcardId = it.get(),
-            deckId = it.get(),
             flashcardRepository = get(),
             updateFlashcardUseCase = get(),
             softDeleteFlashcardUseCase = get(),

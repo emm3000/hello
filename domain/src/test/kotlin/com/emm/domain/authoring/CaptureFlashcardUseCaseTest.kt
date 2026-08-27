@@ -126,6 +126,8 @@ private class RecordingFlashcardRepository : FlashcardRepository {
     }
 
     override suspend fun update(input: UpdateFlashcardInput) = Unit
+
+    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L

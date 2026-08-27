@@ -1,6 +1,7 @@
 package com.emm.domain.deck
 
 import app.cash.turbine.test
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
@@ -191,6 +192,8 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
 
     override suspend fun update(input: UpdateFlashcardInput) = Unit
+
+    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L

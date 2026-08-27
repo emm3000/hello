@@ -117,7 +117,7 @@ private fun AppNavigation(hasSeenWelcome: Boolean) {
             entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<DeckDetailRoute> { key -> DeckDetailDestination(navigator, key.deckId) }
             entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId, key.deckId) }
-            entry<EditFlashcardRoute> { key -> EditFlashcardDestination(navigator, key.cardId, key.deckId) }
+            entry<EditFlashcardRoute> { key -> EditFlashcardDestination(navigator, key.cardId) }
             entry<SettingsRoute> { SettingsDestination(navigator) }
         }
     )

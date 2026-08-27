@@ -8,6 +8,7 @@ import com.emm.domain.deck.GetDeckDetailUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
@@ -299,6 +300,7 @@ class DeckDetailViewModelTest {
             flashcardId: FlashcardId,
         ) = Unit
         override suspend fun update(input: UpdateFlashcardInput) = Unit
+        override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) = Unit
         override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
         override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
         override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L

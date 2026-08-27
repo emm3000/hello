@@ -8,6 +8,7 @@ import com.emm.data.FlashcardWithExamples
 import com.emm.data.HelloDb
 import com.emm.data.localfirst.LocalFirstWrite
 import com.emm.domain.flashcard.CreateFlashcardInput
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
@@ -138,6 +139,17 @@ class DefaultFlashcardRepository(
 
             Unit
         }
+    }
+
+    override suspend fun updateEnrichmentStatus(
+        flashcardId: FlashcardId,
+        status: EnrichmentStatus,
+    ): Unit = withContext(ioDispatcher) {
+        dao.setEnrichmentStatus(
+            enrichmentStatus = status.name,
+            updatedAt = Instant.now().toEpochMilli(),
+            id = flashcardId.value,
+        )
     }
 
     override suspend fun countDueFlashcards(nowMillis: Long): Long = withContext(ioDispatcher) {

@@ -16,9 +16,9 @@ import org.koin.core.parameter.parametersOf
 data class EditFlashcardRoute(val cardId: String, val deckId: String) : NavKey
 
 @Composable
-fun EditFlashcardDestination(navigator: Navigator, cardId: String, deckId: String) {
+fun EditFlashcardDestination(navigator: Navigator, cardId: String) {
     val vm: EditFlashcardViewModel = koinViewModel(
-        parameters = { parametersOf(cardId, deckId) }
+        parameters = { parametersOf(cardId) }
     )
 
     val uiState by vm.state.collectAsStateWithLifecycle()

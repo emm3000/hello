@@ -227,6 +227,13 @@ SET word = :word,
 WHERE id = :id
   AND deletedAt IS NULL;
 
+setEnrichmentStatus:
+UPDATE Flashcard
+SET enrichmentStatus = :enrichmentStatus,
+    updatedAt = :updatedAt
+WHERE id = :id
+  AND deletedAt IS NULL;
+
 softDelete:
 UPDATE Flashcard
 SET deletedAt = :now

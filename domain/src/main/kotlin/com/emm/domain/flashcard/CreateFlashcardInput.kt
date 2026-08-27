@@ -35,7 +35,6 @@ data class CreateFlashcardInput(
 
 data class UpdateFlashcardInput(
     val flashcardId: FlashcardId,
-    val deckId: DeckId,
     val word: String,
     val meaning: String,
     val translation: String,
