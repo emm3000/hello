@@ -33,7 +33,8 @@ Global sources of truth still live at the root:
 
 These documents capture planning context, decisions, and delivery history. They are kept for traceability but never override `*_CURRENT.md` files or the code.
 
-- `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features.
+- `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phase 1 (Study session) in progress.
+- `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features; ordering now deferred to `RESTRUCTURE_PLAN.md`.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.
 - `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 complete; Sprint 2 (settings toggle, i18n) pending.
 - `privacy-policy.md` — Status: **Draft**. Minimal privacy policy covering local data, Firebase AI/Gemini, Crashlytics and Analytics. Pending public URL and Play Console Data Safety form.

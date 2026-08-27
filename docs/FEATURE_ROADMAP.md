@@ -4,17 +4,20 @@
 |---|---|
 | Status | Active |
 | Role | Short plan per pending feature. Each entry expands into an atomic doc like `STUDY_CURRENT.md` when prioritized. |
-| Source of Truth | Yes for priority and size of each item |
+| Source of Truth | Yes for the size and task breakdown of each item; ordering lives in `RESTRUCTURE_PLAN.md` |
 | Read this when | You're picking which feature to implement next |
-| Last verified against code | 2026-05-16 |
+| Last verified against code | 2026-08-26 |
 
 ## Recommended order
 
+Since 2026-08-26 the product is being restructured session-first — see `docs/RESTRUCTURE_PLAN.md`. Its phases take priority over this list.
+
+Still valid, in this order once the restructure allows:
+
 1. **Notifications Sprint 2** (settings toggle + time picker) — finishes the already-scaffolded feature.
-2. **Global flashcard search** — high utility, medium.
-3. **Stats history / heatmap** — engagement, medium (the live counters already ship).
-4. **Flashcard-level tags** — schema migration, large.
-5. **Cram mode (no-SRS)** — optional, medium.
+2. **Global flashcard search** — absorbed by restructure Phase 4 (Biblioteca); the task breakdown below still applies.
+
+Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats history / heatmap**, **Flashcard-level tags**, **Cram mode**. Their sections below are kept for sizing only.
 
 `F2` (device validation) and `S1-T7` (privacy URL) are on the user, not me.
 
