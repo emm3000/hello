@@ -124,6 +124,20 @@ class DefaultStudyStatsRepositoryTest {
     }
 
     @Test
+    fun `countCardsDueThisWeek excludes un-enriched cards`() = runTest {
+        val now = Instant.now().toEpochMilli()
+        val threeDays = 3L * 86400 * 1000
+        val deckId = "deck-a"
+        insertDeck(deckId)
+        insertFlashcard(flashcardId = "card-pending", deckId = deckId, enrichmentStatus = "PENDING")
+        insertFlashcard(flashcardId = "card-enriched", deckId = deckId, enrichmentStatus = "ENRICHED")
+        insertProjection(flashcardId = "card-pending", nextReviewAt = now + threeDays)
+        insertProjection(flashcardId = "card-enriched", nextReviewAt = now + threeDays)
+
+        assertEquals(1, subject.countCardsDueThisWeek())
+    }
+
+    @Test
     fun `countCardsDueThisWeek counts cards due in next 7 days`() = runTest {
         val now = Instant.now().toEpochMilli()
         val threeDays = 3L * 86400 * 1000

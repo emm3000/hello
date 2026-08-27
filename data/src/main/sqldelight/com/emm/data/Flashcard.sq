@@ -39,6 +39,13 @@ CREATE INDEX idx_Flashcard_deck_deleted ON Flashcard(deckId, deletedAt);
 CREATE INDEX idx_Flashcard_deleted ON Flashcard(deletedAt);
 CREATE INDEX idx_Flashcard_createdAt ON Flashcard(createdAt DESC);
 
+-- Every flashcard the SRS is allowed to schedule: alive and with a back face.
+-- The due queries select from here so neither predicate can be forgotten again.
+CREATE VIEW StudiableFlashcard AS
+SELECT * FROM Flashcard
+WHERE deletedAt IS NULL
+  AND enrichmentStatus = 'ENRICHED';
+
 create:
 INSERT OR REPLACE INTO Flashcard (
     id,
@@ -138,7 +145,7 @@ SELECT f.*,
     fe.text AS exampleText,
     fe.translation AS exampleTranslation,
     rp.*
-FROM Flashcard f
+FROM StudiableFlashcard f
 LEFT JOIN FlashcardExample fe
   ON fe.id = (
       SELECT e.id FROM FlashcardExample e
@@ -148,8 +155,6 @@ LEFT JOIN FlashcardExample fe
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId
-  AND f.deletedAt IS NULL
-  AND f.enrichmentStatus = 'ENRICHED'
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 -- All-decks variant of flashcardsToReviewByDeck: same projection, no deckId filter.
@@ -160,7 +165,7 @@ SELECT f.*,
     fe.text AS exampleText,
     fe.translation AS exampleTranslation,
     rp.*
-FROM Flashcard f
+FROM StudiableFlashcard f
 LEFT JOIN FlashcardExample fe
   ON fe.id = (
       SELECT e.id FROM FlashcardExample e
@@ -169,9 +174,7 @@ LEFT JOIN FlashcardExample fe
   )
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
-WHERE f.deletedAt IS NULL
-  AND f.enrichmentStatus = 'ENRICHED'
-  AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
+WHERE (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 -- Note: f.* and rp.* both expose `updatedAt`; SQLDelight disambiguates the ReviewProjection
 -- one as `updatedAt_` in the generated row class. No mapper reads it, so the collision is inert.
@@ -194,12 +197,10 @@ WHERE f.deckId = :deckId
 
 countDueFlashcards:
 SELECT COUNT(*)
-FROM Flashcard f
+FROM StudiableFlashcard f
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
-WHERE f.deletedAt IS NULL
-  AND f.enrichmentStatus = 'ENRICHED'
-  AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
+WHERE rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now;
 
 update:
 UPDATE Flashcard

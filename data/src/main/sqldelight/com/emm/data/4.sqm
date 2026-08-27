@@ -1,0 +1,12 @@
+-- Migration 4 → 5 (file 4.sqm): Add the StudiableFlashcard view.
+--
+-- Design rules:
+--   • Pure addition: no table, column or row is touched, and no behaviour changes.
+--   • The view holds the two predicates every due query was repeating by hand
+--     (alive, and enriched). Selecting from it is what makes the missing-filter
+--     bug fixed in 56a9491 impossible to reintroduce.
+
+CREATE VIEW StudiableFlashcard AS
+SELECT * FROM Flashcard
+WHERE deletedAt IS NULL
+  AND enrichmentStatus = 'ENRICHED';

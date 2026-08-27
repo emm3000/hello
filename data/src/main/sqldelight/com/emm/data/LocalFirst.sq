@@ -176,22 +176,18 @@ WHERE reviewedAt >= :startMillis AND reviewedAt < :endMillis;
 -- LEFT JOIN includes never-reviewed cards (no ReviewProjection row): NULL nextReviewAt means due now.
 -- Excludes soft-deleted flashcards.
 countCardsDueBy:
-SELECT COUNT(*) FROM Flashcard f
+SELECT COUNT(*) FROM StudiableFlashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deletedAt IS NULL
-  AND f.enrichmentStatus = 'ENRICHED'
-  AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :nowMillis);
+WHERE rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :nowMillis;
 
 -- Count flashcards due within a future window [nowMillis, endMillis).
 -- NULL nextReviewAt (never reviewed) means the card is overdue, not scheduled in the future window,
 -- so the NULL branch is intentionally excluded here. Only explicitly scheduled future cards count.
 -- Excludes soft-deleted flashcards.
 countCardsDueInRange:
-SELECT COUNT(*) FROM Flashcard f
+SELECT COUNT(*) FROM StudiableFlashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
-WHERE f.deletedAt IS NULL
-  AND f.enrichmentStatus = 'ENRICHED'
-  AND rp.nextReviewAt >= :nowMillis AND rp.nextReviewAt < :endMillis;
+WHERE rp.nextReviewAt >= :nowMillis AND rp.nextReviewAt < :endMillis;
 
 -- Return distinct review dates (as epoch millis at start-of-day) in descending order.
 -- Each row is the start-of-day in millis for a day that has at least one review.
