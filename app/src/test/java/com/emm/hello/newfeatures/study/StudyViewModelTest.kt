@@ -3,7 +3,6 @@ package com.emm.hello.newfeatures.study
 import app.cash.turbine.test
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
-import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
@@ -305,9 +304,7 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -326,9 +323,7 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -359,9 +354,7 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
 
@@ -380,9 +373,7 @@ class StudyViewModelTest {
             studySessionRepository = repo,
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
-            clock = fixedClock,
             onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
@@ -487,9 +478,7 @@ class StudyViewModelTest {
         studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
         flashcardReviewRepository = reviewRepo,
-        clock = fixedClock,
         onboardingState = onboardingRepo,
-        fsrsParameters = FsrsParameters.DEFAULT,
     )
 
     private fun studyFlashcard(

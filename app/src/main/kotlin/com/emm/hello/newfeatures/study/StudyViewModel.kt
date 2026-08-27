@@ -3,15 +3,12 @@ package com.emm.hello.newfeatures.study
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
-import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.onboarding.OnboardingStateRepository
-import com.emm.domain.study.PreviewNextInterval
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
-import com.emm.domain.time.Clock
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -22,9 +19,7 @@ class StudyViewModel(
     private val studySessionRepository: StudySessionRepository,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
-    private val clock: Clock,
     private val onboardingState: OnboardingStateRepository,
-    private val fsrsParameters: FsrsParameters = FsrsParameters.DEFAULT,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -68,10 +63,7 @@ class StudyViewModel(
 
     private fun showNextCard() {
         val nextItem = studyItemsForToday.removeFirstOrNull()
-        val previews = nextItem
-            ?.let { PreviewNextInterval.previewAll(it.review, clock, fsrsParameters) }
-            ?: emptyMap()
-        setState { copy(currentItem = nextItem, intervalPreviews = previews) }
+        setState { copy(currentItem = nextItem) }
         // The session is over once the last card has been graded, i.e. there is nothing left to
         // show. An empty session never "finishes": it renders the empty state instead.
         val state = currentState

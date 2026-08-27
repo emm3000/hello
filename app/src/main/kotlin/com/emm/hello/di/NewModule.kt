@@ -228,9 +228,7 @@ fun Module.viewModels() {
             studySessionRepository = get(),
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),
-            clock = get(),
             onboardingState = get(),
-            fsrsParameters = get(),
         )
     }
     viewModel {

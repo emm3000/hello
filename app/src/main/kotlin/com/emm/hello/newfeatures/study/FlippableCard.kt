@@ -37,7 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
-import com.emm.hello.core.theme.semanticColors
+import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.instrumentSurface2
 import kotlin.math.abs
 
 private const val CARD_FLIP_DURATION_MS = 420
@@ -48,7 +49,6 @@ private const val GRADIENT_TRANSITION_DURATION_MS = 500
 private const val BACK_FACE_TINT_BLEND_FRACTION = 0.15f
 private const val BACK_FACE_TRANSITION_DURATION_MS = 400
 private const val SWIPE_SHORT_THRESHOLD_FRACTION = 0.25f
-private const val SWIPE_LONG_THRESHOLD_FRACTION = 0.5f
 private const val SWIPE_OVERLAY_MAX_ALPHA = 0.55f
 private const val SWIPE_OVERLAY_ALPHA_GAIN = 1.4f
 
@@ -59,7 +59,6 @@ fun FlippableCard(
     onClick: (CardFace) -> Unit,
     progress: Float = 0f,
     gradeEnabled: Boolean = false,
-    enabledGrades: Set<ReviewGrade> = ReviewGrade.entries.toSet(),
     onGradeSwipe: (ReviewGrade) -> Unit = {},
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit,
@@ -102,11 +101,11 @@ fun FlippableCard(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
             )
-            .pointerInput(canSwipe, enabledGrades) {
+            .pointerInput(canSwipe) {
                 if (!canSwipe) return@pointerInput
                 detectHorizontalDragGestures(
                     onDragEnd = {
-                        val grade = computeSwipeGrade(rawDragOffset, widthPx, enabledGrades)
+                        val grade = computeSwipeGrade(rawDragOffset, widthPx.toFloat())
                         rawDragOffset = 0f
                         if (grade != null) onGradeSwipe(grade)
                     },
@@ -145,7 +144,6 @@ fun FlippableCard(
                         DragGradeOverlay(
                             dragOffsetPx = animatedOffset,
                             widthPx = widthPx,
-                            enabledGrades = enabledGrades,
                         )
                     }
                 }
@@ -158,13 +156,12 @@ fun FlippableCard(
 private fun BoxScope.DragGradeOverlay(
     dragOffsetPx: Float,
     widthPx: Int,
-    enabledGrades: Set<ReviewGrade>,
 ) {
     if (widthPx <= 0) return
     val fraction = (dragOffsetPx / widthPx).coerceIn(-1f, 1f)
     val absFraction = abs(fraction)
     if (absFraction < SWIPE_SHORT_THRESHOLD_FRACTION) return
-    val grade = computeSwipeGrade(dragOffsetPx, widthPx, enabledGrades) ?: return
+    val grade = computeSwipeGrade(dragOffsetPx, widthPx.toFloat()) ?: return
     val tokens = swipeOverlayTokens(grade)
     val alpha = (absFraction * SWIPE_OVERLAY_ALPHA_GAIN).coerceAtMost(SWIPE_OVERLAY_MAX_ALPHA)
     Box(
@@ -190,33 +187,23 @@ private data class SwipeOverlayTokens(
 
 @Composable
 private fun swipeOverlayTokens(grade: ReviewGrade): SwipeOverlayTokens {
-    val cs = MaterialTheme.colorScheme
-    val warning = MaterialTheme.semanticColors.warning
-    return when (grade) {
-        ReviewGrade.AGAIN -> SwipeOverlayTokens(cs.errorContainer, cs.onErrorContainer, R.string.grade_again)
-        ReviewGrade.HARD -> SwipeOverlayTokens(warning.container, warning.content, R.string.grade_hard)
-        ReviewGrade.GOOD -> SwipeOverlayTokens(cs.primaryContainer, cs.onPrimaryContainer, R.string.grade_good)
-        ReviewGrade.EASY -> SwipeOverlayTokens(cs.secondaryContainer, cs.onSecondaryContainer, R.string.grade_easy)
+    val container = instrumentSurface2
+    val content = instrumentPrimary
+    return if (grade == ReviewGrade.AGAIN) {
+        SwipeOverlayTokens(container, content, R.string.study_grade_forgot)
+    } else {
+        SwipeOverlayTokens(container, content, R.string.study_grade_knew)
     }
 }
 
-private fun computeSwipeGrade(
+internal fun computeSwipeGrade(
     dragOffsetPx: Float,
-    widthPx: Int,
-    enabledGrades: Set<ReviewGrade>,
+    widthPx: Float,
 ): ReviewGrade? {
-    if (widthPx <= 0) return null
+    if (widthPx <= 0f) return null
     val fraction = dragOffsetPx / widthPx
-    val absFraction = abs(fraction)
-    if (absFraction < SWIPE_SHORT_THRESHOLD_FRACTION) return null
-
-    val candidate = when {
-        fraction <= -SWIPE_LONG_THRESHOLD_FRACTION -> ReviewGrade.AGAIN
-        fraction < 0f -> ReviewGrade.HARD
-        fraction >= SWIPE_LONG_THRESHOLD_FRACTION -> ReviewGrade.EASY
-        else -> ReviewGrade.GOOD
-    }
-    return candidate.takeIf { it in enabledGrades }
+    if (abs(fraction) < SWIPE_SHORT_THRESHOLD_FRACTION) return null
+    return if (fraction < 0) ReviewGrade.AGAIN else ReviewGrade.GOOD
 }
 
 @Composable
