@@ -39,7 +39,7 @@ Study session: 1 flashcard = 1 visible review = 1 grade. Two grade buttons (`AGA
 | 0 — Plan | This document, roadmap re-pointed | ✅ Done | — |
 | 1 — Study session | Single review per flashcard, no `Start` stage, binary grading with long-press easy, example + part of speech on the card back | ✅ Done | `64cfe69`, `d93a1dc`, `9be2a1b`, `d3adb9c`, `b94bee8` |
 | 2 — Capture | Single-field capture, background AI enrichment worker, mode selector removed | ⏳ Pending | — |
-| 3 — Hoy | Session-first home replacing Dashboard; unify the three duplicated due-count queries | ⏳ Pending | — |
+| 3 — Hoy | Session-first home replacing Dashboard | ⏳ Pending | — |
 | 4 — Biblioteca | All-cards list with content search; absorbs Deck Detail; decks as optional filter | ⏳ Pending | — |
 | 5 — Cleanup | Dead code (mode screen, deck tags), docs resync, roadmap close | ⏳ Pending | — |
 
@@ -54,6 +54,33 @@ Work units, each green on `./gradlew detekt testDebugUnitTest :domain:test` befo
 Deliberately unchanged: `ReviewGrade` keeps four values (FSRS rating is ordinal-based); `GeneratedStudyCard`s keep being generated and stored, the session ignores them until Phase 2 decides.
 
 Shipped: unit 1 as `64cfe69`, unit 2 as `d93a1dc` + `9be2a1b`, unit 3 as `d3adb9c` + `b94bee8`. `HARD` is now unreachable from the dock — it survives only as an FSRS ordinal and in backup import. `PreviewNextInterval` went with unit 2 and no longer exists.
+
+## Schema cleanup (out of phase)
+
+Run on 2026-08-27, between Phase 2 units 2 and 3, after an audit of the schema.
+
+- `a673aad` `refactor(data)` — `LocalAccountState`, `OperationLog`, `SyncCheckpoint` and
+  `AppliedRemoteOperation` dropped in migration `3.sqm`. Four tables, five indexes and
+  eighteen queries backing a remote-sync path that was never activated; every one had zero
+  Kotlin references. `LocalDeviceIdentity` stays: it backs the install identity and its
+  `lamportCounter` is serialized into the backup envelope.
+- `391fc07` `refactor(data)` — the `StudiableFlashcard` view (`4.sqm`) owns the two
+  predicates that decide whether a card may be scheduled, alive and enriched. The five due
+  queries select from it instead of repeating them. This is the structural fix for the
+  class of bug `56a9491` had to correct by hand. No Kotlin file changed: SQLDelight
+  generates the same result types.
+- `c308af8` `fix(export)` — backup import wrote `enrichmentStatus` straight from the JSON.
+  The read path maps an unknown value to `ENRICHED` while the SQL compares the raw string,
+  so a typo'd backup produced a card that looked complete in the library and never appeared
+  in a session. Import now writes the decoded enum name.
+
+Deliberately not done: `CHECK` constraints on the enum-shaped `TEXT` columns. SQLite has no
+`ALTER TABLE ADD CONSTRAINT`, so each one costs a full table rebuild, and the only untrusted
+writer was the import path that `c308af8` already closed. The dead SM-2 columns on
+`ReviewProjection` and the duplicated `grade` / `rating` pair on `ReviewEvent` are the same
+trade and wait for FSRS to settle. Renaming `LocalFirst.sq`, which now holds only device
+identity and review scheduling, would rename the generated `localFirstQueries` across
+thirteen files; it waits for Phase 5.
 
 ## Phase 2 — Capture
 
