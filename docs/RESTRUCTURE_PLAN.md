@@ -55,6 +55,43 @@ Deliberately unchanged: `ReviewGrade` keeps four values (FSRS rating is ordinal-
 
 Shipped: unit 1 as `64cfe69`, unit 2 as `d93a1dc` + `9be2a1b`, unit 3 as `d3adb9c` + `b94bee8`. `HARD` is now unreachable from the dock — it survives only as an FSRS ordinal and in backup import. `PreviewNextInterval` went with unit 2 and no longer exists.
 
+## Phase 2 — Capture
+
+Today `CreateFlashcardUseCase` is the only creation path in `:domain`, and it opens with
+`validateGeneratedLearningNoteUseCase(learningNote).requireValid()`. There is no way to
+create a flashcard from a bare word — `DefaultSeedDataInitializer` only manages it by
+calling `FlashcardRepository.create` directly and skipping the use case. So "save now,
+enrich later" is a second creation path in the domain before it is a screen.
+
+Decision taken up front: **a card that has not been enriched is not due.** All three due
+queries filter it out, so FSRS never receives a grade for a card whose back face is empty.
+The cost is that a card whose enrichment failed would silently vanish from the product, so
+Capturar must surface the pending and failed count with a retry. That is part of unit 3,
+not a follow-up.
+
+Work units, each green on `./gradlew detekt testDebugUnitTest :domain:test` before commit:
+
+1. `feat(domain)` — `EnrichmentStatus` (`PENDING` / `ENRICHED` / `FAILED`) joins `Flashcard`.
+   `CaptureFlashcardUseCase(deckId, word)` creates a minimal card as `PENDING`, enforcing
+   the same in-deck uniqueness the generated path enforces. `CreateFlashcardUseCase` keeps
+   its contract and produces `ENRICHED`. Tests first, and each one must fail before the
+   change.
+2. `feat(data)` — the `enrichmentStatus` column and its migration. `countDueFlashcards`,
+   `flashcardsToReviewByDeck` and `flashcardsToReviewAllDecks` all gain the filter.
+   `FlashcardEnrichmentWorker` takes a `flashcardId`, calls
+   `FlashcardGenerationRepository.generateLearningNote`, applies the note and flips the
+   status; a quota `Exceeded` or a throw leaves `FAILED` and schedules a retry.
+3. `feat(capture)` — the Capturar screen. One field, type or dictate, save. It becomes the
+   `HFab` destination and shows the pending / failed count with a retry affordance.
+4. `refactor(card)` — the wizard stops being the capture path. `NewCardModeScreen` and
+   `TypeView` are deleted. The input, review and preview editors survive untouched: they
+   are the advanced AI editor that Phase 4 moves behind Biblioteca, reachable from a card
+   rather than from the FAB.
+
+Deliberately unchanged: `GeneratedLearningNote` and its validation policies, the preview
+and regeneration components, and the 50/day quota. Phase 2 adds a second entrance; it does
+not rewrite the generated path.
+
 ## Deferred (was in `FEATURE_ROADMAP.md`)
 
 - Stats history / heatmap — vanity metric for a single-user app; revisit after Phase 3.
