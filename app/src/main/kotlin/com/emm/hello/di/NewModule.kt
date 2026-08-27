@@ -91,7 +91,6 @@ import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
-import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
@@ -255,16 +254,6 @@ fun Module.viewModels() {
             studySessionRepository = get(),
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),
-        )
-    }
-    viewModel {
-        DeckDetailViewModel(
-            deckId = it.get(),
-            getDeckDetailUseCase = get(),
-            observeFlashcardsWithReviewUseCase = get(),
-            softDeleteDeckUseCase = get(),
-            restoreFlashcardUseCase = get(),
-            undoEventHolder = get(),
         )
     }
     viewModel {

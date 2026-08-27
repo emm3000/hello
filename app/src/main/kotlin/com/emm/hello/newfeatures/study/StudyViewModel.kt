@@ -23,7 +23,7 @@ class StudyViewModel(
 ) {
 
     // Null target == study all cards due today across decks (global Dashboard CTA).
-    // Non-null == single deck (per-deck DeckDetail CTA). See StudyRoute.ALL_DUE_DECKS.
+    // Non-null == single deck. See StudyRoute.ALL_DUE_DECKS.
     private val deckId: String? = deckId.takeUnless { it == StudyRoute.ALL_DUE_DECKS }
 
     // One entry per due flashcard. Each entry is graded exactly once and persisted on the spot.

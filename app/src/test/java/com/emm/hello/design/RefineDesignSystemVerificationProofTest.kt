@@ -39,7 +39,7 @@ class RefineDesignSystemVerificationProofTest {
     @Test
     fun `initial rollout boundary holds`() {
         // Post Ember redesign: StudyScreen is still the explicit boundary — the promoted components
-        // must not leak into it. NewCardInputStepScreen and DeckDetailScreen no longer consume
+        // must not leak into it. NewCardInputStepScreen no longer consumes
         // HSectionBlock either (Phase 2 redesigned both with bespoke layouts).
         val studySource = read("app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt")
         assertThat(studySource).doesNotContain("HSectionBlock(")

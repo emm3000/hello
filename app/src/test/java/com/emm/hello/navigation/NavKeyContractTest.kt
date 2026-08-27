@@ -5,7 +5,7 @@ import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.card.EditFlashcardRoute
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.dashboard.DashboardRoute
-import com.emm.hello.newfeatures.deck.DeckDetailRoute
+import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyRoute
@@ -23,7 +23,7 @@ class NavKeyContractTest {
             StudyRoute("test"),
             NewCardRoute,
             NewDeckRoute(),
-            DeckDetailRoute("test"),
+            DecksRoute,
             CardDetailRoute("test", "deck-test"),
             EditFlashcardRoute("test", "deck-test"),
             SettingsRoute,
@@ -40,7 +40,7 @@ class NavKeyContractTest {
     @Test
     fun `parameterized routes preserve args`() {
         val study = StudyRoute("deck-123")
-        val deck = DeckDetailRoute("deck-456")
+        val deck = DecksRoute
         val card = CardDetailRoute("card-789", "deck-789")
         val editFlashcard = EditFlashcardRoute("card-789", "deck-789")
 

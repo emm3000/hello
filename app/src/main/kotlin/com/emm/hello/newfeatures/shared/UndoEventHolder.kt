@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.asSharedFlow
  * - Buffer guarantees the event is not dropped even if the landing ViewModel is
  *   alive in the backstack but its collector has not yet resumed after navigation.
  * - No replay (replay = 0) means a screen that re-enters later (e.g. back to
- *   dashboard a second time) does NOT see the stale event again — consume-once
+ *   the deck list a second time) does NOT see the stale event again — consume-once
  *   semantics come for free.
- * - DashboardViewModel and DeckDetailViewModel collect in init{} with viewModelScope,
+ * - DecksViewModel collects in init{} with viewModelScope,
  *   which survives on the Nav3 backstack, so the event is always caught.
  */
 class UndoEventHolder {
