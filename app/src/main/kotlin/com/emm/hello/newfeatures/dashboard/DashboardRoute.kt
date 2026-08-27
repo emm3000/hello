@@ -13,7 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.R
 import com.emm.hello.navigation.Navigator
-import com.emm.hello.newfeatures.card.NewCardRoute
+import com.emm.hello.newfeatures.capture.CaptureRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
@@ -59,7 +59,7 @@ fun DashboardDestination(navigator: Navigator) {
     DashboardScreen(
         state = uiState,
         snackbarHostState = snackbarHostState,
-        newCard = { navigator.navigateTo(NewCardRoute) },
+        newCard = { navigator.navigateTo(CaptureRoute) },
         onStudy = { vm.onIntent(StudyClicked) },
         onDeckDetail = { navigator.navigateTo(DeckDetailRoute(it)) },
         onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },

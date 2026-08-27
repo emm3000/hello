@@ -82,6 +82,7 @@ import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
+import com.emm.hello.newfeatures.capture.CaptureViewModel
 import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
@@ -267,6 +268,7 @@ fun Module.viewModels() {
             softDeleteFlashcardUseCase = get(),
         )
     }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }

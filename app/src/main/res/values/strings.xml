@@ -485,4 +485,20 @@
     <string name="onboarding_deck_concept">Un mazo agrupa tarjetas de un mismo tema.</string>
     <string name="onboarding_srs_concept">Te mostramos cada tarjeta justo antes de que la olvides.</string>
 
+    <!-- Capture -->
+    <string name="capture_title">Capturar</string>
+    <string name="capture_headline">¿Qué palabra aprendiste?</string>
+    <string name="capture_placeholder">Escribe o dicta una palabra</string>
+    <string name="capture_target_deck">Se guarda en %1$s</string>
+    <string name="capture_mic_content_description">Dictar la palabra</string>
+    <string name="capture_save">Guardar</string>
+    <string name="capture_saved_message">Guardada. La estamos completando.</string>
+    <string name="capture_retry">Reintentar</string>
+    <string name="capture_backlog_pending">%1$d completándose en segundo plano</string>
+    <string name="capture_backlog_failed">%1$d quedaron sin completar</string>
+    <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
+    <string name="capture_error_empty">Escribe una palabra primero.</string>
+    <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
+    <string name="capture_error_retry">No pudimos reintentar ahora.</string>
+
 </resources>
