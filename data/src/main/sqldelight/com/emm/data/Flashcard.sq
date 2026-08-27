@@ -195,6 +195,25 @@ LEFT JOIN ReviewProjection rp
 WHERE f.deckId = :deckId
   AND f.deletedAt IS NULL;
 
+countsByEnrichmentStatus:
+SELECT
+    COUNT(CASE WHEN enrichmentStatus = 'PENDING' THEN 1 END) AS pending,
+    COUNT(CASE WHEN enrichmentStatus = 'FAILED' THEN 1 END) AS failed
+FROM Flashcard
+WHERE deletedAt IS NULL;
+
+findIdsByEnrichmentStatus:
+SELECT id FROM Flashcard
+WHERE deletedAt IS NULL
+  AND enrichmentStatus = :enrichmentStatus
+ORDER BY createdAt;
+
+markPendingEnrichment:
+UPDATE Flashcard
+SET enrichmentStatus = 'PENDING',
+    updatedAt = :updatedAt
+WHERE id IN :ids;
+
 countDueFlashcards:
 SELECT COUNT(*)
 FROM StudiableFlashcard f

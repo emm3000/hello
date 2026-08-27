@@ -11,6 +11,7 @@ import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
 import com.emm.data.flashcard.DefaultFlashcardGenerationRepository
+import com.emm.data.flashcard.DefaultFlashcardEnrichmentRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
@@ -25,6 +26,7 @@ import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
+import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
@@ -41,6 +43,7 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
 import com.emm.domain.flashcard.FlashcardGenerationDisambiguationPolicy
 import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
+import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
@@ -125,6 +128,9 @@ fun Module.repository() {
     single<FlashcardRepository> {
         DefaultFlashcardRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
     }
+    single<FlashcardEnrichmentRepository> {
+        DefaultFlashcardEnrichmentRepository(db = get(), ioDispatcher = Dispatchers.IO)
+    }
     single<StudySessionRepository> {
         DefaultStudySessionRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
     }
@@ -174,6 +180,7 @@ fun Module.useCases() {
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::CaptureFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
+    factoryOf(::RetryFailedEnrichmentsUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
     factoryOf(::ValidateFlashcardGenerationInputUseCase)
