@@ -238,7 +238,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { DashboardViewModel(get()) }
-    viewModel { LibraryViewModel(get(), get()) }
+    viewModel { LibraryViewModel(get(), get(), get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
     viewModel {
         NewCardViewModel(

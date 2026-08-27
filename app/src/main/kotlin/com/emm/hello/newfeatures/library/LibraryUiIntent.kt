@@ -10,4 +10,5 @@ sealed interface LibraryUiIntent : MviIntent {
     data object FiltersCleared : LibraryUiIntent
     data class CardOpened(val card: LibraryFlashcard) : LibraryUiIntent
     data object CaptureRequested : LibraryUiIntent
+    data class UndoDeleteCard(val flashcardId: String, val deletedAt: Long) : LibraryUiIntent
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
@@ -54,79 +57,89 @@ import java.time.LocalDateTime
 fun LibraryScreen(
     modifier: Modifier = Modifier,
     state: LibraryUiState = LibraryUiState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onBack: () -> Unit = {},
     onIntent: (LibraryUiIntent) -> Unit = {},
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-    ) {
-        HTopBar(
-            onBack = onBack,
-            title = stringResource(R.string.library_title),
-            actions = { CardCounter(count = state.cards.size) },
-        )
-
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Spacer(Modifier.height(6.dp))
-            HSearchBar(
-                value = state.query,
-                onValueChange = { value -> onIntent(LibraryUiIntent.QueryChanged(value)) },
-                placeholder = stringResource(R.string.library_search_placeholder),
-                clearContentDescription = stringResource(R.string.library_search_clear_content_description),
-                leadingIconContentDescription = stringResource(R.string.library_search_icon_content_description),
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding(),
+        ) {
+            HTopBar(
+                onBack = onBack,
+                title = stringResource(R.string.library_title),
+                actions = { CardCounter(count = state.cards.size) },
             )
 
-            if (state.decks.size > 1) {
-                Spacer(Modifier.height(12.dp))
-                DeckFilterRow(
-                    decks = state.decks,
-                    selectedDeckId = state.selectedDeckId,
-                    onDeckToggled = { deckId -> onIntent(LibraryUiIntent.DeckFilterToggled(deckId)) },
-                    onClear = { onIntent(LibraryUiIntent.FiltersCleared) },
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Spacer(Modifier.height(6.dp))
+                HSearchBar(
+                    value = state.query,
+                    onValueChange = { value -> onIntent(LibraryUiIntent.QueryChanged(value)) },
+                    placeholder = stringResource(R.string.library_search_placeholder),
+                    clearContentDescription = stringResource(R.string.library_search_clear_content_description),
+                    leadingIconContentDescription = stringResource(R.string.library_search_icon_content_description),
+                )
+
+                if (state.decks.size > 1) {
+                    Spacer(Modifier.height(12.dp))
+                    DeckFilterRow(
+                        decks = state.decks,
+                        selectedDeckId = state.selectedDeckId,
+                        onDeckToggled = { deckId -> onIntent(LibraryUiIntent.DeckFilterToggled(deckId)) },
+                        onClear = { onIntent(LibraryUiIntent.FiltersCleared) },
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            when {
+                state.isLoading -> LoadingContent(modifier = Modifier.weight(1f))
+
+                state.isLibraryEmpty -> HEmptyState(
+                    modifier = Modifier.weight(1f),
+                    headline = stringResource(R.string.library_empty_headline),
+                    accentWord = stringResource(R.string.library_empty_accent_word),
+                    body = stringResource(R.string.library_empty_body),
+                    primaryCta = {
+                        HButton(
+                            text = stringResource(R.string.library_empty_cta),
+                            onClick = { onIntent(LibraryUiIntent.CaptureRequested) },
+                            variant = HButtonVariant.Accent,
+                        )
+                    },
+                )
+
+                state.hasNoResults -> HEmptyState(
+                    modifier = Modifier.weight(1f),
+                    headline = stringResource(R.string.library_no_results_headline),
+                    body = stringResource(R.string.library_no_results_body),
+                    ghostCta = {
+                        HButton(
+                            text = stringResource(R.string.library_no_results_cta),
+                            onClick = { onIntent(LibraryUiIntent.FiltersCleared) },
+                            variant = HButtonVariant.Ghost,
+                        )
+                    },
+                )
+
+                else -> CardList(
+                    modifier = Modifier.weight(1f),
+                    cards = state.cards,
+                    showDeckName = state.selectedDeckId == null,
+                    onCardClick = { card -> onIntent(LibraryUiIntent.CardOpened(card)) },
                 )
             }
-            Spacer(Modifier.height(16.dp))
         }
 
-        when {
-            state.isLoading -> LoadingContent(modifier = Modifier.weight(1f))
-
-            state.isLibraryEmpty -> HEmptyState(
-                modifier = Modifier.weight(1f),
-                headline = stringResource(R.string.library_empty_headline),
-                accentWord = stringResource(R.string.library_empty_accent_word),
-                body = stringResource(R.string.library_empty_body),
-                primaryCta = {
-                    HButton(
-                        text = stringResource(R.string.library_empty_cta),
-                        onClick = { onIntent(LibraryUiIntent.CaptureRequested) },
-                        variant = HButtonVariant.Accent,
-                    )
-                },
-            )
-
-            state.hasNoResults -> HEmptyState(
-                modifier = Modifier.weight(1f),
-                headline = stringResource(R.string.library_no_results_headline),
-                body = stringResource(R.string.library_no_results_body),
-                ghostCta = {
-                    HButton(
-                        text = stringResource(R.string.library_no_results_cta),
-                        onClick = { onIntent(LibraryUiIntent.FiltersCleared) },
-                        variant = HButtonVariant.Ghost,
-                    )
-                },
-            )
-
-            else -> CardList(
-                modifier = Modifier.weight(1f),
-                cards = state.cards,
-                showDeckName = state.selectedDeckId == null,
-                onCardClick = { card -> onIntent(LibraryUiIntent.CardOpened(card)) },
-            )
-        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+        )
     }
 }
 
