@@ -31,7 +31,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
@@ -52,9 +54,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -638,20 +644,11 @@ private fun FlashcardBack(item: StudySessionItem) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = stringResource(R.string.study_grade_answer_label_recognition),
-            fontFamily = geistMono,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.5.sp,
-            letterSpacing = 0.12.em,
-            color = instrumentMuted,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(12.dp))
         Text(
             text = item.translation,
             fontFamily = instrumentSerif,
@@ -662,25 +659,52 @@ private fun FlashcardBack(item: StudySessionItem) {
             textAlign = TextAlign.Center,
             color = instrumentOnBg,
         )
-        if (item.phonetic.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
+        if (item.example.isNotBlank()) {
+            Spacer(Modifier.height(20.dp))
             Text(
-                text = item.phonetic,
+                text = highlightWordInExample(item.example, item.word),
+                fontFamily = geist,
+                fontWeight = FontWeight.Normal,
+                fontSize = 17.sp,
+                lineHeight = 24.sp,
+                color = instrumentOnBg,
+                textAlign = TextAlign.Center,
+            )
+            if (item.exampleTranslation.isNotBlank()) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = item.exampleTranslation,
+                    fontFamily = geist,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = instrumentMuted,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+        val referenceLine: String = listOf(item.phonetic, item.partOfSpeech)
+            .filter(String::isNotBlank)
+            .joinToString(" · ")
+        if (referenceLine.isNotBlank()) {
+            Text(
+                text = referenceLine,
                 fontFamily = geistMono,
-                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal,
+                fontSize = 11.sp,
+                letterSpacing = 0.08.em,
                 color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
         }
         if (item.meaning.isNotBlank()) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
             Text(
                 text = item.meaning,
-                fontFamily = instrumentSerif,
-                fontStyle = FontStyle.Italic,
+                fontFamily = geist,
                 fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
                 color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
@@ -709,6 +733,22 @@ private fun FlashcardBack(item: StudySessionItem) {
                 textAlign = TextAlign.Center,
             )
         }
+    }
+}
+
+private fun highlightWordInExample(example: String, word: String): AnnotatedString {
+    val matchStart: Int = if (word.isBlank()) -1 else example.indexOf(word, ignoreCase = true)
+    return buildAnnotatedString {
+        if (matchStart < 0) {
+            append(example)
+            return@buildAnnotatedString
+        }
+        val matchEnd: Int = matchStart + word.length
+        append(example.substring(0, matchStart))
+        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+            append(example.substring(matchStart, matchEnd))
+        }
+        append(example.substring(matchEnd))
     }
 }
 

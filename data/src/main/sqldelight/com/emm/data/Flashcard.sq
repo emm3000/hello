@@ -114,9 +114,27 @@ LEFT JOIN ReviewProjection rp
 WHERE f.id = :flashcardId
   AND f.deletedAt IS NULL;
 
+-- exampleText/exampleTranslation come from a LEFT JOIN against the single earliest
+-- non-deleted FlashcardExample row (tie-broken by id), matched by id so both columns are
+-- guaranteed to come from the SAME example row. This is a 1:1 match by construction (fe.id is
+-- a primary key), so it cannot fan out into duplicate session rows the way joining directly
+-- against FlashcardExample would. A plain correlated-subquery-per-column was tried first, but
+-- SQLDelight infers a subquery's nullability from its source column and does not detect that a
+-- zero-row match makes the whole subquery NULL, so it generated non-null String fields that
+-- crashed with NPE on cards without an example. The LEFT JOIN form is inferred correctly,
+-- matching how rp.* is already nullable below.
 flashcardsToReviewByDeck:
-SELECT f.*, rp.*
+SELECT f.*,
+    fe.text AS exampleText,
+    fe.translation AS exampleTranslation,
+    rp.*
 FROM Flashcard f
+LEFT JOIN FlashcardExample fe
+  ON fe.id = (
+      SELECT e.id FROM FlashcardExample e
+      WHERE e.flashcardId = f.id AND e.deletedAt IS NULL
+      ORDER BY e.createdAt, e.id LIMIT 1
+  )
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId
@@ -127,8 +145,17 @@ WHERE f.deckId = :deckId
 -- Backs the global "study everything due today" session (Dashboard "Estudiar ahora").
 -- LEFT JOIN includes never-reviewed cards (no ReviewProjection row): NULL nextReviewAt means due now.
 flashcardsToReviewAllDecks:
-SELECT f.*, rp.*
+SELECT f.*,
+    fe.text AS exampleText,
+    fe.translation AS exampleTranslation,
+    rp.*
 FROM Flashcard f
+LEFT JOIN FlashcardExample fe
+  ON fe.id = (
+      SELECT e.id FROM FlashcardExample e
+      WHERE e.flashcardId = f.id AND e.deletedAt IS NULL
+      ORDER BY e.createdAt, e.id LIMIT 1
+  )
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deletedAt IS NULL
@@ -137,8 +164,17 @@ WHERE f.deletedAt IS NULL
 -- Note: f.* and rp.* both expose `updatedAt`; SQLDelight disambiguates the ReviewProjection
 -- one as `updatedAt_` in the generated row class. No mapper reads it, so the collision is inert.
 flashcardsWithReview:
-SELECT f.*, rp.*
+SELECT f.*,
+    fe.text AS exampleText,
+    fe.translation AS exampleTranslation,
+    rp.*
 FROM Flashcard f
+LEFT JOIN FlashcardExample fe
+  ON fe.id = (
+      SELECT e.id FROM FlashcardExample e
+      WHERE e.flashcardId = f.id AND e.deletedAt IS NULL
+      ORDER BY e.createdAt, e.id LIMIT 1
+  )
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId

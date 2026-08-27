@@ -16,4 +16,7 @@ data class StudyFlashcard(
     val whyUseful: String = "",
     val sourceContext: String = "",
     val irregularForms: List<String> = emptyList(),
+    val partOfSpeech: String = "",
+    val example: String = "",
+    val exampleTranslation: String = "",
 )

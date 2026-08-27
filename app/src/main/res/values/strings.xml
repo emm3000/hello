@@ -367,7 +367,6 @@
     <string name="study_direction_en_to_es">INGLÉS → ESPAÑOL</string>
     <string name="study_recall_cta_reveal">Ver respuesta</string>
     <!-- Study Grade state -->
-    <string name="study_grade_answer_label_recognition">SIGNIFICADO</string>
     <string name="study_grade_swipe_hint">Desliza para calificar rápido</string>
     <string name="study_error_headline">No pudimos cargar tu sesión.</string>
     <string name="study_error_body">Hubo un problema al leer tus tarjetas. Vuelve a intentarlo.</string>

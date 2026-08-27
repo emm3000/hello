@@ -81,6 +81,60 @@ class FlashcardWithReviewMappingTest {
         assertEquals(0L, review.lapses)
     }
 
+    @Test
+    fun `flashcard with one example surfaces it on the study flashcard`() = runTest {
+        val deckId = insertDeck()
+        val cardId = insertFlashcard(deckId)
+        insertExample(
+            flashcardId = cardId,
+            text = "She showed great compassion.",
+            translation = "Ella mostró gran compasión.",
+            createdAt = 100L,
+        )
+
+        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
+
+        assertEquals(1, cards.size)
+        assertEquals("She showed great compassion.", cards.first().example)
+        assertEquals("Ella mostró gran compasión.", cards.first().exampleTranslation)
+    }
+
+    @Test
+    fun `two examples still yield one study flashcard, both fields from the earliest example`() = runTest {
+        val deckId = insertDeck()
+        val cardId = insertFlashcard(deckId)
+        insertExample(
+            flashcardId = cardId,
+            text = "Later example.",
+            translation = "Ejemplo posterior.",
+            createdAt = 200L,
+        )
+        insertExample(
+            flashcardId = cardId,
+            text = "Earlier example.",
+            translation = "Ejemplo anterior.",
+            createdAt = 100L,
+        )
+
+        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
+
+        assertEquals(1, cards.size)
+        assertEquals("Earlier example.", cards.first().example)
+        assertEquals("Ejemplo anterior.", cards.first().exampleTranslation)
+    }
+
+    @Test
+    fun `flashcard with no examples maps example fields to empty strings, not null`() = runTest {
+        val deckId = insertDeck()
+        insertFlashcard(deckId)
+
+        val cards = subject.flashcardWithReview(DeckId.from(deckId)).first()
+
+        assertEquals(1, cards.size)
+        assertEquals("", cards.first().example)
+        assertEquals("", cards.first().exampleTranslation)
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────────────
 
     private fun insertDeck(): String {
@@ -125,6 +179,26 @@ class FlashcardWithReviewMappingTest {
             qualityChecksJson = null,
             createdAt = 0L,
             updatedAt = 0L,
+            deletedAt = null,
+        )
+        return id
+    }
+
+    private fun insertExample(
+        flashcardId: String,
+        text: String,
+        translation: String,
+        createdAt: Long,
+    ): String {
+        val id = UUID.randomUUID().toString()
+        db.flashcardExampleQueries.insert(
+            id = id,
+            flashcardId = flashcardId,
+            text = text,
+            translation = translation,
+            type = "sentence",
+            createdAt = createdAt,
+            updatedAt = createdAt,
             deletedAt = null,
         )
         return id

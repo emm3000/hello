@@ -57,6 +57,9 @@ class StudySessionItemTest {
             whyUseful = "not rendered by the session",
             sourceContext = "not rendered by the session",
             irregularForms = listOf("went", "gone"),
+            partOfSpeech = "verb",
+            example = "I go to school every day.",
+            exampleTranslation = "Voy a la escuela todos los días.",
         )
 
         val item = flashcard.toStudySessionItem()
@@ -71,6 +74,9 @@ class StudySessionItemTest {
                 translation = "ir",
                 usagePattern = "go + to + place",
                 irregularForms = listOf("went", "gone"),
+                partOfSpeech = "verb",
+                example = "I go to school every day.",
+                exampleTranslation = "Voy a la escuela todos los días.",
             )
         )
     }

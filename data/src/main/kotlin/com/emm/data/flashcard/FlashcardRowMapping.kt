@@ -165,6 +165,9 @@ internal fun toStudyFlashcard(
         whyUseful = entity.whyUseful.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         irregularForms = decodeStringList(entity.irregularFormsJson, json),
+        partOfSpeech = entity.partOfSpeech.orEmpty(),
+        example = entity.exampleText.orEmpty(),
+        exampleTranslation = entity.exampleTranslation.orEmpty(),
     )
 }
 
@@ -185,6 +188,9 @@ internal fun toStudyFlashcard(
         whyUseful = entity.whyUseful.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         irregularForms = decodeStringList(entity.irregularFormsJson, json),
+        partOfSpeech = entity.partOfSpeech.orEmpty(),
+        example = entity.exampleText.orEmpty(),
+        exampleTranslation = entity.exampleTranslation.orEmpty(),
     )
 }
 
@@ -205,6 +211,9 @@ internal fun toStudyFlashcard(
         whyUseful = entity.whyUseful.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         irregularForms = decodeStringList(entity.irregularFormsJson, json),
+        partOfSpeech = entity.partOfSpeech.orEmpty(),
+        example = entity.exampleText.orEmpty(),
+        exampleTranslation = entity.exampleTranslation.orEmpty(),
     )
 }
 
