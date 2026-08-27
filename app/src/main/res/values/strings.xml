@@ -33,7 +33,10 @@
     <string name="hoy_fab_label">Nueva tarjeta</string>
 
     <!-- Decks Screen -->
-    <string name="cards_count">%1$s tarjetas</string>
+    <plurals name="cards_count">
+        <item quantity="one">%d tarjeta</item>
+        <item quantity="other">%d tarjetas</item>
+    </plurals>
 
     <!-- New Deck Screen -->
     <string name="deck_name_label">Nombre del mazo</string>
@@ -330,7 +333,10 @@
     <string name="library_search_placeholder">Buscar por palabra o significado</string>
     <string name="library_search_clear_content_description">Limpiar la búsqueda</string>
     <string name="library_search_icon_content_description">Buscar en la biblioteca</string>
-    <string name="library_card_counter">%1$d TARJETAS</string>
+    <plurals name="library_card_counter">
+        <item quantity="one">%d TARJETA</item>
+        <item quantity="other">%d TARJETAS</item>
+    </plurals>
     <string name="library_chip_all">Todos</string>
     <string name="library_status_pending">PENDIENTE</string>
     <string name="library_status_failed">FALLÓ</string>

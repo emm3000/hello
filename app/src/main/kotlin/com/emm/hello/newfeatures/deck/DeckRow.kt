@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -74,13 +74,14 @@ fun DeckRow(
 
 @Composable
 private fun DeckRowFooter(deck: Deck) {
+    val cardCount: Int = deck.cardsCount.toInt()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(
-            text = stringResource(R.string.cards_count, deck.cardsCount),
+            text = pluralStringResource(R.plurals.cards_count, cardCount, cardCount),
             fontFamily = geistMono,
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
