@@ -386,4 +386,32 @@ class ImportBackupDataSourceTest {
         assertEquals("card-1", projections[0].flashcardId)
         assertEquals(2000L, projections[0].nextReviewAt)
     }
+
+    @Test
+    fun `import normalizes an unknown enrichment status so the card stays studiable`() = runTest {
+        val backupJson = """
+            {
+              "schemaVersion": 2,
+              "exportedAt": 1234567890,
+              "decks": [
+                {"id": "deck-1", "name": "Deck", "description": null, "createdAt": 100, "updatedAt": 100, "deletedAt": null}
+              ],
+              "flashcards": [
+                {"id": "card-1", "deckId": "deck-1", "word": "borrow", "meaning": "to take and return", "translation": null, "phonetic": null, "partOfSpeech": null, "type": null, "note": null, "register": null, "levelBand": null, "domain": null, "lemma": null, "whyUseful": null, "usagePattern": null, "irregularFormsJson": null, "collocationsJson": null, "commonMistake": null, "confusableWithJson": null, "clozeSentence": null, "sourceContext": null, "warningsJson": null, "studyCardsJson": null, "qualityChecksJson": null, "enrichmentStatus": "enriched", "createdAt": 200, "updatedAt": 200, "deletedAt": null}
+              ],
+              "examples": [],
+              "tags": [],
+              "deckTags": [],
+              "reviewEvents": [],
+              "reviewProjections": []
+            }
+        """.trimIndent()
+
+        val importUri = Uri.parse("content://test/import.json")
+        provideInputStream(importUri, backupJson)
+
+        dataSource.import(importUri)
+
+        assertEquals(1L, db.flashcardQueries.countDueFlashcards(now = 1_000_000L).executeAsOne())
+    }
 }

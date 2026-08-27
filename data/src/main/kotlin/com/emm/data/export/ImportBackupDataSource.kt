@@ -3,6 +3,7 @@ package com.emm.data.export
 import android.content.ContentResolver
 import android.net.Uri
 import com.emm.data.HelloDb
+import com.emm.data.flashcard.toEnrichmentStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -108,7 +109,7 @@ class ImportBackupDataSource(
                 warningsJson = card.warningsJson,
                 studyCardsJson = card.studyCardsJson,
                 qualityChecksJson = card.qualityChecksJson,
-                enrichmentStatus = card.enrichmentStatus,
+                enrichmentStatus = toEnrichmentStatus(card.enrichmentStatus).name,
                 createdAt = card.createdAt,
                 updatedAt = card.updatedAt,
                 deletedAt = card.deletedAt,
