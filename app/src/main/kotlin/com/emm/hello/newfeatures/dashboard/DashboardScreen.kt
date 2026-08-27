@@ -1,7 +1,5 @@
 package com.emm.hello.newfeatures.dashboard
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,25 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,127 +30,67 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.emm.domain.deck.Deck
-import com.emm.domain.deck.Tag
-import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.NextDueBatch
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentAccent
 import com.emm.hello.core.theme.instrumentFaint
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
-import androidx.compose.ui.res.pluralStringResource
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
-import com.emm.hello.core.ui.HChip
-import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HFab
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
-import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSectionLabel
-import com.emm.hello.newfeatures.deck.DeckRow
-import java.time.LocalDateTime
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DashboardScreen — top-level entry point
-// ─────────────────────────────────────────────────────────────────────────────
+import java.time.Instant
 
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     state: DashboardUiState = DashboardUiState(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
-    newCard: () -> Unit = {},
+    onCapture: () -> Unit = {},
     onStudy: () -> Unit = {},
-    onDeckDetail: (String) -> Unit = {},
-    onCreateDeck: () -> Unit = {},
     onSettings: () -> Unit = {},
     onLibrary: () -> Unit = {},
     onVisible: () -> Unit = {},
-    onSearchQueryChanged: (String) -> Unit = {},
-    onTagToggled: (String) -> Unit = {},
-    onClearFilters: () -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
         onVisible()
     }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-            // Top row: wordmark + settings icon
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding(),
+        ) {
             WordmarkRow(onSettings = onSettings, onLibrary = onLibrary)
 
-            // Body: loading + three states
-            when {
-                state.isLoading && state.decks.isEmpty() -> {
-                    LoadingContent(modifier = Modifier.weight(1f))
-                }
-
-                state.emptyState == DashboardEmptyState.LibraryEmpty -> {
-                    EmptyLibraryContent(
-                        modifier = Modifier.weight(1f),
-                        onNewCard = newCard,
-                        onCreateDeck = onCreateDeck,
-                    )
-                }
-
-                state.emptyState == DashboardEmptyState.NoResults -> {
-                    NoResultsContent(
-                        modifier = Modifier.weight(1f),
-                        state = state,
-                        onSearchQueryChanged = onSearchQueryChanged,
-                        onTagToggled = onTagToggled,
-                        onClearFilters = onClearFilters,
-                        onNewCard = newCard,
-                    )
-                }
-
-                else -> {
-                    PopulatedContent(
-                        modifier = Modifier.weight(1f),
-                        state = state,
-                        onDeckDetail = onDeckDetail,
-                        onSearchQueryChanged = onSearchQueryChanged,
-                        onTagToggled = onTagToggled,
-                        onClearFilters = onClearFilters,
-                        onStudy = onStudy,
-                        onCapture = newCard,
-                    )
-                }
+            if (state.isLoading) {
+                LoadingContent(modifier = Modifier.weight(1f))
+            } else {
+                SessionContent(
+                    modifier = Modifier.weight(1f),
+                    state = state,
+                    onStudy = onStudy,
+                    onCapture = onCapture,
+                )
             }
         }
 
-        // FAB — always visible except LibraryEmpty (where CTA replaces it)
-        if (state.emptyState != DashboardEmptyState.LibraryEmpty) {
-            HFab(
-                onClick = newCard,
-                label = stringResource(R.string.dashboard_fab_label),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 24.dp),
-            )
-        }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
+        HFab(
+            onClick = onCapture,
+            label = stringResource(R.string.dashboard_fab_label),
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 88.dp),
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 24.dp),
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Top wordmark row
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun WordmarkRow(
@@ -170,7 +101,7 @@ private fun WordmarkRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 18.dp, end = 8.dp, top = 14.dp, bottom = 0.dp),
+            .padding(start = 18.dp, end = 8.dp, top = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -216,90 +147,40 @@ private fun WordmarkRow(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Populated state
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun PopulatedContent(
+private fun SessionContent(
     state: DashboardUiState,
-    onDeckDetail: (String) -> Unit,
-    onSearchQueryChanged: (String) -> Unit,
-    onTagToggled: (String) -> Unit,
-    onClearFilters: () -> Unit,
     onStudy: () -> Unit,
     onCapture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        item {
-            Spacer(Modifier.height(18.dp))
-            if (state.hasSessionReady) {
-                SessionCta(
-                    dueCount = state.cardsDueToday,
-                    estimatedMinutes = state.estimatedSessionMinutes,
-                    onStudy = onStudy,
-                )
-            } else {
-                RestingHero(nextDue = state.nextDue, onCapture = onCapture)
-            }
-            Spacer(Modifier.height(22.dp))
-        }
+        Spacer(Modifier.height(18.dp))
 
-        // Search bar
-        item {
-            HSearchBar(
-                value = state.searchQuery,
-                onValueChange = onSearchQueryChanged,
-                placeholder = stringResource(R.string.dashboard_search_placeholder),
-                clearContentDescription = stringResource(R.string.dashboard_search_clear_content_description),
-                leadingIconContentDescription = stringResource(R.string.dashboard_search_icon_content_description),
+        if (state.hasSessionReady) {
+            SessionCta(
+                dueCount = state.cardsDueToday,
+                estimatedMinutes = state.estimatedSessionMinutes,
+                onStudy = onStudy,
             )
-            Spacer(Modifier.height(14.dp))
+        } else {
+            RestingHero(nextDue = state.nextDue, onCapture = onCapture)
         }
 
-        // Tag chip row — horizontally scrollable
-        if (state.availableTags.isNotEmpty()) {
-            item {
-                TagChipRow(
-                    availableTags = state.availableTags,
-                    selectedTags = state.selectedTags,
-                    onTagToggled = onTagToggled,
-                    onClearTags = onClearFilters,
-                )
-                Spacer(Modifier.height(26.dp))
-            }
-        }
-
-        // Section label "Tus mazos" — no trailing action (domain has no per-deck due count)
-        item {
-            HSectionLabel(
-                label = stringResource(R.string.dashboard_section_your_decks),
-            )
-            Spacer(Modifier.height(10.dp))
-        }
-
-        // Deck rows
-        deckRows(state.decks, onDeckDetail)
-
-        // Metrics sit below the fold: they reward after the session instead of
-        // competing with the CTA. See docs/DESIGN_BRIEF.md, "Hoy — the hero is the action".
-        val stats = state.stats
+        val stats: DashboardStats? = state.stats
         if (stats != null) {
-            item {
-                Spacer(Modifier.height(28.dp))
-                HSectionLabel(label = stringResource(R.string.dashboard_section_progress))
-                Spacer(Modifier.height(10.dp))
-                DashboardStatsSection(stats = stats)
-            }
+            Spacer(Modifier.height(36.dp))
+            HSectionLabel(label = stringResource(R.string.dashboard_section_progress))
+            Spacer(Modifier.height(10.dp))
+            DashboardStatsSection(stats = stats)
         }
 
-        item { Spacer(Modifier.height(100.dp)) }
+        Spacer(Modifier.height(100.dp))
     }
 }
 
@@ -388,57 +269,6 @@ private fun nextDueLabel(nextDue: NextDueBatch?): String {
     }.uppercase()
 }
 
-private fun LazyListScope.deckRows(
-    decks: List<Deck>,
-    onDeckDetail: (String) -> Unit,
-) {
-    items(decks, key = { it.id.value }) { deck ->
-        DeckRow(deck = deck, onClick = { onDeckDetail(deck.id.value) })
-        Spacer(Modifier.height(10.dp))
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tag chip row — horizontal scroll
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun TagChipRow(
-    availableTags: List<String>,
-    selectedTags: Set<String>,
-    onTagToggled: (String) -> Unit,
-    onClearTags: (() -> Unit)? = null,
-) {
-    val scrollState = rememberScrollState()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // "todos" chip — active when no tags are selected
-        val todosActive = selectedTags.isEmpty()
-        HChip(
-            label = stringResource(R.string.dashboard_chip_all),
-            active = todosActive,
-            onClick = { if (!todosActive) onClearTags?.invoke() },
-        )
-        availableTags.forEach { tag ->
-            val isActive = selectedTags.contains(tag)
-            HChip(
-                label = tag,
-                active = isActive,
-                onClick = { onTagToggled(tag) },
-            )
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Loading state (cold start — stats not yet available)
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun LoadingContent(modifier: Modifier = Modifier) {
     Box(
@@ -449,271 +279,51 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Empty library state (no decks yet)
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun EmptyLibraryContent(
-    onNewCard: () -> Unit,
-    onCreateDeck: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val deckConceptLine = stringResource(R.string.onboarding_deck_concept)
-    val dashboardBody = stringResource(R.string.dashboard_empty_body)
-    HEmptyState(
-        modifier = modifier.fillMaxSize(),
-        headline = stringResource(R.string.dashboard_empty_headline),
-        accentWord = stringResource(R.string.dashboard_empty_headline_accent),
-        body = "$deckConceptLine\n\n$dashboardBody",
-        footnote = stringResource(R.string.dashboard_empty_footnote),
-        glyph = {
-            Image(
-                painter = painterResource(R.drawable.mascot_wave),
-                contentDescription = null,
-                modifier = Modifier.size(96.dp),
-            )
-        },
-        primaryCta = {
-            HButton(
-                text = stringResource(R.string.dashboard_empty_cta_primary),
-                onClick = onNewCard,
-                variant = HButtonVariant.Accent,
-                size = HButtonSize.Lg,
-                full = true,
-                icon = Icons.Outlined.AutoAwesome,
-            )
-        },
-        ghostCta = {
-            HButton(
-                text = stringResource(R.string.dashboard_empty_cta_ghost),
-                onClick = onCreateDeck,
-                variant = HButtonVariant.Ghost,
-                size = HButtonSize.Md,
-                full = true,
-            )
-        },
-    )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// No-results state (search returned 0)
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun NoResultsContent(
-    state: DashboardUiState,
-    onSearchQueryChanged: (String) -> Unit,
-    onTagToggled: (String) -> Unit,
-    onClearFilters: () -> Unit,
-    onNewCard: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        // Search bar (focused — it inherits focus styling from HSearchBar via state)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            HSearchBar(
-                value = state.searchQuery,
-                onValueChange = onSearchQueryChanged,
-                placeholder = stringResource(R.string.dashboard_search_placeholder),
-                clearContentDescription = stringResource(R.string.dashboard_search_clear_content_description),
-                leadingIconContentDescription = stringResource(R.string.dashboard_search_icon_content_description),
-            )
-
-            // Active filter chips
-            if (state.availableTags.isNotEmpty()) {
-                TagChipRow(
-                    availableTags = state.availableTags,
-                    selectedTags = state.selectedTags,
-                    onTagToggled = onTagToggled,
-                    onClearTags = onClearFilters,
-                )
-            }
-        }
-
-        // Centered editorial message
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                // Headline: Nada con "{query}".
-                val query = state.searchQuery
-                val headlineText = stringResource(R.string.dashboard_no_results_headline, "\"$query\"")
-                val accentSpan = "\"$query\""
-                Text(
-                    text = buildAnnotatedString {
-                        val before = headlineText.substringBefore(accentSpan)
-                        val after = headlineText.substringAfter(accentSpan)
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 36.sp,
-                                color = instrumentPrimary,
-                                letterSpacing = (-0.02).em,
-                            ),
-                        ) {
-                            append(before)
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 36.sp,
-                                color = instrumentAccent,
-                                letterSpacing = (-0.02).em,
-                            ),
-                        ) {
-                            append(accentSpan)
-                        }
-                        withStyle(
-                            SpanStyle(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 36.sp,
-                                color = instrumentPrimary,
-                                letterSpacing = (-0.02).em,
-                            ),
-                        ) {
-                            append(after)
-                        }
-                    },
-                    lineHeight = (36 * 1.1f).sp,
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                // Body — recovery hint
-                val activeTag = state.selectedTags.firstOrNull() ?: ""
-                Text(
-                    text = if (activeTag.isNotEmpty()) {
-                        stringResource(R.string.dashboard_no_results_body_with_tag, activeTag)
-                    } else {
-                        stringResource(R.string.dashboard_no_results_body)
-                    },
-                    fontFamily = geist,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.5.sp,
-                    lineHeight = (14.5f * 1.55f).sp,
-                    color = instrumentMuted,
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                // CTA: Crear con "{query}"
-                HButton(
-                    text = stringResource(R.string.dashboard_no_results_cta, "\"$query\""),
-                    onClick = onNewCard,
-                    variant = HButtonVariant.Accent,
-                    size = HButtonSize.Md,
-                )
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Previews
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Preview(showSystemUi = true)
+@Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
 private fun DashboardScreenPreview() {
     HelloTheme {
         DashboardScreen(
             state = DashboardUiState(
                 isLoading = false,
-                totalDeckCount = 3,
                 stats = DashboardStats(
-                    cardsStudiedToday = 0,
-                    cardsDueToday = 12,
-                    currentStreak = 3,
-                    cardsDueThisWeek = 24,
+                    cardsStudiedToday = 12,
+                    cardsDueToday = 8,
+                    currentStreak = 4,
+                    cardsDueThisWeek = 26,
                 ),
-                decks = listOf(
-                    Deck(
-                        id = "1".toDeckId(),
-                        name = "Trabajo & carrera",
-                        description = "palabras de oficina, reuniones, email",
-                        createdAt = LocalDateTime.now(),
-                        cards = listOf(),
-                        cardsCount = 38,
-                        tags = listOf(Tag("trabajo"), Tag("formal")),
-                    ),
-                    Deck(
-                        id = "2".toDeckId(),
-                        name = "Phrasal verbs",
-                        description = "los que se confunden todo el tiempo",
-                        createdAt = LocalDateTime.now(),
-                        cards = listOf(),
-                        cardsCount = 64,
-                        tags = listOf(Tag("gramática")),
-                    ),
-                    Deck(
-                        id = "3".toDeckId(),
-                        name = "Aeropuerto & viajes",
-                        description = "check-in, conexiones, equipaje",
-                        createdAt = LocalDateTime.now(),
-                        cards = listOf(),
-                        cardsCount = 18,
-                        tags = listOf(Tag("viaje")),
-                    ),
-                ),
-                availableTags = listOf("formal", "gramática", "trabajo", "viaje"),
             ),
         )
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Composable
+private fun DashboardScreenRestingPreview() {
+    HelloTheme {
+        DashboardScreen(
+            state = DashboardUiState(
+                isLoading = false,
+                stats = DashboardStats(
+                    cardsStudiedToday = 8,
+                    cardsDueToday = 0,
+                    currentStreak = 3,
+                    cardsDueThisWeek = 5,
+                    nextDue = NextDueBatch(
+                        at = Instant.parse("2026-08-28T09:00:00Z"),
+                        cardCount = 5,
+                        daysFromToday = 1,
+                    ),
+                ),
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
 private fun DashboardScreenLoadingPreview() {
     HelloTheme {
-        DashboardScreen(
-            state = DashboardUiState(
-                isLoading = true,
-                decks = emptyList(),
-            ),
-        )
-    }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun DashboardScreenEmptyPreview() {
-    HelloTheme {
-        DashboardScreen(
-            state = DashboardUiState(
-                isLoading = false,
-                decks = emptyList(),
-                emptyState = DashboardEmptyState.LibraryEmpty,
-            ),
-        )
-    }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun DashboardScreenNoResultsPreview() {
-    HelloTheme {
-        DashboardScreen(
-            state = DashboardUiState(
-                isLoading = false,
-                decks = emptyList(),
-                totalDeckCount = 3,
-                searchQuery = "negociar",
-                selectedTags = setOf("formal"),
-                availableTags = listOf("formal", "trabajo", "viaje"),
-                emptyState = DashboardEmptyState.NoResults,
-            ),
-        )
+        DashboardScreen(state = DashboardUiState(isLoading = true))
     }
 }

@@ -238,7 +238,7 @@ fun Module.viewModels() {
             formMode = params.get(),
         )
     }
-    viewModel { DashboardViewModel(get(), get(), get(), get(), get()) }
+    viewModel { DashboardViewModel(get()) }
     viewModel { LibraryViewModel(get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
     viewModel {
