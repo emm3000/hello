@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.SnackbarHost
@@ -84,6 +85,7 @@ fun DashboardScreen(
     onDeckDetail: (String) -> Unit = {},
     onCreateDeck: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onLibrary: () -> Unit = {},
     onVisible: () -> Unit = {},
     onSearchQueryChanged: (String) -> Unit = {},
     onTagToggled: (String) -> Unit = {},
@@ -98,7 +100,7 @@ fun DashboardScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             // Top row: wordmark + settings icon
-            WordmarkRow(onSettings = onSettings)
+            WordmarkRow(onSettings = onSettings, onLibrary = onLibrary)
 
             // Body: loading + three states
             when {
@@ -167,6 +169,7 @@ fun DashboardScreen(
 @Composable
 private fun WordmarkRow(
     onSettings: () -> Unit,
+    onLibrary: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -199,13 +202,22 @@ private fun WordmarkRow(
             },
         )
 
-        HIconButton(
-            icon = Icons.Default.Settings,
-            contentDescription = stringResource(R.string.settings_content_description),
-            onClick = onSettings,
-            tint = instrumentMuted,
-            iconSize = 20.dp,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            HIconButton(
+                icon = Icons.AutoMirrored.Filled.List,
+                contentDescription = stringResource(R.string.library_content_description),
+                onClick = onLibrary,
+                tint = instrumentMuted,
+                iconSize = 20.dp,
+            )
+            HIconButton(
+                icon = Icons.Default.Settings,
+                contentDescription = stringResource(R.string.settings_content_description),
+                onClick = onSettings,
+                tint = instrumentMuted,
+                iconSize = 20.dp,
+            )
+        }
     }
 }
 

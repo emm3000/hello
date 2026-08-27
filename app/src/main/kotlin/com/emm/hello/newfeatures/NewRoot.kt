@@ -42,6 +42,8 @@ import com.emm.hello.newfeatures.deck.DeckDetailDestination
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckDestination
 import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.library.LibraryDestination
+import com.emm.hello.newfeatures.library.LibraryRoute
 import com.emm.hello.newfeatures.onboarding.OnboardingDestination
 import com.emm.hello.newfeatures.onboarding.OnboardingRoute
 import com.emm.hello.newfeatures.settings.SettingsDestination
@@ -116,6 +118,7 @@ private fun AppNavigation(hasSeenWelcome: Boolean) {
             entry<DashboardRoute> { DashboardDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
+            entry<LibraryRoute> { LibraryDestination(navigator) }
             entry<NewCardRoute> { NewCardDestination(navigator) }
             entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<DeckDetailRoute> { key -> DeckDetailDestination(navigator, key.deckId) }

@@ -485,4 +485,20 @@
     <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
     <string name="capture_error_retry">No pudimos reintentar ahora.</string>
 
+    <string name="library_title">Biblioteca</string>
+    <string name="library_search_placeholder">Buscar por palabra o significado</string>
+    <string name="library_search_clear_content_description">Limpiar la búsqueda</string>
+    <string name="library_search_icon_content_description">Buscar en la biblioteca</string>
+    <string name="library_card_counter">%1$d TARJETAS</string>
+    <string name="library_chip_all">Todos</string>
+    <string name="library_status_pending">PENDIENTE</string>
+    <string name="library_status_failed">FALLÓ</string>
+    <string name="library_empty_headline">Todavía no tienes</string>
+    <string name="library_empty_accent_word">tarjetas.</string>
+    <string name="library_empty_body">Captura una palabra y aparecerá acá, lista para estudiar.</string>
+    <string name="library_empty_cta">Capturar una palabra</string>
+    <string name="library_no_results_headline">Sin resultados</string>
+    <string name="library_no_results_body">Ninguna tarjeta coincide con lo que buscas.</string>
+    <string name="library_no_results_cta">Limpiar filtros</string>
+    <string name="library_content_description">Abrir la biblioteca</string>
 </resources>

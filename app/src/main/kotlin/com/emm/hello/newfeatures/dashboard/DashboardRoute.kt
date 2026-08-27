@@ -16,6 +16,7 @@ import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.capture.CaptureRoute
 import com.emm.hello.newfeatures.deck.DeckDetailRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.library.LibraryRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ fun DashboardDestination(navigator: Navigator) {
         onDeckDetail = { navigator.navigateTo(DeckDetailRoute(it)) },
         onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
+        onLibrary = { navigator.navigateTo(LibraryRoute) },
         onVisible = { vm.onIntent(ScreenVisible) },
         onSearchQueryChanged = { vm.onIntent(QueryChanged(it)) },
         onTagToggled = { vm.onIntent(TagToggled(it)) },
