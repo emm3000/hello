@@ -2,7 +2,9 @@ package com.emm.domain.study
 
 import com.emm.domain.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 class GetDashboardStatsUseCase(
     private val repository: StudyStatsRepository,
@@ -23,6 +25,26 @@ class GetDashboardStatsUseCase(
             cardsDueToday = cardsDueToday,
             currentStreak = currentStreak,
             cardsDueThisWeek = cardsDueThisWeek,
+            nextDue = if (cardsDueToday > 0) null else findNextDue(now, zone),
+        )
+    }
+
+    private suspend fun findNextDue(now: Instant, zone: ZoneId): NextDueBatch? {
+        val nextReviewAtMillis: Long = repository.findNextReviewAtAfter(now.toEpochMilli()) ?: return null
+        val at: Instant = Instant.ofEpochMilli(nextReviewAtMillis)
+        val dueDate: LocalDate = at.atZone(zone).toLocalDate()
+        val endOfDueDate: Instant = dueDate.plusDays(1).atStartOfDay(zone).toInstant()
+
+        val cardCount: Int = repository.countCardsDueInRange(
+            startMillis = nextReviewAtMillis,
+            endMillis = endOfDueDate.toEpochMilli(),
+        )
+        if (cardCount <= 0) return null
+
+        return NextDueBatch(
+            at = at,
+            cardCount = cardCount,
+            daysFromToday = ChronoUnit.DAYS.between(now.atZone(zone).toLocalDate(), dueDate).toInt(),
         )
     }
 

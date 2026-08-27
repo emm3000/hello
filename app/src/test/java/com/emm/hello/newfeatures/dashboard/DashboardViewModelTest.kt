@@ -342,10 +342,14 @@ class DashboardViewModelTest {
         private val cardsDueToday: Int,
         private val cardsDueThisWeek: Int,
         private val reviewDates: List<Long>,
+        private val cardsDueInRange: Int = 0,
+        private val nextReviewAt: Long? = null,
     ) : StudyStatsRepository {
         override suspend fun countDistinctCardsStudiedToday(): Int = cardsStudiedToday
         override suspend fun countCardsDueToday(): Int = cardsDueToday
         override suspend fun countCardsDueThisWeek(): Int = cardsDueThisWeek
+        override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = cardsDueInRange
+        override suspend fun findNextReviewAtAfter(millis: Long): Long? = nextReviewAt
         override suspend fun findDistinctReviewDatesDescending(): List<Long> = reviewDates
     }
 }

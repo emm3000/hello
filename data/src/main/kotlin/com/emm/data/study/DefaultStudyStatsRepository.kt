@@ -42,6 +42,20 @@ class DefaultStudyStatsRepository(
         ).executeAsOne().toInt()
     }
 
+    override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int =
+        withContext(Dispatchers.IO) {
+            localFirstQueries.countCardsDueInRange(
+                nowMillis = startMillis,
+                endMillis = endMillis,
+            ).executeAsOne().toInt()
+        }
+
+    override suspend fun findNextReviewAtAfter(millis: Long): Long? = withContext(Dispatchers.IO) {
+        localFirstQueries.nextReviewAtAfter(nowMillis = millis)
+            .executeAsOne()
+            .MIN
+    }
+
     override suspend fun findDistinctReviewDatesDescending(): List<Long> = withContext(Dispatchers.IO) {
         localFirstQueries.distinctReviewDatesDescending()
             .executeAsList()

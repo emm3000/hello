@@ -189,6 +189,15 @@ SELECT COUNT(*) FROM StudiableFlashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE rp.nextReviewAt >= :nowMillis AND rp.nextReviewAt < :endMillis;
 
+-- Earliest future review timestamp, for the resting Hoy state ("what comes next").
+-- NULL nextReviewAt is excluded on purpose: those cards are already due, so they belong to
+-- countCardsDueBy, not to the future. Returns NULL when nothing is scheduled ahead.
+-- Excludes soft-deleted and unenriched flashcards via StudiableFlashcard.
+nextReviewAtAfter:
+SELECT MIN(rp.nextReviewAt) FROM StudiableFlashcard f
+JOIN ReviewProjection rp ON f.id = rp.flashcardId
+WHERE rp.nextReviewAt > :nowMillis;
+
 -- Return distinct review dates (as epoch millis at start-of-day) in descending order.
 -- Each row is the start-of-day in millis for a day that has at least one review.
 distinctReviewDatesDescending:
