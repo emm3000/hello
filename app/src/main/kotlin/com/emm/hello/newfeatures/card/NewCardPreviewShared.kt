@@ -40,11 +40,11 @@ import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.AlertVariant
@@ -113,12 +113,12 @@ internal fun ReviewBlockIconButton(
     enabled: Boolean = true,
     accent: Boolean = false,
 ) {
-    val tint = if (!enabled) emberMuted else if (accent) emberAccent else emberOnBg
-    val border = if (accent) emberAccent else emberDivider
+    val tint = if (!enabled) instrumentMuted else if (accent) instrumentAccent else instrumentOnBg
+    val border = if (accent) instrumentAccent else instrumentDivider
     Box(
         modifier = Modifier
             .size(36.dp)
-            .background(emberSurface, RoundedCornerShape(10.dp))
+            .background(instrumentSurface, RoundedCornerShape(10.dp))
             .border(1.dp, border, RoundedCornerShape(10.dp))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -135,7 +135,7 @@ internal fun ReviewBlockIconButton(
 /**
  * Per-section block matching the designer's "ReviewBlock" pattern: small mono label row
  * with edit/regen icons on the right, body either italic-serif read-only or inline [HInput]
- * editor. Body color shifts to [emberAccent] when [warn] is true.
+ * editor. Body color shifts to [instrumentAccent] when [warn] is true.
  */
 @Composable
 internal fun ReviewBlock(
@@ -167,7 +167,7 @@ internal fun ReviewBlock(
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = if (warn) emberAccent else emberMuted,
+                color = if (warn) instrumentAccent else instrumentMuted,
                 modifier = Modifier.weight(1f),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -209,9 +209,9 @@ internal fun ReviewBlock(
                 fontSize = 18.sp,
                 lineHeight = 26.sp,
                 color = when {
-                    value.isBlank() -> emberMuted
-                    warn -> emberAccent
-                    else -> emberOnBg
+                    value.isBlank() -> instrumentMuted
+                    warn -> instrumentAccent
+                    else -> instrumentOnBg
                 },
             )
             if (errorMessage != null) {
@@ -220,7 +220,7 @@ internal fun ReviewBlock(
                     fontFamily = geistMono,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
-                    color = emberAccent,
+                    color = instrumentAccent,
                 )
             } else if (supportingText != null) {
                 Text(
@@ -228,7 +228,7 @@ internal fun ReviewBlock(
                     fontFamily = geistMono,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
             }
         }

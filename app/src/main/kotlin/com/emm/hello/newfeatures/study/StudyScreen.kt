@@ -73,16 +73,16 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBad
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface
-import com.emm.hello.core.theme.emberWarn
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBad
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.instrumentWarn
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -181,7 +181,7 @@ fun StudyScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(
             modifier = Modifier
@@ -203,7 +203,7 @@ fun StudyScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .navigationBarsPadding(),
-                color = emberBg,
+                color = instrumentBg,
             ) {
                 Column(
                     modifier = Modifier
@@ -281,7 +281,7 @@ private fun SessionFinishedDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            color = emberElev,
+            color = instrumentElev,
             shape = RoundedCornerShape(20.dp),
         ) {
             Column(
@@ -304,7 +304,7 @@ private fun SessionFinishedDialog(
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.12.em,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
@@ -314,7 +314,7 @@ private fun SessionFinishedDialog(
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
                     letterSpacing = (-0.5).sp,
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -323,13 +323,13 @@ private fun SessionFinishedDialog(
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 20.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
                 Spacer(Modifier.height(20.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(emberSurface, RoundedCornerShape(12.dp))
+                        .background(instrumentSurface, RoundedCornerShape(12.dp))
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -338,7 +338,7 @@ private fun SessionFinishedDialog(
                         fontFamily = geistMono,
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
-                        color = emberAccent,
+                        color = instrumentAccent,
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
@@ -347,7 +347,7 @@ private fun SessionFinishedDialog(
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
-                        color = emberMuted,
+                        color = instrumentMuted,
                     )
                 }
                 Spacer(Modifier.height(24.dp))
@@ -457,7 +457,7 @@ private fun StudyCardStage(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
@@ -489,7 +489,7 @@ private fun TtsFloatingButton(
         contentDescription = description,
         onClick = { if (isSpeaking) onStop() else onSpeak() },
         modifier = modifier,
-        tint = emberOnBg,
+        tint = instrumentOnBg,
         enabled = audioState.ttsReady,
     )
 }
@@ -568,7 +568,7 @@ private fun StudyActionDock(
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.12.em,
-                        color = emberFaint,
+                        color = instrumentFaint,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -602,7 +602,7 @@ private fun StudyLoadingState() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(color = emberAccent)
+        HLoadingSpinner(color = instrumentAccent)
     }
 }
 
@@ -633,7 +633,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
                 fontSize = recallPromptFontSize,
                 lineHeight = recallPromptLineHeight,
                 letterSpacing = (-0.5).sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
                 textAlign = TextAlign.Center,
             )
             if (phonetic.isNotBlank()) {
@@ -642,7 +642,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
                     fontFamily = geistMono,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -665,7 +665,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(12.dp))
@@ -677,7 +677,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             lineHeight = gradeAnswerLineHeight,
             letterSpacing = (-0.5).sp,
             textAlign = TextAlign.Center,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         if (item.phonetic.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
@@ -685,7 +685,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 text = item.phonetic,
                 fontFamily = geistMono,
                 fontSize = 13.sp,
-                color = emberMuted,
+                color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -698,7 +698,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                color = emberMuted,
+                color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -710,7 +710,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
-                color = emberMuted,
+                color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -722,7 +722,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 18.sp,
-                color = emberMuted,
+                color = instrumentMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -791,10 +791,10 @@ private fun GradeChip(
     val accent = gradeAccentColor(grade)
     val labelRes = gradeLabelRes(grade)
     val shape = RoundedCornerShape(14.dp)
-    val borderColor = if (enabled) emberDivider else emberDivider
-    val containerColor = if (enabled) emberSurface else Color.Transparent
-    val labelColor = if (enabled) accent else emberFaint
-    val intervalColor = if (enabled) emberMuted else emberFaint
+    val borderColor = if (enabled) instrumentDivider else instrumentDivider
+    val containerColor = if (enabled) instrumentSurface else Color.Transparent
+    val labelColor = if (enabled) accent else instrumentFaint
+    val intervalColor = if (enabled) instrumentMuted else instrumentFaint
     val cornerRadius = 14.dp
     val chipModifier = modifier
         .heightIn(min = gradeChipMinHeight)
@@ -840,10 +840,10 @@ private fun GradeChip(
 
 @Composable
 private fun gradeAccentColor(grade: ReviewGrade): Color = when (grade) {
-    ReviewGrade.AGAIN -> emberBad
-    ReviewGrade.HARD -> emberWarn
-    ReviewGrade.GOOD -> emberOnBg
-    ReviewGrade.EASY -> emberAccent
+    ReviewGrade.AGAIN -> instrumentBad
+    ReviewGrade.HARD -> instrumentWarn
+    ReviewGrade.GOOD -> instrumentOnBg
+    ReviewGrade.EASY -> instrumentAccent
 }
 
 private fun gradeLabelRes(grade: ReviewGrade): Int = when (grade) {
@@ -942,28 +942,28 @@ private fun GradeHintCard(
                     fontWeight = FontWeight.Medium,
                     fontSize = 10.5.sp,
                     letterSpacing = 0.12.em,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
                 Spacer(Modifier.height(4.dp))
                 GradeHintRow(
                     label = stringResource(R.string.grade_again),
                     effect = stringResource(R.string.study_grade_hint_again_effect),
-                    color = emberBad,
+                    color = instrumentBad,
                 )
                 GradeHintRow(
                     label = stringResource(R.string.grade_hard),
                     effect = stringResource(R.string.study_grade_hint_hard_effect),
-                    color = emberWarn,
+                    color = instrumentWarn,
                 )
                 GradeHintRow(
                     label = stringResource(R.string.grade_good),
                     effect = stringResource(R.string.study_grade_hint_good_effect),
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                 )
                 GradeHintRow(
                     label = stringResource(R.string.grade_easy),
                     effect = stringResource(R.string.study_grade_hint_easy_effect),
-                    color = emberAccent,
+                    color = instrumentAccent,
                 )
             }
             Text(
@@ -971,7 +971,7 @@ private fun GradeHintCard(
                 fontFamily = geist,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
-                color = emberMuted,
+                color = instrumentMuted,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .clickable(onClick = onDismiss)
@@ -1003,14 +1003,14 @@ private fun GradeHintRow(
             fontFamily = geist,
             fontWeight = FontWeight.Normal,
             fontSize = 12.5.sp,
-            color = emberFaint,
+            color = instrumentFaint,
         )
         Text(
             text = effect,
             fontFamily = geist,
             fontWeight = FontWeight.Normal,
             fontSize = 12.5.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }

@@ -37,12 +37,12 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface2
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface2
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.HButton
@@ -63,7 +63,7 @@ fun OnboardingScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(
             modifier = Modifier
@@ -158,7 +158,7 @@ private fun OnboardingPageContent(
         Text(
             text = stringResource(page.titleRes),
             style = MaterialTheme.typography.headlineMedium.copy(fontFamily = instrumentSerif),
-            color = emberOnBg,
+            color = instrumentOnBg,
             textAlign = TextAlign.Center,
         )
 
@@ -167,7 +167,7 @@ private fun OnboardingPageContent(
         Text(
             text = stringResource(page.bodyRes),
             style = MaterialTheme.typography.bodyMedium.copy(fontFamily = geist),
-            color = emberMuted,
+            color = instrumentMuted,
             textAlign = TextAlign.Center,
         )
     }
@@ -186,7 +186,7 @@ private fun OnboardingIllustrationArt(
         modifier = modifier
             .size(illustrationSize)
             .clip(CircleShape)
-            .background(emberSurface2),
+            .background(instrumentSurface2),
         contentAlignment = Alignment.Center,
     ) {
         Image(
@@ -224,7 +224,7 @@ private fun PageDotIndicator(
                 modifier = Modifier
                     .size(width = width, height = dotSize)
                     .clip(CircleShape)
-                    .background(if (isActive) emberAccent else emberFaint),
+                    .background(if (isActive) instrumentAccent else instrumentFaint),
             )
         }
     }

@@ -13,10 +13,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentPrimary
 
 /**
  * Single entry of an [HDropdownMenu]. Destructive entries render their label
@@ -32,7 +32,7 @@ data class HMenuItem(
 
 /**
  * Overflow / context dropdown menu retokened to Ember, mirroring [HSelect]'s
- * popup styling (emberElev container, bodyMedium item text, emberMuted icons).
+ * popup styling (instrumentElev container, bodyMedium item text, instrumentMuted icons).
  *
  * The caller owns the [expanded] state and supplies the [items]; selecting an
  * item invokes its [HMenuItem.onClick]. Dismissal does not auto-fire callbacks,
@@ -47,7 +47,7 @@ fun HDropdownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        containerColor = emberElev,
+        containerColor = instrumentElev,
     ) {
         items.forEach { item ->
             DropdownMenuItem(
@@ -55,7 +55,7 @@ fun HDropdownMenu(
                     Text(
                         text = item.label,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (item.isDestructive) emberAccent else emberPrimary,
+                        color = if (item.isDestructive) instrumentAccent else instrumentPrimary,
                     )
                 },
                 onClick = item.onClick,
@@ -64,7 +64,7 @@ fun HDropdownMenu(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = emberMuted,
+                            tint = instrumentMuted,
                         )
                     }
                 },

@@ -14,7 +14,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberSemanticColors
+import com.emm.hello.core.theme.instrumentSemanticColors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
@@ -27,7 +27,7 @@ class RefineDesignSystemRuntimeProofTest {
 
     @Test
     fun stat_card_consumes_shared_theme_foundations() {
-        val expectedContainer = emberSemanticColors().success.container
+        val expectedContainer = instrumentSemanticColors().success.container
 
         composeRule.setContent {
             HelloTheme(darkTheme = false) {

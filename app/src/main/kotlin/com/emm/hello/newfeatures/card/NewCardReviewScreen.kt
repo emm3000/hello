@@ -19,9 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
@@ -47,7 +47,7 @@ fun NewCardReviewScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             HWizTop(
@@ -153,7 +153,7 @@ private fun ReviewEmptyState() {
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Text(
             text = stringResource(R.string.review_empty_description),
@@ -162,7 +162,7 @@ private fun ReviewEmptyState() {
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }

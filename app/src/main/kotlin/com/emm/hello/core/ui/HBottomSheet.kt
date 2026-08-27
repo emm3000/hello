@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberElev
+import com.emm.hello.core.theme.instrumentElev
 
 /**
- * Ember-styled modal bottom sheet. Defaults to [emberElev] container, no drag
+ * Ember-styled modal bottom sheet. Defaults to [instrumentElev] container, no drag
  * handle — matching the app's existing bottom sheet look.
  *
  * @param onDismissRequest called when the sheet should be dismissed.
@@ -33,7 +33,7 @@ fun HBottomSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
-    containerColor: Color = emberElev,
+    containerColor: Color = instrumentElev,
     shape: Shape = BottomSheetDefaults.ExpandedShape,
     dragHandle: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,

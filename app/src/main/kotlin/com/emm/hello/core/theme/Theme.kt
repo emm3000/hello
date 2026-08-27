@@ -13,57 +13,57 @@ import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
  */
 
 private val darkScheme = darkColorScheme(
-    semanticColors = emberSemanticColors(),
+    semanticColors = instrumentSemanticColors(),
 )
 
 private fun darkColorScheme(
     @Suppress("UNUSED_PARAMETER") semanticColors: HelloSemanticColors,
 ) = materialDarkColorScheme(
     // ── Ember Dark tokens wired to Material 3 roles ──────────────────────────
-    primary = emberPrimary,
-    onPrimary = emberBg,
-    primaryContainer = emberSurface2,
-    onPrimaryContainer = emberOnBg,
+    primary = instrumentPrimary,
+    onPrimary = instrumentBg,
+    primaryContainer = instrumentSurface2,
+    onPrimaryContainer = instrumentOnBg,
 
-    secondary = emberSurface2,
-    onSecondary = emberOnBg,
-    secondaryContainer = emberSurface2,
-    onSecondaryContainer = emberOnBg,
+    secondary = instrumentSurface2,
+    onSecondary = instrumentOnBg,
+    secondaryContainer = instrumentSurface2,
+    onSecondaryContainer = instrumentOnBg,
 
-    tertiary = emberGood,
-    onTertiary = emberBg,
-    tertiaryContainer = emberGoodSoft,
-    onTertiaryContainer = emberGood,
+    tertiary = instrumentGood,
+    onTertiary = instrumentBg,
+    tertiaryContainer = instrumentGoodSoft,
+    onTertiaryContainer = instrumentGood,
 
-    error = emberBad,
-    onError = emberBg,
-    errorContainer = emberBadSoft,
-    onErrorContainer = emberBad,
+    error = instrumentBad,
+    onError = instrumentBg,
+    errorContainer = instrumentBadSoft,
+    onErrorContainer = instrumentBad,
 
-    background = emberBg,
-    onBackground = emberOnBg,
-    surface = emberSurface,
-    onSurface = emberOnBg,
+    background = instrumentBg,
+    onBackground = instrumentOnBg,
+    surface = instrumentSurface,
+    onSurface = instrumentOnBg,
 
-    surfaceVariant = emberSurface2,
-    onSurfaceVariant = emberMuted,
+    surfaceVariant = instrumentSurface2,
+    onSurfaceVariant = instrumentMuted,
 
-    outline = emberMuted,
-    outlineVariant = emberDivider,
+    outline = instrumentMuted,
+    outlineVariant = instrumentDivider,
 
-    inverseSurface = emberPrimary,
-    inverseOnSurface = emberBg,
-    inversePrimary = emberAccent,
+    inverseSurface = instrumentPrimary,
+    inverseOnSurface = instrumentBg,
+    inversePrimary = instrumentAccent,
 
-    scrim = emberBg,
+    scrim = instrumentBg,
 
-    surfaceContainerLowest = emberBg,
-    surfaceContainerLow = emberSurface,
-    surfaceContainer = emberSurface2,
-    surfaceContainerHigh = emberElev,
-    surfaceContainerHighest = emberElev,
-    surfaceDim = emberBg,
-    surfaceBright = emberSurface2,
+    surfaceContainerLowest = instrumentBg,
+    surfaceContainerLow = instrumentSurface,
+    surfaceContainer = instrumentSurface2,
+    surfaceContainerHigh = instrumentElev,
+    surfaceContainerHighest = instrumentElev,
+    surfaceDim = instrumentBg,
+    surfaceBright = instrumentSurface2,
 )
 
 @Composable
@@ -80,7 +80,7 @@ fun HelloTheme(
         shapes = helloMaterialShapes,
     ) {
         ProvideHelloFoundations(
-            semanticColors = emberSemanticColors(),
+            semanticColors = instrumentSemanticColors(),
             content = content,
         )
     }

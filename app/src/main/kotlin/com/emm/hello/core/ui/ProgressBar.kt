@@ -21,12 +21,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
 
 /**
- * Ember progress bar. 2dp default height, accent fill, emberDivider track.
+ * Ember progress bar. 2dp default height, accent fill, instrumentDivider track.
  */
 @Composable
 fun HProgressBar(
@@ -34,8 +34,8 @@ fun HProgressBar(
     modifier: Modifier = Modifier,
     height: Dp = 2.dp,
     cornerRadius: Dp = 1.dp,
-    trackColor: Color = emberDivider,
-    indicatorColor: Color = emberAccent,
+    trackColor: Color = instrumentDivider,
+    indicatorColor: Color = instrumentAccent,
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
@@ -66,7 +66,7 @@ fun HProgressBar(
 @Composable
 private fun HProgressBarPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

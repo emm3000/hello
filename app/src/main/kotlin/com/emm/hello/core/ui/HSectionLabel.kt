@@ -16,13 +16,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.geistMono
 
 /**
- * Uppercase Geist Mono 10.5sp section label, emberMuted color.
+ * Uppercase Geist Mono 10.5sp section label, instrumentMuted color.
  * Optional [action] slot (caller provides a composable, usually a text button).
  * 12dp marginBottom via [Modifier.padding] on the Column below.
  */
@@ -43,7 +43,7 @@ fun HSectionLabel(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
             modifier = Modifier.weight(1f, fill = false),
         )
         if (action != null) {
@@ -56,7 +56,7 @@ fun HSectionLabel(
 @Composable
 private fun HSectionLabelPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +71,7 @@ private fun HSectionLabelPreview() {
                             text = "5 con repaso ↗",
                             fontFamily = geistMono,
                             fontSize = 10.5.sp,
-                            color = emberAccent,
+                            color = instrumentAccent,
                         )
                     },
                 )

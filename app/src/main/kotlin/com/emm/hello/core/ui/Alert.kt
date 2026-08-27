@@ -32,15 +32,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberBad
-import com.emm.hello.core.theme.emberBadSoft
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberGood
-import com.emm.hello.core.theme.emberGoodSoft
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberWarn
-import com.emm.hello.core.theme.emberWarnSoft
+import com.emm.hello.core.theme.instrumentBad
+import com.emm.hello.core.theme.instrumentBadSoft
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentGood
+import com.emm.hello.core.theme.instrumentGoodSoft
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentWarn
+import com.emm.hello.core.theme.instrumentWarnSoft
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 
@@ -119,10 +119,10 @@ fun HAlert(
 @Composable
 private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
     return when (variant) {
-        AlertVariant.Default -> Triple(emberElev, emberOnBg, emberOnBg.copy(alpha = 0.6f))
-        AlertVariant.Destructive -> Triple(emberBadSoft, emberBad, emberBad)
-        AlertVariant.Warning -> Triple(emberWarnSoft, emberWarn, emberWarn)
-        AlertVariant.Success -> Triple(emberGoodSoft, emberGood, emberGood)
+        AlertVariant.Default -> Triple(instrumentElev, instrumentOnBg, instrumentOnBg.copy(alpha = 0.6f))
+        AlertVariant.Destructive -> Triple(instrumentBadSoft, instrumentBad, instrumentBad)
+        AlertVariant.Warning -> Triple(instrumentWarnSoft, instrumentWarn, instrumentWarn)
+        AlertVariant.Success -> Triple(instrumentGoodSoft, instrumentGood, instrumentGood)
     }
 }
 
@@ -140,7 +140,7 @@ private fun alertStateDescription(variant: AlertVariant): String? {
 @Composable
 private fun HAlertVariantsPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

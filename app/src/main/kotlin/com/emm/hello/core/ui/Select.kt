@@ -34,10 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.spacing
 
 private const val COLLAPSED_ARROW_ROTATION_DEGREES = 180f
@@ -200,7 +200,7 @@ fun <T> HSelect(
             DropdownMenu(
                 expanded = isExpanded,
                 onDismissRequest = { isExpanded = false },
-                containerColor = emberElev,
+                containerColor = instrumentElev,
             ) {
                 items.forEach { option ->
                     DropdownMenuItem(
@@ -209,9 +209,9 @@ fun <T> HSelect(
                                 text = itemLabel(option),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (itemSelected == option) {
-                                    emberAccent
+                                    instrumentAccent
                                 } else {
-                                    emberPrimary
+                                    instrumentPrimary
                                 },
                                 fontWeight = if (itemSelected == option) FontWeight.SemiBold else FontWeight.Normal,
                             )
@@ -233,7 +233,7 @@ private val demoItems = listOf("Vocabulario B2", "Verbos frasales", "Modismos", 
 @Composable
 private fun HSelectEmptyPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HSelect(
                 items = demoItems,
                 itemSelected = null,
@@ -252,7 +252,7 @@ private fun HSelectEmptyPreview() {
 @Composable
 private fun HSelectWithValuePreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

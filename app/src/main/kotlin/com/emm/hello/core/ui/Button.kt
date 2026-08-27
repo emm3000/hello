@@ -34,13 +34,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBad
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnAccent
-import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBad
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnAccent
+import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.geist
 
 // ── Legacy variants kept for backwards compatibility with feature screens ──
@@ -80,7 +80,7 @@ fun HButton(
     val radius = height / 2
     val shape = RoundedCornerShape(radius)
 
-    val (containerColor, contentColor, borderStroke) = emberButtonTokens(variant, danger)
+    val (containerColor, contentColor, borderStroke) = instrumentButtonTokens(variant, danger)
     val buttonEnabled = enabled && !isLoading
 
     val disabledContainer = containerColor.copy(alpha = DISABLED_ALPHA)
@@ -103,7 +103,7 @@ fun HButton(
         contentPadding = PaddingValues(horizontal = size.horizontalPadding),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
     ) {
-        EmberButtonContent(icon = icon, isLoading = isLoading, content = content)
+        InstrumentButtonContent(icon = icon, isLoading = isLoading, content = content)
     }
 }
 
@@ -157,12 +157,12 @@ fun HButton(
     @Suppress("UNUSED_PARAMETER") contentPadding: PaddingValues? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val emberVariant = variant.toEmberVariant()
+    val instrumentVariant = variant.toInstrumentVariant()
     val isDanger = variant == ButtonVariant.Destructive
     HButton(
         onClick = onClick,
         modifier = modifier,
-        variant = emberVariant,
+        variant = instrumentVariant,
         size = HButtonSize.Md,
         enabled = enabled,
         isLoading = isLoading,
@@ -184,13 +184,13 @@ fun HButton(
     isLoading: Boolean = false,
     leadingIcon: ImageVector? = null,
 ) {
-    val emberVariant = variant.toEmberVariant()
+    val instrumentVariant = variant.toInstrumentVariant()
     val isDanger = variant == ButtonVariant.Destructive
     HButton(
         text = text,
         onClick = onClick,
         modifier = modifier,
-        variant = emberVariant,
+        variant = instrumentVariant,
         size = HButtonSize.Md,
         enabled = enabled,
         isLoading = isLoading,
@@ -200,7 +200,7 @@ fun HButton(
     )
 }
 
-private fun ButtonVariant.toEmberVariant(): HButtonVariant = when (this) {
+private fun ButtonVariant.toInstrumentVariant(): HButtonVariant = when (this) {
     ButtonVariant.Default -> HButtonVariant.Primary
     ButtonVariant.Destructive -> HButtonVariant.Primary // danger=true handles color
     ButtonVariant.Outline -> HButtonVariant.Secondary
@@ -218,34 +218,34 @@ private data class ButtonTokens(
 )
 
 @Composable
-private fun emberButtonTokens(
+private fun instrumentButtonTokens(
     variant: HButtonVariant,
     danger: Boolean,
 ): ButtonTokens = when (variant) {
     HButtonVariant.Primary -> ButtonTokens(
-        containerColor = if (danger) emberBad else emberPrimary,
-        contentColor = if (danger) Color.White else emberBg,
+        containerColor = if (danger) instrumentBad else instrumentPrimary,
+        contentColor = if (danger) Color.White else instrumentBg,
         border = null,
     )
     HButtonVariant.Accent -> ButtonTokens(
-        containerColor = emberAccent,
-        contentColor = emberOnAccent,
+        containerColor = instrumentAccent,
+        contentColor = instrumentOnAccent,
         border = null,
     )
     HButtonVariant.Secondary -> ButtonTokens(
         containerColor = Color.Transparent,
-        contentColor = if (danger) emberBad else emberPrimary,
-        border = androidx.compose.foundation.BorderStroke(1.dp, emberElev),
+        contentColor = if (danger) instrumentBad else instrumentPrimary,
+        border = androidx.compose.foundation.BorderStroke(1.dp, instrumentElev),
     )
     HButtonVariant.Ghost -> ButtonTokens(
         containerColor = Color.Transparent,
-        contentColor = if (danger) emberBad else emberMuted,
+        contentColor = if (danger) instrumentBad else instrumentMuted,
         border = null,
     )
 }
 
 @Composable
-private fun RowScope.EmberButtonContent(
+private fun RowScope.InstrumentButtonContent(
     icon: ImageVector?,
     isLoading: Boolean,
     content: @Composable RowScope.() -> Unit,
@@ -278,7 +278,7 @@ private fun RowScope.EmberButtonContent(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HButtonEmberVariantsPreview() {
+private fun HButtonInstrumentVariantsPreview() {
     HelloTheme {
         Column(
             modifier = Modifier
@@ -317,7 +317,7 @@ private fun HButtonSizesPreview() {
 @Composable
 private fun HButtonWithIconPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HButton(
                 text = "Nueva tarjeta",
                 onClick = {},
@@ -334,7 +334,7 @@ private fun HButtonWithIconPreview() {
 @Composable
 private fun HButtonLoadingPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HButton(
                 text = "Generar",
                 onClick = {},

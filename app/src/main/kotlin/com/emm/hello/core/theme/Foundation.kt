@@ -80,7 +80,7 @@ internal val helloMaterialShapes = Shapes(
 )
 
 internal val localHelloSpacing = staticCompositionLocalOf { defaultHelloSpacing }
-internal val localHelloSemanticColors = staticCompositionLocalOf { emberSemanticColors() }
+internal val localHelloSemanticColors = staticCompositionLocalOf { instrumentSemanticColors() }
 internal val localHelloShapes = staticCompositionLocalOf { defaultHelloShapes }
 
 val MaterialTheme.spacing: HelloSpacing

@@ -25,10 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentSurface
 
 // ── Legacy enum kept for backwards compatibility ───────────────────────────
 enum class CardVariant { Elevated, Filled, Outlined }
@@ -47,8 +47,8 @@ fun HCard(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = emberSurface,
-            border = BorderStroke(1.dp, emberDivider),
+            color = instrumentSurface,
+            border = BorderStroke(1.dp, instrumentDivider),
         ) {
             Column(content = content)
         }
@@ -59,7 +59,7 @@ fun HCard(
                     .width(3.dp)
                     .fillMaxHeight()
                     .background(
-                        color = emberAccent,
+                        color = instrumentAccent,
                         shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp),
                     ),
             )
@@ -171,7 +171,7 @@ private fun HCardPreview() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(emberBg)
+                .background(instrumentBg)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

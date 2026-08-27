@@ -49,11 +49,11 @@ import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.DashboardStats
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -184,7 +184,7 @@ private fun WordmarkRow(
                         fontFamily = instrumentSerif,
                         fontStyle = FontStyle.Italic,
                         fontSize = 22.sp,
-                        color = emberPrimary,
+                        color = instrumentPrimary,
                         letterSpacing = (-0.2).sp,
                     ),
                 ) {
@@ -195,7 +195,7 @@ private fun WordmarkRow(
                         fontFamily = instrumentSerif,
                         fontStyle = FontStyle.Italic,
                         fontSize = 22.sp,
-                        color = emberAccent,
+                        color = instrumentAccent,
                         letterSpacing = (-0.2).sp,
                     ),
                 ) {
@@ -208,7 +208,7 @@ private fun WordmarkRow(
             icon = Icons.Default.Settings,
             contentDescription = stringResource(R.string.settings_content_description),
             onClick = onSettings,
-            tint = emberMuted,
+            tint = instrumentMuted,
             iconSize = 20.dp,
         )
     }
@@ -263,7 +263,7 @@ private fun PopulatedContent(
                     fontWeight = FontWeight.Medium,
                     fontSize = 12.sp,
                     letterSpacing = 0.06.em,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
             }
             Spacer(Modifier.height(22.dp))
@@ -338,7 +338,7 @@ private fun HeroBlock(dueCount: Int) {
                     SpanStyle(
                         fontFamily = instrumentSerif,
                         fontSize = 46.sp,
-                        color = emberPrimary,
+                        color = instrumentPrimary,
                         letterSpacing = (-0.5).sp,
                     ),
                 ) {
@@ -348,7 +348,7 @@ private fun HeroBlock(dueCount: Int) {
                     SpanStyle(
                         fontFamily = instrumentSerif,
                         fontSize = 46.sp,
-                        color = emberAccent,
+                        color = instrumentAccent,
                         letterSpacing = (-0.5).sp,
                     ),
                 ) {
@@ -358,7 +358,7 @@ private fun HeroBlock(dueCount: Int) {
                     SpanStyle(
                         fontFamily = instrumentSerif,
                         fontSize = 46.sp,
-                        color = emberPrimary,
+                        color = instrumentPrimary,
                         letterSpacing = (-0.5).sp,
                     ),
                 ) {
@@ -368,7 +368,7 @@ private fun HeroBlock(dueCount: Int) {
                     SpanStyle(
                         fontFamily = instrumentSerif,
                         fontSize = 46.sp,
-                        color = emberMuted,
+                        color = instrumentMuted,
                         letterSpacing = (-0.5).sp,
                     ),
                 ) {
@@ -386,7 +386,7 @@ private fun HeroBlock(dueCount: Int) {
             fontSize = 46.sp,
             lineHeight = (46 * 1.04f).sp,
             letterSpacing = (-0.5).sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
@@ -454,7 +454,7 @@ internal fun DeckRow(
                 fontFamily = instrumentSerif,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
-                color = emberPrimary,
+                color = instrumentPrimary,
                 letterSpacing = (-0.2).sp,
                 lineHeight = (22 * 1.1f).sp,
             )
@@ -468,7 +468,7 @@ internal fun DeckRow(
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                     lineHeight = (14 * 1.4f).sp,
                 )
             }
@@ -495,7 +495,7 @@ private fun DeckRowFooter(deck: Deck) {
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.08.em,
-            color = emberFaint,
+            color = instrumentFaint,
         )
 
         if (deck.tags.isNotEmpty()) {
@@ -506,7 +506,7 @@ private fun DeckRowFooter(deck: Deck) {
                     .height(1.dp),
             ) {
                 drawLine(
-                    color = emberDivider,
+                    color = instrumentDivider,
                     start = Offset(0f, size.height / 2),
                     end = Offset(size.width, size.height / 2),
                     strokeWidth = 1.dp.toPx(),
@@ -522,7 +522,7 @@ private fun DeckRowFooter(deck: Deck) {
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.06.em,
-                        color = emberMuted,
+                        color = instrumentMuted,
                     )
                 }
             }
@@ -540,7 +540,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(color = emberAccent)
+        HLoadingSpinner(color = instrumentAccent)
     }
 }
 
@@ -654,7 +654,7 @@ private fun NoResultsContent(
                             SpanStyle(
                                 fontFamily = instrumentSerif,
                                 fontSize = 36.sp,
-                                color = emberPrimary,
+                                color = instrumentPrimary,
                                 letterSpacing = (-0.4).sp,
                             ),
                         ) {
@@ -665,7 +665,7 @@ private fun NoResultsContent(
                                 fontFamily = instrumentSerif,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 36.sp,
-                                color = emberAccent,
+                                color = instrumentAccent,
                                 letterSpacing = (-0.4).sp,
                             ),
                         ) {
@@ -675,7 +675,7 @@ private fun NoResultsContent(
                             SpanStyle(
                                 fontFamily = instrumentSerif,
                                 fontSize = 36.sp,
-                                color = emberPrimary,
+                                color = instrumentPrimary,
                                 letterSpacing = (-0.4).sp,
                             ),
                         ) {
@@ -699,7 +699,7 @@ private fun NoResultsContent(
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.5.sp,
                     lineHeight = (14.5f * 1.55f).sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
 
                 Spacer(Modifier.height(24.dp))

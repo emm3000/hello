@@ -34,12 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.theme.spacing
@@ -57,7 +57,7 @@ fun NewCardModeScreen(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             HWizTop(
@@ -118,7 +118,7 @@ private fun HeroHeader() {
             fontSize = 38.sp,
             lineHeight = 42.sp,
             letterSpacing = (-0.5).sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Spacer(Modifier.height(12.dp))
         Text(
@@ -127,7 +127,7 @@ private fun HeroHeader() {
             fontWeight = FontWeight.Normal,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
@@ -171,13 +171,13 @@ private fun ModeOptionCard(
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(16.dp)
-    val borderColor = if (isSelected) emberAccent else emberDivider
+    val borderColor = if (isSelected) instrumentAccent else instrumentDivider
     val borderWidth = if (isSelected) 1.5.dp else 1.dp
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(emberSurface)
+            .background(instrumentSurface)
             .border(borderWidth, borderColor, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 16.dp),
@@ -190,7 +190,7 @@ private fun ModeOptionCard(
             fontWeight = FontWeight.Normal,
             fontSize = 32.sp,
             lineHeight = 32.sp,
-            color = if (isSelected) emberAccent else emberMuted,
+            color = if (isSelected) instrumentAccent else instrumentMuted,
             modifier = Modifier.width(36.dp),
         )
         Column(modifier = Modifier.weight(1f)) {
@@ -199,7 +199,7 @@ private fun ModeOptionCard(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
             Spacer(Modifier.height(4.dp))
             Text(
@@ -208,7 +208,7 @@ private fun ModeOptionCard(
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
-                color = emberMuted,
+                color = instrumentMuted,
             )
             Spacer(Modifier.height(8.dp))
             Text(
@@ -217,14 +217,14 @@ private fun ModeOptionCard(
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 15.sp,
-                color = emberAccent,
+                color = instrumentAccent,
             )
         }
         if (isSelected) {
             Icon(
                 imageVector = Icons.Outlined.CheckCircle,
                 contentDescription = null,
-                tint = emberAccent,
+                tint = instrumentAccent,
                 modifier = Modifier.size(20.dp),
             )
         }

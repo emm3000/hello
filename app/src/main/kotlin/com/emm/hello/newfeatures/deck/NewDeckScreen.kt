@@ -55,13 +55,13 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberPrimary
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -103,7 +103,7 @@ fun NewDeckScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(
             modifier = Modifier
@@ -135,7 +135,7 @@ fun NewDeckScreen(
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
                     letterSpacing = (-0.5).sp,
-                    color = emberPrimary,
+                    color = instrumentPrimary,
                 )
 
                 Spacer(Modifier.height(28.dp))
@@ -169,7 +169,7 @@ fun NewDeckScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                EmberTagsField(
+                InstrumentTagsField(
                     tags = state.tags,
                     onTagsChange = { onIntent(NewDeckUiIntent.TagsChanged(it)) },
                 )
@@ -210,11 +210,11 @@ private fun NewDeckTopBar(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
             modifier = Modifier.weight(1f),
         )
 
-        val actionColor = if (actionEnabled) emberAccent else emberMuted
+        val actionColor = if (actionEnabled) instrumentAccent else instrumentMuted
         Text(
             text = actionLabel,
             fontFamily = geist,
@@ -247,14 +247,14 @@ private fun DeckNameField(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(emberSurface, RoundedCornerShape(14.dp))
-                .border(1.5.dp, emberAccent, RoundedCornerShape(14.dp))
+                .background(instrumentSurface, RoundedCornerShape(14.dp))
+                .border(1.5.dp, instrumentAccent, RoundedCornerShape(14.dp))
                 .padding(horizontal = 16.dp, vertical = 14.dp),
         ) {
             if (value.isEmpty()) {
@@ -263,7 +263,7 @@ private fun DeckNameField(
                     fontFamily = instrumentSerif,
                     fontStyle = FontStyle.Italic,
                     fontSize = 22.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
             }
             BasicTextField(
@@ -275,9 +275,9 @@ private fun DeckNameField(
                     fontStyle = FontStyle.Italic,
                     fontSize = 22.sp,
                     lineHeight = 28.sp,
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                 ),
-                cursorBrush = SolidColor(emberAccent),
+                cursorBrush = SolidColor(instrumentAccent),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Next,
@@ -291,12 +291,12 @@ private fun DeckNameField(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tags container — emberSurface with removable chips + inline "+ agregar…"
+// Tags container — instrumentSurface with removable chips + inline "+ agregar…"
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EmberTagsField(
+private fun InstrumentTagsField(
     tags: List<String>,
     onTagsChange: (List<String>) -> Unit,
 ) {
@@ -320,15 +320,15 @@ private fun EmberTagsField(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(8.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(emberSurface, RoundedCornerShape(14.dp))
-                .border(1.dp, emberDivider, RoundedCornerShape(14.dp))
+                .background(instrumentSurface, RoundedCornerShape(14.dp))
+                .border(1.dp, instrumentDivider, RoundedCornerShape(14.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
         ) {
             FlowRow(
@@ -365,7 +365,7 @@ private fun EmberTagsField(
             text = stringResource(R.string.tags_supporting_text),
             fontFamily = geist,
             fontSize = 12.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
@@ -387,7 +387,7 @@ private fun TagInline(
                 text = placeholder,
                 fontFamily = geist,
                 fontSize = 13.sp,
-                color = emberMuted,
+                color = instrumentMuted,
             )
         }
         BasicTextField(
@@ -397,9 +397,9 @@ private fun TagInline(
             textStyle = TextStyle(
                 fontFamily = geist,
                 fontSize = 13.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             ),
-            cursorBrush = SolidColor(emberAccent),
+            cursorBrush = SolidColor(instrumentAccent),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 imeAction = ImeAction.Done,

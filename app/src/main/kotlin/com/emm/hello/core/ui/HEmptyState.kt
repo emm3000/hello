@@ -27,12 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -77,7 +77,7 @@ fun HEmptyState(
                 append(before)
                 withStyle(
                     SpanStyle(
-                        color = emberAccent,
+                        color = instrumentAccent,
                         fontStyle = FontStyle.Italic,
                         fontSynthesis = FontSynthesis.None,
                     ),
@@ -91,7 +91,7 @@ fun HEmptyState(
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
                 letterSpacing = (-0.5).sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
                 textAlign = TextAlign.Start,
             )
         } else {
@@ -102,7 +102,7 @@ fun HEmptyState(
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
                 letterSpacing = (-0.5).sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
                 textAlign = TextAlign.Start,
             )
         }
@@ -115,7 +115,7 @@ fun HEmptyState(
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 19.sp,
-                color = emberMuted,
+                color = instrumentMuted,
                 textAlign = TextAlign.Start,
             )
         }
@@ -138,7 +138,7 @@ fun HEmptyState(
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = emberFaint,
+                color = instrumentFaint,
                 textAlign = TextAlign.Start,
             )
         }
@@ -149,8 +149,8 @@ fun HEmptyState(
 private fun DefaultGlyph() {
     Surface(
         shape = CircleShape,
-        color = emberBg,
-        border = BorderStroke(1.dp, emberDivider),
+        color = instrumentBg,
+        border = BorderStroke(1.dp, instrumentDivider),
         modifier = Modifier.size(52.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -160,7 +160,7 @@ private fun DefaultGlyph() {
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 28.sp,
-                color = emberAccent,
+                color = instrumentAccent,
             )
         }
     }
@@ -170,7 +170,7 @@ private fun DefaultGlyph() {
 @Composable
 private fun HEmptyStateDefaultPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HEmptyState(
                 headline = "Aún no tienes mazos.",
                 body = "Crea tu primer mazo para empezar a estudiar.",
@@ -199,7 +199,7 @@ private fun HEmptyStateDefaultPreview() {
 @Composable
 private fun HEmptyStateSearchPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HEmptyState(
                 headline = "Nada con \"serendipia\".",
                 accentWord = "\"serendipia\"",
@@ -222,7 +222,7 @@ private fun HEmptyStateSearchPreview() {
 @Composable
 private fun HEmptyStateWithFootnotePreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             HEmptyState(
                 headline = "Hoy no toca repasar.",
                 body = "Vuelve mañana para continuar con tu racha.",

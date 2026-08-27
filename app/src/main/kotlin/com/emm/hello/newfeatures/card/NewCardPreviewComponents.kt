@@ -43,14 +43,14 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBadSoft
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBadSoft
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -100,7 +100,7 @@ internal fun LoadingPreviewSkeleton(word: String) {
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Text(
             text = stringResource(R.string.loading_preview_eta),
@@ -108,7 +108,7 @@ internal fun LoadingPreviewSkeleton(word: String) {
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberFaint,
+            color = instrumentFaint,
         )
         HSeparator()
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -145,7 +145,7 @@ private fun PulsingDots() {
                 modifier = Modifier
                     .size(8.dp)
                     .alpha(alpha)
-                    .background(emberAccent, CircleShape),
+                    .background(instrumentAccent, CircleShape),
             )
         }
     }
@@ -168,7 +168,7 @@ internal fun QuotaExceededState(
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .background(emberBadSoft, CircleShape),
+                .background(instrumentBadSoft, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -177,7 +177,7 @@ internal fun QuotaExceededState(
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
                 fontSize = 30.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
         }
 
@@ -188,7 +188,7 @@ internal fun QuotaExceededState(
             fontSize = 32.sp,
             lineHeight = 36.sp,
             letterSpacing = (-0.5).sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
 
         Text(
@@ -197,7 +197,7 @@ internal fun QuotaExceededState(
             fontWeight = FontWeight.Normal,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
 
         if (trimmedWord.isNotEmpty()) {
@@ -227,7 +227,7 @@ internal fun QuotaExceededState(
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberFaint,
+            color = instrumentFaint,
         )
     }
 }
@@ -238,7 +238,7 @@ private fun YourWordSurface(word: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(emberSurface)
+            .background(instrumentSurface)
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -248,7 +248,7 @@ private fun YourWordSurface(word: String) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Text(
             text = word,
@@ -257,7 +257,7 @@ private fun YourWordSurface(word: String) {
             fontSize = 28.sp,
             lineHeight = 32.sp,
             letterSpacing = (-0.3).sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
     }
 }
@@ -381,7 +381,7 @@ private fun LearningNotePreview(
     if (selectedCard != null) {
         HBottomSheet(
             onDismissRequest = { selectedCardId = null },
-            containerColor = emberBg,
+            containerColor = instrumentBg,
         ) {
             GeneratedStudyCardEditorSheet(
                 card = selectedCard,
@@ -444,7 +444,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = emberMuted,
+                color = instrumentMuted,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -456,7 +456,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
             fontSize = 54.sp,
             lineHeight = 58.sp,
             letterSpacing = (-0.5).sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
 
         if (note.ipa.isNotBlank()) {
@@ -465,7 +465,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontFamily = geistMono,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
-                color = emberMuted,
+                color = instrumentMuted,
             )
         }
 
@@ -477,7 +477,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
         }
     }
@@ -526,7 +526,7 @@ private fun SignificadoBlock(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
     PreviewAlertGroup(alerts = note.meaningAlerts())
@@ -573,7 +573,7 @@ private fun EjemploBlock(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
     PreviewAlertGroup(alerts = note.exampleAlerts())
@@ -702,7 +702,7 @@ private fun StudyCardsSection(
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = emberMuted,
+                color = instrumentMuted,
                 modifier = Modifier.weight(1f),
             )
             val activeCount = note.cards.count { it.isActive }
@@ -711,7 +711,7 @@ private fun StudyCardsSection(
                 fontFamily = geistMono,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = emberFaint,
+                color = instrumentFaint,
             )
         }
 
@@ -721,7 +721,7 @@ private fun StudyCardsSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
-                .background(emberSurface),
+                .background(instrumentSurface),
         ) {
             note.cards.forEachIndexed { index, card ->
                 key(card.cardId) {
@@ -748,7 +748,7 @@ private fun StudyCardsSection(
                     if (index < note.cards.lastIndex) {
                         HSeparator(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            color = emberDivider,
+                            color = instrumentDivider,
                         )
                     }
                 }

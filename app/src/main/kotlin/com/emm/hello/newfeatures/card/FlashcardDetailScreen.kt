@@ -43,12 +43,12 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -85,7 +85,7 @@ fun FlashcardDetailScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             FlashcardDetailTopBar(
@@ -154,7 +154,7 @@ private fun LoadingBody() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        HLoadingSpinner(color = emberAccent)
+        HLoadingSpinner(color = instrumentAccent)
     }
 }
 
@@ -162,7 +162,7 @@ private fun LoadingBody() {
 private fun HeroDivider() {
     HSeparator(
         modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenGutter, vertical = 24.dp),
-        color = emberDivider,
+        color = instrumentDivider,
     )
 }
 
@@ -221,7 +221,7 @@ private fun FlashcardHero(card: Flashcard) {
             fontSize = 56.sp,
             lineHeight = 60.sp,
             letterSpacing = (-0.5).sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
 
         val hasMetaRow = card.phonetic.isNotBlank() ||
@@ -240,7 +240,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontFamily = geistMono,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
-                        color = emberMuted,
+                        color = instrumentMuted,
                     )
                 }
                 if (card.partOfSpeech.isNotBlank()) {
@@ -250,7 +250,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontStyle = FontStyle.Italic,
                         fontWeight = FontWeight.Normal,
                         fontSize = 18.sp,
-                        color = emberAccent,
+                        color = instrumentAccent,
                     )
                 }
                 if (card.levelBand.isNotBlank()) {
@@ -260,7 +260,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
-                        color = emberMuted,
+                        color = instrumentMuted,
                     )
                 }
             }
@@ -275,7 +275,7 @@ private fun FlashcardHero(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
         }
     }
@@ -362,7 +362,7 @@ private fun ExampleRow(example: Example) {
             fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
-            color = emberAccent,
+            color = instrumentAccent,
             modifier = Modifier.width(20.dp),
         )
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -374,7 +374,7 @@ private fun ExampleRow(example: Example) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
                     lineHeight = 24.sp,
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                 )
             }
             if (example.translation.isNotBlank()) {
@@ -385,7 +385,7 @@ private fun ExampleRow(example: Example) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                 )
             }
         }
@@ -451,7 +451,7 @@ private fun ExtrasBlock(card: Flashcard) {
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.5.sp,
                             letterSpacing = 0.12.em,
-                            color = emberMuted,
+                            color = instrumentMuted,
                             modifier = Modifier.width(96.dp),
                         )
                         Text(
@@ -460,7 +460,7 @@ private fun ExtrasBlock(card: Flashcard) {
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
-                            color = emberOnBg,
+                            color = instrumentOnBg,
                         )
                     }
                 }
@@ -479,7 +479,7 @@ private fun ChipFlow(label: String, values: List<String>) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(8.dp))
         FlowRow(
@@ -502,7 +502,7 @@ private fun BulletList(label: String, values: List<String>) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(6.dp))
         values.forEach { value ->
@@ -513,7 +513,7 @@ private fun BulletList(label: String, values: List<String>) {
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
-                    color = emberAccent,
+                    color = instrumentAccent,
                     modifier = Modifier.width(16.dp),
                 )
                 Text(
@@ -522,7 +522,7 @@ private fun BulletList(label: String, values: List<String>) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                 )
             }
         }
@@ -549,7 +549,7 @@ private fun ContextBlock(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
         }
         if (card.sourceContext.isNotBlank()) {
@@ -559,7 +559,7 @@ private fun ContextBlock(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = emberMuted,
+                color = instrumentMuted,
             )
         }
     }
@@ -603,7 +603,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = if (part.accent) emberAccent else emberFaint,
+                color = if (part.accent) instrumentAccent else instrumentFaint,
             )
             if (index < parts.lastIndex) {
                 Text(
@@ -611,7 +611,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
                     fontFamily = geistMono,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.5.sp,
-                    color = emberFaint,
+                    color = instrumentFaint,
                 )
             }
         }

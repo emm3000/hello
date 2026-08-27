@@ -29,8 +29,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.spacing
 
 @Composable
@@ -98,7 +98,7 @@ fun HInput(
             visualTransformation = visualTransformation,
             interactionSource = interactionSource,
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = fieldShellContentColor(enabled)),
-            cursorBrush = SolidColor(emberAccent),
+            cursorBrush = SolidColor(instrumentAccent),
             decorationBox = { innerTextField ->
                 InputDecoration(
                     value = value,
@@ -165,7 +165,7 @@ private fun InputDecoration(
 @Composable
 private fun HInputPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

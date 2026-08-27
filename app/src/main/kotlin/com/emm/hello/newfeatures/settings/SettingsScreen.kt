@@ -45,13 +45,13 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBad
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberPrimary
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBad
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -75,7 +75,7 @@ fun SettingsScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -147,7 +147,7 @@ private fun SettingsHeader() {
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(10.dp))
         Text(
@@ -156,7 +156,7 @@ private fun SettingsHeader() {
             fontSize = 44.sp,
             lineHeight = (44 * 1.04f).sp,
             letterSpacing = (-0.5).sp,
-            color = emberPrimary,
+            color = instrumentPrimary,
         )
         Spacer(Modifier.height(10.dp))
         Text(
@@ -164,13 +164,13 @@ private fun SettingsHeader() {
             fontFamily = instrumentSerif,
             fontStyle = FontStyle.Italic,
             fontSize = 18.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// "Tus datos" section — single emberSurface group with rows + dividers
+// "Tus datos" section — single instrumentSurface group with rows + dividers
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -185,7 +185,7 @@ private fun DataSection(
         Spacer(Modifier.height(10.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = emberSurface,
+            color = instrumentSurface,
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -237,7 +237,7 @@ private fun SettingsRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = emberPrimary,
+            tint = instrumentPrimary,
             modifier = Modifier.size(22.dp),
         )
 
@@ -247,12 +247,12 @@ private fun SettingsRow(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
             )
             if (sub != null) {
                 val subColor = when (subTone) {
-                    SubTone.Muted -> emberMuted
-                    SubTone.Danger -> emberBad
+                    SubTone.Muted -> instrumentMuted
+                    SubTone.Danger -> instrumentBad
                 }
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -268,7 +268,7 @@ private fun SettingsRow(
         if (isBusy) {
             HLoadingSpinner(
                 size = 18.dp,
-                color = emberAccent,
+                color = instrumentAccent,
                 strokeWidth = 2.dp,
             )
         } else {
@@ -282,7 +282,7 @@ private fun RowScope.ChevronTrailing() {
     Icon(
         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
         contentDescription = null,
-        tint = emberMuted,
+        tint = instrumentMuted,
         modifier = Modifier.size(20.dp),
     )
 }
@@ -303,7 +303,7 @@ private fun SettingsFooter() {
             fontFamily = instrumentSerif,
             fontStyle = FontStyle.Italic,
             fontSize = 16.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Text(
             text = stringResource(R.string.settings_footer_meta),

@@ -13,13 +13,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberPrimary
+import com.emm.hello.core.theme.instrumentPrimary
 
 /**
  * Ember icon button — the single wrapper over Material3 [IconButton] so feature
  * screens never reference raw Material3. Preserves the M3 48dp touch target and
  * 24dp glyph by default; pass [buttonSize] for compact bars and [iconSize] for a
- * smaller glyph. [tint] defaults to emberPrimary.
+ * smaller glyph. [tint] defaults to instrumentPrimary.
  */
 @Composable
 fun HIconButton(
@@ -27,7 +27,7 @@ fun HIconButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = emberPrimary,
+    tint: Color = instrumentPrimary,
     iconSize: Dp = 24.dp,
     buttonSize: Dp = 48.dp,
     enabled: Boolean = true,

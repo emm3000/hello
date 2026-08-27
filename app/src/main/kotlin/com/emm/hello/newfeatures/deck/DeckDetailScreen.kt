@@ -60,13 +60,13 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberPrimary
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -115,7 +115,7 @@ fun DeckDetailScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -139,7 +139,7 @@ fun DeckDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
                     item {
-                        EmberDeckHeader(
+                        InstrumentDeckHeader(
                             deck = state.deck,
                             dueCount = dueCount,
                             onReview = onReview,
@@ -278,7 +278,7 @@ private fun DeckDetailTopBar(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun EmberDeckHeader(
+private fun InstrumentDeckHeader(
     deck: Deck,
     dueCount: Int,
     onReview: () -> Unit,
@@ -297,7 +297,7 @@ private fun EmberDeckHeader(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
 
         Spacer(Modifier.height(10.dp))
@@ -308,7 +308,7 @@ private fun EmberDeckHeader(
             fontSize = 44.sp,
             lineHeight = (44 * 1.04f).sp,
             letterSpacing = (-0.5).sp,
-            color = emberPrimary,
+            color = instrumentPrimary,
         )
 
         if (deck.description.isNotBlank()) {
@@ -318,7 +318,7 @@ private fun EmberDeckHeader(
                 fontFamily = geist,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = emberMuted,
+                color = instrumentMuted,
             )
         }
 
@@ -378,18 +378,18 @@ private fun StatsRow(
             .fillMaxWidth()
             .border(
                 width = 1.dp,
-                color = emberDivider,
+                color = instrumentDivider,
                 shape = RoundedCornerShape(14.dp),
             )
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        StatSegment(text = cardsLabel, color = emberOnBg)
+        StatSegment(text = cardsLabel, color = instrumentOnBg)
         StatSeparator()
-        StatSegment(text = dueLabel, color = emberAccent)
+        StatSegment(text = dueLabel, color = instrumentAccent)
         if (avgLabel != null) {
             StatSeparator()
-            StatSegment(text = avgLabel, color = emberMuted)
+            StatSegment(text = avgLabel, color = instrumentMuted)
         }
     }
 }
@@ -412,7 +412,7 @@ private fun StatSeparator() {
         text = " · ",
         fontFamily = geistMono,
         fontSize = 12.sp,
-        color = emberMuted,
+        color = instrumentMuted,
     )
 }
 
@@ -453,7 +453,7 @@ private fun CardsSectionHeader(
                 icon = if (searchExpanded) Icons.Default.Close else Icons.Default.Search,
                 contentDescription = toggleDescription,
                 onClick = onToggleSearch,
-                tint = if (searchExpanded) emberAccent else emberMuted,
+                tint = if (searchExpanded) instrumentAccent else instrumentMuted,
                 iconSize = 18.dp,
                 buttonSize = 36.dp,
             )
@@ -462,7 +462,7 @@ private fun CardsSectionHeader(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Grouped card list — single emberSurface column with hairline dividers
+// Grouped card list — single instrumentSurface column with hairline dividers
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -472,7 +472,7 @@ private fun GroupedCardList(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = emberSurface,
+        color = instrumentSurface,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -513,7 +513,7 @@ private fun CardListItem(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.5.sp,
-                color = emberOnBg,
+                color = instrumentOnBg,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -524,7 +524,7 @@ private fun CardListItem(
                     fontFamily = instrumentSerif,
                     fontStyle = FontStyle.Italic,
                     fontSize = 14.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -538,7 +538,7 @@ private fun CardListItem(
             fontFamily = geistMono,
             fontSize = 11.sp,
             letterSpacing = 0.06.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
@@ -560,13 +560,13 @@ private fun NoSearchResults(query: String) {
             text = stringResource(R.string.deck_detail_search_no_results, query),
             fontFamily = instrumentSerif,
             fontSize = 28.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Text(
             text = stringResource(R.string.search_no_results, query),
             fontFamily = geist,
             fontSize = 14.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }
@@ -590,13 +590,13 @@ private fun EmptyCards(onAddCard: () -> Unit) {
             fontFamily = instrumentSerif,
             fontStyle = FontStyle.Italic,
             fontSize = 28.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Text(
             text = stringResource(R.string.empty_cards_description),
             fontFamily = geist,
             fontSize = 14.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         HButton(
             text = stringResource(R.string.add_card),

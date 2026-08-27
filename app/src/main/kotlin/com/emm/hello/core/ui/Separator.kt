@@ -15,8 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
 
 /**
  * 1dp ember-divider separator. [margin] controls the vertical spacing around it.
@@ -24,7 +24,7 @@ import com.emm.hello.core.theme.emberDivider
 @Composable
 fun HSeparator(
     modifier: Modifier = Modifier,
-    color: Color = emberDivider,
+    color: Color = instrumentDivider,
     thickness: Dp = 1.dp,
 ) {
     HorizontalDivider(
@@ -38,7 +38,7 @@ fun HSeparator(
 @Composable
 private fun HSeparatorPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

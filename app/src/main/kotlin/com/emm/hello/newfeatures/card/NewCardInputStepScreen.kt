@@ -68,12 +68,12 @@ import com.emm.domain.catalog.difficult
 import com.emm.domain.catalog.staticCategories
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBad
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
-import com.emm.hello.core.theme.emberSurface
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBad
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
@@ -163,7 +163,7 @@ fun NewCardInputStepScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = emberBg,
+        color = instrumentBg,
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             HWizTop(
@@ -238,7 +238,7 @@ fun NewCardInputStepScreen(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 11.sp,
                                 letterSpacing = 0.08.em,
-                                color = emberMuted,
+                                color = instrumentMuted,
                             )
                         }
                         HButton(
@@ -282,7 +282,7 @@ private fun InputHero(typeView: TypeView) {
         fontSize = 38.sp,
         lineHeight = 42.sp,
         letterSpacing = (-0.5).sp,
-        color = emberOnBg,
+        color = instrumentOnBg,
     )
 }
 
@@ -343,7 +343,7 @@ private fun BigSerifTextField(
     listeningLabel: String? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val borderColor = if (errorMessage != null) emberBad else emberAccent
+    val borderColor = if (errorMessage != null) instrumentBad else instrumentAccent
     val pulseTransition = rememberInfiniteTransition(label = "input-listening-pulse")
     val borderWidth by pulseTransition.animateFloat(
         initialValue = if (isListening) 1.5f else 1.5f,
@@ -358,7 +358,7 @@ private fun BigSerifTextField(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(emberSurface, RoundedCornerShape(16.dp))
+                .background(instrumentSurface, RoundedCornerShape(16.dp))
                 .border(borderWidth.dp, borderColor, RoundedCornerShape(16.dp))
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -372,7 +372,7 @@ private fun BigSerifTextField(
                         fontWeight = FontWeight.Normal,
                         fontSize = 26.sp,
                         lineHeight = 32.sp,
-                        color = emberMuted,
+                        color = instrumentMuted,
                     )
                 }
                 BasicTextField(
@@ -387,9 +387,9 @@ private fun BigSerifTextField(
                         fontWeight = FontWeight.Normal,
                         fontSize = 28.sp,
                         lineHeight = 34.sp,
-                        color = emberOnBg,
+                        color = instrumentOnBg,
                     ),
-                    cursorBrush = SolidColor(emberAccent),
+                    cursorBrush = SolidColor(instrumentAccent),
                     keyboardOptions = KeyboardOptions(
                         imeAction = if (singleLine) ImeAction.Done else ImeAction.Default,
                     ),
@@ -407,7 +407,7 @@ private fun BigSerifTextField(
                 text = errorMessage,
                 fontFamily = geist,
                 fontSize = 12.sp,
-                color = emberBad,
+                color = instrumentBad,
             )
         } else if (isListening && listeningLabel != null) {
             Spacer(Modifier.height(8.dp))
@@ -417,7 +417,7 @@ private fun BigSerifTextField(
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
                 letterSpacing = 0.12.em,
-                color = emberAccent,
+                color = instrumentAccent,
             )
         }
     }
@@ -440,17 +440,17 @@ private fun MicButton(isListening: Boolean, onClick: () -> Unit) {
             .size(40.dp)
             .scale(scale)
             .background(
-                color = if (isListening) emberAccent else emberSurface,
+                color = if (isListening) instrumentAccent else instrumentSurface,
                 shape = CircleShape,
             )
-            .border(1.dp, emberAccent, CircleShape)
+            .border(1.dp, instrumentAccent, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
             contentDescription = stringResource(R.string.voice_input_desc),
-            tint = if (isListening) emberBg else emberAccent,
+            tint = if (isListening) instrumentBg else instrumentAccent,
             modifier = Modifier.size(18.dp),
         )
     }
@@ -465,8 +465,8 @@ private fun CategoryPickerRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(emberSurface, RoundedCornerShape(16.dp))
-            .border(1.5.dp, emberAccent, RoundedCornerShape(16.dp))
+            .background(instrumentSurface, RoundedCornerShape(16.dp))
+            .border(1.5.dp, instrumentAccent, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -478,13 +478,13 @@ private fun CategoryPickerRow(
             fontWeight = FontWeight.Normal,
             fontSize = 26.sp,
             lineHeight = 32.sp,
-            color = if (value.isBlank()) emberMuted else emberOnBg,
+            color = if (value.isBlank()) instrumentMuted else instrumentOnBg,
             modifier = Modifier.weight(1f),
         )
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
             contentDescription = null,
-            tint = emberAccent,
+            tint = instrumentAccent,
             modifier = Modifier.size(20.dp),
         )
     }
@@ -572,8 +572,8 @@ private fun EmptyDeckCreateCta(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(emberSurface, RoundedCornerShape(14.dp))
-                .border(1.dp, emberAccent, RoundedCornerShape(14.dp))
+                .background(instrumentSurface, RoundedCornerShape(14.dp))
+                .border(1.dp, instrumentAccent, RoundedCornerShape(14.dp))
                 .clickable(enabled = enabled, onClick = onCreateDeck)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -581,7 +581,7 @@ private fun EmptyDeckCreateCta(
             Icon(
                 imageVector = Icons.Outlined.Bookmark,
                 contentDescription = null,
-                tint = emberAccent,
+                tint = instrumentAccent,
                 modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.size(14.dp))
@@ -590,13 +590,13 @@ private fun EmptyDeckCreateCta(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = emberAccent,
+                color = instrumentAccent,
                 modifier = Modifier.weight(1f),
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = null,
-                tint = emberAccent,
+                tint = instrumentAccent,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -605,7 +605,7 @@ private fun EmptyDeckCreateCta(
             text = stringResource(R.string.new_card_input_no_decks_hint),
             fontFamily = geist,
             fontSize = 12.sp,
-            color = emberMuted,
+            color = instrumentMuted,
         )
     }
 }

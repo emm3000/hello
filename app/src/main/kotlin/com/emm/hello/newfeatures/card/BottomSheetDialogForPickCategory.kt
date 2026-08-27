@@ -37,11 +37,11 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import com.emm.domain.catalog.StaticCategories
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberElev
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import kotlinx.coroutines.launch
@@ -64,7 +64,7 @@ fun BottomSheetDialogForPickCategory(
             modifier = Modifier.statusBarsPadding(),
             onDismissRequest = dismiss,
             sheetState = sheetState,
-            containerColor = emberElev,
+            containerColor = instrumentElev,
             dragHandle = null,
         ) {
             val view = LocalView.current
@@ -106,7 +106,7 @@ private fun CategoryListContent(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Spacer(Modifier.height(16.dp))
         LazyColumn(
@@ -124,7 +124,7 @@ private fun CategoryListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(emberDivider),
+                        .background(instrumentDivider),
                 )
             }
         }
@@ -152,13 +152,13 @@ private fun CategoryRow(
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         if (isSelected) {
             Icon(
                 imageVector = Icons.Outlined.Check,
                 contentDescription = null,
-                tint = emberAccent,
+                tint = instrumentAccent,
                 modifier = Modifier.size(22.dp),
             )
         } else {

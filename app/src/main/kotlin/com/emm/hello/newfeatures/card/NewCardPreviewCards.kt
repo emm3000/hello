@@ -25,10 +25,10 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberFaint
-import com.emm.hello.core.theme.emberMuted
-import com.emm.hello.core.theme.emberOnBg
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentFaint
+import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.instrumentOnBg
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.instrumentSerif
 import com.emm.hello.core.ui.AlertVariant
@@ -79,7 +79,7 @@ internal fun StudyCardRow(
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.sp,
                 letterSpacing = 0.12.em,
-                color = emberFaint,
+                color = instrumentFaint,
             )
             if (card.prompt.isNotBlank()) {
                 Text(
@@ -88,7 +88,7 @@ internal fun StudyCardRow(
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
                     lineHeight = 22.sp,
-                    color = emberOnBg,
+                    color = instrumentOnBg,
                     maxLines = 2,
                 )
             }
@@ -100,7 +100,7 @@ internal fun StudyCardRow(
                     fontWeight = FontWeight.Normal,
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
-                    color = emberMuted,
+                    color = instrumentMuted,
                     maxLines = 2,
                 )
             }
@@ -123,7 +123,7 @@ internal fun StudyCardRow(
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.5.sp,
                     letterSpacing = 0.08.em,
-                    color = emberAccent,
+                    color = instrumentAccent,
                 )
             }
         }
@@ -162,7 +162,7 @@ internal fun GeneratedStudyCardEditorSheet(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = emberMuted,
+            color = instrumentMuted,
         )
         Text(
             text = card.cardType.description(),
@@ -171,7 +171,7 @@ internal fun GeneratedStudyCardEditorSheet(
             fontWeight = FontWeight.Normal,
             fontSize = 20.sp,
             lineHeight = 26.sp,
-            color = emberOnBg,
+            color = instrumentOnBg,
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -183,7 +183,7 @@ internal fun GeneratedStudyCardEditorSheet(
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
                 letterSpacing = 0.04.em,
-                color = emberOnBg,
+                color = instrumentOnBg,
                 modifier = Modifier.weight(1f),
             )
             HToggle(checked = card.isActive, onCheckedChange = onActiveChanged)

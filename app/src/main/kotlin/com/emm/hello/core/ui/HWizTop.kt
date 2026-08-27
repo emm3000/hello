@@ -24,10 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.emberAccent
-import com.emm.hello.core.theme.emberBg
-import com.emm.hello.core.theme.emberDivider
-import com.emm.hello.core.theme.emberMuted
+import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.instrumentBg
+import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.geistMono
 
 private val barHeight = 56.dp
@@ -85,7 +85,7 @@ fun HWizTop(
                             .weight(1f)
                             .height(segmentHeight)
                             .clip(RoundedCornerShape(2.dp))
-                            .background(if (isActive) emberAccent else emberDivider),
+                            .background(if (isActive) instrumentAccent else instrumentDivider),
                     )
                 }
             }
@@ -95,7 +95,7 @@ fun HWizTop(
                 fontFamily = geistMono,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
-                color = emberMuted,
+                color = instrumentMuted,
                 modifier = Modifier.padding(end = 12.dp),
             )
         }
@@ -106,7 +106,7 @@ fun HWizTop(
                 fontFamily = geistMono,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = emberMuted,
+                color = instrumentMuted,
                 modifier = Modifier.padding(start = backButtonSize + 12.dp, bottom = 6.dp),
             )
         }
@@ -117,7 +117,7 @@ fun HWizTop(
 @Composable
 private fun HWizTopPreview() {
     HelloTheme {
-        Surface(color = emberBg) {
+        Surface(color = instrumentBg) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
