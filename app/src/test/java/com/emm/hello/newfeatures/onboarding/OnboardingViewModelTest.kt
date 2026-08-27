@@ -88,7 +88,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `NextClicked on last page emits NavigateToDashboard`() = runTest {
+    fun `NextClicked on last page emits NavigateToHoy`() = runTest {
         val viewModel = buildViewModel()
         val lastIndex = OnboardingPage.entries.lastIndex
 
@@ -97,7 +97,7 @@ class OnboardingViewModelTest {
         viewModel.onIntent(OnboardingUiIntent.NextClicked)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToDashboard)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
     // ── SkipClicked ──────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `SkipClicked from any page emits NavigateToDashboard`() = runTest {
+    fun `SkipClicked from any page emits NavigateToHoy`() = runTest {
         val viewModel = buildViewModel()
 
         viewModel.onIntent(OnboardingUiIntent.PageChanged(1))
@@ -125,7 +125,7 @@ class OnboardingViewModelTest {
         viewModel.onIntent(OnboardingUiIntent.SkipClicked)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToDashboard)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
     // ── FinishClicked ────────────────────────────────────────────────────────
@@ -144,14 +144,14 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `FinishClicked emits NavigateToDashboard`() = runTest {
+    fun `FinishClicked emits NavigateToHoy`() = runTest {
         val viewModel = buildViewModel()
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(OnboardingUiIntent.FinishClicked)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToDashboard)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
     // ── isLastPage derivation ────────────────────────────────────────────────
@@ -224,10 +224,10 @@ class OnboardingViewModelTest {
         assertThat(repo.welcomeSeenCalled).isFalse()
     }
 
-    // ── W-4: markWelcomeSeen recorded BEFORE NavigateToDashboard effect ───────
+    // ── W-4: markWelcomeSeen recorded BEFORE NavigateToHoy effect ───────
 
     @Test
-    fun `markWelcomeSeen is recorded before NavigateToDashboard effect on FinishClicked`() = runTest {
+    fun `markWelcomeSeen is recorded before NavigateToHoy effect on FinishClicked`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo)
 
@@ -237,12 +237,12 @@ class OnboardingViewModelTest {
         viewModel.onIntent(OnboardingUiIntent.FinishClicked)
         val effect = effectDeferred.await()
 
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToDashboard)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
         assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
     @Test
-    fun `markWelcomeSeen is recorded before NavigateToDashboard effect on SkipClicked`() = runTest {
+    fun `markWelcomeSeen is recorded before NavigateToHoy effect on SkipClicked`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo)
 
@@ -250,7 +250,7 @@ class OnboardingViewModelTest {
         viewModel.onIntent(OnboardingUiIntent.SkipClicked)
         val effect = effectDeferred.await()
 
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToDashboard)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
         assertThat(repo.welcomeSeenCalled).isTrue()
     }
 

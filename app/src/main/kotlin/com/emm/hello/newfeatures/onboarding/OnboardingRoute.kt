@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
-import com.emm.hello.newfeatures.dashboard.DashboardRoute
+import com.emm.hello.newfeatures.hoy.HoyRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -32,8 +32,8 @@ fun OnboardingDestination(navigator: Navigator) {
                 is OnboardingUiEffect.ScrollToPage -> {
                     pagerState.animateScrollToPage(effect.page)
                 }
-                is OnboardingUiEffect.NavigateToDashboard -> {
-                    navigator.replaceAll(DashboardRoute)
+                is OnboardingUiEffect.NavigateToHoy -> {
+                    navigator.replaceAll(HoyRoute)
                 }
                 is OnboardingUiEffect.CloseOnboarding -> {
                     navigator.goBack()

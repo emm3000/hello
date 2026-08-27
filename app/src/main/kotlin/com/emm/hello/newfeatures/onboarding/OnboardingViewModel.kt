@@ -34,7 +34,7 @@ class OnboardingViewModel(
 
     private fun finishOnboarding() {
         onboardingState.markWelcomeSeen()
-        sendEffect(OnboardingUiEffect.NavigateToDashboard)
+        sendEffect(OnboardingUiEffect.NavigateToHoy)
     }
 
     private fun onBackPressed() {

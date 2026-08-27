@@ -15,11 +15,11 @@ class RefineDesignSystemVerificationProofTest {
     fun `proven pattern is promoted`() {
         // Post Ember redesign: the promoted components still live in core/ui. HSectionBlock has no
         // consumers anymore (the redesigned screens use bespoke layouts), but HStatCard is still
-        // consumed by the dashboard stats row.
+        // consumed by the Hoy stats row.
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/SectionBlock.kt"))).isTrue()
         assertThat(Files.exists(resolve("app/src/main/kotlin/com/emm/hello/core/ui/StatCard.kt"))).isTrue()
 
-        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt"))
+        assertThat(read("app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyStatsSection.kt"))
             .contains("HStatCard(")
     }
 
@@ -49,13 +49,13 @@ class RefineDesignSystemVerificationProofTest {
     @Test
     fun `out of scope work is rejected`() {
         // Post Ember redesign: HSectionBlock has no consumers (kept in core/ui as a reusable shell
-        // but unused). HStatCard is consumed only by the dashboard.
+        // but unused). HStatCard is consumed only by Hoy.
         val sectionBlockImports = filesContaining("import com.emm.hello.core.ui.HSectionBlock")
         assertThat(sectionBlockImports).isEmpty()
 
         val statCardImports = filesContaining("import com.emm.hello.core.ui.HStatCard")
         assertThat(statCardImports).containsExactly(
-            "app/src/main/kotlin/com/emm/hello/newfeatures/dashboard/DashboardStatsSection.kt",
+            "app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyStatsSection.kt",
         )
 
         val promotedPatternUsageOutsideApp = kotlinFilesUnder("data/src")

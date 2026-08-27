@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.dashboard
+package com.emm.hello.newfeatures.hoy
 
 import app.cash.turbine.test
 import com.emm.domain.study.DashboardStats
@@ -18,7 +18,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DashboardViewModelTest {
+class HoyViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -67,7 +67,7 @@ class DashboardViewModelTest {
 
         viewModel.effect.test {
             viewModel.onIntent(StudyClicked)
-            val effect: DashboardUiEffect = awaitItem()
+            val effect: HoyUiEffect = awaitItem()
             assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
             assertThat((effect as NavigateToStudy).deckId).isEqualTo(StudyRoute.ALL_DUE_DECKS)
         }
@@ -108,7 +108,7 @@ class DashboardViewModelTest {
         assertThat(stateDueing(1).hasSessionReady).isTrue()
     }
 
-    private fun stateDueing(cardsDueToday: Int): DashboardUiState = DashboardUiState(
+    private fun stateDueing(cardsDueToday: Int): HoyUiState = HoyUiState(
         stats = DashboardStats(
             cardsStudiedToday = 0,
             cardsDueToday = cardsDueToday,
@@ -119,7 +119,7 @@ class DashboardViewModelTest {
 
     private fun makeViewModel(
         statsUseCase: GetDashboardStatsUseCase = makeDefaultStatsUseCase(),
-    ): DashboardViewModel = DashboardViewModel(getDashboardStatsUseCase = statsUseCase)
+    ): HoyViewModel = HoyViewModel(getDashboardStatsUseCase = statsUseCase)
 
     private fun makeDefaultStatsUseCase(): GetDashboardStatsUseCase = GetDashboardStatsUseCase(
         FakeStatsRepo(0, 0, 0, emptyList()),

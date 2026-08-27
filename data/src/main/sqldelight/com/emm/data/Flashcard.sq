@@ -158,7 +158,7 @@ WHERE f.deckId = :deckId
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 -- All-decks variant of flashcardsToReviewByDeck: same projection, no deckId filter.
--- Backs the global "study everything due today" session (Dashboard "Estudiar ahora").
+-- Backs the global "study everything due today" session (Hoy "Estudiar ahora").
 -- LEFT JOIN includes never-reviewed cards (no ReviewProjection row): NULL nextReviewAt means due now.
 flashcardsToReviewAllDecks:
 SELECT f.*,

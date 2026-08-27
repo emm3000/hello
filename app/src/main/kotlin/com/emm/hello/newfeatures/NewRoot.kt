@@ -36,8 +36,8 @@ import com.emm.hello.newfeatures.card.NewCardDestination
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.capture.CaptureDestination
 import com.emm.hello.newfeatures.capture.CaptureRoute
-import com.emm.hello.newfeatures.dashboard.DashboardDestination
-import com.emm.hello.newfeatures.dashboard.DashboardRoute
+import com.emm.hello.newfeatures.hoy.HoyDestination
+import com.emm.hello.newfeatures.hoy.HoyRoute
 import com.emm.hello.newfeatures.deck.DecksDestination
 import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.newfeatures.deck.NewDeckDestination
@@ -71,7 +71,7 @@ fun NewRoot() {
 
 @Composable
 private fun AppNavigation(hasSeenWelcome: Boolean) {
-    val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) DashboardRoute else OnboardingRoute }
+    val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) HoyRoute else OnboardingRoute }
     val backStack = rememberNavBackStack(startKey)
     val navigator = remember(backStack) { Navigator(backStack) }
 
@@ -115,7 +115,7 @@ private fun AppNavigation(hasSeenWelcome: Boolean) {
         ),
         entryProvider = entryProvider {
             entry<OnboardingRoute> { OnboardingDestination(navigator) }
-            entry<DashboardRoute> { DashboardDestination(navigator) }
+            entry<HoyRoute> { HoyDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
             entry<LibraryRoute> { LibraryDestination(navigator) }
@@ -148,7 +148,7 @@ private fun StartupLoadingScreen() {
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = "Enseguida abrimos tu dashboard local.",
+                text = "Enseguida abrimos tu biblioteca local.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

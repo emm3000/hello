@@ -65,7 +65,7 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun settingsScreen_navigationFromDashboard_toSettings_andBack() {
+    fun settingsScreen_navigationFromHoy_toSettings_andBack() {
         composeRule.setContent {
             NewRoot()
         }

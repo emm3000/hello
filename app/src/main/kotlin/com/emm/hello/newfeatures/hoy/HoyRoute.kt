@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.dashboard
+package com.emm.hello.newfeatures.hoy
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,12 +14,12 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
 @Serializable
-object DashboardRoute : NavKey
+object HoyRoute : NavKey
 
 @Composable
-fun DashboardDestination(navigator: Navigator) {
-    val vm: DashboardViewModel = koinViewModel()
-    val uiState: DashboardUiState by vm.state.collectAsStateWithLifecycle()
+fun HoyDestination(navigator: Navigator) {
+    val vm: HoyViewModel = koinViewModel()
+    val uiState: HoyUiState by vm.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -29,7 +29,7 @@ fun DashboardDestination(navigator: Navigator) {
         }
     }
 
-    DashboardScreen(
+    HoyScreen(
         state = uiState,
         onCapture = { navigator.navigateTo(CaptureRoute) },
         onStudy = { vm.onIntent(StudyClicked) },
