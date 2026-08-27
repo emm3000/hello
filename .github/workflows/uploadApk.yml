@@ -6,8 +6,11 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: ${{ github.ref }}
+  group: upload-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,15 +26,26 @@ jobs:
         run: echo "date_today=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
 
       - name: Create keystore.properties file
-        run: echo "${{ secrets.JUST_VERONICA }}" > keystore.properties
+        env:
+          KEYSTORE_PROPERTIES: ${{ secrets.JUST_VERONICA }}
+        run: printf '%s' "$KEYSTORE_PROPERTIES" > keystore.properties
 
       - name: Decode Keystore
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
         run: |
           mkdir -p key
-          echo "${{ secrets.APP_KEY }}" | base64 --decode > key/just_chill_key.p12
+          printf '%s' "$APP_KEY" | base64 --decode > key/just_chill_key.p12
 
-      - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --ignore-garbage --decode > app/google-services.json
+      - name: Provision google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" | base64 --ignore-garbage --decode > app/google-services.json
+          else
+            cp .github/google-services.dummy.json app/google-services.json
+          fi
 
       - name: Set Up JDK 17
         uses: actions/setup-java@v5
@@ -42,13 +56,23 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Run tests and build APK
-        run: ./gradlew testDebugUnitTest assembleStaging --build-cache
+      - name: Verify and build the staging APK
+        run: >-
+          ./gradlew
+          detekt
+          testDebugUnitTest
+          :domain:test
+          :data:verifySqlDelightMigration
+          assembleStaging
 
       - name: Get Staging APK path and size
         id: releaseApkPath
         run: |
-          apk=$(find app/build/outputs/apk/staging/*.apk)
+          apk=$(find app/build/outputs/apk/staging -name '*.apk' -type f | head -1)
+          if [ -z "$apk" ]; then
+            echo "No staging APK found" >&2
+            exit 1
+          fi
           echo "apk=$apk" >> $GITHUB_OUTPUT
           echo "size=$(ls -lh "$apk" | awk '{print $5}')" >> $GITHUB_OUTPUT
 
