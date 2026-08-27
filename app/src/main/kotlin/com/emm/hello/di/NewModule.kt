@@ -12,6 +12,7 @@ import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
 import com.emm.data.flashcard.DefaultFlashcardGenerationRepository
 import com.emm.data.flashcard.DefaultFlashcardEnrichmentRepository
+import com.emm.data.library.DefaultLibraryRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
@@ -52,6 +53,8 @@ import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
+import com.emm.domain.library.LibraryRepository
+import com.emm.domain.library.SearchLibraryUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
@@ -132,6 +135,9 @@ fun Module.repository() {
     }
     single<FlashcardEnrichmentRepository> {
         DefaultFlashcardEnrichmentRepository(db = get(), ioDispatcher = Dispatchers.IO)
+    }
+    single<LibraryRepository> {
+        DefaultLibraryRepository(db = get(), ioDispatcher = Dispatchers.IO)
     }
     single<StudySessionRepository> {
         DefaultStudySessionRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
@@ -216,6 +222,7 @@ fun Module.useCases() {
     factoryOf(::SoftDeleteFlashcardUseCase)
     factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
+    factoryOf(::SearchLibraryUseCase)
 }
 
 fun Module.viewModels() {

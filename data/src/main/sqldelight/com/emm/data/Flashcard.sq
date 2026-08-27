@@ -195,6 +195,23 @@ LEFT JOIN ReviewProjection rp
 WHERE f.deckId = :deckId
   AND f.deletedAt IS NULL;
 
+libraryFlashcards:
+SELECT f.id,
+    f.deckId,
+    d.name AS deckName,
+    f.word,
+    f.translation,
+    f.meaning,
+    f.enrichmentStatus,
+    rp.nextReviewAt
+FROM Flashcard f
+INNER JOIN Deck d
+  ON d.id = f.deckId
+LEFT JOIN ReviewProjection rp
+  ON rp.flashcardId = f.id
+WHERE f.deletedAt IS NULL
+ORDER BY f.createdAt DESC, f.id;
+
 countsByEnrichmentStatus:
 SELECT
     COUNT(CASE WHEN enrichmentStatus = 'PENDING' THEN 1 END) AS pending,
