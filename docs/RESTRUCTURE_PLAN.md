@@ -40,7 +40,7 @@ Study session: 1 flashcard = 1 visible review = 1 grade. Two grade buttons (`AGA
 | 1 — Study session | Single review per flashcard, no `Start` stage, binary grading with long-press easy, example + part of speech on the card back | ✅ Done | `64cfe69`, `d93a1dc`, `9be2a1b`, `d3adb9c`, `b94bee8` |
 | 2 — Capture | Single-field capture, background AI enrichment worker, mode selector removed | ✅ Done | `ef990ba`, `5670093`, `84e93f7`, `56a9491`, `ea2313b`, `4c0bed8`, `71c923e`, `24ab589` |
 | 3 — Hoy | Session-first home replacing Dashboard | ◐ Partly done | `34ee414`, `b7524b2`, `c1c698b` |
-| 4 — Biblioteca | All-cards list with content search; absorbs Deck Detail; decks as optional filter | ✅ Done | `d5ec1c4`, `06ea470`, `22f1f4d`, `8a17035`, `7b41631`, `bf1becd`, `970166e`, `039dd1a` |
+| 4 — Biblioteca | All-cards list with content search; absorbs Deck Detail; decks as optional filter | ✅ Done | `d5ec1c4`, `06ea470`, `22f1f4d`, `8a17035`, `7b41631`, `bf1becd`, `970166e`, `039dd1a`, `67674f9` |
 | 5 — Cleanup | Dead code, package rename, docs resync, roadmap close | ✅ Done | `ea4d2fe`, `569b716` |
 
 ## Phase 1 — Study session
@@ -204,6 +204,14 @@ before commit:
 Deliberately not done: per-deck study. `StudyRoute` still accepts a single deck
 id and nothing passes one any more. Adding a "study this deck" action to the
 chip row is a feature, not a Phase 4 obligation.
+
+The device run on `medium_phone` verified all eight units and found one defect
+no gate could: Biblioteca's header read "1 TARJETAS" once a search narrowed the
+list to one card. `library_card_counter` was a plain string with a `%1$d`, which
+cannot agree in number. Fixed as `67674f9`, together with `cards_count` in
+`DeckRow`, which carried the same defect from before this phase and which the
+new Mazos screen had started to surface. detekt, 113 unit tests and the Compose
+previews all passed over both.
 
 ## Phase 5 — Cleanup
 
