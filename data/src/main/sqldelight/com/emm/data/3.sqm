@@ -1,0 +1,15 @@
+-- Migration 3 → 4 (file 3.sqm): Drop the dead multi-device sync schema.
+--
+-- Design rules:
+--   • Destructive by design: every dropped table belongs to the remote-sync path that
+--     was never activated. The product runs local-first single-device, HelloDb is the
+--     source of truth, and no Kotlin source reads or writes any of these tables.
+--   • LocalDeviceIdentity survives untouched — it backs the local install identity and
+--     its lamportCounter is serialized into the backup envelope.
+--   • Dropping a table drops its indexes with it; no explicit DROP INDEX is needed.
+--   • No user-visible data is lost: on a single-device install these tables are empty.
+
+DROP TABLE IF EXISTS AppliedRemoteOperation;
+DROP TABLE IF EXISTS SyncCheckpoint;
+DROP TABLE IF EXISTS OperationLog;
+DROP TABLE IF EXISTS LocalAccountState;
