@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.deck.DecksRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -65,5 +66,6 @@ fun SettingsDestination(navigator: Navigator) {
         onConfirmImport = { vm.onIntent(SettingsUiIntent.ConfirmImport) },
         onDismissImport = { vm.onIntent(SettingsUiIntent.CancelImport) },
         onNavigateBack = { navigator.goBack() },
+        onDecks = { navigator.navigateTo(DecksRoute) },
     )
 }

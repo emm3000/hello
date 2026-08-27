@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,6 +64,9 @@ import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
@@ -171,8 +175,32 @@ fun NewDeckScreen(
                     tags = state.tags,
                     onTagsChange = { onIntent(NewDeckUiIntent.TagsChanged(it)) },
                 )
+
+                if (state.canDelete) {
+                    Spacer(Modifier.height(40.dp))
+                    HButton(
+                        text = stringResource(R.string.delete_deck_action),
+                        onClick = { onIntent(NewDeckUiIntent.DeleteDeck) },
+                        variant = HButtonVariant.Ghost,
+                        danger = true,
+                        full = true,
+                    )
+                }
             }
         }
+    }
+
+    if (state.isDeleteConfirmationVisible) {
+        HAlertDialog(
+            title = stringResource(R.string.delete_deck_title),
+            description = stringResource(R.string.delete_deck_description),
+            icon = Icons.Outlined.Delete,
+            confirmText = stringResource(R.string.delete),
+            cancelText = stringResource(R.string.cancel),
+            isDangerous = true,
+            onConfirm = { onIntent(NewDeckUiIntent.ConfirmDeleteDeck) },
+            onDismiss = { onIntent(NewDeckUiIntent.DismissDeleteDeck) },
+        )
     }
 }
 

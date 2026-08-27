@@ -8,8 +8,12 @@ data class NewDeckUiState(
     val tags: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val formMode: DeckFormMode = DeckFormMode.Create,
+    val isDeleteConfirmationVisible: Boolean = false,
 ) : MviState {
 
     val isValid: Boolean
         get() = name.isNotBlank()
+
+    val canDelete: Boolean
+        get() = formMode is DeckFormMode.Edit && !isLoading
 }

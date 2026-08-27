@@ -8,4 +8,7 @@ sealed interface NewDeckUiIntent : MviIntent {
     data class DescriptionChanged(val description: String) : NewDeckUiIntent
     data class TagsChanged(val tags: List<String>) : NewDeckUiIntent
     data object Submit : NewDeckUiIntent
+    data object DeleteDeck : NewDeckUiIntent
+    data object ConfirmDeleteDeck : NewDeckUiIntent
+    data object DismissDeleteDeck : NewDeckUiIntent
 }

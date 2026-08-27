@@ -89,6 +89,7 @@ import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.capture.CaptureViewModel
 import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.dashboard.DashboardViewModel
+import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.DeckDetailViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
@@ -232,11 +233,14 @@ fun Module.viewModels() {
         NewDeckViewModel(
             deckRepository = get(),
             updateDeckUseCase = get(),
+            softDeleteDeckUseCase = get(),
+            undoEventHolder = get(),
             formMode = params.get(),
         )
     }
     viewModel { DashboardViewModel(get(), get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get(), get()) }
+    viewModel { DecksViewModel(get(), get(), get()) }
     viewModel {
         NewCardViewModel(
             getDecksUseCase = get(),

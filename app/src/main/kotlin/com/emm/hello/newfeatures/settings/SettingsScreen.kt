@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
@@ -70,6 +71,7 @@ fun SettingsScreen(
     onConfirmImport: () -> Unit = {},
     onDismissImport: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
+    onDecks: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -94,6 +96,10 @@ fun SettingsScreen(
                     item {
                         SettingsHeader()
                         Spacer(Modifier.height(32.dp))
+                    }
+                    item {
+                        OrganizationSection(onDecks = onDecks)
+                        Spacer(Modifier.height(28.dp))
                     }
                     item {
                         DataSection(
@@ -167,6 +173,26 @@ private fun SettingsHeader() {
 // ─────────────────────────────────────────────────────────────────────────────
 // "Tus datos" section — single instrumentSurface group with rows + dividers
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun OrganizationSection(onDecks: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(label = stringResource(R.string.settings_section_organization))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = instrumentSurface,
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            SettingsRow(
+                icon = Icons.AutoMirrored.Outlined.List,
+                title = stringResource(R.string.decks_title),
+                sub = stringResource(R.string.settings_decks_subtitle),
+                onClick = onDecks,
+            )
+        }
+    }
+}
 
 @Composable
 private fun DataSection(

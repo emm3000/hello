@@ -4,13 +4,17 @@ import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DeckSearchCriteria
+import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.google.common.truth.Truth.assertThat
+import java.time.LocalDateTime
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -18,6 +22,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +41,8 @@ class NewDeckViewModelTest {
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
             updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
             formMode = DeckFormMode.Create,
         )
 
@@ -59,6 +69,8 @@ class NewDeckViewModelTest {
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
             updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
             formMode = DeckFormMode.Create,
         )
 
@@ -83,6 +95,8 @@ class NewDeckViewModelTest {
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
             updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
             formMode = DeckFormMode.Create,
         )
 
@@ -97,6 +111,8 @@ class NewDeckViewModelTest {
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
             updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
             formMode = DeckFormMode.Create,
         )
 
@@ -111,6 +127,8 @@ class NewDeckViewModelTest {
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
             updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
             formMode = DeckFormMode.Create,
         )
 
@@ -126,6 +144,64 @@ class NewDeckViewModelTest {
         assertThat(repository.createCalls).isEqualTo(1)
     }
 
+    @Test
+    fun `confirming delete in edit mode soft deletes the deck and publishes an undo event`() = runTest {
+        val repository = FakeDeckRepository()
+        repository.storedDeck = Deck(
+            id = DeckId.from("deck-1"),
+            name = "Viajes",
+            description = "",
+            createdAt = LocalDateTime.parse("2026-01-01T00:00:00"),
+            cards = emptyList(),
+            cardsCount = 0L,
+        )
+        val undoEventHolder = UndoEventHolder()
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = undoEventHolder,
+            formMode = DeckFormMode.Edit("deck-1"),
+        )
+
+        val collector: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler)
+        val undoEvents = mutableListOf<UndoEvent>()
+        backgroundScope.launch(collector) { undoEventHolder.events.toList(undoEvents) }
+        val effects = mutableListOf<NewDeckUiEffect>()
+        backgroundScope.launch(collector) { viewModel.effect.toList(effects) }
+
+        viewModel.onIntent(NewDeckUiIntent.DeleteDeck)
+        assertThat(viewModel.state.value.isDeleteConfirmationVisible).isTrue()
+
+        viewModel.onIntent(NewDeckUiIntent.ConfirmDeleteDeck)
+        advanceUntilIdle()
+
+        assertThat(effects).contains(NewDeckUiEffect.DeckDeleted)
+        assertThat(undoEvents).containsExactly(
+            UndoEvent.DeckDeleted(deckId = "deck-1", deletedAt = DELETED_AT, deckName = "Viajes"),
+        )
+        assertThat(repository.softDeletedDeckId).isEqualTo(DeckId.from("deck-1"))
+        assertThat(viewModel.state.value.isDeleteConfirmationVisible).isFalse()
+    }
+
+    @Test
+    fun `confirming delete in create mode never reaches the repository`() = runTest {
+        val repository = FakeDeckRepository()
+        val viewModel = NewDeckViewModel(
+            deckRepository = repository,
+            updateDeckUseCase = UpdateDeckUseCase(repository),
+            softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
+            formMode = DeckFormMode.Create,
+        )
+
+        viewModel.onIntent(NewDeckUiIntent.ConfirmDeleteDeck)
+        advanceUntilIdle()
+
+        assertThat(repository.softDeletedDeckId).isNull()
+        assertThat(viewModel.state.value.canDelete).isFalse()
+    }
+
     private class FakeDeckRepository(
         private val shouldFail: Boolean = false,
     ) : DeckRepository {
@@ -138,7 +214,10 @@ class NewDeckViewModelTest {
             if (shouldFail) error("boom")
         }
 
-        override fun fetchById(deckId: DeckId): Flow<Deck> = emptyFlow()
+        var storedDeck: Deck? = null
+
+        override fun fetchById(deckId: DeckId): Flow<Deck> =
+            storedDeck?.let { flowOf(it) } ?: emptyFlow()
 
         override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
 
@@ -149,7 +228,14 @@ class NewDeckViewModelTest {
         override fun fetchTagsForDeck(deckId: DeckId): Flow<List<Tag>> = emptyFlow()
 
         override suspend fun update(input: UpdateDeckInput) = Unit
-        override suspend fun softDeleteDeck(deckId: DeckId): Long = 0L
+        var softDeletedDeckId: DeckId? = null
+
+        override suspend fun softDeleteDeck(deckId: DeckId): Long {
+            softDeletedDeckId = deckId
+            return DELETED_AT
+        }
         override suspend fun restoreDeck(deckId: DeckId, deletedAt: Long) = Unit
     }
 }
+
+private const val DELETED_AT: Long = 1_700_000_000_000L

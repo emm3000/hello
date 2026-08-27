@@ -501,4 +501,12 @@
     <string name="library_no_results_body">Ninguna tarjeta coincide con lo que buscas.</string>
     <string name="library_no_results_cta">Limpiar filtros</string>
     <string name="library_content_description">Abrir la biblioteca</string>
+    <string name="delete_deck_action">Borrar mazo</string>
+    <string name="decks_title">Mazos</string>
+    <string name="decks_create_action">Nuevo mazo</string>
+    <string name="decks_empty_headline">Todavía no hay mazos</string>
+    <string name="decks_empty_body">Un mazo agrupa tarjetas. Es opcional: puedes capturar sin crear ninguno.</string>
+    <string name="settings_section_organization">Organización</string>
+    <string name="settings_decks_subtitle">Crear, renombrar o borrar mazos</string>
+    <string name="error_restore_deck">No se pudo restaurar el mazo</string>
 </resources>

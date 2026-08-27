@@ -28,6 +28,7 @@ fun NewDeckDestination(navigator: Navigator, deckId: String? = null) {
         vm.effect.collect { effect ->
             when (effect) {
                 NewDeckUiEffect.NavigateBack -> navigator.goBack()
+                NewDeckUiEffect.DeckDeleted -> navigator.goBack()
                 is NewDeckUiEffect.ShowMessage -> {
                     Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }

@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.deck
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
@@ -10,6 +11,8 @@ import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import com.emm.hello.newfeatures.shared.UndoEvent
+import com.emm.hello.newfeatures.shared.UndoEventHolder
 import kotlinx.coroutines.flow.first
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
@@ -17,6 +20,8 @@ import kotlinx.coroutines.launch
 class NewDeckViewModel(
     private val deckRepository: DeckRepository,
     private val updateDeckUseCase: UpdateDeckUseCase,
+    private val softDeleteDeckUseCase: SoftDeleteDeckUseCase,
+    private val undoEventHolder: UndoEventHolder,
     formMode: DeckFormMode,
 ) : MviViewModel<NewDeckUiState, NewDeckUiIntent, NewDeckUiEffect>(
     initialState = NewDeckUiState(formMode = formMode),
@@ -34,6 +39,9 @@ class NewDeckViewModel(
             is NewDeckUiIntent.DescriptionChanged -> setState { copy(description = intent.description) }
             is NewDeckUiIntent.TagsChanged -> setState { copy(tags = intent.tags.normalizeTags()) }
             NewDeckUiIntent.Submit -> handleSubmit()
+            NewDeckUiIntent.DeleteDeck -> setState { copy(isDeleteConfirmationVisible = true) }
+            NewDeckUiIntent.ConfirmDeleteDeck -> deleteDeck()
+            NewDeckUiIntent.DismissDeleteDeck -> setState { copy(isDeleteConfirmationVisible = false) }
         }
     }
 
@@ -93,6 +101,29 @@ class NewDeckViewModel(
             logError(TAG, "createDeck:error ${e.message}", e)
             setState { copy(isLoading = false) }
             sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_create_deck))
+        }
+    }
+
+    private fun deleteDeck() = viewModelScope.launch {
+        val mode: DeckFormMode = currentState.formMode
+        if (mode !is DeckFormMode.Edit) return@launch
+
+        setState { copy(isDeleteConfirmationVisible = false) }
+        try {
+            val deletedAt: Long = softDeleteDeckUseCase(mode.deckId.toDeckId())
+            undoEventHolder.tryEmit(
+                UndoEvent.DeckDeleted(
+                    deckId = mode.deckId,
+                    deletedAt = deletedAt,
+                    deckName = currentState.name,
+                )
+            )
+            sendEffect(NewDeckUiEffect.DeckDeleted)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "deleteDeck:error ${e.message}", e)
+            sendEffect(NewDeckUiEffect.ShowMessage(R.string.error_delete_deck))
         }
     }
 
