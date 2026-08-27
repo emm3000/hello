@@ -1,12 +1,13 @@
 package com.emm.hello.newfeatures.study
 
 import app.cash.turbine.test
-import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.flashcard.FsrsParameters
+import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
+import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.study.ReviewGrade
@@ -14,7 +15,6 @@ import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.time.Clock
-import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,43 +45,53 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `request exit before session starts emits navigate back effect`() = runTest {
+    fun `total count is the number of flashcards even when one carries several study cards`() = runTest {
+        val cards = listOf(
+            studyFlashcard(
+                id = "a",
+                studyCards = listOf(
+                    studyCard("a-1", StudyCardType.Recognition),
+                    studyCard("a-2", StudyCardType.Production),
+                    studyCard("a-3", StudyCardType.Cloze),
+                ),
+            ),
+            studyFlashcard(id = "b", studyCards = emptyList()),
+        )
+        val viewModel = makeViewModel(cards)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(2)
+    }
+
+    // ── Exit ─────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `exit clicked before any review emits navigate back`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
 
         viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.RequestExit)
+            viewModel.onIntent(StudyUiIntent.ExitClicked)
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
         }
     }
 
     @Test
-    fun `request exit after session starts shows confirmation instead of navigating back`() = runTest {
+    fun `exit clicked mid-session emits navigate back without asking for confirmation`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
-
-        viewModel.onIntent(StudyUiIntent.StartSession)
-
-        viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.RequestExit)
-            expectNoEvents()
-        }
-        assertThat(viewModel.state.value.showExitConfirmation).isTrue()
-    }
-
-    @Test
-    fun `confirm exit hides confirmation and emits navigate back effect`() = runTest {
-        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
         advanceUntilIdle()
 
-        viewModel.onIntent(StudyUiIntent.StartSession)
-        viewModel.onIntent(StudyUiIntent.RequestExit)
-
         viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.ConfirmExit)
+            viewModel.onIntent(StudyUiIntent.ExitClicked)
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
         }
-        assertThat(viewModel.state.value.showExitConfirmation).isFalse()
     }
 
     @Test
@@ -94,6 +104,8 @@ class StudyViewModelTest {
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
         }
     }
+
+    // ── Reviewing ────────────────────────────────────────────────────────────
 
     @Test
     fun `review answered advances to next card and increments reviewed count`() = runTest {
@@ -114,7 +126,110 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `reviewing last card emits session finished effect`() = runTest {
+    fun `each review is persisted immediately with the grade as given`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = makeViewModel(
+            listOf(studyFlashcard("a"), studyFlashcard("b")),
+            reviewRepo = reviewRepo,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.AGAIN,
+            )
+        )
+        advanceUntilIdle()
+        assertThat(reviewRepo.updates.map { it.first.flashcardId.value to it.second })
+            .containsExactly("a" to ReviewGrade.AGAIN)
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
+        advanceUntilIdle()
+        assertThat(reviewRepo.updates.map { it.first.flashcardId.value to it.second })
+            .containsExactly("a" to ReviewGrade.AGAIN, "b" to ReviewGrade.GOOD)
+            .inOrder()
+    }
+
+    @Test
+    fun `flashcard with several study cards is graded once and keeps the grade as given`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = makeViewModel(
+            listOf(
+                studyFlashcard(
+                    id = "a",
+                    studyCards = listOf(
+                        studyCard("a-1", StudyCardType.Recognition),
+                        studyCard("a-2", StudyCardType.Production),
+                    ),
+                )
+            ),
+            reviewRepo = reviewRepo,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.EASY,
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(reviewRepo.updates).hasSize(1)
+        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
+        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.EASY)
+        assertThat(viewModel.state.value.currentItem).isNull()
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `flashcard with no study cards persists the review once when graded`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = makeViewModel(
+            listOf(studyFlashcard(id = "a", studyCards = emptyList())),
+            reviewRepo = reviewRepo,
+        )
+        advanceUntilIdle()
+
+        // A seeded card with no generated content is still one studiable, schedulable card.
+        assertThat(viewModel.state.value.totalCount).isEqualTo(1)
+
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.GOOD,
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(reviewRepo.updates).hasSize(1)
+        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
+        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.GOOD)
+    }
+
+    @Test
+    fun `review answered with no current item persists nothing`() = runTest {
+        val reviewRepo = FakeFlashcardReviewRepo()
+        val viewModel = makeViewModel(emptyList(), reviewRepo = reviewRepo)
+        advanceUntilIdle()
+
+        viewModel.onIntent(StudyUiIntent.ReviewAnswered(item = null, reviewGrade = ReviewGrade.GOOD))
+        advanceUntilIdle()
+
+        assertThat(reviewRepo.updates).isEmpty()
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(0)
+    }
+
+    // ── Session finished ─────────────────────────────────────────────────────
+
+    @Test
+    fun `session finished is emitted only after the last card is graded`() = runTest {
         val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
@@ -126,14 +241,24 @@ class StudyViewModelTest {
                     reviewGrade = ReviewGrade.GOOD,
                 )
             )
+            advanceUntilIdle()
+            expectNoEvents()
+
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.state.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
         }
+        assertThat(viewModel.state.value.sessionFinished).isTrue()
+        assertThat(viewModel.state.value.currentItem).isNull()
     }
 
     @Test
     fun `session finished is not emitted twice when queue is empty`() = runTest {
-        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
-        val viewModel = makeViewModel(cards)
+        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
         advanceUntilIdle()
 
         viewModel.effect.test {
@@ -157,100 +282,17 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `empty session emits session finished immediately`() = runTest {
+    fun `empty session shows the empty state instead of finishing`() = runTest {
         val viewModel = makeViewModel(emptyList())
 
         viewModel.effect.test {
-            assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
+            advanceUntilIdle()
+            expectNoEvents()
         }
-    }
-
-    @Test
-    fun `flashcard with multiple study cards expands session and schedules once`() = runTest {
-        val reviewRepo = FakeFlashcardReviewRepo()
-        val viewModel = StudyViewModel(
-            deckId = "deck-1",
-            studySessionRepository = FakeStudySessionRepo(
-                listOf(
-                    studyFlashcard(
-                        id = "a",
-                        studyCards = listOf(
-                            studyCard("a-1", StudyCardType.Recognition),
-                            studyCard("a-2", StudyCardType.Production),
-                        ),
-                    )
-                )
-            ),
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
-            flashcardReviewRepository = reviewRepo,
-            clock = fixedClock,
-            onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
-        )
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.totalCount).isEqualTo(2)
-        assertThat(viewModel.state.value.currentItem?.studyCard?.cardId).isEqualTo("a-1")
-
-        viewModel.onIntent(
-            StudyUiIntent.ReviewAnswered(
-                item = viewModel.state.value.currentItem,
-                reviewGrade = ReviewGrade.EASY,
-            )
-        )
-        advanceUntilIdle()
-
-        assertThat(reviewRepo.updates).isEmpty()
-        assertThat(viewModel.state.value.currentItem?.studyCard?.cardId).isEqualTo("a-2")
-
-        viewModel.onIntent(
-            StudyUiIntent.ReviewAnswered(
-                item = viewModel.state.value.currentItem,
-                reviewGrade = ReviewGrade.HARD,
-            )
-        )
-        advanceUntilIdle()
-
-        assertThat(reviewRepo.updates).hasSize(1)
-        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
-        // Conservative aggregation: HARD (priority 1) beats EASY (priority 3) — the worse grade wins.
-        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.HARD)
-    }
-
-    @Test
-    fun `flashcard with no study cards persists the review once when graded`() = runTest {
-        val reviewRepo = FakeFlashcardReviewRepo()
-        val viewModel = StudyViewModel(
-            deckId = "deck-1",
-            studySessionRepository = FakeStudySessionRepo(
-                listOf(studyFlashcard(id = "a", studyCards = emptyList())),
-            ),
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
-            flashcardReviewRepository = reviewRepo,
-            clock = fixedClock,
-            onboardingState = FakeOnboardingStateRepository(),
-            fsrsParameters = FsrsParameters.DEFAULT,
-        )
-        advanceUntilIdle()
-
-        // The fallback synthesizes a single basic item so a seeded card with no generated
-        // content is still studiable and, crucially, still schedulable.
-        assertThat(viewModel.state.value.totalCount).isEqualTo(1)
-
-        viewModel.onIntent(
-            StudyUiIntent.ReviewAnswered(
-                item = viewModel.state.value.currentItem,
-                reviewGrade = ReviewGrade.GOOD,
-            )
-        )
-        advanceUntilIdle()
-
-        // Regression: the pending-item count must track the produced items (1), not the raw
-        // studyCards (0). Otherwise remainingItems goes 0 -> -1, never hits 0, and the grade
-        // is silently dropped — the card stays perpetually due.
-        assertThat(reviewRepo.updates).hasSize(1)
-        assertThat(reviewRepo.updates.single().first.flashcardId.value).isEqualTo("a")
-        assertThat(reviewRepo.updates.single().second).isEqualTo(ReviewGrade.GOOD)
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.currentItem).isNull()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(0)
+        assertThat(viewModel.state.value.sessionFinished).isFalse()
     }
 
     // ── Target resolution (per-deck vs all-decks) ──────────────────────────────
@@ -421,7 +463,6 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        // First Grade stage — hint must be hidden
         assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
 
         viewModel.onIntent(
@@ -432,7 +473,6 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        // Second Grade stage — hint must still be hidden
         assertThat(viewModel.state.value.isGradeHintVisible).isFalse()
     }
 
@@ -441,11 +481,12 @@ class StudyViewModelTest {
     private fun makeViewModel(
         cards: List<StudyFlashcard>,
         onboardingRepo: OnboardingStateRepository = FakeOnboardingStateRepository(),
+        reviewRepo: FlashcardReviewRepository = FakeFlashcardReviewRepo(),
     ): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         studySessionRepository = FakeStudySessionRepo(cards),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
-        flashcardReviewRepository = FakeFlashcardReviewRepo(),
+        flashcardReviewRepository = reviewRepo,
         clock = fixedClock,
         onboardingState = onboardingRepo,
         fsrsParameters = FsrsParameters.DEFAULT,

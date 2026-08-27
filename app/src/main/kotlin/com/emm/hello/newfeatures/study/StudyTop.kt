@@ -39,7 +39,7 @@ private val stateLabelReservedHeight = 22.dp
  * Study top bar: close icon · thin progress bar · `current/total` mono counter,
  * with an optional uppercase mono state label centered below.
  *
- * Counter and label are omitted on stages where they are not meaningful (Start/Empty).
+ * Counter and label are omitted on stages where they are not meaningful (Loading/Error/Empty).
  */
 @Composable
 internal fun StudyTop(
@@ -134,13 +134,6 @@ private fun StudyTopPreview() {
                     currentCount = 3,
                     totalCount = 10,
                     stateLabel = "RECORDAR",
-                    onClose = {},
-                )
-                StudyTop(
-                    progress = 0.6f,
-                    currentCount = 6,
-                    totalCount = 10,
-                    stateLabel = "ESCRIBIR",
                     onClose = {},
                 )
                 StudyTop(

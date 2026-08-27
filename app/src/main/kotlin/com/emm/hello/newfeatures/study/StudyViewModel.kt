@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.flashcard.FsrsParameters
-import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.study.PreviewNextInterval
@@ -34,30 +33,18 @@ class StudyViewModel(
     // Non-null == single deck (per-deck DeckDetail CTA). See StudyRoute.ALL_DUE_DECKS.
     private val deckId: String? = deckId.takeUnless { it == StudyRoute.ALL_DUE_DECKS }
 
+    // One entry per due flashcard. Each entry is graded exactly once and persisted on the spot.
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
-    private val pendingItemsByFlashcardId = mutableMapOf<FlashcardId, Int>()
-    private val aggregatedGradesByFlashcardId = mutableMapOf<FlashcardId, ReviewGrade>()
-    private val cardsByFlashcardId = mutableMapOf<FlashcardId, FsrsCard>()
 
     init {
         loadSession()
     }
 
     private fun loadSession() = viewModelScope.launch {
-        resetSessionAccumulators()
+        studyItemsForToday.clear()
         setState { copy(isLoading = true, loadError = null, reviewedCount = 0, sessionFinished = false) }
         try {
-            val studyFlashcards: List<StudyFlashcard> = fetchSession()
-            val items = studyFlashcards.flatMap { sf ->
-                cardsByFlashcardId[sf.flashcardId] = sf.review
-                val sessionItems = sf.toStudySessionItems()
-                // Count the items actually produced, not the raw studyCards: a card with no
-                // generated content still yields one basic fallback item. Keying the pending
-                // count off studyCards would leave it at 0, so remainingItems goes 0 -> -1,
-                // never hits 0, and the review is never persisted (dropped grade).
-                pendingItemsByFlashcardId[sf.flashcardId] = sessionItems.size
-                sessionItems
-            }
+            val items = fetchSession().map { it.toStudySessionItem() }
             studyItemsForToday.addAll(items)
             val showHint = items.isNotEmpty() && !onboardingState.hasSeenGradeHint()
             setState { copy(isLoading = false, totalCount = items.size, isGradeHintVisible = showHint) }
@@ -70,13 +57,6 @@ class StudyViewModel(
         }
     }
 
-    private fun resetSessionAccumulators() {
-        studyItemsForToday.clear()
-        pendingItemsByFlashcardId.clear()
-        aggregatedGradesByFlashcardId.clear()
-        cardsByFlashcardId.clear()
-    }
-
     private suspend fun fetchSession(): List<StudyFlashcard> {
         val target = deckId
         return if (target == null) {
@@ -87,15 +67,15 @@ class StudyViewModel(
     }
 
     private fun showNextCard() {
-        setState {
-            val nextItem = studyItemsForToday.removeFirstOrNull()
-            val previews = nextItem?.let { item ->
-                val liveCard = cardsByFlashcardId[item.flashcardId] ?: item.review
-                PreviewNextInterval.previewAll(liveCard, clock, fsrsParameters)
-            } ?: emptyMap()
-            copy(currentItem = nextItem, intervalPreviews = previews)
-        }
-        if (studyItemsForToday.isEmpty() && !currentState.sessionFinished) {
+        val nextItem = studyItemsForToday.removeFirstOrNull()
+        val previews = nextItem
+            ?.let { PreviewNextInterval.previewAll(it.review, clock, fsrsParameters) }
+            ?: emptyMap()
+        setState { copy(currentItem = nextItem, intervalPreviews = previews) }
+        // The session is over once the last card has been graded, i.e. there is nothing left to
+        // show. An empty session never "finishes": it renders the empty state instead.
+        val state = currentState
+        if (nextItem == null && state.totalCount > 0 && !state.sessionFinished) {
             setState { copy(sessionFinished = true) }
             sendEffect(StudyUiEffect.SessionFinished)
         }
@@ -106,27 +86,12 @@ class StudyViewModel(
             StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
             StudyUiIntent.GradeHintDismissed -> dismissGradeHint()
-            StudyUiIntent.StartSession -> setState { copy(sessionStarted = true) }
             StudyUiIntent.RetryLoad -> loadSession()
-            StudyUiIntent.RequestExit -> requestExit()
-            StudyUiIntent.ConfirmExit -> {
-                setState { copy(showExitConfirmation = false) }
-                sendEffect(StudyUiEffect.NavigateBack)
-            }
-            StudyUiIntent.DismissExitConfirmation -> setState { copy(showExitConfirmation = false) }
+            StudyUiIntent.ExitClicked -> sendEffect(StudyUiEffect.NavigateBack)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
                 item = intent.item,
-                reviewResult = intent.reviewGrade,
+                grade = intent.reviewGrade,
             )
-        }
-    }
-
-    private fun requestExit() {
-        val state = currentState
-        if (state.reviewedCount > 0 || state.sessionStarted) {
-            setState { copy(showExitConfirmation = true) }
-        } else {
-            sendEffect(StudyUiEffect.NavigateBack)
         }
     }
 
@@ -136,48 +101,20 @@ class StudyViewModel(
         setState { copy(isGradeHintVisible = false) }
     }
 
-    private fun processReviewAnswer(item: StudySessionItem?, reviewResult: ReviewGrade) = viewModelScope.launch {
+    private fun processReviewAnswer(item: StudySessionItem?, grade: ReviewGrade) = viewModelScope.launch {
         if (currentState.isGradeHintVisible) {
             dismissGradeHint()
         }
-        val flashcardId = item?.flashcardId ?: return@launch
-        aggregatedGradesByFlashcardId[flashcardId] = moreConservativeGrade(
-            current = aggregatedGradesByFlashcardId[flashcardId],
-            incoming = reviewResult,
+        val reviewedItem = item ?: return@launch
+        val newCard: FsrsCard = scheduleFlashcardReviewUseCase(
+            card = reviewedItem.review,
+            grade = grade,
+            flashcardId = reviewedItem.flashcardId,
         )
-
-        val remainingItems = pendingItemsByFlashcardId.getValue(flashcardId) - 1
-        pendingItemsByFlashcardId[flashcardId] = remainingItems
-
-        if (remainingItems == 0) {
-            val finalGrade = aggregatedGradesByFlashcardId.remove(flashcardId) ?: reviewResult
-            val persistedCard = cardsByFlashcardId.getValue(flashcardId)
-            val newCard: FsrsCard = scheduleFlashcardReviewUseCase(
-                card = persistedCard,
-                grade = finalGrade,
-                flashcardId = flashcardId,
-            )
-            flashcardReviewRepository.update(newCard, finalGrade)
-            pendingItemsByFlashcardId.remove(flashcardId)
-            cardsByFlashcardId.remove(flashcardId)
-        }
-
+        flashcardReviewRepository.update(newCard, grade)
         setState { copy(reviewedCount = reviewedCount + 1) }
         showNextCard()
     }
-
-    private fun moreConservativeGrade(current: ReviewGrade?, incoming: ReviewGrade): ReviewGrade {
-        val currentScore = current?.priority ?: Int.MAX_VALUE
-        return if (incoming.priority < currentScore) incoming else current ?: incoming
-    }
 }
-
-private val ReviewGrade.priority: Int
-    get() = when (this) {
-        ReviewGrade.AGAIN -> 0
-        ReviewGrade.HARD -> 1
-        ReviewGrade.GOOD -> 2
-        ReviewGrade.EASY -> 3
-    }
 
 private const val TAG = "StudyViewModel"

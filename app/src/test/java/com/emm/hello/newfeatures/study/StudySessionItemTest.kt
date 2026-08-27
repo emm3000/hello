@@ -16,62 +16,74 @@ class StudySessionItemTest {
     private val clock = Clock { Instant.parse("2026-05-04T12:30:45Z") }
 
     @Test
-    fun `flashcard without study cards falls back to a basic recognition item`() {
-        val flashcard = studyFlashcard(word = "hello", translation = "hola", studyCards = emptyList())
-
-        val items = flashcard.toStudySessionItems()
-
-        assertThat(items).hasSize(1)
-        val card = items.single().studyCard
-        assertThat(card.cardType).isEqualTo(StudyCardType.Recognition)
-        assertThat(card.prompt).isEqualTo("hello")
-        assertThat(card.expectedAnswer).isEqualTo("hola")
-        assertThat(card.evaluationMode).isEqualTo(EvaluationMode.ManualSelfCheck)
-        assertThat(items.single().word).isEqualTo("hello")
-        assertThat(items.single().translation).isEqualTo("hola")
-    }
-
-    @Test
-    fun `flashcard with active study cards maps them and ignores the fallback`() {
+    fun `flashcard with several active study cards maps to exactly one item`() {
         val flashcard = studyFlashcard(
             word = "hello",
-            translation = "hola",
             studyCards = listOf(
                 studyCard("a", StudyCardType.Recognition),
                 studyCard("b", StudyCardType.Production),
+                studyCard("c", StudyCardType.Cloze),
             ),
         )
 
-        val items = flashcard.toStudySessionItems()
+        val item = flashcard.toStudySessionItem()
 
-        assertThat(items.map { it.studyCard.cardId }).containsExactly("a", "b").inOrder()
+        assertThat(item.flashcardId).isEqualTo(flashcard.flashcardId)
+        assertThat(item.word).isEqualTo("hello")
     }
 
     @Test
-    fun `flashcard whose study cards are all inactive falls back to a basic item`() {
-        val flashcard = studyFlashcard(
-            word = "water",
-            translation = "agua",
-            studyCards = listOf(studyCard("a", StudyCardType.Recognition, isActive = false)),
+    fun `flashcard without study cards still maps to one item`() {
+        val flashcard = studyFlashcard(word = "water", studyCards = emptyList())
+
+        val item = flashcard.toStudySessionItem()
+
+        assertThat(item.flashcardId).isEqualTo(flashcard.flashcardId)
+        assertThat(item.word).isEqualTo("water")
+    }
+
+    @Test
+    fun `item copies every rendered field and the review from the flashcard`() {
+        val review = FsrsCard.new("go".toFlashcardId(), clock)
+        val flashcard = StudyFlashcard(
+            flashcardId = "go".toFlashcardId(),
+            word = "go",
+            phonetic = "/ɡəʊ/",
+            meaning = "to move from one place to another",
+            translation = "ir",
+            review = review,
+            studyCards = emptyList(),
+            usagePattern = "go + to + place",
+            whyUseful = "not rendered by the session",
+            sourceContext = "not rendered by the session",
+            irregularForms = listOf("went", "gone"),
         )
 
-        val items = flashcard.toStudySessionItems()
+        val item = flashcard.toStudySessionItem()
 
-        assertThat(items).hasSize(1)
-        assertThat(items.single().studyCard.prompt).isEqualTo("water")
-        assertThat(items.single().studyCard.expectedAnswer).isEqualTo("agua")
+        assertThat(item).isEqualTo(
+            StudySessionItem(
+                flashcardId = "go".toFlashcardId(),
+                review = review,
+                word = "go",
+                phonetic = "/ɡəʊ/",
+                meaning = "to move from one place to another",
+                translation = "ir",
+                usagePattern = "go + to + place",
+                irregularForms = listOf("went", "gone"),
+            )
+        )
     }
 
     private fun studyFlashcard(
         word: String,
-        translation: String,
         studyCards: List<GeneratedStudyCard>,
     ): StudyFlashcard = StudyFlashcard(
         flashcardId = word.toFlashcardId(),
         word = word,
         phonetic = "",
         meaning = "",
-        translation = translation,
+        translation = "",
         review = FsrsCard.new(word.toFlashcardId(), clock),
         studyCards = studyCards,
     )
@@ -79,13 +91,11 @@ class StudySessionItemTest {
     private fun studyCard(
         id: String,
         type: StudyCardType,
-        isActive: Boolean = true,
     ) = GeneratedStudyCard(
         cardId = id,
         cardType = type,
         prompt = id,
         expectedAnswer = id,
         evaluationMode = EvaluationMode.ManualSelfCheck,
-        isActive = isActive,
     )
 }

@@ -355,66 +355,23 @@
     <string name="validation_answer_too_long_for_recall">La respuesta es muy larga. Intenta acotarla a lo esencial.</string>
 
     <!-- Study Screen -->
-    <string name="study_title">Repaso</string>
     <string name="exit_session_desc">Salir de la sesión</string>
     <!-- Study top-bar state labels (Ember redesign Phase 2.2 sub-1) -->
     <string name="study_state_label_recall">RECORDAR</string>
-    <string name="study_state_label_check">ESCRIBIR</string>
     <string name="study_state_label_grade">RESPUESTA</string>
-    <!-- Study Start/Empty states (Ember redesign Phase 2.2 sub-2) -->
-    <string name="study_start_eyebrow">REPASO DE HOY</string>
-    <plurals name="study_start_headline_count">
-        <item quantity="one">%1$d tarjeta para hoy.</item>
-        <item quantity="other">%1$d tarjetas para hoy.</item>
-    </plurals>
-    <string name="study_start_stat_minutes">≈%1$d min</string>
-    <string name="study_start_cta_short">Comenzar</string>
-    <string name="study_start_supportive">Sesión local. Tu progreso se guarda solo en este dispositivo.</string>
+    <!-- Study Empty state -->
     <string name="study_empty_headline">Hoy no toca repasar.</string>
     <string name="study_empty_body">Vuelve mañana para mantener el ritmo, o crea una tarjeta nueva si quieres sumar al día.</string>
     <string name="study_empty_create_card_cta">Crear una tarjeta</string>
-    <!-- Study Recall + Check direction labels (Ember redesign Phase 2.2 sub-3) -->
-    <string name="study_direction_es_to_en">ESPAÑOL → INGLÉS</string>
+    <!-- Study Recall direction label -->
     <string name="study_direction_en_to_es">INGLÉS → ESPAÑOL</string>
-    <string name="study_direction_cloze">COMPLETA LA FRASE</string>
-    <string name="study_direction_form">FORMA DEL VERBO</string>
-    <string name="study_recall_show_hint">Mostrar pista</string>
-    <string name="study_recall_hide_hint">Ocultar pista</string>
     <string name="study_recall_cta_reveal">Ver respuesta</string>
-    <string name="study_recall_cta_type">Responder escribiendo</string>
-    <string name="study_check_lang_indicator_en">EN</string>
-    <string name="study_check_lang_indicator_es">ES</string>
-    <!-- Study Grade + Grade-Mismatch states (Ember redesign Phase 2.2 sub-4) -->
+    <!-- Study Grade state -->
     <string name="study_grade_answer_label_recognition">SIGNIFICADO</string>
-    <string name="study_grade_answer_label_production">EXPRESIÓN EN INGLÉS</string>
-    <string name="study_grade_answer_label_cloze">PALABRA FALTANTE</string>
-    <string name="study_grade_answer_label_form">FORMA CORRECTA</string>
     <string name="study_grade_swipe_hint">Desliza para calificar rápido</string>
-    <string name="study_grade_lock_easy_footnote">Como tu respuesta coincidió, Otra vez queda bloqueada hoy.</string>
-    <string name="study_grade_lock_hard_footnote">Como tu respuesta no coincidió, Bien y Fácil quedan bloqueadas hoy.</string>
-    <string name="study_grade_mismatch_you_wrote">ESCRIBISTE</string>
-    <string name="study_grade_mismatch_expected">SE ESPERABA</string>
-    <string name="tap_to_reveal">Toca para revelar</string>
-    <string name="study_progress_of">%1$d de %2$d</string>
-    <string name="study_start_title">Listo para repasar</string>
-    <string name="study_start_desc">Sesión local enfocada. Vas a revisar %1$d tarjetas en unos %2$d min.</string>
-    <string name="study_start_cta">Empezar sesión</string>
-    <string name="study_prompt_guidance">Intenta recordar antes de mirar la respuesta.</string>
-    <string name="study_answer_guidance">Escribe tu respuesta y compruébala antes de calificarte.</string>
-    <string name="study_skip_guidance">No escribiste respuesta. Califica manualmente tu recuerdo.</string>
-    <string name="study_reveal_answer">Revelar respuesta</string>
-    <string name="study_answer_cta">Responder</string>
-    <string name="study_check_answer">Comprobar</string>
-    <string name="study_reveal_anyway">Revelar igual</string>
-    <string name="study_exit_confirm_title">¿Salir de la sesión?</string>
-    <string name="study_exit_confirm_desc">Tu progreso ya aplicado se conserva, pero perderás el ritmo actual.</string>
-    <string name="study_exit_confirm_leave">Salir</string>
-    <string name="study_keep_going">Seguir</string>
     <string name="study_error_headline">No pudimos cargar tu sesión.</string>
     <string name="study_error_body">Hubo un problema al leer tus tarjetas. Vuelve a intentarlo.</string>
     <string name="study_error_retry">Reintentar</string>
-    <string name="study_empty_title">No hay tarjetas para repasar</string>
-    <string name="study_empty_desc">Cuando tengas tarjetas pendientes, la sesión aparecerá aquí.</string>
     <string name="stop_speech_desc">Detener</string>
     <string name="speak_desc">Pronunciar</string>
     <string name="grade_again">Otra vez</string>
@@ -426,40 +383,7 @@
     <string name="session_completed_desc">Repasaste %1$d tarjetas.</string>
     <string name="session_completed_cta">Volver</string>
     <string name="session_completed_stat_label">Tarjetas repasadas</string>
-    <string name="study_typed_answer_label_default">Tu respuesta</string>
-    <string name="study_typed_answer_placeholder_default">Escribe tu respuesta</string>
-    <string name="study_typed_answer_label_recognition">Significado</string>
-    <string name="study_typed_answer_label_production">Expresión en inglés</string>
-    <string name="study_typed_answer_label_cloze">Completa la frase</string>
-    <string name="study_typed_answer_label_form">Forma exacta</string>
-    <string name="study_typed_answer_placeholder_recognition">Escribe el significado esperado</string>
-    <string name="study_typed_answer_placeholder_production">Escribe la expresión en inglés</string>
-    <string name="study_typed_answer_placeholder_cloze">Escribe la palabra o frase faltante</string>
-    <string name="study_typed_answer_placeholder_form_specific">Escribe la forma pedida</string>
-    <string name="study_typed_answer_placeholder_form_generic">Escribe la forma correcta</string>
-    <string name="study_typed_answer_correct_prefix">Correcto</string>
-    <string name="study_typed_answer_incorrect_prefix">Incorrecto</string>
-    <string name="study_typed_answer_exact_match">Tu respuesta coincide exactamente con la esperada.</string>
-    <string name="study_typed_answer_flexible_match">Tu respuesta coincide de forma aceptable.</string>
-    <string name="study_typed_answer_no_exact_match">No coincide exactamente con la respuesta esperada.</string>
-    <string name="study_typed_answer_no_flexible_match">No se parece lo suficiente a la respuesta esperada.</string>
-    <string name="study_answer_label_default">Respuesta</string>
-    <string name="study_answer_label_recognition">Significado esperado</string>
-    <string name="study_answer_label_production">Respuesta esperada</string>
-    <string name="study_answer_label_cloze">Expresión que completa la frase</string>
-    <string name="study_answer_label_form">Forma esperada</string>
-    <string name="study_front_title_recognition">Reconoce el significado o la idea principal</string>
-    <string name="study_front_title_production">Recupera la expresión en inglés</string>
-    <string name="study_front_title_cloze">Completa el hueco con la expresión correcta</string>
-    <string name="study_front_title_form">Recupera la forma exacta</string>
-    <string name="study_cloze_prompt_title">Completa el hueco</string>
-    <string name="study_form_hints_title">Pistas de forma</string>
-    <string name="study_related_forms_title">Formas relacionadas</string>
-    <string name="study_supporting_context_title">Contexto de apoyo</string>
     <string name="study_related_forms_inline">Formas relacionadas: %1$s</string>
-    <string name="study_correct_icon_desc">Respuesta correcta</string>
-    <string name="study_incorrect_icon_desc">Respuesta incorrecta</string>
-    <string name="study_show_hint_desc">Mostrar u ocultar pista</string>
     <string name="study_interval_today">Hoy</string>
     <string name="study_interval_tomorrow">Mañana</string>
     <string name="study_interval_days_format">%1$d días</string>

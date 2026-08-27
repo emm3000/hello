@@ -10,23 +10,30 @@
 
 ## Summary
 
-The study session works over a queue of `StudySessionItem`s derived from the deck's flashcards.
-
-Each flashcard can expand into multiple study items. The review is persisted once per flashcard, when its pending items are done.
+The study session shows every due flashcard exactly once. Each `StudyFlashcard` maps to one `StudySessionItem`, the user reveals the back and grades it, and the review is scheduled with FSRS-6 and persisted on the spot. There is no start interstitial, no typed answer and no exit confirmation.
 
 ## Key files
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyViewModel.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyScreen.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyTop.kt` (private chrome — Ember Phase 2.2 sub-1)
+- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyTop.kt` (private chrome)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudySessionItem.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyAnswerPolicy.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/FlippableCard.kt`
+
+## Session item
+
+`StudySessionItem` is a 1:1 projection of `StudyFlashcard` onto the fields the card faces render:
+
+- `flashcardId`, `review: FsrsCard`
+- `word`, `phonetic`, `meaning`, `translation`
+- `usagePattern`, `irregularForms`
+
+`StudyFlashcard.toStudySessionItem()` builds it. The flashcard's generated study cards (`studyCards`) are not part of the session: a card with several generated study cards and a card with none are both one item and one grade.
 
 ## Current state
 
@@ -34,16 +41,12 @@ Each flashcard can expand into multiple study items. The review is persisted onc
 
 - `isLoading: Boolean = true` — session load in flight
 - `loadError: StudyLoadError?` — `SessionLoadFailed`; distinguishes a failed read from a genuinely empty due queue
-- `currentItem`
-- `reviewedCount`
-- `totalCount`
+- `currentItem: StudySessionItem?`
+- `reviewedCount` — cards graded so far
+- `totalCount` — cards in the session (equals the due count the Dashboard shows)
 - `sessionFinished`
 - `intervalPreviews: Map<ReviewGrade, Long>` — interval previews shown under each grade chip
 - `isGradeHintVisible: Boolean` — first-session grade hint card
-- `sessionStarted: Boolean` — set by `StartSession`, gates the Start stage
-- `showExitConfirmation: Boolean`
-
-The heavy logic lives in `StudyScreen` and `StudyViewModel`.
 
 ## Session load
 
@@ -51,28 +54,22 @@ The heavy logic lives in `StudyScreen` and `StudyViewModel`.
 
 `loadSession()` (called from `init`, and again by `RetryLoad`):
 
-- resets the accumulators and sets `isLoading = true`, `loadError = null`
+- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`
 - fetches via `studySessionRepository.sessionTodayAllDecks()` when the target is `null`, otherwise `studySessionRepository.sessionToday(deckId.toDeckId())`
-- expands each `StudyFlashcard` into `StudySessionItem`s and caches its `FsrsCard` by `flashcardId`
-- stores a local `ArrayDeque` queue
-- initializes `totalCount` and computes `isGradeHintVisible` from `onboardingState.hasSeenGradeHint()`
-- shows the first available item
+- maps each `StudyFlashcard` to one `StudySessionItem` and queues them in an `ArrayDeque`
+- sets `totalCount` to the number of cards and computes `isGradeHintVisible` from `onboardingState.hasSeenGradeHint()`
+- shows the first card
 - on any throwable (except `CancellationException`) logs and sets `loadError = SessionLoadFailed`
 
-## Progress model
+## Grading and persistence
 
-For each flashcard, the viewmodel keeps:
+`ReviewAnswered(item, grade)`:
 
-- pending items by `flashcardId` (counted from the items actually produced, so a card with no generated content still reaches 0)
-- the most conservative aggregated grade per `flashcardId`
-- the persisted `FsrsCard` per `flashcardId`
+- schedules a new `FsrsCard` with `ScheduleFlashcardReviewUseCase(item.review, grade, item.flashcardId)`
+- persists it with `flashcardReviewRepository.update(newCard, grade)` — immediately, with the grade as given
+- increments `reviewedCount` and shows the next card
 
-When the last item of a flashcard is answered:
-
-- computes the most conservative final grade (`AGAIN < HARD < GOOD < EASY`)
-- schedules a new `FsrsCard` with `ScheduleFlashcardReviewUseCase(card, grade, flashcardId)`
-- persists it with `flashcardReviewRepository.update(newCard, finalGrade)`
-- drops the flashcard from the pending and card caches
+`SessionFinished` is emitted once there is no next card to show and the session had at least one card. An empty session never finishes; it renders the empty state instead.
 
 ## Visual stages
 
@@ -80,89 +77,41 @@ When the last item of a flashcard is answered:
 
 1. `Loading` — `state.isLoading`
 2. `Error` — `state.loadError != null`
-3. `Empty` — not started and `totalCount == 0`
-4. `Start` — not started
-5. `Empty` — no `currentItem`
-6. `Recall` — card face is Front
-7. `Check` — the card needs a typed answer and it hasn't been checked
-8. `Grade` — otherwise
+3. `Empty` — no `currentItem`
+4. `Recall` — card face is Front
+5. `Grade` — card face is Back
 
-`Loading` renders `StudyLoadingState()`, `Error` renders `StudyErrorState()` with a retry CTA wired to `RetryLoad`, and `Start` renders `StudyStartCard` whose CTA fires `StartSession`.
+`Loading` renders `StudyLoadingState()`, `Error` renders `StudyErrorState()` with a retry CTA wired to `RetryLoad`, `Empty` renders `StudyEmptyState()` (mascot + "Hoy no toca repasar.").
 
-## Current interaction flow
+The `StudyTop` counter reads `position/total` for the card on screen ("3/10") and is hidden outside `Recall`/`Grade`. State labels: `RECORDAR` (Recall) and `RESPUESTA` (Grade).
 
-### Start
+## Card faces
 
-Shows a start card with:
+- **Front**: the word in Instrument Serif plus the IPA in Geist Mono. Tapping the card or the "Ver respuesta" CTA flips it.
+- **Back**: mono `SIGNIFICADO` eyebrow, the translation (serif, primary), the IPA, the English meaning (italic serif, secondary), irregular forms inline when present ("Formas relacionadas: went, gone") and `usagePattern` as a supporting line when present.
 
-- total item count
-- estimated time
-- CTA to begin
+A static mono `INGLÉS → ESPAÑOL` overlay sits top-left of the card; the TTS button top-right speaks the word.
 
-### Recall
+## Grade dock
 
-Shows the front of the card and a CTA to reveal or jump to answering.
-
-### Check
-
-If the card requires a typed answer:
-
-- shows input
-- lets you check the answer
-- lets you reveal anyway without answering
-
-### Grade
-
-Shows grading buttons per the policy allowed for that card and the typed-answer result.
-
-## Typed answer
-
-Local screen state holds:
-
-- `typedAnswer`
-- `typedAnswerChecked`
-- `typedAnswerCorrect`
-
-Matching is done against:
-
-- `expectedAnswer`
-- `acceptedAnswers`
-- `evaluationMode`
+In `Grade`, `StudyActionDock` renders `AnswerButtons`: four `GradeChip`s (`AGAIN` / `HARD` / `GOOD` / `EASY`) with their interval preview from `intervalPreviews`, plus a mono "Desliza para calificar rápido" hint. `FlippableCard` also grades by horizontal swipe on the back face. The first-session `GradeHintCard` explains the four buttons and is dismissed by `GradeHintDismissed` or by the first answer.
 
 ## Navigation and exit
 
-Current behaviors:
-
-- if there's already progress, back shows an exit confirmation
-- when the session ends, `SessionFinished` is emitted
-- closing the final dialog or back emits `NavigateBack`
-
-### Exit-confirmation dialog (Phase 4 microcopy)
-
-Rendered via `HAlertDialog` (`isDangerous = true`) with:
-
-- title: "¿Salir de la sesión?"
-- description: "perderás el ritmo actual."
-- confirm: `study_exit_confirm_leave`
-- cancel: `study_keep_going`
+- the X button and system back both fire `ExitClicked`, which always emits `NavigateBack`. Every grade is already persisted, so leaving mid-session loses nothing and asks for no confirmation.
+- when the last card is graded, `SessionFinished` is emitted and the route shows the finish dialog
+- closing the final dialog fires `FinishDialogDismissed`, which emits `NavigateBack`
 
 ### Session-finished dialog
 
-A custom `SessionFinishedDialog` (private composable in `StudyScreen.kt`) replaces the previous `HAlertDialog`. It renders inside a `Dialog` with `emberElev` surface and shows:
+`SessionFinishedDialog` (private composable in `StudyScreen.kt`) renders inside a `Dialog` with `emberElev` surface and shows:
 
+- the celebrating mascot
 - mono eyebrow `session_completed_eyebrow`
 - serif headline `session_completed_title` ("Listo.")
 - italic serif subtitle `session_completed_desc` ("Repasaste N tarjetas.")
 - a stats row on `emberSurface` with the total count in `emberAccent` plus a mono label
 - a full-width `HButton` (`Accent` variant) as the "Volver" CTA, which calls `onDismiss`
-
-### Back content sub-composables (Phase 5b split)
-
-`FlashcardBackContent` now only picks one of three sub-composables based on whether the answer should be revealed and whether the typed answer matched:
-
-- `FlashcardBackPrompt` — front prompt re-shown when the answer must stay hidden
-- `FlashcardBackMismatch` — mismatch cards plus result message when the typed answer is wrong
-- `FlashcardBackReveal` — answer label + primary text + optional phonetic, supporting text, success message and `CardTypeAnswerSupport`
 
 ## Empty stage CTA
 
@@ -175,14 +124,11 @@ When `StudyStage.Empty`, `StudyActionDock` renders a full-width `HButton` (Secon
 - `FinishDialogDismissed` — emits `NavigateBack`
 - `CreateCardClicked` — emits `NavigateToNewCard`
 - `GradeHintDismissed` — marks the hint seen and hides it
-- `StartSession` — sets `sessionStarted = true`
 - `RetryLoad` — re-runs `loadSession()`
-- `RequestExit` — shows the exit confirmation if there is progress (`reviewedCount > 0 || sessionStarted`), otherwise emits `NavigateBack`
-- `ConfirmExit` — hides the confirmation and emits `NavigateBack`
-- `DismissExitConfirmation` — hides the confirmation
+- `ExitClicked` — emits `NavigateBack`
 - `ReviewAnswered(item, reviewGrade)`
 
-There is no `BackClicked` or `TypedAnswerChanged` intent: back goes through `RequestExit`, and the typed answer is local `StudyScreen` state.
+The card face (`Front`/`Back`) is local `StudyScreen` state, reset whenever `currentItem` changes.
 
 ## Current effects
 

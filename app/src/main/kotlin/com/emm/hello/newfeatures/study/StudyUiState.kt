@@ -12,8 +12,6 @@ data class StudyUiState(
     val sessionFinished: Boolean = false,
     val intervalPreviews: Map<ReviewGrade, Long> = emptyMap(),
     val isGradeHintVisible: Boolean = false,
-    val sessionStarted: Boolean = false,
-    val showExitConfirmation: Boolean = false,
 ) : MviState
 
 /**

@@ -85,8 +85,8 @@ There are no other mandatory product stages in startup, and none of them require
 ## Features relevant today
 
 - card creation with editable preview and partial regenerations
-- study based on multiple `StudySessionItem` per flashcard
-- review consolidation once a flashcard's items are completed
+- study shows each due flashcard once: `StudySessionItem` is a 1:1 projection of `StudyFlashcard`
+- one review per flashcard, scheduled with FSRS-6 and persisted the moment the card is graded
 
 ## Preserved seam
 
