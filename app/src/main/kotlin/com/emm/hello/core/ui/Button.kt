@@ -1,6 +1,7 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,6 +42,7 @@ import com.emm.hello.core.theme.instrumentElev
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentOnAccent
 import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.instrumentSurface2
 import com.emm.hello.core.theme.geist
 
 // ── Legacy variants kept for backwards compatibility with feature screens ──
@@ -55,8 +57,6 @@ enum class HButtonSize(val heightDp: Dp, val horizontalPadding: Dp, val fontSize
     Lg(56.dp, 28.dp, 16),
     Xl(88.dp, 28.dp, 18),
 }
-
-private const val DISABLED_ALPHA = 0.38f
 
 /**
  * Ember-styled HButton. Pill radius (height/2), variants primary/accent/secondary/ghost,
@@ -84,8 +84,14 @@ fun HButton(
     val (containerColor, contentColor, borderStroke) = instrumentButtonTokens(variant, danger)
     val buttonEnabled = enabled && !isLoading
 
-    val disabledContainer = containerColor.copy(alpha = DISABLED_ALPHA)
-    val disabledContent = contentColor.copy(alpha = DISABLED_ALPHA)
+    val isFilled: Boolean = containerColor != Color.Transparent
+    val disabledContainer: Color = if (isFilled) instrumentSurface2 else Color.Transparent
+    val disabledContent: Color = instrumentMuted
+    val resolvedBorder: BorderStroke? = when {
+        borderStroke == null -> null
+        buttonEnabled -> borderStroke
+        else -> BorderStroke(1.dp, instrumentSurface2)
+    }
 
     val resolvedModifier = if (full) modifier.fillMaxWidth() else modifier
 
@@ -100,7 +106,7 @@ fun HButton(
             disabledContainerColor = disabledContainer,
             disabledContentColor = disabledContent,
         ),
-        border = borderStroke,
+        border = resolvedBorder,
         contentPadding = PaddingValues(horizontal = size.horizontalPadding),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
     ) {
@@ -215,7 +221,7 @@ private fun ButtonVariant.toInstrumentVariant(): HButtonVariant = when (this) {
 private data class ButtonTokens(
     val containerColor: Color,
     val contentColor: Color,
-    val border: androidx.compose.foundation.BorderStroke?,
+    val border: BorderStroke?,
 )
 
 @Composable
@@ -236,7 +242,7 @@ private fun instrumentButtonTokens(
     HButtonVariant.Secondary -> ButtonTokens(
         containerColor = Color.Transparent,
         contentColor = if (danger) instrumentBad else instrumentPrimary,
-        border = androidx.compose.foundation.BorderStroke(1.dp, instrumentElev),
+        border = BorderStroke(1.dp, instrumentElev),
     )
     HButtonVariant.Ghost -> ButtonTokens(
         containerColor = Color.Transparent,
@@ -292,6 +298,54 @@ private fun HButtonInstrumentVariantsPreview() {
             HButton(text = "Ver mazos", onClick = {}, variant = HButtonVariant.Secondary, full = true)
             HButton(text = "Cancelar", onClick = {}, variant = HButtonVariant.Ghost, full = true)
             HButton(text = "Borrar tarjeta", onClick = {}, variant = HButtonVariant.Ghost, danger = true, full = true)
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Composable
+private fun HButtonDisabledPreview() {
+    HelloTheme {
+        Surface(color = instrumentBg) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                HButton(text = "Estudiar ahora", onClick = {}, variant = HButtonVariant.Primary, full = true)
+                HButton(
+                    text = "Estudiar ahora",
+                    onClick = {},
+                    variant = HButtonVariant.Primary,
+                    enabled = false,
+                    full = true,
+                )
+                HButton(text = "Comenzar", onClick = {}, variant = HButtonVariant.Accent, full = true)
+                HButton(
+                    text = "Comenzar",
+                    onClick = {},
+                    variant = HButtonVariant.Accent,
+                    enabled = false,
+                    full = true,
+                )
+                HButton(text = "Ver mazos", onClick = {}, variant = HButtonVariant.Secondary, full = true)
+                HButton(
+                    text = "Ver mazos",
+                    onClick = {},
+                    variant = HButtonVariant.Secondary,
+                    enabled = false,
+                    full = true,
+                )
+                HButton(text = "Cancelar", onClick = {}, variant = HButtonVariant.Ghost, full = true)
+                HButton(
+                    text = "Cancelar",
+                    onClick = {},
+                    variant = HButtonVariant.Ghost,
+                    enabled = false,
+                    full = true,
+                )
+            }
         }
     }
 }
