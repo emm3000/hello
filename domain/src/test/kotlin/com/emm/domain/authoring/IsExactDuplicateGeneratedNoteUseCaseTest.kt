@@ -6,6 +6,8 @@ import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
+import com.emm.domain.flashcard.Expression
+import com.emm.domain.ids.DeckId
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -126,4 +128,6 @@ private class DuplicateRepoSpy(
         lastKey = key
         return exists
     }
+
+    override suspend fun existsExpressionInDeck(deckId: DeckId, expression: Expression): Boolean = false
 }

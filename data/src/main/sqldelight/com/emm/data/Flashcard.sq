@@ -95,6 +95,14 @@ SELECT EXISTS(
     AND lower(trim(type)) = :normalizedNoteType
 );
 
+existsExpressionInDeck:
+SELECT EXISTS(
+  SELECT 1 FROM Flashcard
+  WHERE deckId = :deckId
+    AND deletedAt IS NULL
+    AND lower(trim(word)) = :normalizedExpression
+);
+
 -- Note: f.* and rp.* both expose `updatedAt`; SQLDelight disambiguates the ReviewProjection
 -- one as `updatedAt_` in the generated row class. No mapper reads it, so the collision is inert.
 flashcardWithExamples:

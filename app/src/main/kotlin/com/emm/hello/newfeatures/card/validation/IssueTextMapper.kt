@@ -77,6 +77,7 @@ class IssueTextMapper {
             IssueCode.CardPromptMatchesAnswer -> R.string.validation_card_prompt_matches_answer
             IssueCode.DuplicateActiveCard -> R.string.validation_duplicate_active_card
             IssueCode.DuplicateExactCardInDeck -> R.string.validation_duplicate_exact_card_in_deck
+            IssueCode.DuplicateWordInDeck -> R.string.validation_duplicate_word_in_deck
             IssueCode.TooManyActiveCards -> R.string.validation_too_many_active_cards
             IssueCode.AnswerTooLongForRecall -> R.string.validation_answer_too_long_for_recall
         }

@@ -28,6 +28,7 @@ data class Flashcard(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
+    val enrichmentStatus: EnrichmentStatus = EnrichmentStatus.ENRICHED,
 ) {
 
     companion object {

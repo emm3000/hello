@@ -6,6 +6,8 @@ import com.emm.domain.flashcard.toIntendedMeaningEs
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
+import com.emm.domain.flashcard.Expression
+import com.emm.domain.ids.DeckId
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
@@ -122,4 +124,6 @@ private class DuplicateRepo(
     private val exists: Boolean,
 ) : FlashcardDuplicateRepository {
     override suspend fun existsExactDuplicate(key: ExactDuplicateKey): Boolean = exists
+
+    override suspend fun existsExpressionInDeck(deckId: DeckId, expression: Expression): Boolean = false
 }

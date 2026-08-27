@@ -23,6 +23,7 @@ import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
+import com.emm.domain.flashcard.Expression
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
@@ -581,4 +582,6 @@ class NewCardViewModelTest {
 
 private class FakeDuplicateRepository : FlashcardDuplicateRepository {
     override suspend fun existsExactDuplicate(key: com.emm.domain.flashcard.ExactDuplicateKey): Boolean = false
+
+    override suspend fun existsExpressionInDeck(deckId: DeckId, expression: Expression): Boolean = false
 }

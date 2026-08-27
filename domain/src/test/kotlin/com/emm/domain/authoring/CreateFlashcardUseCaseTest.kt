@@ -5,6 +5,7 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
+import com.emm.domain.flashcard.Expression
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardInput
@@ -200,4 +201,6 @@ private class DuplicateRepoStub(
     private val exists: Boolean,
 ) : FlashcardDuplicateRepository {
     override suspend fun existsExactDuplicate(key: ExactDuplicateKey): Boolean = exists
+
+    override suspend fun existsExpressionInDeck(deckId: DeckId, expression: Expression): Boolean = false
 }

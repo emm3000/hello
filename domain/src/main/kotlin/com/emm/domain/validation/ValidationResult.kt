@@ -39,6 +39,7 @@ sealed interface IssueCode {
     data object CardPromptMatchesAnswer : IssueCode { override val value: String = "card_prompt_matches_answer" }
     data object DuplicateActiveCard : IssueCode { override val value: String = "duplicate_active_card" }
     data object DuplicateExactCardInDeck : IssueCode { override val value: String = "duplicate_exact_card_in_deck" }
+    data object DuplicateWordInDeck : IssueCode { override val value: String = "duplicate_word_in_deck" }
     data object TooManyActiveCards : IssueCode { override val value: String = "too_many_active_cards" }
     data object AnswerTooLongForRecall : IssueCode { override val value: String = "answer_too_long_for_recall" }
 
@@ -74,6 +75,7 @@ sealed interface IssueCode {
             CardPromptMatchesAnswer,
             DuplicateActiveCard,
             DuplicateExactCardInDeck,
+            DuplicateWordInDeck,
             TooManyActiveCards,
             AnswerTooLongForRecall,
         )

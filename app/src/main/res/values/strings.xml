@@ -351,6 +351,7 @@
     <string name="validation_card_prompt_matches_answer">La pregunta y la respuesta son iguales. Edita el ejercicio antes de guardar.</string>
     <string name="validation_duplicate_active_card">Hay ejercicios repetidos con la misma pregunta y respuesta. Elimina el duplicado.</string>
     <string name="validation_duplicate_exact_card_in_deck">Ya tienes una tarjeta igual en este mazo.</string>
+    <string name="validation_duplicate_word_in_deck">Ya tienes esa palabra en este mazo.</string>
     <string name="validation_too_many_active_cards">Demasiados ejercicios activos; lo ideal es entre 2 y 4. Pausa los que no necesitas.</string>
     <string name="validation_answer_too_long_for_recall">La respuesta es muy larga. Intenta acotarla a lo esencial.</string>
 

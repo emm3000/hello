@@ -30,6 +30,7 @@ data class CreateFlashcardInput(
     val warnings: List<String> = emptyList(),
     val studyCards: List<GeneratedStudyCard> = emptyList(),
     val qualityChecks: List<GeneratedNoteQualityCheck> = emptyList(),
+    val enrichmentStatus: EnrichmentStatus = EnrichmentStatus.ENRICHED,
 )
 
 data class UpdateFlashcardInput(
