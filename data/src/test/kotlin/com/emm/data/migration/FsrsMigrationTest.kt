@@ -20,9 +20,8 @@ import java.util.UUID
  * HOW IT WORKS
  * -----------
  * We create a schema-1 in-memory database by executing the v1 DDL directly, then call
- * HelloDb.Schema.migrate(driver, oldVersion=1, newVersion=HelloDb.Schema.version) which applies
- * the 1.sqm ALTER TABLE + UPDATE statements — exactly the path an existing version-1 install
- * takes when it upgrades.
+ * HelloDb.Schema.migrate(driver, oldVersion=1, newVersion=2) which applies the 1.sqm
+ * ALTER TABLE + UPDATE statements — exactly the path an existing version-1 install takes.
  *
  * NOTE: This test runs entirely on the JVM (JdbcSqliteDriver / sqlite4java) without a device.
  */
@@ -110,14 +109,14 @@ class FsrsMigrationTest {
     }
 
     /**
-     * Runs the FSRS-6 migration on the given driver from version 1 — the real upgrade path
-     * for an existing install (the shipped schema baseline is captured in 1.db).
+     * Runs the FSRS-6 migration (1.sqm only) on the given driver. Pinned to version 2 because this
+     * driver seeds just the two review tables; later migrations touch tables it does not create.
      */
     private fun applyMigration(driver: JdbcSqliteDriver) {
         HelloDb.Schema.migrate(
             driver = driver,
             oldVersion = 1L,
-            newVersion = HelloDb.Schema.version,
+            newVersion = FSRS_SCHEMA_VERSION,
         )
     }
 
@@ -384,5 +383,9 @@ class FsrsMigrationTest {
             0,
             rows.size,
         )
+    }
+
+    private companion object {
+        const val FSRS_SCHEMA_VERSION = 2L
     }
 }

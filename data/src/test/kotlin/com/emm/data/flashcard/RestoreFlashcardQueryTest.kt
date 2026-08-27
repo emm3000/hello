@@ -110,6 +110,7 @@ class RestoreFlashcardQueryTest {
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,
+            enrichmentStatus = "ENRICHED",
             createdAt = 0L,
             updatedAt = 0L,
             deletedAt = null,

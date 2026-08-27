@@ -108,6 +108,7 @@ class ImportBackupDataSource(
                 warningsJson = card.warningsJson,
                 studyCardsJson = card.studyCardsJson,
                 qualityChecksJson = card.qualityChecksJson,
+                enrichmentStatus = card.enrichmentStatus,
                 createdAt = card.createdAt,
                 updatedAt = card.updatedAt,
                 deletedAt = card.deletedAt,

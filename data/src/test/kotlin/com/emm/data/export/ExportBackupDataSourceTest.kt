@@ -86,6 +86,7 @@ class ExportBackupDataSourceTest {
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,
+            enrichmentStatus = "ENRICHED",
             createdAt = 300L,
             updatedAt = 300L,
             deletedAt = null,

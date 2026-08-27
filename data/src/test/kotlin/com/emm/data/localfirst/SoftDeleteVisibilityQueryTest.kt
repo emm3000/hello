@@ -94,6 +94,7 @@ class SoftDeleteVisibilityQueryTest {
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,
+            enrichmentStatus = "ENRICHED",
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,

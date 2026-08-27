@@ -22,6 +22,7 @@ fun FlashcardEntity.toDomain(): Flashcard {
         partOfSpeech = partOfSpeech.orEmpty(),
         noteType = type.orEmpty(),
         noteSummary = note.orEmpty(),
+        enrichmentStatus = toEnrichmentStatus(enrichmentStatus),
     )
 }
 

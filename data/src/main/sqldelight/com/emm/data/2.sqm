@@ -1,0 +1,12 @@
+-- Migration 2 → 3 (file 2.sqm): Add enrichmentStatus to Flashcard.
+--
+-- Design rules:
+--   • Additive-only (ALTER ADD COLUMN); no existing column is dropped or renamed.
+--   • Every pre-existing card came from the generated path, which produces a complete
+--     back face, so the DEFAULT of 'ENRICHED' is correct for all of them and no UPDATE
+--     pass is needed.
+--   • The due queries filter on enrichmentStatus = 'ENRICHED', so this default is also
+--     what keeps every existing card due exactly as before.
+
+ALTER TABLE Flashcard
+    ADD COLUMN enrichmentStatus TEXT NOT NULL DEFAULT 'ENRICHED';

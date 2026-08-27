@@ -55,6 +55,7 @@ data class FlashcardDto(
     val warningsJson: String?,
     val studyCardsJson: String?,
     val qualityChecksJson: String?,
+    val enrichmentStatus: String = "ENRICHED",
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,

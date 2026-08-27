@@ -68,6 +68,7 @@ class DefaultFlashcardRepository(
                 warningsJson = artifacts.warningsJson,
                 studyCardsJson = artifacts.studyCardsJson,
                 qualityChecksJson = artifacts.qualityChecksJson,
+                enrichmentStatus = input.enrichmentStatus.name,
                 createdAt = now,
                 updatedAt = now,
                 deletedAt = null,

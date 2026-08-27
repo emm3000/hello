@@ -29,6 +29,7 @@ CREATE TABLE Flashcard (
     createdAt INTEGER NOT NULL,        -- Fecha de creación
     updatedAt INTEGER NOT NULL,
     deletedAt INTEGER,
+    enrichmentStatus TEXT NOT NULL DEFAULT 'ENRICHED',
 
     PRIMARY KEY (id),
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
@@ -66,8 +67,9 @@ INSERT OR REPLACE INTO Flashcard (
     qualityChecksJson,
     createdAt,
     updatedAt,
-    deletedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    deletedAt,
+    enrichmentStatus
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllFlashcards:
 DELETE FROM Flashcard;
@@ -147,6 +149,7 @@ LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deckId = :deckId
   AND f.deletedAt IS NULL
+  AND f.enrichmentStatus = 'ENRICHED'
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 -- All-decks variant of flashcardsToReviewByDeck: same projection, no deckId filter.
@@ -167,6 +170,7 @@ LEFT JOIN FlashcardExample fe
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deletedAt IS NULL
+  AND f.enrichmentStatus = 'ENRICHED'
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 -- Note: f.* and rp.* both expose `updatedAt`; SQLDelight disambiguates the ReviewProjection
@@ -194,6 +198,7 @@ FROM Flashcard f
 LEFT JOIN ReviewProjection rp
   ON f.id = rp.flashcardId
 WHERE f.deletedAt IS NULL
+  AND f.enrichmentStatus = 'ENRICHED'
   AND (rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :now);
 
 update:

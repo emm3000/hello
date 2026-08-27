@@ -5,6 +5,7 @@ import com.emm.data.FlashcardsToReviewAllDecks
 import com.emm.data.FlashcardsToReviewByDeck
 import com.emm.data.flashcard.iadto.StoredNoteQualityCheckDto
 import com.emm.data.flashcard.iadto.StoredStudyCardDto
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FsrsCard
@@ -48,6 +49,7 @@ internal fun toDomainSummary(
         clozeSentence = entity.clozeSentence.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -80,6 +82,7 @@ internal fun toDomainSummary(
         clozeSentence = entity.clozeSentence.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -112,6 +115,7 @@ internal fun toDomainSummary(
         clozeSentence = entity.clozeSentence.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -145,6 +149,7 @@ internal fun toDomainDetail(
         clozeSentence = entity.clozeSentence.orEmpty(),
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
+        enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
     )
 }
 
@@ -411,4 +416,8 @@ internal fun StoredNoteQualityCheckDto.toDomain(): GeneratedNoteQualityCheck {
 
 internal inline fun <reified T : Enum<T>> enumValueOrDefault(value: String, default: T): T {
     return runCatching { enumValueOf<T>(value) }.getOrDefault(default)
+}
+
+internal fun toEnrichmentStatus(rawValue: String): EnrichmentStatus {
+    return EnrichmentStatus.entries.firstOrNull { it.name == rawValue } ?: EnrichmentStatus.ENRICHED
 }

@@ -85,6 +85,7 @@ class ExportBackupDataSource(
                         warningsJson = it.warningsJson,
                         studyCardsJson = it.studyCardsJson,
                         qualityChecksJson = it.qualityChecksJson,
+                        enrichmentStatus = it.enrichmentStatus,
                         createdAt = it.createdAt,
                         updatedAt = it.updatedAt,
                         deletedAt = it.deletedAt,
