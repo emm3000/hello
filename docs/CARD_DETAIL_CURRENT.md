@@ -10,7 +10,7 @@
 
 ## Summary
 
-`Card Detail` shows a saved flashcard as a dictionary entry and lets you edit or delete it (soft delete). It opens from the deck detail or from the dashboard. Single vertical scroll, no tabs.
+`Card Detail` shows a saved flashcard as a dictionary entry and lets you edit or delete it (soft delete). It opens from Biblioteca. Single vertical scroll, no tabs.
 
 ## Key files
 
@@ -45,7 +45,7 @@
 
 - `EditFlashcard` (edit icon in top bar, no longer in dropdown) → emits `NavigateToEditFlashcard(flashcardId)`
 - `DeleteFlashcard` (inside "more" dropdown) → opens confirmation dialog (`isDeleteConfirmationVisible = true`)
-- `ConfirmDeleteFlashcard` → uses `SoftDeleteFlashcardUseCase`, emits `FlashcardDeleted` effect, and also emits `UndoEvent.CardDeleted` to `UndoEventHolder` so `DeckDetailViewModel` can show an undo snackbar
+- `ConfirmDeleteFlashcard` → uses `SoftDeleteFlashcardUseCase`, emits `FlashcardDeleted` effect, and also emits `UndoEvent.CardDeleted` to `UndoEventHolder` so `LibraryViewModel` can show an undo snackbar
 - `DismissDeleteFlashcard` → closes dialog
 
 ## Effects

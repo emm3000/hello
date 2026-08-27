@@ -57,7 +57,7 @@
 - Stack: Jetpack Navigation 3 (`NavDisplay`, `rememberNavBackStack`).
 - Backstack wrapper: `Navigator` class (`app/.../navigation/Navigator.kt`).
 - Transitions: horizontal slide (350ms) for push/pop/predictive-pop.
-- Active routes: `OnboardingRoute`, `DashboardRoute`, `StudyRoute(deckId: String? = null)` (`null` = study every due card across all decks), `NewCardRoute`, `NewDeckRoute(deckId)`, `DeckDetailRoute(deckId)`, `CardDetailRoute(cardId, deckId)`, `EditFlashcardRoute(cardId, deckId)`, `SettingsRoute`.
+- Active routes: `OnboardingRoute`, `HoyRoute`, `StudyRoute(deckId: String? = null)` (`null` = study every due card across all decks), `CaptureRoute`, `LibraryRoute`, `NewCardRoute`, `DecksRoute`, `NewDeckRoute(deckId)`, `CardDetailRoute(cardId, deckId)`, `EditFlashcardRoute(cardId, deckId)`, `SettingsRoute`.
 - Decorators: `rememberSaveableStateHolderNavEntryDecorator` + `rememberViewModelStoreNavEntryDecorator`.
 - Startup gate: `NewRoot` observes `AppStartupViewModel` and shows loading/error before `AppNavigation`.
 
@@ -67,7 +67,7 @@ Current flow:
 
 `App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady() -> SeedDataInitializer.ensureSeeded()`
 
-On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `DashboardRoute`. On failure it emits `AppStartupState.Error`.
+On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `HoyRoute`. On failure it emits `AppStartupState.Error`.
 
 There are no other mandatory product stages in startup, and none of them requires the network.
 

@@ -20,11 +20,12 @@ Global sources of truth still live at the root:
 
 ## Active documents
 
-- `DASHBOARD_CURRENT.md`: current state of the `Dashboard` flow (list, search and filters)
+- `HOY_CURRENT.md`: current state of the `Hoy` flow (session-first home)
+- `LIBRARY_CURRENT.md`: current state of the `Biblioteca` flow (all cards, content search)
 - `CARD_CREATION_CURRENT.md`: current state of the `New Card` flow
 - `CARD_DETAIL_CURRENT.md`: current state of the `Card Detail` flow (view and delete)
 - `EDIT_FLASHCARD_CURRENT.md`: current state of the `Edit Flashcard` flow
-- `DECK_CURRENT.md`: current state of the `Deck Detail` and `New/Edit Deck` flows
+- `DECK_CURRENT.md`: current state of the `Mazos` and `New/Edit Deck` flows
 - `STUDY_CURRENT.md`: current state of the `Study` flow
 - `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup)
 - `ONBOARDING_CURRENT.md`: current state of the first-run onboarding flow (welcome gate + seeded starter deck)
@@ -33,7 +34,7 @@ Global sources of truth still live at the root:
 
 These documents capture planning context, decisions, and delivery history. They are kept for traceability but never override `*_CURRENT.md` files or the code.
 
-- `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phase 1 (Study session) done, Phase 2 (Capture) next.
+- `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phases 1, 2, 4 and 5 done, Phase 3 open only on its zero-due AI suggestion.
 - `DESIGN_BRIEF.md` — Status: **Active**. Visual direction and design rationale for the English-learning redesign; source of truth for visual decisions, input for the design canvas.
 - `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features; ordering now deferred to `RESTRUCTURE_PLAN.md`.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.

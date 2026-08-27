@@ -45,38 +45,24 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
 
 ---
 
-## 2. Global flashcard search (Feature #8)
+## 2. Global flashcard search (Feature #8) — SHIPPED
 
-| Field | Value |
-|---|---|
-| Size | Medium (~2 h) |
-| Blocks | Nothing |
-| Blocked by | Nothing |
+Delivered as Phase 4 of `RESTRUCTURE_PLAN.md`, in a different shape than
+planned here. The search does not sit on the deck list next to a "Decks"
+section; it is the whole of `Biblioteca`, which lists every card and matches
+`word`, `translation` and `meaning`.
 
-**Atomic tasks:**
+Two deliberate departures from the sketch above:
 
-- **S-T1**: New SQL query in `Flashcard.sq`:
-    ```sql
-    searchFlashcards:
-    SELECT f.*, d.name AS deckName
-    FROM Flashcard f
-    INNER JOIN Deck d ON f.deckId = d.id
-    WHERE f.deletedAt IS NULL
-      AND d.deletedAt IS NULL
-      AND (LOWER(f.word) LIKE '%' || LOWER(:query) || '%'
-           OR LOWER(f.meaning) LIKE '%' || LOWER(:query) || '%'
-           OR LOWER(f.translation) LIKE '%' || LOWER(:query) || '%')
-    ORDER BY f.createdAt DESC
-    LIMIT 50;
-    ```
-- **S-T2**: `FlashcardRepository.search(query: String): Flow<List<FlashcardSearchResult>>` (includes deck name).
-- **S-T3**: Extend `DashboardUiState`:
-  - `flashcardResults: List<FlashcardSearchResult>`
-  - When typing in `HSearchBar`, in addition to filtering decks, call `search(query)` debounced (~300 ms).
-- **S-T4**: UI in Dashboard: if query is non-empty, show two sections — "Decks" (current) and "Flashcards" (matched cards with their deck name and a highlight of the matched term).
-- **S-T5**: Tap a search-result card → navigate to `CardDetailRoute(flashcardId)`.
+- Matching runs in `:domain` (`SearchLibraryUseCase`), not in SQL. `LIKE` in
+  SQLite is only case-insensitive for ASCII, so a `LIKE` query could not match
+  `cafe` against `café` without a normalized column and a migration. The domain
+  filter normalizes both sides — NFD, drop combining marks, `Locale.ROOT`
+  lowercase — and needs no schema change.
+- No `LIMIT 50`. The list is what the user is browsing, so truncating it would
+  hide cards rather than protect a budget.
 
-**Definition of done:** with 500 cards, searching "phrasal" shows all cards with that word/meaning in under 200 ms.
+See `docs/LIBRARY_CURRENT.md`.
 
 ---
 
@@ -88,7 +74,7 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
 | Blocks | Nothing |
 | Blocked by | Nothing |
 
-**Already shipped:** `DashboardStats(cardsStudiedToday, cardsDueToday, currentStreak, cardsDueThisWeek)`, `StudyStatsRepository` / `DefaultStudyStatsRepository`, `GetDashboardStatsUseCase`, and the counters rendered by `DashboardStatsSection`. They are computed from `ReviewEvent`/`ReviewProjection`, with no dedicated log table.
+**Already shipped:** `DashboardStats(cardsStudiedToday, cardsDueToday, currentStreak, cardsDueThisWeek)`, `StudyStatsRepository` / `DefaultStudyStatsRepository`, `GetDashboardStatsUseCase`, and the counters rendered by `HoyStatsSection`. They are computed from `ReviewEvent`/`ReviewProjection`, with no dedicated log table.
 
 **Still pending** — the history/heatmap half:
 
@@ -108,9 +94,9 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
   - `reviewsByDay`: COUNT(*) GROUP BY date(reviewedAt/1000, 'unixepoch')
   - `currentStreak`: computed in Kotlin over consecutive days with ≥ 1 review.
 - **St-T5**: Domain: extend the stats surface with `accuracy30d` and `heatmap30d` (the streak/today/week counters already exist in `DashboardStats`).
-- **St-T6**: Extend `DashboardStatsSection` with a simple 30-day heatmap chart.
+- **St-T6**: Extend `HoyStatsSection` with a simple 30-day heatmap chart.
 
-**Definition of done:** on top of today's counters, the Dashboard shows a 30-day visual heatmap backed by a real review history.
+**Definition of done:** on top of today's counters, Hoy shows a 30-day visual heatmap backed by a real review history.
 
 ---
 
@@ -127,7 +113,7 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
 - **T-T1**: `FlashcardTag(flashcardId, tagId)` table with FKs ON DELETE CASCADE. Migration `3.sqm`.
 - **T-T2**: Repo methods: `addTag`, `removeTag`, `flashcardTags(flashcardId)`, `flashcardsByTag(tagId)`.
 - **T-T3**: UI in `EditFlashcardScreen` to assign tags via `HTagInput`.
-- **T-T4**: Tag filter in `DeckDetail` and `Dashboard` flashcard search.
+- **T-T4**: Tag filter in `Biblioteca`, alongside the deck chips.
 - **T-T5**: Backup export/import includes `FlashcardTag` with soft-delete filter (same pattern as `DeckTag`).
 
 **Definition of done:** creating/editing a card allows assigning tags. Filtering a deck by tag shows only tagged cards.
@@ -145,7 +131,7 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
 **Atomic tasks:**
 
 - **C-T1**: New `StartCramSession` intent in `StudyViewModel` that loads ALL deck cards (not only due) in random order, without updating the schedule.
-- **C-T2**: UI: "Cram" button in `DeckDetail` next to the current "Study".
+- **C-T2**: UI: "Cram" entry point in `Biblioteca`, on the selected deck chip.
 - **C-T3**: In the cram session, grade buttons exist but do NOT write to `FlashcardReview` — they only advance to the next card. A subtle banner says "Quick review mode (does not affect your SRS progress)".
 - **C-T4**: Same Study UI; only the item source and grade callback change.
 

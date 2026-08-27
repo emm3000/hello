@@ -4,27 +4,37 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Deck Detail` and `New/Edit Deck` flows |
+| Scope | `Mazos` and `New/Edit Deck` flows |
 | Source of Truth | No |
-| Read this when | You need to understand deck creation, editing and detail view |
+| Read this when | You need to understand deck creation, editing and deletion |
+| Last verified | 2026-08-27 |
 
 ## Summary
 
-Two sibling flows on the same `deck` feature:
+A deck is an optional grouping, not the axis the app is organised around, so
+deck management lives in Settings → Organización → Mazos rather than on the
+daily path.
 
-- `Deck Detail` shows deck info, its card list with local search, and entry points to edit/delete.
-- `New/Edit Deck` reuses the same screen and viewmodel for creating or editing a deck, distinguished by `DeckFormMode`.
+Two sibling flows on the `deck` feature:
+
+- `Mazos` lists the decks and opens the form.
+- `New/Edit Deck` creates, renames and deletes, one screen and one viewmodel,
+  distinguished by `DeckFormMode`.
+
+`Deck Detail` no longer exists. A deck's card list is `Biblioteca` filtered by
+that deck's chip — see `LIBRARY_CURRENT.md`.
 
 ## Key files
 
-### Deck Detail
+### Mazos
 
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailRoute.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailScreen.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailViewModel.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailUiState.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailUiIntent.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckDetailUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksRoute.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksScreen.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksViewModel.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksUiState.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksUiIntent.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckRow.kt`
 
 ### New / Edit Deck
 
@@ -36,51 +46,39 @@ Two sibling flows on the same `deck` feature:
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/NewDeckUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckFormMode.kt` (`Create` / `Edit(deckId)`)
 
-## Deck Detail
+## Mazos
 
 ### State
 
-`DeckDetailUiState`:
-
-- `deck: Deck` (empty default with `SystemClock`)
-- `hasSessionEnabled` (true if any card has `nextReviewAt <= now`)
-- `searchQuery`
-- `isDeleteConfirmationVisible`
+`DecksUiState`: `decks`, `isLoading`, and a computed `isEmpty` (loaded with
+no decks).
 
 ### Loading
 
-`DeckDetailViewModel.init` combines two flows:
+`GetDecksUseCase()` streams `deckWithFlashcardCount`; the first emission
+clears `isLoading`.
 
-- `GetDeckDetailUseCase(deckId)` — deck info + cards; returns `Flow<Deck?>` (nullable after `DefaultDeckRepository.fetchById` was changed to `mapToOneOrNull`)
-- `ObserveFlashcardsWithReviewUseCase(deckId)` — flashcards with review schedule
+### Intents
 
-The combine transform returns `null` when `GetDeckDetailUseCase` emits `null` (deck deleted mid-session); `.filterNotNull()` drops those emissions so state is never updated with a missing deck.
-
-The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards with the one from the study flow, keeping the rest of the fields.
-
-### Actions
-
-- `SearchCardsChanged(query)` — updates local filter (matching by `word`, `translation`, `meaning`, case-insensitive)
-- `EditDeck` → emits `NavigateToEditDeck(deckId)`
-- `DeleteDeck` → opens confirmation
-- `ConfirmDeleteDeck` → `SoftDeleteDeckUseCase` + emits `DeckDeleted` to `DeckDetailUiEffect` and emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
-- `DismissDeleteDeck` → closes confirmation
-- `UndoDeleteCard(flashcardId, deletedAt)` — calls `RestoreFlashcardUseCase` to reverse a soft-delete using the cascade timestamp.
-
-`DeckDetailRoute` guards `onReview` and `onCardClick` against the `"empty-deck"` sentinel (the default placeholder `deckId` in `DeckDetailUiState`): neither navigation fires while the deck has not yet loaded from the DB. This prevents a crash when the deck is soft-deleted while the detail screen is open.
+- `DeckOpened(deckId)` → emits `OpenDeckForm(deckId)`
+- `CreateDeckRequested` → emits `OpenDeckForm(null)`
+- `UndoDeleteDeck(deckId, deletedAt)` → `RestoreDeckUseCase`
 
 ### Effects
 
-`DeckDetailUiEffect`:
+`DecksUiEffect`:
 
-- `NavigateToEditDeck(deckId)`
-- `DeckDeleted`
-- `ShowMessage(text)`
-- `ShowUndoCardDeleted(flashcardId, deletedAt)` — produced when `DeckDetailViewModel` receives a `UndoEvent.CardDeleted` from `UndoEventHolder`; triggers a snackbar ("Tarjeta eliminada" + "Deshacer") in `DeckDetailScreen`.
+- `OpenDeckForm(deckId?)` → `NewDeckRoute(deckId)`
+- `ShowUndoDeckDeleted(deckName, deckId, deletedAt)` — produced when the
+  ViewModel receives `UndoEvent.DeckDeleted` from `UndoEventHolder`; raises
+  the "Mazo X eliminado" snackbar with a "Deshacer" action
+- `ShowMessage(messageRes)` — a Toast, used when a restore fails
 
-### Undo delete card
+### Layout
 
-`DeckDetailViewModel` collects `UndoEvent.CardDeleted` from `UndoEventHolder` and emits `ShowUndoCardDeleted`. Tapping "Deshacer" dispatches `UndoDeleteCard(flashcardId, deletedAt)`, which calls `RestoreFlashcardUseCase`.
+`HTopBar` with the title, a `DeckRow` per deck (name, description, card count
+and tags in mono), and a secondary "Nuevo mazo" button at the end of the
+list. The empty state offers the same action as its primary CTA.
 
 ## New / Edit Deck
 
@@ -88,40 +86,54 @@ The merge (`mergeDeckCardsById`) overwrites the `review` field of the deck cards
 
 `NewDeckUiState`:
 
-- `name`, `description`, `tags: List<String>` (normalized: lowercase + trim + distinct + non-blank)
+- `name`, `description`, `tags: List<String>` (normalized: lowercase + trim +
+  distinct + non-blank)
 - `isLoading`
-- `formMode: DeckFormMode` (`Create` or `Edit(deckId)`)
-- `isValid` (computed): `name` not empty
+- `formMode: DeckFormMode`
+- `isDeleteConfirmationVisible`
+- `isValid` (computed): `name` not blank
+- `canDelete` (computed): edit mode and not loading
 
 ### Loading
 
-Only if `formMode is DeckFormMode.Edit`:
+Only in `DeckFormMode.Edit`: `DeckRepository.fetchById(deckId).first()`
+populates `name`, `description` and `tags`.
 
-- `DeckRepository.fetchById(deckId.toDeckId()).first()`
-- populates `name`, `description`, `tags` (mapped from `Tag.value`) from the loaded deck
+### Intents
 
-### Actions
-
-Intents:
-
-- `NameChanged(name)`
-- `DescriptionChanged(description)`
-- `TagsChanged(tags)` — normalizes before saving to state
-- `Submit` — short-circuits if `!isValid || isLoading`
+- `NameChanged`, `DescriptionChanged`, `TagsChanged` (normalizes before state)
+- `Submit` — short-circuits on `!isValid || isLoading`
+- `DeleteDeck` — opens the confirmation
+- `ConfirmDeleteDeck` — soft deletes
+- `DismissDeleteDeck` — closes the confirmation
 
 ### Submit
 
-- `DeckFormMode.Create` → `DeckRepository.create(CreateDeckInput(...))` → reset state + `NavigateBack`
-- `DeckFormMode.Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` → `NavigateBack`
+- `Create` → `DeckRepository.create(CreateDeckInput(...))` → reset + `NavigateBack`
+- `Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` → `NavigateBack`
+
+### Delete
+
+`ConfirmDeleteDeck` returns early unless `formMode is DeckFormMode.Edit`, so a
+confirm in create mode never reaches the repository. Otherwise it calls
+`SoftDeleteDeckUseCase`, emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
+with the returned timestamp, and emits `DeckDeleted` so the route navigates
+back to Mazos, where the undo snackbar is waiting.
+
+`Deck.sq` cascades the soft delete to the deck's flashcards and their
+examples, so the deleted deck's cards leave Biblioteca and the study session
+with it.
+
+The affordance is a danger ghost button at the bottom of the form plus an
+`HAlertDialog` confirmation — the same shape the card editor uses for
+"Borrar tarjeta".
 
 ### Effects
 
-`NewDeckUiEffect`:
-
-- `NavigateBack`
-- `ShowMessage(text)`
+`NewDeckUiEffect`: `NavigateBack`, `DeckDeleted`, `ShowMessage(messageRes)`.
 
 ## Persistence
 
-- Read/write: 100% local on `HelloDb` via repos and use cases from the `:domain`/`:data` modules.
+- Read/write: 100% local on `HelloDb` via repos and use cases from
+  `:domain` / `:data`.
 - Soft delete preserves data and respects `LOCAL_FIRST.md`.

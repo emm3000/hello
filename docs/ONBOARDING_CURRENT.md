@@ -6,11 +6,11 @@
 | Role | Factual feature reference |
 | Scope | First-run onboarding (welcome carousel + starter deck) |
 | Source of Truth | No |
-| Read this when | You need to understand what a fresh install sees before the Dashboard |
+| Read this when | You need to understand what a fresh install sees before Hoy |
 
 ## Summary
 
-On a fresh install the app opens on a three-page welcome carousel instead of the Dashboard, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the carousel is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death.
+On a fresh install the app opens on a three-page welcome carousel instead of Hoy, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the carousel is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death.
 
 ## Key files
 
@@ -42,7 +42,7 @@ On a fresh install the app opens on a three-page welcome carousel instead of the
 `NewRoot` renders the loading/error screens for the first two states. On `Ready` it calls `AppNavigation(hasSeenWelcome)`, which picks the start key:
 
 ```
-if (hasSeenWelcome) DashboardRoute else OnboardingRoute
+if (hasSeenWelcome) HoyRoute else OnboardingRoute
 ```
 
 `hasSeenWelcome` is backed by `DataStore.hasSeenOnboarding`.
@@ -87,14 +87,14 @@ Details:
 - `FinishClicked` — explicit "Empezar" CTA on the last page; finishes
 - `BackPressed` — system back; emits `ScrollToPage(currentPage - 1)` if not on the first page, otherwise `CloseOnboarding`
 
-Finishing always means the same two steps: `onboardingState.markWelcomeSeen()` then `NavigateToDashboard`.
+Finishing always means the same two steps: `onboardingState.markWelcomeSeen()` then `NavigateToHoy`.
 
 ## Effects
 
 `OnboardingUiEffect`:
 
 - `ScrollToPage(page)` — `OnboardingDestination` calls `pagerState.animateScrollToPage(page)`
-- `NavigateToDashboard` — `navigator.replaceAll(DashboardRoute)`, so onboarding cannot be reached again with back
+- `NavigateToHoy` — `navigator.replaceAll(HoyRoute)`, so onboarding cannot be reached again with back
 - `CloseOnboarding` — `navigator.goBack()`
 
 `OnboardingDestination` also installs a `BackHandler` that forwards system back to `BackPressed`, letting the viewmodel decide between paging back and closing.

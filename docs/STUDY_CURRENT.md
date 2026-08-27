@@ -44,7 +44,7 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `loadError: StudyLoadError?` — `SessionLoadFailed`; distinguishes a failed read from a genuinely empty due queue
 - `currentItem: StudySessionItem?`
 - `reviewedCount` — cards graded so far
-- `totalCount` — cards in the session (equals the due count the Dashboard shows)
+- `totalCount` — cards in the session (equals the due count Hoy shows)
 - `sessionFinished`
 
 ## Session load
