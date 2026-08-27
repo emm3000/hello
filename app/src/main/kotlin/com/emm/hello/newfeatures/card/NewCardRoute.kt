@@ -20,7 +20,6 @@ import org.koin.androidx.compose.koinViewModel
 data object NewCardRoute : NavKey
 
 private enum class NewCardFlowStep {
-    Mode,
     Input,
     Review,
 }
@@ -30,17 +29,13 @@ fun NewCardDestination(navigator: Navigator) {
     val vm: NewCardViewModel = koinViewModel()
     val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var currentStep by rememberSaveable { mutableStateOf(NewCardFlowStep.Mode) }
+    var currentStep by rememberSaveable { mutableStateOf(NewCardFlowStep.Input) }
 
     // Mirror the HWizTop back arrow for system/predictive back: step within the
     // wizard instead of popping NewCardRoute and discarding typed input. Disabled
     // on the first step so the gesture falls through to goBack(), matching the arrow.
-    BackHandler(enabled = currentStep != NewCardFlowStep.Mode) {
-        currentStep = when (currentStep) {
-            NewCardFlowStep.Review -> NewCardFlowStep.Input
-            NewCardFlowStep.Input -> NewCardFlowStep.Mode
-            NewCardFlowStep.Mode -> NewCardFlowStep.Mode
-        }
+    BackHandler(enabled = currentStep == NewCardFlowStep.Review) {
+        currentStep = NewCardFlowStep.Input
     }
 
     LaunchedEffect(Unit) {
@@ -62,21 +57,12 @@ fun NewCardDestination(navigator: Navigator) {
     }
 
     when (currentStep) {
-        NewCardFlowStep.Mode -> {
-            NewCardModeScreen(
-                selectedMode = uiState.typeView,
-                onModeSelected = { vm.onIntent(NewCardUiIntent.TypeViewSelected(it)) },
-                onContinue = { currentStep = NewCardFlowStep.Input },
-                onNavigateBack = { navigator.goBack() },
-            )
-        }
-
         NewCardFlowStep.Input -> {
             NewCardInputStepScreen(
                 state = uiState,
                 onIntent = vm::onIntent,
                 onGenerate = { vm.onIntent(NewCardUiIntent.GenerateClicked) },
-                onNavigateBack = { currentStep = NewCardFlowStep.Mode },
+                onNavigateBack = { navigator.goBack() },
                 onCreateDeck = { navigator.navigateTo(NewDeckRoute()) },
             )
         }

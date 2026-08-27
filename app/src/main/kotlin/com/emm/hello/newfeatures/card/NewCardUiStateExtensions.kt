@@ -44,7 +44,6 @@ internal fun NewCardUiState.withPreviewValidation(
 internal fun NewCardUiState.resetAfterSave(): NewCardUiState {
     return clearPreviewState(isLoading = false).copy(
         word = "",
-        aiRequest = "",
         intendedMeaningEs = "",
         contextSentence = "",
     )

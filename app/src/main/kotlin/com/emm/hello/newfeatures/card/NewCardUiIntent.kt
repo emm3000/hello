@@ -1,7 +1,6 @@
 package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
-import com.emm.domain.catalog.StaticCategories
 import com.emm.hello.core.mvi.MviIntent
 
 enum class EditableLearningNoteField {
@@ -19,8 +18,6 @@ sealed interface NewCardUiIntent : MviIntent {
 
     data class WordChanged(val word: String) : NewCardUiIntent
 
-    data class AiRequestChanged(val aiRequest: String) : NewCardUiIntent
-
     data class IntendedMeaningChanged(val intendedMeaningEs: String) : NewCardUiIntent
 
     data class ContextSentenceChanged(val contextSentence: String) : NewCardUiIntent
@@ -29,11 +26,7 @@ sealed interface NewCardUiIntent : MviIntent {
 
     data class CheckChanged(val checked: Boolean) : NewCardUiIntent
 
-    data class CategorySelected(val category: StaticCategories) : NewCardUiIntent
-
     data class DifficultySelected(val difficulty: String) : NewCardUiIntent
-
-    data class TypeViewSelected(val typeView: TypeView) : NewCardUiIntent
 
     data class PreviewFieldChanged(
         val field: EditableLearningNoteField,

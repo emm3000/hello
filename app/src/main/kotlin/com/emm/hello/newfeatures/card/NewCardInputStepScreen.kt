@@ -44,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -64,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.catalog.difficult
-import com.emm.domain.catalog.staticCategories
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.instrumentAccent
@@ -93,6 +91,9 @@ import com.emm.domain.validation.ValidationIssue
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+private const val INPUT_STEP_NUMBER = 1
+private const val TOTAL_STEP_COUNT = 2
+
 @Composable
 fun NewCardInputStepScreen(
     state: NewCardUiState,
@@ -103,7 +104,6 @@ fun NewCardInputStepScreen(
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val showBottomSheet = remember { mutableStateOf(false) }
     val issueTextMapper = remember { IssueTextMapper() }
     val sttManager = rememberSpeechToTextManager { voiceText ->
         onIntent(NewCardUiIntent.WordChanged(voiceText))
@@ -132,17 +132,9 @@ fun NewCardInputStepScreen(
         }
     }
 
-    val isGenerateEnabled = run {
-        val hasWord = state.word.isNotBlank()
-        val hasAiRequest = state.aiRequest.isNotBlank()
-        val hasDeck = state.deckSelected != null
-        val notLoading = !state.isLoading
-        when (state.typeView) {
-            TypeView.WordOrPhase -> notLoading && hasDeck && hasWord
-            TypeView.WithCategories -> notLoading && hasDeck
-            TypeView.WithAiHelp -> notLoading && hasDeck && hasAiRequest
-        }
-    }
+    val isGenerateEnabled: Boolean = !state.isLoading &&
+        state.deckSelected != null &&
+        state.word.isNotBlank()
 
     val onMicToggle: () -> Unit = {
         if (isListening) {
@@ -165,8 +157,8 @@ fun NewCardInputStepScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             HWizTop(
-                currentStep = 2,
-                totalSteps = 3,
+                currentStep = INPUT_STEP_NUMBER,
+                totalSteps = TOTAL_STEP_COUNT,
                 onBack = onNavigateBack,
                 subtitle = stringResource(R.string.new_card_wizard_subtitle),
             )
@@ -183,7 +175,7 @@ fun NewCardInputStepScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(22.dp),
             ) {
-                item { InputHero(state.typeView) }
+                item { InputHero() }
 
                 item {
                     InputPrimaryField(
@@ -191,19 +183,16 @@ fun NewCardInputStepScreen(
                         isListening = isListening,
                         onIntent = onIntent,
                         onMicToggle = onMicToggle,
-                        onShowCategoryPicker = { showBottomSheet.value = true },
                         issueTextMapper = issueTextMapper,
                     )
                 }
 
-                if (state.typeView == TypeView.WordOrPhase) {
-                    item {
-                        ContextInputs(
-                            state = state,
-                            onIntent = onIntent,
-                            issueTextMapper = issueTextMapper,
-                        )
-                    }
+                item {
+                    ContextInputs(
+                        state = state,
+                        onIntent = onIntent,
+                        issueTextMapper = issueTextMapper,
+                    )
                 }
 
                 item { DeckPickerSection(state = state, onIntent = onIntent, onCreateDeck = onCreateDeck) }
@@ -256,25 +245,12 @@ fun NewCardInputStepScreen(
             }
         }
     }
-
-    BottomSheetDialogForPickCategory(
-        onDismissRequest = { showBottomSheet.value = it },
-        showBottomSheet = showBottomSheet.value,
-        accounts = staticCategories,
-        selectedCategory = state.category,
-        onAction = { onIntent(NewCardUiIntent.CategorySelected(it)) },
-    )
 }
 
 @Composable
-private fun InputHero(typeView: TypeView) {
-    val headlineRes = when (typeView) {
-        TypeView.WordOrPhase -> R.string.new_card_input_headline_word
-        TypeView.WithCategories -> R.string.new_card_input_headline_category
-        TypeView.WithAiHelp -> R.string.new_card_input_headline_ai
-    }
+private fun InputHero() {
     Text(
-        text = stringResource(headlineRes),
+        text = stringResource(R.string.new_card_input_headline_word),
         fontWeight = FontWeight.SemiBold,
         fontSize = 38.sp,
         lineHeight = 42.sp,
@@ -289,42 +265,23 @@ private fun InputPrimaryField(
     isListening: Boolean,
     onIntent: (NewCardUiIntent) -> Unit,
     onMicToggle: () -> Unit,
-    onShowCategoryPicker: () -> Unit,
     issueTextMapper: IssueTextMapper,
 ) {
-    val errorMessage = state.inputValidationIssues.inputMessageOrNull(
-        issueTextMapper = issueTextMapper,
-        target = InputField.PrimaryText,
+    BigSerifTextField(
+        value = state.word,
+        onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
+        placeholder = stringResource(R.string.new_card_input_word_placeholder),
+        enabled = !state.isLoading,
+        errorMessage = state.inputValidationIssues.inputMessageOrNull(
+            issueTextMapper = issueTextMapper,
+            target = InputField.PrimaryText,
+        ),
+        isListening = isListening,
+        listeningLabel = stringResource(R.string.listening_placeholder),
+        trailing = {
+            MicButton(isListening = isListening, onClick = onMicToggle)
+        },
     )
-    when (state.typeView) {
-        TypeView.WordOrPhase -> BigSerifTextField(
-            value = state.word,
-            onValueChange = { onIntent(NewCardUiIntent.WordChanged(it)) },
-            placeholder = stringResource(R.string.new_card_input_word_placeholder),
-            enabled = !state.isLoading,
-            errorMessage = errorMessage,
-            isListening = isListening,
-            listeningLabel = stringResource(R.string.listening_placeholder),
-            trailing = {
-                MicButton(isListening = isListening, onClick = onMicToggle)
-            },
-        )
-
-        TypeView.WithAiHelp -> BigSerifTextField(
-            value = state.aiRequest,
-            onValueChange = { onIntent(NewCardUiIntent.AiRequestChanged(it)) },
-            placeholder = stringResource(R.string.new_card_input_ai_placeholder),
-            enabled = !state.isLoading,
-            singleLine = false,
-            errorMessage = errorMessage,
-        )
-
-        TypeView.WithCategories -> CategoryPickerRow(
-            value = state.category.name,
-            placeholder = stringResource(R.string.new_card_input_category_placeholder),
-            onClick = onShowCategoryPicker,
-        )
-    }
 }
 
 @Composable
@@ -334,7 +291,6 @@ private fun BigSerifTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    singleLine: Boolean = true,
     errorMessage: String? = null,
     isListening: Boolean = false,
     listeningLabel: String? = null,
@@ -374,8 +330,7 @@ private fun BigSerifTextField(
                     value = value,
                     onValueChange = onValueChange,
                     enabled = enabled,
-                    singleLine = singleLine,
-                    maxLines = if (singleLine) 1 else 4,
+                    singleLine = true,
                     textStyle = TextStyle(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 28.sp,
@@ -383,9 +338,7 @@ private fun BigSerifTextField(
                         color = instrumentOnBg,
                     ),
                     cursorBrush = SolidColor(instrumentAccent),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = if (singleLine) ImeAction.Done else ImeAction.Default,
-                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -445,38 +398,6 @@ private fun MicButton(isListening: Boolean, onClick: () -> Unit) {
             contentDescription = stringResource(R.string.voice_input_desc),
             tint = if (isListening) instrumentBg else instrumentAccent,
             modifier = Modifier.size(18.dp),
-        )
-    }
-}
-
-@Composable
-private fun CategoryPickerRow(
-    value: String,
-    placeholder: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(instrumentSurface, RoundedCornerShape(16.dp))
-            .border(1.5.dp, instrumentAccent, RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = value.ifBlank { placeholder },
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 26.sp,
-            lineHeight = 32.sp,
-            color = if (value.isBlank()) instrumentMuted else instrumentOnBg,
-            modifier = Modifier.weight(1f),
-        )
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = null,
-            tint = instrumentAccent,
-            modifier = Modifier.size(20.dp),
         )
     }
 }

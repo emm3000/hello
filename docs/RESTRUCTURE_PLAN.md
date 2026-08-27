@@ -38,7 +38,7 @@ Study session: 1 flashcard = 1 visible review = 1 grade. Two grade buttons (`AGA
 |---|---|---|---|
 | 0 — Plan | This document, roadmap re-pointed | ✅ Done | — |
 | 1 — Study session | Single review per flashcard, no `Start` stage, binary grading with long-press easy, example + part of speech on the card back | ✅ Done | `64cfe69`, `d93a1dc`, `9be2a1b`, `d3adb9c`, `b94bee8` |
-| 2 — Capture | Single-field capture, background AI enrichment worker, mode selector removed | ⏳ Pending | — |
+| 2 — Capture | Single-field capture, background AI enrichment worker, mode selector removed | ✅ Done | `ef990ba`, `5670093`, `84e93f7`, `56a9491`, `ea2313b`, `4c0bed8`, `71c923e`, `24ab589` |
 | 3 — Hoy | Session-first home replacing Dashboard | ⏳ Pending | — |
 | 4 — Biblioteca | All-cards list with content search; absorbs Deck Detail; decks as optional filter | ⏳ Pending | — |
 | 5 — Cleanup | Dead code (mode screen, deck tags), docs resync, roadmap close | ⏳ Pending | — |
@@ -114,6 +114,14 @@ Work units, each green on `./gradlew detekt testDebugUnitTest :domain:test` befo
    `TypeView` are deleted. The input, review and preview editors survive untouched: they
    are the advanced AI editor that Phase 4 moves behind Biblioteca, reachable from a card
    rather than from the FAB.
+
+Unit 4 as executed went further than "untouched", and deliberately. `TypeView` drove three
+input modes, so deleting it forced a choice of which one the wizard keeps. `WordOrPhase`
+won, because it is the only mode whose input is a word the user already has — the shape
+Phase 4 needs when the editor is reached *from a card*. `WithCategories` and `WithAiHelp`
+generated a word the user never chose, and both went with the enum: the category bottom
+sheet, `StaticCategories`, `aiRequest`, and the keyword-inference block that mapped free
+text onto a `communicativeIntentId` and a `LearningDomain`. The wizard is now two steps.
 
 Deliberately unchanged: `GeneratedLearningNote` and its validation policies, the preview
 and regeneration components, and the 50/day quota. Phase 2 adds a second entrance; it does

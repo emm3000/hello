@@ -2,9 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.generation.GeneratedLearningNote
-import com.emm.domain.catalog.StaticCategories
 import com.emm.domain.catalog.difficult
-import com.emm.domain.catalog.staticCategories
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.core.mvi.MviState
 
@@ -19,15 +17,12 @@ sealed interface PreviewRegenerationTarget {
 
 data class NewCardUiState(
     val word: String = "",
-    val aiRequest: String = "",
     val intendedMeaningEs: String = "",
     val contextSentence: String = "",
     val decks: List<Deck> = emptyList(),
     val deckSelected: Deck? = null,
     val isLoading: Boolean = false,
     val isSetAsDefault: Boolean = false,
-    val category: StaticCategories = staticCategories.first(),
-    val typeView: TypeView = TypeView.WordOrPhase,
     val difficulty: String = difficult.first(),
     val error: NewCardErrorUi? = null,
     val inputValidationIssues: List<ValidationIssue> = emptyList(),

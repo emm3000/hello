@@ -47,12 +47,9 @@ class NewCardViewModel(
             is NewCardUiIntent.DeckSelected,
             is NewCardUiIntent.CheckChanged -> handleDeckIntent(intent)
             is NewCardUiIntent.WordChanged,
-            is NewCardUiIntent.AiRequestChanged,
             is NewCardUiIntent.IntendedMeaningChanged,
             is NewCardUiIntent.ContextSentenceChanged,
-            is NewCardUiIntent.CategorySelected,
-            is NewCardUiIntent.DifficultySelected,
-            is NewCardUiIntent.TypeViewSelected -> handleInputIntent(intent)
+            is NewCardUiIntent.DifficultySelected -> handleInputIntent(intent)
             NewCardUiIntent.GenerateClicked -> generateFlashcard()
             NewCardUiIntent.SaveClicked -> saveFlashcard()
             is NewCardUiIntent.PreviewFieldChanged,
@@ -87,16 +84,13 @@ class NewCardViewModel(
     private fun handleInputIntent(intent: NewCardUiIntent) {
         when (intent) {
             is NewCardUiIntent.WordChanged -> updateInputState { copy(word = intent.word) }
-            is NewCardUiIntent.AiRequestChanged -> updateInputState { copy(aiRequest = intent.aiRequest) }
             is NewCardUiIntent.IntendedMeaningChanged -> {
                 updateInputState { copy(intendedMeaningEs = intent.intendedMeaningEs) }
             }
             is NewCardUiIntent.ContextSentenceChanged -> {
                 updateInputState { copy(contextSentence = intent.contextSentence) }
             }
-            is NewCardUiIntent.CategorySelected -> updateInputState { copy(category = intent.category) }
             is NewCardUiIntent.DifficultySelected -> updateInputState { copy(difficulty = intent.difficulty) }
-            is NewCardUiIntent.TypeViewSelected -> updateInputState { copy(typeView = intent.typeView) }
             else -> Unit
         }
     }

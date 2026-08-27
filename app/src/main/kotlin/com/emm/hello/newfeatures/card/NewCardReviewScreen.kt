@@ -30,8 +30,8 @@ import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HWizTop
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
 
-private const val REVIEW_STEP_NUMBER = 3
-private const val TOTAL_STEP_COUNT = 3
+private const val REVIEW_STEP_NUMBER = 2
+private const val TOTAL_STEP_COUNT = 2
 
 @Composable
 fun NewCardReviewScreen(

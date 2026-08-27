@@ -10,20 +10,20 @@
 
 ## Summary
 
-The current creation flow has 3 steps handled in `NewCardRoute`:
+The current creation flow has 2 steps handled in `NewCardRoute`:
 
-1. `Mode`
-2. `Input`
-3. `Review`
+1. `Input`
+2. `Review`
 
 Navigation is local to the route and uses a single shared `NewCardViewModel`.
+
+This wizard is no longer the capture path. A bare word is captured in the Capturar screen and enriched in the background; the wizard is the advanced editor for a word whose note the user wants to shape before saving.
 
 ## Key files
 
 These are the **main entry points and artifacts** of the creation flow. The rest of `newfeatures/card/` contains internal components (preview UI, validation, drafts) and the sibling detail/edit flows documented separately.
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardRoute.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardModeScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardReviewScreen.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardViewModel.kt`
@@ -36,38 +36,23 @@ These are the **main entry points and artifacts** of the creation flow. The rest
 - View existing card: `docs/CARD_DETAIL_CURRENT.md`
 - Edit existing card: `docs/EDIT_FLASHCARD_CURRENT.md`
 
-## Step 1. Mode
-
-`NewCardModeScreen` shows a mode selector and a CTA to continue.
-
-Current `TypeView` modes:
-
-- `WordOrPhase`
-- `WithCategories`
-- `WithAiHelp`
-
-## Step 2. Input
+## Step 1. Input
 
 `NewCardInputStepScreen` shows:
 
-- inputs based on `TypeView`
+- the word input, plus the optional `intendedMeaningEs` and `contextSentence` hints
 - deck selection
 - default-deck checkbox
 - optional quota warning text above the Generate CTA — rendered when `state.showQuotaWarning` is true (i.e. `quotaRemaining` is in 1..10); copy comes from `new_card_quota_remaining_warning` plurals
 - `Generate` CTA
 
-Current gating:
-
-- `WordOrPhase`: requires deck and `word`
-- `WithCategories`: requires deck
-- `WithAiHelp`: requires deck and `aiRequest`
+Current gating: the Generate CTA requires a deck and a non-blank `word`.
 
 **Zero-deck inline CTA**: when the deck list is empty, `DeckPickerRow` renders a tappable row ("Crear un mazo" — `R.string.new_card_input_create_deck_cta`) plus a hint text (`R.string.new_card_input_no_decks_hint`). Tapping navigates to `NewDeckRoute()` via `onCreateDeck` propagated from `NewCardDestination → NewCardInputStepScreen → DeckPickerSection → DeckPickerRow`.
 
 Current support:
 
-- microphone in word inputs. While `sttManager.isListening == true`, the word input grows a pulsing accent ring and renders an uppercase "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with the accent, and pulses (added in the redesign's Phase 3, commit `29c4443`).
-- static categories via bottom sheet (`BottomSheetDialogForPickCategory`). Full-bleed `ModalBottomSheet` with a mono uppercase title and one row per category, and the selected row marks itself with an accent `Outlined.Check` icon. No chips (added in the redesign's Phase 3, commit `29c4443`).
+- microphone in the word input. While `sttManager.isListening == true`, the word input grows a pulsing accent ring and renders an uppercase "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with the accent, and pulses (added in the redesign's Phase 3, commit `29c4443`).
 - simple difficulty mapped to `LevelBand`; difficulty chip labels go through `difficultyDisplayLabel()` (display layer, not stored): `"basico"` → `"Básico"`, `"intermedio"` → `"Intermedio"`, `"avanzado"` → `"Avanzado"`
 
 ## UiState quota fields
@@ -83,15 +68,11 @@ Current support:
 
 `NewCardUiState` is translated to `FlashcardGenerationInput` in `NewCardGenerationMappings.kt`.
 
-Current mapping:
-
-- `WordOrPhase` infers `Word`, `Phrase` or `Sentence` from `word`
-- `WithCategories` uses `CommunicativeGoal` from a static category
-- `WithAiHelp` uses `CommunicativeGoal` from free text
+Current mapping: `inputType` is inferred from `word` as `Word`, `Phrase` or `Sentence`; `domain` is always `LearningDomain.DailyLife` and `communicativeIntentId` is left empty.
 
 Input is always validated before generating a preview.
 
-## Step 3. Review
+## Step 2. Review
 
 `NewCardReviewScreen` renders one of these states:
 

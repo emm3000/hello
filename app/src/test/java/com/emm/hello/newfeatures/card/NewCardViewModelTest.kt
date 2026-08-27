@@ -185,7 +185,7 @@ class NewCardViewModelTest {
     }
 
     @Test
-    fun `generate clicked with ai help builds communicative goal input`() = runTest {
+    fun `generate clicked builds a word input carrying the disambiguation hints`() = runTest {
         val generationRepository = mockk<FlashcardGenerationRepository>()
         val flashcardRepository = mockk<FlashcardRepository>()
 
@@ -206,20 +206,20 @@ class NewCardViewModelTest {
         )
 
         advanceUntilIdle()
-        viewModel.onIntent(NewCardUiIntent.TypeViewSelected(TypeView.WithAiHelp))
-        viewModel.onIntent(
-            NewCardUiIntent.AiRequestChanged(
-                "Quiero aprender frases para pedir comida en un restaurante",
-            )
-        )
+        viewModel.onIntent(NewCardUiIntent.WordChanged("compelling"))
+        viewModel.onIntent(NewCardUiIntent.IntendedMeaningChanged("convincente"))
+        viewModel.onIntent(NewCardUiIntent.ContextSentenceChanged("She made a compelling argument."))
+        viewModel.onIntent(NewCardUiIntent.DifficultySelected("avanzado"))
         viewModel.onIntent(NewCardUiIntent.GenerateClicked)
         advanceUntilIdle()
 
         assertThat(inputSlot.isCaptured).isTrue()
-        assertThat(inputSlot.captured.inputType).isEqualTo(FlashcardInputType.CommunicativeGoal)
-        assertThat(inputSlot.captured.userText)
-            .isEqualTo("Quiero aprender frases para pedir comida en un restaurante")
-        assertThat(inputSlot.captured.communicativeIntentId).isEqualTo("order_food")
+        assertThat(inputSlot.captured.inputType).isEqualTo(FlashcardInputType.Word)
+        assertThat(inputSlot.captured.userText).isEqualTo("compelling")
+        assertThat(inputSlot.captured.intendedMeaningEs).isEqualTo("convincente")
+        assertThat(inputSlot.captured.contextSentence).isEqualTo("She made a compelling argument.")
+        assertThat(inputSlot.captured.levelBand).isEqualTo(LevelBand.C1_PLUS)
+        assertThat(inputSlot.captured.communicativeIntentId).isEmpty()
         assertThat(inputSlot.captured.domain).isEqualTo(LearningDomain.DailyLife)
         assertThat(viewModel.state.value.canSavePreview).isTrue()
     }
