@@ -9,7 +9,6 @@ import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.validation.requireValid
-import kotlin.coroutines.cancellation.CancellationException
 
 class EnrichCapturedFlashcardUseCase(
     private val repository: FlashcardRepository,
@@ -19,7 +18,7 @@ class EnrichCapturedFlashcardUseCase(
 ) {
 
     suspend operator fun invoke(flashcardId: FlashcardId): EnrichmentStatus {
-        val note: GeneratedLearningNote = generatedNoteOrNull(flashcardId) ?: return markFailed(flashcardId)
+        val note: GeneratedLearningNote = generatedNote(flashcardId)
 
         repository.update(
             generatedLearningNoteMapper.toUpdateFlashcardInput(flashcardId = flashcardId, note = note),
@@ -30,23 +29,11 @@ class EnrichCapturedFlashcardUseCase(
         return EnrichmentStatus.ENRICHED
     }
 
-    @Suppress("SwallowedException", "TooGenericExceptionCaught")
-    private suspend fun generatedNoteOrNull(flashcardId: FlashcardId): GeneratedLearningNote? {
-        return try {
-            val word: String = repository.fetchById(flashcardId).flashcard.word
-            val note: GeneratedLearningNote = generationRepository.generateLearningNote(generationInput(word))
-            validateGeneratedLearningNoteUseCase(note).requireValid()
-            note
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            null
-        }
-    }
-
-    private suspend fun markFailed(flashcardId: FlashcardId): EnrichmentStatus {
-        repository.updateEnrichmentStatus(flashcardId, EnrichmentStatus.FAILED)
-        return EnrichmentStatus.FAILED
+    private suspend fun generatedNote(flashcardId: FlashcardId): GeneratedLearningNote {
+        val word: String = repository.fetchById(flashcardId).flashcard.word
+        val note: GeneratedLearningNote = generationRepository.generateLearningNote(generationInput(word))
+        validateGeneratedLearningNoteUseCase(note).requireValid()
+        return note
     }
 
     private fun generationInput(word: String): FlashcardGenerationInput {

@@ -26,6 +26,7 @@ import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
+import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
@@ -182,6 +183,7 @@ fun Module.useCases() {
     factoryOf(::CaptureFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
     factoryOf(::RetryFailedEnrichmentsUseCase)
+    factoryOf(::MarkEnrichmentFailedUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
     factoryOf(::ValidateFlashcardGenerationInputUseCase)

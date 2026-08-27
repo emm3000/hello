@@ -20,10 +20,12 @@ import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
+import com.emm.domain.validation.DomainValidationException
 import kotlinx.coroutines.test.runTest
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class EnrichCapturedFlashcardUseCaseTest {
@@ -63,22 +65,21 @@ class EnrichCapturedFlashcardUseCaseTest {
     }
 
     @Test
-    fun `invoke marks the card failed when generation throws`() = runTest {
+    fun `invoke propagates the generation error without storing anything`() = runTest {
         val repository = RecordingRepository()
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
             generationRepository = NoteGenerationRepository(error = IllegalStateException("boom")),
         )
 
-        val status: EnrichmentStatus = useCase(FLASHCARD_ID)
+        assertFailsWith<IllegalStateException> { useCase(FLASHCARD_ID) }
 
-        assertEquals(EnrichmentStatus.FAILED, status)
-        assertEquals(EnrichmentStatus.FAILED, repository.lastStatus)
+        assertNull(repository.lastStatus)
         assertNull(repository.lastUpdate)
     }
 
     @Test
-    fun `invoke marks the card failed when the quota is exceeded`() = runTest {
+    fun `invoke propagates the quota error without storing anything`() = runTest {
         val repository = RecordingRepository()
         val quotaError = GenerationQuotaExceededException(limit = 50, resetAt = Instant.EPOCH)
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
@@ -86,25 +87,23 @@ class EnrichCapturedFlashcardUseCaseTest {
             generationRepository = NoteGenerationRepository(error = quotaError),
         )
 
-        val status: EnrichmentStatus = useCase(FLASHCARD_ID)
+        assertFailsWith<GenerationQuotaExceededException> { useCase(FLASHCARD_ID) }
 
-        assertEquals(EnrichmentStatus.FAILED, status)
-        assertEquals(EnrichmentStatus.FAILED, repository.lastStatus)
+        assertNull(repository.lastStatus)
         assertNull(repository.lastUpdate)
     }
 
     @Test
-    fun `invoke marks the card failed when the generated note is invalid`() = runTest {
+    fun `invoke propagates the validation error without storing anything`() = runTest {
         val repository = RecordingRepository()
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
             generationRepository = NoteGenerationRepository(note = sampleWordNote().copy(cards = emptyList())),
         )
 
-        val status: EnrichmentStatus = useCase(FLASHCARD_ID)
+        assertFailsWith<DomainValidationException> { useCase(FLASHCARD_ID) }
 
-        assertEquals(EnrichmentStatus.FAILED, status)
-        assertEquals(EnrichmentStatus.FAILED, repository.lastStatus)
+        assertNull(repository.lastStatus)
         assertNull(repository.lastUpdate)
     }
 
