@@ -9,27 +9,27 @@ import java.time.temporal.ChronoUnit
 class GetDashboardStatsUseCase(
     private val repository: StudyStatsRepository,
     private val clock: Clock,
+    private val zone: ZoneId = ZoneId.systemDefault(),
 ) {
 
     suspend operator fun invoke(): DashboardStats {
-        val now = clock.now()
-        val zone = ZoneId.systemDefault()
+        val now: Instant = clock.now()
 
         val cardsStudiedToday = repository.countDistinctCardsStudiedToday()
         val cardsDueToday = repository.countCardsDueToday()
         val cardsDueThisWeek = repository.countCardsDueThisWeek()
-        val currentStreak = computeStreak(now, zone)
+        val currentStreak = computeStreak(now)
 
         return DashboardStats(
             cardsStudiedToday = cardsStudiedToday,
             cardsDueToday = cardsDueToday,
             currentStreak = currentStreak,
             cardsDueThisWeek = cardsDueThisWeek,
-            nextDue = if (cardsDueToday > 0) null else findNextDue(now, zone),
+            nextDue = if (cardsDueToday > 0) null else findNextDue(now),
         )
     }
 
-    private suspend fun findNextDue(now: Instant, zone: ZoneId): NextDueBatch? {
+    private suspend fun findNextDue(now: Instant): NextDueBatch? {
         val nextReviewAtMillis: Long = repository.findNextReviewAtAfter(now.toEpochMilli()) ?: return null
         val at: Instant = Instant.ofEpochMilli(nextReviewAtMillis)
         val dueDate: LocalDate = at.atZone(zone).toLocalDate()
@@ -48,19 +48,16 @@ class GetDashboardStatsUseCase(
         )
     }
 
-    private suspend fun computeStreak(now: Instant, zone: ZoneId): Int {
-        val reviewDates = repository.findDistinctReviewDatesDescending()
+    private suspend fun computeStreak(now: Instant): Int {
+        val reviewDates: List<LocalDate> = repository.findReviewTimestampsDescending()
+            .map { reviewedAtMillis -> Instant.ofEpochMilli(reviewedAtMillis).atZone(zone).toLocalDate() }
+            .distinct()
         if (reviewDates.isEmpty()) return 0
 
-        val today = now.atZone(zone).toLocalDate()
         var streak = 0
-        var expectedDate = today
+        var expectedDate: LocalDate = now.atZone(zone).toLocalDate()
 
-        for (reviewedAtMillis in reviewDates) {
-            val reviewDate = Instant.ofEpochMilli(reviewedAtMillis)
-                .atZone(zone)
-                .toLocalDate()
-
+        for (reviewDate in reviewDates) {
             if (reviewDate == expectedDate) {
                 streak++
                 expectedDate = expectedDate.minusDays(1)

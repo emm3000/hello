@@ -385,6 +385,6 @@ class DashboardViewModelTest {
         override suspend fun countCardsDueThisWeek(): Int = cardsDueThisWeek
         override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = cardsDueInRange
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = nextReviewAt
-        override suspend fun findDistinctReviewDatesDescending(): List<Long> = reviewDates
+        override suspend fun findReviewTimestampsDescending(): List<Long> = reviewDates
     }
 }

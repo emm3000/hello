@@ -56,8 +56,8 @@ class DefaultStudyStatsRepository(
             .MIN
     }
 
-    override suspend fun findDistinctReviewDatesDescending(): List<Long> = withContext(Dispatchers.IO) {
-        localFirstQueries.distinctReviewDatesDescending()
+    override suspend fun findReviewTimestampsDescending(): List<Long> = withContext(Dispatchers.IO) {
+        localFirstQueries.reviewTimestampsDescending()
             .executeAsList()
     }
 }

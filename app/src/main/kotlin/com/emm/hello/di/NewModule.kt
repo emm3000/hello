@@ -208,7 +208,7 @@ fun Module.useCases() {
     factoryOf(::GetDeckDetailUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
-    factoryOf(::GetDashboardStatsUseCase)
+    factory { GetDashboardStatsUseCase(get(), get()) }
     factoryOf(::UpdateDeckUseCase)
     factoryOf(::SoftDeleteDeckUseCase)
     factoryOf(::RestoreDeckUseCase)

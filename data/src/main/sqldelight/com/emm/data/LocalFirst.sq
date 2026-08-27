@@ -198,9 +198,11 @@ SELECT MIN(rp.nextReviewAt) FROM StudiableFlashcard f
 JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE rp.nextReviewAt > :nowMillis;
 
--- Return distinct review dates (as epoch millis at start-of-day) in descending order.
--- Each row is the start-of-day in millis for a day that has at least one review.
-distinctReviewDatesDescending:
-SELECT DISTINCT (reviewedAt / 86400000) * 86400000 AS reviewDayMillis
+-- Return raw review timestamps, newest first, for the study-streak calculation.
+-- Bucketing into days happens in :domain and NOT here: SQL can only divide by a fixed
+-- 86400000 window, which is the UTC day, while a streak is counted in the user's local
+-- days. Any zone offset from UTC made every review read one day early or late.
+reviewTimestampsDescending:
+SELECT reviewedAt
 FROM ReviewEvent
-ORDER BY reviewDayMillis DESC;
+ORDER BY reviewedAt DESC;

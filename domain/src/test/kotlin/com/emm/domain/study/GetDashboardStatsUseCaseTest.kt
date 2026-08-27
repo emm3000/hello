@@ -8,12 +8,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 
 class GetDashboardStatsUseCaseTest {
 
-    private val zone: ZoneId = ZoneId.systemDefault()
-    private val fixedNow: Instant = Instant.parse("2026-05-04T12:00:00Z")
+    private val zone: ZoneId = ZoneId.of("America/Lima")
+    private val today: LocalDate = LocalDate.of(2026, 5, 4)
+    private val fixedNow: Instant = today.atTime(15, 59).atZone(zone).toInstant()
     private val clock: Clock = Clock { fixedNow }
 
     @Test
@@ -22,14 +24,14 @@ class GetDashboardStatsUseCaseTest {
             cardsStudiedToday = 5,
             cardsDueToday = 3,
             cardsDueThisWeek = 10,
-            reviewDates = listOf(
-                dateToMillis(LocalDate.of(2026, 5, 4)),
-                dateToMillis(LocalDate.of(2026, 5, 3)),
-                dateToMillis(LocalDate.of(2026, 5, 2)),
+            reviewTimestamps = listOf(
+                reviewAt(today, 15, 0),
+                reviewAt(today.minusDays(1), 9, 0),
+                reviewAt(today.minusDays(2), 22, 0),
             ),
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertEquals(5, result.cardsStudiedToday)
         assertEquals(3, result.cardsDueToday)
@@ -39,9 +41,7 @@ class GetDashboardStatsUseCaseTest {
 
     @Test
     fun `invoke when no reviews returns zero streak`() = runTest {
-        val fakeRepo = FakeStatsRepo(reviewDates = emptyList())
-
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(FakeStatsRepo(reviewTimestamps = emptyList()))()
 
         assertEquals(0, result.currentStreak)
     }
@@ -50,13 +50,13 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke when streak broken by missing yesterday returns 1`() = runTest {
         val fakeRepo = FakeStatsRepo(
             cardsStudiedToday = 1,
-            reviewDates = listOf(
-                dateToMillis(LocalDate.of(2026, 5, 4)),
-                dateToMillis(LocalDate.of(2026, 5, 2)),
+            reviewTimestamps = listOf(
+                reviewAt(today, 15, 0),
+                reviewAt(today.minusDays(2), 15, 0),
             ),
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertEquals(1, result.currentStreak)
     }
@@ -64,13 +64,13 @@ class GetDashboardStatsUseCaseTest {
     @Test
     fun `invoke when no reviews today but yesterday exists returns 0 streak`() = runTest {
         val fakeRepo = FakeStatsRepo(
-            reviewDates = listOf(
-                dateToMillis(LocalDate.of(2026, 5, 3)),
-                dateToMillis(LocalDate.of(2026, 5, 2)),
+            reviewTimestamps = listOf(
+                reviewAt(today.minusDays(1), 15, 0),
+                reviewAt(today.minusDays(2), 15, 0),
             ),
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertEquals(0, result.currentStreak)
     }
@@ -81,36 +81,69 @@ class GetDashboardStatsUseCaseTest {
             cardsStudiedToday = 3,
             cardsDueToday = 5,
             cardsDueThisWeek = 15,
-            reviewDates = listOf(
-                dateToMillis(LocalDate.of(2026, 5, 4)),
-                dateToMillis(LocalDate.of(2026, 5, 3)),
-                dateToMillis(LocalDate.of(2026, 5, 2)),
-                dateToMillis(LocalDate.of(2026, 5, 1)),
-                dateToMillis(LocalDate.of(2026, 4, 30)),
-                dateToMillis(LocalDate.of(2026, 4, 29)),
-                dateToMillis(LocalDate.of(2026, 4, 27)),
-            ),
+            reviewTimestamps = listOf(0L, 1L, 2L, 3L, 4L, 5L, 7L)
+                .map { dayOffset -> reviewAt(today.minusDays(dayOffset), 15, 0) },
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertEquals(6, result.currentStreak)
     }
 
     @Test
+    fun `a review in the afternoon still counts as today west of UTC`() = runTest {
+        val fakeRepo = FakeStatsRepo(
+            cardsStudiedToday = 8,
+            reviewTimestamps = listOf(reviewAt(today, 15, 0)),
+        )
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(1, result.currentStreak)
+    }
+
+    @Test
+    fun `a review late at night still counts as today east of UTC`() = runTest {
+        val tokyo: ZoneId = ZoneId.of("Asia/Tokyo")
+        val nowInTokyo: Instant = today.atTime(1, 30).atZone(tokyo).toInstant()
+        val fakeRepo = FakeStatsRepo(
+            cardsStudiedToday = 2,
+            reviewTimestamps = listOf(today.atTime(1, 0).atZone(tokyo).toInstant().toEpochMilli()),
+        )
+
+        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, Clock { nowInTokyo }, tokyo)()
+
+        assertEquals(1, result.currentStreak)
+    }
+
+    @Test
+    fun `several reviews on the same local day advance the streak once`() = runTest {
+        val fakeRepo = FakeStatsRepo(
+            cardsStudiedToday = 8,
+            reviewTimestamps = listOf(
+                reviewAt(today, 20, 0),
+                reviewAt(today, 15, 0),
+                reviewAt(today, 8, 0),
+                reviewAt(today.minusDays(1), 19, 0),
+                reviewAt(today.minusDays(1), 7, 0),
+            ),
+        )
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(2, result.currentStreak)
+    }
+
+    @Test
     fun `invoke with nothing due today reports the next batch and the days until it`() = runTest {
-        val tomorrowMorning: Long = LocalDate.of(2026, 5, 5)
-            .atTime(9, 0)
-            .atZone(zone)
-            .toInstant()
-            .toEpochMilli()
+        val tomorrowMorning: Long = reviewAt(today.plusDays(1), 9, 0)
         val fakeRepo = FakeStatsRepo(
             cardsDueToday = 0,
             nextReviewAt = tomorrowMorning,
             cardsDueInRange = 5,
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         val nextDue: NextDueBatch? = result.nextDue
         assertEquals(Instant.ofEpochMilli(tomorrowMorning), nextDue?.at)
@@ -120,19 +153,19 @@ class GetDashboardStatsUseCaseTest {
 
     @Test
     fun `invoke counts the next batch only over the day it falls on`() = runTest {
-        val nextDayStart: LocalDate = LocalDate.of(2026, 5, 5)
-        val nextReviewAt: Long = nextDayStart.atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
+        val nextDay: LocalDate = today.plusDays(1)
+        val nextReviewAt: Long = reviewAt(nextDay, 9, 0)
         val fakeRepo = FakeStatsRepo(
             cardsDueToday = 0,
             nextReviewAt = nextReviewAt,
             cardsDueInRange = 2,
         )
 
-        GetDashboardStatsUseCase(fakeRepo, clock)()
+        useCase(fakeRepo)()
 
         assertEquals(nextReviewAt, fakeRepo.rangeStartMillis)
         assertEquals(
-            nextDayStart.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
+            nextDay.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
             fakeRepo.rangeEndMillis,
         )
     }
@@ -141,7 +174,7 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke with cards due today never looks up the next batch`() = runTest {
         val fakeRepo = FakeStatsRepo(cardsDueToday = 3, nextReviewAt = 1L, cardsDueInRange = 9)
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertNull(result.nextDue)
         assertTrue(!fakeRepo.nextReviewAtWasQueried)
@@ -151,27 +184,30 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke with nothing scheduled at all reports no next batch`() = runTest {
         val fakeRepo = FakeStatsRepo(cardsDueToday = 0, nextReviewAt = null)
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertNull(result.nextDue)
     }
 
     @Test
     fun `invoke drops a next batch that resolves to zero cards`() = runTest {
-        val tomorrow: Long = LocalDate.of(2026, 5, 5)
-            .atTime(9, 0)
-            .atZone(zone)
-            .toInstant()
-            .toEpochMilli()
-        val fakeRepo = FakeStatsRepo(cardsDueToday = 0, nextReviewAt = tomorrow, cardsDueInRange = 0)
+        val fakeRepo = FakeStatsRepo(
+            cardsDueToday = 0,
+            nextReviewAt = reviewAt(today.plusDays(1), 9, 0),
+            cardsDueInRange = 0,
+        )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, clock)()
+        val result: DashboardStats = useCase(fakeRepo)()
 
         assertNull(result.nextDue)
     }
 
-    private fun dateToMillis(date: LocalDate): Long {
-        return date.atStartOfDay(zone).toInstant().toEpochMilli()
+    private fun useCase(repository: StudyStatsRepository): GetDashboardStatsUseCase {
+        return GetDashboardStatsUseCase(repository, clock, zone)
+    }
+
+    private fun reviewAt(date: LocalDate, hour: Int, minute: Int): Long {
+        return date.atTime(LocalTime.of(hour, minute)).atZone(zone).toInstant().toEpochMilli()
     }
 
     private class FakeStatsRepo(
@@ -180,7 +216,7 @@ class GetDashboardStatsUseCaseTest {
         private val cardsDueThisWeek: Int = 0,
         private val cardsDueInRange: Int = 0,
         private val nextReviewAt: Long? = null,
-        private val reviewDates: List<Long> = emptyList(),
+        private val reviewTimestamps: List<Long> = emptyList(),
     ) : StudyStatsRepository {
 
         var nextReviewAtWasQueried: Boolean = false
@@ -209,6 +245,6 @@ class GetDashboardStatsUseCaseTest {
             return nextReviewAt
         }
 
-        override suspend fun findDistinctReviewDatesDescending(): List<Long> = reviewDates
+        override suspend fun findReviewTimestampsDescending(): List<Long> = reviewTimestamps
     }
 }

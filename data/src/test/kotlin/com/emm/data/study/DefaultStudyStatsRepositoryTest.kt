@@ -173,29 +173,25 @@ class DefaultStudyStatsRepositoryTest {
     }
 
     @Test
-    fun `findDistinctReviewDatesDescending returns dates in order`() = runTest {
-        // Insert events at specific millis; SQL truncates to UTC day boundaries
+    fun `findReviewTimestampsDescending returns every raw timestamp newest first`() = runTest {
         val may4 = utcDayMillis("2026-05-04")
         val may3 = utcDayMillis("2026-05-03")
         val may2 = utcDayMillis("2026-05-02")
 
         insertReviewEvent(flashcardId = "card-1", reviewedAt = may4)
-        insertReviewEvent(flashcardId = "card-2", reviewedAt = may4 + 1000) // same UTC day
+        insertReviewEvent(flashcardId = "card-2", reviewedAt = may4 + 1000)
         insertReviewEvent(flashcardId = "card-1", reviewedAt = may3)
         insertReviewEvent(flashcardId = "card-3", reviewedAt = may2)
 
-        val dates = subject.findDistinctReviewDatesDescending()
+        val timestamps = subject.findReviewTimestampsDescending()
 
-        assertEquals(3, dates.size)
-        assertEquals(may4, dates[0])
-        assertEquals(may3, dates[1])
-        assertEquals(may2, dates[2])
+        assertEquals(listOf(may4 + 1000, may4, may3, may2), timestamps)
     }
 
     @Test
-    fun `findDistinctReviewDatesDescending returns empty when no reviews`() = runTest {
-        val dates = subject.findDistinctReviewDatesDescending()
-        assertEquals(0, dates.size)
+    fun `findReviewTimestampsDescending returns empty when no reviews`() = runTest {
+        val timestamps = subject.findReviewTimestampsDescending()
+        assertEquals(0, timestamps.size)
     }
 
     private fun insertDeck(deckId: String) {
