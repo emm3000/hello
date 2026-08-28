@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geistMono
 
 @Composable
@@ -38,7 +38,7 @@ fun HSectionLabel(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
             modifier = Modifier.weight(1f, fill = false),
         )
         if (action != null) {
@@ -51,7 +51,7 @@ fun HSectionLabel(
 @Composable
 private fun HSectionLabelPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -66,7 +66,7 @@ private fun HSectionLabelPreview() {
                             text = "5 con repaso ↗",
                             fontFamily = geistMono,
                             fontSize = 10.5.sp,
-                            color = instrumentAccent,
+                            color = ink,
                         )
                     },
                 )

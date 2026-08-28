@@ -1,78 +1,66 @@
 package com.emm.hello.core.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 
-private val darkScheme = darkColorScheme(
-    semanticColors = instrumentSemanticColors(),
-)
+private val lightScheme: ColorScheme = lightColorScheme(
+    primary = ink,
+    onPrimary = onInk,
+    primaryContainer = surfaceRaised,
+    onPrimaryContainer = ink,
 
-private fun darkColorScheme(
-    @Suppress("UNUSED_PARAMETER") semanticColors: HelloSemanticColors,
-) = materialDarkColorScheme(
-    primary = instrumentPrimary,
-    onPrimary = instrumentBg,
-    primaryContainer = instrumentSurface2,
-    onPrimaryContainer = instrumentOnBg,
+    secondary = surfaceRaised,
+    onSecondary = ink,
+    secondaryContainer = surfaceRaised,
+    onSecondaryContainer = ink,
 
-    secondary = instrumentSurface2,
-    onSecondary = instrumentOnBg,
-    secondaryContainer = instrumentSurface2,
-    onSecondaryContainer = instrumentOnBg,
+    tertiary = successInk,
+    onTertiary = onInk,
+    tertiaryContainer = successContainer,
+    onTertiaryContainer = successInk,
 
-    tertiary = instrumentGood,
-    onTertiary = instrumentBg,
-    tertiaryContainer = instrumentGoodSoft,
-    onTertiaryContainer = instrumentGood,
+    error = destructiveInk,
+    onError = onInk,
+    errorContainer = destructiveContainer,
+    onErrorContainer = destructiveInk,
 
-    error = instrumentBad,
-    onError = instrumentBg,
-    errorContainer = instrumentBadSoft,
-    onErrorContainer = instrumentBad,
+    background = pageBackground,
+    onBackground = ink,
+    surface = surface,
+    onSurface = ink,
 
-    background = instrumentBg,
-    onBackground = instrumentOnBg,
-    surface = instrumentSurface,
-    onSurface = instrumentOnBg,
+    surfaceVariant = surfaceRaised,
+    onSurfaceVariant = inkMuted,
 
-    surfaceVariant = instrumentSurface2,
-    onSurfaceVariant = instrumentMuted,
+    outline = outline,
+    outlineVariant = hairline,
 
-    outline = instrumentMuted,
-    outlineVariant = instrumentDivider,
+    inverseSurface = ink,
+    inverseOnSurface = onInk,
+    inversePrimary = onInk,
 
-    inverseSurface = instrumentPrimary,
-    inverseOnSurface = instrumentBg,
-    inversePrimary = instrumentAccent,
+    scrim = ink,
 
-    scrim = instrumentBg,
-
-    surfaceContainerLowest = instrumentBg,
-    surfaceContainerLow = instrumentSurface,
-    surfaceContainer = instrumentSurface2,
-    surfaceContainerHigh = instrumentElev,
-    surfaceContainerHighest = instrumentElev,
-    surfaceDim = instrumentBg,
-    surfaceBright = instrumentSurface2,
+    surfaceContainerLowest = surface,
+    surfaceContainerLow = pageBackground,
+    surfaceContainer = surfaceRaised,
+    surfaceContainerHigh = surfaceRaised,
+    surfaceContainerHighest = surfaceRaised,
+    surfaceDim = surfaceRaised,
+    surfaceBright = surface,
 )
 
 @Composable
-fun HelloTheme(
-    // Dark-only product. isSystemInDarkTheme() is intentionally ignored; the
-    // parameter is kept for call-site compatibility but has no effect.
-    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = isSystemInDarkTheme(),
-    @Suppress("UNUSED_PARAMETER") dynamicColor: Boolean = false,
-    content: @Composable () -> Unit,
-) {
+fun HelloTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = darkScheme,
+        colorScheme = lightScheme,
         typography = appTypography,
         shapes = helloMaterialShapes,
     ) {
         ProvideHelloFoundations(
-            semanticColors = instrumentSemanticColors(),
+            semanticColors = helloSemanticColors(),
             content = content,
         )
     }

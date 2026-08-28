@@ -37,12 +37,11 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSurface2
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
@@ -62,7 +61,7 @@ fun OnboardingScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Column(
             modifier = Modifier
@@ -148,7 +147,7 @@ private fun OnboardingPageContent(
         Text(
             text = stringResource(page.titleRes),
             style = MaterialTheme.typography.headlineMedium,
-            color = instrumentOnBg,
+            color = ink,
             textAlign = TextAlign.Center,
         )
 
@@ -157,7 +156,7 @@ private fun OnboardingPageContent(
         Text(
             text = stringResource(page.bodyRes),
             style = MaterialTheme.typography.bodyMedium.copy(fontFamily = geist),
-            color = instrumentMuted,
+            color = inkMuted,
             textAlign = TextAlign.Center,
         )
     }
@@ -172,7 +171,7 @@ private fun OnboardingIllustrationArt(
         modifier = modifier
             .size(illustrationSize)
             .clip(CircleShape)
-            .background(instrumentSurface2),
+            .background(surfaceRaised),
         contentAlignment = Alignment.Center,
     ) {
         Image(
@@ -206,7 +205,7 @@ private fun PageDotIndicator(
                 modifier = Modifier
                     .size(width = width, height = dotSize)
                     .clip(CircleShape)
-                    .background(if (isActive) instrumentAccent else instrumentFaint),
+                    .background(if (isActive) ink else inkFaint),
             )
         }
     }

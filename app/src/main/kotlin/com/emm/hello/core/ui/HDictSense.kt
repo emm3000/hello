@@ -19,11 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentWarn
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.warningInk
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 
@@ -38,12 +37,12 @@ fun HDictSense(
     tone: HDictSenseTone = HDictSenseTone.Default,
 ) {
     val numeralColor = when (tone) {
-        HDictSenseTone.Default -> instrumentAccent
-        HDictSenseTone.Warn -> instrumentWarn
+        HDictSenseTone.Default -> ink
+        HDictSenseTone.Warn -> warningInk
     }
     val labelColor = when (tone) {
-        HDictSenseTone.Default -> instrumentMuted
-        HDictSenseTone.Warn -> instrumentWarn
+        HDictSenseTone.Default -> inkMuted
+        HDictSenseTone.Warn -> warningInk
     }
 
     Row(
@@ -74,7 +73,7 @@ fun HDictSense(
                 fontWeight = FontWeight.Normal,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
         }
     }
@@ -84,7 +83,7 @@ fun HDictSense(
 @Composable
 private fun HDictSensePreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

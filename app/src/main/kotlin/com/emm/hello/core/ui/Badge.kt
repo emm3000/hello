@@ -16,13 +16,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentAccentSoft
-import com.emm.hello.core.theme.instrumentGood
-import com.emm.hello.core.theme.instrumentGoodSoft
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentWarn
-import com.emm.hello.core.theme.instrumentWarnSoft
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.surfaceRaised
+import com.emm.hello.core.theme.successInk
+import com.emm.hello.core.theme.successContainer
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.warningInk
+import com.emm.hello.core.theme.warningContainer
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.semanticColors
 
@@ -40,10 +40,10 @@ fun HBadge(
     tone: HBadgeTone = HBadgeTone.Accent,
 ) {
     val (bg, fg) = when (tone) {
-        HBadgeTone.Accent -> instrumentAccentSoft to instrumentAccent
-        HBadgeTone.Good -> instrumentGoodSoft to instrumentGood
-        HBadgeTone.Warn -> instrumentWarnSoft to instrumentWarn
-        HBadgeTone.Muted -> mutedBg to instrumentMuted
+        HBadgeTone.Accent -> surfaceRaised to ink
+        HBadgeTone.Good -> successContainer to successInk
+        HBadgeTone.Warn -> warningContainer to warningInk
+        HBadgeTone.Muted -> mutedBg to inkMuted
     }
 
     Surface(
@@ -69,11 +69,11 @@ fun HBadge(
     modifier: Modifier = Modifier,
     variant: BadgeVariant = BadgeVariant.Default,
 ) {
-    val tone = variant.toInstrumentTone()
+    val tone = variant.toTone()
     HBadge(label = label, modifier = modifier, tone = tone)
 }
 
-private fun BadgeVariant.toInstrumentTone(): HBadgeTone = when (this) {
+private fun BadgeVariant.toTone(): HBadgeTone = when (this) {
     BadgeVariant.Default -> HBadgeTone.Accent
     BadgeVariant.Secondary -> HBadgeTone.Muted
     BadgeVariant.Destructive -> HBadgeTone.Muted
@@ -100,7 +100,7 @@ internal fun badgeColors(variant: BadgeVariant): Pair<Color, Color> {
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HBadgeInstrumentTonesPreview() {
+private fun HBadgeTonesPreview() {
     HelloTheme {
         Row(
             modifier = Modifier

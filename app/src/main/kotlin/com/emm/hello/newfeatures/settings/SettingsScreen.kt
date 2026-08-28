@@ -45,13 +45,11 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBad
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.destructiveInk
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HAlertDialog
@@ -75,7 +73,7 @@ fun SettingsScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -147,7 +145,7 @@ private fun SettingsHeader() {
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(10.dp))
         Text(
@@ -156,13 +154,13 @@ private fun SettingsHeader() {
             fontSize = 44.sp,
             lineHeight = (44 * 1.04f).sp,
             letterSpacing = (-0.02).em,
-            color = instrumentPrimary,
+            color = ink,
         )
         Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.settings_subtitle),
             fontSize = 18.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
 }
@@ -174,7 +172,7 @@ private fun OrganizationSection(onDecks: () -> Unit) {
         Spacer(Modifier.height(10.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = instrumentSurface,
+            color = surface,
             shape = RoundedCornerShape(16.dp),
         ) {
             SettingsRow(
@@ -199,7 +197,7 @@ private fun DataSection(
         Spacer(Modifier.height(10.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = instrumentSurface,
+            color = surface,
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -247,7 +245,7 @@ private fun SettingsRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = instrumentPrimary,
+            tint = ink,
             modifier = Modifier.size(22.dp),
         )
 
@@ -257,12 +255,12 @@ private fun SettingsRow(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
             if (sub != null) {
                 val subColor = when (subTone) {
-                    SubTone.Muted -> instrumentMuted
-                    SubTone.Danger -> instrumentBad
+                    SubTone.Muted -> inkMuted
+                    SubTone.Danger -> destructiveInk
                 }
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -278,7 +276,7 @@ private fun SettingsRow(
         if (isBusy) {
             HLoadingSpinner(
                 size = 18.dp,
-                color = instrumentAccent,
+                color = ink,
                 strokeWidth = 2.dp,
             )
         } else {
@@ -292,7 +290,7 @@ private fun RowScope.ChevronTrailing() {
     Icon(
         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
         contentDescription = null,
-        tint = instrumentMuted,
+        tint = inkMuted,
         modifier = Modifier.size(20.dp),
     )
 }
@@ -307,7 +305,7 @@ private fun SettingsFooter() {
         Text(
             text = stringResource(R.string.settings_footer_tagline),
             fontSize = 16.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Text(
             text = stringResource(R.string.settings_footer_meta),

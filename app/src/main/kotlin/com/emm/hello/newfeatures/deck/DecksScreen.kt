@@ -26,7 +26,7 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
@@ -127,7 +127,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(size = 28.dp, color = instrumentMuted, strokeWidth = 2.dp)
+        HLoadingSpinner(size = 28.dp, color = inkMuted, strokeWidth = 2.dp)
     }
 }
 

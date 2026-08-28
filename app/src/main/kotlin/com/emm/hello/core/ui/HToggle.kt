@@ -35,9 +35,9 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.surface
 
 private val toggleWidth = 40.dp
 private val toggleHeight = 22.dp
@@ -52,7 +52,7 @@ fun HToggle(
     enabled: Boolean = true,
 ) {
     val trackColor by animateColorAsState(
-        targetValue = if (checked) instrumentAccent else instrumentElev,
+        targetValue = if (checked) ink else surface,
         animationSpec = spring(),
         label = "toggle_track",
     )
@@ -89,7 +89,7 @@ fun HToggle(
 @Composable
 private fun HTogglePreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

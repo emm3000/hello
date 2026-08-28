@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.ink
 
 @Composable
 fun HIconButton(
@@ -21,7 +21,7 @@ fun HIconButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = instrumentPrimary,
+    tint: Color = ink,
     iconSize: Dp = 24.dp,
     buttonSize: Dp = 48.dp,
     enabled: Boolean = true,

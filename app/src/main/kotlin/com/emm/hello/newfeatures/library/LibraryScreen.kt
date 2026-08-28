@@ -39,11 +39,11 @@ import com.emm.domain.library.LibraryFlashcard
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentBad
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentWarn
+import com.emm.hello.core.theme.destructiveInk
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.warningInk
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
@@ -152,7 +152,7 @@ private fun CardCounter(count: Int) {
         fontWeight = FontWeight.Normal,
         fontSize = 10.5.sp,
         letterSpacing = 0.14.em,
-        color = instrumentFaint,
+        color = inkFaint,
         modifier = Modifier.padding(end = 18.dp),
     )
 }
@@ -226,7 +226,7 @@ private fun LibraryRow(
                 text = card.word,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = instrumentPrimary,
+                color = ink,
                 letterSpacing = (-0.1).sp,
             )
             if (card.translation.isNotBlank()) {
@@ -235,7 +235,7 @@ private fun LibraryRow(
                     text = card.translation,
                     fontWeight = FontWeight.Normal,
                     fontSize = 13.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     lineHeight = (13 * 1.35f).sp,
                 )
             }
@@ -253,9 +253,9 @@ private fun RowMarker(card: LibraryFlashcard, showDeckName: Boolean) {
         EnrichmentStatus.ENRICHED -> null
     }
     val statusColor: Color = when (card.enrichmentStatus) {
-        EnrichmentStatus.PENDING -> instrumentWarn
-        EnrichmentStatus.FAILED -> instrumentBad
-        EnrichmentStatus.ENRICHED -> instrumentFaint
+        EnrichmentStatus.PENDING -> warningInk
+        EnrichmentStatus.FAILED -> destructiveInk
+        EnrichmentStatus.ENRICHED -> inkFaint
     }
     val label: String? = statusLabel ?: card.deckName.takeIf { showDeckName && it.isNotBlank() }
     if (label == null) return
@@ -276,7 +276,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(size = 28.dp, color = instrumentMuted, strokeWidth = 2.dp)
+        HLoadingSpinner(size = 28.dp, color = inkMuted, strokeWidth = 2.dp)
     }
 }
 

@@ -38,10 +38,9 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
@@ -96,7 +95,7 @@ fun CaptureScreen(
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = instrumentBg) {
+    Surface(modifier = Modifier.fillMaxSize(), color = pageBackground) {
         Box(modifier = Modifier.fillMaxSize()) {
             CaptureContent(
                 state = state,
@@ -137,7 +136,7 @@ private fun CaptureContent(
                 text = stringResource(R.string.capture_headline),
                 style = MaterialTheme.typography.headlineSmall,
                 fontFamily = geist,
-                color = instrumentOnBg,
+                color = ink,
             )
 
             HInput(
@@ -151,7 +150,7 @@ private fun CaptureContent(
                         icon = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
                         contentDescription = stringResource(R.string.capture_mic_content_description),
                         onClick = onMicToggle,
-                        tint = instrumentAccent,
+                        tint = ink,
                     )
                 },
             )
@@ -183,7 +182,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                     text = pluralStringResource(R.plurals.capture_backlog_pending, state.pending, state.pending),
                     style = MaterialTheme.typography.bodyMedium,
                     fontFamily = geist,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
             }
 
@@ -197,7 +196,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                         text = pluralStringResource(R.plurals.capture_backlog_failed, state.failed, state.failed),
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = geist,
-                        color = instrumentOnBg,
+                        color = ink,
                     )
                     HButton(
                         text = stringResource(R.string.capture_retry),

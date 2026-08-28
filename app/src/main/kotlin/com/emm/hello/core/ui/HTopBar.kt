@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 
@@ -41,7 +41,7 @@ fun HTopBar(
     transparent: Boolean = true,
     actions: @Composable (() -> Unit)? = null,
 ) {
-    val bg = if (transparent) Color.Transparent else instrumentBg
+    val bg = if (transparent) Color.Transparent else pageBackground
 
     Row(
         modifier = modifier
@@ -71,7 +71,7 @@ fun HTopBar(
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.08.em,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = backButtonSize),
@@ -82,7 +82,7 @@ fun HTopBar(
                     fontFamily = geist,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
-                    color = instrumentPrimary,
+                    color = ink,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .weight(1f)
@@ -103,7 +103,7 @@ fun HTopBar(
 @Composable
 private fun HTopBarPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HTopBar(
                 onBack = {},
                 title = "Detalle del mazo",
@@ -116,7 +116,7 @@ private fun HTopBarPreview() {
 @Composable
 private fun HTopBarMonoPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HTopBar(
                 onBack = {},
                 title = "Ajustes",
@@ -137,7 +137,7 @@ private fun HTopBarMonoPreview() {
 @Composable
 private fun HTopBarNoBackPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HTopBar(title = "Inicio")
         }
     }

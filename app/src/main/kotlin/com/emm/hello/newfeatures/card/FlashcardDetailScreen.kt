@@ -42,12 +42,11 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.spacing
@@ -83,7 +82,7 @@ fun FlashcardDetailScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             FlashcardDetailTopBar(
@@ -152,7 +151,7 @@ private fun LoadingBody() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        HLoadingSpinner(color = instrumentAccent)
+        HLoadingSpinner(color = ink)
     }
 }
 
@@ -160,7 +159,7 @@ private fun LoadingBody() {
 private fun HeroDivider() {
     HSeparator(
         modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenGutter, vertical = 24.dp),
-        color = instrumentDivider,
+        color = hairline,
     )
 }
 
@@ -218,7 +217,7 @@ private fun FlashcardHero(card: Flashcard) {
             fontSize = 56.sp,
             lineHeight = 60.sp,
             letterSpacing = (-0.02).em,
-            color = instrumentOnBg,
+            color = ink,
         )
 
         val hasMetaRow = card.phonetic.isNotBlank() ||
@@ -237,7 +236,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontFamily = geistMono,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
-                        color = instrumentMuted,
+                        color = inkMuted,
                     )
                 }
                 if (card.partOfSpeech.isNotBlank()) {
@@ -245,7 +244,7 @@ private fun FlashcardHero(card: Flashcard) {
                         text = card.partOfSpeech,
                         fontWeight = FontWeight.Normal,
                         fontSize = 18.sp,
-                        color = instrumentAccent,
+                        color = ink,
                     )
                 }
                 if (card.levelBand.isNotBlank()) {
@@ -255,7 +254,7 @@ private fun FlashcardHero(card: Flashcard) {
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
-                        color = instrumentMuted,
+                        color = inkMuted,
                     )
                 }
             }
@@ -268,7 +267,7 @@ private fun FlashcardHero(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
         }
     }
@@ -353,7 +352,7 @@ private fun ExampleRow(example: Example) {
             text = "·",
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
-            color = instrumentAccent,
+            color = ink,
             modifier = Modifier.width(20.dp),
         )
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -363,7 +362,7 @@ private fun ExampleRow(example: Example) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
                     lineHeight = 24.sp,
-                    color = instrumentOnBg,
+                    color = ink,
                 )
             }
             if (example.translation.isNotBlank()) {
@@ -374,7 +373,7 @@ private fun ExampleRow(example: Example) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
             }
         }
@@ -440,7 +439,7 @@ private fun ExtrasBlock(card: Flashcard) {
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.5.sp,
                             letterSpacing = 0.12.em,
-                            color = instrumentMuted,
+                            color = inkMuted,
                             modifier = Modifier.width(96.dp),
                         )
                         Text(
@@ -449,7 +448,7 @@ private fun ExtrasBlock(card: Flashcard) {
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
-                            color = instrumentOnBg,
+                            color = ink,
                         )
                     }
                 }
@@ -468,7 +467,7 @@ private fun ChipFlow(label: String, values: List<String>) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(8.dp))
         FlowRow(
@@ -491,7 +490,7 @@ private fun BulletList(label: String, values: List<String>) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(6.dp))
         values.forEach { value ->
@@ -500,7 +499,7 @@ private fun BulletList(label: String, values: List<String>) {
                     text = "·",
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
-                    color = instrumentAccent,
+                    color = ink,
                     modifier = Modifier.width(16.dp),
                 )
                 Text(
@@ -509,7 +508,7 @@ private fun BulletList(label: String, values: List<String>) {
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    color = instrumentOnBg,
+                    color = ink,
                 )
             }
         }
@@ -534,7 +533,7 @@ private fun ContextBlock(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
         }
         if (card.sourceContext.isNotBlank()) {
@@ -544,7 +543,7 @@ private fun ContextBlock(card: Flashcard) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = instrumentMuted,
+                color = inkMuted,
             )
         }
     }
@@ -588,7 +587,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = if (part.accent) instrumentAccent else instrumentFaint,
+                color = if (part.accent) ink else inkFaint,
             )
             if (index < parts.lastIndex) {
                 Text(
@@ -596,7 +595,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
                     fontFamily = geistMono,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.5.sp,
-                    color = instrumentFaint,
+                    color = inkFaint,
                 )
             }
         }

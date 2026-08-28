@@ -68,19 +68,19 @@ internal val defaultHelloSpacing = HelloSpacing(
 )
 
 internal val defaultHelloShapes = HelloShapes(
-    control = RoundedCornerShape(8.dp),
-    container = RoundedCornerShape(12.dp),
+    control = RoundedCornerShape(16.dp),
+    container = RoundedCornerShape(28.dp),
     pill = RoundedCornerShape(100.dp),
 )
 
 internal val helloMaterialShapes = Shapes(
-    small = defaultHelloShapes.control,
-    medium = defaultHelloShapes.container,
-    large = RoundedCornerShape(16.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(28.dp),
 )
 
 internal val localHelloSpacing = staticCompositionLocalOf { defaultHelloSpacing }
-internal val localHelloSemanticColors = staticCompositionLocalOf { instrumentSemanticColors() }
+internal val localHelloSemanticColors = staticCompositionLocalOf { helloSemanticColors() }
 internal val localHelloShapes = staticCompositionLocalOf { defaultHelloShapes }
 
 val MaterialTheme.spacing: HelloSpacing

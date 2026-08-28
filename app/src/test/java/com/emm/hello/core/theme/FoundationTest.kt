@@ -6,12 +6,12 @@ import org.junit.Test
 class FoundationTest {
 
     @Test
-    fun `instrument semantic colors map named roles`() {
-        val colors = instrumentSemanticColors()
+    fun `semantic colors map named roles`() {
+        val colors = helloSemanticColors()
 
-        assertThat(colors.success).isEqualTo(instrumentSuccessSemanticColor)
-        assertThat(colors.warning).isEqualTo(instrumentWarningSemanticColor)
-        assertThat(colors.destructive).isEqualTo(instrumentDestructiveSemanticColor)
+        assertThat(colors.success).isEqualTo(successSemanticColor)
+        assertThat(colors.warning).isEqualTo(warningSemanticColor)
+        assertThat(colors.destructive).isEqualTo(destructiveSemanticColor)
     }
 
     @Test

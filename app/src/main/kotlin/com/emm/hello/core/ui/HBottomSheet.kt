@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +20,7 @@ fun HBottomSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
-    containerColor: Color = instrumentElev,
+    containerColor: Color = surface,
     shape: Shape = BottomSheetDefaults.ExpandedShape,
     dragHandle: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,

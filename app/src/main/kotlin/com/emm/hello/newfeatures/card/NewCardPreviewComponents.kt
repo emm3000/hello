@@ -42,14 +42,13 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBadSoft
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.destructiveContainer
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HButton
@@ -96,7 +95,7 @@ internal fun LoadingPreviewSkeleton(word: String) {
             fontWeight = FontWeight.Normal,
             fontSize = 22.sp,
             lineHeight = 28.sp,
-            color = instrumentOnBg,
+            color = ink,
         )
         Text(
             text = stringResource(R.string.loading_preview_eta),
@@ -104,7 +103,7 @@ internal fun LoadingPreviewSkeleton(word: String) {
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentFaint,
+            color = inkFaint,
         )
         HSeparator()
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -141,7 +140,7 @@ private fun PulsingDots() {
                 modifier = Modifier
                     .size(8.dp)
                     .alpha(alpha)
-                    .background(instrumentAccent, CircleShape),
+                    .background(ink, CircleShape),
             )
         }
     }
@@ -164,14 +163,14 @@ internal fun QuotaExceededState(
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .background(instrumentBadSoft, CircleShape),
+                .background(destructiveContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "!",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 30.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
         }
 
@@ -181,7 +180,7 @@ internal fun QuotaExceededState(
             fontSize = 32.sp,
             lineHeight = 36.sp,
             letterSpacing = (-0.02).em,
-            color = instrumentOnBg,
+            color = ink,
         )
 
         Text(
@@ -190,7 +189,7 @@ internal fun QuotaExceededState(
             fontWeight = FontWeight.Normal,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
 
         if (trimmedWord.isNotEmpty()) {
@@ -220,7 +219,7 @@ internal fun QuotaExceededState(
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentFaint,
+            color = inkFaint,
         )
     }
 }
@@ -231,7 +230,7 @@ private fun YourWordSurface(word: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(instrumentSurface)
+            .background(surface)
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -241,7 +240,7 @@ private fun YourWordSurface(word: String) {
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Text(
             text = word,
@@ -249,7 +248,7 @@ private fun YourWordSurface(word: String) {
             fontSize = 28.sp,
             lineHeight = 32.sp,
             letterSpacing = (-0.02).em,
-            color = instrumentOnBg,
+            color = ink,
         )
     }
 }
@@ -373,7 +372,7 @@ private fun LearningNotePreview(
     if (selectedCard != null) {
         HBottomSheet(
             onDismissRequest = { selectedCardId = null },
-            containerColor = instrumentBg,
+            containerColor = pageBackground,
         ) {
             GeneratedStudyCardEditorSheet(
                 card = selectedCard,
@@ -436,7 +435,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = instrumentMuted,
+                color = inkMuted,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -447,7 +446,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
             fontSize = 54.sp,
             lineHeight = 58.sp,
             letterSpacing = (-0.02).em,
-            color = instrumentOnBg,
+            color = ink,
         )
 
         if (note.ipa.isNotBlank()) {
@@ -456,7 +455,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontFamily = geistMono,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
-                color = instrumentMuted,
+                color = inkMuted,
             )
         }
 
@@ -466,7 +465,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
-                color = instrumentOnBg,
+                color = ink,
             )
         }
     }
@@ -513,7 +512,7 @@ private fun SignificadoBlock(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
     PreviewAlertGroup(alerts = note.meaningAlerts())
@@ -558,7 +557,7 @@ private fun EjemploBlock(
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
     PreviewAlertGroup(alerts = note.exampleAlerts())
@@ -687,7 +686,7 @@ private fun StudyCardsSection(
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = instrumentMuted,
+                color = inkMuted,
                 modifier = Modifier.weight(1f),
             )
             val activeCount = note.cards.count { it.isActive }
@@ -696,7 +695,7 @@ private fun StudyCardsSection(
                 fontFamily = geistMono,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = instrumentFaint,
+                color = inkFaint,
             )
         }
 
@@ -706,7 +705,7 @@ private fun StudyCardsSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
-                .background(instrumentSurface),
+                .background(surface),
         ) {
             note.cards.forEachIndexed { index, card ->
                 key(card.cardId) {
@@ -733,7 +732,7 @@ private fun StudyCardsSection(
                     if (index < note.cards.lastIndex) {
                         HSeparator(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            color = instrumentDivider,
+                            color = hairline,
                         )
                     }
                 }

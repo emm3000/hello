@@ -25,12 +25,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentAccentSoft
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.surfaceRaised
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.surface
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geist
 
 private val chipShape = RoundedCornerShape(15.dp)
@@ -45,14 +44,14 @@ fun HChip(
     onClick: (() -> Unit)? = null,
 ) {
     val bg = when {
-        active -> instrumentPrimary
-        accent -> instrumentAccentSoft
+        active -> ink
+        accent -> surfaceRaised
         else -> Color.Transparent
     }
     val fg = when {
-        active -> instrumentBg
-        accent -> instrumentAccent
-        else -> instrumentMuted
+        active -> pageBackground
+        accent -> ink
+        else -> inkMuted
     }
     val hasBorder = !active && !accent
 
@@ -63,7 +62,7 @@ fun HChip(
     ) {
         val chipMod = Modifier
             .clip(chipShape)
-            .then(if (hasBorder) Modifier.border(1.dp, instrumentElev, chipShape) else Modifier)
+            .then(if (hasBorder) Modifier.border(1.dp, surface, chipShape) else Modifier)
             .background(bg)
             .then(
                 if (onClick != null) {
@@ -127,7 +126,7 @@ fun HTagChip(
 @Composable
 private fun HChipPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -146,7 +145,7 @@ private fun HChipPreview() {
 @Composable
 private fun HTagChipLegacyPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

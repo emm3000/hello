@@ -13,10 +13,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.surface
+import com.emm.hello.core.theme.inkMuted
 
 @Immutable
 data class HMenuItem(
@@ -35,7 +34,7 @@ fun HDropdownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        containerColor = instrumentElev,
+        containerColor = surface,
     ) {
         items.forEach { item ->
             DropdownMenuItem(
@@ -43,7 +42,7 @@ fun HDropdownMenu(
                     Text(
                         text = item.label,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (item.isDestructive) instrumentAccent else instrumentPrimary,
+                        color = if (item.isDestructive) ink else ink,
                     )
                 },
                 onClick = item.onClick,
@@ -52,7 +51,7 @@ fun HDropdownMenu(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = instrumentMuted,
+                            tint = inkMuted,
                         )
                     }
                 },

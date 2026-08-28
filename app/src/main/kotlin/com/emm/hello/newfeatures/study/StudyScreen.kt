@@ -75,16 +75,13 @@ import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentSurface
-import com.emm.hello.core.theme.instrumentSurface2
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.surface
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HButton
@@ -178,7 +175,7 @@ fun StudyScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Column(
             modifier = Modifier
@@ -200,7 +197,7 @@ fun StudyScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .navigationBarsPadding(),
-                color = instrumentBg,
+                color = pageBackground,
             ) {
                 Column(
                     modifier = Modifier
@@ -275,7 +272,7 @@ private fun SessionFinishedDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            color = instrumentElev,
+            color = surface,
             shape = RoundedCornerShape(20.dp),
         ) {
             Column(
@@ -298,7 +295,7 @@ private fun SessionFinishedDialog(
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.12.em,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
@@ -307,20 +304,20 @@ private fun SessionFinishedDialog(
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
                     letterSpacing = (-0.02).em,
-                    color = instrumentOnBg,
+                    color = ink,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.session_completed_desc, totalCount),
                     fontWeight = FontWeight.Normal,
                     fontSize = 20.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
                 Spacer(Modifier.height(20.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(instrumentSurface, RoundedCornerShape(12.dp))
+                        .background(surface, RoundedCornerShape(12.dp))
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -329,7 +326,7 @@ private fun SessionFinishedDialog(
                         fontFamily = geistMono,
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
-                        color = instrumentAccent,
+                        color = ink,
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
@@ -338,7 +335,7 @@ private fun SessionFinishedDialog(
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
-                        color = instrumentMuted,
+                        color = inkMuted,
                     )
                 }
                 Spacer(Modifier.height(24.dp))
@@ -448,7 +445,7 @@ private fun StudyCardStage(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
@@ -480,7 +477,7 @@ private fun TtsFloatingButton(
         contentDescription = description,
         onClick = { if (isSpeaking) onStop() else onSpeak() },
         modifier = modifier,
-        tint = instrumentOnBg,
+        tint = ink,
         enabled = audioState.ttsReady,
     )
 }
@@ -552,7 +549,7 @@ private fun StudyActionDock(
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.12.em,
-                        color = instrumentFaint,
+                        color = inkFaint,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -586,7 +583,7 @@ private fun StudyLoadingState() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(color = instrumentAccent)
+        HLoadingSpinner(color = ink)
     }
 }
 
@@ -616,7 +613,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
                 fontSize = recallPromptFontSize,
                 lineHeight = recallPromptLineHeight,
                 letterSpacing = (-0.02).em,
-                color = instrumentOnBg,
+                color = ink,
                 textAlign = TextAlign.Center,
             )
             if (phonetic.isNotBlank()) {
@@ -625,7 +622,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
                     fontFamily = geistMono,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -650,7 +647,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             lineHeight = gradeAnswerLineHeight,
             letterSpacing = (-0.02).em,
             textAlign = TextAlign.Center,
-            color = instrumentOnBg,
+            color = ink,
         )
         if (item.example.isNotBlank()) {
             Spacer(Modifier.height(20.dp))
@@ -660,7 +657,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 17.sp,
                 lineHeight = 24.sp,
-                color = instrumentOnBg,
+                color = ink,
                 textAlign = TextAlign.Center,
             )
             if (item.exampleTranslation.isNotBlank()) {
@@ -670,7 +667,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                     fontFamily = geist,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -686,7 +683,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
-                color = instrumentMuted,
+                color = inkMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -698,7 +695,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = instrumentMuted,
+                color = inkMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -710,7 +707,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
-                color = instrumentMuted,
+                color = inkMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -722,7 +719,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 18.sp,
-                color = instrumentMuted,
+                color = inkMuted,
                 textAlign = TextAlign.Center,
             )
         }
@@ -777,7 +774,7 @@ private fun GradeForgotButton(
             .heightIn(min = gradeChipMinHeight)
             .clip(shape)
             .background(Color.Transparent, shape)
-            .border(1.dp, instrumentDivider, shape)
+            .border(1.dp, hairline, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center,
@@ -787,7 +784,7 @@ private fun GradeForgotButton(
             fontFamily = geist,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
-            color = instrumentPrimary,
+            color = ink,
         )
     }
 }
@@ -804,7 +801,7 @@ private fun GradeKnewButton(
         modifier = modifier
             .heightIn(min = gradeChipMinHeight)
             .clip(shape)
-            .background(instrumentSurface2, shape)
+            .background(surfaceRaised, shape)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -820,7 +817,7 @@ private fun GradeKnewButton(
             fontFamily = geist,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
-            color = instrumentPrimary,
+            color = ink,
         )
     }
 }

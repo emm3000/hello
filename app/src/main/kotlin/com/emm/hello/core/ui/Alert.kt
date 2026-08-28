@@ -32,15 +32,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentBad
-import com.emm.hello.core.theme.instrumentBadSoft
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentGood
-import com.emm.hello.core.theme.instrumentGoodSoft
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentWarn
-import com.emm.hello.core.theme.instrumentWarnSoft
+import com.emm.hello.core.theme.destructiveInk
+import com.emm.hello.core.theme.destructiveContainer
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.surface
+import com.emm.hello.core.theme.successInk
+import com.emm.hello.core.theme.successContainer
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.warningInk
+import com.emm.hello.core.theme.warningContainer
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
 
@@ -116,10 +116,10 @@ fun HAlert(
 @Composable
 private fun alertTokens(variant: AlertVariant): Triple<Color, Color, Color> {
     return when (variant) {
-        AlertVariant.Default -> Triple(instrumentElev, instrumentOnBg, instrumentOnBg.copy(alpha = 0.6f))
-        AlertVariant.Destructive -> Triple(instrumentBadSoft, instrumentBad, instrumentBad)
-        AlertVariant.Warning -> Triple(instrumentWarnSoft, instrumentWarn, instrumentWarn)
-        AlertVariant.Success -> Triple(instrumentGoodSoft, instrumentGood, instrumentGood)
+        AlertVariant.Default -> Triple(surface, ink, ink.copy(alpha = 0.6f))
+        AlertVariant.Destructive -> Triple(destructiveContainer, destructiveInk, destructiveInk)
+        AlertVariant.Warning -> Triple(warningContainer, warningInk, warningInk)
+        AlertVariant.Success -> Triple(successContainer, successInk, successInk)
     }
 }
 
@@ -137,7 +137,7 @@ private fun alertStateDescription(variant: AlertVariant): String? {
 @Composable
 private fun HAlertVariantsPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -39,11 +39,10 @@ import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.R
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
@@ -107,12 +106,12 @@ internal fun ReviewBlockIconButton(
     enabled: Boolean = true,
     accent: Boolean = false,
 ) {
-    val tint = if (!enabled) instrumentMuted else if (accent) instrumentAccent else instrumentOnBg
-    val border = if (accent) instrumentAccent else instrumentDivider
+    val tint = if (!enabled) inkMuted else if (accent) ink else ink
+    val border = if (accent) ink else hairline
     Box(
         modifier = Modifier
             .size(36.dp)
-            .background(instrumentSurface, RoundedCornerShape(10.dp))
+            .background(surface, RoundedCornerShape(10.dp))
             .border(1.dp, border, RoundedCornerShape(10.dp))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -156,7 +155,7 @@ internal fun ReviewBlock(
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = if (warn) instrumentAccent else instrumentMuted,
+                color = if (warn) ink else inkMuted,
                 modifier = Modifier.weight(1f),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -196,9 +195,9 @@ internal fun ReviewBlock(
                 fontSize = 18.sp,
                 lineHeight = 26.sp,
                 color = when {
-                    value.isBlank() -> instrumentMuted
-                    warn -> instrumentAccent
-                    else -> instrumentOnBg
+                    value.isBlank() -> inkMuted
+                    warn -> ink
+                    else -> ink
                 },
             )
             if (errorMessage != null) {
@@ -207,7 +206,7 @@ internal fun ReviewBlock(
                     fontFamily = geistMono,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
-                    color = instrumentAccent,
+                    color = ink,
                 )
             } else if (supportingText != null) {
                 Text(
@@ -215,7 +214,7 @@ internal fun ReviewBlock(
                     fontFamily = geistMono,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
             }
         }

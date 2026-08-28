@@ -35,14 +35,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBad
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentElev
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnAccent
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentSurface2
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.destructiveInk
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.surface
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.onInk
+import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.geist
 
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
@@ -73,16 +72,16 @@ fun HButton(
     val radius = height / 2
     val shape = RoundedCornerShape(radius)
 
-    val (containerColor, contentColor, borderStroke) = instrumentButtonTokens(variant, danger)
+    val (containerColor, contentColor, borderStroke) = buttonTokens(variant, danger)
     val buttonEnabled = enabled && !isLoading
 
     val isFilled: Boolean = containerColor != Color.Transparent
-    val disabledContainer: Color = if (isFilled) instrumentSurface2 else Color.Transparent
-    val disabledContent: Color = instrumentMuted
+    val disabledContainer: Color = if (isFilled) surfaceRaised else Color.Transparent
+    val disabledContent: Color = inkMuted
     val resolvedBorder: BorderStroke? = when {
         borderStroke == null -> null
         buttonEnabled -> borderStroke
-        else -> BorderStroke(1.dp, instrumentSurface2)
+        else -> BorderStroke(1.dp, surfaceRaised)
     }
 
     val resolvedModifier = if (full) modifier.fillMaxWidth() else modifier
@@ -102,7 +101,7 @@ fun HButton(
         contentPadding = PaddingValues(horizontal = size.horizontalPadding),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
     ) {
-        InstrumentButtonContent(icon = icon, isLoading = isLoading, content = content)
+        ButtonContent(icon = icon, isLoading = isLoading, content = content)
     }
 }
 
@@ -151,12 +150,12 @@ fun HButton(
     @Suppress("UNUSED_PARAMETER") contentPadding: PaddingValues? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val instrumentVariant = variant.toInstrumentVariant()
+    val resolvedVariant = variant.toResolvedVariant()
     val isDanger = variant == ButtonVariant.Destructive
     HButton(
         onClick = onClick,
         modifier = modifier,
-        variant = instrumentVariant,
+        variant = resolvedVariant,
         size = HButtonSize.Md,
         enabled = enabled,
         isLoading = isLoading,
@@ -177,13 +176,13 @@ fun HButton(
     isLoading: Boolean = false,
     leadingIcon: ImageVector? = null,
 ) {
-    val instrumentVariant = variant.toInstrumentVariant()
+    val resolvedVariant = variant.toResolvedVariant()
     val isDanger = variant == ButtonVariant.Destructive
     HButton(
         text = text,
         onClick = onClick,
         modifier = modifier,
-        variant = instrumentVariant,
+        variant = resolvedVariant,
         size = HButtonSize.Md,
         enabled = enabled,
         isLoading = isLoading,
@@ -193,7 +192,7 @@ fun HButton(
     )
 }
 
-private fun ButtonVariant.toInstrumentVariant(): HButtonVariant = when (this) {
+private fun ButtonVariant.toResolvedVariant(): HButtonVariant = when (this) {
     ButtonVariant.Default -> HButtonVariant.Primary
     ButtonVariant.Destructive -> HButtonVariant.Primary
     ButtonVariant.Outline -> HButtonVariant.Secondary
@@ -209,34 +208,34 @@ private data class ButtonTokens(
 )
 
 @Composable
-private fun instrumentButtonTokens(
+private fun buttonTokens(
     variant: HButtonVariant,
     danger: Boolean,
 ): ButtonTokens = when (variant) {
     HButtonVariant.Primary -> ButtonTokens(
-        containerColor = if (danger) instrumentBad else instrumentPrimary,
-        contentColor = if (danger) Color.White else instrumentBg,
+        containerColor = if (danger) destructiveInk else ink,
+        contentColor = if (danger) Color.White else pageBackground,
         border = null,
     )
     HButtonVariant.Accent -> ButtonTokens(
-        containerColor = instrumentAccent,
-        contentColor = instrumentOnAccent,
+        containerColor = ink,
+        contentColor = onInk,
         border = null,
     )
     HButtonVariant.Secondary -> ButtonTokens(
         containerColor = Color.Transparent,
-        contentColor = if (danger) instrumentBad else instrumentPrimary,
-        border = BorderStroke(1.dp, instrumentElev),
+        contentColor = if (danger) destructiveInk else ink,
+        border = BorderStroke(1.dp, surface),
     )
     HButtonVariant.Ghost -> ButtonTokens(
         containerColor = Color.Transparent,
-        contentColor = if (danger) instrumentBad else instrumentMuted,
+        contentColor = if (danger) destructiveInk else inkMuted,
         border = null,
     )
 }
 
 @Composable
-private fun RowScope.InstrumentButtonContent(
+private fun RowScope.ButtonContent(
     icon: ImageVector?,
     isLoading: Boolean,
     content: @Composable RowScope.() -> Unit,
@@ -267,7 +266,7 @@ private fun RowScope.InstrumentButtonContent(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HButtonInstrumentVariantsPreview() {
+private fun HButtonVariantsPreview() {
     HelloTheme {
         Column(
             modifier = Modifier
@@ -288,7 +287,7 @@ private fun HButtonInstrumentVariantsPreview() {
 @Composable
 private fun HButtonDisabledPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -354,7 +353,7 @@ private fun HButtonSizesPreview() {
 @Composable
 private fun HButtonWithIconPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HButton(
                 text = "Nueva tarjeta",
                 onClick = {},
@@ -371,7 +370,7 @@ private fun HButtonWithIconPreview() {
 @Composable
 private fun HButtonLoadingPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HButton(
                 text = "Generar",
                 onClick = {},

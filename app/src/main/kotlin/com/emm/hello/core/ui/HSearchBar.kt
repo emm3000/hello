@@ -35,12 +35,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 
 private val searchBarHeight = 46.dp
 private val searchBarRadius = 22.dp
@@ -62,13 +61,13 @@ fun HSearchBar(
     var isFocused by remember { mutableStateOf(false) }
 
     val borderColor by animateColorAsState(
-        targetValue = if (isFocused) instrumentAccent else instrumentDivider,
+        targetValue = if (isFocused) ink else hairline,
         animationSpec = tween(durationMillis = 150),
         label = "search_bar_border",
     )
     val borderWidth = if (isFocused) 1.5.dp else 1.dp
     val iconTint by animateColorAsState(
-        targetValue = if (isFocused) instrumentAccent else instrumentMuted,
+        targetValue = if (isFocused) ink else inkMuted,
         animationSpec = tween(150),
         label = "search_icon_tint",
     )
@@ -83,7 +82,7 @@ fun HSearchBar(
                 color = borderColor,
                 shape = searchBarShape,
             )
-            .background(instrumentSurface)
+            .background(surface)
             .padding(horizontal = 16.dp)
             .semantics { contentDescription = "Campo de búsqueda" },
         verticalAlignment = Alignment.CenterVertically,
@@ -106,7 +105,7 @@ fun HSearchBar(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
             }
             BasicTextField(
@@ -114,13 +113,13 @@ fun HSearchBar(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(instrumentSurface),
+                    .background(surface),
                 enabled = enabled,
                 readOnly = readOnly,
                 singleLine = singleLine,
                 keyboardOptions = keyboardOptions,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = instrumentOnBg),
-                cursorBrush = SolidColor(instrumentAccent),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = ink),
+                cursorBrush = SolidColor(ink),
             )
         }
 
@@ -129,7 +128,7 @@ fun HSearchBar(
                 icon = Icons.Default.Close,
                 contentDescription = clearContentDescription,
                 onClick = { onValueChange("") },
-                tint = instrumentMuted,
+                tint = inkMuted,
                 iconSize = 16.dp,
                 buttonSize = 32.dp,
             )
@@ -141,7 +140,7 @@ fun HSearchBar(
 @Composable
 private fun HSearchBarPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Box(modifier = Modifier.padding(16.dp)) {
                 HSearchBar(
                     value = "",
@@ -157,7 +156,7 @@ private fun HSearchBarPreview() {
 @Composable
 private fun HSearchBarWithValuePreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Box(modifier = Modifier.padding(16.dp)) {
                 HSearchBar(
                     value = "serendipity",

@@ -23,10 +23,10 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.hello.R
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.ink
 import com.emm.hello.core.ui.HCard
 
 @Composable
@@ -49,7 +49,7 @@ fun DeckRow(
                 text = deck.name,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
-                color = instrumentPrimary,
+                color = ink,
                 letterSpacing = (-0.2).sp,
                 lineHeight = (22 * 1.1f).sp,
             )
@@ -60,7 +60,7 @@ fun DeckRow(
                     text = deck.description,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     lineHeight = (14 * 1.4f).sp,
                 )
             }
@@ -86,7 +86,7 @@ private fun DeckRowFooter(deck: Deck) {
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.08.em,
-            color = instrumentFaint,
+            color = inkFaint,
         )
 
         if (deck.tags.isNotEmpty()) {
@@ -96,7 +96,7 @@ private fun DeckRowFooter(deck: Deck) {
                     .height(1.dp),
             ) {
                 drawLine(
-                    color = instrumentDivider,
+                    color = hairline,
                     start = Offset(0f, size.height / 2),
                     end = Offset(size.width, size.height / 2),
                     strokeWidth = 1.dp.toPx(),
@@ -111,7 +111,7 @@ private fun DeckRowFooter(deck: Deck) {
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.06.em,
-                        color = instrumentMuted,
+                        color = inkMuted,
                     )
                 }
             }

@@ -11,7 +11,7 @@ import androidx.work.WorkerParameters
 import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.hello.MainActivity
 import com.emm.hello.R
-import com.emm.hello.core.theme.instrumentAccent
+import com.emm.hello.core.theme.ink
 import org.koin.core.context.GlobalContext
 
 class DueCardsReminderWorker(
@@ -52,7 +52,7 @@ class DueCardsReminderWorker(
 
         val notification = NotificationCompat.Builder(context, STUDY_REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(instrumentAccent.toArgb())
+            .setColor(ink.toArgb())
             .setColorized(false)
             .setContentTitle(context.getString(R.string.notification_reminder_title))
             .setContentText(body)

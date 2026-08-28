@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentElev
+import com.emm.hello.core.theme.surface
 
 private val dialogShape = RoundedCornerShape(16.dp)
 
@@ -39,7 +39,7 @@ fun HAlertDialog(
         modifier = modifier,
         onDismissRequest = onDismiss,
         shape = dialogShape,
-        containerColor = instrumentElev,
+        containerColor = surface,
         icon = icon?.let { { Icon(it, contentDescription = null) } },
         title = {
             Text(

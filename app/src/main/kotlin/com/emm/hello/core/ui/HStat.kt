@@ -12,10 +12,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geist
 
 enum class HStatTone { Default, Accent, Muted }
@@ -28,9 +27,9 @@ fun HStat(
     tone: HStatTone = HStatTone.Default,
 ) {
     val numColor = when (tone) {
-        HStatTone.Default -> instrumentPrimary
-        HStatTone.Accent -> instrumentAccent
-        HStatTone.Muted -> instrumentMuted
+        HStatTone.Default -> ink
+        HStatTone.Accent -> ink
+        HStatTone.Muted -> inkMuted
     }
 
     Row(
@@ -51,7 +50,7 @@ fun HStat(
             fontWeight = FontWeight.Normal,
             fontSize = 12.5.sp,
             letterSpacing = 0.1.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
 }
@@ -60,7 +59,7 @@ fun HStat(
 @Composable
 private fun HStatPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),

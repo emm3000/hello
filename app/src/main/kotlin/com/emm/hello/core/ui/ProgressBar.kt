@@ -21,9 +21,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
 
 @Composable
 fun HProgressBar(
@@ -31,8 +31,8 @@ fun HProgressBar(
     modifier: Modifier = Modifier,
     height: Dp = 2.dp,
     cornerRadius: Dp = 1.dp,
-    trackColor: Color = instrumentDivider,
-    indicatorColor: Color = instrumentAccent,
+    trackColor: Color = hairline,
+    indicatorColor: Color = ink,
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
@@ -63,7 +63,7 @@ fun HProgressBar(
 @Composable
 private fun HProgressBarPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

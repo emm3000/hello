@@ -37,8 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.emm.domain.study.ReviewGrade
 import com.emm.hello.R
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentSurface2
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.surfaceRaised
 import kotlin.math.abs
 
 private const val CARD_FLIP_DURATION_MS = 420
@@ -187,8 +187,8 @@ private data class SwipeOverlayTokens(
 
 @Composable
 private fun swipeOverlayTokens(grade: ReviewGrade): SwipeOverlayTokens {
-    val container = instrumentSurface2
-    val content = instrumentPrimary
+    val container = surfaceRaised
+    val content = ink
     return if (grade == ReviewGrade.AGAIN) {
         SwipeOverlayTokens(container, content, R.string.study_grade_forgot)
     } else {

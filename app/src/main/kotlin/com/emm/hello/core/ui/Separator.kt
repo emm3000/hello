@@ -15,13 +15,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
 
 @Composable
 fun HSeparator(
     modifier: Modifier = Modifier,
-    color: Color = instrumentDivider,
+    color: Color = hairline,
     thickness: Dp = 1.dp,
 ) {
     HorizontalDivider(
@@ -35,7 +35,7 @@ fun HSeparator(
 @Composable
 private fun HSeparatorPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

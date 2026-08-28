@@ -19,9 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.metadata
@@ -60,7 +60,7 @@ internal fun FieldShell(
                     color = if (isError) {
                         MaterialTheme.colorScheme.error
                     } else {
-                        instrumentMuted
+                        inkMuted
                     },
                 )
             } else {
@@ -106,8 +106,8 @@ internal fun fieldShellBorderColor(
 ): Color {
     val targetColor = when {
         isError -> MaterialTheme.colorScheme.error
-        isActive -> instrumentAccent
-        else -> instrumentDivider
+        isActive -> ink
+        else -> hairline
     }.let { color ->
         if (enabled) color else color.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
     }
@@ -133,7 +133,7 @@ internal fun fieldShellContentColor(enabled: Boolean): Color {
 
 @Composable
 internal fun fieldShellPlaceholderColor(enabled: Boolean): Color {
-    val baseColor = instrumentMuted
+    val baseColor = inkMuted
     return if (enabled) baseColor else baseColor.copy(alpha = FIELD_SHELL_DISABLED_ALPHA)
 }
 

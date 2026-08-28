@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentMuted
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HProgressBar
@@ -75,7 +75,7 @@ internal fun StudyTop(
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.08.em,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     modifier = Modifier.padding(end = 12.dp),
                 )
             } else {
@@ -96,7 +96,7 @@ internal fun StudyTop(
                     fontWeight = FontWeight.Medium,
                     fontSize = 10.5.sp,
                     letterSpacing = 0.12.em,
-                    color = instrumentMuted,
+                    color = inkMuted,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -108,7 +108,7 @@ internal fun StudyTop(
 @Composable
 private fun StudyTopPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

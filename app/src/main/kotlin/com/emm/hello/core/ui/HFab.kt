@@ -20,8 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentOnAccent
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.onInk
 import com.emm.hello.core.theme.geist
 
 @Composable
@@ -36,8 +36,8 @@ fun HFab(
             onClick = onClick,
             modifier = modifier,
             shape = RoundedCornerShape(28.dp),
-            containerColor = instrumentAccent,
-            contentColor = instrumentOnAccent,
+            containerColor = ink,
+            contentColor = onInk,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 14.dp,
                 pressedElevation = 6.dp,
@@ -67,8 +67,8 @@ fun HFab(
             onClick = onClick,
             modifier = modifier.size(60.dp),
             shape = RoundedCornerShape(30.dp),
-            containerColor = instrumentAccent,
-            contentColor = instrumentOnAccent,
+            containerColor = ink,
+            contentColor = onInk,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 14.dp,
                 pressedElevation = 6.dp,

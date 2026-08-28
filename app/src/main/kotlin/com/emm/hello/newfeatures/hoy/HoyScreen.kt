@@ -35,10 +35,9 @@ import com.emm.domain.study.NextDueBatch
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.geistMono
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentPrimary
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -110,7 +109,7 @@ private fun WordmarkRow(
                 withStyle(
                     SpanStyle(
                         fontSize = 22.sp,
-                        color = instrumentPrimary,
+                        color = ink,
                         letterSpacing = (-0.2).sp,
                     ),
                 ) {
@@ -119,7 +118,7 @@ private fun WordmarkRow(
                 withStyle(
                     SpanStyle(
                         fontSize = 22.sp,
-                        color = instrumentAccent,
+                        color = ink,
                         letterSpacing = (-0.2).sp,
                     ),
                 ) {
@@ -133,14 +132,14 @@ private fun WordmarkRow(
                 icon = Icons.AutoMirrored.Filled.List,
                 contentDescription = stringResource(R.string.library_content_description),
                 onClick = onLibrary,
-                tint = instrumentMuted,
+                tint = inkMuted,
                 iconSize = 20.dp,
             )
             HIconButton(
                 icon = Icons.Default.Settings,
                 contentDescription = stringResource(R.string.settings_content_description),
                 onClick = onSettings,
-                tint = instrumentMuted,
+                tint = inkMuted,
                 iconSize = 20.dp,
             )
         }
@@ -231,7 +230,7 @@ private fun RestingHero(
             fontSize = 32.sp,
             lineHeight = (32 * 1.06f).sp,
             letterSpacing = (-0.02).em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(12.dp))
         Text(
@@ -240,7 +239,7 @@ private fun RestingHero(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.1.em,
-            color = instrumentFaint,
+            color = inkFaint,
         )
         Spacer(Modifier.height(20.dp))
         HButton(
@@ -275,7 +274,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        HLoadingSpinner(color = instrumentAccent)
+        HLoadingSpinner(color = ink)
     }
 }
 

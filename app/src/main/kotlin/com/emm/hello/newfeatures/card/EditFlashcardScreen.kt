@@ -45,14 +45,13 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.flashcard.Example
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBad
-import com.emm.hello.core.theme.instrumentBadSoft
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.destructiveInk
+import com.emm.hello.core.theme.destructiveContainer
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HAlertDialog
@@ -69,7 +68,7 @@ fun EditFlashcardScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Column(
             modifier = Modifier
@@ -113,7 +112,7 @@ private fun EditFlashcardTopBar(
 ) {
     val title = stringResource(R.string.edit_flashcard_title).uppercase()
     val actionLabel = stringResource(R.string.edit_flashcard_action_save)
-    val actionColor = if (actionEnabled) instrumentAccent else instrumentMuted
+    val actionColor = if (actionEnabled) ink else inkMuted
 
     Row(
         modifier = Modifier
@@ -135,7 +134,7 @@ private fun EditFlashcardTopBar(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
             modifier = Modifier.weight(1f),
         )
 
@@ -166,7 +165,7 @@ private fun LoadingBody() {
             text = stringResource(R.string.edit_flashcard_loading),
             fontFamily = geist,
             fontSize = 14.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
 }
@@ -270,7 +269,7 @@ private fun ExamplesSection(
                 fontFamily = geist,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
-                color = instrumentAccent,
+                color = ink,
                 modifier = Modifier
                     .clickable { onIntent(EditFlashcardUiIntent.AddExample) }
                     .padding(horizontal = 8.dp, vertical = 6.dp),
@@ -284,7 +283,7 @@ private fun ExamplesSection(
         Text(
             text = stringResource(R.string.edit_flashcard_no_examples),
             fontSize = 16.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -312,8 +311,8 @@ private fun ExampleEditRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(instrumentSurface, RoundedCornerShape(14.dp))
-            .border(1.dp, instrumentDivider, RoundedCornerShape(14.dp)),
+            .background(surface, RoundedCornerShape(14.dp))
+            .border(1.dp, hairline, RoundedCornerShape(14.dp)),
     ) {
         Column(
             modifier = Modifier
@@ -330,7 +329,7 @@ private fun ExampleEditRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(instrumentDivider),
+                    .background(hairline),
             )
             Spacer(Modifier.height(8.dp))
             GeistField(
@@ -345,7 +344,7 @@ private fun ExampleEditRow(
             contentDescription = stringResource(R.string.edit_flashcard_remove_example),
             onClick = onRemove,
             modifier = Modifier.align(Alignment.TopEnd),
-            tint = instrumentMuted,
+            tint = inkMuted,
             iconSize = 16.dp,
             buttonSize = 36.dp,
         )
@@ -363,7 +362,7 @@ private fun ItalicSerifField(
             Text(
                 text = placeholder,
                 fontSize = 17.sp,
-                color = instrumentMuted,
+                color = inkMuted,
             )
         }
         BasicTextField(
@@ -374,9 +373,9 @@ private fun ItalicSerifField(
             textStyle = TextStyle(
                 fontSize = 17.sp,
                 lineHeight = 24.sp,
-                color = instrumentOnBg,
+                color = ink,
             ),
-            cursorBrush = SolidColor(instrumentAccent),
+            cursorBrush = SolidColor(ink),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Next,
@@ -398,7 +397,7 @@ private fun GeistField(
                 text = placeholder,
                 fontFamily = geist,
                 fontSize = 14.sp,
-                color = instrumentMuted,
+                color = inkMuted,
             )
         }
         BasicTextField(
@@ -410,9 +409,9 @@ private fun GeistField(
                 fontFamily = geist,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = instrumentOnBg,
+                color = ink,
             ),
-            cursorBrush = SolidColor(instrumentAccent),
+            cursorBrush = SolidColor(ink),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done,
@@ -427,8 +426,8 @@ private fun DangerRow(onDeleteClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(instrumentBadSoft, RoundedCornerShape(14.dp))
-            .border(1.dp, instrumentBad.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+            .background(destructiveContainer, RoundedCornerShape(14.dp))
+            .border(1.dp, destructiveInk.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
             .clickable { onDeleteClick() }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -437,7 +436,7 @@ private fun DangerRow(onDeleteClick: () -> Unit) {
         Icon(
             imageVector = Icons.Outlined.Delete,
             contentDescription = null,
-            tint = instrumentBad,
+            tint = destructiveInk,
             modifier = Modifier.size(18.dp),
         )
         Text(
@@ -445,7 +444,7 @@ private fun DangerRow(onDeleteClick: () -> Unit) {
             fontFamily = geist,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
-            color = instrumentBad,
+            color = destructiveInk,
             modifier = Modifier.weight(1f),
         )
     }

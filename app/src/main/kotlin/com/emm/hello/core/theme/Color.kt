@@ -2,53 +2,50 @@ package com.emm.hello.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-val instrumentBg = Color(0xFF08090A)
-val instrumentSurface = Color(0xFF101315)
-val instrumentSurface2 = Color(0xFF181B1E)
-val instrumentElev = Color(0xFF202427)
+val pageBackground: Color = Color(0xFFF4F3F1)
+val surface: Color = Color(0xFFFBFAF9)
+val surfaceRaised: Color = Color(0xFFE9E7E3)
 
-val instrumentDivider = Color.White.copy(alpha = 0.08f)
+val ink: Color = Color(0xFF15141A)
+val onInk: Color = Color(0xFFF4F3F1)
+val inkMuted: Color = Color(0xFF6F6D75)
+val inkFaint: Color = ink.copy(alpha = 0.45f)
+val hairline: Color = ink.copy(alpha = 0.12f)
+val outline: Color = ink.copy(alpha = 0.30f)
 
-val instrumentOnBg = Color(0xFFDDE3E8)
-val instrumentPrimary = Color(0xFFF2F5F7)
-val instrumentMuted = Color(0xFF79838B)
+val cardPeach: Color = Color(0xFFF5C9A8)
+val cardMint: Color = Color(0xFFBFE3CB)
+val cardPeriwinkle: Color = Color(0xFFC6D3F5)
+val cardLavender: Color = Color(0xFFDCC8F0)
+val cardHues: List<Color> = listOf(cardPeach, cardMint, cardPeriwinkle, cardLavender)
 
-// The design brief specifies 0.45, which measures 4.47:1 against instrumentBg and fails
-// WCAG AA for normal text. 0.50 measures 5.31:1.
-val instrumentFaint = Color.White.copy(alpha = 0.50f)
+val successInk: Color = Color(0xFF2F6B4F)
+val successContainer: Color = Color(0xFFDDEBE2)
+val warningInk: Color = Color(0xFF8A5A12)
+val warningContainer: Color = Color(0xFFF3E6C8)
+val destructiveInk: Color = Color(0xFFA33A3A)
+val destructiveContainer: Color = Color(0xFFF3DADA)
 
-val instrumentAccent = Color(0xFF6BA3D6)
-val instrumentOnAccent = Color(0xFF06181F)
-val instrumentAccentSoft = instrumentAccent.copy(alpha = 0.14f)
-
-val instrumentGood = Color(0xFF7FA98F)
-val instrumentWarn = Color(0xFFC2A16A)
-val instrumentBad = Color(0xFFC67F79)
-
-val instrumentGoodSoft = instrumentGood.copy(alpha = 0.12f)
-val instrumentWarnSoft = instrumentWarn.copy(alpha = 0.12f)
-val instrumentBadSoft = instrumentBad.copy(alpha = 0.12f)
-
-internal val instrumentSuccessSemanticColor = HelloSemanticColor(
-    container = instrumentGoodSoft,
-    content = instrumentGood,
-    accent = instrumentGood,
+internal val successSemanticColor = HelloSemanticColor(
+    container = successContainer,
+    content = successInk,
+    accent = successInk,
 )
 
-internal val instrumentWarningSemanticColor = HelloSemanticColor(
-    container = instrumentWarnSoft,
-    content = instrumentWarn,
-    accent = instrumentWarn,
+internal val warningSemanticColor = HelloSemanticColor(
+    container = warningContainer,
+    content = warningInk,
+    accent = warningInk,
 )
 
-internal val instrumentDestructiveSemanticColor = HelloSemanticColor(
-    container = instrumentBadSoft,
-    content = instrumentBad,
-    accent = instrumentBad,
+internal val destructiveSemanticColor = HelloSemanticColor(
+    container = destructiveContainer,
+    content = destructiveInk,
+    accent = destructiveInk,
 )
 
-internal fun instrumentSemanticColors(): HelloSemanticColors = HelloSemanticColors(
-    success = instrumentSuccessSemanticColor,
-    warning = instrumentWarningSemanticColor,
-    destructive = instrumentDestructiveSemanticColor,
+internal fun helloSemanticColors(): HelloSemanticColors = HelloSemanticColors(
+    success = successSemanticColor,
+    warning = warningSemanticColor,
+    destructive = destructiveSemanticColor,
 )

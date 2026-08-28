@@ -55,13 +55,11 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
-import com.emm.hello.core.theme.instrumentPrimary
-import com.emm.hello.core.theme.instrumentSurface
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.ui.HAlertDialog
@@ -105,7 +103,7 @@ fun NewDeckScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = instrumentBg,
+        color = pageBackground,
     ) {
         Column(
             modifier = Modifier
@@ -137,7 +135,7 @@ fun NewDeckScreen(
                     fontSize = 44.sp,
                     lineHeight = (44 * 1.04f).sp,
                     letterSpacing = (-0.02).em,
-                    color = instrumentPrimary,
+                    color = ink,
                 )
 
                 Spacer(Modifier.height(28.dp))
@@ -171,7 +169,7 @@ fun NewDeckScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                InstrumentTagsField(
+                TagsField(
                     tags = state.tags,
                     onTagsChange = { onIntent(NewDeckUiIntent.TagsChanged(it)) },
                 )
@@ -232,11 +230,11 @@ private fun NewDeckTopBar(
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
             modifier = Modifier.weight(1f),
         )
 
-        val actionColor = if (actionEnabled) instrumentAccent else instrumentMuted
+        val actionColor = if (actionEnabled) ink else inkMuted
         Text(
             text = actionLabel,
             fontFamily = geist,
@@ -265,21 +263,21 @@ private fun DeckNameField(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(instrumentSurface, RoundedCornerShape(14.dp))
-                .border(1.5.dp, instrumentAccent, RoundedCornerShape(14.dp))
+                .background(surface, RoundedCornerShape(14.dp))
+                .border(1.5.dp, ink, RoundedCornerShape(14.dp))
                 .padding(horizontal = 16.dp, vertical = 14.dp),
         ) {
             if (value.isEmpty()) {
                 Text(
                     text = placeholder,
                     fontSize = 22.sp,
-                    color = instrumentMuted,
+                    color = inkMuted,
                 )
             }
             BasicTextField(
@@ -289,9 +287,9 @@ private fun DeckNameField(
                 textStyle = TextStyle(
                     fontSize = 22.sp,
                     lineHeight = 28.sp,
-                    color = instrumentOnBg,
+                    color = ink,
                 ),
-                cursorBrush = SolidColor(instrumentAccent),
+                cursorBrush = SolidColor(ink),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Next,
@@ -306,7 +304,7 @@ private fun DeckNameField(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun InstrumentTagsField(
+private fun TagsField(
     tags: List<String>,
     onTagsChange: (List<String>) -> Unit,
 ) {
@@ -330,15 +328,15 @@ private fun InstrumentTagsField(
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
-            color = instrumentMuted,
+            color = inkMuted,
         )
         Spacer(Modifier.height(8.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(instrumentSurface, RoundedCornerShape(14.dp))
-                .border(1.dp, instrumentDivider, RoundedCornerShape(14.dp))
+                .background(surface, RoundedCornerShape(14.dp))
+                .border(1.dp, hairline, RoundedCornerShape(14.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
         ) {
             FlowRow(
@@ -375,7 +373,7 @@ private fun InstrumentTagsField(
             text = stringResource(R.string.tags_supporting_text),
             fontFamily = geist,
             fontSize = 12.sp,
-            color = instrumentMuted,
+            color = inkMuted,
         )
     }
 }
@@ -397,7 +395,7 @@ private fun TagInline(
                 text = placeholder,
                 fontFamily = geist,
                 fontSize = 13.sp,
-                color = instrumentMuted,
+                color = inkMuted,
             )
         }
         BasicTextField(
@@ -407,9 +405,9 @@ private fun TagInline(
             textStyle = TextStyle(
                 fontFamily = geist,
                 fontSize = 13.sp,
-                color = instrumentOnBg,
+                color = ink,
             ),
-            cursorBrush = SolidColor(instrumentAccent),
+            cursorBrush = SolidColor(ink),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 imeAction = ImeAction.Done,

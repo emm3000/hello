@@ -27,12 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.instrumentAccent
-import com.emm.hello.core.theme.instrumentBg
-import com.emm.hello.core.theme.instrumentDivider
-import com.emm.hello.core.theme.instrumentFaint
-import com.emm.hello.core.theme.instrumentMuted
-import com.emm.hello.core.theme.instrumentOnBg
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.geist
 import com.emm.hello.core.theme.geistMono
 
@@ -69,7 +68,7 @@ fun HEmptyState(
                 append(before)
                 withStyle(
                     SpanStyle(
-                        color = instrumentAccent,
+                        color = ink,
                         fontStyle = FontStyle.Italic,
                         fontSynthesis = FontSynthesis.None,
                     ),
@@ -82,7 +81,7 @@ fun HEmptyState(
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
                 letterSpacing = (-0.02).em,
-                color = instrumentOnBg,
+                color = ink,
                 textAlign = TextAlign.Start,
             )
         } else {
@@ -92,7 +91,7 @@ fun HEmptyState(
                 fontSize = 38.sp,
                 lineHeight = 40.sp,
                 letterSpacing = (-0.02).em,
-                color = instrumentOnBg,
+                color = ink,
                 textAlign = TextAlign.Start,
             )
         }
@@ -105,7 +104,7 @@ fun HEmptyState(
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 19.sp,
-                color = instrumentMuted,
+                color = inkMuted,
                 textAlign = TextAlign.Start,
             )
         }
@@ -128,7 +127,7 @@ fun HEmptyState(
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
-                color = instrumentFaint,
+                color = inkFaint,
                 textAlign = TextAlign.Start,
             )
         }
@@ -139,8 +138,8 @@ fun HEmptyState(
 private fun DefaultGlyph() {
     Surface(
         shape = CircleShape,
-        color = instrumentBg,
-        border = BorderStroke(1.dp, instrumentDivider),
+        color = pageBackground,
+        border = BorderStroke(1.dp, hairline),
         modifier = Modifier.size(52.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -148,7 +147,7 @@ private fun DefaultGlyph() {
                 text = "·",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 28.sp,
-                color = instrumentAccent,
+                color = ink,
             )
         }
     }
@@ -158,7 +157,7 @@ private fun DefaultGlyph() {
 @Composable
 private fun HEmptyStateDefaultPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HEmptyState(
                 headline = "Aún no tienes mazos.",
                 body = "Crea tu primer mazo para empezar a estudiar.",
@@ -187,7 +186,7 @@ private fun HEmptyStateDefaultPreview() {
 @Composable
 private fun HEmptyStateSearchPreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HEmptyState(
                 headline = "Nada con \"serendipia\".",
                 accentWord = "\"serendipia\"",
@@ -210,7 +209,7 @@ private fun HEmptyStateSearchPreview() {
 @Composable
 private fun HEmptyStateWithFootnotePreview() {
     HelloTheme {
-        Surface(color = instrumentBg) {
+        Surface(color = pageBackground) {
             HEmptyState(
                 headline = "Hoy no toca repasar.",
                 body = "Vuelve mañana para continuar con tu racha.",
