@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.card
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Example
+import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
@@ -19,8 +20,10 @@ class EditFlashcardViewModel(
     private val updateFlashcardUseCase: UpdateFlashcardUseCase,
     private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
 ) : MviViewModel<EditFlashcardUiState, EditFlashcardUiIntent, EditFlashcardUiEffect>(
-    initialState = EditFlashcardUiState(),
+    initialState = EditFlashcardUiState(flashcardId = flashcardId),
 ) {
+
+    private var loadedCard: Flashcard? = null
 
     init {
         loadFlashcard()
@@ -29,17 +32,14 @@ class EditFlashcardViewModel(
     override fun onIntent(intent: EditFlashcardUiIntent) {
         when (intent) {
             is EditFlashcardUiIntent.WordChanged -> handleWordChanged(intent.word)
-            is EditFlashcardUiIntent.MeaningChanged -> handleMeaningChanged(intent.meaning)
             is EditFlashcardUiIntent.TranslationChanged -> setState { copy(translation = intent.translation) }
-            is EditFlashcardUiIntent.PhoneticChanged -> setState { copy(phonetic = intent.phonetic) }
+            is EditFlashcardUiIntent.ExampleTextChanged -> setState { copy(exampleText = intent.text) }
+            is EditFlashcardUiIntent.ExampleTranslationChanged -> {
+                setState { copy(exampleTranslation = intent.translation) }
+            }
             is EditFlashcardUiIntent.PartOfSpeechChanged -> setState { copy(partOfSpeech = intent.partOfSpeech) }
-            is EditFlashcardUiIntent.ExampleTextChanged -> handleExampleTextChanged(intent.index, intent.text)
-            is EditFlashcardUiIntent.ExampleTranslationChanged -> handleExampleTranslationChanged(
-                intent.index,
-                intent.translation,
-            )
-            EditFlashcardUiIntent.AddExample -> handleAddExample()
-            is EditFlashcardUiIntent.RemoveExample -> handleRemoveExample(intent.index)
+            is EditFlashcardUiIntent.PhoneticChanged -> setState { copy(phonetic = intent.phonetic) }
+            EditFlashcardUiIntent.CloseClicked -> sendEffect(EditFlashcardUiEffect.NavigateBack)
             EditFlashcardUiIntent.Submit -> handleSubmit()
             EditFlashcardUiIntent.DeleteFlashcard -> setState { copy(isDeleteConfirmationVisible = true) }
             EditFlashcardUiIntent.ConfirmDeleteFlashcard -> handleDelete()
@@ -50,16 +50,17 @@ class EditFlashcardViewModel(
     private fun loadFlashcard() = viewModelScope.launch {
         setState { copy(isLoading = true) }
         try {
-            val detail = flashcardRepository.fetchById(flashcardId.toFlashcardId())
-            val card = detail.flashcard
+            val card: Flashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId()).flashcard
+            loadedCard = card
+            val firstExample: Example? = card.examples.firstOrNull()
             setState {
                 copy(
                     word = card.word,
-                    meaning = card.meaning,
                     translation = card.translation,
-                    phonetic = card.phonetic,
+                    exampleText = firstExample?.text.orEmpty(),
+                    exampleTranslation = firstExample?.translation.orEmpty(),
                     partOfSpeech = card.partOfSpeech,
-                    examples = card.examples,
+                    phonetic = card.phonetic,
                     isLoading = false,
                 )
             }
@@ -73,45 +74,55 @@ class EditFlashcardViewModel(
     }
 
     private fun handleWordChanged(word: String) {
-        val error = if (word.isBlank()) R.string.validation_word_required else null
+        val error: Int? = if (word.isBlank()) R.string.validation_word_required else null
         setState { copy(word = word, wordError = error) }
     }
 
-    private fun handleMeaningChanged(meaning: String) {
-        val error = if (meaning.isBlank()) R.string.validation_meaning_required else null
-        setState { copy(meaning = meaning, meaningError = error) }
+    private fun handleSubmit() = viewModelScope.launch {
+        val current: EditFlashcardUiState = currentState
+        if (!current.isValid || current.isSubmitting) return@launch
+
+        setState { copy(isSubmitting = true) }
+        try {
+            updateFlashcardUseCase(
+                UpdateFlashcardInput(
+                    flashcardId = flashcardId.toFlashcardId(),
+                    word = current.word,
+                    meaning = loadedCard?.meaning.orEmpty(),
+                    translation = current.translation,
+                    phonetic = current.phonetic,
+                    partOfSpeech = current.partOfSpeech,
+                    examples = mergedExamples(current),
+                )
+            )
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.card_updated_message))
+            sendEffect(EditFlashcardUiEffect.NavigateBack)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logError(TAG, "handleSubmit:error ${e.message}", e)
+            setState { copy(isSubmitting = false) }
+            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_save_card))
+        }
     }
 
-    private fun handleExampleTextChanged(index: Int, text: String) {
-        val current = currentState.examples
-        if (index !in current.indices) return
-        val updated = current.toMutableList()
-        updated[index] = updated[index].copy(text = text)
-        setState { copy(examples = updated) }
-    }
-
-    private fun handleExampleTranslationChanged(index: Int, translation: String) {
-        val current = currentState.examples
-        if (index !in current.indices) return
-        val updated = current.toMutableList()
-        updated[index] = updated[index].copy(translation = translation)
-        setState { copy(examples = updated) }
-    }
-
-    private fun handleAddExample() {
-        val newExample = Example(
-            exampleId = "",
-            text = "",
-            translation = "",
-            type = "",
-        )
-        setState { copy(examples = examples + newExample) }
-    }
-
-    private fun handleRemoveExample(index: Int) {
-        val current = currentState.examples
-        if (index !in current.indices) return
-        setState { copy(examples = current.toMutableList().apply { removeAt(index) }) }
+    private fun mergedExamples(current: EditFlashcardUiState): List<Example> {
+        val loaded: List<Example> = loadedCard?.examples.orEmpty()
+        val hasContent: Boolean = current.exampleText.isNotBlank() || current.exampleTranslation.isNotBlank()
+        val first: Example? = loaded.firstOrNull()
+        val head: List<Example> = when {
+            !hasContent -> emptyList()
+            first != null -> listOf(first.copy(text = current.exampleText, translation = current.exampleTranslation))
+            else -> listOf(
+                Example(
+                    exampleId = "",
+                    text = current.exampleText,
+                    translation = current.exampleTranslation,
+                    type = "",
+                ),
+            )
+        }
+        return head + loaded.drop(1)
     }
 
     private fun handleDelete() = viewModelScope.launch {
@@ -124,34 +135,6 @@ class EditFlashcardViewModel(
         } catch (e: Throwable) {
             logError(TAG, "handleDelete:error ${e.message}", e)
             sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_delete_card))
-        }
-    }
-
-    private fun handleSubmit() = viewModelScope.launch {
-        val current = currentState
-        if (!current.isValid || current.isSubmitting) return@launch
-
-        setState { copy(isSubmitting = true) }
-        try {
-            updateFlashcardUseCase(
-                UpdateFlashcardInput(
-                    flashcardId = flashcardId.toFlashcardId(),
-                    word = current.word,
-                    meaning = current.meaning,
-                    translation = current.translation,
-                    phonetic = current.phonetic,
-                    partOfSpeech = current.partOfSpeech,
-                    examples = current.examples,
-                )
-            )
-            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.card_updated_message))
-            sendEffect(EditFlashcardUiEffect.NavigateBack)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            logError(TAG, "handleSubmit:error ${e.message}", e)
-            setState { copy(isSubmitting = false) }
-            sendEffect(EditFlashcardUiEffect.ShowMessage(R.string.error_save_card))
         }
     }
 }

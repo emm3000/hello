@@ -1,6 +1,7 @@
 package com.emm.hello.core.theme
 
 import androidx.compose.ui.graphics.Color
+import kotlin.math.abs
 
 val pageBackground: Color = Color(0xFFF4F3F1)
 val surface: Color = Color(0xFFFBFAF9)
@@ -19,6 +20,8 @@ val cardMint: Color = Color(0xFFBFE3CB)
 val cardPeriwinkle: Color = Color(0xFFC6D3F5)
 val cardLavender: Color = Color(0xFFDCC8F0)
 val cardHues: List<Color> = listOf(cardPeach, cardMint, cardPeriwinkle, cardLavender)
+
+fun cardHueFor(id: String): Color = cardHues[abs(id.hashCode()) % cardHues.size]
 
 val successInk: Color = Color(0xFF2F6B4F)
 val successContainer: Color = Color(0xFFDDEBE2)

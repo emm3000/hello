@@ -38,7 +38,6 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String) {
 
     EditFlashcardScreen(
         state = uiState,
-        onNavigateBack = { navigator.goBack() },
         onIntent = vm::onIntent,
     )
 }

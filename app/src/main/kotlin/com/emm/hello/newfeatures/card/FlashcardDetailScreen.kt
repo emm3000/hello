@@ -39,7 +39,7 @@ import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.bricolage
-import com.emm.hello.core.theme.cardHues
+import com.emm.hello.core.theme.cardHueFor
 import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkMuted
@@ -54,7 +54,6 @@ import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.underlineFirstMatch
-import kotlin.math.abs
 
 @Composable
 fun FlashcardDetailScreen(
@@ -62,7 +61,7 @@ fun FlashcardDetailScreen(
     onIntent: (FlashcardDetailUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val hue: Color = cardHues[abs(state.flashcard.id.value.hashCode()) % cardHues.size]
+    val hue: Color = cardHueFor(state.flashcard.id.value)
 
     Surface(
         modifier = modifier.fillMaxSize(),

@@ -94,9 +94,7 @@
     <string name="save_in_deck">Save in %1$s</string>
     <string name="voice_input_desc">Voice input</string>
     <string name="phonetics_label">Phonetics</string>
-    <string name="meaning_label">Meaning</string>
     <string name="translation_label">Translation</string>
-    <string name="examples_label">Examples</string>
     <string name="card_explanation_title">What this card practices</string>
     <string name="include_card_in_study_label">Use in review</string>
     <string name="edit_card_action">Edit</string>
@@ -207,19 +205,14 @@
 
     <!-- Flashcard edit/delete -->
     <string name="edit_flashcard_title">Edit card</string>
-    <string name="edit_flashcard_loading">Loading card…</string>
     <string name="edit_flashcard_word_placeholder">e.g. serendipity</string>
-    <string name="edit_flashcard_meaning_placeholder">Meaning of the word</string>
     <string name="edit_flashcard_translation_placeholder">Spanish translation</string>
     <string name="edit_flashcard_phonetic_placeholder">e.g. /ˌserənˈdɪpɪti/</string>
     <string name="edit_flashcard_part_of_speech_placeholder">e.g. noun, verb</string>
-    <string name="edit_flashcard_no_examples">No examples</string>
-    <string name="edit_flashcard_remove_example">Remove example</string>
     <string name="delete_flashcard_title">Delete card</string>
     <string name="delete_flashcard_description">The card and its data will be deleted. You can undo right after.</string>
     <string name="edit_flashcard_action_save">Save</string>
     <string name="edit_flashcard_close_content_description">Close</string>
-    <string name="edit_flashcard_add_inline">+ add</string>
     <string name="edit_flashcard_delete_action">Delete card</string>
     <string name="part_of_speech_label">Part of speech</string>
 
@@ -234,7 +227,6 @@
     <string name="error_delete_card">Couldn\'t delete the card</string>
     <string name="error_restore_card">Couldn\'t restore the card</string>
     <string name="validation_word_required">The word is required</string>
-    <string name="validation_meaning_required">The meaning is required</string>
     <string name="error_load_deck">Couldn\'t load the deck</string>
     <string name="error_create_deck">Couldn\'t create the deck</string>
     <string name="error_update_deck">Couldn\'t update the deck</string>
