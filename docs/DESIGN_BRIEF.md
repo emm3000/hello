@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Status | Active |
-| Role | Design direction and rationale for the visual redesign that runs alongside the session-first restructure |
-| Source of Truth | Yes for visual direction and design rationale; `RESTRUCTURE_PLAN.md` owns phase scope and order, `*_CURRENT.md` and the code win for behavior |
+| Status | Superseded on visuals — the Instrument direction was rejected on 2026-08-28; `REDESIGN_PLAN.md` and the design canvas own the visual direction now. The learning-mechanics sections (grade rules, the two-beat card, review direction, the zero-due day) remain active. |
+| Role | Design rationale for the learning mechanics; historical record of the Instrument visual direction |
+| Source of Truth | Yes for the learning mechanics and their rationale; no for palette, typography and surfaces (see `REDESIGN_PLAN.md`); `*_CURRENT.md` and the code win for behavior |
 | Read this when | You're about to design or implement any screen of the redesign, or you want to know why a visual decision was made |
 | Last verified | 2026-08-27 |
 

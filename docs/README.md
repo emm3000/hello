@@ -35,7 +35,8 @@ Global sources of truth still live at the root:
 These documents capture planning context, decisions, and delivery history. They are kept for traceability but never override `*_CURRENT.md` files or the code.
 
 - `RESTRUCTURE_PLAN.md` — Status: **Active**. Session-first product restructure (Hoy / Capturar / Biblioteca) in 5 phases; Phases 1, 2, 4 and 5 done, Phase 3 open only on its zero-due AI suggestion.
-- `DESIGN_BRIEF.md` — Status: **Active**. Visual direction and design rationale for the English-learning redesign; source of truth for visual decisions, input for the design canvas.
+- `REDESIGN_PLAN.md` — Status: **Active**. The hybrid redesign (light page, ink controls, color-block cards, English chrome) in 10 stages of atomic units, each with its falsifier; source of truth for stage order and scope.
+- `DESIGN_BRIEF.md` — Status: **Superseded on visuals**. Rationale for the learning mechanics (grade rules, two-beat card, direction by maturity) stays active; its Instrument palette and typography were rejected on 2026-08-28.
 - `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features; ordering now deferred to `RESTRUCTURE_PLAN.md`.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.
 - `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 complete; Sprint 2 (settings toggle, i18n) pending.
