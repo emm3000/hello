@@ -1,13 +1,7 @@
 package com.emm.hello.newfeatures.deck
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,56 +11,44 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.pageBackground
-import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
-import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
+import com.emm.hello.core.ui.HTagInput
 
 @Composable
 fun NewDeckScreen(
@@ -125,28 +107,33 @@ fun NewDeckScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = MaterialTheme.spacing.screenGutter)
                     .padding(top = 6.dp, bottom = 32.dp),
             ) {
                 Text(
                     text = headline,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 44.sp,
-                    lineHeight = (44 * 1.04f).sp,
-                    letterSpacing = (-0.02).em,
+                    style = MaterialTheme.typography.displayMedium,
                     color = ink,
                 )
 
                 Spacer(Modifier.height(28.dp))
 
-                DeckNameField(
+                HInput(
                     value = state.name,
                     onValueChange = { onIntent(NewDeckUiIntent.NameChanged(it)) },
-                    focusRequester = nameFocusRequester,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(nameFocusRequester),
+                    label = stringResource(R.string.deck_name_label),
                     placeholder = stringResource(R.string.deck_name_placeholder),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Next,
+                    ),
                 )
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(MaterialTheme.spacing.lg))
 
                 HInput(
                     value = state.description,
@@ -166,11 +153,14 @@ fun NewDeckScreen(
                     ),
                 )
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(MaterialTheme.spacing.lg))
 
-                TagsField(
+                HTagInput(
                     tags = state.tags,
                     onTagsChange = { onIntent(NewDeckUiIntent.TagsChanged(it)) },
+                    label = stringResource(R.string.tags_label),
+                    supportingText = stringResource(R.string.tags_supporting_text),
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 if (state.canDelete) {
@@ -225,10 +215,7 @@ private fun NewDeckTopBar(
 
         Text(
             text = title.uppercase(),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
-            letterSpacing = 0.12.em,
+            style = MaterialTheme.typography.metadata,
             color = inkMuted,
             modifier = Modifier.weight(1f),
         )
@@ -236,184 +223,12 @@ private fun NewDeckTopBar(
         val actionColor = if (actionEnabled) ink else inkMuted
         Text(
             text = actionLabel,
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.titleSmall,
             color = actionColor,
             modifier = Modifier
                 .padding(end = 6.dp)
                 .then(if (actionEnabled) Modifier.clickable(onClick = onAction) else Modifier)
                 .padding(horizontal = 10.dp, vertical = 10.dp),
-        )
-    }
-}
-
-@Composable
-private fun DeckNameField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    focusRequester: FocusRequester,
-    placeholder: String,
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.deck_name_label).uppercase(),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.5.sp,
-            letterSpacing = 0.12.em,
-            color = inkMuted,
-        )
-        Spacer(Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(surface, RoundedCornerShape(14.dp))
-                .border(1.5.dp, ink, RoundedCornerShape(14.dp))
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-        ) {
-            if (value.isEmpty()) {
-                Text(
-                    text = placeholder,
-                    fontSize = 22.sp,
-                    color = inkMuted,
-                )
-            }
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = TextStyle(
-                    fontSize = 22.sp,
-                    lineHeight = 28.sp,
-                    color = ink,
-                ),
-                cursorBrush = SolidColor(ink),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Next,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun TagsField(
-    tags: List<String>,
-    onTagsChange: (List<String>) -> Unit,
-) {
-    var inputValue by rememberSaveable { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
-
-    val commitTag: () -> Unit = {
-        val normalized = inputValue.trimEnd(',').trim().lowercase()
-        if (normalized.isNotEmpty() &&
-            tags.none { it.equals(normalized, ignoreCase = true) }
-        ) {
-            onTagsChange(tags + normalized)
-        }
-        inputValue = ""
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.tags_label).uppercase(),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.5.sp,
-            letterSpacing = 0.12.em,
-            color = inkMuted,
-        )
-        Spacer(Modifier.height(8.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(surface, RoundedCornerShape(14.dp))
-                .border(1.dp, hairline, RoundedCornerShape(14.dp))
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-        ) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                tags.forEach { tag ->
-                    HChip(
-                        label = tag,
-                        onRemove = { onTagsChange(tags - tag) },
-                    )
-                }
-                TagInline(
-                    value = inputValue,
-                    onValueChange = { raw ->
-                        if (raw.endsWith(",")) {
-                            inputValue = raw.dropLast(1)
-                            commitTag()
-                        } else {
-                            inputValue = raw
-                        }
-                    },
-                    onDoneAction = {
-                        commitTag()
-                        focusManager.clearFocus()
-                    },
-                )
-            }
-        }
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = stringResource(R.string.tags_supporting_text),
-            fontFamily = schibsted,
-            fontSize = 12.sp,
-            color = inkMuted,
-        )
-    }
-}
-
-@Composable
-private fun TagInline(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onDoneAction: () -> Unit,
-) {
-    val placeholder = stringResource(R.string.new_deck_tag_placeholder)
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 4.dp, vertical = 8.dp)
-            .width(140.dp),
-    ) {
-        if (value.isEmpty()) {
-            Text(
-                text = placeholder,
-                fontFamily = schibsted,
-                fontSize = 13.sp,
-                color = inkMuted,
-            )
-        }
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            singleLine = true,
-            textStyle = TextStyle(
-                fontFamily = schibsted,
-                fontSize = 13.sp,
-                color = ink,
-            ),
-            cursorBrush = SolidColor(ink),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { onDoneAction() },
-            ),
-            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

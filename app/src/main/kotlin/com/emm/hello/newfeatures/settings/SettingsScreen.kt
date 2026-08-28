@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -26,6 +25,7 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -34,23 +34,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
@@ -84,9 +83,9 @@ fun SettingsScreen(
 
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        start = 20.dp,
-                        end = 20.dp,
-                        top = 8.dp,
+                        start = MaterialTheme.spacing.screenGutter,
+                        end = MaterialTheme.spacing.screenGutter,
+                        top = MaterialTheme.spacing.sm,
                         bottom = 40.dp,
                     ),
                 ) {
@@ -140,25 +139,19 @@ private fun SettingsHeader() {
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.settings_eyebrow).uppercase(),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
-            letterSpacing = 0.12.em,
+            style = MaterialTheme.typography.metadata,
             color = inkMuted,
         )
         Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.settings_headline),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 44.sp,
-            lineHeight = (44 * 1.04f).sp,
-            letterSpacing = (-0.02).em,
+            style = MaterialTheme.typography.displayMedium,
             color = ink,
         )
         Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.settings_subtitle),
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.titleMedium,
             color = inkMuted,
         )
     }
@@ -172,7 +165,7 @@ private fun OrganizationSection(onDecks: () -> Unit) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = surface,
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.helloShapes.control,
         ) {
             SettingsRow(
                 icon = Icons.AutoMirrored.Outlined.List,
@@ -197,7 +190,7 @@ private fun DataSection(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = surface,
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.helloShapes.control,
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 SettingsRow(
@@ -207,7 +200,7 @@ private fun DataSection(
                     isBusy = isExporting,
                     onClick = onExport,
                 )
-                HSeparator(modifier = Modifier.padding(horizontal = 16.dp))
+                HSeparator(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg))
                 SettingsRow(
                     icon = Icons.Outlined.Upload,
                     title = stringResource(R.string.restore_backup),
@@ -237,7 +230,7 @@ private fun SettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = !isBusy) { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = MaterialTheme.spacing.lg, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -251,9 +244,7 @@ private fun SettingsRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Medium,
-                fontSize = 15.sp,
+                style = MaterialTheme.typography.titleSmall,
                 color = ink,
             )
             if (sub != null) {
@@ -264,10 +255,8 @@ private fun SettingsRow(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = sub,
-                    fontFamily = schibsted,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = subColor,
-                    lineHeight = 18.sp,
                 )
             }
         }
@@ -303,15 +292,13 @@ private fun SettingsFooter() {
     ) {
         Text(
             text = stringResource(R.string.settings_footer_tagline),
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.bodyLarge,
             color = inkMuted,
         )
         Text(
             text = stringResource(R.string.settings_footer_meta),
-            fontFamily = schibsted,
-            fontSize = 11.sp,
-            letterSpacing = 0.12.em,
-            color = Color(red = 244, green = 239, blue = 230, alpha = 90),
+            style = MaterialTheme.typography.metadata,
+            color = inkFaint,
         )
     }
 }

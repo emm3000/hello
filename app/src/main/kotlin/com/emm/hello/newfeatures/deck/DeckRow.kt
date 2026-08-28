@@ -10,23 +10,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.hello.R
-import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.ui.HCard
 
 @Composable
@@ -47,21 +45,16 @@ fun DeckRow(
         ) {
             Text(
                 text = deck.name,
-                fontWeight = FontWeight.Normal,
-                fontSize = 22.sp,
+                style = MaterialTheme.typography.titleLarge,
                 color = ink,
-                letterSpacing = (-0.2).sp,
-                lineHeight = (22 * 1.1f).sp,
             )
 
             if (deck.description.isNotBlank()) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = deck.description,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = inkMuted,
-                    lineHeight = (14 * 1.4f).sp,
                 )
             }
 
@@ -82,10 +75,7 @@ private fun DeckRowFooter(deck: Deck) {
     ) {
         Text(
             text = pluralStringResource(R.plurals.cards_count, cardCount, cardCount),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Normal,
-            fontSize = 10.5.sp,
-            letterSpacing = 0.08.em,
+            style = MaterialTheme.typography.metadata,
             color = inkFaint,
         )
 
@@ -107,10 +97,7 @@ private fun DeckRowFooter(deck: Deck) {
                 deck.tags.forEach { tag ->
                     Text(
                         text = tag.value,
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 10.5.sp,
-                        letterSpacing = 0.06.em,
+                        style = MaterialTheme.typography.metadata,
                         color = inkMuted,
                     )
                 }

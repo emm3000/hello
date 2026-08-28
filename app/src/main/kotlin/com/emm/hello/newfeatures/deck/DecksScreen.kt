@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
@@ -83,7 +85,7 @@ fun DecksScreen(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp),
+                .padding(bottom = MaterialTheme.spacing.xl),
         )
     }
 }
@@ -98,7 +100,7 @@ private fun DeckList(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = MaterialTheme.spacing.screenGutter),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item { Spacer(Modifier.height(6.dp)) }
@@ -108,7 +110,7 @@ private fun DeckList(
         }
 
         item {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
             HButton(
                 text = stringResource(R.string.decks_create_action),
                 onClick = onCreateDeck,
