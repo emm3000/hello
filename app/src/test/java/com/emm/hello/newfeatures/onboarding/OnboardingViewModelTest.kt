@@ -15,66 +15,12 @@ class OnboardingViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `PageChanged updates currentPage in state`() = runTest {
-        val viewModel = buildViewModel()
-
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(2))
-
-        assertThat(viewModel.state.value.currentPage).isEqualTo(2)
-    }
-
-    @Test
-    fun `PageChanged to first page keeps isLastPage false`() = runTest {
-        val viewModel = buildViewModel()
-
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(0))
-
-        assertThat(viewModel.state.value.isLastPage).isFalse()
-    }
-
-    @Test
-    fun `PageChanged to last page sets isLastPage true`() = runTest {
-        val viewModel = buildViewModel()
-        val lastIndex = OnboardingPage.entries.lastIndex
-
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(lastIndex))
-
-        assertThat(viewModel.state.value.isLastPage).isTrue()
-    }
-
-    @Test
-    fun `NextClicked on page 0 emits ScrollToPage(1)`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(0))
-        viewModel.onIntent(OnboardingUiIntent.NextClicked)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.ScrollToPage(1))
-    }
-
-    @Test
-    fun `NextClicked on page 1 emits ScrollToPage(2)`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(1))
-        viewModel.onIntent(OnboardingUiIntent.NextClicked)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.ScrollToPage(2))
-    }
-
-    @Test
-    fun `NextClicked on last page calls markWelcomeSeen`() = runTest {
+    fun `StartClicked calls markWelcomeSeen`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo)
-        val lastIndex = OnboardingPage.entries.lastIndex
 
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(lastIndex))
         backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.NextClicked)
+            viewModel.onIntent(OnboardingUiIntent.StartClicked)
             it.await()
         }
 
@@ -82,112 +28,31 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `NextClicked on last page emits NavigateToHoy`() = runTest {
+    fun `StartClicked emits NavigateToToday`() = runTest {
         val viewModel = buildViewModel()
-        val lastIndex = OnboardingPage.entries.lastIndex
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(lastIndex))
-        viewModel.onIntent(OnboardingUiIntent.NextClicked)
+        viewModel.onIntent(OnboardingUiIntent.StartClicked)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
     }
 
     @Test
-    fun `SkipClicked from page 0 calls markWelcomeSeen`() = runTest {
+    fun `markWelcomeSeen is recorded before NavigateToToday on StartClicked`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo)
 
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.SkipClicked)
-            it.await()
-        }
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(OnboardingUiIntent.StartClicked)
+        val effect = effectDeferred.await()
 
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
         assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
     @Test
-    fun `SkipClicked from any page emits NavigateToHoy`() = runTest {
-        val viewModel = buildViewModel()
-
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(1))
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.SkipClicked)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
-    }
-
-    @Test
-    fun `FinishClicked calls markWelcomeSeen`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
-
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.FinishClicked)
-            it.await()
-        }
-
-        assertThat(repo.welcomeSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `FinishClicked emits NavigateToHoy`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.FinishClicked)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
-    }
-
-    @Test
-    fun `isLastPage is false on page 0 with 3-page carousel`() = runTest {
-        val viewModel = buildViewModel()
-
-        assertThat(viewModel.state.value.isLastPage).isFalse()
-    }
-
-    @Test
-    fun `isLastPage is true only on page 2 with 3-page carousel`() = runTest {
-        val viewModel = buildViewModel()
-
-        repeat(OnboardingPage.entries.size) { index ->
-            viewModel.onIntent(OnboardingUiIntent.PageChanged(index))
-            val expected = index == OnboardingPage.entries.lastIndex
-            assertThat(viewModel.state.value.isLastPage).isEqualTo(expected)
-        }
-    }
-
-    @Test
-    fun `BackPressed on page 2 emits ScrollToPage(1)`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(2))
-        viewModel.onIntent(OnboardingUiIntent.BackPressed)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.ScrollToPage(1))
-    }
-
-    @Test
-    fun `BackPressed on page 1 emits ScrollToPage(0)`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.PageChanged(1))
-        viewModel.onIntent(OnboardingUiIntent.BackPressed)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.ScrollToPage(0))
-    }
-
-    @Test
-    fun `BackPressed on page 0 emits CloseOnboarding`() = runTest {
+    fun `BackPressed emits CloseOnboarding`() = runTest {
         val viewModel = buildViewModel()
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
@@ -198,7 +63,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `BackPressed on page 0 does not call markWelcomeSeen`() = runTest {
+    fun `BackPressed does not call markWelcomeSeen`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo)
 
@@ -208,34 +73,6 @@ class OnboardingViewModelTest {
         }
 
         assertThat(repo.welcomeSeenCalled).isFalse()
-    }
-
-    @Test
-    fun `markWelcomeSeen is recorded before NavigateToHoy effect on FinishClicked`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
-
-        // Collect the effect; at the moment the coroutine resumes after sendEffect,
-        // markWelcomeSeen must have already been called (synchronous call in finishOnboarding).
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.FinishClicked)
-        val effect = effectDeferred.await()
-
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
-        assertThat(repo.welcomeSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `markWelcomeSeen is recorded before NavigateToHoy effect on SkipClicked`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.SkipClicked)
-        val effect = effectDeferred.await()
-
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
-        assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
     private fun buildViewModel(

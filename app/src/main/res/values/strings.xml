@@ -269,17 +269,10 @@
     <string name="deck_updated_message">Deck updated</string>
     <string name="card_updated_message">Card updated</string>
 
-    <!-- Onboarding carousel (Phase 2) -->
-    <string name="onboarding_decks_title">Your decks</string>
-    <string name="onboarding_decks_body">A deck groups cards on one topic. Create one for each thing you want to learn.</string>
-    <string name="onboarding_srs_title">Spaced repetition</string>
-    <string name="onboarding_srs_body">We show you each card right before you\'d forget it. The better you remember it, the more it spaces out.</string>
-    <string name="onboarding_grading_title">You do the grading</string>
-    <string name="onboarding_grading_body">After answering, tell us how easy it was. That adjusts when you see it again.</string>
-    <string name="onboarding_cta_next">Next</string>
+    <!-- Onboarding -->
+    <string name="onboarding_headline">Save the words you meet.</string>
+    <string name="onboarding_body">We\'ll make them stick.</string>
     <string name="onboarding_cta_start">Start</string>
-    <string name="onboarding_skip">Skip</string>
-    <string name="onboarding_page_indicator_description">Page %1$d of %2$d</string>
     <string name="onboarding_seed_deck_name">First words</string>
 
     <!-- Capture -->
