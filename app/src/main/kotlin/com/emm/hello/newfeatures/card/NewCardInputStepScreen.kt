@@ -70,8 +70,7 @@ import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
@@ -220,7 +219,7 @@ fun NewCardInputStepScreen(
                                     state.quotaRemaining,
                                     state.quotaRemaining,
                                 ),
-                                fontFamily = geistMono,
+                                fontFamily = schibsted,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 11.sp,
                                 letterSpacing = 0.08.em,
@@ -350,7 +349,7 @@ private fun BigSerifTextField(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = errorMessage,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontSize = 12.sp,
                 color = destructiveInk,
             )
@@ -358,7 +357,7 @@ private fun BigSerifTextField(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = listeningLabel.uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
                 letterSpacing = 0.12.em,
@@ -498,7 +497,7 @@ private fun EmptyDeckCreateCta(
             Spacer(Modifier.size(14.dp))
             Text(
                 text = stringResource(R.string.new_card_input_create_deck_cta),
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
                 color = ink,
@@ -514,7 +513,7 @@ private fun EmptyDeckCreateCta(
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.new_card_input_no_decks_hint),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontSize = 12.sp,
             color = inkMuted,
         )

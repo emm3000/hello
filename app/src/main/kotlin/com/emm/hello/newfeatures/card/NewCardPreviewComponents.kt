@@ -49,8 +49,7 @@ import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -99,7 +98,7 @@ internal fun LoadingPreviewSkeleton(word: String) {
         )
         Text(
             text = stringResource(R.string.loading_preview_eta),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -185,7 +184,7 @@ internal fun QuotaExceededState(
 
         Text(
             text = stringResource(R.string.quota_error_body),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Normal,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,
@@ -215,7 +214,7 @@ internal fun QuotaExceededState(
 
         Text(
             text = formatResetHint(resetAt),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -236,7 +235,7 @@ private fun YourWordSurface(word: String) {
     ) {
         Text(
             text = stringResource(R.string.quota_error_your_word_label),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -431,7 +430,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
         ) {
             Text(
                 text = "${note.partOfSpeech.displayName()} · ${note.levelBand.displayName()}",
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
@@ -452,7 +451,7 @@ private fun WordHeader(note: GeneratedLearningNote) {
         if (note.ipa.isNotBlank()) {
             Text(
                 text = note.ipa,
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
                 color = inkMuted,
@@ -682,7 +681,7 @@ private fun StudyCardsSection(
         ) {
             Text(
                 text = "TARJETAS DE ESTUDIO · ${note.cards.size}",
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
@@ -692,7 +691,7 @@ private fun StudyCardsSection(
             val activeCount = note.cards.count { it.isActive }
             Text(
                 text = "$activeCount activas",
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
                 color = inkFaint,

@@ -27,7 +27,7 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HToggle
@@ -72,7 +72,7 @@ internal fun StudyCardRow(
         ) {
             Text(
                 text = "${index + 1}/$total · ${card.cardType.displayName().uppercase()}",
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.sp,
                 letterSpacing = 0.12.em,
@@ -113,7 +113,7 @@ internal fun StudyCardRow(
             if (firstAlert != null) {
                 Text(
                     text = firstAlert,
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.5.sp,
                     letterSpacing = 0.08.em,
@@ -152,7 +152,7 @@ internal fun GeneratedStudyCardEditorSheet(
     ) {
         Text(
             text = "TARJETA · ${card.cardType.displayName().uppercase()}",
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -171,7 +171,7 @@ internal fun GeneratedStudyCardEditorSheet(
         ) {
             Text(
                 text = stringResource(R.string.include_card_in_study_label),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
                 letterSpacing = 0.04.em,

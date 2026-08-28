@@ -42,7 +42,7 @@ import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surfaceRaised
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 
@@ -155,7 +155,7 @@ private fun OnboardingPageContent(
 
         Text(
             text = stringResource(page.bodyRes),
-            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = geist),
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = schibsted),
             color = inkMuted,
             textAlign = TextAlign.Center,
         )

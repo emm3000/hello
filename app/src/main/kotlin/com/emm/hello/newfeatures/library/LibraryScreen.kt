@@ -38,7 +38,7 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.library.LibraryFlashcard
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
@@ -148,7 +148,7 @@ fun LibraryScreen(
 private fun CardCounter(count: Int) {
     Text(
         text = pluralStringResource(R.plurals.library_card_counter, count, count),
-        fontFamily = geistMono,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
         fontSize = 10.5.sp,
         letterSpacing = 0.14.em,
@@ -262,7 +262,7 @@ private fun RowMarker(card: LibraryFlashcard, showDeckName: Boolean) {
 
     Text(
         text = label,
-        fontFamily = geistMono,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
         fontSize = 10.sp,
         letterSpacing = 0.1.em,

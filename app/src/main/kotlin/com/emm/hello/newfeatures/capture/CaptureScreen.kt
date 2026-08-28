@@ -37,7 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.hello.R
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
@@ -135,7 +135,7 @@ private fun CaptureContent(
             Text(
                 text = stringResource(R.string.capture_headline),
                 style = MaterialTheme.typography.headlineSmall,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 color = ink,
             )
 
@@ -181,7 +181,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                 Text(
                     text = pluralStringResource(R.plurals.capture_backlog_pending, state.pending, state.pending),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     color = inkMuted,
                 )
             }
@@ -195,7 +195,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                     Text(
                         text = pluralStringResource(R.plurals.capture_backlog_failed, state.failed, state.failed),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontFamily = geist,
+                        fontFamily = schibsted,
                         color = ink,
                     )
                     HButton(

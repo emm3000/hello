@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.hello.R
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
@@ -82,7 +82,7 @@ private fun DeckRowFooter(deck: Deck) {
     ) {
         Text(
             text = pluralStringResource(R.plurals.cards_count, cardCount, cardCount),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Normal,
             fontSize = 10.5.sp,
             letterSpacing = 0.08.em,
@@ -107,7 +107,7 @@ private fun DeckRowFooter(deck: Deck) {
                 deck.tags.forEach { tag ->
                     Text(
                         text = tag.value,
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.06.em,

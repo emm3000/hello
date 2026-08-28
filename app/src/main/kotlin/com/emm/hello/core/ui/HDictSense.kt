@@ -23,8 +23,7 @@ import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.warningInk
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 
 enum class HDictSenseTone { Default, Warn }
 
@@ -60,7 +59,7 @@ fun HDictSense(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label.uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
@@ -69,7 +68,7 @@ fun HDictSense(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = body,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,

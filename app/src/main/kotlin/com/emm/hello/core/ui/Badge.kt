@@ -23,7 +23,7 @@ import com.emm.hello.core.theme.successContainer
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.warningInk
 import com.emm.hello.core.theme.warningContainer
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.semanticColors
 
 enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success, Tertiary }
@@ -54,7 +54,7 @@ fun HBadge(
     ) {
         Text(
             text = label,
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.2.sp,

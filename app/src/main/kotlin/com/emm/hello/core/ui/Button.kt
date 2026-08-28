@@ -42,7 +42,7 @@ import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.onInk
 import com.emm.hello.core.theme.surfaceRaised
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
 
@@ -131,7 +131,7 @@ fun HButton(
     ) {
         Text(
             text = if (isLoading) "Cargando…" else text,
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = size.fontSize.sp,
             letterSpacing = (-0.1).sp,

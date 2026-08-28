@@ -47,8 +47,7 @@ import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HChip
@@ -233,7 +232,7 @@ private fun FlashcardHero(card: Flashcard) {
                 if (card.phonetic.isNotBlank()) {
                     Text(
                         text = card.phonetic,
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
                         color = inkMuted,
@@ -250,7 +249,7 @@ private fun FlashcardHero(card: Flashcard) {
                 if (card.levelBand.isNotBlank()) {
                     Text(
                         text = card.levelBand.uppercase(),
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
@@ -369,7 +368,7 @@ private fun ExampleRow(example: Example) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = example.translation,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -435,7 +434,7 @@ private fun ExtrasBlock(card: Flashcard) {
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
                             text = label.uppercase(),
-                            fontFamily = geistMono,
+                            fontFamily = schibsted,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.5.sp,
                             letterSpacing = 0.12.em,
@@ -444,7 +443,7 @@ private fun ExtrasBlock(card: Flashcard) {
                         )
                         Text(
                             text = value,
-                            fontFamily = geist,
+                            fontFamily = schibsted,
                             fontWeight = FontWeight.Normal,
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
@@ -463,7 +462,7 @@ private fun ChipFlow(label: String, values: List<String>) {
     Column {
         Text(
             text = label.uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -486,7 +485,7 @@ private fun BulletList(label: String, values: List<String>) {
     Column {
         Text(
             text = label.uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -504,7 +503,7 @@ private fun BulletList(label: String, values: List<String>) {
                 )
                 Text(
                     text = value,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
@@ -539,7 +538,7 @@ private fun ContextBlock(card: Flashcard) {
         if (card.sourceContext.isNotBlank()) {
             Text(
                 text = card.sourceContext,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
@@ -583,7 +582,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
         parts.forEachIndexed { index, part ->
             Text(
                 text = part.text,
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
@@ -592,7 +591,7 @@ private fun FooterBlock(detail: FlashcardDetail) {
             if (index < parts.lastIndex) {
                 Text(
                     text = " · ",
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.5.sp,
                     color = inkFaint,

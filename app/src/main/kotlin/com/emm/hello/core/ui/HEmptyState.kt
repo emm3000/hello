@@ -32,8 +32,7 @@ import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 
 @Composable
 fun HEmptyState(
@@ -100,7 +99,7 @@ fun HEmptyState(
             Spacer(Modifier.height(14.dp))
             Text(
                 text = body,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 19.sp,
@@ -123,7 +122,7 @@ fun HEmptyState(
             Spacer(Modifier.weight(1f, fill = true))
             Text(
                 text = footnote.uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,

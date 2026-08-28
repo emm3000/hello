@@ -82,8 +82,7 @@ import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surfaceRaised
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
@@ -291,7 +290,7 @@ private fun SessionFinishedDialog(
                 Spacer(Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.session_completed_eyebrow).uppercase(),
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.12.em,
@@ -323,7 +322,7 @@ private fun SessionFinishedDialog(
                 ) {
                     Text(
                         text = totalCount.toString(),
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
                         color = ink,
@@ -331,7 +330,7 @@ private fun SessionFinishedDialog(
                     Spacer(Modifier.width(10.dp))
                     Text(
                         text = stringResource(R.string.session_completed_stat_label).uppercase(),
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Medium,
                         fontSize = 11.sp,
                         letterSpacing = 0.12.em,
@@ -441,7 +440,7 @@ private fun StudyCardStage(
         }
         Text(
             text = stringResource(R.string.study_direction_en_to_es),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -545,7 +544,7 @@ private fun StudyActionDock(
                     )
                     Text(
                         text = stringResource(R.string.study_grade_swipe_hint),
-                        fontFamily = geistMono,
+                        fontFamily = schibsted,
                         fontWeight = FontWeight.Normal,
                         fontSize = 10.5.sp,
                         letterSpacing = 0.12.em,
@@ -619,7 +618,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
             if (phonetic.isNotBlank()) {
                 Text(
                     text = phonetic,
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
                     color = inkMuted,
@@ -653,7 +652,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             Spacer(Modifier.height(20.dp))
             Text(
                 text = highlightWordInExample(item.example, item.word),
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 17.sp,
                 lineHeight = 24.sp,
@@ -664,7 +663,7 @@ private fun FlashcardBack(item: StudySessionItem) {
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = item.exampleTranslation,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     color = inkMuted,
@@ -679,7 +678,7 @@ private fun FlashcardBack(item: StudySessionItem) {
         if (referenceLine.isNotBlank()) {
             Text(
                 text = referenceLine,
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
@@ -691,7 +690,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             Spacer(Modifier.height(10.dp))
             Text(
                 text = item.meaning,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
@@ -703,7 +702,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             Spacer(Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.study_related_forms_inline, item.irregularForms.joinToString()),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
@@ -715,7 +714,7 @@ private fun FlashcardBack(item: StudySessionItem) {
             Spacer(Modifier.height(12.dp))
             Text(
                 text = item.usagePattern,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.5.sp,
                 lineHeight = 18.sp,
@@ -781,7 +780,7 @@ private fun GradeForgotButton(
     ) {
         Text(
             text = stringResource(R.string.study_grade_forgot),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             color = ink,
@@ -814,7 +813,7 @@ private fun GradeKnewButton(
     ) {
         Text(
             text = stringResource(R.string.study_grade_knew),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             color = ink,

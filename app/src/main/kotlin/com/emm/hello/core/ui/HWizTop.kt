@@ -28,7 +28,7 @@ import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 
 private val barHeight = 56.dp
 private val backButtonSize = 44.dp
@@ -84,7 +84,7 @@ fun HWizTop(
 
             Text(
                 text = "$currentStep/$totalSteps",
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontSize = 11.sp,
                 letterSpacing = 0.08.em,
                 color = inkMuted,
@@ -95,7 +95,7 @@ fun HWizTop(
         if (subtitle != null) {
             Text(
                 text = subtitle.uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
                 color = inkMuted,

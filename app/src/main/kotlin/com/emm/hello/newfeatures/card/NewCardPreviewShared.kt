@@ -43,7 +43,7 @@ import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HInput
@@ -151,7 +151,7 @@ internal fun ReviewBlock(
         ) {
             Text(
                 text = label.uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,
@@ -203,7 +203,7 @@ internal fun ReviewBlock(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
                     color = ink,
@@ -211,7 +211,7 @@ internal fun ReviewBlock(
             } else if (supportingText != null) {
                 Text(
                     text = supportingText,
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontSize = 11.sp,
                     letterSpacing = 0.04.em,
                     color = inkMuted,

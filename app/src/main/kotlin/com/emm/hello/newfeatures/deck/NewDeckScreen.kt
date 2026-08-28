@@ -60,8 +60,7 @@ import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
@@ -226,7 +225,7 @@ private fun NewDeckTopBar(
 
         Text(
             text = title.uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
@@ -237,7 +236,7 @@ private fun NewDeckTopBar(
         val actionColor = if (actionEnabled) ink else inkMuted
         Text(
             text = actionLabel,
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             color = actionColor,
@@ -259,7 +258,7 @@ private fun DeckNameField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.deck_name_label).uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -324,7 +323,7 @@ private fun TagsField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.tags_label).uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -371,7 +370,7 @@ private fun TagsField(
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.tags_supporting_text),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontSize = 12.sp,
             color = inkMuted,
         )
@@ -393,7 +392,7 @@ private fun TagInline(
         if (value.isEmpty()) {
             Text(
                 text = placeholder,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontSize = 13.sp,
                 color = inkMuted,
             )
@@ -403,7 +402,7 @@ private fun TagInline(
             onValueChange = onValueChange,
             singleLine = true,
             textStyle = TextStyle(
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontSize = 13.sp,
                 color = ink,
             ),

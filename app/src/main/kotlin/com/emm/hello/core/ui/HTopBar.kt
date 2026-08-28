@@ -26,8 +26,7 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 
 private val topBarHeight = 56.dp
 private val backButtonSize = 44.dp
@@ -67,7 +66,7 @@ fun HTopBar(
             if (mono) {
                 Text(
                     text = title.uppercase(),
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 0.08.em,
@@ -79,7 +78,7 @@ fun HTopBar(
             } else {
                 Text(
                     text = title,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
                     color = ink,

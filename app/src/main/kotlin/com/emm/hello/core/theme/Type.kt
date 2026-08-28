@@ -16,37 +16,51 @@ private val googleFontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
-private val geistFont = GoogleFont("Geist")
-private val geistMonoFont = GoogleFont("Geist Mono")
+private val bricolageFont = GoogleFont("Bricolage Grotesque")
+private val schibstedFont = GoogleFont("Schibsted Grotesk")
 
-val geist: FontFamily = FontFamily(
+val bricolage: FontFamily = FontFamily(
     GoogleFontFile(
-        googleFont = geistFont,
-        fontProvider = googleFontProvider,
-        weight = FontWeight.Normal,
-    ),
-    GoogleFontFile(
-        googleFont = geistFont,
+        googleFont = bricolageFont,
         fontProvider = googleFontProvider,
         weight = FontWeight.Medium,
     ),
     GoogleFontFile(
-        googleFont = geistFont,
+        googleFont = bricolageFont,
+        fontProvider = googleFontProvider,
+        weight = FontWeight.Bold,
+    ),
+    GoogleFontFile(
+        googleFont = bricolageFont,
+        fontProvider = googleFontProvider,
+        weight = FontWeight.ExtraBold,
+    ),
+)
+
+val schibsted: FontFamily = FontFamily(
+    GoogleFontFile(
+        googleFont = schibstedFont,
+        fontProvider = googleFontProvider,
+        weight = FontWeight.Normal,
+    ),
+    GoogleFontFile(
+        googleFont = schibstedFont,
+        fontProvider = googleFontProvider,
+        weight = FontWeight.Medium,
+    ),
+    GoogleFontFile(
+        googleFont = schibstedFont,
         fontProvider = googleFontProvider,
         weight = FontWeight.SemiBold,
     ),
 )
 
-val geistMono: FontFamily = FontFamily(
-    GoogleFontFile(googleFont = geistMonoFont, fontProvider = googleFontProvider),
-)
-
 internal val metadataTextStyle = TextStyle(
-    fontFamily = geistMono,
-    fontWeight = FontWeight.Normal,
-    fontSize = 11.sp,
+    fontFamily = schibsted,
+    fontWeight = FontWeight.Medium,
+    fontSize = 12.sp,
     lineHeight = 16.sp,
-    letterSpacing = 0.14.em,
+    letterSpacing = 0.12.em,
 )
 
 val Typography.metadata: TextStyle
@@ -54,107 +68,107 @@ val Typography.metadata: TextStyle
 
 val appTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 56.sp,
-        lineHeight = 60.sp,
-        letterSpacing = (-0.03).em,
+        fontFamily = bricolage,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 52.sp,
+        lineHeight = 54.sp,
+        letterSpacing = (-0.02).em,
     ),
     displayMedium = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 46.sp,
-        lineHeight = 52.sp,
-        letterSpacing = (-0.03).em,
+        fontFamily = bricolage,
+        fontWeight = FontWeight.Bold,
+        fontSize = 44.sp,
+        lineHeight = 46.sp,
+        letterSpacing = (-0.02).em,
     ),
     displaySmall = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 38.sp,
-        lineHeight = 44.sp,
+        fontFamily = bricolage,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 40.sp,
+        lineHeight = 42.sp,
         letterSpacing = (-0.02).em,
     ),
     headlineLarge = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
+        fontFamily = bricolage,
+        fontWeight = FontWeight.Bold,
         fontSize = 32.sp,
-        lineHeight = 38.sp,
-        letterSpacing = (-0.02).em,
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 30.sp,
         lineHeight = 36.sp,
         letterSpacing = (-0.02).em,
     ),
-    headlineSmall = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
+    headlineMedium = TextStyle(
+        fontFamily = bricolage,
+        fontWeight = FontWeight.Bold,
+        fontSize = 26.sp,
         lineHeight = 30.sp,
         letterSpacing = (-0.02).em,
     ),
+    headlineSmall = TextStyle(
+        fontFamily = bricolage,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 26.sp,
+        letterSpacing = (-0.02).em,
+    ),
     titleLarge = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp,
     ),
     titleMedium = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.5.sp,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 17.sp,
         lineHeight = 22.sp,
         letterSpacing = 0.sp,
     ),
     titleSmall = TextStyle(
-        fontFamily = geist,
-        fontWeight = FontWeight.Medium,
-        fontSize = 13.sp,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.sp,
     ),
     bodyLarge = TextStyle(
-        fontFamily = geist,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.5.sp,
+        fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp,
     ),
     bodyMedium = TextStyle(
-        fontFamily = geist,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
+        fontSize = 15.sp,
         lineHeight = 22.sp,
         letterSpacing = 0.sp,
     ),
     bodySmall = TextStyle(
-        fontFamily = geist,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
         fontSize = 13.sp,
-        lineHeight = 20.sp,
+        lineHeight = 18.sp,
         letterSpacing = 0.sp,
     ),
     labelLarge = TextStyle(
-        fontFamily = geist,
+        fontFamily = schibsted,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.5.sp,
-        lineHeight = 20.sp,
+        fontSize = 13.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.sp,
     ),
     labelMedium = TextStyle(
-        fontFamily = geistMono,
-        fontWeight = FontWeight.Normal,
-        fontSize = 11.sp,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.14.em,
+        letterSpacing = 0.sp,
     ),
     labelSmall = TextStyle(
-        fontFamily = geistMono,
-        fontWeight = FontWeight.Normal,
-        fontSize = 10.sp,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
         lineHeight = 14.sp,
         letterSpacing = 0.sp,
     ),

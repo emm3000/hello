@@ -50,8 +50,7 @@ import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
@@ -141,7 +140,7 @@ private fun SettingsHeader() {
         Spacer(Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.settings_eyebrow).uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
@@ -252,7 +251,7 @@ private fun SettingsRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
                 color = ink,
@@ -265,7 +264,7 @@ private fun SettingsRow(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = sub,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontSize = 13.sp,
                     color = subColor,
                     lineHeight = 18.sp,
@@ -309,7 +308,7 @@ private fun SettingsFooter() {
         )
         Text(
             text = stringResource(R.string.settings_footer_meta),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
             color = Color(red = 244, green = 239, blue = 230, alpha = 90),

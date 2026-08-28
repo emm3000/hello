@@ -34,7 +34,7 @@ import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.NextDueBatch
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
@@ -209,7 +209,7 @@ private fun SessionCta(
                     pluralStringResource(R.plurals.hoy_card_count, dueCount, dueCount),
                     estimatedMinutes,
                 ).uppercase(),
-                fontFamily = geistMono,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
                 letterSpacing = 0.1.em,
@@ -235,7 +235,7 @@ private fun RestingHero(
         Spacer(Modifier.height(12.dp))
         Text(
             text = nextDueLabel(nextDue),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.1.em,

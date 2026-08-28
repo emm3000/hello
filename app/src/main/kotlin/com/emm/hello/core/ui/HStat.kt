@@ -15,7 +15,7 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 
 enum class HStatTone { Default, Accent, Muted }
 
@@ -46,7 +46,7 @@ fun HStat(
         )
         Text(
             text = label,
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Normal,
             fontSize = 12.5.sp,
             letterSpacing = 0.1.sp,

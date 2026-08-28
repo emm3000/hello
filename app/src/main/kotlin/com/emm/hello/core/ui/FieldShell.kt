@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.spacing
@@ -53,7 +53,7 @@ internal fun FieldShell(
             if (monoLabel) {
                 Text(
                     text = label.uppercase(),
-                    fontFamily = geistMono,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 10.5.sp,
                     letterSpacing = 0.12.em,

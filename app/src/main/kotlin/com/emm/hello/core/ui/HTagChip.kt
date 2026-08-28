@@ -30,7 +30,7 @@ import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 
 private val chipShape = RoundedCornerShape(15.dp)
 
@@ -85,7 +85,7 @@ fun HChip(
         ) {
             Text(
                 text = label,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.5.sp,
                 letterSpacing = 0.1.sp,

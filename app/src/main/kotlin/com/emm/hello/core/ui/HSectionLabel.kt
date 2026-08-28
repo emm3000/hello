@@ -19,7 +19,7 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 
 @Composable
 fun HSectionLabel(
@@ -34,7 +34,7 @@ fun HSectionLabel(
     ) {
         Text(
             text = label.uppercase(),
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,
             letterSpacing = 0.12.em,
@@ -64,7 +64,7 @@ private fun HSectionLabelPreview() {
                     action = {
                         Text(
                             text = "5 con repaso ↗",
-                            fontFamily = geistMono,
+                            fontFamily = schibsted,
                             fontSize = 10.5.sp,
                             color = ink,
                         )

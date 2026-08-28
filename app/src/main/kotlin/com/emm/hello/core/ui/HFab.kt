@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.onInk
-import com.emm.hello.core.theme.geist
+import com.emm.hello.core.theme.schibsted
 
 @Composable
 fun HFab(
@@ -55,7 +55,7 @@ fun HFab(
                 Row(Modifier.width(10.dp)) {}
                 Text(
                     text = label,
-                    fontFamily = geist,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.5.sp,
                     letterSpacing = (-0.1).sp,

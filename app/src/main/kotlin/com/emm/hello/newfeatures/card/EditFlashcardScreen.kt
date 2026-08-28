@@ -52,8 +52,7 @@ import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.geist
-import com.emm.hello.core.theme.geistMono
+import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
@@ -130,7 +129,7 @@ private fun EditFlashcardTopBar(
 
         Text(
             text = title,
-            fontFamily = geistMono,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 11.sp,
             letterSpacing = 0.12.em,
@@ -140,7 +139,7 @@ private fun EditFlashcardTopBar(
 
         Text(
             text = actionLabel,
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             color = actionColor,
@@ -163,7 +162,7 @@ private fun LoadingBody() {
     ) {
         Text(
             text = stringResource(R.string.edit_flashcard_loading),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontSize = 14.sp,
             color = inkMuted,
         )
@@ -266,7 +265,7 @@ private fun ExamplesSection(
         action = {
             Text(
                 text = stringResource(R.string.edit_flashcard_add_inline),
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
                 color = ink,
@@ -332,7 +331,7 @@ private fun ExampleEditRow(
                     .background(hairline),
             )
             Spacer(Modifier.height(8.dp))
-            GeistField(
+            EditField(
                 value = example.translation,
                 onValueChange = onTranslationChange,
                 placeholder = stringResource(R.string.example_translation_label),
@@ -386,7 +385,7 @@ private fun ItalicSerifField(
 }
 
 @Composable
-private fun GeistField(
+private fun EditField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -395,7 +394,7 @@ private fun GeistField(
         if (value.isEmpty()) {
             Text(
                 text = placeholder,
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontSize = 14.sp,
                 color = inkMuted,
             )
@@ -406,7 +405,7 @@ private fun GeistField(
             singleLine = false,
             maxLines = 3,
             textStyle = TextStyle(
-                fontFamily = geist,
+                fontFamily = schibsted,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 color = ink,
@@ -441,7 +440,7 @@ private fun DangerRow(onDeleteClick: () -> Unit) {
         )
         Text(
             text = stringResource(R.string.edit_flashcard_delete_action),
-            fontFamily = geist,
+            fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             color = destructiveInk,
