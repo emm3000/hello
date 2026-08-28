@@ -104,12 +104,10 @@ class DefaultFlashcardRepository(
         val cardId: String = input.flashcardId.value
 
         db.transactionWithResult {
-            // Verify the flashcard exists and is not deleted
             val existing = dao.findById(cardId).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Flashcard not found: $cardId")
             check(existing.deletedAt == null) { "Flashcard already deleted: $cardId" }
 
-            // Update the flashcard row
             dao.update(
                 word = input.word,
                 meaning = input.meaning,
@@ -160,12 +158,10 @@ class DefaultFlashcardRepository(
         val now: Long = Instant.now().toEpochMilli()
 
         db.transactionWithResult {
-            // Verify the flashcard exists and is not already deleted
             val existing = dao.findById(flashcardId.value).executeAsOneOrNull()
                 ?: throw NoSuchElementException("Flashcard not found: ${flashcardId.value}")
             check(existing.deletedAt == null) { "Flashcard already deleted: ${flashcardId.value}" }
 
-            // Cascade: flashcard → examples
             dao.softDelete(now = now, id = flashcardId.value)
             dao.softDeleteExamplesByFlashcard(now = now, flashcardId = flashcardId.value)
 

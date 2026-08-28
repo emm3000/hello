@@ -35,11 +35,9 @@ class DefaultStudyStatsRepositoryTest {
     fun `countDistinctCardsStudiedToday counts distinct cards only`() = runTest {
         val todayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
 
-        // Same card reviewed 3 times today
         insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli())
         insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli() + 1000)
         insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli() + 2000)
-        // Different card reviewed today
         insertReviewEvent(flashcardId = "card-2", reviewedAt = todayStart.toEpochMilli())
 
         assertEquals(2, subject.countDistinctCardsStudiedToday())
@@ -101,12 +99,9 @@ class DefaultStudyStatsRepositoryTest {
         val now = Instant.now().toEpochMilli()
         val deckId = "deck-a"
         insertDeck(deckId)
-        // card-1: no ReviewProjection (new card, due now)
         insertFlashcard(flashcardId = "card-1", deckId = deckId)
-        // card-2: reviewed and due now
         insertFlashcard(flashcardId = "card-2", deckId = deckId)
         insertProjection(flashcardId = "card-2", nextReviewAt = now - 1000)
-        // card-3: reviewed and due in the future (not due today)
         insertFlashcard(flashcardId = "card-3", deckId = deckId)
         insertProjection(flashcardId = "card-3", nextReviewAt = now + 86400000)
 
@@ -165,7 +160,6 @@ class DefaultStudyStatsRepositoryTest {
         insertDeck(deckId)
         // card-1: no ReviewProjection; due now (overdue), NOT in future window [now, now+7d)
         insertFlashcard(flashcardId = "card-1", deckId = deckId)
-        // card-2: scheduled within next 7 days
         insertFlashcard(flashcardId = "card-2", deckId = deckId)
         insertProjection(flashcardId = "card-2", nextReviewAt = now + 86400000)
 

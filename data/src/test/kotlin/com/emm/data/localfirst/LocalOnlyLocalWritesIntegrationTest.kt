@@ -101,7 +101,6 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals("greeting", storedFlashcard.meaning)
         assertEquals(flashcardId.value, reviewProjection.flashcardId)
         assertEquals(300L, reviewProjection.nextReviewAt)
-        // Real FSRS fields are persisted (replaces the old hardcoded SM-2 defaults).
         assertEquals("REVIEW", reviewProjection.state)
         assertEquals(1.0, reviewProjection.stability, 0.0)
         assertEquals(5.0, reviewProjection.difficulty, 0.0)
@@ -135,7 +134,6 @@ class LocalOnlyLocalWritesIntegrationTest {
         assertEquals("device-tags", identity.deviceId)
         assertFalse(identity.createdInstallation)
         assertEquals("Languages", deck.name)
-        // Tags are lowercased and trimmed
         assertEquals(3, tags.size)
         val tagNames = tags.map { it.name }.sorted()
         assertEquals(listOf("french", "spanish", "travel"), tagNames)

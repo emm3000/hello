@@ -2,10 +2,6 @@ package com.emm.data.export
 
 import kotlinx.serialization.Serializable
 
-/**
- * Root JSON envelope for backup export/import.
- * Maps 1:1 to the spec JSON schema.
- */
 @Serializable
 data class BackupEnvelope(
     val schemaVersion: Int,

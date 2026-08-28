@@ -27,10 +27,6 @@ open class GeminiService(
         }
     }
 
-    /**
-     * Dedicated call for the main generation of [com.emm.data.flashcard.iadto.GeneratedLearningNoteDto].
-     * Uses a model with a declared `responseSchema` to restrict enums and JSON shape.
-     */
     open suspend fun processLearningNote(prompt: String): String {
         enforceQuota(kind = "learning_note")
         return callWithRetry(kind = "learning_note") {
@@ -39,11 +35,8 @@ open class GeminiService(
         }
     }
 
-    /**
-     * Like [processLearningNote] but parses the response inside the retry loop:
-     * if the model returns a malformed payload (missing required field, wrong type),
-     * we retry the whole call instead of surfacing the error to the user.
-     */
+    // Parsing happens inside the retry loop, so a malformed payload retries the whole call
+    // instead of reaching the user.
     open suspend fun <T> processLearningNoteWithParser(
         prompt: String,
         parse: (String) -> T,

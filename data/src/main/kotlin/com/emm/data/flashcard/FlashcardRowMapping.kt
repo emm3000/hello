@@ -243,16 +243,9 @@ internal fun toExampleOrNull(item: FlashcardWithExamples): Example? {
     )
 }
 
-/**
- * Maps the joined ReviewProjection columns of a due-card query row to an [FsrsCard].
- *
- * The LEFT JOIN means every ReviewProjection column is nullable in the generated row type;
- * a never-reviewed card (no ReviewProjection row at all) has every field null and maps to a
- * fresh [FsrsCard.new]. `nextReviewAt` is intentionally NOT stamped with "now" here: a
- * never-reviewed card or a card whose stored nextReviewAt is already in the past must keep
- * surfacing as due — clobbering it with the live clock would break the
- * `nextReviewAt >= lastReviewedAt` invariant once real review data is read elsewhere.
- */
+// nextReviewAt is deliberately not stamped with "now": a never-reviewed card, or one whose
+// stored nextReviewAt is already past, must keep surfacing as due, and the live clock would
+// break the nextReviewAt >= lastReviewedAt invariant once real review data is read elsewhere.
 internal fun mapFsrsCard(deck: FlashcardsToReviewByDeck): FsrsCard {
     val hasMissingField = listOf(
         deck.flashcardId,
@@ -309,11 +302,6 @@ internal fun mapFsrsCard(deck: FlashcardsToReviewAllDecks): FsrsCard {
     )
 }
 
-/**
- * Maps the joined ReviewProjection columns of the deck-detail "with review" query row to an
- * [FsrsCard]. Mirrors the [FlashcardsToReviewByDeck]/[FlashcardsToReviewAllDecks] overloads above:
- * a never-reviewed card (no ReviewProjection row) maps to a fresh [FsrsCard.new].
- */
 internal fun mapFsrsCard(deck: com.emm.data.FlashcardsWithReview): FsrsCard {
     val hasMissingField = listOf(
         deck.flashcardId,
@@ -342,11 +330,6 @@ internal fun mapFsrsCard(deck: com.emm.data.FlashcardsWithReview): FsrsCard {
     )
 }
 
-/**
- * Maps the joined ReviewProjection columns of the Card Detail "with examples" query row to an
- * [FsrsCard]. Mirrors the [FlashcardsToReviewByDeck]/[FlashcardsToReviewAllDecks] overloads above:
- * a never-reviewed card (no ReviewProjection row) maps to a fresh [FsrsCard.new].
- */
 internal fun mapFsrsCard(deck: FlashcardWithExamples): FsrsCard {
     val hasMissingField = listOf(
         deck.flashcardId,

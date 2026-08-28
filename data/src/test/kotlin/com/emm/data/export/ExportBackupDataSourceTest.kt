@@ -28,7 +28,6 @@ class ExportBackupDataSourceTest {
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
 
-        // Seed identity so deck insert works
         db.localFirstQueries.upsertLocalDeviceIdentity(
             deviceId = "test-device",
             installId = "install-test",
@@ -37,7 +36,6 @@ class ExportBackupDataSourceTest {
             updatedAt = 1L,
         )
 
-        // Insert test data
         insertTestData()
 
         contentResolver = mockk(relaxed = true)
@@ -175,14 +173,13 @@ class ExportBackupDataSourceTest {
 
     @Test
     fun `export excludes soft-deleted decks`() = runTest {
-        // Insert a soft-deleted deck
         db.deckQueries.insert(
             id = "deck-deleted",
             name = "Deleted Deck",
             description = null,
             createdAt = 500L,
             updatedAt = 500L,
-            deletedAt = 999L, // soft deleted
+            deletedAt = 999L,
         )
 
         val outputUri = Uri.parse("content://test/export.json")
@@ -204,7 +201,6 @@ class ExportBackupDataSourceTest {
         val afterExport = System.currentTimeMillis()
 
         val writtenJson = capturedOutput.toString()
-        // Parse the exportedAt value from JSON
         val match = Regex("\"exportedAt\":\\s*(\\d+)").find(writtenJson)
         assertTrue(match != null)
         val exportedAt = match!!.groupValues[1].toLong()

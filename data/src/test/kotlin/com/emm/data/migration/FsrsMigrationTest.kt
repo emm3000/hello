@@ -28,8 +28,6 @@ import java.util.UUID
 @Suppress("MaxLineLength")
 class FsrsMigrationTest {
 
-    // ── helpers ───────────────────────────────────────────────────────────────
-
     /**
      * Creates an in-memory database with only the schema-v1 ReviewEvent and ReviewProjection
      * tables (no FSRS-6 columns), matching the structure captured in 1.db.
@@ -144,14 +142,6 @@ class FsrsMigrationTest {
         return result
     }
 
-    // ── spec scenarios ────────────────────────────────────────────────────────
-
-    /**
-     * Scenario: Existing card due dates unchanged after upgrade.
-     *
-     * Seeds three cards with distinct nextReviewAt values; after migration every nextReviewAt
-     * must equal its pre-migration value.
-     */
     @Test
     fun `nextReviewAt of every existing card is unchanged after migration`() {
         val driver = createSchema1Driver()
@@ -318,9 +308,6 @@ class FsrsMigrationTest {
         assertTrue("difficulty must be <= 10.0, got $difficulty", difficulty <= 10.0)
     }
 
-    /**
-     * Scenario: Migration adds the rating column to ReviewEvent with default 0 for legacy rows.
-     */
     @Test
     fun `ReviewEvent rating column is added with default 0 for legacy rows`() {
         val driver = createSchema1Driver()
@@ -373,7 +360,6 @@ class FsrsMigrationTest {
     @Test
     fun `migration does not create ReviewProjection rows for never-reviewed cards`() {
         val driver = createSchema1Driver()
-        // No rows seeded — simulates a card that has never been reviewed.
 
         applyMigration(driver)
 

@@ -278,7 +278,6 @@ class ExportImportIntegrationTest {
         assertEquals("card-review", projections[0].flashcardId)
         assertEquals(2000L, projections[0].nextReviewAt)
         assertEquals(2.5, projections[0].easeFactor, 0.001)
-        // FIX C4: assert FSRS columns survive the export→import round-trip
         assertEquals("REVIEW", projections[0].state)
         assertEquals(1.0, projections[0].stability, 0.001)
         assertEquals(5.0, projections[0].difficulty, 0.001)

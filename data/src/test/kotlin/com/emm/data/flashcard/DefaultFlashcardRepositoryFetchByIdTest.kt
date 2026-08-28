@@ -56,8 +56,6 @@ class DefaultFlashcardRepositoryFetchByIdTest {
         assert(review.nextReviewAt >= before) { "expected nextReviewAt ~now, was ${review.nextReviewAt}" }
     }
 
-    // ─── helpers ─────────────────────────────────────────────────────────────
-
     private fun insertDeck(): String {
         val id = UUID.randomUUID().toString()
         db.deckQueries.insert(

@@ -48,7 +48,6 @@ class RestoreDeckRepositoryTest {
         val deletedAt = subject.softDeleteDeck(DeckId.from(deckId))
         subject.restoreDeck(DeckId.from(deckId), deletedAt)
 
-        // Deck and flashcard restored
         assertNull(db.deckQueries.findById(deckId).executeAsOne().deletedAt)
         assertNull(db.flashcardQueries.findById(flashcardId).executeAsOne().deletedAt)
     }
@@ -58,22 +57,18 @@ class RestoreDeckRepositoryTest {
         val deckId = insertDeck()
         val earlyCardId = insertFlashcard(deckId)
 
-        // Soft-delete just the early card manually (simulating a prior delete)
         val earlyTs = 1_000_000L
         db.flashcardQueries.softDelete(now = earlyTs, id = earlyCardId)
 
-        // Add a second card that gets deleted with the deck
         val lateCardId = insertFlashcard(deckId)
 
         val deletedAt = subject.softDeleteDeck(DeckId.from(deckId))
 
         subject.restoreDeck(DeckId.from(deckId), deletedAt)
 
-        // Deck and late card restored
         assertNull(db.deckQueries.findById(deckId).executeAsOne().deletedAt)
         assertNull(db.flashcardQueries.findById(lateCardId).executeAsOne().deletedAt)
 
-        // Early card still deleted (different timestamp)
         assertEquals(earlyTs, db.flashcardQueries.findById(earlyCardId).executeAsOne().deletedAt)
     }
 
@@ -92,8 +87,6 @@ class RestoreDeckRepositoryTest {
 
         assertNull(db.flashcardExampleQueries.findById(exampleId).executeAsOne().deletedAt)
     }
-
-    // ─── helpers ─────────────────────────────────────────────────────────────
 
     private class NoOpTagRepository : TagRepository {
         override suspend fun findOrCreate(tags: List<String>): List<Tag> = emptyList()

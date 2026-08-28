@@ -13,18 +13,10 @@ import com.emm.domain.seed.SeedDataInitializer
 import kotlinx.coroutines.flow.first
 import java.util.UUID
 
-/**
- * Creates a small starter deck the first time an install opens with no decks.
- *
- * Guard order (one-time check, flag-gated in every branch):
- * 1. Flag already set -> return, do nothing.
- * 2. Flag not set but the user already has decks -> existing user, do NOT seed; just set the flag.
- * 3. Flag not set and no decks -> new install, seed the deck + cards, then set the flag.
- *
- * The deck name is provided by the app layer (resolved from string resources) so this module stays
- * free of Android resource lookups. Cards are inserted through [FlashcardRepository.create], the
- * same path the UI uses, so they land in FSRS NEW state via the existing ReviewProjection defaults.
- */
+// Guard order, flag-gated in every branch: flag set means done; flag unset but decks exist
+// means an existing user who must not be seeded, only flagged; flag unset and no decks is the
+// only path that seeds. The deck name arrives from the app layer so this module needs no
+// Android resource lookup.
 class DefaultSeedDataInitializer(
     private val deckRepository: DeckRepository,
     private val flashcardRepository: FlashcardRepository,
@@ -79,7 +71,6 @@ class DefaultSeedDataInitializer(
     }
 
     private companion object {
-        // Front (English) with an English gloss, IPA and part of speech; back is Spanish.
         // The app targets Spanish speakers learning English, so this content is not localized.
         val STARTER_CARDS: List<StarterCard> = listOf(
             StarterCard(

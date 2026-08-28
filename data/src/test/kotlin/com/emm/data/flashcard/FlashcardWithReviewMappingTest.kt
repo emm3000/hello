@@ -135,8 +135,6 @@ class FlashcardWithReviewMappingTest {
         assertEquals("", cards.first().exampleTranslation)
     }
 
-    // ─── helpers ─────────────────────────────────────────────────────────────
-
     private fun insertDeck(): String {
         val id = UUID.randomUUID().toString()
         db.deckQueries.insert(

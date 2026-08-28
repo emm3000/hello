@@ -21,8 +21,6 @@ class DataStoreOnboardingStateRepositoryTest {
 
     private fun buildRepo() = DataStoreOnboardingStateRepository(DataStore(prefs))
 
-    // ── hasSeenWelcome ────────────────────────────────────────────────────────
-
     @Test
     fun `hasSeenWelcome returns false by default`() {
         every { prefs.getBoolean("HAS_SEEN_ONBOARDING", false) } returns false

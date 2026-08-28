@@ -29,7 +29,6 @@ class ImportBackupDataSourceTest {
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
 
-        // Seed identity so deck insert works
         db.localFirstQueries.upsertLocalDeviceIdentity(
             deviceId = "test-device",
             installId = "install-test",
@@ -49,7 +48,6 @@ class ImportBackupDataSourceTest {
 
     @Test
     fun `import successful restores all data from backup envelope`() = runTest {
-        // First export some data
         val deckId = "deck-import-test"
         db.deckQueries.insert(
             id = deckId,
@@ -93,7 +91,6 @@ class ImportBackupDataSourceTest {
         val originalDeckCount = db.deckQueries.all().executeAsList().size
         assertEquals(1, originalDeckCount)
 
-        // Import a new backup
         val backupJson = """
             {
               "schemaVersion": 1,
@@ -287,7 +284,6 @@ class ImportBackupDataSourceTest {
 
     @Test
     fun `import clears existing data before restoring`() = runTest {
-        // Insert existing data
         db.deckQueries.insert(
             id = "existing-deck",
             name = "Existing Deck",
@@ -298,7 +294,6 @@ class ImportBackupDataSourceTest {
         )
         assertEquals(1, db.deckQueries.all().executeAsList().size)
 
-        // Import empty backup
         val backupJson = """
             {
               "schemaVersion": 1,

@@ -8,12 +8,6 @@ import org.junit.Before
 import org.junit.Test
 import java.util.UUID
 
-/**
- * Verifies the restoreFlashcard / restoreExamplesByFlashcard SQLDelight queries in isolation.
- * Tests that:
- * - Matching-timestamp rows are restored.
- * - Non-matching-timestamp rows (deleted earlier) are left intact.
- */
 class RestoreFlashcardQueryTest {
 
     private lateinit var db: HelloDb
@@ -51,26 +45,19 @@ class RestoreFlashcardQueryTest {
         val earlyTs = 1_000_000L
         val lateTs = 5_000_000L
 
-        // Early example deleted before the card cascade
         db.flashcardExampleQueries.softDelete(now = earlyTs, id = earlyExampleId)
 
-        // Card + late example deleted together
         db.flashcardQueries.softDelete(now = lateTs, id = cardId)
         db.flashcardExampleQueries.softDelete(now = lateTs, id = lateExampleId)
 
-        // Restore using the cascade timestamp
         db.flashcardQueries.restoreFlashcard(id = cardId, deletedAt = lateTs)
         db.flashcardQueries.restoreExamplesByFlashcard(flashcardId = cardId, deletedAt = lateTs)
 
-        // Card and late example restored
         assertNull(db.flashcardQueries.findById(cardId).executeAsOne().deletedAt)
         assertNull(db.flashcardExampleQueries.findById(lateExampleId).executeAsOne().deletedAt)
 
-        // Early example still deleted (different timestamp)
         assertEquals(earlyTs, db.flashcardExampleQueries.findById(earlyExampleId).executeAsOne().deletedAt)
     }
-
-    // ─── helpers ─────────────────────────────────────────────────────────────
 
     private fun insertDeck(deckId: String) {
         db.deckQueries.insert(
