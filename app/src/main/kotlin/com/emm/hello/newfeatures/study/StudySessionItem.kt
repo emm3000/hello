@@ -4,6 +4,8 @@ import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.study.StudyFlashcard
 
+enum class StudyDirection { RECOGNITION, PRODUCTION }
+
 data class StudySessionItem(
     val flashcardId: FlashcardId,
     val review: FsrsCard,
@@ -11,6 +13,7 @@ data class StudySessionItem(
     val phonetic: String,
     val meaning: String,
     val translation: String,
+    val direction: StudyDirection,
     val usagePattern: String = "",
     val irregularForms: List<String> = emptyList(),
     val partOfSpeech: String = "",
@@ -25,6 +28,7 @@ internal fun StudyFlashcard.toStudySessionItem(): StudySessionItem = StudySessio
     phonetic = phonetic,
     meaning = meaning,
     translation = translation,
+    direction = if (review.productionSince != null) StudyDirection.PRODUCTION else StudyDirection.RECOGNITION,
     usagePattern = usagePattern,
     irregularForms = irregularForms,
     partOfSpeech = partOfSpeech,

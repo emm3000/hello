@@ -72,6 +72,7 @@ class StudySessionItemTest {
                 phonetic = "/ɡəʊ/",
                 meaning = "to move from one place to another",
                 translation = "ir",
+                direction = StudyDirection.RECOGNITION,
                 usagePattern = "go + to + place",
                 irregularForms = listOf("went", "gone"),
                 partOfSpeech = "verb",
@@ -81,16 +82,37 @@ class StudySessionItemTest {
         )
     }
 
+    @Test
+    fun `flashcard with a review past its production graduation maps to direction PRODUCTION`() {
+        val review = FsrsCard.new("go".toFlashcardId(), clock).copy(productionSince = 1_000L)
+        val flashcard = studyFlashcard(word = "go", studyCards = emptyList(), review = review)
+
+        val item = flashcard.toStudySessionItem()
+
+        assertThat(item.direction).isEqualTo(StudyDirection.PRODUCTION)
+    }
+
+    @Test
+    fun `flashcard with a review never graduated to production maps to direction RECOGNITION`() {
+        val review = FsrsCard.new("go".toFlashcardId(), clock)
+        val flashcard = studyFlashcard(word = "go", studyCards = emptyList(), review = review)
+
+        val item = flashcard.toStudySessionItem()
+
+        assertThat(item.direction).isEqualTo(StudyDirection.RECOGNITION)
+    }
+
     private fun studyFlashcard(
         word: String,
         studyCards: List<GeneratedStudyCard>,
+        review: FsrsCard = FsrsCard.new(word.toFlashcardId(), clock),
     ): StudyFlashcard = StudyFlashcard(
         flashcardId = word.toFlashcardId(),
         word = word,
         phonetic = "",
         meaning = "",
         translation = "",
-        review = FsrsCard.new(word.toFlashcardId(), clock),
+        review = review,
         studyCards = studyCards,
     )
 

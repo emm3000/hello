@@ -316,6 +316,8 @@ private fun StudyCardStage(
                     CardFace.Front -> FlashcardFront(
                         word = item?.word.orEmpty(),
                         phonetic = item?.phonetic.orEmpty(),
+                        translation = item?.translation.orEmpty(),
+                        direction = item?.direction ?: StudyDirection.RECOGNITION,
                     )
                     CardFace.Back -> item?.let { FlashcardBack(item = it) }
                 }
@@ -501,14 +503,26 @@ private fun StudyDoneState(
 }
 
 @Composable
-private fun FlashcardFront(word: String, phonetic: String) {
+private fun FlashcardFront(
+    word: String,
+    phonetic: String,
+    translation: String,
+    direction: StudyDirection,
+) {
+    val isProduction: Boolean = direction == StudyDirection.PRODUCTION
+    val promptLabelRes: Int = if (isProduction) {
+        R.string.study_prompt_production
+    } else {
+        R.string.study_prompt_label
+    }
+    val dominantText: String = if (isProduction) translation else word
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = stringResource(R.string.study_prompt_label).uppercase(),
+            text = stringResource(promptLabelRes).uppercase(),
             fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 12.sp,
@@ -516,7 +530,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
             color = inkMuted,
         )
         Text(
-            text = word,
+            text = dominantText,
             fontFamily = bricolage,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 52.sp,
@@ -524,7 +538,7 @@ private fun FlashcardFront(word: String, phonetic: String) {
             letterSpacing = (-0.02).em,
             color = ink,
         )
-        if (phonetic.isNotBlank()) {
+        if (!isProduction && phonetic.isNotBlank()) {
             Text(
                 text = phonetic,
                 fontFamily = schibsted,
@@ -538,6 +552,9 @@ private fun FlashcardFront(word: String, phonetic: String) {
 
 @Composable
 private fun FlashcardBack(item: StudySessionItem) {
+    val isProduction: Boolean = item.direction == StudyDirection.PRODUCTION
+    val topLine: String = if (isProduction) item.translation else item.word
+    val dominantAnswer: String = if (isProduction) item.word else item.translation
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -546,7 +563,7 @@ private fun FlashcardBack(item: StudySessionItem) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(
-            text = item.word,
+            text = topLine,
             fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 16.sp,
@@ -554,7 +571,7 @@ private fun FlashcardBack(item: StudySessionItem) {
         )
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                text = item.translation,
+                text = dominantAnswer,
                 fontFamily = bricolage,
                 fontWeight = FontWeight.Bold,
                 fontSize = 44.sp,
@@ -562,6 +579,16 @@ private fun FlashcardBack(item: StudySessionItem) {
                 letterSpacing = (-0.02).em,
                 color = ink,
             )
+            if (isProduction && item.phonetic.isNotBlank()) {
+                Text(
+                    text = item.phonetic,
+                    fontFamily = schibsted,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    lineHeight = 19.sp,
+                    color = inkMuted,
+                )
+            }
         }
         if (item.example.isNotBlank()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -585,7 +612,8 @@ private fun FlashcardBack(item: StudySessionItem) {
                 }
             }
         }
-        val referenceLine: String = listOf(item.partOfSpeech, item.phonetic, item.meaning)
+        val referencePhonetic: String = if (isProduction) "" else item.phonetic
+        val referenceLine: String = listOf(item.partOfSpeech, referencePhonetic, item.meaning)
             .filter(String::isNotBlank)
             .joinToString(" · ")
         if (referenceLine.isNotBlank()) {
@@ -697,6 +725,7 @@ private fun StudyScreenPreview() {
                     phonetic = "/ˌserənˈdɪpɪti/",
                     meaning = "The occurrence of events by chance in a happy way",
                     translation = "Casualidad afortunada",
+                    direction = StudyDirection.RECOGNITION,
                 ),
                 reviewedCount = 3,
                 totalCount = 10,
