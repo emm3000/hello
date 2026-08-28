@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,7 +40,6 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.theme.destructiveInk
-import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.warningInk
@@ -52,7 +51,10 @@ import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSearchBar
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HTopBar
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun LibraryScreen(
@@ -129,7 +131,7 @@ fun LibraryScreen(
                 else -> CardList(
                     modifier = Modifier.weight(1f),
                     cards = state.cards,
-                    showDeckName = state.selectedDeckId == null,
+                    referenceNow = state.referenceNow,
                     onCardClick = { card -> onIntent(LibraryUiIntent.CardOpened(card)) },
                 )
             }
@@ -150,9 +152,8 @@ private fun CardCounter(count: Int) {
         text = pluralStringResource(R.plurals.library_card_counter, count, count),
         fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.5.sp,
-        letterSpacing = 0.14.em,
-        color = inkFaint,
+        fontSize = 13.sp,
+        color = inkMuted,
         modifier = Modifier.padding(end = 18.dp),
     )
 }
@@ -190,7 +191,7 @@ private fun DeckFilterRow(
 @Composable
 private fun CardList(
     cards: List<LibraryFlashcard>,
-    showDeckName: Boolean,
+    referenceNow: Instant,
     onCardClick: (LibraryFlashcard) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -198,7 +199,7 @@ private fun CardList(
         items(cards, key = { it.id.value }) { card ->
             LibraryRow(
                 card = card,
-                showDeckName = showDeckName,
+                referenceNow = referenceNow,
                 onClick = { onCardClick(card) },
             )
             HSeparator(modifier = Modifier.padding(horizontal = 20.dp))
@@ -210,65 +211,71 @@ private fun CardList(
 @Composable
 private fun LibraryRow(
     card: LibraryFlashcard,
-    showDeckName: Boolean,
+    referenceNow: Instant,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 60.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 13.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = card.word,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
+                fontFamily = schibsted,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 17.sp,
                 color = ink,
-                letterSpacing = (-0.1).sp,
             )
             if (card.translation.isNotBlank()) {
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = card.translation,
+                    fontFamily = schibsted,
                     fontWeight = FontWeight.Normal,
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     color = inkMuted,
-                    lineHeight = (13 * 1.35f).sp,
+                    lineHeight = 19.sp,
                 )
             }
         }
 
-        RowMarker(card = card, showDeckName = showDeckName)
+        RowMarker(card = card, referenceNow = referenceNow)
     }
 }
 
 @Composable
-private fun RowMarker(card: LibraryFlashcard, showDeckName: Boolean) {
-    val statusLabel: String? = when (card.enrichmentStatus) {
-        EnrichmentStatus.PENDING -> stringResource(R.string.library_status_pending)
-        EnrichmentStatus.FAILED -> stringResource(R.string.library_status_failed)
-        EnrichmentStatus.ENRICHED -> null
+private fun RowMarker(card: LibraryFlashcard, referenceNow: Instant) {
+    val marker: Pair<String, Color> = when (card.enrichmentStatus) {
+        EnrichmentStatus.PENDING -> stringResource(R.string.library_status_pending) to warningInk
+        EnrichmentStatus.FAILED -> stringResource(R.string.library_status_failed) to destructiveInk
+        EnrichmentStatus.ENRICHED -> scheduleLabel(card = card, referenceNow = referenceNow) to inkMuted
     }
-    val statusColor: Color = when (card.enrichmentStatus) {
-        EnrichmentStatus.PENDING -> warningInk
-        EnrichmentStatus.FAILED -> destructiveInk
-        EnrichmentStatus.ENRICHED -> inkFaint
-    }
-    val label: String? = statusLabel ?: card.deckName.takeIf { showDeckName && it.isNotBlank() }
-    if (label == null) return
 
     Text(
-        text = label,
+        text = marker.first,
         fontFamily = schibsted,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.sp,
-        letterSpacing = 0.1.em,
-        color = statusColor,
+        fontSize = 12.sp,
+        color = marker.second,
     )
 }
+
+@Composable
+private fun scheduleLabel(card: LibraryFlashcard, referenceNow: Instant): String =
+    when (val status: ScheduleStatus = card.scheduleStatus(referenceNow, ZoneId.systemDefault())) {
+        ScheduleStatus.New -> stringResource(R.string.library_schedule_new)
+        ScheduleStatus.DueToday -> stringResource(R.string.library_schedule_due_today)
+        is ScheduleStatus.InDays -> pluralStringResource(
+            R.plurals.library_schedule_in_days,
+            status.days.toInt(),
+            status.days.toInt(),
+        )
+    }
 
 @Composable
 private fun LoadingContent(modifier: Modifier = Modifier) {
@@ -288,12 +295,49 @@ private fun LibraryScreenPreview() {
             LibraryScreen(
                 state = LibraryUiState(
                     isLoading = false,
+                    referenceNow = previewReferenceNow,
                     decks = listOf(previewDeck("deck-1", "Viajes"), previewDeck("deck-2", "Trabajo")),
                     cards = listOf(
-                        previewCard("1", "compelling", "convincente", "Viajes", EnrichmentStatus.ENRICHED),
-                        previewCard("2", "leverage", "aprovechar", "Trabajo", EnrichmentStatus.ENRICHED),
-                        previewCard("3", "brittle", "", "Trabajo", EnrichmentStatus.PENDING),
-                        previewCard("4", "hoard", "", "Viajes", EnrichmentStatus.FAILED),
+                        previewCard(
+                            id = "1",
+                            word = "compelling",
+                            translation = "convincente",
+                            deckName = "Viajes",
+                            status = EnrichmentStatus.ENRICHED,
+                            nextReviewAt = null,
+                        ),
+                        previewCard(
+                            id = "2",
+                            word = "leverage",
+                            translation = "aprovechar",
+                            deckName = "Trabajo",
+                            status = EnrichmentStatus.ENRICHED,
+                            nextReviewAt = previewReferenceNow.minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                        ),
+                        previewCard(
+                            id = "3",
+                            word = "brittle",
+                            translation = "",
+                            deckName = "Trabajo",
+                            status = EnrichmentStatus.PENDING,
+                            nextReviewAt = null,
+                        ),
+                        previewCard(
+                            id = "4",
+                            word = "hoard",
+                            translation = "",
+                            deckName = "Viajes",
+                            status = EnrichmentStatus.FAILED,
+                            nextReviewAt = null,
+                        ),
+                        previewCard(
+                            id = "5",
+                            word = "thrive",
+                            translation = "prosperar",
+                            deckName = "Viajes",
+                            status = EnrichmentStatus.ENRICHED,
+                            nextReviewAt = previewUpcomingReviewAt,
+                        ),
                     ),
                 ),
             )
@@ -312,6 +356,10 @@ private fun LibraryScreenEmptyPreview() {
 }
 
 private val previewCreatedAt: LocalDateTime = LocalDateTime.parse("2026-01-01T00:00:00")
+private val previewReferenceNow: Instant = Instant.parse("2026-01-01T12:00:00Z")
+private const val PREVIEW_UPCOMING_REVIEW_DAYS = 3L
+private val previewUpcomingReviewAt: Long =
+    previewReferenceNow.plus(PREVIEW_UPCOMING_REVIEW_DAYS, ChronoUnit.DAYS).toEpochMilli()
 
 private fun previewDeck(id: String, name: String): Deck = Deck(
     id = id.toDeckId(),
@@ -328,6 +376,7 @@ private fun previewCard(
     translation: String,
     deckName: String,
     status: EnrichmentStatus,
+    nextReviewAt: Long?,
 ): LibraryFlashcard = LibraryFlashcard(
     id = id.toFlashcardId(),
     deckId = "deck-1".toDeckId(),
@@ -336,5 +385,5 @@ private fun previewCard(
     translation = translation,
     meaning = "",
     enrichmentStatus = status,
-    nextReviewAt = null,
+    nextReviewAt = nextReviewAt,
 )

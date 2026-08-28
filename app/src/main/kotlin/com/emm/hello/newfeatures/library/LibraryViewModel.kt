@@ -13,6 +13,7 @@ import com.emm.hello.R
 import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
 import com.emm.hello.newfeatures.shared.UndoEventHolder
+import com.emm.domain.time.Clock
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -31,6 +32,7 @@ class LibraryViewModel(
     private val restoreFlashcardUseCase: RestoreFlashcardUseCase,
     undoEventHolder: UndoEventHolder,
     getDecksUseCase: GetDecksUseCase,
+    private val clock: Clock,
 ) : MviViewModel<LibraryUiState, LibraryUiIntent, LibraryUiEffect>(
     initialState = LibraryUiState(),
 ) {
@@ -46,7 +48,9 @@ class LibraryViewModel(
             .debounce(SEARCH_DEBOUNCE_MS)
             .distinctUntilChanged()
             .flatMapLatest { current -> searchLibrary(query = current.query, deckId = current.deckId) }
-            .onEach { cards: List<LibraryFlashcard> -> setState { copy(cards = cards, isLoading = false) } }
+            .onEach { cards: List<LibraryFlashcard> ->
+                setState { copy(cards = cards, isLoading = false, referenceNow = clock.now()) }
+            }
             .launchIn(viewModelScope)
 
         undoEventHolder.events

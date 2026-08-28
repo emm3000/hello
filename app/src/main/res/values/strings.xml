@@ -311,25 +311,31 @@
     <string name="capture_status_ready">Ready</string>
     <string name="capture_status_failed">Failed</string>
 
-    <string name="library_title">Biblioteca</string>
-    <string name="library_search_placeholder">Buscar por palabra o significado</string>
-    <string name="library_search_clear_content_description">Limpiar la búsqueda</string>
-    <string name="library_search_icon_content_description">Buscar en la biblioteca</string>
+    <string name="library_title">Library</string>
+    <string name="library_search_placeholder">Search</string>
+    <string name="library_search_clear_content_description">Clear the search</string>
+    <string name="library_search_icon_content_description">Search the library</string>
     <plurals name="library_card_counter">
-        <item quantity="one">%d TARJETA</item>
-        <item quantity="other">%d TARJETAS</item>
+        <item quantity="one">%1$d word</item>
+        <item quantity="other">%1$d words</item>
     </plurals>
-    <string name="library_chip_all">Todos</string>
-    <string name="library_status_pending">PENDIENTE</string>
-    <string name="library_status_failed">FALLÓ</string>
-    <string name="library_empty_headline">Todavía no tienes</string>
-    <string name="library_empty_accent_word">tarjetas.</string>
-    <string name="library_empty_body">Captura una palabra y aparecerá acá, lista para estudiar.</string>
-    <string name="library_empty_cta">Capturar una palabra</string>
-    <string name="library_no_results_headline">Sin resultados</string>
-    <string name="library_no_results_body">Ninguna tarjeta coincide con lo que buscas.</string>
-    <string name="library_no_results_cta">Limpiar filtros</string>
+    <string name="library_chip_all">All</string>
+    <string name="library_status_pending">Preparing…</string>
+    <string name="library_status_failed">Failed</string>
+    <string name="library_empty_headline">You have no</string>
+    <string name="library_empty_accent_word">cards yet.</string>
+    <string name="library_empty_body">Add a word and it will appear here, ready to study.</string>
+    <string name="library_empty_cta">Add a word</string>
+    <string name="library_no_results_headline">No results</string>
+    <string name="library_no_results_body">No card matches your search.</string>
+    <string name="library_no_results_cta">Clear filters</string>
     <string name="library_content_description">Open the library</string>
+    <string name="library_schedule_new">new</string>
+    <string name="library_schedule_due_today">due today</string>
+    <plurals name="library_schedule_in_days">
+        <item quantity="one">in %1$d day</item>
+        <item quantity="other">in %1$d days</item>
+    </plurals>
     <string name="delete_deck_action">Borrar mazo</string>
     <string name="decks_title">Mazos</string>
     <string name="decks_create_action">Nuevo mazo</string>

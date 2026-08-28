@@ -232,7 +232,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { TodayViewModel(get()) }
-    viewModel { LibraryViewModel(get(), get(), get(), get()) }
+    viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
     viewModel {
         NewCardViewModel(
