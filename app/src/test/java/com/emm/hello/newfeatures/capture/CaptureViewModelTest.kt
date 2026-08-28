@@ -7,11 +7,14 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.flashcard.EnrichmentBacklog
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.library.LibraryFlashcard
+import com.emm.domain.library.LibraryRepository
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
@@ -23,6 +26,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -138,10 +143,46 @@ class CaptureViewModelTest {
         assertThat(viewModel.state.value.failed).isEqualTo(2)
     }
 
+    @Test
+    fun `submit prepends a recent capture pending the word`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        val recentCapture: RecentCapture = viewModel.state.value.recentCaptures.first()
+        assertThat(recentCapture.flashcardId).isEqualTo(CARD_ID)
+        assertThat(recentCapture.word).isEqualTo("borrow")
+        assertThat(recentCapture.status).isEqualTo(EnrichmentStatus.PENDING)
+    }
+
+    @Test
+    fun `a library update flips a recent capture to enriched`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val libraryRepository = FakeLibraryRepository()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, libraryRepository = libraryRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        libraryRepository.emit(libraryFlashcard(id = CARD_ID, status = EnrichmentStatus.ENRICHED))
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.recentCaptures.first().status).isEqualTo(EnrichmentStatus.ENRICHED)
+    }
+
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
         retryFailedEnrichments: RetryFailedEnrichmentsUseCase = mockk(),
         backlog: EnrichmentBacklog = EnrichmentBacklog(),
+        libraryRepository: LibraryRepository = FakeLibraryRepository(),
     ): CaptureViewModel {
         val enrichmentRepository = mockk<FlashcardEnrichmentRepository>()
         every { enrichmentRepository.observeBacklog() } returns flowOf(backlog)
@@ -158,6 +199,7 @@ class CaptureViewModelTest {
             enrichmentRepository = enrichmentRepository,
             defaultDeckSelectionRepository = deckSelectionRepository,
             getDecksUseCase = getDecksUseCase,
+            libraryRepository = libraryRepository,
         )
     }
 
@@ -169,6 +211,27 @@ class CaptureViewModelTest {
         cards = emptyList(),
         cardsCount = 0L,
     )
+
+    private fun libraryFlashcard(id: FlashcardId, status: EnrichmentStatus): LibraryFlashcard = LibraryFlashcard(
+        id = id,
+        deckId = DECK_ID,
+        deckName = "Primeras palabras",
+        word = "borrow",
+        translation = "prestar",
+        meaning = "",
+        enrichmentStatus = status,
+        nextReviewAt = null,
+    )
+
+    private class FakeLibraryRepository(
+        private val cards: MutableStateFlow<List<LibraryFlashcard>> = MutableStateFlow(emptyList()),
+    ) : LibraryRepository {
+        override fun observeLibrary(): Flow<List<LibraryFlashcard>> = cards
+
+        fun emit(vararg flashcards: LibraryFlashcard) {
+            cards.value = flashcards.toList()
+        }
+    }
 
     private companion object {
         val DECK_ID: DeckId = "deck-1".toDeckId()

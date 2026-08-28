@@ -295,26 +295,21 @@
     <string name="onboarding_seed_deck_name">Primeras palabras</string>
 
     <!-- Capture -->
-    <string name="capture_title">Capturar</string>
-    <string name="capture_headline">¿Qué palabra aprendiste?</string>
-    <string name="capture_placeholder">Escribe o dicta una palabra</string>
-    <string name="capture_target_deck">Se guarda en %1$s</string>
-    <string name="capture_mic_content_description">Dictar la palabra</string>
-    <string name="capture_save">Guardar</string>
-    <string name="capture_saved_message">Guardada. La estamos completando.</string>
-    <string name="capture_retry">Reintentar</string>
-    <plurals name="capture_backlog_pending">
-        <item quantity="one">%1$d se está completando en segundo plano</item>
-        <item quantity="other">%1$d se están completando en segundo plano</item>
-    </plurals>
-    <plurals name="capture_backlog_failed">
-        <item quantity="one">%1$d quedó sin completar</item>
-        <item quantity="other">%1$d quedaron sin completar</item>
-    </plurals>
-    <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
-    <string name="capture_error_empty">Escribe una palabra primero.</string>
-    <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
-    <string name="capture_error_retry">No pudimos reintentar ahora.</string>
+    <string name="capture_title">Add a word</string>
+    <string name="capture_placeholder">Type a word</string>
+    <string name="capture_mic_content_description">Dictate the word</string>
+    <string name="capture_save">Save</string>
+    <string name="capture_saved_message">Saved. We\'re preparing it.</string>
+    <string name="capture_retry">Retry</string>
+    <string name="capture_error_duplicate">That word is already in the deck.</string>
+    <string name="capture_error_empty">Type a word first.</string>
+    <string name="capture_error_generic">We couldn\'t save the card.</string>
+    <string name="capture_error_retry">We couldn\'t retry right now.</string>
+    <string name="capture_done">Done</string>
+    <string name="capture_recent_label">Your last:</string>
+    <string name="capture_status_preparing">Preparing…</string>
+    <string name="capture_status_ready">Ready</string>
+    <string name="capture_status_failed">Failed</string>
 
     <string name="library_title">Biblioteca</string>
     <string name="library_search_placeholder">Buscar por palabra o significado</string>

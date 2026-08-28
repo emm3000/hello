@@ -6,9 +6,12 @@ import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.library.LibraryFlashcard
+import com.emm.domain.library.LibraryRepository
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.hello.R
@@ -25,6 +28,7 @@ class CaptureViewModel(
     private val enrichmentRepository: FlashcardEnrichmentRepository,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
     getDecksUseCase: GetDecksUseCase,
+    libraryRepository: LibraryRepository,
 ) : MviViewModel<CaptureUiState, CaptureUiIntent, CaptureUiEffect>(
     initialState = CaptureUiState(),
 ) {
@@ -36,6 +40,10 @@ class CaptureViewModel(
 
         enrichmentRepository.observeBacklog()
             .onEach { backlog -> setState { copy(pending = backlog.pending, failed = backlog.failed) } }
+            .launchIn(viewModelScope)
+
+        libraryRepository.observeLibrary()
+            .onEach { cards -> setState { copy(recentCaptures = recentCaptures.refreshedFrom(cards)) } }
             .launchIn(viewModelScope)
     }
 
@@ -60,7 +68,12 @@ class CaptureViewModel(
         setState { copy(isSaving = true) }
         try {
             val flashcardId: FlashcardId = captureFlashcard(deckId = deck.id, word = current.word)
-            setState { copy(word = "", isSaving = false) }
+            val captured = RecentCapture(
+                flashcardId = flashcardId,
+                word = current.word.trim(),
+                status = EnrichmentStatus.PENDING,
+            )
+            setState { copy(word = "", isSaving = false, recentCaptures = listOf(captured) + recentCaptures) }
             sendEffect(CaptureUiEffect.EnqueueEnrichment(listOf(flashcardId.value)))
             sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_message))
         } catch (cancellation: CancellationException) {
@@ -90,6 +103,11 @@ class CaptureViewModel(
 }
 
 private const val TAG = "CaptureViewModel"
+
+private fun List<RecentCapture>.refreshedFrom(cards: List<LibraryFlashcard>): List<RecentCapture> {
+    val statusById: Map<FlashcardId, EnrichmentStatus> = cards.associate { it.id to it.enrichmentStatus }
+    return map { capture -> statusById[capture.flashcardId]?.let { capture.copy(status = it) } ?: capture }
+}
 
 private fun DomainValidationException.messageRes(): Int {
     val codes: List<IssueCode> = issues.map { it.code }

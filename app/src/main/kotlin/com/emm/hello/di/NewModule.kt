@@ -266,7 +266,7 @@ fun Module.viewModels() {
             softDeleteFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }
