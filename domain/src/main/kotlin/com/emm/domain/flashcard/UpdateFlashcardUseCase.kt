@@ -6,7 +6,6 @@ class UpdateFlashcardUseCase(
 
     suspend operator fun invoke(input: UpdateFlashcardInput) {
         require(input.word.isNotBlank()) { "Flashcard word must not be blank." }
-        require(input.meaning.isNotBlank()) { "Flashcard meaning must not be blank." }
 
         flashcardRepository.update(input)
     }
