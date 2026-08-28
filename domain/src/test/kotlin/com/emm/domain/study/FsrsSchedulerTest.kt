@@ -17,10 +17,6 @@ class FsrsSchedulerTest {
     private val flashcardId = "card-1".toFlashcardId()
     private val params = FsrsParameters.DEFAULT
 
-    // ========================================================
-    // T-03: Initial-rating path (NEW card transitions)
-    // ========================================================
-
     @Test
     fun `T03 first GOOD rating sets stability to w2 and state to LEARNING`() {
         val card = newCard()
@@ -100,10 +96,6 @@ class FsrsSchedulerTest {
         }
     }
 
-    // ========================================================
-    // T-04: Difficulty update and clamping
-    // ========================================================
-
     @Test
     fun `T04 difficulty stays at most 10 after many AGAIN ratings`() {
         var card = reviewCard(difficulty = 9.5, stability = 5.0)
@@ -137,10 +129,6 @@ class FsrsSchedulerTest {
         assertTrue("EASY should reduce high difficulty, was ${result.difficulty}", result.difficulty < 9.0)
     }
 
-    // ========================================================
-    // T-05: Success-recall stability update (HARD/GOOD/EASY on REVIEW)
-    // ========================================================
-
     @Test
     fun `T05 GOOD rating on REVIEW card increases stability`() {
         val card = reviewCard(stability = 10.0, difficulty = 5.0)
@@ -170,10 +158,6 @@ class FsrsSchedulerTest {
         assertTrue("EASY($sEasy) > GOOD($sGood)", sEasy > sGood)
         assertTrue("GOOD($sGood) > HARD($sHard)", sGood > sHard)
     }
-
-    // ========================================================
-    // T-06: Post-lapse stability + RELEARNING state
-    // ========================================================
 
     @Test
     fun `T06 AGAIN on REVIEW sets state to RELEARNING and increments lapses`() {
@@ -211,10 +195,6 @@ class FsrsSchedulerTest {
 
         assertEquals(FsrsState.LEARNING, result.state)
     }
-
-    // ========================================================
-    // T-07: Interval computation and retrievability
-    // ========================================================
 
     @Test
     fun `T07 higher stability yields longer interval`() {
@@ -265,15 +245,10 @@ class FsrsSchedulerTest {
         assertTrue("interval must be <= 100, was ${result.interval}", result.interval <= 100L)
     }
 
-    // ========================================================
-    // T-08: Short-term / same-day path (w[17..19])
-    // ========================================================
-
     @Test
     fun `T08 same-day AGAIN on LEARNING card does not throw`() {
         val card = learningCard(stability = 1.0, difficulty = 5.0, lapses = 0L)
 
-        // Must not throw; state stays LEARNING
         val result = FsrsScheduler.schedule(card, ReviewGrade.AGAIN, flashcardId, clock, params)
 
         assertTrue(result.stability >= 0.0)
@@ -287,10 +262,6 @@ class FsrsSchedulerTest {
 
         assertTrue("GOOD on RELEARNING should increase stability, was ${result.stability}", result.stability >= 2.0)
     }
-
-    // ========================================================
-    // Clock and ID plumbing
-    // ========================================================
 
     @Test
     fun `lastReviewedAt is set to clock now on any schedule call`() {
@@ -310,10 +281,6 @@ class FsrsSchedulerTest {
 
         assertEquals("different-card", result.flashcardId.value)
     }
-
-    // ========================================================
-    // Helpers
-    // ========================================================
 
     private fun newCard() = FsrsCard.new(flashcardId, clock)
 

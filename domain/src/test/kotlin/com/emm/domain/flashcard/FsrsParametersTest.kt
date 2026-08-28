@@ -7,8 +7,6 @@ import org.junit.Test
 
 class FsrsParametersTest {
 
-    // --- DEFAULT companion ---
-
     @Test
     fun `DEFAULT has 21 weights`() {
         assertEquals(21, FsrsParameters.DEFAULT.weights.size)
@@ -44,8 +42,6 @@ class FsrsParametersTest {
         assertTrue("S0(HARD)>S0(AGAIN)", w[1] > w[0])
     }
 
-    // --- equals/hashCode (DoubleArray) ---
-
     @Test
     fun `two DEFAULT instances are equal`() {
         val p1 = FsrsParameters.DEFAULT
@@ -77,8 +73,6 @@ class FsrsParametersTest {
         val p2 = FsrsParameters(weights = weights.copyOf(), requestedRetention = 0.9)
         assertEquals(p1.hashCode(), p2.hashCode())
     }
-
-    // --- constructor validation ---
 
     @Test(expected = IllegalArgumentException::class)
     fun `constructor rejects weights array with wrong size`() {

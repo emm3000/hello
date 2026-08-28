@@ -6,9 +6,7 @@ data class CreateDeckInput(
     val name: String,
     val description: String,
     val tags: List<String> = emptyList(),
-    // Optional caller-provided id. Mirrors CreateFlashcardInput.id so callers that need to
-    // reference the deck right after creation (e.g. seeding a starter deck with its cards)
-    // can supply a deterministic id instead of relying on the repository-generated UUID.
+    // A caller-supplied id lets the starter-deck seed reference the deck before it is inserted.
     val id: DeckId? = null,
 )
 

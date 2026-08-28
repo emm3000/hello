@@ -13,16 +13,12 @@ class FsrsCardTest {
     private val clock = Clock { now }
     private val flashcardId = "card-1".toFlashcardId()
 
-    // --- FsrsState ---
-
     @Test
     fun `FsrsState enum has exactly four values`() {
         val expected = listOf(FsrsState.NEW, FsrsState.LEARNING, FsrsState.REVIEW, FsrsState.RELEARNING)
         assertEquals(4, FsrsState.entries.size)
         assertTrue(FsrsState.entries.containsAll(expected))
     }
-
-    // --- FsrsCard.new factory ---
 
     @Test
     fun `new card has NEW state and zero stability and zero difficulty`() {
@@ -57,8 +53,6 @@ class FsrsCardTest {
 
         assertEquals(flashcardId, card.flashcardId)
     }
-
-    // --- invariant enforcement ---
 
     @Test(expected = IllegalArgumentException::class)
     fun `constructor rejects negative stability`() {
@@ -96,8 +90,6 @@ class FsrsCardTest {
         validCard().copy(interval = -1L)
     }
 
-    // --- boundary acceptance ---
-
     @Test
     fun `constructor accepts difficulty exactly 1`() {
         val card = validCard().copy(difficulty = 1.0)
@@ -115,8 +107,6 @@ class FsrsCardTest {
         val card = validCard().copy(stability = 0.0)
         assertEquals(0.0, card.stability, 0.0)
     }
-
-    // --- post-first-rating invariants (spec: "Invariants hold after first rating") ---
 
     @Test
     fun `invariants hold when reps is 1 after first rating simulation`() {

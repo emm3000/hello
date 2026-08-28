@@ -1,11 +1,6 @@
 package com.emm.domain.seed
 
-/**
- * Seeds first-run example content so a brand-new install does not open on an empty Hoy.
- *
- * Implementations MUST be idempotent and safe to call on every launch: the seed happens at most
- * once, and only for a genuinely new install (no existing decks).
- */
+// ensureSeeded runs on every launch, so implementations must be idempotent.
 interface SeedDataInitializer {
     suspend fun ensureSeeded()
 }

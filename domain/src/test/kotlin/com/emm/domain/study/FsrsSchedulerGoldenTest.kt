@@ -10,32 +10,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
-/**
- * T-09: Golden-value parity tests.
- *
- * These tests assert INTERNAL consistency and behavioral ordering of the FSRS-6
- * implementation against the canonical default weight vector.
- *
- * TODO(verify): pin exact stability/difficulty/interval values against the upstream
- * FSRS-6 reference implementation (open-spaced-repetition/py-fsrs) before finalizing PR.
- * Current assertions verify ordering, monotonicity, and behavioral contracts from the spec
- * but do NOT pin specific floating-point values to the canonical reference output, because
- * those values cannot be verified offline without running the reference implementation.
- *
- * The weight vector itself (FsrsParameters.FSRS6_DEFAULT_WEIGHTS) must be verified
- * against the canonical source separately.
- */
+// Not golden values against a reference run: these assert ordering, monotonicity and spec
+// contracts, not floating-point parity with open-spaced-repetition/py-fsrs.
 class FsrsSchedulerGoldenTest {
 
     private val params = FsrsParameters.DEFAULT
     private val flashcardId = "card-golden".toFlashcardId()
 
-    // Starting epoch for deterministic elapsed-days computation
     private val epoch = Instant.parse("2026-01-01T00:00:00Z")
-
-    // ----------------------------------------------------------------
-    // GOOD x3 sequence
-    // ----------------------------------------------------------------
 
     @Test
     fun `golden GOOD sequence stability increases from REVIEW state`() {
@@ -112,10 +94,6 @@ class FsrsSchedulerGoldenTest {
         assertEquals(params.weights[2], steps[0].stability, 1e-9)
     }
 
-    // ----------------------------------------------------------------
-    // Lapse-then-recovery sequence: GOOD GOOD AGAIN GOOD
-    // ----------------------------------------------------------------
-
     @Test
     fun `golden lapse sequence post-lapse stability is at most pre-lapse stability`() {
         val steps = lapseThenRecoverySteps()
@@ -146,10 +124,6 @@ class FsrsSchedulerGoldenTest {
         assertTrue("post-recovery stability must be >= 0", postRecovery.stability >= 0.0)
     }
 
-    // ----------------------------------------------------------------
-    // Internal consistency: behavioral ordering from spec
-    // ----------------------------------------------------------------
-
     @Test
     fun `golden behavioral EASY greater GOOD greater HARD stability ordering on same REVIEW card`() {
         val card = reviewCardAtDay(10)
@@ -171,10 +145,6 @@ class FsrsSchedulerGoldenTest {
 
         assertTrue("higher S must yield longer I: $iHigh > $iLow", iHigh > iLow)
     }
-
-    // ----------------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------------
 
     private fun goodGoodGoodSteps(): List<FsrsCard> {
         var card = FsrsCard.new(flashcardId, clockAt(epoch))

@@ -62,10 +62,8 @@ class GetDashboardStatsUseCase(
                 streak++
                 expectedDate = expectedDate.minusDays(1)
             } else if (reviewDate.isBefore(expectedDate)) {
-                // Gap found — streak breaks
                 break
             }
-            // If reviewDate is after expectedDate, skip (already counted)
         }
 
         return streak

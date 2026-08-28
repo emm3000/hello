@@ -7,12 +7,6 @@ interface FlashcardReviewRepository {
 
     fun all(): Flow<List<FsrsCard>>
 
-    /**
-     * Persists the post-scheduling [card] state.
-     *
-     * [grade] is the real rating the user gave this review (AGAIN/HARD/GOOD/EASY); it is not
-     * recoverable from [card] alone (FsrsCard is a state snapshot, not an event), so it must be
-     * threaded explicitly to be written into the ReviewEvent's `rating` column.
-     */
+    // grade is not recoverable from card: FsrsCard is a state snapshot, not an event.
     suspend fun update(card: FsrsCard, grade: ReviewGrade)
 }

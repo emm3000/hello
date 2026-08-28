@@ -11,25 +11,11 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToLong
 
-/**
- * Pure-JVM FSRS-6 scheduler.
- *
- * Equations follow the FSRS-6 specification from open-spaced-repetition.
- * All math is in Double. No Android dependencies.
- *
- * Grade integers (per FSRS convention): AGAIN=1, HARD=2, GOOD=3, EASY=4.
- */
+// Equations follow the FSRS-6 specification from open-spaced-repetition.
+// Grade integers per that convention: AGAIN=1, HARD=2, GOOD=3, EASY=4.
 @Suppress("MagicNumber")
 object FsrsScheduler {
 
-    /**
-     * Schedule a card given the user's grade.
-     *
-     * Dispatches to:
-     *  - initial path  (state == NEW)
-     *  - short-term path (state == LEARNING or RELEARNING)
-     *  - long-term path (state == REVIEW)
-     */
     fun schedule(
         card: FsrsCard,
         grade: ReviewGrade,
@@ -72,10 +58,6 @@ object FsrsScheduler {
         }
     }
 
-    // ----------------------------------------------------------------
-    // Initial path (NEW card, first rating)
-    // ----------------------------------------------------------------
-
     private fun scheduleNew(
         card: FsrsCard,
         gradeInt: Int,
@@ -85,7 +67,7 @@ object FsrsScheduler {
         nowMs: Long,
     ): FsrsCard {
         val s0 = initialStability(gradeInt, w)
-        val d0 = initialDifficulty(gradeInt, w) // clamped to [1,10] by default
+        val d0 = initialDifficulty(gradeInt, w)
         val interval = computeInterval(s0, params)
         val nextMs = nowMs + interval * MILLIS_PER_DAY
         return card.copy(
@@ -97,14 +79,9 @@ object FsrsScheduler {
             nextReviewAt = nextMs,
             interval = interval,
             reps = card.reps + 1L,
-            lapses = card.lapses, // first exposure: no lapse
+            lapses = card.lapses,
         )
     }
-
-    // ----------------------------------------------------------------
-    // Short-term path (LEARNING or RELEARNING — same-day reviews)
-    // Uses w[17], w[18], w[19].
-    // ----------------------------------------------------------------
 
     private fun scheduleShortTerm(
         card: FsrsCard,
@@ -121,16 +98,16 @@ object FsrsScheduler {
         val newLapses = card.lapses
 
         val newState = if (gradeInt == GRADE_AGAIN) {
-            card.state // stays in LEARNING or RELEARNING
+            card.state
         } else {
-            FsrsState.REVIEW // graduate on HARD/GOOD/EASY
+            FsrsState.REVIEW
         }
 
         val interval = if (newState == FsrsState.REVIEW) computeInterval(sNew, params) else 0L
         val nextMs = if (newState == FsrsState.REVIEW) {
             nowMs + interval * MILLIS_PER_DAY
         } else {
-            nowMs + TEN_MINUTES_MS // same-day minimal next
+            nowMs + TEN_MINUTES_MS
         }
 
         return card.copy(
@@ -145,10 +122,6 @@ object FsrsScheduler {
             lapses = newLapses,
         )
     }
-
-    // ----------------------------------------------------------------
-    // Long-term path (REVIEW card)
-    // ----------------------------------------------------------------
 
     private fun scheduleLongTerm(
         card: FsrsCard,
@@ -189,10 +162,6 @@ object FsrsScheduler {
             lapses = newLapses,
         )
     }
-
-    // ----------------------------------------------------------------
-    // FSRS-6 core equations
-    // ----------------------------------------------------------------
 
     /** S0(G) = clampStability(w[G-1]) */
     internal fun initialStability(gradeInt: Int, w: DoubleArray): Double =
@@ -296,10 +265,6 @@ object FsrsScheduler {
         val intervalDouble = (s / factor) * (rReq.pow(1.0 / decay) - 1.0)
         return intervalDouble.roundToLong().coerceIn(1L, params.maximumIntervalDays)
     }
-
-    // ----------------------------------------------------------------
-    // Utilities
-    // ----------------------------------------------------------------
 
     private fun clampStability(s: Double): Double = max(s, STABILITY_MIN)
 
