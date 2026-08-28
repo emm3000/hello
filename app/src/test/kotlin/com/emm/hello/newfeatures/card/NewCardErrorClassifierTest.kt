@@ -16,7 +16,7 @@ class NewCardErrorClassifierTest {
             error = IOException("connection reset"),
             fallbackMessage = "fallback",
         )
-        assertEquals("Sin conexión", classified.title)
+        assertEquals("No connection", classified.title)
     }
 
     @Test
@@ -26,7 +26,7 @@ class NewCardErrorClassifierTest {
             error = timeout,
             fallbackMessage = "fallback",
         )
-        assertEquals("Sin conexión", classified.title)
+        assertEquals("No connection", classified.title)
     }
 
     @Test
@@ -36,7 +36,7 @@ class NewCardErrorClassifierTest {
             error = wrapped,
             fallbackMessage = "fallback",
         )
-        assertEquals("Sin conexión", classified.title)
+        assertEquals("No connection", classified.title)
     }
 
     @Test
@@ -45,7 +45,7 @@ class NewCardErrorClassifierTest {
             error = IllegalStateException("invalid enum value"),
             fallbackMessage = "fallback",
         )
-        assertEquals("Respuesta inválida de IA", classified.title)
+        assertEquals("Invalid AI response", classified.title)
         assertEquals("fallback", classified.message)
     }
 
@@ -56,7 +56,7 @@ class NewCardErrorClassifierTest {
             failureTitle = "Error al regenerar ejemplo",
             fallbackMessage = "fallback",
         )
-        assertEquals("Sin conexión", classified.title)
+        assertEquals("No connection", classified.title)
     }
 
     @Test
@@ -67,7 +67,7 @@ class NewCardErrorClassifierTest {
             fallbackMessage = "fallback",
         )
         assertEquals("Error al regenerar ejemplo", classified.title)
-        assertNotEquals("Sin conexión", classified.title)
+        assertNotEquals("No connection", classified.title)
     }
 
     private fun captureTimeout(): TimeoutCancellationException = runBlocking {

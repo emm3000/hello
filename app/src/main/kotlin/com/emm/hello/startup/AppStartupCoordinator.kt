@@ -40,7 +40,7 @@ class AppStartupCoordinator(
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)
                     mutableState.value = AppStartupState.Error(
-                        message = "No se pudo preparar el modo local de la app.",
+                        message = "Couldn't prepare the app's local mode.",
                     )
                 }
             }

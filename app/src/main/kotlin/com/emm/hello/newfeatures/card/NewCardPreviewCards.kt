@@ -151,7 +151,7 @@ internal fun GeneratedStudyCardEditorSheet(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "TARJETA · ${card.cardType.displayName().uppercase()}",
+            text = "CARD · ${card.cardType.displayName().uppercase()}",
             fontFamily = schibsted,
             fontWeight = FontWeight.Medium,
             fontSize = 10.5.sp,

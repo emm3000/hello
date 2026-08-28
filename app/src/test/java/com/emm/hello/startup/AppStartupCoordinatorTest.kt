@@ -65,7 +65,7 @@ class AppStartupCoordinatorTest {
 
         assertThat(localIdentityInitializer.calls).isEqualTo(1)
         assertThat(subject.state.value).isEqualTo(
-            AppStartupState.Error("No se pudo preparar el modo local de la app.")
+            AppStartupState.Error("Couldn't prepare the app's local mode.")
         )
     }
 

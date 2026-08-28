@@ -297,23 +297,23 @@ internal fun List<GeneratedNoteQualityCheck>.failedAlertsFor(
 
 internal fun GeneratedNoteQualityCode.toAlertTitle(): String {
     return when (this) {
-        GeneratedNoteQualityCode.SingleMeaning -> "Revisa el significado"
-        GeneratedNoteQualityCode.NaturalExample -> "Revisa el ejemplo"
-        GeneratedNoteQualityCode.ExampleSupportsMeaning -> "Ajusta ejemplo y significado"
-        GeneratedNoteQualityCode.NonAmbiguousAnswers -> "Aclara la respuesta esperada"
-        GeneratedNoteQualityCode.RequiredFieldsPresent -> "Completa la nota"
-        GeneratedNoteQualityCode.ClearCardFocus -> "Enfoca mejor la card"
-        GeneratedNoteQualityCode.NoteCardAlignment -> "Alinea la card con la nota"
+        GeneratedNoteQualityCode.SingleMeaning -> "Check the meaning"
+        GeneratedNoteQualityCode.NaturalExample -> "Check the example"
+        GeneratedNoteQualityCode.ExampleSupportsMeaning -> "Align the example and the meaning"
+        GeneratedNoteQualityCode.NonAmbiguousAnswers -> "Clarify the expected answer"
+        GeneratedNoteQualityCode.RequiredFieldsPresent -> "Complete the note"
+        GeneratedNoteQualityCode.ClearCardFocus -> "Sharpen the card's focus"
+        GeneratedNoteQualityCode.NoteCardAlignment -> "Align the card with the note"
     }
 }
 
 internal fun LearningNoteType.displayName(): String {
     return when (this) {
-        LearningNoteType.Word -> "Palabra"
-        LearningNoteType.Phrase -> "Frase"
+        LearningNoteType.Word -> "Word"
+        LearningNoteType.Phrase -> "Phrase"
         LearningNoteType.PhrasalVerb -> "Phrasal verb"
         LearningNoteType.Idiom -> "Idiom"
-        LearningNoteType.SentencePattern -> "Patrón"
+        LearningNoteType.SentencePattern -> "Pattern"
     }
 }
 
@@ -329,7 +329,7 @@ internal fun PartOfSpeechTag.displayName(): String {
         PartOfSpeechTag.PhrasalVerb -> "phrasal verb"
         PartOfSpeechTag.Idiom -> "idiom"
         PartOfSpeechTag.Chunk -> "chunk"
-        PartOfSpeechTag.Other -> "otro"
+        PartOfSpeechTag.Other -> "other"
     }
 }
 
@@ -351,52 +351,52 @@ internal fun LevelBand.displayName(): String {
 
 internal fun LearningDomain.displayName(): String {
     return when (this) {
-        LearningDomain.DailyLife -> "Vida diaria"
-        LearningDomain.Travel -> "Viajes"
+        LearningDomain.DailyLife -> "Daily life"
+        LearningDomain.Travel -> "Travel"
         LearningDomain.Social -> "Social"
-        LearningDomain.Work -> "Trabajo"
-        LearningDomain.Study -> "Estudio"
-        LearningDomain.Media -> "Medios"
-        LearningDomain.Mixed -> "Mixto"
+        LearningDomain.Work -> "Work"
+        LearningDomain.Study -> "Study"
+        LearningDomain.Media -> "Media"
+        LearningDomain.Mixed -> "Mixed"
     }
 }
 
 internal fun StudyCardType.displayName(): String {
     return when (this) {
-        StudyCardType.Recognition -> "Reconocimiento"
-        StudyCardType.Production -> "Producción"
+        StudyCardType.Recognition -> "Recognition"
+        StudyCardType.Production -> "Production"
         StudyCardType.Cloze -> "Cloze"
-        StudyCardType.Form -> "Forma"
+        StudyCardType.Form -> "Form"
     }
 }
 
 internal fun StudyCardType.description(): String {
     return when (this) {
-        StudyCardType.Recognition -> "Sirve para reconocer el significado o uso correcto."
-        StudyCardType.Production -> "Sirve para producir la expresión por tu cuenta."
-        StudyCardType.Cloze -> "Sirve para completar una frase con la forma correcta."
-        StudyCardType.Form -> "Sirve para fijarte en la forma exacta de la expresión."
+        StudyCardType.Recognition -> "Helps you recognize the meaning or correct usage."
+        StudyCardType.Production -> "Helps you produce the expression on your own."
+        StudyCardType.Cloze -> "Helps you complete a sentence with the correct form."
+        StudyCardType.Form -> "Helps you notice the exact form of the expression."
     }
 }
 
 internal fun EvaluationMode.displayName(): String {
     return when (this) {
-        EvaluationMode.Exact -> "Respuesta exacta"
-        EvaluationMode.FlexibleText -> "Texto flexible"
-        EvaluationMode.ManualSelfCheck -> "Autoevaluación"
+        EvaluationMode.Exact -> "Exact answer"
+        EvaluationMode.FlexibleText -> "Flexible text"
+        EvaluationMode.ManualSelfCheck -> "Self-check"
     }
 }
 
 internal fun String.sourceFieldDisplayName(): String {
     return when (this) {
-        "intendedMeaningEs" -> "la traducción objetivo"
-        "simpleDefinitionEn" -> "la definición principal"
-        "whyUseful" -> "la explicación de uso"
-        "exampleSentence" -> "el ejemplo principal"
-        "exampleTranslation" -> "la traducción del ejemplo"
-        "usagePattern" -> "el patrón de uso"
-        "commonMistake" -> "el error común"
-        "clozeSentence" -> "la frase cloze"
+        "intendedMeaningEs" -> "the target translation"
+        "simpleDefinitionEn" -> "the main definition"
+        "whyUseful" -> "the usage explanation"
+        "exampleSentence" -> "the main example"
+        "exampleTranslation" -> "the example translation"
+        "usagePattern" -> "the usage pattern"
+        "commonMistake" -> "the common mistake"
+        "clozeSentence" -> "the cloze sentence"
         else -> this
     }
 }

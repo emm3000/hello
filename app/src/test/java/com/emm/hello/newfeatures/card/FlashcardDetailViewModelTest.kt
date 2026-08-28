@@ -58,7 +58,7 @@ class FlashcardDetailViewModelTest {
         viewModel.effect.test {
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(FlashcardDetailUiEffect.LoadFailed::class.java)
-            assertThat((effect as FlashcardDetailUiEffect.LoadFailed).message).isEqualTo("No se pudo cargar la tarjeta")
+            assertThat((effect as FlashcardDetailUiEffect.LoadFailed).message).isEqualTo("Couldn't load the card")
         }
     }
 

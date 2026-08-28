@@ -50,7 +50,7 @@ fun HSelectTrigger(
     enabled: Boolean = true,
     supportingText: String? = null,
     errorMessage: String? = null,
-    placeholder: String = "Seleccionar…",
+    placeholder: String = "Select…",
 ) {
     val displayText = value.ifBlank { null }
     val borderColor = fieldShellBorderColor(
@@ -125,7 +125,7 @@ fun <T> HSelect(
     supportingText: String? = null,
     errorMessage: String? = null,
     itemLabel: (T) -> String = { it.toString() },
-    placeholder: String = "Seleccionar…",
+    placeholder: String = "Select…",
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val displayText = itemSelected?.let { itemLabel(it) }

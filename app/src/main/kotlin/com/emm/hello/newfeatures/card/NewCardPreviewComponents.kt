@@ -480,9 +480,9 @@ private fun SignificadoBlock(
         PreviewRegenerationTarget.Field(EditableLearningNoteField.WhyUseful)
     val canRegen = noteRegenerationTarget == null || isRegen
     ReviewBlock(
-        label = "Significado",
+        label = "Meaning",
         value = note.whyUseful,
-        placeholder = "Por qué vale la pena aprenderlo",
+        placeholder = "Why it's worth learning",
         minLines = 2,
         onRegenerate = {
             onIntent(NewCardUiIntent.RegenerateFieldClicked(EditableLearningNoteField.WhyUseful))
@@ -527,9 +527,9 @@ private fun EjemploBlock(
     val canRegen = noteRegenerationTarget == null || isRegen
 
     ReviewBlock(
-        label = "Ejemplo",
+        label = "Example",
         value = note.exampleSentence,
-        placeholder = "Ejemplo principal",
+        placeholder = "Main example",
         minLines = 2,
         onRegenerate = { onIntent(NewCardUiIntent.RegenerateExampleClicked) },
         regenerateContentDescription = stringResource(R.string.example_sentence_label),
@@ -572,9 +572,9 @@ private fun UsagePatternBlock(
         PreviewRegenerationTarget.Field(EditableLearningNoteField.UsagePattern)
     val canRegen = noteRegenerationTarget == null || isRegen
     ReviewBlock(
-        label = "Patrón de uso",
+        label = "Usage pattern",
         value = note.usagePattern,
-        placeholder = "Patrón de uso",
+        placeholder = "Usage pattern",
         minLines = 2,
         onRegenerate = {
             onIntent(NewCardUiIntent.RegenerateFieldClicked(EditableLearningNoteField.UsagePattern))
@@ -605,9 +605,9 @@ private fun CommonMistakeBlock(
         PreviewRegenerationTarget.Field(EditableLearningNoteField.CommonMistake)
     val canRegen = noteRegenerationTarget == null || isRegen
     ReviewBlock(
-        label = "Error común",
+        label = "Common mistake",
         value = note.commonMistake,
-        placeholder = "Error a evitar",
+        placeholder = "Mistake to avoid",
         minLines = 2,
         warn = true,
         onRegenerate = {
@@ -643,7 +643,7 @@ private fun ClozeBlock(
     ReviewBlock(
         label = "Cloze",
         value = note.clozeSentence,
-        placeholder = "Frase cloze",
+        placeholder = "Cloze sentence",
         minLines = 2,
         onRegenerate = { onIntent(NewCardUiIntent.RegenerateClozeClicked) },
         regenerateContentDescription = "Regenerar cloze",
@@ -677,7 +677,7 @@ private fun StudyCardsSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "TARJETAS DE ESTUDIO · ${note.cards.size}",
+                text = "STUDY CARDS · ${note.cards.size}",
                 fontFamily = schibsted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 10.5.sp,
@@ -687,7 +687,7 @@ private fun StudyCardsSection(
             )
             val activeCount = note.cards.count { it.isActive }
             Text(
-                text = "$activeCount activas",
+                text = "$activeCount active",
                 fontFamily = schibsted,
                 fontSize = 10.5.sp,
                 letterSpacing = 0.12.em,

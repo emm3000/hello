@@ -119,7 +119,7 @@ fun HButton(
         icon = icon,
     ) {
         Text(
-            text = if (isLoading) "Cargando…" else text,
+            text = if (isLoading) "Loading…" else text,
             style = labelStyle,
         )
     }

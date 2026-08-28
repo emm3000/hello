@@ -2,12 +2,12 @@
     <string name="app_name">Hello</string>
 
     <!-- General -->
-    <string name="cancel">Cancelar</string>
+    <string name="cancel">Cancel</string>
     <string name="error_label">Error</string>
-    <string name="success_label">Éxito</string>
-    <string name="warning_label">Advertencia</string>
-    <string name="edit">Editar</string>
-    <string name="delete">Eliminar</string>
+    <string name="success_label">Success</string>
+    <string name="warning_label">Warning</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
 
     <!-- Today Screen -->
     <string name="today_label">Today</string>
@@ -29,162 +29,152 @@
 
     <!-- Decks Screen -->
     <plurals name="cards_count">
-        <item quantity="one">%d tarjeta</item>
-        <item quantity="other">%d tarjetas</item>
+        <item quantity="one">%d card</item>
+        <item quantity="other">%d cards</item>
     </plurals>
 
     <!-- New Deck Screen -->
-    <string name="deck_name_label">Nombre del mazo</string>
-    <string name="deck_name_placeholder">Ej: Vocabulario de Inglés B2</string>
-    <string name="deck_description_label">Descripción</string>
-    <string name="deck_description_placeholder">Un mazo para los verbos irregulares más comunes.</string>
-    <string name="optional">Opcional</string>
-    <string name="tags_label">Etiquetas</string>
-    <string name="tags_placeholder">Ej: inglés, trabajo, viajes</string>
-    <string name="tags_supporting_text">Enter o coma para agregar. Mínúsculas, sin duplicados.</string>
-    <!-- New/Edit Deck Ember chrome (Phase 2.6) -->
-    <string name="new_deck_top_label">Mazo nuevo</string>
-    <string name="new_deck_headline">Un mazo nuevo.</string>
-    <string name="edit_deck_top_label">Editar mazo</string>
-    <string name="edit_deck_headline">Editar mazo.</string>
-    <string name="new_deck_action_create">Crear</string>
-    <string name="new_deck_action_save">Guardar</string>
-    <string name="new_deck_close_content_description">Cerrar</string>
-    <string name="new_deck_tag_placeholder">+ agregar…</string>
+    <string name="deck_name_label">Deck name</string>
+    <string name="deck_name_placeholder">e.g. English B2 vocabulary</string>
+    <string name="deck_description_label">Description</string>
+    <string name="deck_description_placeholder">A deck for the most common irregular verbs.</string>
+    <string name="optional">Optional</string>
+    <string name="tags_label">Tags</string>
+    <string name="tags_placeholder">e.g. english, work, travel</string>
+    <string name="tags_supporting_text">Enter or comma to add. Lowercase, no duplicates.</string>
+    <string name="new_deck_top_label">New deck</string>
+    <string name="new_deck_headline">A new deck.</string>
+    <string name="edit_deck_top_label">Edit deck</string>
+    <string name="edit_deck_headline">Edit deck.</string>
+    <string name="new_deck_action_create">Create</string>
+    <string name="new_deck_action_save">Save</string>
+    <string name="new_deck_close_content_description">Close</string>
+    <string name="new_deck_tag_placeholder">+ add…</string>
 
     <!-- Deck Detail Screen -->
-    <string name="more_options">Más opciones</string>
-    <!-- Deck Detail Ember header (Phase 2.5 sub-1) -->
-    <plurals name="deck_detail_stats_cards">
-        <item quantity="one">%1$d tarjeta</item>
-        <item quantity="other">%1$d tarjetas</item>
-    </plurals>
-    <string name="delete_deck_title">Eliminar mazo</string>
-    <string name="delete_deck_description">Se eliminará el mazo y sus tarjetas. Puedes deshacer justo después.</string>
+    <string name="more_options">More options</string>
+    <string name="delete_deck_title">Delete deck</string>
+    <string name="delete_deck_description">The deck and its cards will be deleted. You can undo right after.</string>
 
     <!-- Flashcards -->
-    <string name="continue_action">Continuar</string>
-    <!-- New Card wizard redesign — Phase 2.3 -->
-    <string name="new_card_wizard_subtitle">Nueva tarjeta</string>
-    <!-- New Card wizard Input step (Phase 2.3 sub-2) -->
-    <string name="new_card_input_headline_word">Tu palabra.</string>
-    <string name="new_card_input_save_in_label">Guardar en</string>
-    <string name="new_card_input_difficulty_label">Dificultad</string>
-    <string name="new_card_input_word_placeholder">la palabra que quieres aprender…</string>
-    <string name="new_card_input_deck_empty">Ningún mazo seleccionado</string>
-    <string name="new_card_input_create_deck_cta">Crear un mazo</string>
-    <string name="new_card_input_no_decks_hint">Necesitas un mazo para guardar la tarjeta. Créalo aquí.</string>
-    <string name="word_label">Palabra o frase en inglés</string>
-    <string name="intended_meaning_label">Significado deseado</string>
-    <string name="intended_meaning_placeholder">Ej: obtener, recoger, pedir prestado…</string>
-    <string name="intended_meaning_supporting_text">Opcional. Úsalo si la expresión tiene varios significados.</string>
-    <string name="context_sentence_label">Oración de contexto</string>
-    <string name="context_sentence_placeholder">Ej: I need to pick up my sister after class.</string>
-    <string name="context_sentence_supporting_text">Opcional. Ayuda a la IA a escoger el uso correcto.</string>
-    <string name="listening_placeholder">Escuchando…</string>
-    <string name="loading_preview_thinking_for">Pensando en cuándo se suele usar %1$s…</string>
-    <string name="loading_preview_thinking_generic">Pensando en cómo armar tu tarjeta…</string>
-    <string name="loading_preview_eta">SUELE TARDAR 8–12 S</string>
-    <!-- Quota warning in step 2 -->
+    <string name="continue_action">Continue</string>
+    <string name="new_card_wizard_subtitle">New card</string>
+    <string name="new_card_input_headline_word">Your word.</string>
+    <string name="new_card_input_save_in_label">Save in</string>
+    <string name="new_card_input_difficulty_label">Difficulty</string>
+    <string name="new_card_input_word_placeholder">the word you want to learn…</string>
+    <string name="new_card_input_deck_empty">No deck selected</string>
+    <string name="new_card_input_create_deck_cta">Create a deck</string>
+    <string name="new_card_input_no_decks_hint">You need a deck to save the card. Create one here.</string>
+    <string name="word_label">English word or phrase</string>
+    <string name="intended_meaning_label">Intended meaning</string>
+    <string name="intended_meaning_placeholder">e.g. obtener, recoger, pedir prestado…</string>
+    <string name="intended_meaning_supporting_text">Optional. Use it when the expression has several meanings.</string>
+    <string name="context_sentence_label">Context sentence</string>
+    <string name="context_sentence_placeholder">e.g. I need to pick up my sister after class.</string>
+    <string name="context_sentence_supporting_text">Optional. Helps the AI pick the right usage.</string>
+    <string name="listening_placeholder">Listening…</string>
+    <string name="loading_preview_thinking_for">Thinking about when %1$s is usually used…</string>
+    <string name="loading_preview_thinking_generic">Thinking about how to build your card…</string>
+    <string name="loading_preview_eta">USUALLY TAKES 8–12 S</string>
     <plurals name="new_card_quota_remaining_warning">
-        <item quantity="one">Te queda 1 generación hoy.</item>
-        <item quantity="other">Te quedan %d generaciones hoy.</item>
+        <item quantity="one">You have 1 generation left today.</item>
+        <item quantity="other">You have %d generations left today.</item>
     </plurals>
-    <!-- Step 3 quota-exceeded error (sub-4) -->
-    <string name="quota_error_title">Llegamos al límite diario de IA.</string>
-    <string name="quota_error_body">Tu acceso vuelve mañana. Si quieres, guarda tu palabra y ármala a mano, o espera al reinicio.</string>
-    <string name="quota_error_your_word_label">TU PALABRA</string>
-    <string name="quota_error_create_manually">Volver a editar</string>
-    <string name="quota_error_notify_tomorrow">Avisarme mañana</string>
-    <string name="quota_error_reset_at">SE REINICIA A LAS %1$s</string>
-    <string name="quota_error_reset_in">SE REINICIA EN %1$s</string>
-    <string name="quota_error_reset_unknown">SE REINICIA MAÑANA</string>
-    <string name="review_empty_title">Todavía no hay resultado para revisar</string>
-    <string name="review_empty_description">Vuelve al paso anterior y genera una vista previa con IA.</string>
-    <string name="save_in_deck">Guardar en %1$s</string>
-    <string name="voice_input_desc">Entrada de voz</string>
-    <string name="phonetics_label">Fonética</string>
-    <string name="meaning_label">Significado</string>
-    <string name="translation_label">Traducción</string>
-    <string name="examples_label">Ejemplos</string>
-    <string name="why_useful_label">Por qué sirve</string>
-    <string name="usage_pattern_label">Patrón de uso</string>
-    <string name="common_mistake_label">Error común</string>
-    <string name="register_label">Registro</string>
-    <string name="domain_label">Dominio</string>
-    <string name="lemma_label">Lema</string>
-    <string name="collocations_label">Combinaciones frecuentes</string>
-    <string name="irregular_forms_label">Formas irregulares</string>
-    <string name="confusable_with_label">No confundir con</string>
-    <string name="warnings_label">Advertencias</string>
+    <string name="quota_error_title">We hit the daily AI limit.</string>
+    <string name="quota_error_body">Your access returns tomorrow. If you want, save your word and build it by hand, or wait for the reset.</string>
+    <string name="quota_error_your_word_label">YOUR WORD</string>
+    <string name="quota_error_create_manually">Back to editing</string>
+    <string name="quota_error_notify_tomorrow">Remind me tomorrow</string>
+    <string name="quota_error_reset_at">RESETS AT %1$s</string>
+    <string name="quota_error_reset_in">RESETS IN %1$s</string>
+    <string name="quota_error_reset_unknown">RESETS TOMORROW</string>
+    <string name="review_empty_title">Nothing to review yet</string>
+    <string name="review_empty_description">Go back to the previous step and generate an AI preview.</string>
+    <string name="save_in_deck">Save in %1$s</string>
+    <string name="voice_input_desc">Voice input</string>
+    <string name="phonetics_label">Phonetics</string>
+    <string name="meaning_label">Meaning</string>
+    <string name="translation_label">Translation</string>
+    <string name="examples_label">Examples</string>
+    <string name="why_useful_label">Why it\'s useful</string>
+    <string name="usage_pattern_label">Usage pattern</string>
+    <string name="common_mistake_label">Common mistake</string>
+    <string name="register_label">Register</string>
+    <string name="domain_label">Domain</string>
+    <string name="lemma_label">Lemma</string>
+    <string name="collocations_label">Common collocations</string>
+    <string name="irregular_forms_label">Irregular forms</string>
+    <string name="confusable_with_label">Don\'t confuse with</string>
+    <string name="warnings_label">Warnings</string>
     <!-- Card Detail redesign — Phase 2.4 -->
-    <string name="card_detail_header_label">Tarjeta</string>
-    <string name="card_detail_examples_section_label">Ejemplos · %1$d</string>
-    <string name="card_detail_extras_section_label">Más data</string>
-    <string name="card_detail_context_section_label">Contexto</string>
-    <string name="card_detail_footer_study_cards_one">1 tarjeta de estudio</string>
-    <string name="card_detail_footer_study_cards_other">%1$d tarjetas de estudio</string>
-    <string name="card_detail_footer_warnings_one">1 con advertencia</string>
-    <string name="card_detail_footer_warnings_other">%1$d con advertencia</string>
-    <string name="card_detail_footer_next_today">próxima hoy</string>
-    <string name="card_detail_footer_next_overdue">pendiente</string>
-    <string name="card_detail_footer_next_days_one">próxima en 1 d.</string>
-    <string name="card_detail_footer_next_days_other">próxima en %1$d d.</string>
-    <string name="card_explanation_title">Qué practica esta tarjeta</string>
-    <string name="include_card_in_study_label">Usar en repaso</string>
-    <string name="edit_card_action">Editar</string>
-    <string name="regenerate_card_action">Regenerar tarjeta</string>
-    <string name="card_front_label">Lo que verá el usuario</string>
-    <string name="card_front_placeholder">Texto frontal de la tarjeta</string>
-    <string name="card_front_supporting_text">Pregunta o pista que verá el usuario durante el estudio.</string>
-    <string name="card_answer_label">Respuesta correcta</string>
-    <string name="card_answer_placeholder">Respuesta esperada para validar la tarjeta</string>
-    <string name="card_answer_supporting_text">Texto que la app tomará como respuesta correcta.</string>
-    <string name="card_hint_label">Ayuda opcional</string>
-    <string name="card_hint_placeholder">Pista breve para orientar al usuario si hace falta</string>
-    <string name="card_hint_supporting_text">Se muestra como apoyo; no es obligatorio.</string>
-    <string name="regenerate_why_useful">Regenerar por qué sirve</string>
-    <string name="regenerate_usage_pattern">Regenerar patrón de uso</string>
-    <string name="regenerate_common_mistake">Regenerar error común</string>
-    <string name="example_sentence_label">Frase de ejemplo</string>
-    <string name="example_translation_label">Traducción del ejemplo</string>
-    <string name="validation_empty_user_text">Debes ingresar el texto que quieres aprender.</string>
-    <string name="validation_word_input_contains_whitespace">El input parece contener varias palabras; quizá conviene tratarlo como frase.</string>
-    <string name="validation_phrase_input_too_short">La frase parece demasiado corta; revisa si en realidad es una palabra.</string>
-    <string name="validation_sentence_input_too_short">Una entrada tipo oración necesita más contexto para generar una nota útil.</string>
-    <string name="validation_missing_disambiguation">Este término es ambiguo; agrega el significado deseado o una oración de contexto.</string>
-    <string name="validation_missing_communicative_intent">Debes indicar una intención comunicativa para este tipo de entrada.</string>
-    <string name="validation_communicative_goal_too_short">Describe mejor el objetivo comunicativo para obtener contenido más útil.</string>
-    <string name="validation_context_sentence_too_short">La oración de contexto es muy corta; intenta dar más información de uso real.</string>
-    <string name="validation_missing_note_id">La tarjeta generada está incompleta. Genera de nuevo.</string>
-    <string name="validation_missing_expression">La tarjeta generada no tiene expresión. Genera de nuevo.</string>
-    <string name="validation_missing_intended_meaning">Falta el significado en español. Genera de nuevo.</string>
-    <string name="validation_missing_definition">Falta la definición en inglés. Genera de nuevo.</string>
-    <string name="validation_missing_why_useful">La tarjeta no explica por qué vale estudiarla. Genera de nuevo.</string>
-    <string name="validation_missing_example_sentence">La tarjeta no tiene ejemplo de uso. Genera de nuevo.</string>
-    <string name="validation_missing_example_translation">La tarjeta no tiene traducción del ejemplo. Genera de nuevo.</string>
-    <string name="validation_missing_cards">La tarjeta generada no incluye ejercicios de estudio. Genera de nuevo.</string>
-    <string name="validation_missing_quality_checks">La tarjeta generada está incompleta. Genera de nuevo.</string>
-    <string name="validation_missing_usage_pattern">La tarjeta no tiene patrón de uso. Genera de nuevo o agrega uno.</string>
-    <string name="validation_missing_cloze_sentence">La tarjeta no tiene ejercicio de completar. Genera de nuevo.</string>
-    <string name="validation_missing_expected_card_type">Falta un ejercicio del tipo esperado. Genera de nuevo.</string>
-    <string name="validation_missing_expected_recognition_card">Falta el ejercicio de reconocimiento. Genera de nuevo.</string>
-    <string name="validation_missing_expected_production_card">Falta el ejercicio de producción. Genera de nuevo.</string>
-    <string name="validation_missing_expected_cloze_card">Falta el ejercicio de completar. Genera de nuevo.</string>
-    <string name="validation_missing_expected_form_card">Falta el ejercicio de forma. Genera de nuevo.</string>
-    <string name="validation_empty_card_prompt">Uno de los ejercicios no tiene pregunta. Edítalo antes de guardar.</string>
-    <string name="validation_empty_card_answer">Uno de los ejercicios no tiene respuesta. Edítalo antes de guardar.</string>
-    <string name="validation_inactive_card">Hay un ejercicio pausado en la tarjeta. Actívalo o elimínalo.</string>
-    <string name="validation_missing_single_meaning_quality_check">La tarjeta generada está incompleta. Genera de nuevo.</string>
-    <string name="validation_missing_required_quality_check">La tarjeta generada está incompleta. Genera de nuevo.</string>
-    <string name="validation_no_active_cards">La tarjeta debe tener al menos un ejercicio activo.</string>
-    <string name="validation_failed_quality_check">La tarjeta no pasó la revisión de calidad. Edita o genera de nuevo.</string>
-    <string name="validation_card_prompt_matches_answer">La pregunta y la respuesta son iguales. Edita el ejercicio antes de guardar.</string>
-    <string name="validation_duplicate_active_card">Hay ejercicios repetidos con la misma pregunta y respuesta. Elimina el duplicado.</string>
-    <string name="validation_duplicate_exact_card_in_deck">Ya tienes una tarjeta igual en este mazo.</string>
-    <string name="validation_duplicate_word_in_deck">Ya tienes esa palabra en este mazo.</string>
-    <string name="validation_too_many_active_cards">Demasiados ejercicios activos; lo ideal es entre 2 y 4. Pausa los que no necesitas.</string>
-    <string name="validation_answer_too_long_for_recall">La respuesta es muy larga. Intenta acotarla a lo esencial.</string>
+    <string name="card_detail_header_label">Card</string>
+    <string name="card_detail_examples_section_label">Examples · %1$d</string>
+    <string name="card_detail_extras_section_label">More details</string>
+    <string name="card_detail_context_section_label">Context</string>
+    <string name="card_detail_footer_study_cards_one">1 study card</string>
+    <string name="card_detail_footer_study_cards_other">%1$d study cards</string>
+    <string name="card_detail_footer_warnings_one">1 with a warning</string>
+    <string name="card_detail_footer_warnings_other">%1$d with warnings</string>
+    <string name="card_detail_footer_next_today">next today</string>
+    <string name="card_detail_footer_next_overdue">overdue</string>
+    <string name="card_detail_footer_next_days_one">next in 1 d.</string>
+    <string name="card_detail_footer_next_days_other">next in %1$d d.</string>
+    <string name="card_explanation_title">What this card practices</string>
+    <string name="include_card_in_study_label">Use in review</string>
+    <string name="edit_card_action">Edit</string>
+    <string name="regenerate_card_action">Regenerate card</string>
+    <string name="card_front_label">What the learner will see</string>
+    <string name="card_front_placeholder">Card front text</string>
+    <string name="card_front_supporting_text">Question or cue shown during study.</string>
+    <string name="card_answer_label">Correct answer</string>
+    <string name="card_answer_placeholder">Expected answer for this card</string>
+    <string name="card_answer_supporting_text">Text the app will take as the correct answer.</string>
+    <string name="card_hint_label">Optional hint</string>
+    <string name="card_hint_placeholder">Short hint shown when needed</string>
+    <string name="card_hint_supporting_text">Shown as support; not required.</string>
+    <string name="regenerate_why_useful">Regenerate why it\'s useful</string>
+    <string name="regenerate_usage_pattern">Regenerate usage pattern</string>
+    <string name="regenerate_common_mistake">Regenerate common mistake</string>
+    <string name="example_sentence_label">Example sentence</string>
+    <string name="example_translation_label">Example translation</string>
+    <string name="validation_empty_user_text">Enter the text you want to learn.</string>
+    <string name="validation_word_input_contains_whitespace">The input looks like several words; maybe treat it as a phrase.</string>
+    <string name="validation_phrase_input_too_short">The phrase looks too short; check whether it\'s actually a single word.</string>
+    <string name="validation_sentence_input_too_short">A sentence-style entry needs more context to generate a useful note.</string>
+    <string name="validation_missing_disambiguation">This term is ambiguous; add the intended meaning or a context sentence.</string>
+    <string name="validation_missing_communicative_intent">You need to state a communicative intent for this kind of entry.</string>
+    <string name="validation_communicative_goal_too_short">Describe the communicative goal better to get more useful content.</string>
+    <string name="validation_context_sentence_too_short">The context sentence is too short; try to give more real-usage detail.</string>
+    <string name="validation_missing_note_id">The generated card is incomplete. Generate again.</string>
+    <string name="validation_missing_expression">The generated card has no expression. Generate again.</string>
+    <string name="validation_missing_intended_meaning">The Spanish meaning is missing. Generate again.</string>
+    <string name="validation_missing_definition">The English definition is missing. Generate again.</string>
+    <string name="validation_missing_why_useful">The card doesn\'t explain why it\'s worth studying. Generate again.</string>
+    <string name="validation_missing_example_sentence">The card has no usage example. Generate again.</string>
+    <string name="validation_missing_example_translation">The card has no example translation. Generate again.</string>
+    <string name="validation_missing_cards">The generated card includes no study exercises. Generate again.</string>
+    <string name="validation_missing_quality_checks">The generated card is incomplete. Generate again.</string>
+    <string name="validation_missing_usage_pattern">The card has no usage pattern. Generate again or add one.</string>
+    <string name="validation_missing_cloze_sentence">The card has no fill-in exercise. Generate again.</string>
+    <string name="validation_missing_expected_card_type">An exercise of the expected type is missing. Generate again.</string>
+    <string name="validation_missing_expected_recognition_card">The recognition exercise is missing. Generate again.</string>
+    <string name="validation_missing_expected_production_card">The production exercise is missing. Generate again.</string>
+    <string name="validation_missing_expected_cloze_card">The fill-in exercise is missing. Generate again.</string>
+    <string name="validation_missing_expected_form_card">The form exercise is missing. Generate again.</string>
+    <string name="validation_empty_card_prompt">One of the exercises has no question. Edit it before saving.</string>
+    <string name="validation_empty_card_answer">One of the exercises has no answer. Edit it before saving.</string>
+    <string name="validation_inactive_card">There\'s a paused exercise on the card. Activate it or delete it.</string>
+    <string name="validation_missing_single_meaning_quality_check">The generated card is incomplete. Generate again.</string>
+    <string name="validation_missing_required_quality_check">The generated card is incomplete. Generate again.</string>
+    <string name="validation_no_active_cards">The card needs at least one active exercise.</string>
+    <string name="validation_failed_quality_check">The card didn\'t pass the quality check. Edit or generate again.</string>
+    <string name="validation_card_prompt_matches_answer">The question and the answer are the same. Edit the exercise before saving.</string>
+    <string name="validation_duplicate_active_card">There are repeated exercises with the same question and answer. Delete the duplicate.</string>
+    <string name="validation_duplicate_exact_card_in_deck">You already have an identical card in this deck.</string>
+    <string name="validation_duplicate_word_in_deck">You already have that word in this deck.</string>
+    <string name="validation_too_many_active_cards">Too many active exercises; 2 to 4 is ideal. Pause the ones you don\'t need.</string>
+    <string name="validation_answer_too_long_for_recall">The answer is too long. Try to trim it to the essentials.</string>
 
     <!-- Study Screen -->
     <string name="exit_session_desc">End session</string>
@@ -210,89 +200,87 @@
     <string name="study_done_back">Back to Today</string>
 
     <!-- Notifications -->
-    <string name="notification_channel_name">Recordatorios de estudio</string>
-    <string name="notification_channel_description">Aviso diario cuando tienes tarjetas listas para repasar.</string>
-    <string name="notification_reminder_title">Tu repaso del día</string>
+    <string name="notification_channel_name">Study reminders</string>
+    <string name="notification_channel_description">Daily heads-up when you have cards ready to review.</string>
+    <string name="notification_reminder_title">Your review for today</string>
     <plurals name="notification_reminder_body">
-        <item quantity="one">Tienes %1$d tarjeta para repasar hoy.</item>
-        <item quantity="other">Tienes %1$d tarjetas para repasar hoy.</item>
+        <item quantity="one">You have %1$d card to review today.</item>
+        <item quantity="other">You have %1$d cards to review today.</item>
     </plurals>
 
     <!-- Notes -->
-    <string name="notes_label">Notas</string>
+    <string name="notes_label">Notes</string>
 
     <!-- Settings Screen -->
-    <string name="export_data">Exportar datos</string>
-    <string name="restore_backup">Restaurar desde backup</string>
-    <string name="restore_confirm_title">¿Reemplazar todos los datos?</string>
-    <string name="restore_confirm_description">Vas a borrar los datos actuales y reemplazarlos con el backup. Esta acción no se puede deshacer. ¿Continuar?</string>
-    <string name="restore_confirm_yes">Reemplazar</string>
-    <string name="restore_confirm_no">Cancelar</string>
-    <!-- Settings Ember chrome (Phase 2.8) -->
-    <string name="settings_eyebrow">Ajustes</string>
-    <string name="settings_headline">Cómo quieres que funcione.</string>
-    <string name="settings_subtitle">Local y a tu ritmo.</string>
-    <string name="settings_section_data">Tus datos</string>
-    <string name="settings_export_subtitle">Crea un archivo .hello para guardar donde quieras.</string>
-    <string name="settings_import_subtitle">Reemplaza todo lo que hay ahora.</string>
-    <string name="settings_footer_tagline">hecho con tinta y café</string>
+    <string name="export_data">Export data</string>
+    <string name="restore_backup">Restore from backup</string>
+    <string name="restore_confirm_title">Replace all data?</string>
+    <string name="restore_confirm_description">You\'ll erase the current data and replace it with the backup. This can\'t be undone. Continue?</string>
+    <string name="restore_confirm_yes">Replace</string>
+    <string name="restore_confirm_no">Cancel</string>
+    <string name="settings_eyebrow">Settings</string>
+    <string name="settings_headline">How you want it to work.</string>
+    <string name="settings_subtitle">Local and at your pace.</string>
+    <string name="settings_section_data">Your data</string>
+    <string name="settings_export_subtitle">Creates a .hello file to keep wherever you want.</string>
+    <string name="settings_import_subtitle">Replaces everything you have now.</string>
+    <string name="settings_footer_tagline">made with ink and coffee</string>
     <string name="settings_footer_meta">hello · 2026</string>
     <string name="settings_content_description">Settings</string>
-    <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
+    <string name="mic_permission_denied">We need microphone permission to dictate.</string>
 
-    <string name="retry_action">Reintentar</string>
+    <string name="retry_action">Retry</string>
 
     <!-- Flashcard edit/delete -->
-    <string name="edit_flashcard_title">Editar tarjeta</string>
-    <string name="edit_flashcard_loading">Cargando tarjeta…</string>
-    <string name="edit_flashcard_word_placeholder">Ej: serendipity</string>
-    <string name="edit_flashcard_meaning_placeholder">Significado de la palabra</string>
-    <string name="edit_flashcard_translation_placeholder">Traducción al español</string>
-    <string name="edit_flashcard_phonetic_placeholder">Ej: /ˌserənˈdɪpɪti/</string>
-    <string name="edit_flashcard_part_of_speech_placeholder">Ej: noun, verb</string>
-    <string name="edit_flashcard_no_examples">No hay ejemplos</string>
-    <string name="edit_flashcard_remove_example">Eliminar ejemplo</string>
-    <string name="delete_flashcard_title">Eliminar tarjeta</string>
-    <string name="delete_flashcard_description">Se eliminará la tarjeta y sus datos. Puedes deshacer justo después.</string>
-    <!-- Edit Flashcard Ember (Phase 2.7) -->
-    <string name="edit_flashcard_action_save">Guardar</string>
-    <string name="edit_flashcard_close_content_description">Cerrar</string>
-    <string name="edit_flashcard_add_inline">+ agregar</string>
-    <string name="edit_flashcard_delete_action">Borrar tarjeta</string>
-    <string name="part_of_speech_label">Categoría gramatical</string>
+    <string name="edit_flashcard_title">Edit card</string>
+    <string name="edit_flashcard_loading">Loading card…</string>
+    <string name="edit_flashcard_word_placeholder">e.g. serendipity</string>
+    <string name="edit_flashcard_meaning_placeholder">Meaning of the word</string>
+    <string name="edit_flashcard_translation_placeholder">Spanish translation</string>
+    <string name="edit_flashcard_phonetic_placeholder">e.g. /ˌserənˈdɪpɪti/</string>
+    <string name="edit_flashcard_part_of_speech_placeholder">e.g. noun, verb</string>
+    <string name="edit_flashcard_no_examples">No examples</string>
+    <string name="edit_flashcard_remove_example">Remove example</string>
+    <string name="delete_flashcard_title">Delete card</string>
+    <string name="delete_flashcard_description">The card and its data will be deleted. You can undo right after.</string>
+    <string name="edit_flashcard_action_save">Save</string>
+    <string name="edit_flashcard_close_content_description">Close</string>
+    <string name="edit_flashcard_add_inline">+ add</string>
+    <string name="edit_flashcard_delete_action">Delete card</string>
+    <string name="part_of_speech_label">Part of speech</string>
 
     <!-- Undo snackbar -->
-    <string name="undo_action_label">Deshacer</string>
-    <string name="undo_deck_deleted_message">Mazo \"%1$s\" eliminado</string>
-    <string name="undo_card_deleted_message">Tarjeta eliminada</string>
+    <string name="undo_action_label">Undo</string>
+    <string name="undo_deck_deleted_message">Deck \"%1$s\" deleted</string>
+    <string name="undo_card_deleted_message">Card deleted</string>
 
     <!-- Deck/card feedback (errors, validation, success) -->
-    <string name="error_load_card">No se pudo cargar la tarjeta</string>
-    <string name="error_save_card">No se pudo actualizar la tarjeta</string>
-    <string name="error_delete_card">No se pudo eliminar la tarjeta</string>
-    <string name="error_restore_card">No se pudo restaurar la tarjeta</string>
-    <string name="validation_word_required">La palabra es obligatoria</string>
-    <string name="validation_meaning_required">El significado es obligatorio</string>
-    <string name="error_load_deck">No se pudo cargar el mazo</string>
-    <string name="error_create_deck">No se pudo crear el mazo</string>
-    <string name="error_update_deck">No se pudo actualizar el mazo</string>
-    <string name="error_delete_deck">No se pudo eliminar el mazo</string>
-    <string name="deck_created_message">Mazo creado</string>
-    <string name="deck_updated_message">Mazo actualizado</string>
-    <string name="card_updated_message">Tarjeta actualizada</string>
+    <string name="error_load_card">Couldn\'t load the card</string>
+    <string name="error_save_card">Couldn\'t update the card</string>
+    <string name="error_delete_card">Couldn\'t delete the card</string>
+    <string name="error_restore_card">Couldn\'t restore the card</string>
+    <string name="validation_word_required">The word is required</string>
+    <string name="validation_meaning_required">The meaning is required</string>
+    <string name="error_load_deck">Couldn\'t load the deck</string>
+    <string name="error_create_deck">Couldn\'t create the deck</string>
+    <string name="error_update_deck">Couldn\'t update the deck</string>
+    <string name="error_delete_deck">Couldn\'t delete the deck</string>
+    <string name="deck_created_message">Deck created</string>
+    <string name="deck_updated_message">Deck updated</string>
+    <string name="card_updated_message">Card updated</string>
 
     <!-- Onboarding carousel (Phase 2) -->
-    <string name="onboarding_decks_title">Tus mazos</string>
-    <string name="onboarding_decks_body">Un mazo agrupa tarjetas de un mismo tema. Crea uno por cada cosa que quieras aprender.</string>
-    <string name="onboarding_srs_title">Repaso espaciado</string>
-    <string name="onboarding_srs_body">Te mostramos cada tarjeta justo antes de que la olvides. Mientras más la recuerdes, más se espacia.</string>
-    <string name="onboarding_grading_title">Tú calificas</string>
-    <string name="onboarding_grading_body">Al responder, dinos qué tan fácil fue. Eso ajusta cuándo vuelves a verla.</string>
-    <string name="onboarding_cta_next">Siguiente</string>
-    <string name="onboarding_cta_start">Empezar</string>
-    <string name="onboarding_skip">Saltar</string>
-    <string name="onboarding_page_indicator_description">Página %1$d de %2$d</string>
-    <string name="onboarding_seed_deck_name">Primeras palabras</string>
+    <string name="onboarding_decks_title">Your decks</string>
+    <string name="onboarding_decks_body">A deck groups cards on one topic. Create one for each thing you want to learn.</string>
+    <string name="onboarding_srs_title">Spaced repetition</string>
+    <string name="onboarding_srs_body">We show you each card right before you\'d forget it. The better you remember it, the more it spaces out.</string>
+    <string name="onboarding_grading_title">You do the grading</string>
+    <string name="onboarding_grading_body">After answering, tell us how easy it was. That adjusts when you see it again.</string>
+    <string name="onboarding_cta_next">Next</string>
+    <string name="onboarding_cta_start">Start</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_page_indicator_description">Page %1$d of %2$d</string>
+    <string name="onboarding_seed_deck_name">First words</string>
 
     <!-- Capture -->
     <string name="capture_title">Add a word</string>
@@ -336,12 +324,12 @@
         <item quantity="one">in %1$d day</item>
         <item quantity="other">in %1$d days</item>
     </plurals>
-    <string name="delete_deck_action">Borrar mazo</string>
-    <string name="decks_title">Mazos</string>
-    <string name="decks_create_action">Nuevo mazo</string>
-    <string name="decks_empty_headline">Todavía no hay mazos</string>
-    <string name="decks_empty_body">Un mazo agrupa tarjetas. Es opcional: puedes capturar sin crear ninguno.</string>
-    <string name="settings_section_organization">Organización</string>
-    <string name="settings_decks_subtitle">Crear, renombrar o borrar mazos</string>
-    <string name="error_restore_deck">No se pudo restaurar el mazo</string>
+    <string name="delete_deck_action">Delete deck</string>
+    <string name="decks_title">Decks</string>
+    <string name="decks_create_action">New deck</string>
+    <string name="decks_empty_headline">No decks yet</string>
+    <string name="decks_empty_body">A deck groups cards. It\'s optional: you can capture without creating one.</string>
+    <string name="settings_section_organization">Organization</string>
+    <string name="settings_decks_subtitle">Create, rename or delete decks</string>
+    <string name="error_restore_deck">Couldn\'t restore the deck</string>
 </resources>

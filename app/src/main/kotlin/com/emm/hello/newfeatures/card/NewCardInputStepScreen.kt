@@ -457,7 +457,7 @@ private fun DeckPickerSection(
         }
         return
     }
-    // HSelect renders the "Guardar en" label inside its FieldShell, so the
+    // HSelect renders the "Save in" label inside its FieldShell, so the
     // standalone HSectionLabel is only used for the empty-decks branch above.
     HSelect(
         items = state.decks,
@@ -547,8 +547,8 @@ internal fun List<ValidationIssue>.inputMessageOrNull(
 }
 
 private fun difficultyDisplayLabel(level: String): String = when (level) {
-    "basico" -> "Básico"
-    "intermedio" -> "Intermedio"
-    "avanzado" -> "Avanzado"
+    "basico" -> "Basic"
+    "intermedio" -> "Intermediate"
+    "avanzado" -> "Advanced"
     else -> level.replaceFirstChar { if (it.isLowerCase()) it.uppercaseChar().toString() else it.toString() }
 }

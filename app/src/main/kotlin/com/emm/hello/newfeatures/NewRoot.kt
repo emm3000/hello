@@ -170,12 +170,12 @@ private fun StartupErrorScreen(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             HAlert(
-                title = "No se pudo inicializar la app",
+                title = "Couldn't initialize the app",
                 description = message,
                 variant = AlertVariant.Destructive,
             )
             HButton(
-                text = "Reintentar",
+                text = "Retry",
                 onClick = onRetry,
                 variant = HButtonVariant.Primary,
             )

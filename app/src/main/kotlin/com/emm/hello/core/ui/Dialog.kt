@@ -32,7 +32,7 @@ fun HAlertDialog(
     description: String? = null,
     icon: ImageVector? = null,
     confirmText: String = "Aceptar",
-    cancelText: String? = "Cancelar",
+    cancelText: String? = "Cancel",
     isDangerous: Boolean = false,
 ) {
     AlertDialog(
@@ -109,7 +109,7 @@ private fun HAlertDialogDangerousPreview() {
                     description = "Esta acción no se puede deshacer. Perderás todas las tarjetas asociadas.",
                     icon = Icons.Outlined.Delete,
                     confirmText = "Borrar",
-                    cancelText = "Cancelar",
+                    cancelText = "Cancel",
                     isDangerous = true,
                     onConfirm = { show = false },
                     onDismiss = { show = false },

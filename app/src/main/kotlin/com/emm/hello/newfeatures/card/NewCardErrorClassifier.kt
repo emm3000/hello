@@ -19,12 +19,12 @@ internal object NewCardErrorClassifier {
         error.findAmbiguousInput()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
-                title = "Sin conexión",
-                message = "No pudimos contactar al asistente. Verifica tu conexión y reintenta.",
+                title = "No connection",
+                message = "We couldn't reach the assistant. Check your connection and retry.",
             )
         }
         return ClassifiedError(
-            title = "Respuesta inválida de IA",
+            title = "Invalid AI response",
             message = fallbackMessage,
         )
     }
@@ -38,8 +38,8 @@ internal object NewCardErrorClassifier {
         error.findAmbiguousInput()?.let { return it.toClassifiedError() }
         if (error.isNetworkRelated()) {
             return ClassifiedError(
-                title = "Sin conexión",
-                message = "No pudimos contactar al asistente. Verifica tu conexión y reintenta.",
+                title = "No connection",
+                message = "We couldn't reach the assistant. Check your connection and retry.",
             )
         }
         return ClassifiedError(
@@ -68,17 +68,17 @@ internal object NewCardErrorClassifier {
 
     private fun AmbiguousGenerationInputException.toClassifiedError(): ClassifiedError {
         return ClassifiedError(
-            title = "Necesito más contexto",
+            title = "I need more context",
             message = reason.ifBlank {
-                "Prueba dar más detalle: una palabra, frase o intención comunicativa."
+                "Try giving more detail: a word, a phrase or a communicative intent."
             },
         )
     }
 
     private fun GenerationQuotaExceededException.toClassifiedError(): ClassifiedError {
         return ClassifiedError(
-            title = "Llegamos al límite diario de IA.",
-            message = "Llegaste al máximo de $limit generaciones por día. Vuelve a intentarlo mañana.",
+            title = "We hit the daily AI limit.",
+            message = "You reached the maximum of $limit generations per day. Try again tomorrow.",
             quotaResetAt = resetAt,
         )
     }

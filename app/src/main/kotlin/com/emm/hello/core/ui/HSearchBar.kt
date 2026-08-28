@@ -54,7 +54,7 @@ fun HSearchBar(
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    clearContentDescription: String = "Limpiar búsqueda",
+    clearContentDescription: String = "Clear search",
     leadingIconContentDescription: String? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
@@ -82,7 +82,7 @@ fun HSearchBar(
             )
             .background(surface)
             .padding(horizontal = MaterialTheme.spacing.md)
-            .semantics { contentDescription = "Campo de búsqueda" },
+            .semantics { contentDescription = "Search field" },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {

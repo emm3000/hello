@@ -79,11 +79,11 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
             _isListening.value = true
             _state.value = STTState.READY_TO_LISTEN
         } catch (_: SecurityException) {
-            _error.value = "No se pudo iniciar el reconocimiento de voz."
+            _error.value = "Couldn't start speech recognition."
             _isListening.value = false
             _state.value = STTState.ERROR
         } catch (_: IllegalStateException) {
-            _error.value = "No se pudo iniciar el reconocimiento de voz."
+            _error.value = "Couldn't start speech recognition."
             _isListening.value = false
             _state.value = STTState.ERROR
         }
@@ -137,13 +137,13 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
             _isListening.value = false
             _error.value = when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH,
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No te escuchamos. Intentá hablar más cerca del micrófono."
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "We didn't hear you. Try speaking closer to the microphone."
                 SpeechRecognizer.ERROR_NETWORK,
-                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Sin conexión. El dictado por voz necesita internet."
-                SpeechRecognizer.ERROR_AUDIO -> "No pudimos acceder al micrófono."
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Falta permiso de micrófono."
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "El dictado está ocupado, esperá un momento."
-                else -> "El dictado por voz no está disponible en este dispositivo."
+                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "No connection. Voice dictation needs internet."
+                SpeechRecognizer.ERROR_AUDIO -> "We couldn't access the microphone."
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission is missing."
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Dictation is busy, wait a moment."
+                else -> "Voice dictation isn't available on this device."
             }
             _state.value = STTState.ERROR
         }

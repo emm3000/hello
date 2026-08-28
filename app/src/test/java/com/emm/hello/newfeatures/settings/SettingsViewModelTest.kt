@@ -38,7 +38,7 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.ExportUriReceived(uri))
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup exportado correctamente"))
+        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
         assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
@@ -55,7 +55,7 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
-        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("No se pudo exportar el backup")
+        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't export the backup")
         assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
@@ -106,7 +106,7 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
-        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("No se pudo restaurar el backup.")
+        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't restore the backup.")
         assertThat(viewModel.state.value.isConfirmDialogVisible).isFalse()
     }
 

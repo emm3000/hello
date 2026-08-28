@@ -49,7 +49,7 @@ class FlashcardDetailViewModel(
                 throw e
             } catch (e: Throwable) {
                 logError(TAG, "loadFlashcard:error ${e.message}", e)
-                sendEffect(FlashcardDetailUiEffect.LoadFailed("No se pudo cargar la tarjeta"))
+                sendEffect(FlashcardDetailUiEffect.LoadFailed("Couldn't load the card"))
             }
         }
     }
@@ -67,7 +67,7 @@ class FlashcardDetailViewModel(
         } catch (e: Throwable) {
             logError(TAG, "deleteFlashcard:error ${e.message}", e)
             sendEffect(
-                FlashcardDetailUiEffect.ShowMessage("No se pudo eliminar la tarjeta")
+                FlashcardDetailUiEffect.ShowMessage("Couldn't delete the card")
             )
         }
     }
