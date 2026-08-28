@@ -9,28 +9,23 @@
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
 
-    <!-- Hoy Stats Section -->
-    <string name="today_stat_studied_today">Estudiadas hoy</string>
-    <string name="today_stat_due_today">Para hoy</string>
-    <string name="today_stat_day_streak">Racha de días</string>
-    <string name="today_stat_due_this_week">Para esta semana</string>
-
-    <!-- Hoy Screen -->
-    <!-- Hoy redesign -->
-    <string name="today_hero_calm">Nada que repasar hoy.</string>
-    <string name="today_study_now">Estudiar ahora</string>
-    <plurals name="today_card_count">
-        <item quantity="one">%d tarjeta</item>
-        <item quantity="other">%d tarjetas</item>
+    <!-- Today Screen -->
+    <string name="today_label">Today</string>
+    <string name="today_day_number">Day %1$d</string>
+    <plurals name="today_word_count">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
     </plurals>
-    <string name="today_session_supporting">%1$s · ~%2$d min</string>
-    <string name="today_next_due_later_today">Lo próximo: %1$s más tarde hoy</string>
-    <string name="today_next_due_tomorrow">Lo próximo: %1$s mañana</string>
-    <string name="today_next_due_in_days">Lo próximo: %1$s en %2$d días</string>
-    <string name="today_next_due_none">Nada programado todavía</string>
-    <string name="today_resting_cta">Capturar una palabra</string>
-    <string name="today_section_progress">Tu progreso</string>
-    <string name="today_fab_label">Nueva tarjeta</string>
+    <string name="today_estimate">about %1$d min</string>
+    <string name="today_start">Start</string>
+    <string name="today_add_word">Add a word</string>
+    <string name="today_library">Library</string>
+    <string name="today_nothing_due">Nothing due</string>
+    <string name="today_next_due_later_today">%1$s later today</string>
+    <string name="today_next_due_tomorrow">%1$s tomorrow</string>
+    <string name="today_next_due_in_days">%1$s in %2$d days</string>
+    <string name="today_next_due_none">Nothing scheduled yet</string>
+    <string name="today_ring_content_description">Today\'s progress, %1$d percent</string>
 
     <!-- Decks Screen -->
     <plurals name="cards_count">
@@ -247,7 +242,7 @@
     <string name="settings_import_subtitle">Reemplaza todo lo que hay ahora.</string>
     <string name="settings_footer_tagline">hecho con tinta y café</string>
     <string name="settings_footer_meta">hello · 2026</string>
-    <string name="settings_content_description">Ajustes</string>
+    <string name="settings_content_description">Settings</string>
     <string name="mic_permission_denied">Necesitamos permiso de micrófono para dictar.</string>
 
     <string name="retry_action">Reintentar</string>
@@ -347,7 +342,7 @@
     <string name="library_no_results_headline">Sin resultados</string>
     <string name="library_no_results_body">Ninguna tarjeta coincide con lo que buscas.</string>
     <string name="library_no_results_cta">Limpiar filtros</string>
-    <string name="library_content_description">Abrir la biblioteca</string>
+    <string name="library_content_description">Open the library</string>
     <string name="delete_deck_action">Borrar mazo</string>
     <string name="decks_title">Mazos</string>
     <string name="decks_create_action">Nuevo mazo</string>

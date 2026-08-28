@@ -1,50 +1,56 @@
 package com.emm.hello.newfeatures.today
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.NextDueBatch
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.cardHues
+import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
-import com.emm.hello.core.ui.HFab
 import com.emm.hello.core.ui.HIconButton
-import com.emm.hello.core.ui.HLoadingSpinner
-import com.emm.hello.core.ui.HSectionLabel
+import com.emm.hello.core.ui.HRing
 import java.time.Instant
+import kotlin.math.roundToInt
 
 @Composable
 fun TodayScreen(
@@ -60,242 +66,278 @@ fun TodayScreen(
         onVisible()
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(pageBackground)
+            .systemBarsPadding()
+            .padding(horizontal = MaterialTheme.spacing.screenGutter)
+            .padding(bottom = MaterialTheme.spacing.xl),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
+    ) {
+        TodayHeader(state = state, onSettings = onSettings)
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding(),
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
-            WordmarkRow(onSettings = onSettings, onLibrary = onLibrary)
-
-            if (state.isLoading) {
-                LoadingContent(modifier = Modifier.weight(1f))
-            } else {
-                SessionContent(
-                    modifier = Modifier.weight(1f),
-                    state = state,
-                    onStudy = onStudy,
-                    onCapture = onCapture,
-                )
-            }
+            DueStack(state = state)
         }
-
-        HFab(
-            onClick = onCapture,
-            label = stringResource(R.string.today_fab_label),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 24.dp),
+        TodayActions(
+            state = state,
+            onStudy = onStudy,
+            onCapture = onCapture,
+            onLibrary = onLibrary,
         )
     }
 }
 
 @Composable
-private fun WordmarkRow(
+private fun TodayHeader(
+    state: TodayUiState,
     onSettings: () -> Unit,
-    onLibrary: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 18.dp, end = 8.dp, top = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .heightIn(min = 44.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        fontSize = 22.sp,
-                        color = ink,
-                        letterSpacing = (-0.2).sp,
-                    ),
-                ) {
-                    append("Hello")
-                }
-                withStyle(
-                    SpanStyle(
-                        fontSize = 22.sp,
-                        color = ink,
-                        letterSpacing = (-0.2).sp,
-                    ),
-                ) {
-                    append(".")
-                }
-            },
-        )
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HIconButton(
-                icon = Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(R.string.library_content_description),
-                onClick = onLibrary,
-                tint = inkMuted,
-                iconSize = 20.dp,
-            )
-            HIconButton(
-                icon = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_content_description),
-                onClick = onSettings,
-                tint = inkMuted,
-                iconSize = 20.dp,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SessionContent(
-    state: TodayUiState,
-    onStudy: () -> Unit,
-    onCapture: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-    ) {
-        Spacer(Modifier.height(18.dp))
-
-        if (state.hasSessionReady) {
-            SessionCta(
-                dueCount = state.cardsDueToday,
-                estimatedMinutes = state.estimatedSessionMinutes,
-                onStudy = onStudy,
-            )
-        } else {
-            RestingHero(nextDue = state.nextDue, onCapture = onCapture)
-        }
-
-        val stats: DashboardStats? = state.stats
-        if (stats != null) {
-            Spacer(Modifier.height(36.dp))
-            HSectionLabel(label = stringResource(R.string.today_section_progress))
-            Spacer(Modifier.height(10.dp))
-            TodayStatsSection(stats = stats)
-        }
-
-        Spacer(Modifier.height(100.dp))
-    }
-}
-
-@Composable
-private fun SessionCta(
-    dueCount: Int,
-    estimatedMinutes: Int,
-    onStudy: () -> Unit,
-) {
-    HButton(
-        onClick = onStudy,
-        variant = HButtonVariant.Primary,
-        full = true,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = stringResource(R.string.today_study_now),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 20.sp,
-                letterSpacing = (-0.01).em,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = stringResource(
-                    R.string.today_session_supporting,
-                    pluralStringResource(R.plurals.today_card_count, dueCount, dueCount),
-                    estimatedMinutes,
-                ).uppercase(),
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Medium,
-                fontSize = 11.sp,
-                letterSpacing = 0.1.em,
-            )
-        }
-    }
-}
-
-@Composable
-private fun RestingHero(
-    nextDue: NextDueBatch?,
-    onCapture: () -> Unit,
-) {
-    Column {
-        Text(
-            text = stringResource(R.string.today_hero_calm),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 32.sp,
-            lineHeight = (32 * 1.06f).sp,
-            letterSpacing = (-0.02).em,
+            text = stringResource(R.string.today_label).uppercase(),
+            style = MaterialTheme.typography.metadata,
             color = inkMuted,
+            modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = nextDueLabel(nextDue),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
-            letterSpacing = 0.1.em,
-            color = inkFaint,
+        HIconButton(
+            icon = Icons.Default.Settings,
+            contentDescription = stringResource(R.string.settings_content_description),
+            onClick = onSettings,
+            tint = inkMuted,
+            iconSize = 20.dp,
+            buttonSize = 44.dp,
         )
-        Spacer(Modifier.height(20.dp))
-        HButton(
-            text = stringResource(R.string.today_resting_cta),
-            onClick = onCapture,
-            variant = HButtonVariant.Primary,
-            full = true,
+        if (!state.isLoading) {
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+            val ringDescription: String = stringResource(
+                R.string.today_ring_content_description,
+                (state.ringProgress * 100).roundToInt(),
+            )
+            HRing(
+                progress = state.ringProgress,
+                modifier = Modifier.semantics { contentDescription = ringDescription },
+            )
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+            Text(
+                text = stringResource(R.string.today_day_number, state.dayNumber),
+                style = MaterialTheme.typography.titleSmall,
+                color = ink,
+            )
+        }
+    }
+}
+
+private const val STACK_ASPECT_RATIO: Float = 300f / 220f
+private const val STACK_BACK_ROTATION: Float = -5f
+private const val STACK_MIDDLE_ROTATION: Float = 4f
+private val stackBackOffset: Dp = 10.dp
+private val stackMiddleOffset: Dp = 6.dp
+private val stackMaxWidth: Dp = 300.dp
+
+@Composable
+private fun DueStack(state: TodayUiState, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .widthIn(max = stackMaxWidth)
+            .fillMaxWidth()
+            .aspectRatio(STACK_ASPECT_RATIO),
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(y = stackBackOffset)
+                .graphicsLayer { rotationZ = STACK_BACK_ROTATION }
+                .clip(MaterialTheme.helloShapes.container)
+                .background(cardHues[2]),
         )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(y = stackMiddleOffset)
+                .graphicsLayer { rotationZ = STACK_MIDDLE_ROTATION }
+                .clip(MaterialTheme.helloShapes.container)
+                .background(cardHues[1]),
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(MaterialTheme.helloShapes.container)
+                .background(cardHues[0]),
+            contentAlignment = Alignment.BottomStart,
+        ) {
+            Column(
+                modifier = Modifier.padding(MaterialTheme.spacing.xl),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            ) {
+                StackCopy(state = state)
+            }
+        }
     }
 }
 
 @Composable
-private fun nextDueLabel(nextDue: NextDueBatch?): String {
-    if (nextDue == null) return stringResource(R.string.today_next_due_none).uppercase()
+private fun StackCopy(state: TodayUiState) {
+    when {
+        state.isLoading -> Unit
+        state.hasSessionReady -> {
+            Text(
+                text = pluralStringResource(
+                    R.plurals.today_word_count,
+                    state.cardsDueToday,
+                    state.cardsDueToday,
+                ),
+                style = MaterialTheme.typography.displaySmall,
+                color = ink,
+            )
+            Text(
+                text = stringResource(R.string.today_estimate, state.estimatedSessionMinutes),
+                style = MaterialTheme.typography.bodyMedium,
+                color = inkMuted,
+            )
+        }
+        else -> {
+            Text(
+                text = stringResource(R.string.today_nothing_due),
+                style = MaterialTheme.typography.displaySmall,
+                color = ink,
+            )
+            Text(
+                text = nextDueCopy(state.nextDue),
+                style = MaterialTheme.typography.bodyMedium,
+                color = inkMuted,
+            )
+        }
+    }
+}
 
-    val cards: String = pluralStringResource(
-        R.plurals.today_card_count,
+@Composable
+private fun nextDueCopy(nextDue: NextDueBatch?): String {
+    if (nextDue == null) return stringResource(R.string.today_next_due_none)
+
+    val words: String = pluralStringResource(
+        R.plurals.today_word_count,
         nextDue.cardCount,
         nextDue.cardCount,
     )
     return when (nextDue.daysFromToday) {
-        0 -> stringResource(R.string.today_next_due_later_today, cards)
-        1 -> stringResource(R.string.today_next_due_tomorrow, cards)
-        else -> stringResource(R.string.today_next_due_in_days, cards, nextDue.daysFromToday)
-    }.uppercase()
-}
-
-@Composable
-private fun LoadingContent(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        HLoadingSpinner(color = ink)
+        0 -> stringResource(R.string.today_next_due_later_today, words)
+        1 -> stringResource(R.string.today_next_due_tomorrow, words)
+        else -> stringResource(R.string.today_next_due_in_days, words, nextDue.daysFromToday)
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
-private fun TodayScreenPreview() {
+private fun TodayActions(
+    state: TodayUiState,
+    onStudy: () -> Unit,
+    onCapture: () -> Unit,
+    onLibrary: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+    ) {
+        when {
+            state.isLoading -> Unit
+            state.hasSessionReady -> {
+                HButton(
+                    text = stringResource(R.string.today_start),
+                    onClick = onStudy,
+                    variant = HButtonVariant.Primary,
+                    full = true,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+                ) {
+                    HButton(
+                        text = stringResource(R.string.today_add_word),
+                        onClick = onCapture,
+                        variant = HButtonVariant.Secondary,
+                        icon = Icons.Default.Add,
+                        modifier = Modifier.weight(1f),
+                    )
+                    HButton(
+                        text = stringResource(R.string.today_library),
+                        onClick = onLibrary,
+                        variant = HButtonVariant.Secondary,
+                        icon = Icons.AutoMirrored.Filled.List,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            else -> {
+                HButton(
+                    text = stringResource(R.string.today_add_word),
+                    onClick = onCapture,
+                    variant = HButtonVariant.Primary,
+                    full = true,
+                    icon = Icons.Default.Add,
+                )
+                HButton(
+                    text = stringResource(R.string.today_library),
+                    onClick = onLibrary,
+                    variant = HButtonVariant.Secondary,
+                    full = true,
+                    icon = Icons.AutoMirrored.Filled.List,
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TodayScreenDuePreview() {
     HelloTheme {
         TodayScreen(
             state = TodayUiState(
                 isLoading = false,
                 stats = DashboardStats(
-                    cardsStudiedToday = 12,
+                    cardsStudiedToday = 0,
                     cardsDueToday = 8,
-                    currentStreak = 4,
-                    cardsDueThisWeek = 26,
+                    currentStreak = 5,
+                    cardsDueThisWeek = 20,
                 ),
             ),
         )
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Preview(showBackground = true)
 @Composable
-private fun TodayScreenRestingPreview() {
+private fun TodayScreenMidSessionPreview() {
+    HelloTheme {
+        TodayScreen(
+            state = TodayUiState(
+                isLoading = false,
+                stats = DashboardStats(
+                    cardsStudiedToday = 3,
+                    cardsDueToday = 5,
+                    currentStreak = 6,
+                    cardsDueThisWeek = 12,
+                ),
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TodayScreenNothingDuePreview() {
     HelloTheme {
         TodayScreen(
             state = TodayUiState(
@@ -303,11 +345,11 @@ private fun TodayScreenRestingPreview() {
                 stats = DashboardStats(
                     cardsStudiedToday = 8,
                     cardsDueToday = 0,
-                    currentStreak = 3,
+                    currentStreak = 6,
                     cardsDueThisWeek = 5,
                     nextDue = NextDueBatch(
-                        at = Instant.parse("2026-08-28T09:00:00Z"),
-                        cardCount = 5,
+                        at = Instant.now(),
+                        cardCount = 3,
                         daysFromToday = 1,
                     ),
                 ),
@@ -316,10 +358,10 @@ private fun TodayScreenRestingPreview() {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF08090A)
+@Preview(showBackground = true)
 @Composable
 private fun TodayScreenLoadingPreview() {
     HelloTheme {
-        TodayScreen(state = TodayUiState(isLoading = true))
+        TodayScreen(state = TodayUiState())
     }
 }
