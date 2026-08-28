@@ -79,7 +79,6 @@ import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.schibsted
@@ -218,10 +217,6 @@ fun StudyScreen(
                         onFlipCard = {
                             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             cardFace = it.next
-                        },
-                        onGradeSwipe = { grade ->
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onReviewAnswer(state.currentItem, grade)
                         },
                         onStop = { tts.stop() },
                         onSpeak = {
@@ -363,7 +358,6 @@ private fun StudyCanvas(
     cardViewState: CardViewState,
     audioState: AudioState,
     onFlipCard: (CardFace) -> Unit,
-    onGradeSwipe: (ReviewGrade) -> Unit,
     onStop: () -> Unit,
     onSpeak: () -> Unit,
     modifier: Modifier = Modifier,
@@ -378,9 +372,7 @@ private fun StudyCanvas(
                 currentItem = currentItem,
                 cardViewState = cardViewState,
                 audioState = audioState,
-                gradeEnabled = sessionStage == StudyStage.Grade,
                 onFlipCard = onFlipCard,
-                onGradeSwipe = onGradeSwipe,
                 onStop = onStop,
                 onSpeak = onSpeak,
             )
@@ -393,9 +385,7 @@ private fun StudyCardStage(
     currentItem: StudySessionItem?,
     cardViewState: CardViewState,
     audioState: AudioState,
-    gradeEnabled: Boolean,
     onFlipCard: (CardFace) -> Unit,
-    onGradeSwipe: (ReviewGrade) -> Unit,
     onStop: () -> Unit,
     onSpeak: () -> Unit,
 ) {
@@ -423,8 +413,6 @@ private fun StudyCardStage(
                 cardFace = cardViewState.cardFace,
                 onClick = onFlipCard,
                 progress = cardViewState.progress,
-                gradeEnabled = gradeEnabled,
-                onGradeSwipe = onGradeSwipe,
                 modifier = Modifier.fillMaxSize(),
                 frontContent = {
                     FlashcardFront(
@@ -537,16 +525,6 @@ private fun StudyActionDock(
                 StudyStage.Grade -> {
                     AnswerButtons(
                         onReviewAnswer = callbacks.onReviewAnswer,
-                    )
-                    Text(
-                        text = stringResource(R.string.study_grade_swipe_hint),
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 10.5.sp,
-                        letterSpacing = 0.12.em,
-                        color = inkFaint,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }

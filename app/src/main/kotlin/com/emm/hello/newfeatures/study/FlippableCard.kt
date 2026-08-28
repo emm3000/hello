@@ -3,43 +3,25 @@ package com.emm.hello.newfeatures.study
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import com.emm.hello.core.ui.HCard
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.emm.domain.study.ReviewGrade
-import com.emm.hello.R
-import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.surfaceRaised
-import kotlin.math.abs
+import com.emm.hello.core.ui.HCard
 
 private const val CARD_FLIP_DURATION_MS = 420
 private const val CARD_CAMERA_DISTANCE_MULTIPLIER = 30f
@@ -48,9 +30,6 @@ private const val BACK_FACE_ROTATION = 180f
 private const val GRADIENT_TRANSITION_DURATION_MS = 500
 private const val BACK_FACE_TINT_BLEND_FRACTION = 0.15f
 private const val BACK_FACE_TRANSITION_DURATION_MS = 400
-private const val SWIPE_SHORT_THRESHOLD_FRACTION = 0.25f
-private const val SWIPE_OVERLAY_MAX_ALPHA = 0.55f
-private const val SWIPE_OVERLAY_ALPHA_GAIN = 1.4f
 
 @Composable
 fun FlippableCard(
@@ -58,8 +37,6 @@ fun FlippableCard(
     cardFace: CardFace,
     onClick: (CardFace) -> Unit,
     progress: Float = 0f,
-    gradeEnabled: Boolean = false,
-    onGradeSwipe: (ReviewGrade) -> Unit = {},
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit,
 ) {
@@ -79,47 +56,16 @@ fun FlippableCard(
 
     val borderColor = MaterialTheme.colorScheme.outlineVariant
 
-    var rawDragOffset by remember { mutableFloatStateOf(0f) }
-    var widthPx by remember { mutableIntStateOf(0) }
-    val canSwipe = gradeEnabled && cardFace == CardFace.Back
-
-    LaunchedEffect(cardFace) {
-        if (cardFace == CardFace.Front) rawDragOffset = 0f
-    }
-
-    val animatedOffset by animateFloatAsState(
-        targetValue = rawDragOffset,
-        animationSpec = spring(),
-        label = "dragOffset",
-    )
-
     HCard(
         modifier = modifier
-            .onSizeChanged { widthPx = it.width }
             .clickable(
                 onClick = { onClick(cardFace) },
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
             )
-            .pointerInput(canSwipe) {
-                if (!canSwipe) return@pointerInput
-                detectHorizontalDragGestures(
-                    onDragEnd = {
-                        val grade = computeSwipeGrade(rawDragOffset, widthPx.toFloat())
-                        rawDragOffset = 0f
-                        if (grade != null) onGradeSwipe(grade)
-                    },
-                    onDragCancel = { rawDragOffset = 0f },
-                    onHorizontalDrag = { change, delta ->
-                        rawDragOffset += delta
-                        change.consume()
-                    },
-                )
-            }
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = CARD_CAMERA_DISTANCE_MULTIPLIER * density
-                translationX = if (cardFace == CardFace.Back) animatedOffset else 0f
             },
         shape = RoundedCornerShape(20.dp),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -140,70 +86,10 @@ fun FlippableCard(
                         .graphicsLayer { rotationY = BACK_FACE_ROTATION }
                 ) {
                     backContent()
-                    if (canSwipe) {
-                        DragGradeOverlay(
-                            dragOffsetPx = animatedOffset,
-                            widthPx = widthPx,
-                        )
-                    }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun BoxScope.DragGradeOverlay(
-    dragOffsetPx: Float,
-    widthPx: Int,
-) {
-    if (widthPx <= 0) return
-    val fraction = (dragOffsetPx / widthPx).coerceIn(-1f, 1f)
-    val absFraction = abs(fraction)
-    if (absFraction < SWIPE_SHORT_THRESHOLD_FRACTION) return
-    val grade = computeSwipeGrade(dragOffsetPx, widthPx.toFloat()) ?: return
-    val tokens = swipeOverlayTokens(grade)
-    val alpha = (absFraction * SWIPE_OVERLAY_ALPHA_GAIN).coerceAtMost(SWIPE_OVERLAY_MAX_ALPHA)
-    Box(
-        modifier = Modifier
-            .matchParentSize()
-            .background(tokens.container.copy(alpha = alpha)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringResource(tokens.labelRes),
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = tokens.content,
-        )
-    }
-}
-
-private data class SwipeOverlayTokens(
-    val container: Color,
-    val content: Color,
-    val labelRes: Int,
-)
-
-@Composable
-private fun swipeOverlayTokens(grade: ReviewGrade): SwipeOverlayTokens {
-    val container = surfaceRaised
-    val content = ink
-    return if (grade == ReviewGrade.AGAIN) {
-        SwipeOverlayTokens(container, content, R.string.study_grade_forgot)
-    } else {
-        SwipeOverlayTokens(container, content, R.string.study_grade_knew)
-    }
-}
-
-internal fun computeSwipeGrade(
-    dragOffsetPx: Float,
-    widthPx: Float,
-): ReviewGrade? {
-    if (widthPx <= 0f) return null
-    val fraction = dragOffsetPx / widthPx
-    if (abs(fraction) < SWIPE_SHORT_THRESHOLD_FRACTION) return null
-    return if (fraction < 0) ReviewGrade.AGAIN else ReviewGrade.GOOD
 }
 
 @Composable
@@ -214,7 +100,6 @@ fun rememberDynamicStudyGradient(
     val colorScheme = MaterialTheme.colorScheme
     val isDark = isSystemInDarkTheme()
 
-    // Opaque color palettes per theme — no alpha transparency
     val startColor1: Color
     val startColor2: Color
     val endColor1: Color
