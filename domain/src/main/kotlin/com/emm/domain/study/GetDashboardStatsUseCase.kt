@@ -54,8 +54,17 @@ class GetDashboardStatsUseCase(
             .distinct()
         if (reviewDates.isEmpty()) return 0
 
-        var streak = 0
-        var expectedDate: LocalDate = now.atZone(zone).toLocalDate()
+        val today: LocalDate = now.atZone(zone).toLocalDate()
+        val yesterday: LocalDate = today.minusDays(1)
+        val latest: LocalDate = reviewDates.first()
+        if (latest != today && latest != yesterday) return 0
+
+        return countConsecutiveDays(reviewDates, latest)
+    }
+
+    private fun countConsecutiveDays(reviewDates: List<LocalDate>, startDate: LocalDate): Int {
+        var streak: Int = 0
+        var expectedDate: LocalDate = startDate
 
         for (reviewDate in reviewDates) {
             if (reviewDate == expectedDate) {

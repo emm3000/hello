@@ -62,7 +62,7 @@ class GetDashboardStatsUseCaseTest {
     }
 
     @Test
-    fun `invoke when no reviews today but yesterday exists returns 0 streak`() = runTest {
+    fun `a streak stays alive through today until it is missed`() = runTest {
         val fakeRepo = FakeStatsRepo(
             reviewTimestamps = listOf(
                 reviewAt(today.minusDays(1), 15, 0),
@@ -72,7 +72,36 @@ class GetDashboardStatsUseCaseTest {
 
         val result: DashboardStats = useCase(fakeRepo)()
 
+        assertEquals(2, result.currentStreak)
+    }
+
+    @Test
+    fun `a streak whose last review was two days ago is broken`() = runTest {
+        val fakeRepo = FakeStatsRepo(
+            reviewTimestamps = listOf(
+                reviewAt(today.minusDays(2), 15, 0),
+                reviewAt(today.minusDays(3), 15, 0),
+            ),
+        )
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
         assertEquals(0, result.currentStreak)
+    }
+
+    @Test
+    fun `a review today extends a streak that ended yesterday`() = runTest {
+        val fakeRepo = FakeStatsRepo(
+            reviewTimestamps = listOf(
+                reviewAt(today, 15, 0),
+                reviewAt(today.minusDays(1), 15, 0),
+                reviewAt(today.minusDays(2), 15, 0),
+            ),
+        )
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(3, result.currentStreak)
     }
 
     @Test
