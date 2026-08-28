@@ -13,11 +13,13 @@ import com.emm.domain.flashcard.FsrsState
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.study.ReviewGrade
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import java.nio.file.Files
@@ -140,6 +142,59 @@ class LocalOnlyLocalWritesIntegrationTest {
     }
 
     @Test
+    fun `review repository round-trip preserves a non-null productionSince`() = runTest {
+        seedDeviceIdentity(deviceId = "device-production-since")
+        localIdentityInitializer.ensureReady()
+
+        val reviewRepository = DefaultFlashcardReviewRepository(db = db)
+        val flashcardId = createFlashcardForReview(deckName = "Production")
+
+        val productionSince = 1_700_000_000_000L
+        val card = FsrsCard(
+            flashcardId = flashcardId,
+            state = FsrsState.REVIEW,
+            stability = 25.0,
+            difficulty = 5.0,
+            lastReviewedAt = 200L,
+            nextReviewAt = 300L,
+            interval = 21L,
+            reps = 5L,
+            lapses = 0L,
+            productionSince = productionSince,
+        )
+        reviewRepository.update(card, ReviewGrade.GOOD)
+
+        val storedCard = reviewRepository.all().first().single { it.flashcardId == flashcardId }
+        assertEquals(productionSince, storedCard.productionSince)
+    }
+
+    @Test
+    fun `review repository round-trip keeps productionSince null for a card that has not graduated`() = runTest {
+        seedDeviceIdentity(deviceId = "device-no-production-since")
+        localIdentityInitializer.ensureReady()
+
+        val reviewRepository = DefaultFlashcardReviewRepository(db = db)
+        val flashcardId = createFlashcardForReview(deckName = "Not yet graduated")
+
+        val card = FsrsCard(
+            flashcardId = flashcardId,
+            state = FsrsState.REVIEW,
+            stability = 1.0,
+            difficulty = 5.0,
+            lastReviewedAt = 200L,
+            nextReviewAt = 300L,
+            interval = 1L,
+            reps = 1L,
+            lapses = 0L,
+            productionSince = null,
+        )
+        reviewRepository.update(card, ReviewGrade.GOOD)
+
+        val storedCard = reviewRepository.all().first().single { it.flashcardId == flashcardId }
+        assertNull(storedCard.productionSince)
+    }
+
+    @Test
     fun `local-only reopen loads previously persisted data without remote rehydration`() = runTest {
         val dbFile = Files.createTempFile("local-only-reopen", ".db")
         val jdbcUrl = "jdbc:sqlite:${dbFile.toAbsolutePath()}"
@@ -253,6 +308,29 @@ class LocalOnlyLocalWritesIntegrationTest {
         val flashcardWord: String,
         val nextReviewAt: Long,
     )
+
+    private suspend fun createFlashcardForReview(deckName: String): com.emm.domain.ids.FlashcardId {
+        val tagRepository = DefaultTagRepository(db = db)
+        val deckRepository = DefaultDeckRepository(db = db, tagRepository = tagRepository)
+        val flashcardRepository = DefaultFlashcardRepository(
+            db = db,
+            json = Json,
+            ioDispatcher = Dispatchers.IO,
+        )
+
+        deckRepository.create(CreateDeckInput(name = deckName, description = "test deck"))
+        val deck = db.deckQueries.all().executeAsList().first { it.name == deckName }
+
+        return flashcardRepository.create(
+            CreateFlashcardInput(
+                deckId = deck.id.toDeckId(),
+                word = "word-$deckName",
+                meaning = "meaning",
+                translation = "traduccion",
+                phonetic = "/wɜːrd/",
+            )
+        )
+    }
 
     private fun seedDeviceIdentity(db: HelloDb = this.db, deviceId: String) {
         db.localFirstQueries.upsertLocalDeviceIdentity(

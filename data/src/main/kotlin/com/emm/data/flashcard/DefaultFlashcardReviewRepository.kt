@@ -63,6 +63,7 @@ class DefaultFlashcardReviewRepository(
                 state = card.state.name,
                 stability = card.stability,
                 difficulty = card.difficulty,
+                productionSince = card.productionSince,
             )
             localFirstQueries.updateReviewProjectionFull(
                 lastReviewedAt = card.lastReviewedAt,
@@ -76,6 +77,7 @@ class DefaultFlashcardReviewRepository(
                 state = card.state.name,
                 stability = card.stability,
                 difficulty = card.difficulty,
+                productionSince = card.productionSince,
                 flashcardId = card.flashcardId.value,
             )
         }

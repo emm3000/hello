@@ -271,6 +271,7 @@ internal fun mapFsrsCard(deck: FlashcardsToReviewByDeck): FsrsCard {
         interval = deck.interval ?: 0L,
         reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
+        productionSince = deck.productionSince,
     )
 }
 
@@ -299,6 +300,7 @@ internal fun mapFsrsCard(deck: FlashcardsToReviewAllDecks): FsrsCard {
         interval = deck.interval ?: 0L,
         reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
+        productionSince = deck.productionSince,
     )
 }
 
@@ -327,6 +329,7 @@ internal fun mapFsrsCard(deck: com.emm.data.FlashcardsWithReview): FsrsCard {
         interval = deck.interval ?: 0L,
         reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
+        productionSince = deck.productionSince,
     )
 }
 
@@ -355,6 +358,7 @@ internal fun mapFsrsCard(deck: FlashcardWithExamples): FsrsCard {
         interval = deck.interval ?: 0L,
         reps = deck.repetitions ?: 0L,
         lapses = deck.lapses ?: 0L,
+        productionSince = deck.productionSince,
     )
 }
 

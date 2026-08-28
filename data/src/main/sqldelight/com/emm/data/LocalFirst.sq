@@ -95,6 +95,7 @@ CREATE TABLE ReviewProjection (
     state TEXT NOT NULL DEFAULT 'NEW',
     stability REAL NOT NULL DEFAULT 0.0,
     difficulty REAL NOT NULL DEFAULT 0.0,
+    productionSince INTEGER,
     PRIMARY KEY (flashcardId),
     FOREIGN KEY (flashcardId) REFERENCES Flashcard(id) ON DELETE CASCADE,
     FOREIGN KEY (sourceEventId) REFERENCES ReviewEvent(eventId) ON DELETE CASCADE
@@ -122,8 +123,9 @@ INSERT OR IGNORE INTO ReviewProjection (
     updatedAt,
     state,
     stability,
-    difficulty
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    difficulty,
+    productionSince
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Unconditionally overwrites every FSRS-relevant column on an existing ReviewProjection row.
 updateReviewProjectionFull:
@@ -139,7 +141,8 @@ SET
     updatedAt = ?,
     state = ?,
     stability = ?,
-    difficulty = ?
+    difficulty = ?,
+    productionSince = ?
 WHERE flashcardId = ?;
 
 -- Full insert used by the backup-import path (table is cleared before import, so no conflict occurs).
@@ -157,8 +160,9 @@ INSERT INTO ReviewProjection (
     updatedAt,
     state,
     stability,
-    difficulty
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    difficulty,
+    productionSince
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 findReviewProjectionByFlashcardId:
 SELECT * FROM ReviewProjection

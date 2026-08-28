@@ -192,6 +192,7 @@ class ImportBackupDataSource(
                 state = state,
                 stability = stability,
                 difficulty = difficulty,
+                productionSince = proj.productionSince,
             )
         }
     }

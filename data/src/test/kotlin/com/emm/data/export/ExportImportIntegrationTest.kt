@@ -261,6 +261,7 @@ class ExportImportIntegrationTest {
             state = "REVIEW",
             stability = 1.0,
             difficulty = 5.0,
+            productionSince = null,
         )
 
         val exportUri = Uri.parse("content://test/review-export.json")
@@ -281,6 +282,80 @@ class ExportImportIntegrationTest {
         assertEquals("REVIEW", projections[0].state)
         assertEquals(1.0, projections[0].stability, 0.001)
         assertEquals(5.0, projections[0].difficulty, 0.001)
+    }
+
+    @Test
+    fun `productionSince survives an export then import round-trip`() = runTest {
+        val (exportDS, baos) = createExportDataSource()
+        val importDS = createImportDataSource()
+
+        seedFlashcardForProduction(deckId = "deck-production", flashcardId = "card-production")
+        db.localFirstQueries.insertReviewProjectionFull(
+            flashcardId = "card-production",
+            lastReviewedAt = 1000L,
+            nextReviewAt = 2000L,
+            easeFactor = 2.5,
+            interval = 30L,
+            repetitions = 5L,
+            lapses = 0L,
+            sourceEventId = "event-production",
+            updatedAt = 2000L,
+            state = "REVIEW",
+            stability = 25.0,
+            difficulty = 5.0,
+            productionSince = 1_500_000L,
+        )
+
+        val exportUri = Uri.parse("content://test/production-export.json")
+        exportDS.export(exportUri)
+        val exportedJson = baos.toString()
+
+        clearAllTables()
+
+        val importUri = Uri.parse("content://test/production-import.json")
+        provideInputStream(exportedJson)
+        importDS.import(importUri)
+
+        val projections = db.localFirstQueries.allReviewProjections().executeAsList()
+        assertEquals(1, projections.size)
+        assertEquals(1_500_000L, projections[0].productionSince)
+    }
+
+    @Test
+    fun `null productionSince survives an export then import round-trip`() = runTest {
+        val (exportDS, baos) = createExportDataSource()
+        val importDS = createImportDataSource()
+
+        seedFlashcardForProduction(deckId = "deck-not-production", flashcardId = "card-not-production")
+        db.localFirstQueries.insertReviewProjectionFull(
+            flashcardId = "card-not-production",
+            lastReviewedAt = 1000L,
+            nextReviewAt = 2000L,
+            easeFactor = 2.5,
+            interval = 1L,
+            repetitions = 1L,
+            lapses = 0L,
+            sourceEventId = "event-not-production",
+            updatedAt = 2000L,
+            state = "REVIEW",
+            stability = 1.0,
+            difficulty = 5.0,
+            productionSince = null,
+        )
+
+        val exportUri = Uri.parse("content://test/not-production-export.json")
+        exportDS.export(exportUri)
+        val exportedJson = baos.toString()
+
+        clearAllTables()
+
+        val importUri = Uri.parse("content://test/not-production-import.json")
+        provideInputStream(exportedJson)
+        importDS.import(importUri)
+
+        val projections = db.localFirstQueries.allReviewProjections().executeAsList()
+        assertEquals(1, projections.size)
+        assertEquals(null, projections[0].productionSince)
     }
 
     @Test
@@ -539,6 +614,48 @@ class ExportImportIntegrationTest {
             state = "REVIEW",
             stability = 1.0,
             difficulty = 5.0,
+            productionSince = null,
+        )
+    }
+
+    private fun seedFlashcardForProduction(deckId: String, flashcardId: String) {
+        db.deckQueries.insert(
+            id = deckId,
+            name = "Production deck",
+            description = null,
+            createdAt = 100L,
+            updatedAt = 100L,
+            deletedAt = null,
+        )
+        db.flashcardQueries.create(
+            id = flashcardId,
+            deckId = deckId,
+            word = "word",
+            meaning = "meaning",
+            translation = null,
+            phonetic = null,
+            partOfSpeech = null,
+            type = null,
+            note = null,
+            register = null,
+            levelBand = null,
+            domain = null,
+            lemma = null,
+            whyUseful = null,
+            usagePattern = null,
+            irregularFormsJson = null,
+            collocationsJson = null,
+            commonMistake = null,
+            confusableWithJson = null,
+            clozeSentence = null,
+            sourceContext = null,
+            warningsJson = null,
+            studyCardsJson = null,
+            qualityChecksJson = null,
+            enrichmentStatus = "ENRICHED",
+            createdAt = 200L,
+            updatedAt = 200L,
+            deletedAt = null,
         )
     }
 

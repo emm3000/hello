@@ -13,7 +13,7 @@ class EnrichmentStatusMigrationTest {
         val driver: JdbcSqliteDriver = createSchema2Driver()
         insertLegacyFlashcard(driver, id = "card-legacy")
 
-        HelloDb.Schema.migrate(driver = driver, oldVersion = 2L, newVersion = HelloDb.Schema.version)
+        HelloDb.Schema.migrate(driver = driver, oldVersion = 2L, newVersion = PRE_PRODUCTION_SINCE_SCHEMA_VERSION)
 
         assertEquals(listOf("ENRICHED"), readEnrichmentStatuses(driver))
     }

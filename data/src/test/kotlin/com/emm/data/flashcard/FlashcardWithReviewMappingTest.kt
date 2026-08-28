@@ -217,6 +217,7 @@ class FlashcardWithReviewMappingTest {
             state = "REVIEW",
             stability = 1.0,
             difficulty = 5.0,
+            productionSince = null,
         )
     }
 }

@@ -172,6 +172,7 @@ class ExportBackupDataSource(
                         state = it.state,
                         stability = it.stability,
                         difficulty = it.difficulty,
+                        productionSince = it.productionSince,
                     )
                 )
             }

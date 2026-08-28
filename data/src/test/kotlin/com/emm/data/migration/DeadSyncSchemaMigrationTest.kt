@@ -12,7 +12,7 @@ class DeadSyncSchemaMigrationTest {
     fun `the sync tables are gone after migration`() {
         val driver: JdbcSqliteDriver = createSchema3Driver()
 
-        HelloDb.Schema.migrate(driver = driver, oldVersion = 3L, newVersion = HelloDb.Schema.version)
+        HelloDb.Schema.migrate(driver = driver, oldVersion = 3L, newVersion = PRE_PRODUCTION_SINCE_SCHEMA_VERSION)
 
         assertEquals(emptyList<String>(), readTableNames(driver))
     }
@@ -22,7 +22,7 @@ class DeadSyncSchemaMigrationTest {
         val driver: JdbcSqliteDriver = createSchema3Driver()
         insertDeviceIdentity(driver, deviceId = "device-1")
 
-        HelloDb.Schema.migrate(driver = driver, oldVersion = 3L, newVersion = HelloDb.Schema.version)
+        HelloDb.Schema.migrate(driver = driver, oldVersion = 3L, newVersion = PRE_PRODUCTION_SINCE_SCHEMA_VERSION)
 
         assertEquals(listOf("device-1"), readDeviceIds(driver))
     }

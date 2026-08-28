@@ -258,4 +258,46 @@ class BackupEnvelopeTest {
         assertEquals(2000L, deserialized.nextReviewAt)
         assertEquals(2.5, deserialized.easeFactor, 0.001)
     }
+
+    @Test
+    fun `ReviewProjectionDto with productionSince serializes and deserializes correctly`() {
+        val dto = ReviewProjectionDto(
+            flashcardId = "c1",
+            lastReviewedAt = 1000L,
+            nextReviewAt = 2000L,
+            easeFactor = 2.5,
+            interval = 1L,
+            repetitions = 1L,
+            lapses = 0L,
+            sourceEventId = "ev-1",
+            updatedAt = 2000L,
+            productionSince = 1_500_000L,
+        )
+
+        val serialized = json.encodeToString(dto)
+        val deserialized = json.decodeFromString<ReviewProjectionDto>(serialized)
+
+        assertEquals(1_500_000L, deserialized.productionSince)
+    }
+
+    @Test
+    fun `ReviewProjectionDto without productionSince field in JSON deserializes to null`() {
+        val legacyJson = """
+            {
+                "flashcardId": "c1",
+                "lastReviewedAt": 1000,
+                "nextReviewAt": 2000,
+                "easeFactor": 2.5,
+                "interval": 1,
+                "repetitions": 1,
+                "lapses": 0,
+                "sourceEventId": "ev-1",
+                "updatedAt": 2000
+            }
+        """.trimIndent()
+
+        val deserialized = json.decodeFromString<ReviewProjectionDto>(legacyJson)
+
+        assertEquals(null, deserialized.productionSince)
+    }
 }

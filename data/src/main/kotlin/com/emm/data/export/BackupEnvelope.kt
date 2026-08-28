@@ -115,4 +115,5 @@ data class ReviewProjectionDto(
     val state: String = "NEW",
     val stability: Double = 0.0,
     val difficulty: Double = 0.0,
+    val productionSince: Long? = null,
 )

@@ -1,0 +1,1 @@
+ALTER TABLE ReviewProjection ADD COLUMN productionSince INTEGER;

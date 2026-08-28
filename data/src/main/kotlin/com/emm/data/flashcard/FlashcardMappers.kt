@@ -39,6 +39,7 @@ fun ReviewProjectionEntity.toDomainFromProjection() = FsrsCard(
     interval = interval,
     reps = repetitions,
     lapses = lapses,
+    productionSince = productionSince,
 )
 
 fun List<ReviewProjectionEntity>.toDomainFromProjection() = map(ReviewProjectionEntity::toDomainFromProjection)
