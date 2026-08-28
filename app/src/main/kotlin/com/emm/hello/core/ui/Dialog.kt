@@ -31,7 +31,7 @@ fun HAlertDialog(
     modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
-    confirmText: String = "Aceptar",
+    confirmText: String = "Accept",
     cancelText: String? = "Cancel",
     isDangerous: Boolean = false,
 ) {
