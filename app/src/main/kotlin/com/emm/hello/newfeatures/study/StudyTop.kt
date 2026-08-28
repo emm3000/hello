@@ -1,14 +1,12 @@
 package com.emm.hello.newfeatures.study
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Surface
@@ -18,123 +16,80 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
-import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HProgressBar
 
-private val barHeight = 56.dp
-private val closeButtonSize = 44.dp
-private val stateLabelReservedHeight = 22.dp
+private val barMinHeight = 44.dp
 
 @Composable
 internal fun StudyTop(
-    progress: Float,
-    currentCount: Int,
-    totalCount: Int,
-    stateLabel: String?,
+    position: String?,
+    progress: Float?,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    showCounter: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(barHeight)
-                .padding(horizontal = 4.dp),
+                .heightIn(min = barMinHeight),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (position != null) {
+                Text(
+                    text = position,
+                    fontFamily = schibsted,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                    color = ink,
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            actions()
+
             HIconButton(
                 icon = Icons.Outlined.Close,
                 contentDescription = stringResource(R.string.exit_session_desc),
                 onClick = onClose,
-                iconSize = 20.dp,
-                buttonSize = closeButtonSize,
+                iconSize = 24.dp,
+                buttonSize = 44.dp,
             )
-
-            HProgressBar(
-                progress = progress,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp),
-            )
-
-            if (showCounter && totalCount > 0) {
-                Text(
-                    text = "$currentCount/$totalCount",
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    letterSpacing = 0.08.em,
-                    color = inkMuted,
-                    modifier = Modifier.padding(end = 12.dp),
-                )
-            } else {
-                Spacer(Modifier.size(closeButtonSize))
-            }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(stateLabelReservedHeight),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (!stateLabel.isNullOrBlank()) {
-                Text(
-                    text = stateLabel,
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 10.5.sp,
-                    letterSpacing = 0.12.em,
-                    color = inkMuted,
-                    textAlign = TextAlign.Center,
-                )
-            }
+        if (progress != null) {
+            HProgressBar(
+                progress = progress,
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Preview(showBackground = true, backgroundColor = 0xFFF4F3F1)
 @Composable
 private fun StudyTopPreview() {
     HelloTheme {
         Surface(color = pageBackground) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
+            Column {
                 StudyTop(
-                    progress = 0f,
-                    currentCount = 0,
-                    totalCount = 0,
-                    stateLabel = null,
-                    onClose = {},
-                    showCounter = false,
-                )
-                StudyTop(
+                    position = "3 / 10",
                     progress = 0.3f,
-                    currentCount = 3,
-                    totalCount = 10,
-                    stateLabel = "RECORDAR",
                     onClose = {},
                 )
                 StudyTop(
-                    progress = 0.9f,
-                    currentCount = 9,
-                    totalCount = 10,
-                    stateLabel = "RESPUESTA",
+                    position = null,
+                    progress = null,
                     onClose = {},
                 )
             }

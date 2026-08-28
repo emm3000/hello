@@ -48,7 +48,7 @@ Rationale for all three lives in `docs/DESIGN_BRIEF.md`; do not re-derive it her
 The two grade buttons are a fixed anatomy, not a styling choice:
 
 - Neither is red nor green, and neither is the accent.
-- They differ by fill weight and position only: the left one ("No la sabía") sits on the page background with a hairline border, the right one ("La sabía") on the raised surface with a medium-weight label.
+- They sit directly on the study color block. The left one ("Forgot") is transparent with a 1dp `outline` border; the right one ("Knew it") is an ink fill with an `onInk` Bricolage label.
 - Both are full-height touch targets of at least 56dp.
 - `EASY` is a long-press on the right button. It gets no third button and no separate color.
 

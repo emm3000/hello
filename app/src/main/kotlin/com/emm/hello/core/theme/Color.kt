@@ -10,6 +10,7 @@ val ink: Color = Color(0xFF15141A)
 val onInk: Color = Color(0xFFF4F3F1)
 val inkMuted: Color = Color(0xFF6F6D75)
 val inkFaint: Color = ink.copy(alpha = 0.45f)
+val inkSoft: Color = ink.copy(alpha = 0.70f)
 val hairline: Color = ink.copy(alpha = 0.12f)
 val outline: Color = ink.copy(alpha = 0.30f)
 

@@ -187,31 +187,28 @@
     <string name="validation_answer_too_long_for_recall">La respuesta es muy larga. Intenta acotarla a lo esencial.</string>
 
     <!-- Study Screen -->
-    <string name="exit_session_desc">Salir de la sesión</string>
-    <!-- Study top-bar state labels (Ember redesign Phase 2.2 sub-1) -->
-    <string name="study_state_label_recall">RECORDAR</string>
-    <string name="study_state_label_grade">RESPUESTA</string>
+    <string name="exit_session_desc">End session</string>
     <!-- Study Empty state -->
-    <string name="study_empty_headline">Hoy no toca repasar.</string>
-    <string name="study_empty_body">Vuelve mañana para mantener el ritmo, o crea una tarjeta nueva si quieres sumar al día.</string>
-    <string name="study_empty_create_card_cta">Crear una tarjeta</string>
-    <!-- Study Recall direction label -->
-    <string name="study_direction_en_to_es">INGLÉS → ESPAÑOL</string>
-    <string name="study_recall_cta_reveal">Ver respuesta</string>
+    <string name="study_empty_headline">Nothing to review today.</string>
+    <string name="study_empty_body">No cards are due. Come back tomorrow to keep the rhythm, or add a new word.</string>
+    <string name="study_empty_create_card_cta">Add a word</string>
+    <string name="study_recall_cta_reveal">Show answer</string>
+    <string name="study_prompt_label">What does it mean?</string>
+    <string name="study_recall_hint">Try to recall it first.</string>
+    <string name="study_position">%1$d / %2$d</string>
     <!-- Study Grade state -->
-    <string name="study_error_headline">No pudimos cargar tu sesión.</string>
-    <string name="study_error_body">Hubo un problema al leer tus tarjetas. Vuelve a intentarlo.</string>
-    <string name="study_error_retry">Reintentar</string>
-    <string name="stop_speech_desc">Detener</string>
-    <string name="speak_desc">Pronunciar</string>
-    <string name="study_grade_forgot">No la sabía</string>
-    <string name="study_grade_knew">La sabía</string>
+    <string name="study_error_headline">We couldn\'t load your session.</string>
+    <string name="study_error_body">There was a problem reading your cards. Try again.</string>
+    <string name="study_error_retry">Retry</string>
+    <string name="stop_speech_desc">Stop pronunciation</string>
+    <string name="speak_desc">Play pronunciation</string>
+    <string name="study_grade_forgot">Forgot</string>
+    <string name="study_grade_knew">Knew it</string>
     <string name="session_completed_eyebrow">Sesión completada</string>
     <string name="session_completed_title">Listo.</string>
     <string name="session_completed_desc">Repasaste %1$d tarjetas.</string>
     <string name="session_completed_cta">Volver</string>
     <string name="session_completed_stat_label">Tarjetas repasadas</string>
-    <string name="study_related_forms_inline">Formas relacionadas: %1$s</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Recordatorios de estudio</string>
@@ -297,9 +294,6 @@
     <string name="onboarding_skip">Saltar</string>
     <string name="onboarding_page_indicator_description">Página %1$d de %2$d</string>
     <string name="onboarding_seed_deck_name">Primeras palabras</string>
-
-    <!-- Empty-state concept lines -->
-    <string name="onboarding_srs_concept">Te mostramos cada tarjeta justo antes de que la olvides.</string>
 
     <!-- Capture -->
     <string name="capture_title">Capturar</string>

@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.study
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -17,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -59,6 +62,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -74,14 +78,17 @@ import com.emm.hello.R
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.bricolage
+import com.emm.hello.core.theme.cardHues
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.pageBackground
-import com.emm.hello.core.theme.hairline
-import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.surfaceRaised
+import com.emm.hello.core.theme.inkSoft
+import com.emm.hello.core.theme.onInk
+import com.emm.hello.core.theme.outline
+import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.surface
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
@@ -92,27 +99,11 @@ private const val CARD_TRANSITION_DURATION_MS = 220
 private const val CARD_EXIT_FADE_DURATION_MS = 160
 private const val CARD_ENTER_SCALE = 0.96f
 private const val CARD_EXIT_SCALE = 0.92f
-private val studyDockMinHeight = 220.dp
-private val recallPromptFontSize = 48.sp
-private val recallPromptLineHeight = 54.sp
-private val gradeAnswerFontSize = 44.sp
-private val gradeAnswerLineHeight = 50.sp
-
-private data class CardViewState(
-    val cardFace: CardFace,
-    val progress: Float,
-)
+private val gradeButtonMinHeight = 56.dp
 
 private data class AudioState(
     val isSpeaking: Boolean,
     val ttsReady: Boolean,
-)
-
-private data class StudyDockCallbacks(
-    val onRevealAnswer: () -> Unit,
-    val onReviewAnswer: (ReviewGrade) -> Unit,
-    val onCreateCard: () -> Unit,
-    val onRetryLoad: () -> Unit,
 )
 
 @Composable
@@ -126,28 +117,20 @@ fun StudyScreen(
     state: StudyUiState = StudyUiState(),
     showFinishDialog: Boolean = false,
 ) {
-    // System/predictive back and the on-screen X share one exit path. Every grade is persisted
-    // the moment it is given, so leaving never loses progress and needs no confirmation.
     BackHandler(onBack = onExit)
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
-    val isSpeaking by tts.isSpeaking.collectAsStateWithLifecycle()
-    val ttsReady by tts.isReady.collectAsStateWithLifecycle()
-    val haptics = LocalHapticFeedback.current
+    val isSpeaking: Boolean by tts.isSpeaking.collectAsStateWithLifecycle()
+    val ttsReady: Boolean by tts.isReady.collectAsStateWithLifecycle()
+    val haptics: HapticFeedback = LocalHapticFeedback.current
 
     var cardFace by remember { mutableStateOf(CardFace.Front) }
-
-    val progress = if (state.totalCount > 0) {
-        state.reviewedCount.toFloat() / state.totalCount.toFloat()
-    } else {
-        0f
-    }
 
     LaunchedEffect(state.currentItem?.flashcardId) {
         cardFace = CardFace.Front
     }
 
-    val currentItem = state.currentItem
-    val sessionStage = remember(state.isLoading, state.loadError, state.currentItem, cardFace) {
+    val currentItem: StudySessionItem? = state.currentItem
+    val sessionStage: StudyStage = remember(state.isLoading, state.loadError, state.currentItem, cardFace) {
         when {
             state.isLoading -> StudyStage.Loading
             state.loadError != null -> StudyStage.Error
@@ -157,96 +140,90 @@ fun StudyScreen(
         }
     }
 
-    val sessionInProgress = sessionStage == StudyStage.Recall || sessionStage == StudyStage.Grade
-    // The counter names the card on screen ("3/10"), not how many were already graded.
-    val cardPosition = if (sessionInProgress) {
-        minOf(state.reviewedCount + 1, state.totalCount)
+    val onCard: Boolean = sessionStage == StudyStage.Recall || sessionStage == StudyStage.Grade
+    val hueIndex: Int = if (state.totalCount > 0) {
+        minOf(state.reviewedCount, state.totalCount - 1) % cardHues.size
     } else {
-        state.reviewedCount
+        0
     }
-    val stateLabel = when (sessionStage) {
-        StudyStage.Recall -> stringResource(R.string.study_state_label_recall)
-        StudyStage.Grade -> stringResource(R.string.study_state_label_grade)
-        else -> null
+    val targetBackground: Color = if (onCard) cardHues[hueIndex] else pageBackground
+    val background: Color by animateColorAsState(
+        targetValue = targetBackground,
+        animationSpec = tween(durationMillis = CARD_TRANSITION_DURATION_MS),
+        label = "study_background",
+    )
+
+    val cardPosition: Int = minOf(state.reviewedCount + 1, state.totalCount)
+    val position: String? = if (onCard && state.totalCount > 0) {
+        stringResource(R.string.study_position, cardPosition, state.totalCount)
+    } else {
+        null
+    }
+    val progress: Float? = if (onCard && state.totalCount > 0) {
+        cardPosition.toFloat() / state.totalCount.toFloat()
+    } else {
+        null
     }
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = pageBackground,
+        color = background,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(top = 8.dp, bottom = 24.dp),
         ) {
             StudyTop(
+                position = position,
                 progress = progress,
-                currentCount = cardPosition,
-                totalCount = state.totalCount,
-                stateLabel = stateLabel,
                 onClose = onExit,
-                showCounter = sessionInProgress,
+                actions = if (onCard) {
+                    {
+                        TtsFloatingButton(
+                            audioState = AudioState(isSpeaking = isSpeaking, ttsReady = ttsReady),
+                            onSpeak = {
+                                if (ttsReady) {
+                                    tts.speak(state.currentItem?.word.orEmpty())
+                                }
+                            },
+                            onStop = { tts.stop() },
+                        )
+                    }
+                } else {
+                    {}
+                },
             )
 
-            Surface(
+            StudyCanvas(
+                sessionStage = sessionStage,
+                currentItem = currentItem,
+                cardFace = cardFace,
+                onTapCard = {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    cardFace = cardFace.next
+                },
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .navigationBarsPadding(),
-                color = pageBackground,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    StudyCanvas(
-                        sessionStage = sessionStage,
-                        currentItem = currentItem,
-                        cardViewState = CardViewState(
-                            cardFace = cardFace,
-                            progress = progress,
-                        ),
-                        audioState = AudioState(
-                            isSpeaking = isSpeaking,
-                            ttsReady = ttsReady,
-                        ),
-                        onFlipCard = {
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            cardFace = it.next
-                        },
-                        onStop = { tts.stop() },
-                        onSpeak = {
-                            if (ttsReady) {
-                                tts.speak(state.currentItem?.word.orEmpty())
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                    )
+                    .fillMaxWidth(),
+            )
 
-                    StudyActionDock(
-                        sessionStage = sessionStage,
-                        callbacks = StudyDockCallbacks(
-                            onRevealAnswer = {
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                cardFace = CardFace.Back
-                            },
-                            onReviewAnswer = { grade ->
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onReviewAnswer(state.currentItem, grade)
-                            },
-                            onCreateCard = onCreateCard,
-                            onRetryLoad = onRetryLoad,
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
+            StudyActionDock(
+                sessionStage = sessionStage,
+                onRevealAnswer = {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    cardFace = CardFace.Back
+                },
+                onReviewAnswer = { grade ->
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onReviewAnswer(state.currentItem, grade)
+                },
+                onCreateCard = onCreateCard,
+                onRetryLoad = onRetryLoad,
+            )
         }
     }
 
@@ -355,11 +332,8 @@ private enum class StudyStage {
 private fun StudyCanvas(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
-    cardViewState: CardViewState,
-    audioState: AudioState,
-    onFlipCard: (CardFace) -> Unit,
-    onStop: () -> Unit,
-    onSpeak: () -> Unit,
+    cardFace: CardFace,
+    onTapCard: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -370,11 +344,8 @@ private fun StudyCanvas(
             StudyStage.Recall,
             StudyStage.Grade -> StudyCardStage(
                 currentItem = currentItem,
-                cardViewState = cardViewState,
-                audioState = audioState,
-                onFlipCard = onFlipCard,
-                onStop = onStop,
-                onSpeak = onSpeak,
+                cardFace = cardFace,
+                onTapCard = onTapCard,
             )
         }
     }
@@ -383,67 +354,55 @@ private fun StudyCanvas(
 @Composable
 private fun StudyCardStage(
     currentItem: StudySessionItem?,
-    cardViewState: CardViewState,
-    audioState: AudioState,
-    onFlipCard: (CardFace) -> Unit,
-    onStop: () -> Unit,
-    onSpeak: () -> Unit,
+    cardFace: CardFace,
+    onTapCard: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedContent(
-            targetState = currentItem,
-            transitionSpec = {
-                val enterSpec = tween<Float>(
-                    durationMillis = CARD_TRANSITION_DURATION_MS,
-                    easing = FastOutSlowInEasing,
+    AnimatedContent(
+        targetState = currentItem,
+        transitionSpec = {
+            val enterSpec = tween<Float>(
+                durationMillis = CARD_TRANSITION_DURATION_MS,
+                easing = FastOutSlowInEasing,
+            )
+            val exitSpec = tween<Float>(
+                durationMillis = CARD_EXIT_FADE_DURATION_MS,
+                easing = FastOutSlowInEasing,
+            )
+            (fadeIn(enterSpec) + scaleIn(initialScale = CARD_ENTER_SCALE, animationSpec = enterSpec))
+                .togetherWith(
+                    fadeOut(exitSpec) + scaleOut(targetScale = CARD_EXIT_SCALE, animationSpec = exitSpec)
                 )
-                val exitSpec = tween<Float>(
-                    durationMillis = CARD_EXIT_FADE_DURATION_MS,
-                    easing = FastOutSlowInEasing,
-                )
-                (fadeIn(enterSpec) + scaleIn(initialScale = CARD_ENTER_SCALE, animationSpec = enterSpec))
-                    .togetherWith(
-                        fadeOut(exitSpec) + scaleOut(targetScale = CARD_EXIT_SCALE, animationSpec = exitSpec)
-                    )
-            },
-            label = "card_transition",
-            modifier = Modifier.fillMaxSize(),
-        ) { item ->
-            FlippableCard(
-                cardFace = cardViewState.cardFace,
-                onClick = onFlipCard,
-                progress = cardViewState.progress,
-                modifier = Modifier.fillMaxSize(),
-                frontContent = {
-                    FlashcardFront(
+        },
+        label = "card_transition",
+        modifier = modifier.fillMaxSize(),
+    ) { item ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = onTapCard,
+                ),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            AnimatedContent(
+                targetState = cardFace,
+                transitionSpec = {
+                    fadeIn(tween(CARD_TRANSITION_DURATION_MS)) togetherWith fadeOut(tween(CARD_EXIT_FADE_DURATION_MS))
+                },
+                label = "card_face",
+            ) { face ->
+                when (face) {
+                    CardFace.Front -> FlashcardFront(
                         word = item?.word.orEmpty(),
                         phonetic = item?.phonetic.orEmpty(),
                     )
-                },
-                backContent = {
-                    item?.let { FlashcardBack(item = it) }
-                },
-            )
+                    CardFace.Back -> item?.let { FlashcardBack(item = it) }
+                }
+            }
         }
-        Text(
-            text = stringResource(R.string.study_direction_en_to_es),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.5.sp,
-            letterSpacing = 0.12.em,
-            color = inkMuted,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-        )
-        TtsFloatingButton(
-            audioState = audioState,
-            onSpeak = onSpeak,
-            onStop = onStop,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(12.dp),
-        )
     }
 }
 
@@ -454,8 +413,8 @@ private fun TtsFloatingButton(
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isSpeaking = audioState.isSpeaking
-    val description = stringResource(
+    val isSpeaking: Boolean = audioState.isSpeaking
+    val description: String = stringResource(
         if (isSpeaking) R.string.stop_speech_desc else R.string.speak_desc,
     )
     HIconButton(
@@ -471,7 +430,10 @@ private fun TtsFloatingButton(
 @Composable
 private fun StudyActionDock(
     sessionStage: StudyStage,
-    callbacks: StudyDockCallbacks,
+    onRevealAnswer: () -> Unit,
+    onReviewAnswer: (ReviewGrade) -> Unit,
+    onCreateCard: () -> Unit,
+    onRetryLoad: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(
@@ -484,49 +446,51 @@ private fun StudyActionDock(
                 }
         },
         label = "study_action_dock",
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = studyDockMinHeight),
+        modifier = modifier.fillMaxWidth(),
     ) { stage ->
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            when (stage) {
-                StudyStage.Loading -> Unit
+        when (stage) {
+            StudyStage.Loading -> Unit
 
-                StudyStage.Error -> {
-                    HButton(
-                        text = stringResource(R.string.study_error_retry),
-                        onClick = callbacks.onRetryLoad,
-                        variant = HButtonVariant.Primary,
-                        full = true,
-                    )
-                }
+            StudyStage.Error -> {
+                HButton(
+                    text = stringResource(R.string.study_error_retry),
+                    onClick = onRetryLoad,
+                    variant = HButtonVariant.Primary,
+                    full = true,
+                )
+            }
 
-                StudyStage.Empty -> {
-                    HButton(
-                        text = stringResource(R.string.study_empty_create_card_cta),
-                        onClick = callbacks.onCreateCard,
-                        variant = HButtonVariant.Secondary,
-                        full = true,
-                    )
-                }
+            StudyStage.Empty -> {
+                HButton(
+                    text = stringResource(R.string.study_empty_create_card_cta),
+                    onClick = onCreateCard,
+                    variant = HButtonVariant.Secondary,
+                    full = true,
+                )
+            }
 
-                StudyStage.Recall -> {
+            StudyStage.Recall -> {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     HButton(
                         text = stringResource(R.string.study_recall_cta_reveal),
-                        onClick = callbacks.onRevealAnswer,
+                        onClick = onRevealAnswer,
                         variant = HButtonVariant.Primary,
                         full = true,
                     )
-                }
-
-                StudyStage.Grade -> {
-                    AnswerButtons(
-                        onReviewAnswer = callbacks.onReviewAnswer,
+                    Text(
+                        text = stringResource(R.string.study_recall_hint),
+                        fontFamily = schibsted,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 13.sp,
+                        color = inkMuted,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
+            }
+
+            StudyStage.Grade -> {
+                AnswerButtons(onReviewAnswer = onReviewAnswer)
             }
         }
     }
@@ -534,12 +498,10 @@ private fun StudyActionDock(
 
 @Composable
 private fun StudyEmptyState() {
-    val srsConceptLine = stringResource(R.string.onboarding_srs_concept)
-    val studyEmptyBody = stringResource(R.string.study_empty_body)
     HEmptyState(
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
-        body = "$srsConceptLine\n\n$studyEmptyBody",
+        body = stringResource(R.string.study_empty_body),
     )
 }
 
@@ -564,34 +526,36 @@ private fun StudyErrorState() {
 
 @Composable
 private fun FlashcardFront(word: String, phonetic: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 64.dp),
-        ) {
+        Text(
+            text = stringResource(R.string.study_prompt_label).uppercase(),
+            fontFamily = schibsted,
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            letterSpacing = 0.12.em,
+            color = inkMuted,
+        )
+        Text(
+            text = word,
+            fontFamily = bricolage,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 52.sp,
+            lineHeight = 54.sp,
+            letterSpacing = (-0.02).em,
+            color = ink,
+        )
+        if (phonetic.isNotBlank()) {
             Text(
-                text = word,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = recallPromptFontSize,
-                lineHeight = recallPromptLineHeight,
-                letterSpacing = (-0.02).em,
-                color = ink,
-                textAlign = TextAlign.Center,
+                text = phonetic,
+                fontFamily = schibsted,
+                fontWeight = FontWeight.Normal,
+                fontSize = 15.sp,
+                color = inkMuted,
             )
-            if (phonetic.isNotBlank()) {
-                Text(
-                    text = phonetic,
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = inkMuted,
-                    textAlign = TextAlign.Center,
-                )
-            }
         }
     }
 }
@@ -600,46 +564,52 @@ private fun FlashcardFront(word: String, phonetic: String) {
 private fun FlashcardBack(item: StudySessionItem) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(
-            text = item.translation,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = gradeAnswerFontSize,
-            lineHeight = gradeAnswerLineHeight,
-            letterSpacing = (-0.02).em,
-            textAlign = TextAlign.Center,
-            color = ink,
+            text = item.word,
+            fontFamily = schibsted,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = inkMuted,
         )
-        if (item.example.isNotBlank()) {
-            Spacer(Modifier.height(20.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                text = highlightWordInExample(item.example, item.word),
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 17.sp,
-                lineHeight = 24.sp,
+                text = item.translation,
+                fontFamily = bricolage,
+                fontWeight = FontWeight.Bold,
+                fontSize = 44.sp,
+                lineHeight = 46.sp,
+                letterSpacing = (-0.02).em,
                 color = ink,
-                textAlign = TextAlign.Center,
             )
-            if (item.exampleTranslation.isNotBlank()) {
-                Spacer(Modifier.height(6.dp))
+        }
+        if (item.example.isNotBlank()) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = item.exampleTranslation,
+                    text = highlightWordInExample(item.example, item.word),
                     fontFamily = schibsted,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    color = inkMuted,
-                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    lineHeight = 28.sp,
+                    color = ink,
                 )
+                if (item.exampleTranslation.isNotBlank()) {
+                    Text(
+                        text = item.exampleTranslation,
+                        fontFamily = schibsted,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        color = inkSoft,
+                    )
+                }
             }
         }
-        Spacer(Modifier.height(20.dp))
-        val referenceLine: String = listOf(item.phonetic, item.partOfSpeech)
+        val referenceLine: String = listOf(item.partOfSpeech, item.phonetic, item.meaning)
             .filter(String::isNotBlank)
             .joinToString(" · ")
         if (referenceLine.isNotBlank()) {
@@ -647,46 +617,9 @@ private fun FlashcardBack(item: StudySessionItem) {
                 text = referenceLine,
                 fontFamily = schibsted,
                 fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
-                letterSpacing = 0.08.em,
+                fontSize = 12.sp,
+                lineHeight = 19.sp,
                 color = inkMuted,
-                textAlign = TextAlign.Center,
-            )
-        }
-        if (item.meaning.isNotBlank()) {
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = item.meaning,
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                color = inkMuted,
-                textAlign = TextAlign.Center,
-            )
-        }
-        if (item.irregularForms.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.study_related_forms_inline, item.irregularForms.joinToString()),
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
-                letterSpacing = 0.08.em,
-                color = inkMuted,
-                textAlign = TextAlign.Center,
-            )
-        }
-        if (item.usagePattern.isNotBlank()) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = item.usagePattern,
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 13.5.sp,
-                lineHeight = 18.sp,
-                color = inkMuted,
-                textAlign = TextAlign.Center,
             )
         }
     }
@@ -701,7 +634,7 @@ private fun highlightWordInExample(example: String, word: String): AnnotatedStri
         }
         val matchEnd: Int = matchStart + word.length
         append(example.substring(0, matchStart))
-        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+        withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
             append(example.substring(matchStart, matchEnd))
         }
         append(example.substring(matchEnd))
@@ -715,16 +648,20 @@ private fun AnswerButtons(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         GradeForgotButton(
             onClick = { onReviewAnswer(ReviewGrade.AGAIN) },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = gradeButtonMinHeight),
         )
         GradeKnewButton(
             onClick = { onReviewAnswer(ReviewGrade.GOOD) },
             onLongClick = { onReviewAnswer(ReviewGrade.EASY) },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = gradeButtonMinHeight),
         )
     }
 }
@@ -734,13 +671,12 @@ private fun GradeForgotButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = MaterialTheme.helloShapes.control
+    val shape: RoundedCornerShape = MaterialTheme.helloShapes.control
     Box(
         modifier = modifier
-            .heightIn(min = gradeChipMinHeight)
             .clip(shape)
             .background(Color.Transparent, shape)
-            .border(1.dp, hairline, shape)
+            .border(1.dp, outline, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center,
@@ -748,8 +684,8 @@ private fun GradeForgotButton(
         Text(
             text = stringResource(R.string.study_grade_forgot),
             fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp,
             color = ink,
         )
     }
@@ -761,13 +697,12 @@ private fun GradeKnewButton(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = MaterialTheme.helloShapes.control
-    val haptics = LocalHapticFeedback.current
+    val shape: RoundedCornerShape = MaterialTheme.helloShapes.control
+    val haptics: HapticFeedback = LocalHapticFeedback.current
     Box(
         modifier = modifier
-            .heightIn(min = gradeChipMinHeight)
             .clip(shape)
-            .background(surfaceRaised, shape)
+            .background(ink, shape)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -780,15 +715,13 @@ private fun GradeKnewButton(
     ) {
         Text(
             text = stringResource(R.string.study_grade_knew),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,
-            color = ink,
+            fontFamily = bricolage,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = onInk,
         )
     }
 }
-
-private val gradeChipMinHeight = 92.dp
 
 @PreviewLightDark
 @Composable
