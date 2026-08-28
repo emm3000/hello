@@ -2,10 +2,6 @@ package com.emm.hello.newfeatures.study
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
@@ -38,15 +34,11 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         parameters = { parametersOf(deckId ?: StudyRoute.ALL_DUE_DECKS) }
     )
     val uiState = vm.state.collectAsStateWithLifecycle()
-    var showFinishDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when (effect) {
                 StudyUiEffect.NavigateBack -> navigator.goBack()
-                StudyUiEffect.SessionFinished -> {
-                    showFinishDialog = true
-                }
                 StudyUiEffect.NavigateToNewCard -> navigator.navigateTo(NewCardRoute)
             }
         }
@@ -54,10 +46,6 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
 
     StudyScreen(
         onExit = { vm.onIntent(StudyUiIntent.ExitClicked) },
-        onFinishDialogDismissed = {
-            showFinishDialog = false
-            vm.onIntent(StudyUiIntent.FinishDialogDismissed)
-        },
         onReviewAnswer = { item, reviewGrade ->
             vm.onIntent(
                 StudyUiIntent.ReviewAnswered(
@@ -69,6 +57,5 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
         state = uiState.value,
-        showFinishDialog = showFinishDialog,
     )
 }

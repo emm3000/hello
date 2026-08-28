@@ -91,17 +91,6 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `finish dialog dismissed emits navigate back effect`() = runTest {
-        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(StudyUiIntent.FinishDialogDismissed)
-            assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
-        }
-    }
-
-    @Test
     fun `review answered advances to next card and increments reviewed count`() = runTest {
         val cards = listOf(studyFlashcard("a"), studyFlashcard("b"), studyFlashcard("c"))
         val viewModel = makeViewModel(cards)
@@ -262,7 +251,7 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun `session finished is emitted only after the last card is graded`() = runTest {
+    fun `session finished is set only after the last card is graded`() = runTest {
         val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
@@ -276,32 +265,7 @@ class StudyViewModelTest {
             )
             advanceUntilIdle()
             expectNoEvents()
-
-            viewModel.onIntent(
-                StudyUiIntent.ReviewAnswered(
-                    item = viewModel.state.value.currentItem,
-                    reviewGrade = ReviewGrade.GOOD,
-                )
-            )
-            assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
-        }
-        assertThat(viewModel.state.value.sessionFinished).isTrue()
-        assertThat(viewModel.state.value.currentItem).isNull()
-    }
-
-    @Test
-    fun `session finished is not emitted twice when queue is empty`() = runTest {
-        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(
-                StudyUiIntent.ReviewAnswered(
-                    item = viewModel.state.value.currentItem,
-                    reviewGrade = ReviewGrade.GOOD,
-                )
-            )
-            assertThat(awaitItem()).isEqualTo(StudyUiEffect.SessionFinished)
+            assertThat(viewModel.state.value.sessionFinished).isFalse()
 
             viewModel.onIntent(
                 StudyUiIntent.ReviewAnswered(
@@ -312,6 +276,36 @@ class StudyViewModelTest {
             advanceUntilIdle()
             expectNoEvents()
         }
+        assertThat(viewModel.state.value.sessionFinished).isTrue()
+        assertThat(viewModel.state.value.currentItem).isNull()
+    }
+
+    @Test
+    fun `session finished stays true and emits nothing when queue is already empty`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.state.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
+            advanceUntilIdle()
+            expectNoEvents()
+            assertThat(viewModel.state.value.sessionFinished).isTrue()
+
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.state.value.currentItem,
+                    reviewGrade = ReviewGrade.GOOD,
+                )
+            )
+            advanceUntilIdle()
+            expectNoEvents()
+        }
+        assertThat(viewModel.state.value.sessionFinished).isTrue()
     }
 
     @Test

@@ -13,7 +13,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,22 +22,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,7 +53,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -68,7 +65,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toFlashcardId
@@ -88,12 +84,12 @@ import com.emm.hello.core.theme.onInk
 import com.emm.hello.core.theme.outline
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.schibsted
-import com.emm.hello.core.theme.surface
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
+import com.emm.hello.core.ui.HRing
 
 private const val CARD_TRANSITION_DURATION_MS = 220
 private const val CARD_EXIT_FADE_DURATION_MS = 160
@@ -110,12 +106,10 @@ private data class AudioState(
 fun StudyScreen(
     modifier: Modifier = Modifier,
     onExit: () -> Unit = {},
-    onFinishDialogDismissed: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
-    showFinishDialog: Boolean = false,
 ) {
     BackHandler(onBack = onExit)
     val tts: TextToSpeechManager = rememberTextToSpeechManager()
@@ -130,10 +124,17 @@ fun StudyScreen(
     }
 
     val currentItem: StudySessionItem? = state.currentItem
-    val sessionStage: StudyStage = remember(state.isLoading, state.loadError, state.currentItem, cardFace) {
+    val sessionStage: StudyStage = remember(
+        state.isLoading,
+        state.loadError,
+        state.sessionFinished,
+        state.currentItem,
+        cardFace,
+    ) {
         when {
             state.isLoading -> StudyStage.Loading
             state.loadError != null -> StudyStage.Error
+            state.sessionFinished -> StudyStage.Done
             state.currentItem == null -> StudyStage.Empty
             cardFace == CardFace.Front -> StudyStage.Recall
             else -> StudyStage.Grade
@@ -202,6 +203,9 @@ fun StudyScreen(
                 sessionStage = sessionStage,
                 currentItem = currentItem,
                 cardFace = cardFace,
+                reviewedCount = state.reviewedCount,
+                knewCount = state.knewCount,
+                forgotCount = state.forgotCount,
                 onTapCard = {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     cardFace = cardFace.next
@@ -223,99 +227,8 @@ fun StudyScreen(
                 },
                 onCreateCard = onCreateCard,
                 onRetryLoad = onRetryLoad,
+                onExit = onExit,
             )
-        }
-    }
-
-    if (showFinishDialog) {
-        SessionFinishedDialog(
-            totalCount = state.totalCount,
-            onDismiss = onFinishDialogDismissed,
-        )
-    }
-}
-
-@Composable
-private fun SessionFinishedDialog(
-    totalCount: Int,
-    onDismiss: () -> Unit,
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            color = surface,
-            shape = RoundedCornerShape(20.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.Start,
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.mascot_celebrate),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .size(104.dp),
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = stringResource(R.string.session_completed_eyebrow).uppercase(),
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    letterSpacing = 0.12.em,
-                    color = inkMuted,
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.session_completed_title),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 44.sp,
-                    lineHeight = (44 * 1.04f).sp,
-                    letterSpacing = (-0.02).em,
-                    color = ink,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.session_completed_desc, totalCount),
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 20.sp,
-                    color = inkMuted,
-                )
-                Spacer(Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(surface, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = totalCount.toString(),
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 22.sp,
-                        color = ink,
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = stringResource(R.string.session_completed_stat_label).uppercase(),
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.sp,
-                        letterSpacing = 0.12.em,
-                        color = inkMuted,
-                    )
-                }
-                Spacer(Modifier.height(24.dp))
-                HButton(
-                    text = stringResource(R.string.session_completed_cta),
-                    onClick = onDismiss,
-                    variant = HButtonVariant.Primary,
-                    full = true,
-                )
-            }
         }
     }
 }
@@ -326,6 +239,7 @@ private enum class StudyStage {
     Empty,
     Recall,
     Grade,
+    Done,
 }
 
 @Composable
@@ -333,6 +247,9 @@ private fun StudyCanvas(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
     cardFace: CardFace,
+    reviewedCount: Int,
+    knewCount: Int,
+    forgotCount: Int,
     onTapCard: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -341,6 +258,11 @@ private fun StudyCanvas(
             StudyStage.Loading -> StudyLoadingState()
             StudyStage.Error -> StudyErrorState()
             StudyStage.Empty -> StudyEmptyState()
+            StudyStage.Done -> StudyDoneState(
+                reviewedCount = reviewedCount,
+                knewCount = knewCount,
+                forgotCount = forgotCount,
+            )
             StudyStage.Recall,
             StudyStage.Grade -> StudyCardStage(
                 currentItem = currentItem,
@@ -434,6 +356,7 @@ private fun StudyActionDock(
     onReviewAnswer: (ReviewGrade) -> Unit,
     onCreateCard: () -> Unit,
     onRetryLoad: () -> Unit,
+    onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(
@@ -492,6 +415,23 @@ private fun StudyActionDock(
             StudyStage.Grade -> {
                 AnswerButtons(onReviewAnswer = onReviewAnswer)
             }
+
+            StudyStage.Done -> {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    HButton(
+                        text = stringResource(R.string.study_done_add_word),
+                        onClick = onCreateCard,
+                        variant = HButtonVariant.Secondary,
+                        full = true,
+                    )
+                    HButton(
+                        text = stringResource(R.string.study_done_back),
+                        onClick = onExit,
+                        variant = HButtonVariant.Text,
+                        full = true,
+                    )
+                }
+            }
         }
     }
 }
@@ -522,6 +462,46 @@ private fun StudyErrorState() {
         headline = stringResource(R.string.study_error_headline),
         body = stringResource(R.string.study_error_body),
     )
+}
+
+@Composable
+private fun StudyDoneState(
+    reviewedCount: Int,
+    knewCount: Int,
+    forgotCount: Int,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            HRing(progress = 1f, size = 96.dp, strokeWidth = 4.dp)
+            Icon(
+                imageVector = Icons.Outlined.Check,
+                contentDescription = null,
+                tint = ink,
+                modifier = Modifier.size(44.dp),
+            )
+        }
+        Text(
+            text = stringResource(R.string.study_done_title),
+            fontFamily = bricolage,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 40.sp,
+            lineHeight = 42.sp,
+            letterSpacing = (-0.02).em,
+            color = ink,
+        )
+        Text(
+            text = stringResource(R.string.study_done_stats, reviewedCount, knewCount, forgotCount),
+            fontFamily = schibsted,
+            fontWeight = FontWeight.Normal,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            color = inkMuted,
+        )
+    }
 }
 
 @Composable

@@ -204,11 +204,10 @@
     <string name="speak_desc">Play pronunciation</string>
     <string name="study_grade_forgot">Forgot</string>
     <string name="study_grade_knew">Knew it</string>
-    <string name="session_completed_eyebrow">Sesión completada</string>
-    <string name="session_completed_title">Listo.</string>
-    <string name="session_completed_desc">Repasaste %1$d tarjetas.</string>
-    <string name="session_completed_cta">Volver</string>
-    <string name="session_completed_stat_label">Tarjetas repasadas</string>
+    <string name="study_done_title">Done for today.</string>
+    <string name="study_done_stats">%1$d reviewed · %2$d knew it · %3$d to see again</string>
+    <string name="study_done_add_word">Add a word</string>
+    <string name="study_done_back">Back to Today</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Recordatorios de estudio</string>

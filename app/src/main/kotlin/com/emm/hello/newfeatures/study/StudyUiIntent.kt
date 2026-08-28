@@ -4,7 +4,6 @@ import com.emm.domain.study.ReviewGrade
 import com.emm.hello.core.mvi.MviIntent
 
 sealed interface StudyUiIntent : MviIntent {
-    data object FinishDialogDismissed : StudyUiIntent
     data object CreateCardClicked : StudyUiIntent
     data object RetryLoad : StudyUiIntent
     data object ExitClicked : StudyUiIntent

@@ -70,13 +70,11 @@ class StudyViewModel(
         val state = currentState
         if (nextItem == null && state.totalCount > 0 && !state.sessionFinished) {
             setState { copy(sessionFinished = true) }
-            sendEffect(StudyUiEffect.SessionFinished)
         }
     }
 
     override fun onIntent(intent: StudyUiIntent) {
         when (intent) {
-            StudyUiIntent.FinishDialogDismissed -> sendEffect(StudyUiEffect.NavigateBack)
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
             StudyUiIntent.RetryLoad -> loadSession()
             StudyUiIntent.ExitClicked -> sendEffect(StudyUiEffect.NavigateBack)
