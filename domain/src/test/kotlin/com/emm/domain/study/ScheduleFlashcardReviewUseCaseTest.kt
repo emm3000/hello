@@ -125,6 +125,21 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(null, result.productionSince)
     }
 
+    @Test
+    fun `invoke stamps productionSince with the same instant it stamped lastReviewedAt on graduation`() {
+        var callCount: Long = 0L
+        val advancingClock = Clock {
+            callCount += 1_000L
+            fixedNow.plusMillis(callCount)
+        }
+        val advancingUseCase = ScheduleFlashcardReviewUseCase(advancingClock)
+        val card = reviewCard("card-10".toFlashcardId(), stability = 10.0)
+
+        val result = advancingUseCase(card, ReviewGrade.GOOD, "card-10".toFlashcardId())
+
+        assertEquals(result.lastReviewedAt, result.productionSince)
+    }
+
     private fun reviewCard(id: com.emm.domain.ids.FlashcardId, stability: Double = 10.0) = FsrsCard(
         flashcardId = id,
         state = FsrsState.REVIEW,

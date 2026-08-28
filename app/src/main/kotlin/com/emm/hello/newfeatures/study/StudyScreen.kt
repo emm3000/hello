@@ -138,6 +138,7 @@ fun StudyScreen(
     }
 
     val onCard: Boolean = sessionStage == StudyStage.Recall || sessionStage == StudyStage.Grade
+    val wordRevealed: Boolean = onCard && (state.currentItem?.revealsWordOn(cardFace) ?: false)
     val hueIndex: Int = if (state.totalCount > 0) {
         minOf(state.reviewedCount, state.totalCount - 1) % cardHues.size
     } else {
@@ -178,7 +179,7 @@ fun StudyScreen(
                 position = position,
                 progress = progress,
                 onClose = onExit,
-                actions = if (onCard) {
+                actions = if (wordRevealed) {
                     {
                         TtsFloatingButton(
                             audioState = AudioState(isSpeaking = isSpeaking, ttsReady = ttsReady),

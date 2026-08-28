@@ -21,6 +21,9 @@ data class StudySessionItem(
     val exampleTranslation: String = "",
 )
 
+internal fun StudySessionItem.revealsWordOn(face: CardFace): Boolean =
+    direction == StudyDirection.RECOGNITION || face == CardFace.Back
+
 internal fun StudyFlashcard.toStudySessionItem(): StudySessionItem = StudySessionItem(
     flashcardId = flashcardId,
     review = review,

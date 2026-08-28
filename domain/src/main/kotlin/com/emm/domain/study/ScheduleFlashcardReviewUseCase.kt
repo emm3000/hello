@@ -22,7 +22,7 @@ class ScheduleFlashcardReviewUseCase(
         val productionSince: Long? = card.productionSince ?: if (
             scheduled.state == FsrsState.REVIEW && scheduled.stability >= GRADUATION_STABILITY_DAYS
         ) {
-            clock.now().toEpochMilli()
+            scheduled.lastReviewedAt
         } else {
             null
         }

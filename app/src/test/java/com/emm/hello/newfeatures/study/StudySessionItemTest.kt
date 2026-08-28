@@ -102,6 +102,24 @@ class StudySessionItemTest {
         assertThat(item.direction).isEqualTo(StudyDirection.RECOGNITION)
     }
 
+    @Test
+    fun `RECOGNITION direction reveals the word on the front and back faces`() {
+        val review = FsrsCard.new("go".toFlashcardId(), clock)
+        val item = studyFlashcard(word = "go", studyCards = emptyList(), review = review).toStudySessionItem()
+
+        assertThat(item.revealsWordOn(CardFace.Front)).isTrue()
+        assertThat(item.revealsWordOn(CardFace.Back)).isTrue()
+    }
+
+    @Test
+    fun `PRODUCTION direction reveals the word only on the back face`() {
+        val review = FsrsCard.new("go".toFlashcardId(), clock).copy(productionSince = 1_000L)
+        val item = studyFlashcard(word = "go", studyCards = emptyList(), review = review).toStudySessionItem()
+
+        assertThat(item.revealsWordOn(CardFace.Front)).isFalse()
+        assertThat(item.revealsWordOn(CardFace.Back)).isTrue()
+    }
+
     private fun studyFlashcard(
         word: String,
         studyCards: List<GeneratedStudyCard>,
