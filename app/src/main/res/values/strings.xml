@@ -97,29 +97,6 @@
     <string name="meaning_label">Meaning</string>
     <string name="translation_label">Translation</string>
     <string name="examples_label">Examples</string>
-    <string name="why_useful_label">Why it\'s useful</string>
-    <string name="usage_pattern_label">Usage pattern</string>
-    <string name="common_mistake_label">Common mistake</string>
-    <string name="register_label">Register</string>
-    <string name="domain_label">Domain</string>
-    <string name="lemma_label">Lemma</string>
-    <string name="collocations_label">Common collocations</string>
-    <string name="irregular_forms_label">Irregular forms</string>
-    <string name="confusable_with_label">Don\'t confuse with</string>
-    <string name="warnings_label">Warnings</string>
-    <!-- Card Detail redesign — Phase 2.4 -->
-    <string name="card_detail_header_label">Card</string>
-    <string name="card_detail_examples_section_label">Examples · %1$d</string>
-    <string name="card_detail_extras_section_label">More details</string>
-    <string name="card_detail_context_section_label">Context</string>
-    <string name="card_detail_footer_study_cards_one">1 study card</string>
-    <string name="card_detail_footer_study_cards_other">%1$d study cards</string>
-    <string name="card_detail_footer_warnings_one">1 with a warning</string>
-    <string name="card_detail_footer_warnings_other">%1$d with warnings</string>
-    <string name="card_detail_footer_next_today">next today</string>
-    <string name="card_detail_footer_next_overdue">overdue</string>
-    <string name="card_detail_footer_next_days_one">next in 1 d.</string>
-    <string name="card_detail_footer_next_days_other">next in %1$d d.</string>
     <string name="card_explanation_title">What this card practices</string>
     <string name="include_card_in_study_label">Use in review</string>
     <string name="edit_card_action">Edit</string>
@@ -207,9 +184,6 @@
         <item quantity="one">You have %1$d card to review today.</item>
         <item quantity="other">You have %1$d cards to review today.</item>
     </plurals>
-
-    <!-- Notes -->
-    <string name="notes_label">Notes</string>
 
     <!-- Settings Screen -->
     <string name="export_data">Export data</string>

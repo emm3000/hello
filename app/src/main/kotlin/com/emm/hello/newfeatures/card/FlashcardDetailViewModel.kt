@@ -27,6 +27,7 @@ class FlashcardDetailViewModel(
     override fun onIntent(intent: FlashcardDetailUiIntent) {
         when (intent) {
             FlashcardDetailUiIntent.Load -> loadFlashcard()
+            FlashcardDetailUiIntent.BackClicked -> sendEffect(FlashcardDetailUiEffect.NavigateBack)
             FlashcardDetailUiIntent.EditFlashcard -> {
                 sendEffect(FlashcardDetailUiEffect.NavigateToEditFlashcard(flashcardId))
             }
@@ -43,8 +44,8 @@ class FlashcardDetailViewModel(
     private fun loadFlashcard() {
         viewModelScope.launch {
             try {
-                val flashcard = flashcardRepository.fetchById(flashcardId.toFlashcardId())
-                setState { copy(flashcard = flashcard, isLoading = false) }
+                val detail = flashcardRepository.fetchById(flashcardId.toFlashcardId())
+                setState { copy(flashcard = detail.flashcard, isLoading = false) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {

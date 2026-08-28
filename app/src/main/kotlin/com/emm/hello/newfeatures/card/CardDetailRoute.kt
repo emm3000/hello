@@ -31,12 +31,11 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                     navigator.goBack()
                 }
+                FlashcardDetailUiEffect.NavigateBack -> navigator.goBack()
                 is FlashcardDetailUiEffect.NavigateToEditFlashcard -> {
                     navigator.navigateTo(EditFlashcardRoute(cardId = effect.cardId, deckId = deckId))
                 }
-                FlashcardDetailUiEffect.FlashcardDeleted -> {
-                    navigator.goBack()
-                }
+                FlashcardDetailUiEffect.FlashcardDeleted -> navigator.goBack()
                 is FlashcardDetailUiEffect.ShowMessage -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
@@ -45,13 +44,7 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
     }
 
     FlashcardDetailScreen(
-        flashcard = uiState.flashcard,
-        isLoading = uiState.isLoading,
-        onNavigateBack = { navigator.goBack() },
-        onEditClick = { vm.onIntent(FlashcardDetailUiIntent.EditFlashcard) },
-        onDeleteClick = { vm.onIntent(FlashcardDetailUiIntent.DeleteFlashcard) },
-        onConfirmDelete = { vm.onIntent(FlashcardDetailUiIntent.ConfirmDeleteFlashcard) },
-        onDismissDelete = { vm.onIntent(FlashcardDetailUiIntent.DismissDeleteFlashcard) },
-        isDeleteConfirmationVisible = uiState.isDeleteConfirmationVisible,
+        state = uiState,
+        onIntent = vm::onIntent,
     )
 }

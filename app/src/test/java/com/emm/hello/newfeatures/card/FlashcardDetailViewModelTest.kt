@@ -42,8 +42,23 @@ class FlashcardDetailViewModelTest {
             undoEventHolder = UndoEventHolder(),
         )
 
-        assertThat(viewModel.state.value.flashcard.flashcard.id.value).isEqualTo("card-1")
-        assertThat(viewModel.state.value.flashcard.flashcard.word).isEqualTo("hello")
+        assertThat(viewModel.state.value.flashcard.id.value).isEqualTo("card-1")
+        assertThat(viewModel.state.value.flashcard.word).isEqualTo("hello")
+    }
+
+    @Test
+    fun `BackClicked emits NavigateBack`() = runTest {
+        val viewModel = FlashcardDetailViewModel(
+            flashcardId = "card-1",
+            flashcardRepository = FakeFlashcardReadRepo(),
+            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
+            undoEventHolder = UndoEventHolder(),
+        )
+
+        viewModel.effect.test {
+            viewModel.onIntent(FlashcardDetailUiIntent.BackClicked)
+            assertThat(awaitItem()).isEqualTo(FlashcardDetailUiEffect.NavigateBack)
+        }
     }
 
     @Test

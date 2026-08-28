@@ -54,13 +54,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -90,6 +85,7 @@ import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HRing
+import com.emm.hello.core.ui.underlineFirstMatch
 
 private const val CARD_TRANSITION_DURATION_MS = 220
 private const val CARD_EXIT_FADE_DURATION_MS = 160
@@ -570,7 +566,7 @@ private fun FlashcardBack(item: StudySessionItem) {
         if (item.example.isNotBlank()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = highlightWordInExample(item.example, item.word),
+                    text = underlineFirstMatch(item.example, item.word),
                     fontFamily = schibsted,
                     fontWeight = FontWeight.Medium,
                     fontSize = 20.sp,
@@ -602,22 +598,6 @@ private fun FlashcardBack(item: StudySessionItem) {
                 color = inkMuted,
             )
         }
-    }
-}
-
-private fun highlightWordInExample(example: String, word: String): AnnotatedString {
-    val matchStart: Int = if (word.isBlank()) -1 else example.indexOf(word, ignoreCase = true)
-    return buildAnnotatedString {
-        if (matchStart < 0) {
-            append(example)
-            return@buildAnnotatedString
-        }
-        val matchEnd: Int = matchStart + word.length
-        append(example.substring(0, matchStart))
-        withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append(example.substring(matchStart, matchEnd))
-        }
-        append(example.substring(matchEnd))
     }
 }
 

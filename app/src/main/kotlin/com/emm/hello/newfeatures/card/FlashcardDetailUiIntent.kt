@@ -4,6 +4,7 @@ import com.emm.hello.core.mvi.MviIntent
 
 sealed interface FlashcardDetailUiIntent : MviIntent {
     data object Load : FlashcardDetailUiIntent
+    data object BackClicked : FlashcardDetailUiIntent
     data object EditFlashcard : FlashcardDetailUiIntent
     data object DeleteFlashcard : FlashcardDetailUiIntent
     data object ConfirmDeleteFlashcard : FlashcardDetailUiIntent
