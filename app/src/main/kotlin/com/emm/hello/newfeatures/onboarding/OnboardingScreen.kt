@@ -125,7 +125,7 @@ private fun SkipRow(onSkip: () -> Unit) {
         HButton(
             text = stringResource(R.string.onboarding_skip),
             onClick = onSkip,
-            variant = HButtonVariant.Ghost,
+            variant = HButtonVariant.Text,
         )
     }
 }
@@ -227,7 +227,7 @@ private fun PrimaryCtaButton(
     HButton(
         text = label,
         onClick = { onIntent(intent) },
-        variant = HButtonVariant.Accent,
+        variant = HButtonVariant.Primary,
         full = true,
         modifier = modifier,
     )

@@ -64,7 +64,7 @@ fun DecksScreen(
                         HButton(
                             text = stringResource(R.string.decks_create_action),
                             onClick = { onIntent(DecksUiIntent.CreateDeckRequested) },
-                            variant = HButtonVariant.Accent,
+                            variant = HButtonVariant.Primary,
                             icon = Icons.Default.Add,
                         )
                     },

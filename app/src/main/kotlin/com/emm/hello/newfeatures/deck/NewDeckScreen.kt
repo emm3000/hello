@@ -178,7 +178,7 @@ fun NewDeckScreen(
                     HButton(
                         text = stringResource(R.string.delete_deck_action),
                         onClick = { onIntent(NewDeckUiIntent.DeleteDeck) },
-                        variant = HButtonVariant.Ghost,
+                        variant = HButtonVariant.Text,
                         danger = true,
                         full = true,
                     )

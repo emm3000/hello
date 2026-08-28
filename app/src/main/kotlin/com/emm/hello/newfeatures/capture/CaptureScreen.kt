@@ -201,7 +201,7 @@ private fun CaptureBacklog(state: CaptureUiState, onRetry: () -> Unit) {
                     HButton(
                         text = stringResource(R.string.capture_retry),
                         onClick = onRetry,
-                        variant = HButtonVariant.Ghost,
+                        variant = HButtonVariant.Text,
                     )
                 }
             }

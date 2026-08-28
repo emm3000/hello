@@ -75,7 +75,6 @@ import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HInput
@@ -232,8 +231,7 @@ fun NewCardInputStepScreen(
                                 keyboardController?.hide()
                                 onGenerate()
                             },
-                            variant = HButtonVariant.Accent,
-                            size = HButtonSize.Lg,
+                            variant = HButtonVariant.Primary,
                             full = true,
                             enabled = isGenerateEnabled,
                             isLoading = state.isLoading,

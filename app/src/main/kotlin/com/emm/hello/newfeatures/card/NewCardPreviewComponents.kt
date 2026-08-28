@@ -51,7 +51,6 @@ import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSkeleton
@@ -199,15 +198,13 @@ internal fun QuotaExceededState(
             HButton(
                 text = stringResource(R.string.quota_error_create_manually),
                 onClick = onCreateManually,
-                variant = HButtonVariant.Accent,
-                size = HButtonSize.Lg,
+                variant = HButtonVariant.Primary,
                 full = true,
             )
             HButton(
                 text = stringResource(R.string.quota_error_notify_tomorrow),
                 onClick = onNotifyTomorrow,
-                variant = HButtonVariant.Ghost,
-                size = HButtonSize.Lg,
+                variant = HButtonVariant.Text,
                 full = true,
             )
         }

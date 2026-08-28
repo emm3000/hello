@@ -108,7 +108,7 @@ fun LibraryScreen(
                         HButton(
                             text = stringResource(R.string.library_empty_cta),
                             onClick = { onIntent(LibraryUiIntent.CaptureRequested) },
-                            variant = HButtonVariant.Accent,
+                            variant = HButtonVariant.Primary,
                         )
                     },
                 )
@@ -121,7 +121,7 @@ fun LibraryScreen(
                         HButton(
                             text = stringResource(R.string.library_no_results_cta),
                             onClick = { onIntent(LibraryUiIntent.FiltersCleared) },
-                            variant = HButtonVariant.Ghost,
+                            variant = HButtonVariant.Text,
                         )
                     },
                 )

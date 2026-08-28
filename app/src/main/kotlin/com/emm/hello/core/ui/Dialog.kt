@@ -60,7 +60,7 @@ fun HAlertDialog(
             HButton(
                 text = confirmText,
                 onClick = onConfirm,
-                variant = if (isDangerous) HButtonVariant.Ghost else HButtonVariant.Accent,
+                variant = if (isDangerous) HButtonVariant.Text else HButtonVariant.Primary,
                 danger = isDangerous,
             )
         },
@@ -69,7 +69,7 @@ fun HAlertDialog(
                 HButton(
                     text = it,
                     onClick = onDismiss,
-                    variant = HButtonVariant.Ghost,
+                    variant = HButtonVariant.Text,
                 )
             }
         },

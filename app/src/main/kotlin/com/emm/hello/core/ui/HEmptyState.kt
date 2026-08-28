@@ -164,7 +164,7 @@ private fun HEmptyStateDefaultPreview() {
                     HButton(
                         text = "Crear mazo",
                         onClick = {},
-                        variant = HButtonVariant.Accent,
+                        variant = HButtonVariant.Primary,
                         full = true,
                     )
                 },
@@ -172,7 +172,7 @@ private fun HEmptyStateDefaultPreview() {
                     HButton(
                         text = "Importar backup",
                         onClick = {},
-                        variant = HButtonVariant.Ghost,
+                        variant = HButtonVariant.Text,
                         full = true,
                     )
                 },
@@ -195,7 +195,7 @@ private fun HEmptyStateSearchPreview() {
                     HButton(
                         text = "Crear tarjeta",
                         onClick = {},
-                        variant = HButtonVariant.Accent,
+                        variant = HButtonVariant.Primary,
                         full = true,
                     )
                 },

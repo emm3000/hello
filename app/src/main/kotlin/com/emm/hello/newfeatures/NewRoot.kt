@@ -24,7 +24,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.emm.hello.core.ui.AlertVariant
-import com.emm.hello.core.ui.ButtonVariant
+import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.navigation.Navigator
@@ -177,7 +177,7 @@ private fun StartupErrorScreen(
             HButton(
                 text = "Reintentar",
                 onClick = onRetry,
-                variant = ButtonVariant.Default,
+                variant = HButtonVariant.Primary,
             )
         }
     }

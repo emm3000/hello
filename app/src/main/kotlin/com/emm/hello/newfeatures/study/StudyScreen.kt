@@ -84,7 +84,6 @@ import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.surfaceRaised
 import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
 import com.emm.hello.core.ui.HIconButton
@@ -341,7 +340,7 @@ private fun SessionFinishedDialog(
                 HButton(
                     text = stringResource(R.string.session_completed_cta),
                     onClick = onDismiss,
-                    variant = HButtonVariant.Accent,
+                    variant = HButtonVariant.Primary,
                     full = true,
                 )
             }
@@ -512,8 +511,7 @@ private fun StudyActionDock(
                     HButton(
                         text = stringResource(R.string.study_error_retry),
                         onClick = callbacks.onRetryLoad,
-                        variant = HButtonVariant.Accent,
-                        size = HButtonSize.Lg,
+                        variant = HButtonVariant.Primary,
                         full = true,
                     )
                 }
@@ -523,7 +521,6 @@ private fun StudyActionDock(
                         text = stringResource(R.string.study_empty_create_card_cta),
                         onClick = callbacks.onCreateCard,
                         variant = HButtonVariant.Secondary,
-                        size = HButtonSize.Lg,
                         full = true,
                     )
                 }
@@ -532,8 +529,7 @@ private fun StudyActionDock(
                     HButton(
                         text = stringResource(R.string.study_recall_cta_reveal),
                         onClick = callbacks.onRevealAnswer,
-                        variant = HButtonVariant.Accent,
-                        size = HButtonSize.Lg,
+                        variant = HButtonVariant.Primary,
                         full = true,
                     )
                 }

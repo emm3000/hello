@@ -39,7 +39,6 @@ import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HFab
 import com.emm.hello.core.ui.HIconButton
@@ -191,8 +190,7 @@ private fun SessionCta(
 ) {
     HButton(
         onClick = onStudy,
-        variant = HButtonVariant.Accent,
-        size = HButtonSize.Xl,
+        variant = HButtonVariant.Primary,
         full = true,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -245,8 +243,7 @@ private fun RestingHero(
         HButton(
             text = stringResource(R.string.hoy_resting_cta),
             onClick = onCapture,
-            variant = HButtonVariant.Accent,
-            size = HButtonSize.Lg,
+            variant = HButtonVariant.Primary,
             full = true,
         )
     }

@@ -25,7 +25,6 @@ import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
-import com.emm.hello.core.ui.HButtonSize
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HWizTop
 import com.emm.hello.newfeatures.card.validation.IssueTextMapper
@@ -106,7 +105,6 @@ fun NewCardReviewScreen(
                                 text = stringResource(R.string.retry_action),
                                 onClick = { onIntent(NewCardUiIntent.GenerateClicked) },
                                 variant = HButtonVariant.Secondary,
-                                size = HButtonSize.Md,
                                 full = true,
                             )
                         }
@@ -126,8 +124,7 @@ fun NewCardReviewScreen(
                             keyboardController?.hide()
                             onIntent(NewCardUiIntent.SaveClicked)
                         },
-                        variant = HButtonVariant.Accent,
-                        size = HButtonSize.Lg,
+                        variant = HButtonVariant.Primary,
                         full = true,
                         enabled = !state.isLoading && state.canSavePreview,
                         isLoading = state.isLoading,
