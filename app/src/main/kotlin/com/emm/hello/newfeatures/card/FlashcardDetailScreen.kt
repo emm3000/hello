@@ -474,7 +474,7 @@ private fun ChipFlow(label: String, values: List<String>) {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             values.forEach { value ->
-                HChip(label = value, accent = false)
+                HChip(label = value)
             }
         }
     }

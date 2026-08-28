@@ -4,7 +4,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,15 +21,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.spacing
 
@@ -42,6 +45,7 @@ fun HInput(
     placeholder: String? = null,
     supportingText: String? = null,
     errorMessage: String? = null,
+    variant: HFieldVariant = HFieldVariant.Outlined,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     singleLine: Boolean = true,
@@ -55,18 +59,38 @@ fun HInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-    val isError = errorMessage != null
+    val isError: Boolean = errorMessage != null
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val effectiveSingleLine = singleLine && rows <= 1
     val effectiveMinLines = if (rows > 1) rows else minLines
     val effectiveMaxLines = if (rows > 1) rows else maxLines
 
-    val borderColor = fieldShellBorderColor(
-        isError = isError,
-        enabled = enabled,
-        isActive = isFocused,
-    )
+    val containerModifier: Modifier = when (variant) {
+        HFieldVariant.Outlined -> {
+            val borderColor: Color = fieldShellBorderColor(isError = isError, enabled = enabled, isActive = isFocused)
+            fieldShellContainerModifier(borderColor = borderColor)
+        }
+        HFieldVariant.Underline -> {
+            val lineColor: Color = fieldShellUnderlineColor(isError = isError, enabled = enabled, isActive = isFocused)
+            fieldShellUnderlineModifier(lineColor = lineColor)
+        }
+    }
+
+    val contentPadding: PaddingValues = when (variant) {
+        HFieldVariant.Outlined -> fieldShellContentPadding()
+        HFieldVariant.Underline -> PaddingValues(horizontal = 0.dp, vertical = MaterialTheme.spacing.sm)
+    }
+
+    val baseTextStyle: TextStyle = when (variant) {
+        HFieldVariant.Outlined -> MaterialTheme.typography.bodyMedium
+        HFieldVariant.Underline -> MaterialTheme.typography.displaySmall
+    }
+
+    val placeholderColor: Color = when (variant) {
+        HFieldVariant.Outlined -> fieldShellPlaceholderColor(enabled)
+        HFieldVariant.Underline -> inkFaint
+    }
 
     FieldShell(
         modifier = modifier,
@@ -74,12 +98,11 @@ fun HInput(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
-        monoLabel = true,
     ) {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = fieldShellContainerModifier(borderColor = borderColor)
+            modifier = containerModifier
                 .semantics {
                     if (label != null) {
                         contentDescription = label
@@ -97,7 +120,7 @@ fun HInput(
             keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             interactionSource = interactionSource,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = fieldShellContentColor(enabled)),
+            textStyle = baseTextStyle.copy(color = fieldShellContentColor(enabled)),
             cursorBrush = SolidColor(ink),
             decorationBox = { innerTextField ->
                 InputDecoration(
@@ -106,7 +129,9 @@ fun HInput(
                     leadingIcon = leadingIcon,
                     trailingIcon = trailingIcon,
                     singleLine = effectiveSingleLine,
-                    placeholderColor = fieldShellPlaceholderColor(enabled),
+                    placeholderStyle = baseTextStyle,
+                    placeholderColor = placeholderColor,
+                    contentPadding = contentPadding,
                     innerTextField = innerTextField,
                 )
             },
@@ -121,13 +146,15 @@ private fun InputDecoration(
     leadingIcon: (@Composable () -> Unit)?,
     trailingIcon: (@Composable () -> Unit)?,
     singleLine: Boolean,
-    placeholderColor: androidx.compose.ui.graphics.Color,
+    placeholderStyle: TextStyle,
+    placeholderColor: Color,
+    contentPadding: PaddingValues,
     innerTextField: @Composable () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(fieldShellContentPadding()),
+            .padding(contentPadding),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
     ) {
@@ -142,7 +169,7 @@ private fun InputDecoration(
             if (value.isEmpty() && placeholder != null) {
                 Text(
                     text = placeholder,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = placeholderStyle,
                     color = placeholderColor,
                 )
             }
@@ -163,15 +190,10 @@ private fun InputDecoration(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HInputPreview() {
+private fun HInputOutlinedEmptyPreview() {
     HelloTheme {
         Surface(color = pageBackground) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
-            ) {
+            Box(modifier = Modifier.padding(16.dp)) {
                 var name by remember { mutableStateOf("") }
                 HInput(
                     value = name,
@@ -179,7 +201,17 @@ private fun HInputPreview() {
                     label = "Nombre del mazo",
                     placeholder = "Ej: Vocabulario inglés B2",
                 )
+            }
+        }
+    }
+}
 
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HInputOutlinedWithValuePreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
                 var word by remember { mutableStateOf("serendipity") }
                 HInput(
                     value = word,
@@ -187,7 +219,17 @@ private fun HInputPreview() {
                     label = "Palabra",
                     supportingText = "Escribe la palabra en inglés",
                 )
+            }
+        }
+    }
+}
 
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HInputOutlinedErrorPreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
                 var broken by remember { mutableStateOf("") }
                 HInput(
                     value = broken,
@@ -196,22 +238,59 @@ private fun HInputPreview() {
                     placeholder = "Este campo es obligatorio",
                     errorMessage = "Este campo es obligatorio",
                 )
+            }
+        }
+    }
+}
 
-                var notes by remember { mutableStateOf("") }
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HInputUnderlineEmptyPreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                var expression by remember { mutableStateOf("") }
                 HInput(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = "Notas",
-                    singleLine = false,
-                    rows = 3,
-                    placeholder = "Escribe tus notas aquí…",
+                    value = expression,
+                    onValueChange = { expression = it },
+                    placeholder = "Escribe una palabra o frase",
+                    variant = HFieldVariant.Underline,
                 )
+            }
+        }
+    }
+}
 
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HInputUnderlineWithValuePreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                var expression by remember { mutableStateOf("serendipity") }
                 HInput(
-                    value = "Campo desactivado",
-                    onValueChange = {},
-                    label = "Desactivado",
-                    enabled = false,
+                    value = expression,
+                    onValueChange = { expression = it },
+                    variant = HFieldVariant.Underline,
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HInputUnderlineErrorPreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                var expression by remember { mutableStateOf("") }
+                HInput(
+                    value = expression,
+                    onValueChange = { expression = it },
+                    placeholder = "Escribe una palabra o frase",
+                    errorMessage = "Este campo es obligatorio",
+                    variant = HFieldVariant.Underline,
                 )
             }
         }

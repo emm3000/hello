@@ -346,7 +346,6 @@ private fun TagsField(
                 tags.forEach { tag ->
                     HChip(
                         label = tag,
-                        accent = true,
                         onRemove = { onTagsChange(tags - tag) },
                     )
                 }

@@ -1,18 +1,16 @@
 package com.emm.hello.core.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,85 +18,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.surfaceRaised
+import com.emm.hello.core.theme.onInk
 import com.emm.hello.core.theme.pageBackground
-import com.emm.hello.core.theme.surface
-import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.schibsted
-
-private val chipShape = RoundedCornerShape(15.dp)
+import com.emm.hello.core.theme.spacing
+import com.emm.hello.core.theme.surfaceRaised
 
 @Composable
 fun HChip(
     label: String,
     modifier: Modifier = Modifier,
     active: Boolean = false,
-    accent: Boolean = false,
     onRemove: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    val bg = when {
-        active -> ink
-        accent -> surfaceRaised
-        else -> Color.Transparent
-    }
-    val fg = when {
-        active -> pageBackground
-        accent -> ink
-        else -> inkMuted
-    }
-    val hasBorder = !active && !accent
+    val containerColor: Color = if (active) ink else surfaceRaised
+    val contentColor: Color = if (active) onInk else ink
 
-    // Outer box provides the a11y 48dp tap target
-    Box(
-        modifier = modifier.heightIn(min = 48.dp),
-        contentAlignment = Alignment.Center,
+    Row(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .clip(MaterialTheme.helloShapes.pill)
+            .background(containerColor)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = MaterialTheme.spacing.lg, vertical = MaterialTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
     ) {
-        val chipMod = Modifier
-            .clip(chipShape)
-            .then(if (hasBorder) Modifier.border(1.dp, surface, chipShape) else Modifier)
-            .background(bg)
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable { onClick() }
-                } else {
-                    Modifier
-                },
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = contentColor,
+        )
+        if (onRemove != null) {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Quitar $label",
+                tint = contentColor,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable(onClick = onRemove),
             )
-            .padding(
-                start = if (onRemove != null) 12.dp else 12.dp,
-                end = if (onRemove != null) 8.dp else 12.dp,
-                top = 6.dp,
-                bottom = 6.dp,
-            )
-
-        Row(
-            modifier = chipMod,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = label,
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Medium,
-                fontSize = 12.5.sp,
-                letterSpacing = 0.1.sp,
-                color = fg,
-            )
-            if (onRemove != null) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = "Quitar $label",
-                    tint = fg.copy(alpha = 0.7f),
-                    modifier = Modifier.size(12.dp),
-                )
-            }
         }
     }
 }
@@ -107,24 +71,19 @@ fun HChip(
 fun HTagChip(
     tag: String,
     modifier: Modifier = Modifier,
-    variant: BadgeVariant = BadgeVariant.Secondary,
     removable: Boolean = false,
     onRemove: () -> Unit = {},
 ) {
-    val isAccent = variant == BadgeVariant.Default
-    val isActive = variant == BadgeVariant.Success || variant == BadgeVariant.Tertiary
     HChip(
         label = tag,
         modifier = modifier,
-        active = isActive,
-        accent = isAccent,
-        onRemove = if (removable) onRemove else null,
+        onRemove = onRemove.takeIf { removable },
     )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HChipPreview() {
+private fun HChipStatesPreview() {
     HelloTheme {
         Surface(color = pageBackground) {
             Row(
@@ -134,26 +93,8 @@ private fun HChipPreview() {
             ) {
                 HChip(label = "inglés")
                 HChip(label = "activo", active = true)
-                HChip(label = "acento", accent = true)
                 HChip(label = "quitar", onRemove = {})
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
-@Composable
-private fun HTagChipLegacyPreview() {
-    HelloTheme {
-        Surface(color = pageBackground) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HTagChip(tag = "español")
-                HTagChip(tag = "trabajo", variant = BadgeVariant.Outline)
-                HTagChip(tag = "HSK3", variant = BadgeVariant.Default, removable = true, onRemove = {})
+                HChip(label = "activo", active = true, onRemove = {})
             }
         }
     }

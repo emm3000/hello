@@ -4,13 +4,13 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -35,15 +35,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.theme.surface
-
-private val searchBarHeight = 46.dp
-private val searchBarRadius = 22.dp
-private val searchBarShape = RoundedCornerShape(searchBarRadius)
 
 @Composable
 fun HSearchBar(
@@ -65,39 +64,38 @@ fun HSearchBar(
         animationSpec = tween(durationMillis = 150),
         label = "search_bar_border",
     )
-    val borderWidth = if (isFocused) 1.5.dp else 1.dp
     val iconTint by animateColorAsState(
         targetValue = if (isFocused) ink else inkMuted,
-        animationSpec = tween(150),
+        animationSpec = tween(durationMillis = 150),
         label = "search_icon_tint",
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(searchBarHeight)
-            .clip(searchBarShape)
+            .heightIn(min = 44.dp)
+            .clip(MaterialTheme.helloShapes.control)
             .border(
-                width = borderWidth,
+                width = 1.dp,
                 color = borderColor,
-                shape = searchBarShape,
+                shape = MaterialTheme.helloShapes.control,
             )
             .background(surface)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = MaterialTheme.spacing.md)
             .semantics { contentDescription = "Campo de búsqueda" },
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = leadingIconContentDescription,
             tint = iconTint,
-            modifier = Modifier.size(17.dp),
+            modifier = Modifier.size(20.dp),
         )
 
         Box(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 10.dp)
                 .onFocusChanged { isFocused = it.isFocused },
             contentAlignment = Alignment.CenterStart,
         ) {
@@ -105,15 +103,13 @@ fun HSearchBar(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = inkMuted,
+                    color = inkFaint,
                 )
             }
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(surface),
+                modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
                 readOnly = readOnly,
                 singleLine = singleLine,
@@ -129,8 +125,8 @@ fun HSearchBar(
                 contentDescription = clearContentDescription,
                 onClick = { onValueChange("") },
                 tint = inkMuted,
-                iconSize = 16.dp,
-                buttonSize = 32.dp,
+                iconSize = 20.dp,
+                buttonSize = 36.dp,
             )
         }
     }

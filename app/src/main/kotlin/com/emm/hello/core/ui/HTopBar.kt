@@ -1,34 +1,30 @@
 package com.emm.hello.core.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 
-private val topBarHeight = 56.dp
+private val topBarMinHeight = 56.dp
 private val backButtonSize = 44.dp
 
 @Composable
@@ -36,18 +32,13 @@ fun HTopBar(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     title: String? = null,
-    mono: Boolean = false,
-    transparent: Boolean = true,
     actions: @Composable (() -> Unit)? = null,
 ) {
-    val bg = if (transparent) Color.Transparent else pageBackground
-
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(topBarHeight)
-            .background(bg)
-            .padding(horizontal = 4.dp),
+            .heightIn(min = topBarMinHeight)
+            .padding(horizontal = MaterialTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
@@ -63,31 +54,15 @@ fun HTopBar(
         }
 
         if (title != null) {
-            if (mono) {
-                Text(
-                    text = title.uppercase(),
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    letterSpacing = 0.08.em,
-                    color = inkMuted,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = backButtonSize),
-                )
-            } else {
-                Text(
-                    text = title,
-                    fontFamily = schibsted,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    color = ink,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = if (actions == null) backButtonSize else 0.dp),
-                )
-            }
+            Text(
+                text = title.uppercase(),
+                style = MaterialTheme.typography.metadata,
+                color = inkMuted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = if (actions == null) backButtonSize else 0.dp),
+            )
         } else {
             Spacer(Modifier.weight(1f))
         }
@@ -100,7 +75,7 @@ fun HTopBar(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HTopBarPreview() {
+private fun HTopBarWithBackAndTitlePreview() {
     HelloTheme {
         Surface(color = pageBackground) {
             HTopBar(
@@ -113,13 +88,22 @@ private fun HTopBarPreview() {
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HTopBarMonoPreview() {
+private fun HTopBarTitleOnlyPreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            HTopBar(title = "Inicio")
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
+@Composable
+private fun HTopBarWithActionsPreview() {
     HelloTheme {
         Surface(color = pageBackground) {
             HTopBar(
                 onBack = {},
                 title = "Ajustes",
-                mono = true,
                 actions = {
                     HIconButton(
                         icon = Icons.Default.MoreVert,
@@ -128,16 +112,6 @@ private fun HTopBarMonoPreview() {
                     )
                 },
             )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
-@Composable
-private fun HTopBarNoBackPreview() {
-    HelloTheme {
-        Surface(color = pageBackground) {
-            HTopBar(title = "Inicio")
         }
     }
 }

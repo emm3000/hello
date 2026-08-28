@@ -65,7 +65,6 @@ fun HSelectTrigger(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
-        monoLabel = true,
     ) {
         Box(
             modifier = fieldShellContainerModifier(borderColor = borderColor)
@@ -142,7 +141,6 @@ fun <T> HSelect(
         supportingText = supportingText,
         errorMessage = errorMessage,
         enabled = enabled,
-        monoLabel = true,
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(

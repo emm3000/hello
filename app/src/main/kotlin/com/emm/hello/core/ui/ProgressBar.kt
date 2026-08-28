@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,18 +21,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
-import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 
 @Composable
 fun HProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    height: Dp = 2.dp,
-    cornerRadius: Dp = 1.dp,
+    height: Dp = 3.dp,
     trackColor: Color = hairline,
-    indicatorColor: Color = ink,
+    indicatorColor: Color = inkFaint,
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
@@ -40,20 +41,18 @@ fun HProgressBar(
         label = "progress",
     )
 
-    val shape = RoundedCornerShape(cornerRadius)
-
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .clip(shape)
+            .clip(MaterialTheme.helloShapes.pill)
             .background(trackColor),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(animatedProgress)
                 .fillMaxHeight()
-                .clip(shape)
+                .clip(MaterialTheme.helloShapes.pill)
                 .background(indicatorColor),
         )
     }
@@ -68,13 +67,11 @@ private fun HProgressBarPreview() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
                 HProgressBar(progress = 0f)
-                HProgressBar(progress = 0.25f)
-                HProgressBar(progress = 0.6f)
+                HProgressBar(progress = 0.45f)
                 HProgressBar(progress = 1f)
-                HProgressBar(progress = 0.45f, height = 4.dp)
             }
         }
     }

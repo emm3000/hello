@@ -1,38 +1,32 @@
 package com.emm.hello.core.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontSynthesis
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
-import com.emm.hello.core.theme.pageBackground
-import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
-import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.metadata
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
 
 @Composable
 fun HEmptyState(
@@ -41,80 +35,55 @@ fun HEmptyState(
     accentWord: String? = null,
     body: String? = null,
     footnote: String? = null,
-    glyph: @Composable (() -> Unit)? = null,
     primaryCta: @Composable (() -> Unit)? = null,
     ghostCta: @Composable (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 24.dp),
+            .padding(horizontal = MaterialTheme.spacing.xxl, vertical = MaterialTheme.spacing.xl),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        if (glyph != null) {
-            glyph()
-        } else {
-            DefaultGlyph()
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        if (accentWord != null && accentWord.isNotEmpty() && headline.contains(accentWord)) {
-            val before = headline.substringBefore(accentWord)
-            val after = headline.substringAfter(accentWord)
-            val styledText = buildAnnotatedString {
-                append(before)
-                withStyle(
-                    SpanStyle(
-                        color = ink,
-                        fontStyle = FontStyle.Italic,
-                        fontSynthesis = FontSynthesis.None,
-                    ),
-                ) { append(accentWord) }
-                append(after)
+        val headlineText: AnnotatedString = accentWord
+            ?.takeIf { it.isNotEmpty() && headline.contains(it) }
+            ?.let { word ->
+                val before: String = headline.substringBefore(word)
+                val after: String = headline.substringAfter(word)
+                buildAnnotatedString {
+                    append(before)
+                    withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append(word)
+                    }
+                    append(after)
+                }
             }
-            Text(
-                text = styledText,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 38.sp,
-                lineHeight = 40.sp,
-                letterSpacing = (-0.02).em,
-                color = ink,
-                textAlign = TextAlign.Start,
-            )
-        } else {
-            Text(
-                text = headline,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 38.sp,
-                lineHeight = 40.sp,
-                letterSpacing = (-0.02).em,
-                color = ink,
-                textAlign = TextAlign.Start,
-            )
-        }
+            ?: AnnotatedString(headline)
+
+        Text(
+            text = headlineText,
+            style = MaterialTheme.typography.headlineLarge,
+            color = ink,
+            textAlign = TextAlign.Start,
+        )
 
         if (body != null) {
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(MaterialTheme.spacing.md))
             Text(
                 text = body,
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 13.5.sp,
-                lineHeight = 19.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = inkMuted,
                 textAlign = TextAlign.Start,
             )
         }
 
         if (primaryCta != null) {
-            Spacer(Modifier.height(26.dp))
+            Spacer(Modifier.height(MaterialTheme.spacing.xl))
             primaryCta()
         }
 
         if (ghostCta != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
             ghostCta()
         }
 
@@ -122,31 +91,9 @@ fun HEmptyState(
             Spacer(Modifier.weight(1f, fill = true))
             Text(
                 text = footnote.uppercase(),
-                fontFamily = schibsted,
-                fontWeight = FontWeight.Normal,
-                fontSize = 10.5.sp,
-                letterSpacing = 0.12.em,
+                style = MaterialTheme.typography.metadata,
                 color = inkFaint,
                 textAlign = TextAlign.Start,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DefaultGlyph() {
-    Surface(
-        shape = CircleShape,
-        color = pageBackground,
-        border = BorderStroke(1.dp, hairline),
-        modifier = Modifier.size(52.dp),
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = "·",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 28.sp,
-                color = ink,
             )
         }
     }
@@ -183,14 +130,13 @@ private fun HEmptyStateDefaultPreview() {
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
-private fun HEmptyStateSearchPreview() {
+private fun HEmptyStateAccentWordPreview() {
     HelloTheme {
         Surface(color = pageBackground) {
             HEmptyState(
                 headline = "Nada con \"serendipia\".",
                 accentWord = "\"serendipia\"",
                 body = "Prueba otra palabra o crea una tarjeta con esta.",
-                footnote = "la búsqueda distingue tildes",
                 primaryCta = {
                     HButton(
                         text = "Crear tarjeta",

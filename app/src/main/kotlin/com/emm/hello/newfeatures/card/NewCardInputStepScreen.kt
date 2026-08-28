@@ -529,7 +529,6 @@ private fun DifficultySection(state: NewCardUiState, onIntent: (NewCardUiIntent)
                 HChip(
                     label = difficultyDisplayLabel(level),
                     active = isActive,
-                    accent = isActive,
                     onClick = { onIntent(NewCardUiIntent.DifficultySelected(level)) },
                 )
             }

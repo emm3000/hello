@@ -562,13 +562,6 @@ private fun StudyEmptyState() {
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
         body = "$srsConceptLine\n\n$studyEmptyBody",
-        glyph = {
-            Image(
-                painter = painterResource(R.drawable.mascot_rest),
-                contentDescription = null,
-                modifier = Modifier.size(96.dp),
-            )
-        },
     )
 }
 

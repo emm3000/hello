@@ -47,7 +47,6 @@ fun HTagInput(
                 tags.forEach { tag ->
                     HTagChip(
                         tag = tag,
-                        variant = BadgeVariant.Secondary,
                         removable = enabled,
                         onRemove = { onTagsChange(tags - tag) },
                     )
