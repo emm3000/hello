@@ -12,7 +12,7 @@
 
 `Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF). It's the only feature that interacts with OS `Uri`s.
 
-Layout (redesign Phase 2.8): a mono eyebrow, a headline and a subtitle, a single `instrumentSurface` "Tus datos" section with the export and import rows separated by an `HSeparator`, and a footer with a tagline plus a muted mono meta line. The import row's subtitle ("Reemplazar todo lo que hay ahora") is rendered in `instrumentBad` to signal the destructive nature of the action.
+Layout: a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. Both sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron (or an `HLoadingSpinner` while busy). The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
 
 ## Key files
 

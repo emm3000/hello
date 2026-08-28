@@ -7,7 +7,7 @@
 | Scope | `Mazos` and `New/Edit Deck` flows |
 | Source of Truth | No |
 | Read this when | You need to understand deck creation, editing and deletion |
-| Last verified | 2026-08-27 |
+| Last verified | 2026-08-28 |
 
 ## Summary
 
@@ -71,14 +71,15 @@ clears `isLoading`.
 - `OpenDeckForm(deckId?)` → `NewDeckRoute(deckId)`
 - `ShowUndoDeckDeleted(deckName, deckId, deletedAt)` — produced when the
   ViewModel receives `UndoEvent.DeckDeleted` from `UndoEventHolder`; raises
-  the "Mazo X eliminado" snackbar with a "Deshacer" action
+  the "Deck \"X\" deleted" snackbar with an "Undo" action
 - `ShowMessage(messageRes)` — a Toast, used when a restore fails
 
 ### Layout
 
-`HTopBar` with the title, a `DeckRow` per deck (name, description, card count
-and tags in mono), and a secondary "Nuevo mazo" button at the end of the
-list. The empty state offers the same action as its primary CTA.
+`HTopBar` with the title, a `DeckRow` per deck (name in `titleLarge`,
+description, card count and tags in `metadata` mono), and a secondary
+"New deck" button at the end of the list. The empty state offers the same
+action as its primary CTA.
 
 ## New / Edit Deck
 
@@ -124,13 +125,21 @@ back to Mazos, where the undo snackbar is waiting.
 examples, so the deleted deck's cards leave Biblioteca and the study session
 with it.
 
-The affordance is a danger ghost button at the bottom of the form plus an
-`HAlertDialog` confirmation — the same shape the card editor uses for
-"Borrar tarjeta".
+The affordance is a danger `Text`-variant `HButton` at the bottom of the
+form plus an `HAlertDialog` confirmation — the same shape the card editor
+uses for "Delete card".
 
 ### Effects
 
 `NewDeckUiEffect`: `NavigateBack`, `DeckDeleted`, `ShowMessage(messageRes)`.
+
+### Layout
+
+A close/action top bar (`metadata` mono label, the Create/Save action as
+plain text enabled by `isValid`), a `displayMedium` headline, then the form:
+`HInput` for name and description and `HTagInput` for tags (Enter or comma
+commits a tag, with label and supporting text). The form is built entirely
+from `core/ui` components; there are no private field composables.
 
 ## Persistence
 
