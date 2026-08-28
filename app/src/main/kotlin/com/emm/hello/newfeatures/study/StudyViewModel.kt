@@ -24,7 +24,6 @@ class StudyViewModel(
 
     private val deckId: String? = deckId.takeUnless { it == StudyRoute.ALL_DUE_DECKS }
 
-    // One entry per due flashcard. Each entry is graded exactly once and persisted on the spot.
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
 
     init {
@@ -33,7 +32,16 @@ class StudyViewModel(
 
     private fun loadSession() = viewModelScope.launch {
         studyItemsForToday.clear()
-        setState { copy(isLoading = true, loadError = null, reviewedCount = 0, sessionFinished = false) }
+        setState {
+            copy(
+                isLoading = true,
+                loadError = null,
+                reviewedCount = 0,
+                knewCount = 0,
+                forgotCount = 0,
+                sessionFinished = false,
+            )
+        }
         try {
             val items = fetchSession().map { it.toStudySessionItem() }
             studyItemsForToday.addAll(items)
@@ -59,8 +67,6 @@ class StudyViewModel(
     private fun showNextCard() {
         val nextItem = studyItemsForToday.removeFirstOrNull()
         setState { copy(currentItem = nextItem) }
-        // The session is over once the last card has been graded, i.e. there is nothing left to
-        // show. An empty session never "finishes": it renders the empty state instead.
         val state = currentState
         if (nextItem == null && state.totalCount > 0 && !state.sessionFinished) {
             setState { copy(sessionFinished = true) }
@@ -89,9 +95,16 @@ class StudyViewModel(
             flashcardId = reviewedItem.flashcardId,
         )
         flashcardReviewRepository.update(newCard, grade)
-        setState { copy(reviewedCount = reviewedCount + 1) }
+        setState { tallied(grade) }
         showNextCard()
     }
+}
+
+private fun StudyUiState.tallied(grade: ReviewGrade): StudyUiState = when (grade) {
+    ReviewGrade.AGAIN -> copy(reviewedCount = reviewedCount + 1, forgotCount = forgotCount + 1)
+    ReviewGrade.HARD,
+    ReviewGrade.GOOD,
+    ReviewGrade.EASY -> copy(reviewedCount = reviewedCount + 1, knewCount = knewCount + 1)
 }
 
 private const val TAG = "StudyViewModel"

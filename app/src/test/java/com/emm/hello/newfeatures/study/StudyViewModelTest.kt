@@ -120,6 +120,48 @@ class StudyViewModelTest {
     }
 
     @Test
+    fun `again counts as forgot and every other grade counts as knew`() = runTest {
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"), studyFlashcard("c"), studyFlashcard("d"))
+        val viewModel = makeViewModel(cards)
+        advanceUntilIdle()
+
+        listOf(ReviewGrade.AGAIN, ReviewGrade.HARD, ReviewGrade.GOOD, ReviewGrade.EASY).forEach { grade ->
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(
+                    item = viewModel.state.value.currentItem,
+                    reviewGrade = grade,
+                )
+            )
+            advanceUntilIdle()
+        }
+
+        assertThat(viewModel.state.value.forgotCount).isEqualTo(1)
+        assertThat(viewModel.state.value.knewCount).isEqualTo(3)
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(4)
+    }
+
+    @Test
+    fun `reloading the session resets the tallies`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
+        advanceUntilIdle()
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.AGAIN,
+            )
+        )
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.forgotCount).isEqualTo(1)
+
+        viewModel.onIntent(StudyUiIntent.RetryLoad)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.forgotCount).isEqualTo(0)
+        assertThat(viewModel.state.value.knewCount).isEqualTo(0)
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(0)
+    }
+
+    @Test
     fun `each review is persisted immediately with the grade as given`() = runTest {
         val reviewRepo = FakeFlashcardReviewRepo()
         val viewModel = makeViewModel(
@@ -191,7 +233,6 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        // A seeded card with no generated content is still one studiable, schedulable card.
         assertThat(viewModel.state.value.totalCount).isEqualTo(1)
 
         viewModel.onIntent(
@@ -428,7 +469,6 @@ class StudyViewModelTest {
         override fun flashcardWithReview(deckId: DeckId): Flow<List<StudyFlashcard>> = emptyFlow()
     }
 
-    /** Throws on the first [sessionToday] call, returns [recoveredFlashcards] on later calls. */
     private class RecoveringStudySessionRepo(
         private val recoveredFlashcards: List<StudyFlashcard>,
     ) : StudySessionRepository {

@@ -7,14 +7,12 @@ data class StudyUiState(
     val loadError: StudyLoadError? = null,
     val currentItem: StudySessionItem? = null,
     val reviewedCount: Int = 0,
+    val knewCount: Int = 0,
+    val forgotCount: Int = 0,
     val totalCount: Int = 0,
     val sessionFinished: Boolean = false,
 ) : MviState
 
-/**
- * Distinguishes a failed session load from a genuinely empty due queue.
- * Without this, a DB read failure would silently render the "nothing due" empty state.
- */
 sealed interface StudyLoadError {
     data object SessionLoadFailed : StudyLoadError
 }
