@@ -86,7 +86,7 @@ import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
 import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.capture.CaptureViewModel
 import com.emm.hello.newfeatures.card.NewCardViewModel
-import com.emm.hello.newfeatures.hoy.HoyViewModel
+import com.emm.hello.newfeatures.today.TodayViewModel
 import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
@@ -231,7 +231,7 @@ fun Module.viewModels() {
             formMode = params.get(),
         )
     }
-    viewModel { HoyViewModel(get()) }
+    viewModel { TodayViewModel(get()) }
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
     viewModel {

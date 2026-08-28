@@ -20,7 +20,7 @@ Global sources of truth still live at the root:
 
 ## Active documents
 
-- `HOY_CURRENT.md`: current state of the `Hoy` flow (session-first home)
+- `TODAY_CURRENT.md`: current state of the `Today` flow (session-first home)
 - `LIBRARY_CURRENT.md`: current state of the `Biblioteca` flow (all cards, content search)
 - `CARD_CREATION_CURRENT.md`: current state of the `New Card` flow
 - `CARD_DETAIL_CURRENT.md`: current state of the `Card Detail` flow (view and delete)

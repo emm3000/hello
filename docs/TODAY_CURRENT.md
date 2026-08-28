@@ -18,17 +18,17 @@ and managing decks is Settings → Mazos (`DECK_CURRENT.md`).
 
 ## Key files
 
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyRoute.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyScreen.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyStatsSection.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyViewModel.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyUiState.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyUiIntent.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/hoy/HoyUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayRoute.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayScreen.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayStatsSection.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayViewModel.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayUiState.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayUiIntent.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/today/TodayUiEffect.kt`
 
 ## State
 
-`HoyUiState` holds two fields:
+`TodayUiState` holds two fields:
 
 - `isLoading` — true until the first `GetDashboardStatsUseCase` result arrives
 - `stats: DashboardStats?` — cards studied today, cards due today, current
@@ -50,9 +50,9 @@ Four values are computed from `stats`, not stored:
 
 ## Effects
 
-`HoyUiEffect`:
+`TodayUiEffect`:
 
-- `NavigateToStudy(deckId)` — collected in `HoyDestination`, navigates to
+- `NavigateToStudy(deckId)` — collected in `TodayDestination`, navigates to
   `StudyRoute(deckId)`.
 
 ## Layout
@@ -69,7 +69,7 @@ two heroes, then the metrics.
   "NADA PROGRAMADO" when `nextDue` is null), then a capture CTA. A truly empty
   library lands here too: no separate empty state exists.
 
-`HoyStatsSection` renders under a "Tu progreso" section label, below the
+`TodayStatsSection` renders under a "Tu progreso" section label, below the
 fold, where metrics reward after a session instead of competing with the CTA.
 
 An `HFab` opens `Capturar` from anywhere on the screen.

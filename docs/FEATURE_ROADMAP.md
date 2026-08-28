@@ -74,7 +74,7 @@ See `docs/LIBRARY_CURRENT.md`.
 | Blocks | Nothing |
 | Blocked by | Nothing |
 
-**Already shipped:** `DashboardStats(cardsStudiedToday, cardsDueToday, currentStreak, cardsDueThisWeek)`, `StudyStatsRepository` / `DefaultStudyStatsRepository`, `GetDashboardStatsUseCase`, and the counters rendered by `HoyStatsSection`. They are computed from `ReviewEvent`/`ReviewProjection`, with no dedicated log table.
+**Already shipped:** `DashboardStats(cardsStudiedToday, cardsDueToday, currentStreak, cardsDueThisWeek)`, `StudyStatsRepository` / `DefaultStudyStatsRepository`, `GetDashboardStatsUseCase`, and the counters rendered by `TodayStatsSection`. They are computed from `ReviewEvent`/`ReviewProjection`, with no dedicated log table.
 
 **Still pending** — the history/heatmap half:
 
@@ -94,7 +94,7 @@ See `docs/LIBRARY_CURRENT.md`.
   - `reviewsByDay`: COUNT(*) GROUP BY date(reviewedAt/1000, 'unixepoch')
   - `currentStreak`: computed in Kotlin over consecutive days with ≥ 1 review.
 - **St-T5**: Domain: extend the stats surface with `accuracy30d` and `heatmap30d` (the streak/today/week counters already exist in `DashboardStats`).
-- **St-T6**: Extend `HoyStatsSection` with a simple 30-day heatmap chart.
+- **St-T6**: Extend `TodayStatsSection` with a simple 30-day heatmap chart.
 
 **Definition of done:** on top of today's counters, Hoy shows a 30-day visual heatmap backed by a real review history.
 

@@ -105,7 +105,7 @@ fun DeckItemSkeleton(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HoySkeleton(count: Int = 4, modifier: Modifier = Modifier) {
+fun TodaySkeleton(count: Int = 4, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -165,10 +165,10 @@ private fun HSkeletonPreview() {
 
 @PreviewLightDark
 @Composable
-private fun HoySkeletonPreview() {
+private fun TodaySkeletonPreview() {
     HelloTheme {
         Surface {
-            HoySkeleton(
+            TodaySkeleton(
                 count = 4,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )

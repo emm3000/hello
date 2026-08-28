@@ -110,7 +110,7 @@ The whole app changes color and type in one stage with the least code. Un-redesi
 |---|---|---|---|
 | 2.1 `refactor(today): the feature is called what the product calls it` | Package `newfeatures/hoy → newfeatures/today`, `Hoy*` types → `Today*`, `hoy_*` string keys → `today_*`. Same rule that renamed `dashboard → hoy`; the product now says Today. | `rg -i '\bhoy\b|Hoy[A-Z]' app` returns zero; tests green. | `git mv`, `sd`. No model. |
 | 2.2 `feat(today): the ring knows the day's progress and the streak` | `DashboardStats` already carries `currentStreak`; add `reviewedToday` and `dueToday` to `GetDashboardStatsUseCase` if absent. Ring fill = reviewed / due; label = `Day N`. | Use-case test red → green. | One writer, TDD |
-| 2.3 `refactor(today): the screen is the stack, the start action and two doors` | `TodayScreen` per the prototype: card stack with count and estimate, `Start`, `Add a word` and `Library` pills, the ring. Zero due: the stack reads `Nothing due` with the next-due copy, `Add a word` becomes primary. `HoyStatsSection` deleted. Screen strings rewritten in English. | `TodayViewModelTest` green; device. | One writer |
+| 2.3 `refactor(today): the screen is the stack, the start action and two doors` | `TodayScreen` per the prototype: card stack with count and estimate, `Start`, `Add a word` and `Library` pills, the ring. Zero due: the stack reads `Nothing due` with the next-due copy, `Add a word` becomes primary. `TodayStatsSection` deleted. Screen strings rewritten in English. | `TodayViewModelTest` green; device. | One writer |
 
 ### Stage 3 — The card
 
@@ -169,7 +169,7 @@ Every AI generation fails in the field: `Firebase AI Logic has been deactivated 
 
 | Unit | Scope | Falsifier |
 |---|---|---|
-| 9.1 `refactor: remove what the redesign left behind` | Orphaned `H*` components (`HStat`, `HStatCard`, `HoySkeleton` and whatever else has zero consumers), unused strings, unused drawables (`mascot_*`), the swipe hint. | `rg` zero consumers; detekt. |
+| 9.1 `refactor: remove what the redesign left behind` | Orphaned `H*` components (`HStat`, `HStatCard`, `TodaySkeleton` and whatever else has zero consumers), unused strings, unused drawables (`mascot_*`), the swipe hint. | `rg` zero consumers; detekt. |
 | 9.2 `docs: resync the references with the hybrid design` | `*_CURRENT.md`, `ARCHITECTURE.md`, `DESIGN_BRIEF.md` visual sections rewritten from the canvas. | Read against the code. |
 
 ## Decisions taken in this plan

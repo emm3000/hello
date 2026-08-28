@@ -10,27 +10,27 @@
     <string name="delete">Eliminar</string>
 
     <!-- Hoy Stats Section -->
-    <string name="hoy_stat_studied_today">Estudiadas hoy</string>
-    <string name="hoy_stat_due_today">Para hoy</string>
-    <string name="hoy_stat_day_streak">Racha de días</string>
-    <string name="hoy_stat_due_this_week">Para esta semana</string>
+    <string name="today_stat_studied_today">Estudiadas hoy</string>
+    <string name="today_stat_due_today">Para hoy</string>
+    <string name="today_stat_day_streak">Racha de días</string>
+    <string name="today_stat_due_this_week">Para esta semana</string>
 
     <!-- Hoy Screen -->
     <!-- Hoy redesign -->
-    <string name="hoy_hero_calm">Nada que repasar hoy.</string>
-    <string name="hoy_study_now">Estudiar ahora</string>
-    <plurals name="hoy_card_count">
+    <string name="today_hero_calm">Nada que repasar hoy.</string>
+    <string name="today_study_now">Estudiar ahora</string>
+    <plurals name="today_card_count">
         <item quantity="one">%d tarjeta</item>
         <item quantity="other">%d tarjetas</item>
     </plurals>
-    <string name="hoy_session_supporting">%1$s · ~%2$d min</string>
-    <string name="hoy_next_due_later_today">Lo próximo: %1$s más tarde hoy</string>
-    <string name="hoy_next_due_tomorrow">Lo próximo: %1$s mañana</string>
-    <string name="hoy_next_due_in_days">Lo próximo: %1$s en %2$d días</string>
-    <string name="hoy_next_due_none">Nada programado todavía</string>
-    <string name="hoy_resting_cta">Capturar una palabra</string>
-    <string name="hoy_section_progress">Tu progreso</string>
-    <string name="hoy_fab_label">Nueva tarjeta</string>
+    <string name="today_session_supporting">%1$s · ~%2$d min</string>
+    <string name="today_next_due_later_today">Lo próximo: %1$s más tarde hoy</string>
+    <string name="today_next_due_tomorrow">Lo próximo: %1$s mañana</string>
+    <string name="today_next_due_in_days">Lo próximo: %1$s en %2$d días</string>
+    <string name="today_next_due_none">Nada programado todavía</string>
+    <string name="today_resting_cta">Capturar una palabra</string>
+    <string name="today_section_progress">Tu progreso</string>
+    <string name="today_fab_label">Nueva tarjeta</string>
 
     <!-- Decks Screen -->
     <plurals name="cards_count">

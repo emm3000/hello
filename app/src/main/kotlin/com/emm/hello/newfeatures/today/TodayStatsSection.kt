@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.hoy
+package com.emm.hello.newfeatures.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +13,7 @@ import com.emm.hello.R
 import com.emm.hello.core.ui.HStatCard
 
 @Composable
-fun HoyStatsSection(
+fun TodayStatsSection(
     stats: DashboardStats,
     modifier: Modifier = Modifier,
 ) {
@@ -26,13 +26,13 @@ fun HoyStatsSection(
         ) {
             HStatCard(
                 value = "${stats.cardsStudiedToday}",
-                label = stringResource(R.string.hoy_stat_studied_today),
+                label = stringResource(R.string.today_stat_studied_today),
                 modifier = Modifier
                     .weight(1f),
             )
             HStatCard(
                 value = "${stats.cardsDueToday}",
-                label = stringResource(R.string.hoy_stat_due_today),
+                label = stringResource(R.string.today_stat_due_today),
                 modifier = Modifier
                     .weight(1f),
             )
@@ -42,13 +42,13 @@ fun HoyStatsSection(
         ) {
             HStatCard(
                 value = "${stats.currentStreak}",
-                label = stringResource(R.string.hoy_stat_day_streak),
+                label = stringResource(R.string.today_stat_day_streak),
                 modifier = Modifier
                     .weight(1f),
             )
             HStatCard(
                 value = "${stats.cardsDueThisWeek}",
-                label = stringResource(R.string.hoy_stat_due_this_week),
+                label = stringResource(R.string.today_stat_due_this_week),
                 modifier = Modifier
                     .weight(1f),
             )

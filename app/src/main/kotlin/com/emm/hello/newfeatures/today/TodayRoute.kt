@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.hoy
+package com.emm.hello.newfeatures.today
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,12 +14,12 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
 @Serializable
-object HoyRoute : NavKey
+object TodayRoute : NavKey
 
 @Composable
-fun HoyDestination(navigator: Navigator) {
-    val vm: HoyViewModel = koinViewModel()
-    val uiState: HoyUiState by vm.state.collectAsStateWithLifecycle()
+fun TodayDestination(navigator: Navigator) {
+    val vm: TodayViewModel = koinViewModel()
+    val uiState: TodayUiState by vm.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -29,7 +29,7 @@ fun HoyDestination(navigator: Navigator) {
         }
     }
 
-    HoyScreen(
+    TodayScreen(
         state = uiState,
         onCapture = { navigator.navigateTo(CaptureRoute) },
         onStudy = { vm.onIntent(StudyClicked) },

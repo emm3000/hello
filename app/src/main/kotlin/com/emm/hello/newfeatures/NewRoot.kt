@@ -36,8 +36,8 @@ import com.emm.hello.newfeatures.card.NewCardDestination
 import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.capture.CaptureDestination
 import com.emm.hello.newfeatures.capture.CaptureRoute
-import com.emm.hello.newfeatures.hoy.HoyDestination
-import com.emm.hello.newfeatures.hoy.HoyRoute
+import com.emm.hello.newfeatures.today.TodayDestination
+import com.emm.hello.newfeatures.today.TodayRoute
 import com.emm.hello.newfeatures.deck.DecksDestination
 import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.newfeatures.deck.NewDeckDestination
@@ -71,7 +71,7 @@ fun NewRoot() {
 
 @Composable
 private fun AppNavigation(hasSeenWelcome: Boolean) {
-    val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) HoyRoute else OnboardingRoute }
+    val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) TodayRoute else OnboardingRoute }
     val backStack = rememberNavBackStack(startKey)
     val navigator = remember(backStack) { Navigator(backStack) }
 
@@ -115,7 +115,7 @@ private fun AppNavigation(hasSeenWelcome: Boolean) {
         ),
         entryProvider = entryProvider {
             entry<OnboardingRoute> { OnboardingDestination(navigator) }
-            entry<HoyRoute> { HoyDestination(navigator) }
+            entry<TodayRoute> { TodayDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
             entry<LibraryRoute> { LibraryDestination(navigator) }

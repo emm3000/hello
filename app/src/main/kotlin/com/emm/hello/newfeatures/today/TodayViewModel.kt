@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.hoy
+package com.emm.hello.newfeatures.today
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.study.DashboardStats
@@ -7,13 +7,13 @@ import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.newfeatures.study.StudyRoute
 import kotlinx.coroutines.launch
 
-class HoyViewModel(
+class TodayViewModel(
     private val getDashboardStatsUseCase: GetDashboardStatsUseCase,
-) : MviViewModel<HoyUiState, HoyUiIntent, HoyUiEffect>(
-    initialState = HoyUiState(isLoading = true),
+) : MviViewModel<TodayUiState, TodayUiIntent, TodayUiEffect>(
+    initialState = TodayUiState(isLoading = true),
 ) {
 
-    override fun onIntent(intent: HoyUiIntent) {
+    override fun onIntent(intent: TodayUiIntent) {
         when (intent) {
             ScreenVisible -> loadStats()
             StudyClicked -> sendEffect(NavigateToStudy(StudyRoute.ALL_DUE_DECKS))

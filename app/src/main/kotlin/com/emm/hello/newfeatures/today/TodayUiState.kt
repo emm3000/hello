@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.hoy
+package com.emm.hello.newfeatures.today
 
 import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.NextDueBatch
@@ -7,7 +7,7 @@ import com.emm.hello.core.mvi.MviState
 private const val SECONDS_PER_CARD = 15
 private const val SECONDS_PER_MINUTE = 60
 
-data class HoyUiState(
+data class TodayUiState(
     val isLoading: Boolean = true,
     val stats: DashboardStats? = null,
 ) : MviState {

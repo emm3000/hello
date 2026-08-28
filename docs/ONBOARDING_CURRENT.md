@@ -42,7 +42,7 @@ On a fresh install the app opens on a three-page welcome carousel instead of Hoy
 `NewRoot` renders the loading/error screens for the first two states. On `Ready` it calls `AppNavigation(hasSeenWelcome)`, which picks the start key:
 
 ```
-if (hasSeenWelcome) HoyRoute else OnboardingRoute
+if (hasSeenWelcome) TodayRoute else OnboardingRoute
 ```
 
 `hasSeenWelcome` is backed by `DataStore.hasSeenOnboarding`.
@@ -94,7 +94,7 @@ Finishing always means the same two steps: `onboardingState.markWelcomeSeen()` t
 `OnboardingUiEffect`:
 
 - `ScrollToPage(page)` — `OnboardingDestination` calls `pagerState.animateScrollToPage(page)`
-- `NavigateToHoy` — `navigator.replaceAll(HoyRoute)`, so onboarding cannot be reached again with back
+- `NavigateToHoy` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
 - `CloseOnboarding` — `navigator.goBack()`
 
 `OnboardingDestination` also installs a `BackHandler` that forwards system back to `BackPressed`, letting the viewmodel decide between paging back and closing.

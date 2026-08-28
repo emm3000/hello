@@ -4,7 +4,7 @@ import androidx.navigation3.runtime.NavKey
 import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.card.EditFlashcardRoute
 import com.emm.hello.newfeatures.card.NewCardRoute
-import com.emm.hello.newfeatures.hoy.HoyRoute
+import com.emm.hello.newfeatures.today.TodayRoute
 import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
@@ -19,7 +19,7 @@ class NavKeyContractTest {
     @Test
     fun `all routes implement NavKey`() {
         val routes: List<Any> = listOf(
-            HoyRoute,
+            TodayRoute,
             StudyRoute("test"),
             NewCardRoute,
             NewDeckRoute(),

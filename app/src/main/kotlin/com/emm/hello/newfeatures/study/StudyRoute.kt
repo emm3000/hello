@@ -17,7 +17,7 @@ import org.koin.core.parameter.parametersOf
 /**
  * Study session target.
  *
- * [deckId] null means "study all cards due today across every deck" (the global Hoy CTA).
+ * [deckId] null means "study all cards due today across every deck" (the global Today CTA).
  * A non-null [deckId] studies only that deck (no surface offers this yet).
  */
 @Serializable

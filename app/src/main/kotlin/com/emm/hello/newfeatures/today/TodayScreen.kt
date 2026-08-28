@@ -1,4 +1,4 @@
-package com.emm.hello.newfeatures.hoy
+package com.emm.hello.newfeatures.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,9 +47,9 @@ import com.emm.hello.core.ui.HSectionLabel
 import java.time.Instant
 
 @Composable
-fun HoyScreen(
+fun TodayScreen(
     modifier: Modifier = Modifier,
-    state: HoyUiState = HoyUiState(),
+    state: TodayUiState = TodayUiState(),
     onCapture: () -> Unit = {},
     onStudy: () -> Unit = {},
     onSettings: () -> Unit = {},
@@ -82,7 +82,7 @@ fun HoyScreen(
 
         HFab(
             onClick = onCapture,
-            label = stringResource(R.string.hoy_fab_label),
+            label = stringResource(R.string.today_fab_label),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 24.dp),
@@ -147,7 +147,7 @@ private fun WordmarkRow(
 
 @Composable
 private fun SessionContent(
-    state: HoyUiState,
+    state: TodayUiState,
     onStudy: () -> Unit,
     onCapture: () -> Unit,
     modifier: Modifier = Modifier,
@@ -173,9 +173,9 @@ private fun SessionContent(
         val stats: DashboardStats? = state.stats
         if (stats != null) {
             Spacer(Modifier.height(36.dp))
-            HSectionLabel(label = stringResource(R.string.hoy_section_progress))
+            HSectionLabel(label = stringResource(R.string.today_section_progress))
             Spacer(Modifier.height(10.dp))
-            HoyStatsSection(stats = stats)
+            TodayStatsSection(stats = stats)
         }
 
         Spacer(Modifier.height(100.dp))
@@ -195,7 +195,7 @@ private fun SessionCta(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = stringResource(R.string.hoy_study_now),
+                text = stringResource(R.string.today_study_now),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
                 letterSpacing = (-0.01).em,
@@ -203,8 +203,8 @@ private fun SessionCta(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = stringResource(
-                    R.string.hoy_session_supporting,
-                    pluralStringResource(R.plurals.hoy_card_count, dueCount, dueCount),
+                    R.string.today_session_supporting,
+                    pluralStringResource(R.plurals.today_card_count, dueCount, dueCount),
                     estimatedMinutes,
                 ).uppercase(),
                 fontFamily = schibsted,
@@ -223,7 +223,7 @@ private fun RestingHero(
 ) {
     Column {
         Text(
-            text = stringResource(R.string.hoy_hero_calm),
+            text = stringResource(R.string.today_hero_calm),
             fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp,
             lineHeight = (32 * 1.06f).sp,
@@ -241,7 +241,7 @@ private fun RestingHero(
         )
         Spacer(Modifier.height(20.dp))
         HButton(
-            text = stringResource(R.string.hoy_resting_cta),
+            text = stringResource(R.string.today_resting_cta),
             onClick = onCapture,
             variant = HButtonVariant.Primary,
             full = true,
@@ -251,17 +251,17 @@ private fun RestingHero(
 
 @Composable
 private fun nextDueLabel(nextDue: NextDueBatch?): String {
-    if (nextDue == null) return stringResource(R.string.hoy_next_due_none).uppercase()
+    if (nextDue == null) return stringResource(R.string.today_next_due_none).uppercase()
 
     val cards: String = pluralStringResource(
-        R.plurals.hoy_card_count,
+        R.plurals.today_card_count,
         nextDue.cardCount,
         nextDue.cardCount,
     )
     return when (nextDue.daysFromToday) {
-        0 -> stringResource(R.string.hoy_next_due_later_today, cards)
-        1 -> stringResource(R.string.hoy_next_due_tomorrow, cards)
-        else -> stringResource(R.string.hoy_next_due_in_days, cards, nextDue.daysFromToday)
+        0 -> stringResource(R.string.today_next_due_later_today, cards)
+        1 -> stringResource(R.string.today_next_due_tomorrow, cards)
+        else -> stringResource(R.string.today_next_due_in_days, cards, nextDue.daysFromToday)
     }.uppercase()
 }
 
@@ -277,10 +277,10 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
-private fun HoyScreenPreview() {
+private fun TodayScreenPreview() {
     HelloTheme {
-        HoyScreen(
-            state = HoyUiState(
+        TodayScreen(
+            state = TodayUiState(
                 isLoading = false,
                 stats = DashboardStats(
                     cardsStudiedToday = 12,
@@ -295,10 +295,10 @@ private fun HoyScreenPreview() {
 
 @Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
-private fun HoyScreenRestingPreview() {
+private fun TodayScreenRestingPreview() {
     HelloTheme {
-        HoyScreen(
-            state = HoyUiState(
+        TodayScreen(
+            state = TodayUiState(
                 isLoading = false,
                 stats = DashboardStats(
                     cardsStudiedToday = 8,
@@ -318,8 +318,8 @@ private fun HoyScreenRestingPreview() {
 
 @Preview(showBackground = true, backgroundColor = 0xFF08090A)
 @Composable
-private fun HoyScreenLoadingPreview() {
+private fun TodayScreenLoadingPreview() {
     HelloTheme {
-        HoyScreen(state = HoyUiState(isLoading = true))
+        TodayScreen(state = TodayUiState(isLoading = true))
     }
 }
