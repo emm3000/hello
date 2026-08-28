@@ -22,10 +22,8 @@ fun OnboardingDestination(navigator: Navigator) {
 
     val pagerState = rememberPagerState(pageCount = { state.pages.size })
 
-    // Intercept system back — ViewModel decides: page back or close
     BackHandler { vm.onIntent(OnboardingUiIntent.BackPressed) }
 
-    // Collect one-shot effects from the ViewModel
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when (effect) {

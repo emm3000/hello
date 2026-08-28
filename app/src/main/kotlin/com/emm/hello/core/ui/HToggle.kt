@@ -44,9 +44,6 @@ private val toggleHeight = 22.dp
 private val thumbSize = 16.dp
 private val toggleShape = RoundedCornerShape(11.dp)
 
-/**
- * 40×22dp iOS-style switch. Accent when on, smooth animated thumb slide.
- */
 @Composable
 fun HToggle(
     checked: Boolean,

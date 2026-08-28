@@ -83,7 +83,6 @@ class NewDeckViewModelTest {
             NewDeckUiEffect.ShowMessage(R.string.deck_created_message),
             NewDeckUiEffect.NavigateBack,
         ).inOrder()
-        // Tags should be normalized: lowercase, trimmed, deduplicated
         assertThat(repository.lastAdded?.tags).isEqualTo(listOf("spanish", "travel"))
     }
 

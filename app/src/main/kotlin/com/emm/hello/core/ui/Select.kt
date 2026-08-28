@@ -116,9 +116,6 @@ fun HSelectTrigger(
     }
 }
 
-/**
- * Dropdown selector retokened to Ember. Behavior unchanged.
- */
 @Composable
 fun <T> HSelect(
     items: List<T>,

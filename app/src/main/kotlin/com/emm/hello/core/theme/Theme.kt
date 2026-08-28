@@ -5,13 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
 
-/*
- * Ember Dark color scheme. The app is dark-only by design;
- * the previous shadcn/light scheme was removed in Phase 5. Material 3 color
- * roles are wired to Ember tokens so any third-party Compose surface that
- * pulls from MaterialTheme.colorScheme inherits the palette automatically.
- */
-
 private val darkScheme = darkColorScheme(
     semanticColors = instrumentSemanticColors(),
 )
@@ -19,7 +12,6 @@ private val darkScheme = darkColorScheme(
 private fun darkColorScheme(
     @Suppress("UNUSED_PARAMETER") semanticColors: HelloSemanticColors,
 ) = materialDarkColorScheme(
-    // ── Ember Dark tokens wired to Material 3 roles ──────────────────────────
     primary = instrumentPrimary,
     onPrimary = instrumentBg,
     primaryContainer = instrumentSurface2,

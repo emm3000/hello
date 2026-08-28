@@ -221,22 +221,17 @@ fun rememberDynamicStudyGradient(
     val endColor2: Color
 
     if (isDark) {
-        // Dark: surface → surfaceContainerHigh (subtle contrast)
         startColor1 = colorScheme.surface
         startColor2 = colorScheme.surfaceContainerHigh
         endColor1 = colorScheme.surfaceContainerHigh
         endColor2 = colorScheme.surfaceContainer
     } else {
-        // Light: use the container tones from shadcn for visible difference
-        // surfaceContainerLowest (#FFFFFF) → surfaceContainer (#F5F5F5)
-        // and towards surfaceContainerHigh (#E5E5E5) at full progress
         startColor1 = colorScheme.surfaceContainerLowest
         startColor2 = colorScheme.surfaceContainer
         endColor1 = colorScheme.surfaceContainer
         endColor2 = colorScheme.surfaceContainerHigh
     }
 
-    // Animate the gradient colors based on progress (smooth transition per card)
     val animatedColor1 by animateColorAsState(
         targetValue = lerp(startColor1, endColor1, progress),
         animationSpec = tween(durationMillis = GRADIENT_TRANSITION_DURATION_MS),
@@ -248,7 +243,6 @@ fun rememberDynamicStudyGradient(
         label = "gradientColor2",
     )
 
-    // Subtle tint shift when card is flipped to the back
     val backTint = if (isDark) {
         colorScheme.surfaceContainerHighest
     } else {
@@ -285,6 +279,6 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
         red = start.red + (end.red - start.red) * clampedFraction,
         green = start.green + (end.green - start.green) * clampedFraction,
         blue = start.blue + (end.blue - start.blue) * clampedFraction,
-        alpha = 1f, // always opaque
+        alpha = 1f,
     )
 }

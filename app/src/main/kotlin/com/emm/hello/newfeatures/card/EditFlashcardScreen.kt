@@ -105,10 +105,6 @@ fun EditFlashcardScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Top bar — close · mono title · accent Guardar
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun EditFlashcardTopBar(
     actionEnabled: Boolean,
@@ -157,10 +153,6 @@ private fun EditFlashcardTopBar(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Loading body
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun LoadingBody() {
     Column(
@@ -178,10 +170,6 @@ private fun LoadingBody() {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Form body
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun EditFlashcardBody(
@@ -265,10 +253,6 @@ private fun EditFlashcardBody(
         DangerRow(onDeleteClick = { onIntent(EditFlashcardUiIntent.DeleteFlashcard) })
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Examples — section label + inline "+ agregar" + ExampleEditRow cards
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun ExamplesSection(
@@ -438,10 +422,6 @@ private fun GeistField(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Danger row — "Borrar tarjeta"
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun DangerRow(onDeleteClick: () -> Unit) {
     Row(
@@ -470,10 +450,6 @@ private fun DangerRow(onDeleteClick: () -> Unit) {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Previews
-// ─────────────────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

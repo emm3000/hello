@@ -25,10 +25,6 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.spacing
 
-/**
- * Tags are confirmed with Enter or comma: lowercase + trim;
- * case-insensitive duplicates and empty strings are discarded.
- */
 @Composable
 fun HTagInput(
     tags: List<String>,

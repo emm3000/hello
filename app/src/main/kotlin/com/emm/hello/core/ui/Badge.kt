@@ -26,19 +26,13 @@ import com.emm.hello.core.theme.instrumentWarnSoft
 import com.emm.hello.core.theme.geistMono
 import com.emm.hello.core.theme.semanticColors
 
-// ── Legacy enum kept for backwards compatibility ───────────────────────────
 enum class BadgeVariant { Default, Secondary, Destructive, Outline, Warning, Success, Tertiary }
 
-// ── Ember badge tones ──────────────────────────────────────────────────────
 enum class HBadgeTone { Accent, Good, Warn, Muted }
 
 private val badgeShape = RoundedCornerShape(11.dp)
 private val mutedBg = Color(red = 244, green = 239, blue = 230, alpha = 15)
 
-/**
- * Ember-styled badge. 22dp height, 11dp radius, Geist Mono 11sp.
- * Tones: accent | good | warn | muted — soft bg + non-soft fg.
- */
 @Composable
 fun HBadge(
     label: String,
@@ -69,11 +63,6 @@ fun HBadge(
     }
 }
 
-// ── Legacy overload — keeps feature screens compiling unchanged ────────────
-
-/**
- * Legacy string-label overload mapping old [BadgeVariant] to Ember tokens.
- */
 @Composable
 fun HBadge(
     label: String,

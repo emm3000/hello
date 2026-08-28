@@ -204,10 +204,6 @@ fun NewDeckScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Top bar — close · mono title · accent text action
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun NewDeckTopBar(
     title: String,
@@ -254,9 +250,6 @@ private fun NewDeckTopBar(
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DeckNameField(
@@ -310,10 +303,6 @@ private fun DeckNameField(
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tags container — instrumentSurface with removable chips + inline "+ agregar…"
-// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -432,10 +421,6 @@ private fun TagInline(
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Previews
-// ─────────────────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

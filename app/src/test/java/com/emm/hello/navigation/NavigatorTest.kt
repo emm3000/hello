@@ -60,8 +60,6 @@ class NavigatorTest {
         assertEquals(listOf(RouteA, RouteB("1"), RouteB("2")), backStack)
     }
 
-    // ── replaceAll ────────────────────────────────────────────────────────────
-
     @Test
     fun `replaceAll from single-entry stack results in size 1 with new destination`() {
         val backStack: SnapshotStateList<NavKey> = mutableListOf<NavKey>(RouteA).toMutableStateList()

@@ -14,12 +14,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-/**
- * Primary tab bar inspired by shadcn/ui `<Tabs />`.
- *
- * Usage: top-level navigation inside a screen when content splits into
- * a small, fixed set of buckets (3-5 max). For larger sets, use sections.
- */
 @Composable
 fun HTabBar(
     selectedIndex: Int,

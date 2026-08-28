@@ -61,8 +61,6 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.totalCount).isEqualTo(2)
     }
 
-    // ── Exit ─────────────────────────────────────────────────────────────────
-
     @Test
     fun `exit clicked before any review emits navigate back`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
@@ -102,8 +100,6 @@ class StudyViewModelTest {
             assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateBack)
         }
     }
-
-    // ── Reviewing ────────────────────────────────────────────────────────────
 
     @Test
     fun `review answered advances to next card and increments reviewed count`() = runTest {
@@ -224,8 +220,6 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.reviewedCount).isEqualTo(0)
     }
 
-    // ── Session finished ─────────────────────────────────────────────────────
-
     @Test
     fun `session finished is emitted only after the last card is graded`() = runTest {
         val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
@@ -293,8 +287,6 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.sessionFinished).isFalse()
     }
 
-    // ── Target resolution (per-deck vs all-decks) ──────────────────────────────
-
     @Test
     fun `non-sentinel deckId loads the per-deck session`() = runTest {
         val repo = FakeStudySessionRepo(listOf(studyFlashcard("a")))
@@ -328,8 +320,6 @@ class StudyViewModelTest {
         assertThat(repo.sessionTodayCalledWith).isNull()
         assertThat(viewModel.state.value.totalCount).isEqualTo(2)
     }
-
-    // ── Loading / error ────────────────────────────────────────────────────────
 
     @Test
     fun `successful load clears isLoading and leaves no error`() = runTest {
@@ -380,8 +370,6 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(viewModel.state.value.totalCount).isEqualTo(1)
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private fun makeViewModel(
         cards: List<StudyFlashcard>,

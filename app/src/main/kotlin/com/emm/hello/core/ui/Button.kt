@@ -45,10 +45,8 @@ import com.emm.hello.core.theme.instrumentPrimary
 import com.emm.hello.core.theme.instrumentSurface2
 import com.emm.hello.core.theme.geist
 
-// ── Legacy variants kept for backwards compatibility with feature screens ──
 enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
 
-// ── Ember design variants ──────────────────────────────────────────────────
 enum class HButtonVariant { Primary, Accent, Secondary, Ghost }
 
 enum class HButtonSize(val heightDp: Dp, val horizontalPadding: Dp, val fontSize: Int) {
@@ -58,12 +56,6 @@ enum class HButtonSize(val heightDp: Dp, val horizontalPadding: Dp, val fontSize
     Xl(88.dp, 28.dp, 18),
 }
 
-/**
- * Ember-styled HButton. Pill radius (height/2), variants primary/accent/secondary/ghost,
- * sizes sm/md/lg, optional leading icon, optional full-width, optional danger flag.
- *
- * The old [ButtonVariant]-based overloads are kept below for backwards compatibility.
- */
 @Composable
 fun HButton(
     onClick: () -> Unit,
@@ -148,11 +140,6 @@ fun HButton(
     }
 }
 
-// ── Legacy overloads — keep feature screens compiling unchanged ────────────
-
-/**
- * Legacy lambda overload. Maps old [ButtonVariant] to the new Ember system.
- */
 @Composable
 fun HButton(
     onClick: () -> Unit,
@@ -180,7 +167,6 @@ fun HButton(
     )
 }
 
-/** Legacy text overload. */
 @Composable
 fun HButton(
     text: String,
@@ -209,14 +195,12 @@ fun HButton(
 
 private fun ButtonVariant.toInstrumentVariant(): HButtonVariant = when (this) {
     ButtonVariant.Default -> HButtonVariant.Primary
-    ButtonVariant.Destructive -> HButtonVariant.Primary // danger=true handles color
+    ButtonVariant.Destructive -> HButtonVariant.Primary
     ButtonVariant.Outline -> HButtonVariant.Secondary
     ButtonVariant.Secondary -> HButtonVariant.Secondary
     ButtonVariant.Ghost -> HButtonVariant.Ghost
     ButtonVariant.Link -> HButtonVariant.Ghost
 }
-
-// ── Internal helpers ───────────────────────────────────────────────────────
 
 private data class ButtonTokens(
     val containerColor: Color,
@@ -280,8 +264,6 @@ private fun RowScope.InstrumentButtonContent(
     }
     content()
 }
-
-// ── Previews ───────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable

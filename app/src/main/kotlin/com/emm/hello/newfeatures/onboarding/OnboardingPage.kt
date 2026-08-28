@@ -3,10 +3,6 @@ package com.emm.hello.newfeatures.onboarding
 import androidx.annotation.StringRes
 import com.emm.hello.R
 
-/**
- * Ordered list of pages in the onboarding carousel.
- * Each entry carries its title and body string resource ids plus an illustration key.
- */
 enum class OnboardingPage(
     @StringRes val titleRes: Int,
     @StringRes val bodyRes: Int,

@@ -32,11 +32,6 @@ import com.emm.hello.core.theme.geistMono
 private val topBarHeight = 56.dp
 private val backButtonSize = 44.dp
 
-/**
- * Ember top bar. 56dp tall, optional back button (44dp circular hit area),
- * optional centered title (Geist 16sp) or uppercase mono label ([mono] = true → Geist Mono 11sp),
- * optional trailing [actions] slot. Transparent bg by default.
- */
 @Composable
 fun HTopBar(
     modifier: Modifier = Modifier,

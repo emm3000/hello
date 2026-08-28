@@ -11,12 +11,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 
-/**
- * Minimal indeterminate spinner inspired by shadcn/ui.
- *
- * @param size explicit size; defaults to 48dp for standalone loading states.
- *   Pass a smaller value (e.g. 18dp) for inline / row-level spinners.
- */
 @Composable
 fun HLoadingSpinner(
     modifier: Modifier = Modifier,

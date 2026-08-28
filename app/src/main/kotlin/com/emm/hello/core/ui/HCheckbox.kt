@@ -6,13 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.emm.hello.core.theme.HelloTheme
 
-/**
- * Thin H* wrapper over M3 [Checkbox] so feature screens never call raw Material3.
- * Keeps the default M3 rendering used by the Ember theme.
- *
- * Pass [onCheckedChange] = null to make the checkbox read-only (the containing
- * row handles the click, as in [LabeledCheckbox]).
- */
 @Composable
 fun HCheckbox(
     checked: Boolean,

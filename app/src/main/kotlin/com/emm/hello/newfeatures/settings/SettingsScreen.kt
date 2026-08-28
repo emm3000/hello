@@ -137,9 +137,6 @@ fun SettingsScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SettingsHeader() {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -169,10 +166,6 @@ private fun SettingsHeader() {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// "Tus datos" section — single instrumentSurface group with rows + dividers
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun OrganizationSection(onDecks: () -> Unit) {
@@ -230,10 +223,6 @@ private fun DataSection(
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SettingsRow — 28dp icon + title + sub + trailing
-// ─────────────────────────────────────────────────────────────────────────────
 
 private enum class SubTone { Muted, Danger }
 
@@ -308,10 +297,6 @@ private fun RowScope.ChevronTrailing() {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Footer
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SettingsFooter() {
     Column(
@@ -333,10 +318,6 @@ private fun SettingsFooter() {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Previews
-// ─────────────────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

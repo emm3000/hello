@@ -18,9 +18,6 @@ import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentDivider
 
-/**
- * 1dp ember-divider separator. [margin] controls the vertical spacing around it.
- */
 @Composable
 fun HSeparator(
     modifier: Modifier = Modifier,

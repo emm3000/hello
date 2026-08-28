@@ -48,9 +48,6 @@ enum class AlertVariant { Default, Destructive, Warning, Success }
 
 private val alertShape = RoundedCornerShape(12.dp)
 
-/**
- * Ember-styled alert. Retokened to use Ember soft-bg tones.
- */
 @Composable
 fun HAlert(
     title: String,

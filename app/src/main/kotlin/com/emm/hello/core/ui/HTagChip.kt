@@ -35,15 +35,6 @@ import com.emm.hello.core.theme.geist
 
 private val chipShape = RoundedCornerShape(15.dp)
 
-/**
- * Ember-styled chip. Visual height is 30dp but tappable area is inflated to
- * ≥48dp via vertical padding for a11y.
- *
- * Props:
- * - [active]   — filled primary bg, dark fg
- * - [accent]   — accent-soft bg, accent fg
- * - [onRemove] — if set, shows close icon at right
- */
 @Composable
 fun HChip(
     label: String,
@@ -112,8 +103,6 @@ fun HChip(
         }
     }
 }
-
-// ── Legacy HTagChip — kept for backwards compat, delegates to HChip ────────
 
 @Composable
 fun HTagChip(

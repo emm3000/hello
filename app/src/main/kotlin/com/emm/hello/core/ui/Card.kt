@@ -30,13 +30,8 @@ import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentDivider
 import com.emm.hello.core.theme.instrumentSurface
 
-// ── Legacy enum kept for backwards compatibility ───────────────────────────
 enum class CardVariant { Elevated, Filled, Outlined }
 
-/**
- * Ember-styled card. Surface bg, 16dp radius, hairline divider border.
- * Optional [due] flag adds a 3dp accent left border for the "due" state.
- */
 @Composable
 fun HCard(
     modifier: Modifier = Modifier,
@@ -53,7 +48,6 @@ fun HCard(
             Column(content = content)
         }
         if (due) {
-            // Accent left border — sits inside the card's left edge
             Box(
                 modifier = Modifier
                     .width(3.dp)
@@ -67,10 +61,6 @@ fun HCard(
     }
 }
 
-/**
- * Legacy overload — maps old [CardVariant] onto the Ember HCard so existing
- * call sites (feature screens) keep compiling unchanged.
- */
 @Composable
 fun HCard(
     modifier: Modifier = Modifier,
@@ -81,14 +71,6 @@ fun HCard(
     HCard(modifier = modifier, due = false, content = content)
 }
 
-/**
- * Elevated HCard overload for cases that require a real drop shadow, a custom
- * shape, or a custom container color (e.g. animated flip cards). Delegates to
- * M3 [Card] so [elevation] produces an actual shadow rather than a tonal shift.
- *
- * Use this variant only when the standard [HCard] cannot express the needed
- * appearance (different corner radius, Material elevation, or dynamic border).
- */
 @Composable
 fun HCard(
     modifier: Modifier = Modifier,
@@ -108,7 +90,6 @@ fun HCard(
     )
 }
 
-/** Header with optional title and subtitle. */
 @Composable
 fun HCardHeader(
     title: String,
@@ -136,7 +117,6 @@ fun HCardHeader(
     }
 }
 
-/** Main content area of the card. */
 @Composable
 fun HCardContent(
     modifier: Modifier = Modifier,
@@ -150,7 +130,6 @@ fun HCardContent(
     )
 }
 
-/** Footer area of the card. */
 @Composable
 fun HCardFooter(
     modifier: Modifier = Modifier,

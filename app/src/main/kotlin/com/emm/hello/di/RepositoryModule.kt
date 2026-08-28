@@ -17,12 +17,6 @@ private const val MODEL_NAME = "gemini-2.5-flash-lite"
 private const val DEFAULT_TEMPERATURE = 0f
 private const val DEFAULT_TOP_P = 0.95f
 
-/**
- * Provides shared infrastructure dependencies.
- * GeminiService is used by DefaultFlashcardGenerationRepository.
- * - `generativeModel`: used for partial regenerations (variable shape).
- * - `learningNoteModel`: applies `responseSchema` for the main generation call.
- */
 val repositoryModule = module {
     single<GeminiTelemetry> { CrashlyticsGeminiTelemetry() }
     single<GenerationQuota> { DailyGenerationQuota(preferences = get()) }

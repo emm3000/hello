@@ -23,7 +23,6 @@ import com.emm.hello.core.theme.instrumentElev
 
 private val dialogShape = RoundedCornerShape(16.dp)
 
-/** Pass `cancelText = null` to hide the cancel button. */
 @Composable
 fun HAlertDialog(
     title: String,

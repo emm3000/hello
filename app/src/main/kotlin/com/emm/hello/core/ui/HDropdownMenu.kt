@@ -18,10 +18,6 @@ import com.emm.hello.core.theme.instrumentElev
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.instrumentPrimary
 
-/**
- * Single entry of an [HDropdownMenu]. Destructive entries render their label
- * with the accent tint to signal a consequential action (e.g. delete).
- */
 @Immutable
 data class HMenuItem(
     val label: String,
@@ -30,14 +26,6 @@ data class HMenuItem(
     val isDestructive: Boolean = false,
 )
 
-/**
- * Overflow / context dropdown menu retokened to Ember, mirroring [HSelect]'s
- * popup styling (instrumentElev container, bodyMedium item text, instrumentMuted icons).
- *
- * The caller owns the [expanded] state and supplies the [items]; selecting an
- * item invokes its [HMenuItem.onClick]. Dismissal does not auto-fire callbacks,
- * so callers should close the menu inside each [HMenuItem.onClick] as needed.
- */
 @Composable
 fun HDropdownMenu(
     expanded: Boolean,

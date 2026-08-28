@@ -99,10 +99,6 @@ internal fun EditablePreviewField(
     )
 }
 
-/**
- * Square icon button (Ember-styled). 36dp square, surface bg, divider border,
- * with optional accent tint when [accent] is true.
- */
 @Composable
 internal fun ReviewBlockIconButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,

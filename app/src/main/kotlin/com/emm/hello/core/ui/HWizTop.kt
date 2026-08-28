@@ -35,14 +35,6 @@ private val backButtonSize = 44.dp
 private val segmentHeight = 3.dp
 private val segmentGap = 4.dp
 
-/**
- * Wizard top bar: optional back arrow, N-segment progress, `current/total` mono counter,
- * and an optional uppercase mono subtitle below. Designed for multi-step flows like
- * New Card wizard. Transparent background.
- *
- * @param currentStep 1-based index of the active step.
- * @param totalSteps total step count (segments rendered = this value).
- */
 @Composable
 fun HWizTop(
     currentStep: Int,

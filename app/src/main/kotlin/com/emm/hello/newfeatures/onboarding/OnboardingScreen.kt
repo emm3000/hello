@@ -73,7 +73,6 @@ fun OnboardingScreen(
                 onSkip = { onIntent(OnboardingUiIntent.SkipClicked) },
             )
 
-            // Pager — syncs user swipes back to the ViewModel via PageChanged intent
             LaunchedEffect(pagerState) {
                 snapshotFlow { pagerState.currentPage }.collect { page ->
                     onIntent(OnboardingUiIntent.PageChanged(page))
@@ -116,10 +115,6 @@ fun OnboardingScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skip row — top-right text button
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SkipRow(onSkip: () -> Unit) {
     Row(
@@ -135,10 +130,6 @@ private fun SkipRow(onSkip: () -> Unit) {
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Individual page content — illustration + title + body
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun OnboardingPageContent(
@@ -172,10 +163,6 @@ private fun OnboardingPageContent(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Illustration — transparent line-art on the ember disc
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun OnboardingIllustrationArt(
     illustration: OnboardingIllustration,
@@ -195,10 +182,6 @@ private fun OnboardingIllustrationArt(
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dot indicator — horizontal row of pills
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PageDotIndicator(
@@ -229,10 +212,6 @@ private fun PageDotIndicator(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Primary CTA — label changes on the last page
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun PrimaryCtaButton(
     isLastPage: Boolean,
@@ -254,10 +233,6 @@ private fun PrimaryCtaButton(
         modifier = modifier,
     )
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Previews
-// ─────────────────────────────────────────────────────────────────────────────
 
 @PreviewLightDark
 @Composable

@@ -25,9 +25,6 @@ import com.emm.hello.core.theme.instrumentAccent
 import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentDivider
 
-/**
- * Ember progress bar. 2dp default height, accent fill, instrumentDivider track.
- */
 @Composable
 fun HProgressBar(
     progress: Float,
@@ -77,7 +74,6 @@ private fun HProgressBarPreview() {
                 HProgressBar(progress = 0.25f)
                 HProgressBar(progress = 0.6f)
                 HProgressBar(progress = 1f)
-                // Thicker variant for study bar
                 HProgressBar(progress = 0.45f, height = 4.dp)
             }
         }

@@ -46,10 +46,6 @@ private val searchBarHeight = 46.dp
 private val searchBarRadius = 22.dp
 private val searchBarShape = RoundedCornerShape(searchBarRadius)
 
-/**
- * Ember-styled search bar. 44–48dp height, 22dp radius, surface bg with divider border.
- * Focused: 1.5dp accent border, accent search icon, accent cursor blink animation.
- */
 @Composable
 fun HSearchBar(
     value: String,

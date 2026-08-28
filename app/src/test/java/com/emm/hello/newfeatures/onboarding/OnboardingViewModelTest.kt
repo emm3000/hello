@@ -14,8 +14,6 @@ class OnboardingViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    // ── PageChanged ──────────────────────────────────────────────────────────
-
     @Test
     fun `PageChanged updates currentPage in state`() = runTest {
         val viewModel = buildViewModel()
@@ -44,8 +42,6 @@ class OnboardingViewModelTest {
         assertThat(viewModel.state.value.isLastPage).isTrue()
     }
 
-    // ── NextClicked on non-last page ─────────────────────────────────────────
-
     @Test
     fun `NextClicked on page 0 emits ScrollToPage(1)`() = runTest {
         val viewModel = buildViewModel()
@@ -69,8 +65,6 @@ class OnboardingViewModelTest {
         val effect = effectDeferred.await()
         assertThat(effect).isEqualTo(OnboardingUiEffect.ScrollToPage(2))
     }
-
-    // ── NextClicked on last page ─────────────────────────────────────────────
 
     @Test
     fun `NextClicked on last page calls markWelcomeSeen`() = runTest {
@@ -100,8 +94,6 @@ class OnboardingViewModelTest {
         assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
-    // ── SkipClicked ──────────────────────────────────────────────────────────
-
     @Test
     fun `SkipClicked from page 0 calls markWelcomeSeen`() = runTest {
         val repo = FakeOnboardingStateRepository()
@@ -128,8 +120,6 @@ class OnboardingViewModelTest {
         assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
-    // ── FinishClicked ────────────────────────────────────────────────────────
-
     @Test
     fun `FinishClicked calls markWelcomeSeen`() = runTest {
         val repo = FakeOnboardingStateRepository()
@@ -154,8 +144,6 @@ class OnboardingViewModelTest {
         assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToHoy)
     }
 
-    // ── isLastPage derivation ────────────────────────────────────────────────
-
     @Test
     fun `isLastPage is false on page 0 with 3-page carousel`() = runTest {
         val viewModel = buildViewModel()
@@ -173,8 +161,6 @@ class OnboardingViewModelTest {
             assertThat(viewModel.state.value.isLastPage).isEqualTo(expected)
         }
     }
-
-    // ── BackPressed (C-1 spec) ───────────────────────────────────────────────
 
     @Test
     fun `BackPressed on page 2 emits ScrollToPage(1)`() = runTest {
@@ -224,8 +210,6 @@ class OnboardingViewModelTest {
         assertThat(repo.welcomeSeenCalled).isFalse()
     }
 
-    // ── W-4: markWelcomeSeen recorded BEFORE NavigateToHoy effect ───────
-
     @Test
     fun `markWelcomeSeen is recorded before NavigateToHoy effect on FinishClicked`() = runTest {
         val repo = FakeOnboardingStateRepository()
@@ -254,14 +238,10 @@ class OnboardingViewModelTest {
         assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     private fun buildViewModel(
         repo: OnboardingStateRepository = FakeOnboardingStateRepository(),
     ) = OnboardingViewModel(onboardingState = repo)
 }
-
-// ── Fake repository ──────────────────────────────────────────────────────────
 
 private class FakeOnboardingStateRepository : OnboardingStateRepository {
     var welcomeSeen: Boolean = false

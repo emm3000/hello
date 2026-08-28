@@ -35,12 +35,6 @@ private val barHeight = 56.dp
 private val closeButtonSize = 44.dp
 private val stateLabelReservedHeight = 22.dp
 
-/**
- * Study top bar: close icon · thin progress bar · `current/total` mono counter,
- * with an optional uppercase mono state label centered below.
- *
- * Counter and label are omitted on stages where they are not meaningful (Loading/Error/Empty).
- */
 @Composable
 internal fun StudyTop(
     progress: Float,

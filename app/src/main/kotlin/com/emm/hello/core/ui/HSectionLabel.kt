@@ -21,11 +21,6 @@ import com.emm.hello.core.theme.instrumentBg
 import com.emm.hello.core.theme.instrumentMuted
 import com.emm.hello.core.theme.geistMono
 
-/**
- * Uppercase Geist Mono 10.5sp section label, instrumentMuted color.
- * Optional [action] slot (caller provides a composable, usually a text button).
- * 12dp marginBottom via [Modifier.padding] on the Column below.
- */
 @Composable
 fun HSectionLabel(
     label: String,

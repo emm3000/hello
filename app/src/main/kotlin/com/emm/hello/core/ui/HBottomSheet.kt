@@ -14,19 +14,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.instrumentElev
 
-/**
- * Ember-styled modal bottom sheet. Defaults to [instrumentElev] container, no drag
- * handle — matching the app's existing bottom sheet look.
- *
- * @param onDismissRequest called when the sheet should be dismissed.
- * @param sheetState pass a [rememberModalBottomSheetState] instance when you
- *   need programmatic show/hide (e.g. animated hide before dismissal) or want
- *   to skip the partially-expanded state.
- * @param containerColor background of the sheet surface.
- * @param dragHandle optional composable for a drag handle; null hides it.
- * @param modifier applied to the bottom sheet root.
- * @param content sheet content.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HBottomSheet(

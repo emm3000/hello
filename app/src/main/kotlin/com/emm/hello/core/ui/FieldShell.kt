@@ -51,7 +51,6 @@ internal fun FieldShell(
     ) {
         if (label != null) {
             if (monoLabel) {
-                // Uppercase Geist Mono label — Ember spec
                 Text(
                     text = label.uppercase(),
                     fontFamily = geistMono,
