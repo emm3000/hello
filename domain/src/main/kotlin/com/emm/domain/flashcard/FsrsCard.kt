@@ -13,6 +13,7 @@ data class FsrsCard(
     val interval: Long,
     val reps: Long,
     val lapses: Long,
+    val productionSince: Long? = null,
 ) {
 
     init {

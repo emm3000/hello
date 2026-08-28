@@ -70,10 +70,65 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(resultExplicit.interval, resultDefault.interval)
     }
 
-    private fun reviewCard(id: com.emm.domain.ids.FlashcardId) = FsrsCard(
+    @Test
+    fun `invoke stamps productionSince with clock now when a REVIEW card crosses stability 21`() {
+        val card = reviewCard("card-5".toFlashcardId(), stability = 10.0)
+
+        val result = useCase(card, ReviewGrade.GOOD, "card-5".toFlashcardId())
+
+        assertTrue(result.stability >= 21.0)
+        assertEquals(fixedNow.toEpochMilli(), result.productionSince)
+    }
+
+    @Test
+    fun `invoke keeps the original productionSince on a later review after graduation`() {
+        val laterNow = fixedNow.plusSeconds(30 * 86_400L)
+        val graduationUseCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow })
+        val laterUseCase = ScheduleFlashcardReviewUseCase(Clock { laterNow })
+        val card = reviewCard("card-6".toFlashcardId(), stability = 10.0)
+
+        val graduated = graduationUseCase(card, ReviewGrade.GOOD, "card-6".toFlashcardId())
+        val laterResult = laterUseCase(graduated, ReviewGrade.GOOD, "card-6".toFlashcardId())
+
+        assertEquals(fixedNow.toEpochMilli(), laterResult.productionSince)
+    }
+
+    @Test
+    fun `invoke keeps productionSince when AGAIN moves a graduated card to RELEARNING`() {
+        val originalProductionSince: Long = fixedNow.toEpochMilli() - 30 * 86_400_000L
+        val graduatedCard = reviewCard("card-7".toFlashcardId(), stability = 10.0)
+            .copy(productionSince = originalProductionSince)
+
+        val result = useCase(graduatedCard, ReviewGrade.AGAIN, "card-7".toFlashcardId())
+
+        assertEquals(FsrsState.RELEARNING, result.state)
+        assertEquals(originalProductionSince, result.productionSince)
+    }
+
+    @Test
+    fun `invoke leaves productionSince null when a REVIEW card lands below stability 21`() {
+        val card = reviewCard("card-8".toFlashcardId(), stability = 1.0)
+
+        val result = useCase(card, ReviewGrade.GOOD, "card-8".toFlashcardId())
+
+        assertTrue(result.stability < 21.0)
+        assertEquals(null, result.productionSince)
+    }
+
+    @Test
+    fun `invoke never stamps productionSince for a NEW card regardless of grade`() {
+        val card = FsrsCard.new("card-9".toFlashcardId(), Clock { fixedNow })
+
+        val result = useCase(card, ReviewGrade.EASY, "card-9".toFlashcardId())
+
+        assertEquals(FsrsState.LEARNING, result.state)
+        assertEquals(null, result.productionSince)
+    }
+
+    private fun reviewCard(id: com.emm.domain.ids.FlashcardId, stability: Double = 10.0) = FsrsCard(
         flashcardId = id,
         state = FsrsState.REVIEW,
-        stability = 10.0,
+        stability = stability,
         difficulty = 5.0,
         lastReviewedAt = fixedNow.toEpochMilli() - 10 * 86_400_000L,
         nextReviewAt = fixedNow.toEpochMilli(),
