@@ -57,99 +57,11 @@
     <string name="delete_deck_description">The deck and its cards will be deleted. You can undo right after.</string>
 
     <!-- Flashcards -->
-    <string name="continue_action">Continue</string>
-    <string name="new_card_wizard_subtitle">New card</string>
-    <string name="new_card_input_headline_word">Your word.</string>
-    <string name="new_card_input_save_in_label">Save in</string>
-    <string name="new_card_input_difficulty_label">Difficulty</string>
-    <string name="new_card_input_word_placeholder">the word you want to learn…</string>
-    <string name="new_card_input_deck_empty">No deck selected</string>
-    <string name="new_card_input_create_deck_cta">Create a deck</string>
-    <string name="new_card_input_no_decks_hint">You need a deck to save the card. Create one here.</string>
     <string name="word_label">English word or phrase</string>
-    <string name="intended_meaning_label">Intended meaning</string>
-    <string name="intended_meaning_placeholder">e.g. obtener, recoger, pedir prestado…</string>
-    <string name="intended_meaning_supporting_text">Optional. Use it when the expression has several meanings.</string>
-    <string name="context_sentence_label">Context sentence</string>
-    <string name="context_sentence_placeholder">e.g. I need to pick up my sister after class.</string>
-    <string name="context_sentence_supporting_text">Optional. Helps the AI pick the right usage.</string>
-    <string name="listening_placeholder">Listening…</string>
-    <string name="loading_preview_thinking_for">Thinking about when %1$s is usually used…</string>
-    <string name="loading_preview_thinking_generic">Thinking about how to build your card…</string>
-    <string name="loading_preview_eta">USUALLY TAKES 8–12 S</string>
-    <plurals name="new_card_quota_remaining_warning">
-        <item quantity="one">You have 1 generation left today.</item>
-        <item quantity="other">You have %d generations left today.</item>
-    </plurals>
-    <string name="quota_error_title">We hit the daily AI limit.</string>
-    <string name="quota_error_body">Your access returns tomorrow. If you want, save your word and build it by hand, or wait for the reset.</string>
-    <string name="quota_error_your_word_label">YOUR WORD</string>
-    <string name="quota_error_create_manually">Back to editing</string>
-    <string name="quota_error_notify_tomorrow">Remind me tomorrow</string>
-    <string name="quota_error_reset_at">RESETS AT %1$s</string>
-    <string name="quota_error_reset_in">RESETS IN %1$s</string>
-    <string name="quota_error_reset_unknown">RESETS TOMORROW</string>
-    <string name="review_empty_title">Nothing to review yet</string>
-    <string name="review_empty_description">Go back to the previous step and generate an AI preview.</string>
-    <string name="save_in_deck">Save in %1$s</string>
-    <string name="voice_input_desc">Voice input</string>
     <string name="phonetics_label">Phonetics</string>
     <string name="translation_label">Translation</string>
-    <string name="card_explanation_title">What this card practices</string>
-    <string name="include_card_in_study_label">Use in review</string>
-    <string name="edit_card_action">Edit</string>
-    <string name="regenerate_card_action">Regenerate card</string>
-    <string name="card_front_label">What the learner will see</string>
-    <string name="card_front_placeholder">Card front text</string>
-    <string name="card_front_supporting_text">Question or cue shown during study.</string>
-    <string name="card_answer_label">Correct answer</string>
-    <string name="card_answer_placeholder">Expected answer for this card</string>
-    <string name="card_answer_supporting_text">Text the app will take as the correct answer.</string>
-    <string name="card_hint_label">Optional hint</string>
-    <string name="card_hint_placeholder">Short hint shown when needed</string>
-    <string name="card_hint_supporting_text">Shown as support; not required.</string>
-    <string name="regenerate_why_useful">Regenerate why it\'s useful</string>
-    <string name="regenerate_usage_pattern">Regenerate usage pattern</string>
-    <string name="regenerate_common_mistake">Regenerate common mistake</string>
     <string name="example_sentence_label">Example sentence</string>
     <string name="example_translation_label">Example translation</string>
-    <string name="validation_empty_user_text">Enter the text you want to learn.</string>
-    <string name="validation_word_input_contains_whitespace">The input looks like several words; maybe treat it as a phrase.</string>
-    <string name="validation_phrase_input_too_short">The phrase looks too short; check whether it\'s actually a single word.</string>
-    <string name="validation_sentence_input_too_short">A sentence-style entry needs more context to generate a useful note.</string>
-    <string name="validation_missing_disambiguation">This term is ambiguous; add the intended meaning or a context sentence.</string>
-    <string name="validation_missing_communicative_intent">You need to state a communicative intent for this kind of entry.</string>
-    <string name="validation_communicative_goal_too_short">Describe the communicative goal better to get more useful content.</string>
-    <string name="validation_context_sentence_too_short">The context sentence is too short; try to give more real-usage detail.</string>
-    <string name="validation_missing_note_id">The generated card is incomplete. Generate again.</string>
-    <string name="validation_missing_expression">The generated card has no expression. Generate again.</string>
-    <string name="validation_missing_intended_meaning">The Spanish meaning is missing. Generate again.</string>
-    <string name="validation_missing_definition">The English definition is missing. Generate again.</string>
-    <string name="validation_missing_why_useful">The card doesn\'t explain why it\'s worth studying. Generate again.</string>
-    <string name="validation_missing_example_sentence">The card has no usage example. Generate again.</string>
-    <string name="validation_missing_example_translation">The card has no example translation. Generate again.</string>
-    <string name="validation_missing_cards">The generated card includes no study exercises. Generate again.</string>
-    <string name="validation_missing_quality_checks">The generated card is incomplete. Generate again.</string>
-    <string name="validation_missing_usage_pattern">The card has no usage pattern. Generate again or add one.</string>
-    <string name="validation_missing_cloze_sentence">The card has no fill-in exercise. Generate again.</string>
-    <string name="validation_missing_expected_card_type">An exercise of the expected type is missing. Generate again.</string>
-    <string name="validation_missing_expected_recognition_card">The recognition exercise is missing. Generate again.</string>
-    <string name="validation_missing_expected_production_card">The production exercise is missing. Generate again.</string>
-    <string name="validation_missing_expected_cloze_card">The fill-in exercise is missing. Generate again.</string>
-    <string name="validation_missing_expected_form_card">The form exercise is missing. Generate again.</string>
-    <string name="validation_empty_card_prompt">One of the exercises has no question. Edit it before saving.</string>
-    <string name="validation_empty_card_answer">One of the exercises has no answer. Edit it before saving.</string>
-    <string name="validation_inactive_card">There\'s a paused exercise on the card. Activate it or delete it.</string>
-    <string name="validation_missing_single_meaning_quality_check">The generated card is incomplete. Generate again.</string>
-    <string name="validation_missing_required_quality_check">The generated card is incomplete. Generate again.</string>
-    <string name="validation_no_active_cards">The card needs at least one active exercise.</string>
-    <string name="validation_failed_quality_check">The card didn\'t pass the quality check. Edit or generate again.</string>
-    <string name="validation_card_prompt_matches_answer">The question and the answer are the same. Edit the exercise before saving.</string>
-    <string name="validation_duplicate_active_card">There are repeated exercises with the same question and answer. Delete the duplicate.</string>
-    <string name="validation_duplicate_exact_card_in_deck">You already have an identical card in this deck.</string>
-    <string name="validation_duplicate_word_in_deck">You already have that word in this deck.</string>
-    <string name="validation_too_many_active_cards">Too many active exercises; 2 to 4 is ideal. Pause the ones you don\'t need.</string>
-    <string name="validation_answer_too_long_for_recall">The answer is too long. Try to trim it to the essentials.</string>
 
     <!-- Study Screen -->
     <string name="exit_session_desc">End session</string>
@@ -201,7 +113,6 @@
     <string name="settings_content_description">Settings</string>
     <string name="mic_permission_denied">We need microphone permission to dictate.</string>
 
-    <string name="retry_action">Retry</string>
 
     <!-- Flashcard edit/delete -->
     <string name="edit_flashcard_title">Edit card</string>
@@ -276,7 +187,6 @@
     <string name="library_no_results_headline">No results</string>
     <string name="library_no_results_body">No card matches your search.</string>
     <string name="library_no_results_cta">Clear filters</string>
-    <string name="library_content_description">Open the library</string>
     <string name="library_schedule_new">new</string>
     <string name="library_schedule_due_today">due today</string>
     <plurals name="library_schedule_in_days">

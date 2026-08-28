@@ -75,7 +75,7 @@ class StudyViewModel(
 
     override fun onIntent(intent: StudyUiIntent) {
         when (intent) {
-            StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToNewCard)
+            StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToCapture)
             StudyUiIntent.RetryLoad -> loadSession()
             StudyUiIntent.ExitClicked -> sendEffect(StudyUiEffect.NavigateBack)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(

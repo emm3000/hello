@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
-import com.emm.hello.newfeatures.card.NewCardRoute
+import com.emm.hello.newfeatures.capture.CaptureRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -39,7 +39,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         vm.effect.collect { effect ->
             when (effect) {
                 StudyUiEffect.NavigateBack -> navigator.goBack()
-                StudyUiEffect.NavigateToNewCard -> navigator.navigateTo(NewCardRoute)
+                StudyUiEffect.NavigateToCapture -> navigator.navigateTo(CaptureRoute)
             }
         }
     }

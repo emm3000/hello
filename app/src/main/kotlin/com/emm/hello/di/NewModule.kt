@@ -46,7 +46,6 @@ import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
-import com.emm.domain.flashcard.GenerateLearningNotePreviewUseCase
 import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.domain.flashcard.RestoreFlashcardUseCase
 import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
@@ -57,11 +56,6 @@ import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.flashcard.FsrsParameters
-import com.emm.domain.flashcard.RegenerateLearningNoteClozeUseCase
-import com.emm.domain.flashcard.RegenerateLearningNoteExampleUseCase
-import com.emm.domain.flashcard.RegenerateLearningNoteFieldUseCase
-import com.emm.domain.flashcard.RegenerateStudyCardUseCase
-import com.emm.domain.flashcard.ValidateFlashcardGenerationInputUseCase
 import com.emm.domain.generation.GeneratedLearningNoteCardsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteQualityChecksPolicy
@@ -83,9 +77,7 @@ import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.emm.hello.newfeatures.card.FlashcardDetailViewModel
-import com.emm.hello.newfeatures.card.NewCardGenerationDependencies
 import com.emm.hello.newfeatures.capture.CaptureViewModel
-import com.emm.hello.newfeatures.card.NewCardViewModel
 import com.emm.hello.newfeatures.today.TodayViewModel
 import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
@@ -188,25 +180,7 @@ fun Module.useCases() {
     factoryOf(::MarkEnrichmentFailedUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
-    factoryOf(::ValidateFlashcardGenerationInputUseCase)
     factoryOf(::ValidateGeneratedLearningNoteUseCase)
-    factoryOf(::GenerateLearningNotePreviewUseCase)
-    factoryOf(::RegenerateLearningNoteExampleUseCase)
-    factoryOf(::RegenerateLearningNoteClozeUseCase)
-    factoryOf(::RegenerateLearningNoteFieldUseCase)
-    factoryOf(::RegenerateStudyCardUseCase)
-    factory {
-        NewCardGenerationDependencies(
-            createFlashcardUseCase = get(),
-            generateLearningNotePreviewUseCase = get(),
-            regenerateLearningNoteExampleUseCase = get(),
-            regenerateLearningNoteClozeUseCase = get(),
-            regenerateLearningNoteFieldUseCase = get(),
-            regenerateStudyCardUseCase = get(),
-            validateInputUseCase = get(),
-            validateGeneratedLearningNoteUseCase = get(),
-        )
-    }
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
     factory { GetDashboardStatsUseCase(get(), get()) }
@@ -234,14 +208,6 @@ fun Module.viewModels() {
     viewModel { TodayViewModel(get()) }
     viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
-    viewModel {
-        NewCardViewModel(
-            getDecksUseCase = get(),
-            generationDependencies = get(),
-            defaultDeckSelectionRepository = get(),
-            generationQuota = get(),
-        )
-    }
     viewModel {
         StudyViewModel(
             deckId = it.get(),

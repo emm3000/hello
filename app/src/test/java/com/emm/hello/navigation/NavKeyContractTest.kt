@@ -3,7 +3,6 @@ package com.emm.hello.navigation
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.newfeatures.card.CardDetailRoute
 import com.emm.hello.newfeatures.card.EditFlashcardRoute
-import com.emm.hello.newfeatures.card.NewCardRoute
 import com.emm.hello.newfeatures.today.TodayRoute
 import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.newfeatures.deck.NewDeckRoute
@@ -21,7 +20,6 @@ class NavKeyContractTest {
         val routes: List<Any> = listOf(
             TodayRoute,
             StudyRoute("test"),
-            NewCardRoute,
             NewDeckRoute(),
             DecksRoute,
             CardDetailRoute("test", "deck-test"),

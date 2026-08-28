@@ -73,6 +73,17 @@ class StudyViewModelTest {
     }
 
     @Test
+    fun `create card clicked emits navigate to capture`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyUiIntent.CreateCardClicked)
+            assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateToCapture)
+        }
+    }
+
+    @Test
     fun `exit clicked mid-session emits navigate back without asking for confirmation`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()
