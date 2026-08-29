@@ -54,7 +54,7 @@ class SettingsViewModel(
             setState { copy(isImporting = true) }
             importDataSource.import(uri)
                 .onSuccess {
-                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restaurado correctamente"))
+                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restored"))
                 }
                 .onFailure { error ->
                     logError(TAG, "import:error ${error.message}", error)

@@ -86,7 +86,7 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup restaurado correctamente"))
+        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup restored"))
         assertThat(viewModel.state.value.isConfirmDialogVisible).isFalse()
         assertThat(viewModel.state.value.isImporting).isFalse()
         assertThat(viewModel.state.value.pendingImportUri).isNull()
