@@ -59,6 +59,7 @@ import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.suggestion.SuggestWordsUseCase
 import com.emm.domain.suggestion.WordSuggestionRepository
+import com.emm.hello.newfeatures.suggest.SuggestViewModel
 import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.GeneratedLearningNoteCardsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
@@ -245,6 +246,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { SuggestViewModel(get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }

@@ -10,6 +10,7 @@ import com.emm.hello.newfeatures.capture.CaptureRoute
 import com.emm.hello.newfeatures.library.LibraryRoute
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyRoute
+import com.emm.hello.newfeatures.suggest.SuggestRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -35,6 +36,7 @@ fun TodayDestination(navigator: Navigator) {
         onStudy = { vm.onIntent(StudyClicked) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
         onLibrary = { navigator.navigateTo(LibraryRoute) },
+        onGetNewWords = { navigator.navigateTo(SuggestRoute) },
         onVisible = { vm.onIntent(ScreenVisible) },
     )
 }

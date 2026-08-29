@@ -16,7 +16,7 @@ class CaptureFlashcardUseCase(
     private val duplicateRepository: FlashcardDuplicateRepository,
 ) {
 
-    suspend operator fun invoke(deckId: DeckId, word: String): FlashcardId {
+    suspend operator fun invoke(deckId: DeckId, word: String, translation: String = ""): FlashcardId {
         val expression: Expression = Expression.fromOrNull(word)
             ?: throw rejectedWordException(IssueCode.EmptyUserText)
 
@@ -24,15 +24,21 @@ class CaptureFlashcardUseCase(
             throw rejectedWordException(IssueCode.DuplicateWordInDeck)
         }
 
-        return repository.create(pendingFlashcardInput(deckId = deckId, expression = expression))
+        return repository.create(
+            pendingFlashcardInput(deckId = deckId, expression = expression, translation = translation),
+        )
     }
 
-    private fun pendingFlashcardInput(deckId: DeckId, expression: Expression): CreateFlashcardInput {
+    private fun pendingFlashcardInput(
+        deckId: DeckId,
+        expression: Expression,
+        translation: String,
+    ): CreateFlashcardInput {
         return CreateFlashcardInput(
             deckId = deckId,
             word = expression.value,
             meaning = "",
-            translation = "",
+            translation = translation.trim(),
             phonetic = "",
             enrichmentStatus = EnrichmentStatus.PENDING,
         )

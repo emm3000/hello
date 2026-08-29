@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,6 +61,7 @@ fun TodayScreen(
     onStudy: () -> Unit = {},
     onSettings: () -> Unit = {},
     onLibrary: () -> Unit = {},
+    onGetNewWords: () -> Unit = {},
     onVisible: () -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
@@ -89,6 +91,7 @@ fun TodayScreen(
             onStudy = onStudy,
             onCapture = onCapture,
             onLibrary = onLibrary,
+            onGetNewWords = onGetNewWords,
         )
     }
 }
@@ -244,6 +247,7 @@ private fun TodayActions(
     onStudy: () -> Unit,
     onCapture: () -> Unit,
     onLibrary: () -> Unit,
+    onGetNewWords: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -281,16 +285,23 @@ private fun TodayActions(
             }
             else -> {
                 HButton(
+                    text = stringResource(R.string.today_get_new_words),
+                    onClick = onGetNewWords,
+                    variant = HButtonVariant.Primary,
+                    full = true,
+                    icon = Icons.Default.AutoAwesome,
+                )
+                HButton(
                     text = stringResource(R.string.today_add_word),
                     onClick = onCapture,
-                    variant = HButtonVariant.Primary,
+                    variant = HButtonVariant.Secondary,
                     full = true,
                     icon = Icons.Default.Add,
                 )
                 HButton(
                     text = stringResource(R.string.today_library),
                     onClick = onLibrary,
-                    variant = HButtonVariant.Secondary,
+                    variant = HButtonVariant.Text,
                     full = true,
                     icon = Icons.AutoMirrored.Filled.List,
                 )

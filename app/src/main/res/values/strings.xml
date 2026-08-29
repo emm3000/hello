@@ -26,6 +26,7 @@
     <string name="today_next_due_in_days">%1$s in %2$d days</string>
     <string name="today_next_due_none">Nothing scheduled yet</string>
     <string name="today_ring_content_description">Today\'s progress, %1$d percent</string>
+    <string name="today_get_new_words">Get new words</string>
 
     <!-- Decks Screen -->
     <plurals name="cards_count">
@@ -84,6 +85,7 @@
     <string name="study_grade_knew">Knew it</string>
     <string name="study_done_title">Done for today.</string>
     <string name="study_done_stats">%1$d reviewed · %2$d knew it · %3$d to see again</string>
+    <string name="study_done_get_new_words">Get new words</string>
     <string name="study_done_add_word">Add a word</string>
     <string name="study_done_back">Back to Today</string>
 
@@ -202,4 +204,22 @@
     <string name="settings_section_organization">Organization</string>
     <string name="settings_decks_subtitle">Create, rename or delete decks</string>
     <string name="error_restore_deck">Couldn\'t restore the deck</string>
+
+    <!-- Suggest -->
+    <string name="suggest_eyebrow">New words</string>
+    <string name="suggest_loading">Finding words for you…</string>
+    <string name="suggest_pick_some">Pick the words you want</string>
+    <string name="suggest_not_now">Not now</string>
+    <string name="suggest_retry">Try again</string>
+    <string name="suggest_error_title">Couldn\'t find words</string>
+    <string name="suggest_error_body">Check your connection and try again.</string>
+    <string name="suggest_empty_title">Nothing new to add</string>
+    <string name="suggest_empty_body">You already know these. Try again for another situation.</string>
+    <string name="suggest_added">Words added. They\'ll be ready to study soon.</string>
+    <string name="suggest_error_add">Couldn\'t add the words. Try again.</string>
+    <string name="suggest_error_no_deck">Create a deck first.</string>
+    <plurals name="suggest_add_selected">
+        <item quantity="one">Add %1$d word</item>
+        <item quantity="other">Add %1$d words</item>
+    </plurals>
 </resources>

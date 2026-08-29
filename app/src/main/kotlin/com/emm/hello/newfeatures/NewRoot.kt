@@ -48,6 +48,8 @@ import com.emm.hello.newfeatures.settings.SettingsDestination
 import com.emm.hello.newfeatures.settings.SettingsRoute
 import com.emm.hello.newfeatures.study.StudyDestination
 import com.emm.hello.newfeatures.study.StudyRoute
+import com.emm.hello.newfeatures.suggest.SuggestDestination
+import com.emm.hello.newfeatures.suggest.SuggestRoute
 import com.emm.hello.startup.AppStartupState
 import com.emm.hello.startup.AppStartupViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -116,6 +118,7 @@ private fun AppNavigation(hasSeenWelcome: Boolean) {
             entry<TodayRoute> { TodayDestination(navigator) }
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
+            entry<SuggestRoute> { SuggestDestination(navigator) }
             entry<LibraryRoute> { LibraryDestination(navigator) }
             entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId, key.deckId) }

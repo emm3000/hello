@@ -5,6 +5,7 @@ import com.emm.hello.core.mvi.MviIntent
 
 sealed interface StudyUiIntent : MviIntent {
     data object CreateCardClicked : StudyUiIntent
+    data object GetNewWordsClicked : StudyUiIntent
     data object RetryLoad : StudyUiIntent
     data object ExitClicked : StudyUiIntent
 

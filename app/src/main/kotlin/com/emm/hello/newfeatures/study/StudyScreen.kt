@@ -104,6 +104,7 @@ fun StudyScreen(
     onExit: () -> Unit = {},
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
+    onGetNewWords: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
     state: StudyUiState = StudyUiState(),
 ) {
@@ -223,6 +224,7 @@ fun StudyScreen(
                     onReviewAnswer(state.currentItem, grade)
                 },
                 onCreateCard = onCreateCard,
+                onGetNewWords = onGetNewWords,
                 onRetryLoad = onRetryLoad,
                 onExit = onExit,
             )
@@ -354,6 +356,7 @@ private fun StudyActionDock(
     onRevealAnswer: () -> Unit,
     onReviewAnswer: (ReviewGrade) -> Unit,
     onCreateCard: () -> Unit,
+    onGetNewWords: () -> Unit,
     onRetryLoad: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
@@ -417,6 +420,12 @@ private fun StudyActionDock(
 
             StudyStage.Done -> {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    HButton(
+                        text = stringResource(R.string.study_done_get_new_words),
+                        onClick = onGetNewWords,
+                        variant = HButtonVariant.Primary,
+                        full = true,
+                    )
                     HButton(
                         text = stringResource(R.string.study_done_add_word),
                         onClick = onCreateCard,

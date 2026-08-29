@@ -84,6 +84,17 @@ class StudyViewModelTest {
     }
 
     @Test
+    fun `get new words clicked emits navigate to suggest`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a")))
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyUiIntent.GetNewWordsClicked)
+            assertThat(awaitItem()).isEqualTo(StudyUiEffect.NavigateToSuggest)
+        }
+    }
+
+    @Test
     fun `exit clicked mid-session emits navigate back without asking for confirmation`() = runTest {
         val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
         advanceUntilIdle()

@@ -6,6 +6,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.capture.CaptureRoute
+import com.emm.hello.newfeatures.suggest.SuggestRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -40,6 +41,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
             when (effect) {
                 StudyUiEffect.NavigateBack -> navigator.goBack()
                 StudyUiEffect.NavigateToCapture -> navigator.navigateTo(CaptureRoute)
+                StudyUiEffect.NavigateToSuggest -> navigator.navigateTo(SuggestRoute)
             }
         }
     }
@@ -55,6 +57,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
             )
         },
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
+        onGetNewWords = { vm.onIntent(StudyUiIntent.GetNewWordsClicked) },
         onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
         state = uiState.value,
     )
