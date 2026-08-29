@@ -140,6 +140,11 @@ fun StudyScreen(
 
     val onCard: Boolean = sessionStage == StudyStage.Recall || sessionStage == StudyStage.Grade
     val wordRevealed: Boolean = onCard && (state.currentItem?.revealsWordOn(cardFace) ?: false)
+    LaunchedEffect(wordRevealed) {
+        if (!wordRevealed) {
+            tts.stop()
+        }
+    }
     val hueIndex: Int = if (state.totalCount > 0) {
         minOf(state.reviewedCount, state.totalCount - 1) % cardHues.size
     } else {
@@ -319,7 +324,7 @@ private fun StudyCardStage(
                     CardFace.Front -> FlashcardFront(
                         word = item?.word.orEmpty(),
                         phonetic = item?.phonetic.orEmpty(),
-                        translation = item?.translation.orEmpty(),
+                        translation = item?.cue.orEmpty(),
                         direction = item?.direction ?: StudyDirection.RECOGNITION,
                     )
                     CardFace.Back -> item?.let { FlashcardBack(item = it) }
@@ -563,8 +568,8 @@ private fun FlashcardFront(
 @Composable
 private fun FlashcardBack(item: StudySessionItem) {
     val isProduction: Boolean = item.direction == StudyDirection.PRODUCTION
-    val topLine: String = if (isProduction) item.translation else item.word
-    val dominantAnswer: String = if (isProduction) item.word else item.translation
+    val topLine: String = if (isProduction) item.cue else item.word
+    val dominantAnswer: String = if (isProduction) item.word else item.cue
     Column(
         modifier = Modifier
             .fillMaxWidth()

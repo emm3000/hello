@@ -3,6 +3,7 @@ package com.emm.domain.study
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.flashcard.FsrsState
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.Clock
 import org.junit.Assert.assertEquals
@@ -127,10 +128,10 @@ class ScheduleFlashcardReviewUseCaseTest {
 
     @Test
     fun `invoke stamps productionSince with the same instant it stamped lastReviewedAt on graduation`() {
-        var callCount: Long = 0L
+        var elapsedMillis: Long = 0L
         val advancingClock = Clock {
-            callCount += 1_000L
-            fixedNow.plusMillis(callCount)
+            elapsedMillis += 1_000L
+            fixedNow.plusMillis(elapsedMillis)
         }
         val advancingUseCase = ScheduleFlashcardReviewUseCase(advancingClock)
         val card = reviewCard("card-10".toFlashcardId(), stability = 10.0)
@@ -140,7 +141,7 @@ class ScheduleFlashcardReviewUseCaseTest {
         assertEquals(result.lastReviewedAt, result.productionSince)
     }
 
-    private fun reviewCard(id: com.emm.domain.ids.FlashcardId, stability: Double = 10.0) = FsrsCard(
+    private fun reviewCard(id: FlashcardId, stability: Double = 10.0): FsrsCard = FsrsCard(
         flashcardId = id,
         state = FsrsState.REVIEW,
         stability = stability,

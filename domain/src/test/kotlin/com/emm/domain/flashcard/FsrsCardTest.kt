@@ -127,7 +127,7 @@ class FsrsCardTest {
         assertEquals(0L, card.lapses)
     }
 
-    private fun validCard() = FsrsCard(
+    private fun validCard(): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.NEW,
         stability = 0.0,

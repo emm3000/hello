@@ -38,6 +38,8 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 `StudyFlashcard.toStudySessionItem()` builds it. `direction` is derived from the review: `PRODUCTION` when `review.productionSince != null`, otherwise `RECOGNITION`.
 
+`StudySessionItem.cue` is a computed property: `translation`, or `meaning` when `translation` is blank. It is the Spanish-side text the faces render (the production prompt and the recognition answer), so a card without a translation still has something to ask and answer with.
+
 `StudySessionItem.revealsWordOn(face: CardFace)` is true when the English word is visible on that face: always for `RECOGNITION`, only on `Back` for `PRODUCTION`.
 
 The flashcard's generated study cards (`studyCards`) are not part of the session: a card with several generated study cards and a card with none are both one item and one grade.
@@ -112,17 +114,19 @@ The face is local `StudyScreen` state, reset to `Front` whenever `currentItem` c
 
 - **Front** (`FlashcardFront`): an uppercase prompt label, then the dominant text.
   - `RECOGNITION`: label `study_prompt_label` ("What does it mean?"), the English `word`, then `phonetic` if not blank.
-  - `PRODUCTION`: label `study_prompt_production` ("How do you say it?"), the `translation`. No phonetic.
+  - `PRODUCTION`: label `study_prompt_production` ("How do you say it?"), the `cue`. No phonetic.
 - **Back** (`FlashcardBack`, scrollable): a muted top line, the dominant answer, then reference.
-  - `RECOGNITION`: top line is `word`, answer is `translation`.
-  - `PRODUCTION`: top line is `translation`, answer is `word`, followed by `phonetic` if not blank.
+  - `RECOGNITION`: top line is `word`, answer is `cue`.
+  - `PRODUCTION`: top line is `cue`, answer is `word`, followed by `phonetic` if not blank.
   - Then, when `example` is not blank: the `example` with the first occurrence of `word` underlined (`underlineFirstMatch`), over a softer `exampleTranslation` if present.
-  - Then a muted reference line joining `partOfSpeech`, `phonetic` (recognition only; production already showed it) and `meaning` with ` · `, skipping blanks.
+  - Then a muted reference line joining `partOfSpeech`, `phonetic` (recognition only; production already showed it) and `meaning` with ` · `, skipping blanks. When `translation` is blank, `meaning` appears twice on the back: as the `cue` and in this line.
   - `usagePattern` and `irregularForms` are carried by the item but not rendered on either face.
 
 ## TTS
 
 `StudyTop` renders `TtsFloatingButton` next to the X only when the word is revealed: `sessionStage` is `Recall` or `Grade` and `currentItem.revealsWordOn(cardFace)` is true. In practice: any face for `RECOGNITION`, only `Back` for `PRODUCTION`. It speaks `currentItem.word` through `TextToSpeechManager`, toggles to a stop icon while speaking, and is disabled until TTS is ready.
+
+A `LaunchedEffect(wordRevealed)` calls `tts.stop()` whenever the word stops being revealed: the face flips back to `Front` on a `PRODUCTION` card, the item changes, or the session leaves the card (`Done`, `Empty`, `Error`, `Loading`). Speech never outlives the word it belongs to.
 
 ## Action dock
 

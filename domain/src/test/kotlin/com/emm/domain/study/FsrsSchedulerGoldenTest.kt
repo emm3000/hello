@@ -182,7 +182,7 @@ class FsrsSchedulerGoldenTest {
         return FsrsScheduler.schedule(card, grade, flashcardId, clockAt(reviewInstant), params)
     }
 
-    private fun reviewCardAtDay(elapsedDays: Int) = FsrsCard(
+    private fun reviewCardAtDay(elapsedDays: Int): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.REVIEW,
         stability = 10.0,
@@ -194,7 +194,7 @@ class FsrsSchedulerGoldenTest {
         lapses = 0L,
     )
 
-    private fun reviewCardWithStability(stability: Double, elapsedDays: Int) = FsrsCard(
+    private fun reviewCardWithStability(stability: Double, elapsedDays: Int): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.REVIEW,
         stability = stability,

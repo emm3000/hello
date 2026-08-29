@@ -19,7 +19,10 @@ data class StudySessionItem(
     val partOfSpeech: String = "",
     val example: String = "",
     val exampleTranslation: String = "",
-)
+) {
+    val cue: String
+        get() = translation.ifBlank { meaning }
+}
 
 internal fun StudySessionItem.revealsWordOn(face: CardFace): Boolean =
     direction == StudyDirection.RECOGNITION || face == CardFace.Back

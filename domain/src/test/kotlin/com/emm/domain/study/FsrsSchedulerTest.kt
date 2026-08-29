@@ -284,7 +284,7 @@ class FsrsSchedulerTest {
 
     private fun newCard() = FsrsCard.new(flashcardId, clock)
 
-    private fun reviewCard(stability: Double, difficulty: Double, lapses: Long = 0L) = FsrsCard(
+    private fun reviewCard(stability: Double, difficulty: Double, lapses: Long = 0L): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.REVIEW,
         stability = stability,
@@ -296,7 +296,7 @@ class FsrsSchedulerTest {
         lapses = lapses,
     )
 
-    private fun learningCard(stability: Double, difficulty: Double, lapses: Long = 0L) = FsrsCard(
+    private fun learningCard(stability: Double, difficulty: Double, lapses: Long = 0L): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.LEARNING,
         stability = stability,
@@ -308,7 +308,7 @@ class FsrsSchedulerTest {
         lapses = lapses,
     )
 
-    private fun relearningCard(stability: Double, difficulty: Double, lapses: Long = 1L) = FsrsCard(
+    private fun relearningCard(stability: Double, difficulty: Double, lapses: Long = 1L): FsrsCard = FsrsCard(
         flashcardId = flashcardId,
         state = FsrsState.RELEARNING,
         stability = stability,

@@ -120,6 +120,26 @@ class StudySessionItemTest {
         assertThat(item.revealsWordOn(CardFace.Back)).isTrue()
     }
 
+    @Test
+    fun `cue is the translation when the flashcard has one`() {
+        val flashcard = studyFlashcard(word = "go", studyCards = emptyList())
+            .copy(translation = "ir", meaning = "to move from one place to another")
+
+        val item = flashcard.toStudySessionItem()
+
+        assertThat(item.cue).isEqualTo("ir")
+    }
+
+    @Test
+    fun `cue falls back to the meaning when the translation is blank`() {
+        val flashcard = studyFlashcard(word = "go", studyCards = emptyList())
+            .copy(translation = "   ", meaning = "to move from one place to another")
+
+        val item = flashcard.toStudySessionItem()
+
+        assertThat(item.cue).isEqualTo("to move from one place to another")
+    }
+
     private fun studyFlashcard(
         word: String,
         studyCards: List<GeneratedStudyCard>,
