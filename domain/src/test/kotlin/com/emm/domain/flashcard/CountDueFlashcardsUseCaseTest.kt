@@ -52,4 +52,5 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
         lastQueriedNow = nowMillis
         return dueCount
     }
+    override suspend fun fetchRecentWords(limit: Int): List<String> = emptyList()
 }

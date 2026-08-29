@@ -260,6 +260,10 @@ class DefaultFlashcardRepository(
             .map { entities -> entities.map { toDomainSummary(it, json) } }
     }
 
+    override suspend fun fetchRecentWords(limit: Int): List<String> = withContext(ioDispatcher) {
+        dao.recentWords(limit.toLong()).executeAsList()
+    }
+
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = withContext(ioDispatcher) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
             .flashcardWithExamples(id.value)

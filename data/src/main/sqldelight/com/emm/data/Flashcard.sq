@@ -294,3 +294,9 @@ UPDATE FlashcardExample
 SET deletedAt = NULL
 WHERE flashcardId = :flashcardId
   AND deletedAt = :deletedAt;
+
+recentWords:
+SELECT word FROM Flashcard
+WHERE deletedAt IS NULL
+ORDER BY createdAt DESC, id DESC
+LIMIT :limit;

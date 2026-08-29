@@ -86,4 +86,6 @@ private class UpdateRecordingRepository : FlashcardRepository {
     override suspend fun countDueFlashcards(nowMillis: Long): Long = error("unused")
 
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = error("unused")
+
+    override suspend fun fetchRecentWords(limit: Int): List<String> = error("unused")
 }

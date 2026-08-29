@@ -24,4 +24,6 @@ interface FlashcardRepository {
     suspend fun countDueFlashcards(nowMillis: Long): Long
 
     suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId)
+
+    suspend fun fetchRecentWords(limit: Int): List<String>
 }

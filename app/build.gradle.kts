@@ -53,12 +53,14 @@ configure<ApplicationExtension> {
             isShrinkResources = true
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "false")
+            buildConfigField("Boolean", "USE_CANNED_AI", "false")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
+            buildConfigField("Boolean", "USE_CANNED_AI", "true")
             manifestPlaceholders["usesCleartextTraffic"] = "true"
             matchingFallbacks += listOf("release")
         }
@@ -69,6 +71,7 @@ configure<ApplicationExtension> {
             isShrinkResources = false
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
+            buildConfigField("Boolean", "USE_CANNED_AI", "false")
             matchingFallbacks += listOf("release")
         }
     }

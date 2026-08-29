@@ -16,6 +16,8 @@ import com.emm.data.library.DefaultLibraryRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
+import com.emm.data.suggestion.CannedWordSuggestionRepository
+import com.emm.data.suggestion.GeminiWordSuggestionRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
@@ -55,6 +57,8 @@ import com.emm.domain.library.SearchLibraryUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
+import com.emm.domain.suggestion.SuggestWordsUseCase
+import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.GeneratedLearningNoteCardsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
@@ -141,6 +145,13 @@ fun Module.repository() {
             ioDispatcher = Dispatchers.IO,
         )
     }
+    single<WordSuggestionRepository> {
+        if (BuildConfig.USE_CANNED_AI) {
+            CannedWordSuggestionRepository()
+        } else {
+            GeminiWordSuggestionRepository(geminiService = get(), json = get(), ioDispatcher = Dispatchers.IO)
+        }
+    }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class
     factoryOf(::DefaultFlashcardReviewRepository) bind FlashcardReviewRepository::class
     factoryOf(::DefaultStudyStatsRepository) bind StudyStatsRepository::class
@@ -192,6 +203,7 @@ fun Module.useCases() {
     factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
     factoryOf(::SearchLibraryUseCase)
+    factoryOf(::SuggestWordsUseCase)
 }
 
 fun Module.viewModels() {

@@ -132,6 +132,7 @@ private class RecordingFlashcardRepository : FlashcardRepository {
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
+    override suspend fun fetchRecentWords(limit: Int): List<String> = emptyList()
 }
 
 private class ExpressionDuplicateRepository(
