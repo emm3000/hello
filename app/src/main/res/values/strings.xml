@@ -50,7 +50,6 @@
     <string name="new_deck_action_create">Create</string>
     <string name="new_deck_action_save">Save</string>
     <string name="new_deck_close_content_description">Close</string>
-    <string name="new_deck_tag_placeholder">+ add…</string>
 
     <!-- Deck Detail Screen -->
     <string name="more_options">More options</string>

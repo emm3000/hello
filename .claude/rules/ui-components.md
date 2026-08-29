@@ -15,7 +15,7 @@ A custom component written inside a screen never replaces a `core/ui` component 
 
 ## Naming
 
-- **Public composables**: `H` prefix — `HInput`, `HButton`, `HBadge`, `HCard`, `HIconButton`. Hard rule.
+- **Public composables**: `H` prefix — `HInput`, `HButton`, `HChip`, `HCard`, `HIconButton`. Hard rule.
 - **Files**: mixed today. Of the files in `core/ui/`, some use the `H` prefix (`HTopBar.kt`, `HSearchBar.kt`, `HEmptyState.kt`) and some do not (`Button.kt`, `Input.kt`, `Card.kt`). When touching an existing component, follow the pattern already established for that component family. A new standalone shared component gets an `H`-prefixed file.
 - **Exception without an `H*` composable**: `FieldShell` — an internal building block and the template for inputs.
 

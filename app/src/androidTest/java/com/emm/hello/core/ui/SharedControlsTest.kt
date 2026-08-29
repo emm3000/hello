@@ -6,7 +6,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertHeightIsAtLeast
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasClickAction
@@ -51,26 +50,6 @@ class SharedControlsTest {
     }
 
     @Test
-    fun select_exposes_disabled_state_and_min_touch_target() {
-        composeRule.setContent {
-            HelloTheme {
-                HSelect(
-                    items = listOf("Uno", "Dos"),
-                    itemSelected = null,
-                    onItemSelected = {},
-                    label = "Mazo",
-                    enabled = false,
-                )
-            }
-        }
-
-        composeRule.waitUntilAtLeastOneExists(hasContentDescription("Mazo"))
-        composeRule.onNode(hasContentDescription("Mazo"))
-            .assertIsNotEnabled()
-            .assertHeightIsAtLeast(48.dp)
-    }
-
-    @Test
     fun warning_components_expose_warning_semantics() {
         composeRule.setContent {
             HelloTheme {
@@ -80,20 +59,12 @@ class SharedControlsTest {
                         description = "Necesita revisión",
                         variant = AlertVariant.Warning,
                     )
-                    HBadge(
-                        label = "Requiere revisión",
-                        variant = BadgeVariant.Warning,
-                    )
                 }
             }
         }
 
         composeRule.waitUntilAtLeastOneExists(
             hasWarningState().and(hasAnyDescendant(hasText("Atención"))),
-        )
-
-        composeRule.waitUntilAtLeastOneExists(
-            hasWarningState().and(hasAnyDescendant(hasText("Requiere revisión"))),
         )
     }
 

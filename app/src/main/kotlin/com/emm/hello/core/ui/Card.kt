@@ -11,26 +11,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.surface
-
-enum class CardVariant { Elevated, Filled, Outlined }
 
 @Composable
 fun HCard(
@@ -61,88 +53,6 @@ fun HCard(
     }
 }
 
-@Composable
-fun HCard(
-    modifier: Modifier = Modifier,
-    @Suppress("UNUSED_PARAMETER") variant: CardVariant = CardVariant.Elevated,
-    @Suppress("UNUSED_PARAMETER") cornerRadius: Dp = 16.dp,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    HCard(modifier = modifier, due = false, content = content)
-}
-
-@Composable
-fun HCard(
-    modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(16.dp),
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    elevation: Dp = 0.dp,
-    border: BorderStroke? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Card(
-        modifier = modifier,
-        shape = shape,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        border = border,
-        content = content,
-    )
-}
-
-@Composable
-fun HCardHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 16.dp),
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        if (description != null) {
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-    }
-}
-
-@Composable
-fun HCardContent(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 0.dp),
-        content = content,
-    )
-}
-
-@Composable
-fun HCardFooter(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 16.dp),
-        content = content,
-    )
-}
-
 @Preview(showBackground = true, backgroundColor = 0xFF0F0E0C)
 @Composable
 private fun HCardPreview() {
@@ -155,24 +65,18 @@ private fun HCardPreview() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HCard(modifier = Modifier.fillMaxWidth()) {
-                HCardHeader(title = "Serendipity", description = "/ˌserənˈdɪpɪti/ · Sustantivo")
-                HCardContent {
-                    Text(
-                        text = "La ocurrencia de eventos afortunados de manera casual.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-                }
+                Text(
+                    text = "Serendipity",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp),
+                )
             }
             HCard(modifier = Modifier.fillMaxWidth(), due = true) {
-                HCardHeader(title = "Ephemeral", description = "5 tarjetas para hoy")
-                HCardContent {
-                    Text(
-                        text = "Que dura poco tiempo.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-                }
+                Text(
+                    text = "Ephemeral",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp),
+                )
             }
         }
     }
