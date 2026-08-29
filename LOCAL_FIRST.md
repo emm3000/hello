@@ -61,5 +61,5 @@ Current pattern:
 ## See also
 
 - `ARCHITECTURE.md`
-- `docs/CARD_CREATION_CURRENT.md`
+- `docs/CAPTURE_CURRENT.md`
 - `docs/STUDY_CURRENT.md`

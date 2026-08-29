@@ -4,7 +4,7 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Mazos` and `New/Edit Deck` flows |
+| Scope | `Decks` and `New/Edit Deck` flows |
 | Source of Truth | No |
 | Read this when | You need to understand deck creation, editing and deletion |
 | Last verified | 2026-08-28 |
@@ -12,21 +12,21 @@
 ## Summary
 
 A deck is an optional grouping, not the axis the app is organised around, so
-deck management lives in Settings → Organización → Mazos rather than on the
+deck management lives in Settings → Organization → Decks rather than on the
 daily path.
 
 Two sibling flows on the `deck` feature:
 
-- `Mazos` lists the decks and opens the form.
+- `Decks` lists the decks and opens the form.
 - `New/Edit Deck` creates, renames and deletes, one screen and one viewmodel,
   distinguished by `DeckFormMode`.
 
-`Deck Detail` no longer exists. A deck's card list is `Biblioteca` filtered by
+`Deck Detail` no longer exists. A deck's card list is `Library` filtered by
 that deck's chip — see `LIBRARY_CURRENT.md`.
 
 ## Key files
 
-### Mazos
+### Decks
 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksRoute.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DecksScreen.kt`
@@ -46,7 +46,7 @@ that deck's chip — see `LIBRARY_CURRENT.md`.
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/NewDeckUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/deck/DeckFormMode.kt` (`Create` / `Edit(deckId)`)
 
-## Mazos
+## Decks
 
 ### State
 
@@ -76,10 +76,11 @@ clears `isLoading`.
 
 ### Layout
 
-`HTopBar` with the title, a `DeckRow` per deck (name in `titleLarge`,
-description, card count and tags in `metadata` mono), and a secondary
-"New deck" button at the end of the list. The empty state offers the same
-action as its primary CTA.
+`HTopBar` with the title "Decks", a `DeckRow` per deck (an `HCard` with the
+name in `titleLarge`, description in `bodyMedium`, card count and tags in
+`metadata`), and a secondary "New deck" `HButton` at the end of the list.
+Loading is a centered `HLoadingSpinner`; the `HEmptyState` offers the same
+"New deck" action as its primary CTA.
 
 ## New / Edit Deck
 
@@ -98,7 +99,8 @@ action as its primary CTA.
 ### Loading
 
 Only in `DeckFormMode.Edit`: `DeckRepository.fetchById(deckId).first()`
-populates `name`, `description` and `tags`.
+populates `name`, `description` and `tags`. A null result or a failure clears
+`isLoading` and emits `ShowMessage(error_load_deck)`.
 
 ### Intents
 
@@ -110,8 +112,13 @@ populates `name`, `description` and `tags`.
 
 ### Submit
 
-- `Create` → `DeckRepository.create(CreateDeckInput(...))` → reset + `NavigateBack`
-- `Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` → `NavigateBack`
+- `Create` → `DeckRepository.create(CreateDeckInput(...))` → reset +
+  `ShowMessage(deck_created_message)` + `NavigateBack`
+- `Edit` → `UpdateDeckUseCase(UpdateDeckInput(...))` →
+  `ShowMessage(deck_updated_message)` + `NavigateBack`
+
+A failure in either branch clears `isLoading` and emits
+`ShowMessage(error_create_deck)` / `ShowMessage(error_update_deck)`.
 
 ### Delete
 
@@ -119,10 +126,10 @@ populates `name`, `description` and `tags`.
 confirm in create mode never reaches the repository. Otherwise it calls
 `SoftDeleteDeckUseCase`, emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
 with the returned timestamp, and emits `DeckDeleted` so the route navigates
-back to Mazos, where the undo snackbar is waiting.
+back to Decks, where the undo snackbar is waiting.
 
 `Deck.sq` cascades the soft delete to the deck's flashcards and their
-examples, so the deleted deck's cards leave Biblioteca and the study session
+examples, so the deleted deck's cards leave Library and the study session
 with it.
 
 The affordance is a danger `Text`-variant `HButton` at the bottom of the
@@ -135,8 +142,9 @@ uses for "Delete card".
 
 ### Layout
 
-A close/action top bar (`metadata` mono label, the Create/Save action as
-plain text enabled by `isValid`), a `displayMedium` headline, then the form:
+A close/action top bar (`HIconButton` close, `metadata` label, the
+Create/Save action as plain text enabled by `isValid && !isLoading`), a
+`displayMedium` headline, then the form:
 `HInput` for name and description and `HTagInput` for tags (Enter or comma
 commits a tag, with label and supporting text). The form is built entirely
 from `core/ui` components; there are no private field composables.

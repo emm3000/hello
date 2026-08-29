@@ -1,24 +1,24 @@
-# Current Biblioteca
+# Current Library
 
 | Field | Value |
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Biblioteca` flow (all cards, content search) |
+| Scope | `Library` flow (all cards, content search) |
 | Source of Truth | No |
 | Read this when | You need to understand how cards are listed, searched and filtered |
-| Last verified | 2026-08-27 |
+| Last verified | 2026-08-28 |
 
 ## Summary
 
-`Biblioteca` lists every alive flashcard and matches a search against the
+`Library` lists every alive flashcard and matches a search against the
 card's own content rather than against the deck that holds it. It is the
 densest of the three surfaces — `docs/DESIGN_BRIEF.md` calls it the one
 screen where Notion-style density is appropriate, because it is a browsing
 surface and not a focus surface.
 
-It replaced the dashboard deck list and Deck Detail. Reached from the list
-icon in Hoy's wordmark row.
+It replaced the dashboard deck list and Deck Detail. Reached from the
+"Library" `HButton` on Today (`TodayRoute` navigates to `LibraryRoute`).
 
 ## Key files
 
@@ -77,7 +77,12 @@ and the ordering.
 
 ## State
 
-`LibraryUiState`: `cards`, `decks`, `query`, `selectedDeckId`, `isLoading`.
+`LibraryUiState`: `cards`, `decks`, `query`, `selectedDeckId`, `isLoading`,
+`referenceNow: Instant`.
+
+`referenceNow` is refreshed from the injected `Clock` on every search
+emission, so the schedule labels in the rows are computed against the moment
+the list was last produced, not against composition time.
 
 Three computed flags:
 
@@ -87,6 +92,11 @@ Three computed flags:
 
 The empty-library and no-results states are told apart from the filter alone.
 No second count is asked of the database.
+
+`LibraryUiState.kt` also declares `ScheduleStatus` (`New`, `DueToday`,
+`InDays(days)`) and `LibraryFlashcard.scheduleStatus(now, zone)`: a null
+`nextReviewAt` is `New`; otherwise the day difference between `now` and the
+review instant in `zone` is `DueToday` when `<= 0`, else `InDays`.
 
 ## Intents
 
@@ -109,24 +119,31 @@ The criteria flow is debounced 200 ms and de-duplicated before
 - `OpenCapture` → `CaptureRoute`
 - `ShowUndoCardDeleted(flashcardId, deletedAt)` — produced when the ViewModel
   receives `UndoEvent.CardDeleted` from `UndoEventHolder`; raises the
-  "Tarjeta eliminada" snackbar with a "Deshacer" action.
+  "Card deleted" snackbar with an "Undo" action.
 - `ShowMessage(messageRes)` — a Toast, used when a restore fails.
 
-Biblioteca is where a card deletion lands after `FlashcardDetailViewModel`
+Library is where a card deletion lands after `FlashcardDetailViewModel`
 navigates back, so it owns the card-deleted undo that Deck Detail used to own.
 
 ## Layout
 
-`HTopBar` with a back arrow, the title, and the visible card count in mono.
-Below it a persistent `HSearchBar`, then a horizontally scrolling deck chip
-row — rendered only when there is more than one deck, since a single deck is
+`HTopBar` with a back arrow, the title "Library", and the visible card count
+("N words") in `inkMuted`. Below it a persistent `HSearchBar`, then a
+horizontally scrolling `HChip` row — an "All" chip first, then one chip per
+deck — rendered only when there is more than one deck, since a single deck is
 not a choice.
 
-A row is two lines: the word at 16 sp, the translation at 13 sp muted. The
-right edge carries one mono marker — `PENDIENTE` in warn or `FALLÓ` in bad
-for a card that is not enriched yet, otherwise the deck name in faint, and
-only while no deck filter is active. Rows are separated by `HSeparator`, not
-by cards.
+A row is two lines: the word at 17 sp semibold, the translation at 14 sp
+`inkMuted` (omitted when blank). The right edge carries one 12 sp marker —
+"Preparing…" in `warningInk` for `PENDING`, "Failed" in `destructiveInk` for
+`FAILED`, otherwise the live schedule label in `inkMuted`: "new", "due today"
+or "in N days", from `scheduleStatus(referenceNow, ZoneId.systemDefault())`.
+The deck name is not shown on the row. Rows are separated by `HSeparator`,
+not by cards.
+
+Loading shows a centered `HLoadingSpinner`; the empty library and the
+no-results case are `HEmptyState`s whose CTAs are an `HButton`
+("Add a word" → `CaptureRequested`, "Clear filters" → `FiltersCleared`).
 
 ## Persistence
 

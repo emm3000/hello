@@ -35,7 +35,7 @@ Android app in Kotlin + Jetpack Compose for studying with decks and flashcards.
 - `CLAUDE.md`: operating manifest; detailed code rules live in `.claude/rules/`
 - `ARCHITECTURE.md`: current technical structure
 - `LOCAL_FIRST.md`: current runtime contract
-- `docs/CARD_CREATION_CURRENT.md`: current card creation flow
+- `docs/CAPTURE_CURRENT.md`: current capture flow (add a word)
 - `docs/STUDY_CURRENT.md`: current study flow
 - `docs/DESIGN_BRIEF.md`: visual direction and design rationale
 

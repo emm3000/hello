@@ -4,13 +4,14 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | First-run onboarding (welcome carousel + starter deck) |
+| Scope | First-run onboarding (welcome screen + starter deck) |
 | Source of Truth | No |
-| Read this when | You need to understand what a fresh install sees before Hoy |
+| Read this when | You need to understand what a fresh install sees before Today |
+| Last verified | 2026-08-28 |
 
 ## Summary
 
-On a fresh install the app opens on a three-page welcome carousel instead of Hoy, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the carousel is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death.
+On a fresh install the app opens on a single welcome screen instead of Today, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the welcome screen is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death.
 
 ## Key files
 
@@ -20,8 +21,6 @@ On a fresh install the app opens on a three-page welcome carousel instead of Hoy
 - `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingUiEffect.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingPage.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingIllustration.kt`
 - `app/src/main/kotlin/com/emm/hello/startup/AppStartupCoordinator.kt` (gate + seeding)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt` (start destination)
 
@@ -57,44 +56,30 @@ if (hasSeenWelcome) TodayRoute else OnboardingRoute
 
 Details:
 
-- The deck name comes from the app layer (`R.string.onboarding_seed_deck_name`, "Primeras palabras"), injected as a `deckName` string in `NewModule`, so `:data` stays free of Android resource lookups.
-- Cards are inserted through `FlashcardRepository.create` — the same path the UI uses — so they land in FSRS `NEW` state via the existing `ReviewProjection` defaults.
-- The starter cards are English front / Spanish back with an English gloss, IPA and part of speech. They are deliberately not localized: the product targets Spanish speakers learning English.
+- The deck name comes from the app layer (`R.string.onboarding_seed_deck_name`, "First words"), injected as a `deckName` string in `NewModule`, so `:data` stays free of Android resource lookups.
+- Cards are inserted through `FlashcardRepository.create` — the same path the UI uses — so they land in FSRS `NEW` state via the existing `ReviewProjection` defaults. Each card then gets one `main` example through `FlashcardRepository.upsertExamples`.
+- The starter cards are English front / Spanish back with an English gloss, IPA, part of speech and an example sentence with its Spanish translation. They are deliberately not localized: the product targets Spanish speakers learning English.
+
+## Screen
+
+One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Save the words you meet."), a `bodyLarge` body in `inkMuted` (`onboarding_body`, "We'll make them stick.") and a full-width primary `HButton` (`onboarding_cta_start`, "Start").
 
 ## State
 
-`OnboardingUiState`:
-
-- `pages: List<OnboardingPage>` — static, always the full ordered list of `OnboardingPage.entries`
-- `currentPage: Int` — zero-based index of the visible page
-- `isLastPage: Boolean` — derived; `currentPage == pages.lastIndex`
-
-`OnboardingPage` is an enum of three pages, each carrying a title string res, a body string res and an `OnboardingIllustration` (drawable key):
-
-| Page | Title | Illustration |
-|---|---|---|
-| `Decks` | `onboarding_decks_title` ("Tus mazos") | `onboarding_decks` |
-| `SpacedRepetition` | `onboarding_srs_title` ("Repaso espaciado") | `onboarding_spaced` |
-| `Grading` | `onboarding_grading_title` ("Tú calificas") | `onboarding_grading` |
+`OnboardingUiState` is a `data object` with no fields; the screen has nothing to remember.
 
 ## Intents
 
 `OnboardingUiIntent`:
 
-- `PageChanged(page)` — pager swipe settled on a new index; updates `currentPage`
-- `NextClicked` — primary CTA; finishes if `isLastPage`, otherwise emits `ScrollToPage(currentPage + 1)`
-- `SkipClicked` — finishes from any page
-- `FinishClicked` — explicit "Empezar" CTA on the last page; finishes
-- `BackPressed` — system back; emits `ScrollToPage(currentPage - 1)` if not on the first page, otherwise `CloseOnboarding`
-
-Finishing always means the same two steps: `onboardingState.markWelcomeSeen()` then `NavigateToHoy`.
+- `StartClicked` — the only CTA; calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`
+- `BackPressed` — system back; emits `CloseOnboarding`
 
 ## Effects
 
 `OnboardingUiEffect`:
 
-- `ScrollToPage(page)` — `OnboardingDestination` calls `pagerState.animateScrollToPage(page)`
-- `NavigateToHoy` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
+- `NavigateToToday` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
 - `CloseOnboarding` — `navigator.goBack()`
 
-`OnboardingDestination` also installs a `BackHandler` that forwards system back to `BackPressed`, letting the viewmodel decide between paging back and closing.
+`OnboardingDestination` installs a `BackHandler` that forwards system back to `BackPressed`.

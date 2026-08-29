@@ -1,132 +1,151 @@
-# Current Card Creation
+# Current Capture
 
 | Field | Value |
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `New Card` flow |
+| Scope | `Capturar` flow (bare-word capture + background enrichment) |
 | Source of Truth | No |
-| Read this when | You need to understand how card creation works today |
+| Read this when | You need to understand how a word enters the app today and what happens to it after Save |
+| Last verified | 2026-08-28 |
 
 ## Summary
 
-The current creation flow has 2 steps handled in `NewCardRoute`:
-
-1. `Input`
-2. `Review`
-
-Navigation is local to the route and uses a single shared `NewCardViewModel`.
-
-This wizard is no longer the capture path. A bare word is captured in the Capturar screen and enriched in the background; the wizard is the advanced editor for a word whose note the user wants to shape before saving.
+`Capturar` is the only card-creation path. The user types or dictates one
+English word, taps Save, and the card is written to `HelloDb` immediately with
+`EnrichmentStatus.PENDING` and empty meaning/phonetic. A WorkManager job then
+fills the card in from Firebase AI. The screen never shows a preview, never
+lets the user edit the generated note, and has no deck picker: the target deck
+is the default deck (falling back to the first deck). Editing the result is
+`EDIT_FLASHCARD_CURRENT.md`.
 
 ## Key files
 
-These are the **main entry points and artifacts** of the creation flow. The rest of `newfeatures/card/` contains internal components (preview UI, validation, drafts) and the sibling detail/edit flows documented separately.
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureRoute.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureScreen.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureViewModel.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiState.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiIntent.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentScheduler.kt`
+- `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentWorker.kt`
+- `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/authoring/EnrichCapturedFlashcardUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/authoring/RetryFailedEnrichmentsUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/authoring/MarkEnrichmentFailedUseCase.kt`
 
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardRoute.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardInputStepScreen.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardReviewScreen.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardViewModel.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardGenerationMappings.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardPreviewWorkflow.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/card/NewCardDraftEditor.kt`
+Entry points: `NewRoot` registers `CaptureRoute`; `Hoy` (FAB and the
+nothing-due CTA), `Biblioteca` (`OpenCapture`) and `Study`
+(`NavigateToCapture`) all navigate to it.
 
-## Related flows
+## State
 
-- View existing card: `docs/CARD_DETAIL_CURRENT.md`
-- Edit existing card: `docs/EDIT_FLASHCARD_CURRENT.md`
+`CaptureUiState` holds six fields:
 
-## Step 1. Input
+- `word: String` — the text field content
+- `targetDeck: Deck?` — resolved at init from `GetDecksUseCase` +
+  `DefaultDeckSelectionRepository.getDefaultDeckId()`; the default deck if it
+  exists, else the first deck, else `null`
+- `isSaving: Boolean` — true while `CaptureFlashcardUseCase` runs
+- `pending: Int` / `failed: Int` — from
+  `FlashcardEnrichmentRepository.observeBacklog()` (`EnrichmentBacklog`),
+  refreshed on every DB change
+- `recentCaptures: List<RecentCapture>` — the words saved in this ViewModel
+  instance, newest first; each has `flashcardId`, `word` and
+  `status: EnrichmentStatus`. Statuses are refreshed from
+  `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
+  `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
+  and starts empty on every visit.
 
-`NewCardInputStepScreen` shows:
+Two values are computed, not stored:
 
-- the word input, plus the optional `intendedMeaningEs` and `contextSentence` hints
-- deck selection
-- default-deck checkbox
-- optional quota warning text above the Generate CTA — rendered when `state.showQuotaWarning` is true (i.e. `quotaRemaining` is in 1..10); copy comes from `new_card_quota_remaining_warning` plurals
-- `Generate` CTA
+- `canSubmit` — `word.isNotBlank() && targetDeck != null && !isSaving`
+- `hasBacklog` — `pending > 0 || failed > 0` (declared, not read by the screen)
 
-Current gating: the Generate CTA requires a deck and a non-blank `word`.
+`RecentCapture` lives in `CaptureUiState.kt`.
 
-**Zero-deck inline CTA**: when the deck list is empty, `DeckPickerRow` renders a tappable row ("Crear un mazo" — `R.string.new_card_input_create_deck_cta`) plus a hint text (`R.string.new_card_input_no_decks_hint`). Tapping navigates to `NewDeckRoute()` via `onCreateDeck` propagated from `NewCardDestination → NewCardInputStepScreen → DeckPickerSection → DeckPickerRow`.
+## Intents
 
-Current support:
+`CaptureUiIntent`:
 
-- microphone in the word input. While `sttManager.isListening == true`, the word input grows a pulsing accent ring and renders an uppercase "ESCUCHANDO…" label (`R.string.listening_placeholder`) below the text; the mic FAB swaps `MicNone` → `Mic`, fills with the accent, and pulses (added in the redesign's Phase 3, commit `29c4443`).
-- simple difficulty mapped to `LevelBand`; difficulty chip labels go through `difficultyDisplayLabel()` (display layer, not stored): `"basico"` → `"Básico"`, `"intermedio"` → `"Intermedio"`, `"avanzado"` → `"Avanzado"`
+- `WordChanged(word)` — replaces `word`. Also fired by the speech-to-text
+  result, which overwrites the field rather than appending.
+- `Submit` — no-op unless `canSubmit`. Sets `isSaving`, calls
+  `CaptureFlashcardUseCase(deckId, word)` (the use case's optional
+  `translation` parameter is not passed; it defaults to `""`). On success:
+  clears `word`, prepends a `RecentCapture` with `PENDING`, then emits
+  `EnqueueEnrichment([id])` followed by `ShowMessage(capture_saved_message)`.
+  On `DomainValidationException`: `DuplicateWordInDeck` maps to
+  `capture_error_duplicate`, `EmptyUserText` to `capture_error_empty`, anything
+  else to `capture_error_generic`; nothing is enqueued. Any other throwable
+  logs and shows `capture_error_generic`.
+- `RetryFailed` — calls `RetryFailedEnrichmentsUseCase`, which flips every
+  `FAILED` card back to `PENDING` and returns their ids. If the list is
+  non-empty, emits `EnqueueEnrichment(ids)`; if empty, emits nothing. On error,
+  `ShowMessage(capture_error_retry)`.
 
-## UiState quota fields
+## Effects
 
-`NewCardUiState` gained two quota-awareness members:
+`CaptureUiEffect`, collected in `CaptureDestination`:
 
-- `quotaRemaining: Int` — defaults to `Int.MAX_VALUE`; updated at init and after each successful preview via `GenerationQuota.remainingToday()` (non-consuming read)
-- `showQuotaWarning: Boolean` (computed) — `true` when `quotaRemaining in 1..10`
+- `ShowMessage(@StringRes messageRes)` — shown as a short `Toast`.
+- `EnqueueEnrichment(flashcardIds: List<String>)` — each id is passed to
+  `FlashcardEnrichmentScheduler.enqueue(context, id)`.
 
-`NewCardViewModel` receives `GenerationQuota` via constructor injection.
+### Enrichment pipeline
 
-## Domain input
+`FlashcardEnrichmentScheduler.enqueue` schedules one unique
+`OneTimeWorkRequest` per card (`flashcard_enrichment_<id>`,
+`ExistingWorkPolicy.REPLACE`) with `NetworkType.CONNECTED` and exponential
+backoff starting at 5 minutes.
 
-`NewCardUiState` is translated to `FlashcardGenerationInput` in `NewCardGenerationMappings.kt`.
+`FlashcardEnrichmentWorker` resolves `EnrichCapturedFlashcardUseCase` from
+Koin, which reads the stored word, calls
+`FlashcardGenerationRepository.generateLearningNote` with
+`FlashcardInputType.Word`, validates the note, writes it back through
+`repository.update` + `upsertExamples`, and sets the status to `ENRICHED`. Any
+failure returns `Result.retry()` until `MAX_ATTEMPTS = 3`; on the last attempt
+`MarkEnrichmentFailedUseCase` sets `FAILED` and the worker gives up. A card in
+`FAILED` is what `RetryFailed` picks up.
 
-Current mapping: `inputType` is inferred from `word` as `Word`, `Phrase` or `Sentence`; `domain` is always `LearningDomain.DailyLife` and `communicativeIntentId` is left empty.
+## Screen
 
-Input is always validated before generating a preview.
+Full-screen `cardMint` surface, no scaffold. Top to bottom:
 
-## Step 2. Review
+- **Header** — `capture_title` ("Add a word") uppercased in `schibsted` 13 sp
+  with wide tracking, and a text `HButton` `capture_done` ("Done") that calls
+  `navigator::goBack`.
+- **Input row** — `HInput` (`HFieldVariant.Underline`, placeholder
+  `capture_placeholder`, disabled while `isSaving`) plus a 44 dp `HIconButton`
+  mic. The mic icon is `Mic` while listening and `MicNone` otherwise.
+- **Recent list** — rendered only when `recentCaptures` is non-empty: the
+  `capture_recent_label` ("Your last:") caption, then one row per capture with
+  the word in semibold and the status label at the trailing edge
+  (`capture_status_preparing` / `capture_status_ready` /
+  `capture_status_failed`).
+- **Retry** — a text `HButton` `capture_retry` rendered only when
+  `failed > 0`. `pending` is not surfaced anywhere on the screen.
+- **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,
+  `isLoading = isSaving`.
 
-`NewCardReviewScreen` renders one of these states:
+The input, recent list and retry are vertically centered in the space between
+header and Save.
 
-- preview available
-- loading (`LoadingPreviewSkeleton` — 3 accent pulse dots + `"Pensando en cuándo se suele usar {word}…"` + mono `SUELE TARDAR 8–12 S` + shimmer skeleton lines)
-- quota error (`QuotaExceededState` — `!` glyph in an `instrumentBadSoft` circle, a headline, a `TU PALABRA` surface preserving the user's word, `Volver a editar` / `Avisarme mañana` buttons, mono reset hint); discriminated by `NewCardErrorUi.quotaResetAt != null`
-- generic error (`HAlert` Destructive variant) + `HButton` "Reintentar" (`R.string.retry_action`, Secondary/Md/full) that refires `GenerateClicked`
-- empty state
+Dictation uses `rememberSpeechToTextManager` with `Locale.US`. Tapping the mic
+stops if listening, starts if `RECORD_AUDIO` is granted, otherwise launches the
+permission request; a denial shows `mic_permission_denied` in a `SnackbarHost`
+at the bottom. STT errors are shown in the same snackbar and cleared.
 
-The current review allows:
+All copy is English and comes from `capture_*` strings in
+`app/src/main/res/values/strings.xml`.
 
-- editing `GeneratedLearningNote` fields
-- editing prompt, expected answer and hint for each `GeneratedStudyCard`
-- enabling or disabling individual cards
-- regenerating example
-- regenerating cloze
-- regenerating specific fields (`WhyUseful`, `UsagePattern`, `CommonMistake`)
-- regenerating an individual card
+## Not in scope / Related docs
 
-Validation is recomputed after each edit or regeneration.
-
-## Saving
-
-`NewCardViewModel.saveFlashcard()`:
-
-- requires `deckSelected`
-- requires `learningNotePreview`
-- re-validates preview before saving
-- uses `CreateFlashcardUseCase`
-- on success it resets state, shows a message and closes the flow
-
-## Flow effects
-
-`NewCardUiEffect` today exposes:
-
-- `ShowMessage`
-- `OpenReview`
-- `CloseFlow`
-
-`GenerateClicked` fires `OpenReview` before resolving the result, so the review step also contains loading and errors.
-
-**In-flight guard**: `GenerateClicked` and all `runPreviewWorkflowUpdate` regen actions are no-ops when `currentState.isLoading == true`, preventing duplicate in-flight requests.
-
-**Error copy** (as of this change): invalid-AI-response title is `"No se pudo procesar la respuesta de IA"`; generation failure fallback is `"No se pudo generar la tarjeta. Inténtalo de nuevo."`; regen failure messages follow the pattern `"No se pudo regenerar [X]. Inténtalo de nuevo."`.
-
-## Relevant model
-
-The preview revolves around `GeneratedLearningNote`:
-
-- base note
-- example
-- linguistic metadata
-- `cards`
-- `qualityChecks`
-- `warnings`
-
-Exact-duplicate detection exists via `FlashcardDuplicateRepository`.
+- No deck picker, no default-deck checkbox, no hints, no difficulty, no
+  preview, no quota warning, no in-screen editing of the generated note.
+- Zero decks: `targetDeck` stays `null`, Save is disabled and no message
+  explains why. Decks are managed in Settings → Mazos (`DECK_CURRENT.md`).
+- Reading the enriched card: `CARD_DETAIL_CURRENT.md`.
+- Editing the card after enrichment: `EDIT_FLASHCARD_CURRENT.md`.
+- Where captures are listed and searched: `LIBRARY_CURRENT.md`.
+- Home CTA that opens this screen: `TODAY_CURRENT.md`.

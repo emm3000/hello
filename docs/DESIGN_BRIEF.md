@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| Status | Superseded on visuals — the Instrument direction was rejected on 2026-08-28; `REDESIGN_PLAN.md` and the design canvas own the visual direction now. The learning-mechanics sections (grade rules, the two-beat card, review direction, the zero-due day) remain active. |
-| Role | Design rationale for the learning mechanics; historical record of the Instrument visual direction |
-| Source of Truth | Yes for the learning mechanics and their rationale; no for palette, typography and surfaces (see `REDESIGN_PLAN.md`); `*_CURRENT.md` and the code win for behavior |
+| Status | Active — the visual sections below were resynced to the shipped hybrid design on 2026-08-28, replacing the rejected Instrument direction; the learning-mechanics sections (grade rules, the two-beat card, review direction, the zero-due day) were never in question and are unchanged. |
+| Role | Design rationale for the learning mechanics; the visual sections describe the shipped hybrid design |
+| Source of Truth | Yes for the learning mechanics and their rationale; no for palette, typography and shape (see `REDESIGN_PLAN.md`); `core/theme` and the code win on exact values; `*_CURRENT.md` and the code win for behavior |
 | Read this when | You're about to design or implement any screen of the redesign, or you want to know why a visual decision was made |
-| Last verified | 2026-08-27 |
+| Last verified | 2026-08-28 |
 
 ## Why this document exists
 
@@ -58,23 +58,25 @@ The table below is the **migration target**, not a permanent reference. Once the
 
 | Role | Value | Note |
 |---|---|---|
-| Background | `#08090A` | Cold near-black, **not** pure black |
-| Surface | `#101315` | Cards, inputs |
-| Surface raised | `#181B1E` | Chips, secondary controls |
-| Border / divider | `rgba(255,255,255,0.08)` | Hairlines only |
-| Primary text | `#F2F5F7` | Off-white, **not** pure white |
-| Body text | `#DDE3E8` | |
-| Muted | `#79838B` | Labels, secondary copy |
-| Faint | `rgba(255,255,255,0.45)` | Metadata |
-| Accent | `#6BA3D6` | Steel blue, desaturated |
-| Accent soft | `rgba(107,163,214,0.14)` | Selected states |
-| On accent | `#06181F` | Text on the accent fill |
+| `pageBackground` | `#F4F3F1` | Every non-card screen |
+| `surface` | `#FBFAF9` | Inputs, sheets, dialogs |
+| `surfaceRaised` | `#E9E7E3` | Chips at rest, secondary containers, selected tint |
+| `ink` | `#15141A` | Text, primary fills, icons |
+| `onInk` | `#F4F3F1` | Text on an ink fill |
+| `inkMuted` | `#6F6D75` | Secondary copy, labels |
+| `inkFaint` | ink at 45% | Metadata, placeholders |
+| `hairline` | ink at 12% | Dividers, progress tracks |
+| `outline` | ink at 30% | Secondary control borders |
+| `cardPeach` / `cardMint` / `cardPeriwinkle` / `cardLavender` | `#F5C9A8` / `#BFE3CB` / `#C6D3F5` / `#DCC8F0` | Card blocks; hue rotates by card position (`cardHues[index % 4]`), never by grade |
+| `successInk` / `successContainer` | `#2F6B4F` / `#DDEBE2` | System states only |
+| `warningInk` / `warningContainer` | `#8A5A12` / `#F3E6C8` | System states only |
+| `destructiveInk` / `destructiveContainer` | `#A33A3A` / `#F3DADA` | Destructive actions, load errors |
 
-Radii: 12px on containers, 4px on controls. Small radii carry the instrument feel; the previous 8/12/100 set softens it.
+There is no accent color. The page is light and controls are ink — text, primary fills and icons all read as `ink` on `pageBackground` or `surface`. `pageBackground` sits just off white and `ink` sits just off black, not the pure values: pure black paired with pure white causes halation — text appears to bleed and vibrate, markedly worse for readers with astigmatism.
 
-Pure black paired with pure white causes halation — text appears to bleed and vibrate, markedly worse for readers with astigmatism. Saturated accents on dark backgrounds increase visual fatigue, which is why Material 3 asks for desaturated accents in dark themes. Both values above respect that.
+Shape: `HelloShapes.control` is 16dp on buttons, inputs and chips; `HelloShapes.container` is 28dp on card blocks; `HelloShapes.pill` is 100dp where a full round is meant.
 
-Hue choice beyond that is **identity, not pedagogy**. Claims that a given hue improves focus or motivation have weak, poorly-replicated, culturally-variable support. Do not justify a color decision with them.
+Hue choice for the card blocks is **identity, not pedagogy**. Claims that a given hue improves focus or motivation have weak, poorly-replicated, culturally-variable support. Do not justify a color decision with them.
 
 ### Rule 1 — grade buttons carry no semantic color
 
@@ -84,11 +86,11 @@ Rationale, and this is the most important rule in this document: **in spaced rep
 
 Secondary reason: red/green coding fails for roughly 8% of men (red-green color deficiency), and WCAG 1.4.1 requires that color never be the sole carrier of meaning.
 
-### Rule 2 — one accent job per screen
+### Rule 2 — ink is the only primary-action marker
 
-The accent marks the primary action: the Hoy CTA, "Ver respuesta", "Guardar", the active tab, a selected chip. It appears **nowhere on the study back face** — at the moment of self-grading nothing should stand out.
+There is no accent color. The primary action is an `ink` fill — the Today CTA, the active tab, a selected chip — and it appears **nowhere on the study back face**: at the moment of self-grading nothing should stand out.
 
-The study progress bar is `rgba(255,255,255,0.45)`, not accent, so it never competes with the primary action.
+The study progress bar is a 3dp `hairline` track (ink at 12%), not `ink`, so it never competes with the primary action.
 
 ### Rule 3 — semantic colors are for the system, not for self-assessment
 
@@ -96,16 +98,14 @@ Success, warning and destructive colors stay for genuine system states: load err
 
 ## Typography
 
-Two families, down from three. **Instrument Serif is dropped**: a display serif pulls the app toward editorial warmth, which is the opposite of the chosen direction.
+Two families. Bricolage Grotesque gives the word, the answer and big numbers character; Schibsted Grotesk carries everything else, including metadata.
 
 | Family | Role |
 |---|---|
-| Geist (`geist.xml`) | Everything readable. Headlines at weight 600 with `-0.02em` to `-0.03em` tracking, body and labels at 400/500. |
-| Geist Mono (`geist_mono.xml`) | All metadata: eyebrows, IPA, counters, due dates, the session count. Uppercase at `+0.14em`. |
+| Bricolage Grotesque | `display*` 52/44/40sp (weight 700–800), `headline*` 32/26/22sp (weight 700), primary button labels 18sp (700). `-0.02em` tracking. |
+| Schibsted Grotesk | `title*` 20/17/15sp (600), `body*` 16/15/13sp (400, line height 1.5), `label*` 13/12/11sp (500), and `Typography.metadata` (12sp, weight 500, `0.12em` tracking, uppercase applied at the call site). |
 
-Hierarchy is expressed by family, size, weight and tracking — not by color. Mono carries more weight here than in the first draft: precise metadata is a large part of what makes the direction read as an instrument.
-
-Consequence for implementation: `instrument_serif_regular.ttf` and `instrument_serif_italic.ttf` become dead assets, and every `displayLarge` / `displayMedium` / `displaySmall` / `headline*` role in `Type.kt` is re-pointed to Geist.
+Hierarchy is expressed by family, size, weight and tracking — not by color. Both families load through the Google Fonts provider; bundling the OFL TTFs under `res/font/` is the fallback if the provider cannot serve them.
 
 ## Surfaces
 
@@ -188,6 +188,8 @@ Constraints this design respects:
 If direction is recomputed on every review, the card oscillates forever: it matures, switches to production, fails because production is harder, stability collapses, it drops back to recognition, matures again, fails again. It never graduates.
 
 Graduation must therefore be **one-way**: once a card moves to production it stays there, even after failures. That requires a new persisted flag on the flashcard — a schema migration. This is the real cost of the decision and it is accepted knowingly.
+
+This shipped as Stage 7 of `REDESIGN_PLAN.md`: `FsrsCard.productionSince` is set once and never cleared, at `state == REVIEW` plus `stability ≥ 21` days (`ScheduleFlashcardReviewUseCase.GRADUATION_STABILITY_DAYS`).
 
 ## Open items for the canvas
 

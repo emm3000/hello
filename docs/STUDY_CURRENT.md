@@ -7,10 +7,11 @@
 | Scope | `Study` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how the study session works today |
+| Last verified | 2026-08-28 |
 
 ## Summary
 
-The study session shows every due flashcard exactly once. Each `StudyFlashcard` maps to one `StudySessionItem`, the user reveals the back and grades it, and the review is scheduled with FSRS-6 and persisted on the spot. There is no start interstitial, no typed answer and no exit confirmation.
+The study session shows every due flashcard exactly once. Each `StudyFlashcard` maps to one `StudySessionItem`, the user reveals the back and grades it, and the review is scheduled with FSRS-6 and persisted on the spot. A card is asked in one of two directions: recognition (word → meaning) until it graduates, production (meaning → word) forever after. There is no start interstitial, no typed answer and no exit confirmation.
 
 ## Key files
 
@@ -23,7 +24,7 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudySessionItem.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/study/FlippableCard.kt`
+- `domain/src/main/kotlin/com/emm/domain/study/ScheduleFlashcardReviewUseCase.kt` (graduation rule)
 
 ## Session item
 
@@ -31,10 +32,25 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 - `flashcardId`, `review: FsrsCard`
 - `word`, `phonetic`, `meaning`, `translation`
+- `direction: StudyDirection` — `RECOGNITION` or `PRODUCTION`
 - `usagePattern`, `irregularForms`
 - `partOfSpeech`, `example`, `exampleTranslation`
 
-`StudyFlashcard.toStudySessionItem()` builds it. The flashcard's generated study cards (`studyCards`) are not part of the session: a card with several generated study cards and a card with none are both one item and one grade.
+`StudyFlashcard.toStudySessionItem()` builds it. `direction` is derived from the review: `PRODUCTION` when `review.productionSince != null`, otherwise `RECOGNITION`.
+
+`StudySessionItem.revealsWordOn(face: CardFace)` is true when the English word is visible on that face: always for `RECOGNITION`, only on `Back` for `PRODUCTION`.
+
+The flashcard's generated study cards (`studyCards`) are not part of the session: a card with several generated study cards and a card with none are both one item and one grade.
+
+## Graduation
+
+`ScheduleFlashcardReviewUseCase` wraps `FsrsScheduler.schedule` and decides `productionSince`:
+
+- if the card already has `productionSince`, it is kept as is
+- otherwise, when the scheduled card is in `FsrsState.REVIEW` with `stability >= GRADUATION_STABILITY_DAYS` (`21.0`), `productionSince` becomes `scheduled.lastReviewedAt`
+- otherwise it stays `null`
+
+Once set, `productionSince` is never cleared: a graduated card is asked in production direction from the next session on, regardless of later grades.
 
 ## Current state
 
@@ -44,8 +60,10 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `loadError: StudyLoadError?` — `SessionLoadFailed`; distinguishes a failed read from a genuinely empty due queue
 - `currentItem: StudySessionItem?`
 - `reviewedCount` — cards graded so far
-- `totalCount` — cards in the session (equals the due count Hoy shows)
-- `sessionFinished`
+- `knewCount` — cards graded `HARD`, `GOOD` or `EASY`
+- `forgotCount` — cards graded `AGAIN`
+- `totalCount` — cards in the session (equals the due count Today shows)
+- `sessionFinished` — true once the last card is graded and the session had at least one card
 
 ## Session load
 
@@ -53,7 +71,7 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 `loadSession()` (called from `init`, and again by `RetryLoad`):
 
-- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `sessionFinished = false`
+- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `knewCount = 0`, `forgotCount = 0`, `sessionFinished = false`
 - fetches via `studySessionRepository.sessionTodayAllDecks()` when the target is `null`, otherwise `studySessionRepository.sessionToday(deckId.toDeckId())`
 - maps each `StudyFlashcard` to one `StudySessionItem` and queues them in an `ArrayDeque`
 - sets `totalCount` to the number of cards
@@ -64,11 +82,12 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 `ReviewAnswered(item, grade)`:
 
-- schedules a new `FsrsCard` with `ScheduleFlashcardReviewUseCase(item.review, grade, item.flashcardId)`
+- schedules a new `FsrsCard` with `ScheduleFlashcardReviewUseCase(item.review, grade, item.flashcardId)` (see Graduation)
 - persists it with `flashcardReviewRepository.update(newCard, grade)` — immediately, with the grade as given
-- increments `reviewedCount` and shows the next card
+- increments `reviewedCount`, plus `forgotCount` for `AGAIN` or `knewCount` for any other grade
+- shows the next card
 
-`SessionFinished` is emitted once there is no next card to show and the session had at least one card. An empty session never finishes; it renders the empty state instead.
+When there is no next card and the session had at least one card, `sessionFinished` is set to `true` in state. An empty session never finishes; it renders the empty state instead.
 
 ## Visual stages
 
@@ -76,67 +95,81 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 
 1. `Loading` — `state.isLoading`
 2. `Error` — `state.loadError != null`
-3. `Empty` — no `currentItem`
-4. `Recall` — card face is Front
-5. `Grade` — card face is Back
+3. `Done` — `state.sessionFinished`
+4. `Empty` — no `currentItem`
+5. `Recall` — card face is Front
+6. `Grade` — card face is Back
 
-`Loading` renders `StudyLoadingState()`, `Error` renders `StudyErrorState()` with a retry CTA wired to `RetryLoad`, `Empty` renders `StudyEmptyState()` (mascot + "Hoy no toca repasar.").
+`Loading` renders `StudyLoadingState()` (`HLoadingSpinner`), `Error` renders `StudyErrorState()` (`HEmptyState` with `study_error_headline` / `study_error_body`), `Empty` renders `StudyEmptyState()` (`HEmptyState` with `study_empty_headline` "Nothing to review today." / `study_empty_body`), `Done` renders `StudyDoneState()`.
 
-The `StudyTop` counter reads `position/total` for the card on screen ("3/10") and is hidden outside `Recall`/`Grade`. State labels: `RECORDAR` (Recall) and `RESPUESTA` (Grade).
+While a card is on screen (`Recall` / `Grade`) the page background is one of `cardHues`, indexed by `reviewedCount` and animated between cards; every other stage uses `pageBackground`.
+
+`StudyTop` shows the position (`study_position`, "3 / 10") and an `HProgressBar` only in `Recall` / `Grade`; both are hidden in the other stages. The X button (`exit_session_desc`) is always present.
 
 ## Card faces
 
-- **Front**: the word, then the IPA in mono. Tapping the card or the "Ver respuesta" CTA flips it.
-- **Back**: two beats first, then reference. The `translation` alone, then `example` with the target word emphasised by weight (`highlightWordInExample`) over a muted `exampleTranslation`. Below that, everything optional and muted: a mono `IPA · partOfSpeech` line, `meaning`, irregular forms as a mono line ("Formas relacionadas: went, gone") and `usagePattern`. No accent color appears on this face, and nothing on it is emphasised by color.
+The face is local `StudyScreen` state, reset to `Front` whenever `currentItem` changes. Tapping anywhere on the card toggles the face; the `Recall` dock also offers a "Show answer" button.
 
-A static mono `INGLÉS → ESPAÑOL` overlay sits top-left of the card; the TTS button top-right speaks the word.
+- **Front** (`FlashcardFront`): an uppercase prompt label, then the dominant text.
+  - `RECOGNITION`: label `study_prompt_label` ("What does it mean?"), the English `word`, then `phonetic` if not blank.
+  - `PRODUCTION`: label `study_prompt_production` ("How do you say it?"), the `translation`. No phonetic.
+- **Back** (`FlashcardBack`, scrollable): a muted top line, the dominant answer, then reference.
+  - `RECOGNITION`: top line is `word`, answer is `translation`.
+  - `PRODUCTION`: top line is `translation`, answer is `word`, followed by `phonetic` if not blank.
+  - Then, when `example` is not blank: the `example` with the first occurrence of `word` underlined (`underlineFirstMatch`), over a softer `exampleTranslation` if present.
+  - Then a muted reference line joining `partOfSpeech`, `phonetic` (recognition only; production already showed it) and `meaning` with ` · `, skipping blanks.
+  - `usagePattern` and `irregularForms` are carried by the item but not rendered on either face.
 
-## Grade dock
+## TTS
 
-In `Grade`, `StudyActionDock` renders `AnswerButtons`: two neutral buttons of equal width, plus a mono "Desliza para calificar rápido" hint. Their anatomy is fixed by `.claude/rules/ui-components.md`, not chosen per screen.
+`StudyTop` renders `TtsFloatingButton` next to the X only when the word is revealed: `sessionStage` is `Recall` or `Grade` and `currentItem.revealsWordOn(cardFace)` is true. In practice: any face for `RECOGNITION`, only `Back` for `PRODUCTION`. It speaks `currentItem.word` through `TextToSpeechManager`, toggles to a stop icon while speaking, and is disabled until TTS is ready.
 
-- `GradeForgotButton` ("No la sabía") sits on the page background with a hairline border and fires `AGAIN`.
-- `GradeKnewButton` ("La sabía") sits on the raised surface and fires `GOOD`; a long press fires `EASY` with `HapticFeedbackType.LongPress`.
+## Action dock
 
-Neither is red, green or accent — they differ by fill weight and position only. `HARD` is unreachable from the dock, and `EASY` has no button of its own. `FlippableCard` also grades by horizontal swipe on the back face, with two zones matching the two buttons.
+`StudyActionDock` renders per stage, animated with `AnimatedContent`:
+
+- `Loading` — nothing
+- `Error` — full-width `HButton` Primary `study_error_retry` ("Retry") → `RetryLoad`
+- `Empty` — full-width `HButton` Secondary `study_empty_create_card_cta` ("Add a word") → `CreateCardClicked`
+- `Recall` — full-width `HButton` Primary `study_recall_cta_reveal` ("Show answer") flips to `Back`, plus the muted hint `study_recall_hint` ("Try to recall it first.")
+- `Grade` — `AnswerButtons`
+- `Done` — three full-width `HButton`s stacked: Primary `study_done_get_new_words` ("Get new words") → `GetNewWordsClicked`; Secondary `study_done_add_word` ("Add a word") → `CreateCardClicked`; Text `study_done_back` ("Back to Today") → `ExitClicked`
+
+### Grade buttons
+
+`AnswerButtons` renders two buttons of equal width. Their anatomy is fixed by `.claude/rules/ui-components.md`, not chosen per screen.
+
+- `GradeForgotButton` (`study_grade_forgot`, "Forgot") is transparent with a hairline `outline` border and fires `AGAIN`.
+- `GradeKnewButton` (`study_grade_knew`, "Knew it") is filled with `ink` and fires `GOOD`; a long press fires `EASY` with `HapticFeedbackType.LongPress`.
+
+Neither is red, green or accent. `HARD` is unreachable from the dock, and `EASY` has no button of its own. There is no swipe-to-grade.
+
+## Done stage
+
+`StudyDoneState` renders inline (no dialog): a full `HRing` with a check icon, the headline `study_done_title` ("Done for today.") and `study_done_stats` ("%1$d reviewed · %2$d knew it · %3$d to see again") filled with `reviewedCount`, `knewCount`, `forgotCount`. The dock above lists its three CTAs.
 
 ## Navigation and exit
 
 - the X button and system back both fire `ExitClicked`, which always emits `NavigateBack`. Every grade is already persisted, so leaving mid-session loses nothing and asks for no confirmation.
-- when the last card is graded, `SessionFinished` is emitted and the route shows the finish dialog
-- closing the final dialog fires `FinishDialogDismissed`, which emits `NavigateBack`
-
-### Session-finished dialog
-
-`SessionFinishedDialog` (private composable in `StudyScreen.kt`) renders inside a `Dialog` with `instrumentElev` surface and shows:
-
-- the celebrating mascot
-- mono eyebrow `session_completed_eyebrow`
-- headline `session_completed_title` ("Listo.")
-- subtitle `session_completed_desc` ("Repasaste N tarjetas.")
-- a stats row on `instrumentSurface` with the total count in `instrumentAccent` plus a mono label
-- a full-width `HButton` (`Accent` variant) as the "Volver" CTA, which calls `onDismiss`
-
-## Empty stage CTA
-
-When `StudyStage.Empty`, `StudyActionDock` renders a full-width `HButton` (Secondary / Lg) with label `study_empty_create_card_cta` ("Crear una tarjeta"). Tapping it fires `StudyUiIntent.CreateCardClicked`.
+- `CreateCardClicked` emits `NavigateToCapture`; `StudyDestination` navigates to `CaptureRoute`
+- `GetNewWordsClicked` emits `NavigateToSuggest`; `StudyDestination` navigates to `SuggestRoute`
 
 ## Current intents
 
 `StudyUiIntent`:
 
-- `FinishDialogDismissed` — emits `NavigateBack`
-- `CreateCardClicked` — emits `NavigateToNewCard`
+- `CreateCardClicked` — emits `NavigateToCapture`
+- `GetNewWordsClicked` — emits `NavigateToSuggest`
 - `RetryLoad` — re-runs `loadSession()`
 - `ExitClicked` — emits `NavigateBack`
-- `ReviewAnswered(item, reviewGrade)`
-
-The card face (`Front`/`Back`) is local `StudyScreen` state, reset whenever `currentItem` changes.
+- `ReviewAnswered(item, reviewGrade)` — schedules, persists, tallies, advances
 
 ## Current effects
 
-`StudyUiEffect` currently exposes:
+`StudyUiEffect`:
 
 - `NavigateBack`
-- `SessionFinished`
-- `NavigateToNewCard` — collected in `StudyDestination`; navigates to `NewCardRoute`
+- `NavigateToCapture`
+- `NavigateToSuggest`
+
+Session completion is state (`sessionFinished`), not an effect.
