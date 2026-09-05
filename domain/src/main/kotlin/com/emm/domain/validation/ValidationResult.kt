@@ -4,15 +4,6 @@ sealed interface IssueCode {
     val value: String
 
     data object EmptyUserText : IssueCode { override val value: String = "empty_user_text" }
-    data object WordInputContainsWhitespace : IssueCode {
-        override val value: String = "word_input_contains_whitespace"
-    }
-    data object PhraseInputTooShort : IssueCode { override val value: String = "phrase_input_too_short" }
-    data object SentenceInputTooShort : IssueCode { override val value: String = "sentence_input_too_short" }
-    data object MissingDisambiguation : IssueCode { override val value: String = "missing_disambiguation" }
-    data object MissingCommunicativeIntent : IssueCode { override val value: String = "missing_communicative_intent" }
-    data object CommunicativeGoalTooShort : IssueCode { override val value: String = "communicative_goal_too_short" }
-    data object ContextSentenceTooShort : IssueCode { override val value: String = "context_sentence_too_short" }
     data object MissingNoteId : IssueCode { override val value: String = "missing_note_id" }
     data object MissingExpression : IssueCode { override val value: String = "missing_expression" }
     data object MissingIntendedMeaning : IssueCode { override val value: String = "missing_intended_meaning" }
@@ -46,13 +37,6 @@ sealed interface IssueCode {
     companion object {
         val all: Set<IssueCode> = setOf(
             EmptyUserText,
-            WordInputContainsWhitespace,
-            PhraseInputTooShort,
-            SentenceInputTooShort,
-            MissingDisambiguation,
-            MissingCommunicativeIntent,
-            CommunicativeGoalTooShort,
-            ContextSentenceTooShort,
             MissingNoteId,
             MissingExpression,
             MissingIntendedMeaning,

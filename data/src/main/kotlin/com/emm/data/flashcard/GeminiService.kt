@@ -27,14 +27,6 @@ open class GeminiService(
         }
     }
 
-    open suspend fun processLearningNote(prompt: String): String {
-        enforceQuota(kind = "learning_note")
-        return callWithRetry(kind = "learning_note") {
-            val response: GenerateContentResponse = learningNoteModel.generateContent(prompt)
-            response.text.orEmpty()
-        }
-    }
-
     // Parsing happens inside the retry loop, so a malformed payload retries the whole call
     // instead of reaching the user.
     open suspend fun <T> processLearningNoteWithParser(

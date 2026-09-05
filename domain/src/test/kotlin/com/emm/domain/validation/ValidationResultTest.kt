@@ -11,7 +11,7 @@ class ValidationResultTest {
     @Test
     fun `valid result can carry warnings and remain valid`() {
         val warning = ValidationIssue.Warning(
-            code = IssueCode.ContextSentenceTooShort,
+            code = IssueCode.MissingNoteId,
             field = "contextSentence",
         )
 
@@ -32,7 +32,7 @@ class ValidationResultTest {
             field = "userText",
         )
         val warning = ValidationIssue.Warning(
-            code = IssueCode.WordInputContainsWhitespace,
+            code = IssueCode.MissingExpression,
             field = "userText",
         )
 
@@ -54,7 +54,7 @@ class ValidationResultTest {
                 value = "normalized",
                 issues = listOf(
                     ValidationIssue.Warning(
-                        code = IssueCode.ContextSentenceTooShort,
+                        code = IssueCode.MissingNoteId,
                         field = "contextSentence",
                     )
                 ),

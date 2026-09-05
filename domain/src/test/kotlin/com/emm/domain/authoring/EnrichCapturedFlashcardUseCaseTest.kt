@@ -10,11 +10,8 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
-import com.emm.domain.generation.GeneratedExampleDraft
 import com.emm.domain.generation.GeneratedLearningNote
-import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.GenerationQuotaExceededException
-import com.emm.domain.generation.RegenerableNoteField
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -167,26 +164,4 @@ private class NoteGenerationRepository(
         error?.let { throw it }
         return requireNotNull(note)
     }
-
-    override suspend fun regenerateNoteField(
-        input: FlashcardGenerationInput,
-        note: GeneratedLearningNote,
-        field: RegenerableNoteField,
-    ): String = throw UnsupportedOperationException()
-
-    override suspend fun regenerateExample(
-        input: FlashcardGenerationInput,
-        note: GeneratedLearningNote,
-    ): GeneratedExampleDraft = throw UnsupportedOperationException()
-
-    override suspend fun regenerateClozeSentence(
-        input: FlashcardGenerationInput,
-        note: GeneratedLearningNote,
-    ): String = throw UnsupportedOperationException()
-
-    override suspend fun regenerateStudyCard(
-        input: FlashcardGenerationInput,
-        note: GeneratedLearningNote,
-        cardId: String,
-    ): GeneratedStudyCard = throw UnsupportedOperationException()
 }

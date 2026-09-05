@@ -42,9 +42,6 @@ import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.UpdateDeckUseCase
 import com.emm.domain.flashcard.FlashcardDuplicateRepository
 import com.emm.domain.flashcard.FlashcardGenerationRepository
-import com.emm.domain.flashcard.FlashcardGenerationContextSentencePolicy
-import com.emm.domain.flashcard.FlashcardGenerationDisambiguationPolicy
-import com.emm.domain.flashcard.FlashcardGenerationInputTypeRulesPolicy
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
@@ -142,7 +139,6 @@ fun Module.repository() {
         DefaultFlashcardGenerationRepository(
             geminiService = get(),
             json = get(),
-            telemetry = get(),
             ioDispatcher = Dispatchers.IO,
         )
     }
@@ -176,9 +172,6 @@ fun Module.repository() {
 fun Module.useCases() {
     single<Clock> { SystemClock }
     single { FsrsParameters.DEFAULT }
-    factoryOf(::FlashcardGenerationDisambiguationPolicy)
-    factoryOf(::FlashcardGenerationInputTypeRulesPolicy)
-    factoryOf(::FlashcardGenerationContextSentencePolicy)
     factoryOf(::GeneratedLearningNoteCoreFieldsPolicy)
     factoryOf(::GeneratedLearningNoteTypeRequirementsPolicy)
     factoryOf(::GeneratedLearningNoteCardsPolicy)
