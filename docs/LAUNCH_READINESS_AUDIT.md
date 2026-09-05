@@ -6,9 +6,9 @@
 | Role | Full pre-launch audit + atomic phased plan |
 | Source of Truth | Yes (until everything closes) |
 | Read this when | You're working on any pre-launch hardening task |
-| Last verified against code | 2026-06-11 |
+| Last verified against code | 2026-09-05 |
 | Sprint 1 progress | 6/8 done (T1, T2, T4, T5, T6, T8) · T3 discarded · T7 in progress (draft published, missing URL + manifest + Data Safety form) |
-| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T3, T5, T6 open · S2-T4 closed by the FSRS-6 migration |
+| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T5, T6 open · S2-T3 void, S2-T4 closed by the FSRS-6 migration |
 
 ## TL;DR
 
@@ -53,7 +53,7 @@
 - ✅ **Resolved.** Migrations exist: `data/src/main/sqldelight/com/emm/data/1.sqm` (v1 -> v2, FSRS-6) with committed snapshots `databases/1.db` and `databases/2.db`, plus `verifyMigrations = true`.
 - 🔴 `DeckTag` does not propagate soft-delete: `Tag` has `deletedAt` but `DeckTag` does not. `ON DELETE CASCADE` only fires on a hard delete. The export includes orphan `DeckTag`s.
 - ✅ **Resolved.** `ImportBackupDataSource.validateSchemaVersion` rejects anything outside `SUPPORTED_VERSIONS` (v1..v2) with `IncompatibleSchemaException`, and seeds FSRS fields for legacy v1 envelopes.
-- 🟢 Static catalogs (`StaticCategories`, `CommunicativeIntent`) without i18n.
+- ✅ **Void.** `CommunicativeIntent` was deleted with the rest of the wizard-era generation surface; `StaticCategories` never existed in the code. No static catalog is left to translate.
 
 ### 1.3 AI / Prompts (`data/.../flashcard/`)
 
@@ -172,7 +172,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** wrap `generateContent` with: explicit timeout (10-15 s), 3 retries with exponential backoff (1s, 2s, 4s), try-catch that captures `FirebaseException` and logs the raw response (truncated) to Crashlytics as non-fatal.
 - **Criterion:** mock network down → user sees a clear "couldn't connect, retrying" and after ~7s "couldn't generate, try again later". Crashlytics receives a non-fatal with the original error stack.
 - **Estimate:** 3 h.
-- **Status:** [x] — `GeminiService` wraps `process` and `processLearningNote` with `withTimeout(15s)` + 4 total attempts (backoff 1s/2s/4s). `GeminiTelemetry` interface with `NoOp` default in `:data`; `CrashlyticsGeminiTelemetry` impl in `:app` (`setCustomKey` + `recordException` as non-fatal). `DefaultFlashcardRepository` also catches parse failures and reports `recordParseFailure` with raw response truncated to 4 000 chars. Wiring in `RepositoryModule`. Tests: `GeminiServiceRetryTest` covers success without retry, success after retry, and non-fatal report when all attempts fail. Error-message UI and real-device verification deferred to S2-T6.
+- **Status:** [x] — `GeminiService` wraps `process` and `processLearningNoteWithParser` with `withTimeout(15s)` + 4 total attempts (backoff 1s/2s/4s). `GeminiTelemetry` interface with `NoOp` default in `:data`; `CrashlyticsGeminiTelemetry` impl in `:app` (`setCustomKey` + `recordException` as non-fatal). `GeminiService.processLearningNoteWithParser` parses inside the retry loop and reports `recordParseFailure` with the raw response truncated to 8 000 chars, or `recordCallFailure` when no payload came back. Wiring in `RepositoryModule`. Tests: `GeminiServiceRetryTest` covers success without retry, success after retry, and non-fatal report when all attempts fail. Error-message UI and real-device verification deferred to S2-T6.
 - **Depends on:** S1-T1.
 
 #### S2-T2: Deterministic quality checks in Kotlin
@@ -183,13 +183,9 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **Estimate:** 4 h.
 - **Status:** [ ]
 
-#### S2-T3: Normalize inputs to English in the prompt builder
+#### S2-T3: Normalize inputs to English in the prompt builder ~~(void)~~
 - **File:** `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`
-- **Why:** mixed language in the system prompt produces inconsistent outputs.
-- **What to do:** in each builder, map Spanish inputs (e.g. `communicativeIntentLabel`) to their English version before interpolation. If the catalog is in Spanish, add an `englishLabel` field or inline translation table.
-- **Criterion:** final prompts sent to Gemini are 100% in English (verifiable by logging the full prompt in debug).
-- **Estimate:** 2 h.
-- **Status:** [ ]
+- **Status:** ✅ **Void.** The task existed because `communicativeIntentLabel` and its description were interpolated into an English prompt from a Spanish catalog. That catalog and those two prompt lines are gone; only `communicative_intent_id` survives, and it is always empty on the enrichment path. The Spanish that remains in `buildLearningNotePrompt` is deliberate output instruction — the model must write `error.message` and `example_translation` in Spanish — not mixed input.
 
 #### S2-T4: Document `SpacedRepetitionScheduler`
 - **File:** `domain/src/main/kotlin/com/emm/domain/study/SpacedRepetitionScheduler.kt`
@@ -235,13 +231,11 @@ These tasks do NOT block launch. Prioritize by signals from real users.
 - Add `promptVersion` to each generated note. Enables A/B testing and tracking quality regressions per prompt version.
 - **Status:** [ ]
 
-#### S3-T5: i18n for static catalogs
-- `StaticCategories`, `CommunicativeIntent` with translatable labels.
-- **Status:** [ ]
+#### S3-T5: i18n for static catalogs ~~(void)~~
+- **Status:** ✅ **Void.** No static catalog survives to translate. See section 1.2.
 
-#### S3-T6: Few-shot examples in regeneration prompts
-- Add 1-2 examples in each regeneration builder. Improves consistency with `gemini-2.5-flash`.
-- **Status:** [ ]
+#### S3-T6: Few-shot examples in regeneration prompts ~~(void)~~
+- **Status:** ✅ **Void.** The four regeneration builders were deleted; `buildLearningNotePrompt` is the only prompt left. Few-shot examples for that one builder would be a new task, not this one.
 
 #### S3-T7: `UpdateFlashcardUseCase` / `SoftDeleteFlashcardUseCase` — decide
 - If they won't have logic, inline in ViewModel and delete. If they'll carry validation logic, add it and tests.
