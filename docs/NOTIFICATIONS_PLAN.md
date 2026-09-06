@@ -12,7 +12,9 @@
 
 **Sprint 1 and Sprint 2 are both complete.** `POST_NOTIFICATIONS` is declared in `AndroidManifest.xml` (verified). Notification infra is live: channel, periodic worker that counts globally due cards, scheduler synced at every startup. The user can turn the reminder off, pick its time (default 19:00), and tapping it opens `Study` for all due cards. Verified end to end on device (`medium_phone`, API 36, 2026-09-06): a reminder scheduled for 00:05 fired at 00:05:03 and tapping it opened Study.
 
-**`F-Onboarding-Consent` is shipped (2026-09-06):** turning the Settings reminder toggle ON now requests `POST_NOTIFICATIONS` if not already granted, and the reminder row shows a blocked state when it's denied (see "Known follow-ups" and `docs/SETTINGS_CURRENT.md`). Remaining gap: a fresh install never sees the permission prompt until the user opens Settings, since the reminder is ON by default (see `F-First-Launch-Prompt`).
+**`F-Onboarding-Consent` is shipped (2026-09-06):** turning the Settings reminder toggle ON now requests `POST_NOTIFICATIONS` if not already granted, and the reminder row shows a blocked state when it's denied (see "Known follow-ups" and `docs/SETTINGS_CURRENT.md`).
+
+**`F-First-Launch-Prompt` is shipped (2026-09-06):** the Onboarding Start button requests `POST_NOTIFICATIONS` on a fresh install when it is not already granted, so the reminder being ON by default no longer means the prompt only appears once the user opens Settings. See `docs/ONBOARDING_CURRENT.md`.
 
 ## Explicit decisions
 
@@ -130,7 +132,7 @@
 ## Known follow-ups (NOT in this iteration)
 
 - **F-Onboarding-Consent** (shipped 2026-09-06): `POST_NOTIFICATIONS` is declared in the manifest and now requested from Settings. Switching the reminder toggle ON checks `NotificationPermission.isGranted()`; if not granted, it emits `RequestNotificationPermission` and the switch stays OFF until the system dialog is settled. Denied → the switch stays OFF and the reminder row shows the red subtitle `settings_notifications_blocked`, and tapping the row opens `Settings.ACTION_APP_NOTIFICATION_SETTINGS` for the app. `SettingsRoute` also re-checks on `ON_RESUME`, so returning from system settings updates the row without further action. See `docs/SETTINGS_CURRENT.md` for the full flow.
-- **F-First-Launch-Prompt**: the reminder is ON by default and most users never open Settings, so on Android 13+ a fresh install never triggers the `POST_NOTIFICATIONS` prompt until the user visits the Settings reminder row. A first-launch or onboarding prompt that requests the permission proactively is still open.
+- **F-First-Launch-Prompt** (shipped 2026-09-06): the reminder is ON by default and most users never open Settings, so on Android 13+ a fresh install used to never trigger the `POST_NOTIFICATIONS` prompt until the user visited the Settings reminder row. `OnboardingUiIntent.StartClicked` now checks `NotificationPermission.isGranted()` before entering the app: granted, it behaves as before; not granted, it emits `RequestNotificationPermission` instead of marking onboarding seen, and the `Route` launches the system dialog. Once the dialog closes, `NotificationPermissionSettled` marks onboarding seen and navigates to Today either way, without re-reading the permission. See `docs/ONBOARDING_CURRENT.md`.
 - **F-Multi-Reminder**: multiple notifications per deck instead of a single global one (richer UX but noisier).
 
 ## Decisions that aren't obvious

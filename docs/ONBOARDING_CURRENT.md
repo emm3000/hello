@@ -7,11 +7,11 @@
 | Scope | First-run onboarding (welcome screen + starter deck) |
 | Source of Truth | No |
 | Read this when | You need to understand what a fresh install sees before Today |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-06 |
 
 ## Summary
 
-On a fresh install the app opens on a single welcome screen instead of Today, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the welcome screen is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death.
+On a fresh install the app opens on a single welcome screen instead of Today, and the local database is pre-populated with a small starter deck so the user never lands on an empty library. Both halves are independent: the welcome screen is gated by the `hasSeenWelcome` flag, the starter deck by its own `hasSeededStarterDeck` flag. Both flags live in `DataStore`, so the flow runs once per install and survives process death. Tapping "Start" also requests `POST_NOTIFICATIONS` on Android 13+ when notifications are not already enabled, so a fresh install sees the system permission prompt before landing on Today.
 
 ## Key files
 
@@ -23,6 +23,8 @@ On a fresh install the app opens on a single welcome screen instead of Today, an
 - `app/src/main/kotlin/com/emm/hello/newfeatures/onboarding/OnboardingUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/startup/AppStartupCoordinator.kt` (gate + seeding)
 - `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt` (start destination)
+- `app/src/main/kotlin/com/emm/hello/notifications/NotificationPermission.kt` (port, `isGranted()`)
+- `app/src/main/kotlin/com/emm/hello/notifications/SystemNotificationPermission.kt` (impl over `NotificationManagerCompat.areNotificationsEnabled()`)
 
 ## :domain / :data dependencies
 
@@ -72,7 +74,8 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 
 `OnboardingUiIntent`:
 
-- `StartClicked` — the only CTA; calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`
+- `StartClicked` — the only CTA; checks `NotificationPermission.isGranted()` first. Granted → calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`. Not granted → emits `RequestNotificationPermission` and nothing else; `markWelcomeSeen()` is not called on this path.
+- `NotificationPermissionSettled` — sent by the `Route` when the system permission dialog closes. Always calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`, regardless of whether the permission was granted or denied; it does not re-read the permission port. The launcher's own `Boolean` result is ignored on purpose.
 - `BackPressed` — system back; emits `CloseOnboarding`
 
 ## Effects
@@ -80,6 +83,17 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 `OnboardingUiEffect`:
 
 - `NavigateToToday` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
+- `RequestNotificationPermission` — the `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()`
 - `CloseOnboarding` — `navigator.goBack()`
 
 `OnboardingDestination` installs a `BackHandler` that forwards system back to `BackPressed`.
+
+## Notification permission
+
+The reminder is ON by default (see `docs/NOTIFICATIONS_PLAN.md`), so gating the `POST_NOTIFICATIONS` prompt only behind the Settings toggle meant most users never saw it. Onboarding ties the request to a user action instead — tapping "Start" — and only once per install, since `markWelcomeSeen()` runs after the dialog is settled either way.
+
+A denial changes nothing persisted: no reminder preference is written by this flow. Settings shows the blocked row and offers the system-settings shortcut for the user to reconsider later — see `docs/SETTINGS_CURRENT.md`.
+
+Existing installs that already saw onboarding are unaffected by this change; they still only get the prompt from the Settings toggle.
+
+On devices below Android 13, `NotificationPermission.isGranted()` is normally `true` (no runtime permission exists), so `StartClicked` never emits `RequestNotificationPermission` there and no prompt appears.

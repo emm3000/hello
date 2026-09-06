@@ -272,7 +272,7 @@ fun Module.viewModels() {
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { OnboardingViewModel(get()) }
+    viewModel { OnboardingViewModel(get(), get()) }
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {
