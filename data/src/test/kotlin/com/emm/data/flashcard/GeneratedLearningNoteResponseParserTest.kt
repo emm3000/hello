@@ -7,8 +7,10 @@ import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
 import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.generation.StudyCardType
+import com.emm.domain.validation.DomainValidationException
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -73,17 +75,7 @@ class GeneratedLearningNoteResponseParserTest {
                 "message": "ok"
               },
               {
-                "code": "example_supports_meaning",
-                "passed": true,
-                "message": "ok"
-              },
-              {
                 "code": "non_ambiguous_answers",
-                "passed": true,
-                "message": "ok"
-              },
-              {
-                "code": "required_fields_present",
                 "passed": true,
                 "message": "ok"
               },
@@ -145,6 +137,51 @@ class GeneratedLearningNoteResponseParserTest {
         assertThrows(IllegalArgumentException::class.java) {
             GeneratedLearningNoteResponseParser.parse(raw, json)
         }
+    }
+
+    @Test
+    fun `parse with removed quality check code throws illegal argument exception`() {
+        val raw = """
+            {
+              "success": true,
+              "data": {
+                "note_id": "note-1",
+                "note_type": "word",
+                "expression": "borrow",
+                "intended_meaning_es": "pedir prestado",
+                "simple_definition_en": "to take something and return it later",
+                "part_of_speech": "verb",
+                "register": "neutral",
+                "level_band": "A1_A2",
+                "domain": "daily_life",
+                "why_useful": "Sirve para hablar de prestamos.",
+                "example_sentence": "Can I borrow your pen?",
+                "example_translation": "Puedo pedirte prestado tu lapicero?",
+                "cards": [
+                  {
+                    "card_id": "card-1",
+                    "card_type": "recognition",
+                    "prompt": "borrow",
+                    "expected_answer": "pedir prestado",
+                    "evaluation_mode": "flexible_text"
+                  }
+                ],
+                "quality_checks": [
+                  { "code": "single_meaning", "passed": true, "message": "ok" },
+                  { "code": "natural_example", "passed": true, "message": "ok" },
+                  { "code": "non_ambiguous_answers", "passed": true, "message": "ok" },
+                  { "code": "clear_card_focus", "passed": true, "message": "ok" },
+                  { "code": "note_card_alignment", "passed": true, "message": "ok" },
+                  { "code": "required_fields_present", "passed": true, "message": "ok" }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val thrown: IllegalArgumentException = assertThrows(IllegalArgumentException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+        assertFalse(thrown is DomainValidationException)
     }
 
     @Test

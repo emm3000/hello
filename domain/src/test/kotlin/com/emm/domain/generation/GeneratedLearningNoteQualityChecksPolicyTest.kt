@@ -86,17 +86,7 @@ class GeneratedLearningNoteQualityChecksPolicyTest {
                 message = "ok",
             ),
             GeneratedNoteQualityCheck(
-                code = GeneratedNoteQualityCode.ExampleSupportsMeaning,
-                passed = true,
-                message = "ok",
-            ),
-            GeneratedNoteQualityCheck(
                 code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
-                passed = true,
-                message = "ok",
-            ),
-            GeneratedNoteQualityCheck(
-                code = GeneratedNoteQualityCode.RequiredFieldsPresent,
                 passed = true,
                 message = "ok",
             ),

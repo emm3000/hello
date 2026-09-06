@@ -10,6 +10,9 @@ sealed interface IssueCode {
     data object MissingDefinition : IssueCode { override val value: String = "missing_definition" }
     data object MissingWhyUseful : IssueCode { override val value: String = "missing_why_useful" }
     data object MissingExampleSentence : IssueCode { override val value: String = "missing_example_sentence" }
+    data object ExampleDoesNotUseExpression : IssueCode {
+        override val value: String = "example_does_not_use_expression"
+    }
     data object MissingExampleTranslation : IssueCode { override val value: String = "missing_example_translation" }
     data object MissingCards : IssueCode { override val value: String = "missing_cards" }
     data object MissingQualityChecks : IssueCode { override val value: String = "missing_quality_checks" }
@@ -43,6 +46,7 @@ sealed interface IssueCode {
             MissingDefinition,
             MissingWhyUseful,
             MissingExampleSentence,
+            ExampleDoesNotUseExpression,
             MissingExampleTranslation,
             MissingCards,
             MissingQualityChecks,

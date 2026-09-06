@@ -8,7 +8,7 @@
 | Read this when | You're working on any pre-launch hardening task |
 | Last verified against code | 2026-09-05 |
 | Sprint 1 progress | 6/8 done (T1, T2, T4, T5, T6, T8) · T3 discarded · T7 in progress (draft published, missing URL + manifest + Data Safety form) |
-| Sprint 2 progress | S2-T1 done (retry + timeout + Crashlytics logging) · S2-T2, T5, T6 open · S2-T3 void, S2-T4 closed by the FSRS-6 migration |
+| Sprint 2 progress | S2-T1, T2, T5 done · S2-T6 open · S2-T3 void, S2-T4 closed by the FSRS-6 migration |
 
 ## TL;DR
 
@@ -181,7 +181,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** pick 2-3 checks with deterministic criteria (e.g. `required_fields_present` is already checkable; `single_meaning` can be verified with a regex over `cards`; `natural_example` with a textbook-ism wordlist). Remove them from the prompt and validate in Kotlin. Keep the rest of the prompt as informative hint.
 - **Criterion:** a note with an empty field that the model marked `passed: true` now fails validation.
 - **Estimate:** 4 h.
-- **Status:** [ ]
+- **Status:** [x] — shipped 2026-09-06: `required_fields_present` and `example_supports_meaning` left the model contract entirely (removed from `GeneratedNoteQualityCode`, the response schema, the parser, and the prompt). `required_fields_present` was already redundant — `GeneratedLearningNoteCoreFieldsPolicy` and `GeneratedLearningNoteTypeRequirementsPolicy` enforce required fields deterministically. `example_supports_meaning` is now `GeneratedLearningNoteExamplePolicy`, wired into `ValidateGeneratedLearningNoteUseCase`: it requires the example sentence to contain the expression, the lemma, or an irregular form, case-insensitively, matching every word of three or more letters so separable phrasal verbs (e.g. "give up" via "gave up") still pass. The other five codes (`single_meaning`, `natural_example`, `non_ambiguous_answers`, `clear_card_focus`, `note_card_alignment`) stay model-reported hints; `single_meaning` and `natural_example` were deliberately left non-deterministic — a separator regex or a textbook-ism wordlist has false positives, and each false positive costs four Gemini attempts on the free tier. Retired codes still present in an existing install's `qualityChecksJson` are dropped on read (`StoredNoteQualityCheckDto.toDomain()` returns `null` for an unrecognized code; `decodeQualityChecks` filters it out), never remapped to a surviving code. `:domain:test` + `:data:testDebugUnitTest` + detekt green.
 
 #### S2-T3: Normalize inputs to English in the prompt builder ~~(void)~~
 - **File:** `data/src/main/kotlin/com/emm/data/flashcard/Prompt.kt`

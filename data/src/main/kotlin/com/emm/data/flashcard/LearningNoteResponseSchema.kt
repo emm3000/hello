@@ -141,9 +141,7 @@ object LearningNoteResponseSchema {
     private val QUALITY_CHECK_CODES = listOf(
         "single_meaning",
         "natural_example",
-        "example_supports_meaning",
         "non_ambiguous_answers",
-        "required_fields_present",
         "clear_card_focus",
         "note_card_alignment",
     )

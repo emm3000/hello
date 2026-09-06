@@ -57,8 +57,8 @@ object Prompt {
         - cards: 2 to 4 active retrieval cards. Include a recognition card AND a production card whenever each adds retrieval value. Add a cloze card only when it gives distinct value vs. the others.
         - Each card: prompt is specific and unambiguous (never a discussion question); expected_answer is short, objective, ideally one expression; accepted_answers contains only true equivalents, not loose paraphrases; source_field names the note field the card derives from (e.g. expression, example_sentence, cloze_sentence).
         - quality_checks: report each of these codes exactly once with an honest passed/message —
-          single_meaning, natural_example, example_supports_meaning, non_ambiguous_answers,
-          required_fields_present, clear_card_focus, note_card_alignment.
+          single_meaning, natural_example, non_ambiguous_answers, clear_card_focus,
+          note_card_alignment.
 
         Gold example (illustrative — do not copy verbatim; shows the bar for quality):
 
@@ -112,9 +112,7 @@ object Prompt {
           "quality_checks": [
             { "code": "single_meaning", "passed": true, "message": "One meaning, one target expression." },
             { "code": "natural_example", "passed": true, "message": "Reads as real casual speech." },
-            { "code": "example_supports_meaning", "passed": true, "message": "The example clearly conveys 'no exageres'." },
             { "code": "non_ambiguous_answers", "passed": true, "message": "Expected answers are short and objective." },
-            { "code": "required_fields_present", "passed": true, "message": "All required fields filled for note_type=phrase." },
             { "code": "clear_card_focus", "passed": true, "message": "Each card tests one thing." },
             { "code": "note_card_alignment", "passed": true, "message": "All cards target the same expression and meaning." }
           ]

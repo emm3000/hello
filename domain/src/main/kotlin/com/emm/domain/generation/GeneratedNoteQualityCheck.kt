@@ -9,9 +9,7 @@ data class GeneratedNoteQualityCheck(
 enum class GeneratedNoteQualityCode {
     SingleMeaning,
     NaturalExample,
-    ExampleSupportsMeaning,
     NonAmbiguousAnswers,
-    RequiredFieldsPresent,
     ClearCardFocus,
     NoteCardAlignment,
 }

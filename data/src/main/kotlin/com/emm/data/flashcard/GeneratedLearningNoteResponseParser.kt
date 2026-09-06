@@ -186,9 +186,7 @@ object GeneratedLearningNoteResponseParser {
         return when (normalizedEnum()) {
             "single_meaning" -> GeneratedNoteQualityCode.SingleMeaning
             "natural_example" -> GeneratedNoteQualityCode.NaturalExample
-            "example_supports_meaning" -> GeneratedNoteQualityCode.ExampleSupportsMeaning
             "non_ambiguous_answers" -> GeneratedNoteQualityCode.NonAmbiguousAnswers
-            "required_fields_present" -> GeneratedNoteQualityCode.RequiredFieldsPresent
             "clear_card_focus" -> GeneratedNoteQualityCode.ClearCardFocus
             "note_card_alignment" -> GeneratedNoteQualityCode.NoteCardAlignment
             else -> throw invalidEnum("GeneratedNoteQualityCode")

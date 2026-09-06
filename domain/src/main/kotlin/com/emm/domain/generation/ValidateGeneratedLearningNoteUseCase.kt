@@ -9,6 +9,7 @@ class ValidateGeneratedLearningNoteUseCase(
     private val typeRequirementsPolicy: GeneratedLearningNoteTypeRequirementsPolicy =
         GeneratedLearningNoteTypeRequirementsPolicy(),
     private val cardsPolicy: GeneratedLearningNoteCardsPolicy = GeneratedLearningNoteCardsPolicy(),
+    private val examplePolicy: GeneratedLearningNoteExamplePolicy = GeneratedLearningNoteExamplePolicy(),
     private val qualityChecksPolicy: GeneratedLearningNoteQualityChecksPolicy =
         GeneratedLearningNoteQualityChecksPolicy(),
 ) {
@@ -19,6 +20,7 @@ class ValidateGeneratedLearningNoteUseCase(
 
         errors += coreFieldsPolicy.collectIssues(note)
         errors += typeRequirementsPolicy.collectIssues(note)
+        errors += examplePolicy.collectIssues(note)
         val cardsValidation = cardsPolicy.collectIssues(note)
         errors += cardsValidation.errors
         warnings += cardsValidation.warnings

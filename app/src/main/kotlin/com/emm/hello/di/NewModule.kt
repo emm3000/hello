@@ -63,6 +63,7 @@ import com.emm.hello.newfeatures.suggest.SuggestViewModel
 import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.GeneratedLearningNoteCardsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
+import com.emm.domain.generation.GeneratedLearningNoteExamplePolicy
 import com.emm.domain.generation.GeneratedLearningNoteQualityChecksPolicy
 import com.emm.domain.generation.GeneratedLearningNoteTypeRequirementsPolicy
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
@@ -201,6 +202,7 @@ fun Module.useCases() {
     factoryOf(::GeneratedLearningNoteCoreFieldsPolicy)
     factoryOf(::GeneratedLearningNoteTypeRequirementsPolicy)
     factoryOf(::GeneratedLearningNoteCardsPolicy)
+    factoryOf(::GeneratedLearningNoteExamplePolicy)
     factoryOf(::GeneratedLearningNoteQualityChecksPolicy)
     factoryOf(::GeneratedLearningNoteMapper)
     factoryOf(::GetDecksUseCase)

@@ -144,6 +144,30 @@ class ValidateGeneratedLearningNoteUseCaseTest {
     }
 
     @Test
+    fun `invoke with example that does not use the expression returns error`() {
+        val result = useCase(
+            sampleWordNote().copy(
+                exampleSentence = "Can I have your pen for a minute?",
+            )
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.code == IssueCode.ExampleDoesNotUseExpression })
+    }
+
+    @Test
+    fun `invoke with blank why useful returns error even when every quality check passed`() {
+        val result = useCase(
+            sampleWordNote().copy(
+                whyUseful = "",
+            )
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.code == IssueCode.MissingWhyUseful })
+    }
+
+    @Test
     fun `invoke with failed quality check returns error`() {
         val result = useCase(
             sampleWordNote().copy(
@@ -197,19 +221,9 @@ class ValidateGeneratedLearningNoteUseCaseTest {
                 message = "El ejemplo suena natural.",
             ),
             GeneratedNoteQualityCheck(
-                code = GeneratedNoteQualityCode.ExampleSupportsMeaning,
-                passed = true,
-                message = "El ejemplo sostiene bien el significado.",
-            ),
-            GeneratedNoteQualityCheck(
                 code = GeneratedNoteQualityCode.NonAmbiguousAnswers,
                 passed = true,
                 message = "Las respuestas esperadas son claras.",
-            ),
-            GeneratedNoteQualityCheck(
-                code = GeneratedNoteQualityCode.RequiredFieldsPresent,
-                passed = true,
-                message = "Los campos clave estan completos.",
             ),
             GeneratedNoteQualityCheck(
                 code = GeneratedNoteQualityCode.ClearCardFocus,

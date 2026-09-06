@@ -377,7 +377,7 @@ internal fun decodeStudyCards(raw: String?, json: Json): List<GeneratedStudyCard
 internal fun decodeQualityChecks(raw: String?, json: Json): List<GeneratedNoteQualityCheck> {
     if (raw.isNullOrBlank()) return emptyList()
     return runCatching {
-        json.decodeFromString<List<StoredNoteQualityCheckDto>>(raw).map(StoredNoteQualityCheckDto::toDomain)
+        json.decodeFromString<List<StoredNoteQualityCheckDto>>(raw).mapNotNull(StoredNoteQualityCheckDto::toDomain)
     }.getOrDefault(emptyList())
 }
 
@@ -396,9 +396,11 @@ internal fun StoredStudyCardDto.toDomain(): GeneratedStudyCard {
     )
 }
 
-internal fun StoredNoteQualityCheckDto.toDomain(): GeneratedNoteQualityCheck {
+internal fun StoredNoteQualityCheckDto.toDomain(): GeneratedNoteQualityCheck? {
+    val qualityCode: GeneratedNoteQualityCode = GeneratedNoteQualityCode.entries
+        .firstOrNull { it.name == code } ?: return null
     return GeneratedNoteQualityCheck(
-        code = enumValueOrDefault(code, GeneratedNoteQualityCode.RequiredFieldsPresent),
+        code = qualityCode,
         passed = passed,
         message = message,
     )
