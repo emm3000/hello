@@ -9,12 +9,14 @@ import com.emm.hello.logging.logError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 
 class AppStartupCoordinator(
     private val localIdentityInitializer: LocalIdentityInitializer,
@@ -35,8 +37,10 @@ class AppStartupCoordinator(
                 if (mutableState.value is AppStartupState.Ready) return@withLock
                 mutableState.value = AppStartupState.Initializing
                 runCatching {
-                    localIdentityInitializer.ensureReady()
-                    seedDataInitializer.ensureSeeded()
+                    withTimeout(STARTUP_TIMEOUT_MS) {
+                        localIdentityInitializer.ensureReady()
+                        seedDataInitializer.ensureSeeded()
+                    }
                 }.onSuccess {
                     mutableState.value = AppStartupState.Ready(
                         hasSeenWelcome = onboardingStateRepository.hasSeenWelcome(),
@@ -44,9 +48,7 @@ class AppStartupCoordinator(
                     requeuePendingEnrichments()
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)
-                    mutableState.value = AppStartupState.Error(
-                        message = "Couldn't prepare the app's local mode.",
-                    )
+                    mutableState.value = AppStartupState.Error(message = error.toStartupMessage())
                 }
             }
         }
@@ -60,10 +62,16 @@ class AppStartupCoordinator(
     }
 }
 
+private fun Throwable.toStartupMessage(): String = when (this) {
+    is TimeoutCancellationException -> "The app took too long to start."
+    else -> "Couldn't prepare the app's local mode."
+}
+
 sealed interface AppStartupState {
     data object Initializing : AppStartupState
     data class Ready(val hasSeenWelcome: Boolean) : AppStartupState
     data class Error(val message: String) : AppStartupState
 }
 
+internal const val STARTUP_TIMEOUT_MS: Long = 5_000L
 private const val TAG = "AppStartup"

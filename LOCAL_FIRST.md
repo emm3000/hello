@@ -23,7 +23,7 @@
 1. ensures local install identity (`LocalIdentityInitializer.ensureReady()`)
 2. seeds starter data if the install is empty (`SeedDataInitializer.ensureSeeded()`)
 3. marks the app as ready if both succeed, carrying `hasSeenWelcome` read from `OnboardingStateRepository`
-4. exposes local error if it fails
+4. exposes a local error if it fails or takes longer than `STARTUP_TIMEOUT_MS` (5 s); Retry runs `start()` again
 
 All three steps are local; none of them touches the network.
 

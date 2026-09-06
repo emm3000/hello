@@ -67,7 +67,7 @@ Current flow:
 
 `App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady() -> SeedDataInitializer.ensureSeeded()`
 
-On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `TodayRoute`. On failure it emits `AppStartupState.Error`.
+On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `TodayRoute`. On failure, or when both steps together exceed `STARTUP_TIMEOUT_MS` (5 s), it emits `AppStartupState.Error`; Retry on the error screen calls `start()` again.
 
 There are no other mandatory product stages in startup, and none of them requires the network.
 

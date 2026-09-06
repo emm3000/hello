@@ -200,7 +200,7 @@ Mark as `[x]` when complete. Dependencies between tasks are explicit.
 - **What to do:** wrap the `AppStartupViewModel` `collect` with `withTimeoutOrNull(5_000L)`, show error with retry on timeout.
 - **Criterion:** simulate a corrupt DB (rename SQLite file on device) → app shows an error with a "retry" button in <6s, not infinite loading.
 - **Estimate:** 1 h.
-- **Status:** [ ]
+- **Status:** [x] — landed in `app/src/main/kotlin/com/emm/hello/startup/AppStartupCoordinator.kt`, not in `NewRoot`: `withTimeout(STARTUP_TIMEOUT_MS)` (5 s) wraps `ensureReady()` + `ensureSeeded()`, a `TimeoutCancellationException` becomes `AppStartupState.Error("The app took too long to start.")`, and the existing error screen's Retry calls `start()` again. Pinned by `AppStartupCoordinatorTest` on virtual time (still `Initializing` at 4 999 ms, `Error` right after; a retry after the timeout reaches `Ready`). The composable-side `withTimeoutOrNull` was rejected: it is not unit-testable and the coordinator would keep the mutex, so Retry could never run.
 
 #### S2-T6: Real release build on device + manual walkthrough
 - **What to do:** generate signed release APK, install on a physical device, do a full walkthrough: create deck → create card (all 3 modes) → study → edit → delete → export backup → reinstall → import.

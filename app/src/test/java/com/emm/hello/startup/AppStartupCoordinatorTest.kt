@@ -12,8 +12,10 @@ import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.seed.SeedDataInitializer
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -185,11 +187,60 @@ class AppStartupCoordinatorTest {
         assertThat(requeuedBatches).isEmpty()
     }
 
-    private class FakeLocalIdentityInitializer(private val shouldFail: Boolean = false) : LocalIdentityInitializer {
+    @Test
+    fun `a startup that hangs reports a timeout instead of loading forever`() = runTest {
+        val subject = AppStartupCoordinator(
+            localIdentityInitializer = FakeLocalIdentityInitializer(hangs = true),
+            seedDataInitializer = FakeSeedDataInitializer(),
+            onboardingStateRepository = FakeOnboardingStateRepository(),
+            findPendingEnrichments = FindPendingEnrichmentsUseCase(FakeEnrichmentRepository(pending = emptyList())),
+            requeueEnrichments = {},
+            scope = this,
+        )
+
+        subject.start()
+        advanceTimeBy(STARTUP_TIMEOUT_MS - 1)
+
+        assertThat(subject.state.value).isEqualTo(AppStartupState.Initializing)
+
+        advanceUntilIdle()
+
+        assertThat(subject.state.value).isEqualTo(
+            AppStartupState.Error("The app took too long to start.")
+        )
+    }
+
+    @Test
+    fun `retry after a timeout reaches ready once startup responds`() = runTest {
+        val localIdentityInitializer = FakeLocalIdentityInitializer(hangs = true)
+        val subject = AppStartupCoordinator(
+            localIdentityInitializer = localIdentityInitializer,
+            seedDataInitializer = FakeSeedDataInitializer(),
+            onboardingStateRepository = FakeOnboardingStateRepository(),
+            findPendingEnrichments = FindPendingEnrichmentsUseCase(FakeEnrichmentRepository(pending = emptyList())),
+            requeueEnrichments = {},
+            scope = this,
+        )
+
+        subject.start()
+        advanceUntilIdle()
+        localIdentityInitializer.hangs = false
+        subject.start()
+        advanceUntilIdle()
+
+        assertThat(localIdentityInitializer.calls).isEqualTo(2)
+        assertThat(subject.state.value).isEqualTo(AppStartupState.Ready(hasSeenWelcome = false))
+    }
+
+    private class FakeLocalIdentityInitializer(
+        private val shouldFail: Boolean = false,
+        var hangs: Boolean = false,
+    ) : LocalIdentityInitializer {
         var calls: Int = 0
 
         override suspend fun ensureReady(): LocalIdentityState {
             calls += 1
+            if (hangs) awaitCancellation()
             if (shouldFail) error("boom")
             return LocalIdentityState(
                 deviceId = "device-1",
