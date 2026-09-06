@@ -27,7 +27,7 @@ Global sources of truth still live at the root:
 - `EDIT_FLASHCARD_CURRENT.md`: current state of the `Edit Flashcard` flow
 - `DECK_CURRENT.md`: current state of the `Decks` and `New/Edit Deck` flows
 - `STUDY_CURRENT.md`: current state of the `Study` flow
-- `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup)
+- `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup, daily study reminder)
 - `ONBOARDING_CURRENT.md`: current state of the first-run onboarding flow (welcome gate + seeded starter deck)
 - `SUGGEST_CURRENT.md`: current state of the `Suggest` flow (a situation and new words for a zero-due day)
 
@@ -40,7 +40,7 @@ These documents capture planning context, decisions, and delivery history. They 
 - `DESIGN_BRIEF.md` — Status: **Active**. Rationale for the learning mechanics (grade rules, two-beat card, direction by maturity) stays active; its visual sections were resynced to the hybrid design on 2026-08-28.
 - `FEATURE_ROADMAP.md` — Status: **Active**. Prioritized list of pending features; ordering now deferred to `RESTRUCTURE_PLAN.md`.
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.
-- `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 complete; Sprint 2 (settings toggle, i18n) pending.
+- `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 and Sprint 2 both complete (toggle, time picker, deep link); only the runtime notification-permission request (`F-Onboarding-Consent`) remains open.
 - `privacy-policy.md` — Status: **Draft**. Minimal privacy policy covering local data, Firebase AI/Gemini, Crashlytics and Analytics. Pending public URL and Play Console Data Safety form.
 
 ## Rule

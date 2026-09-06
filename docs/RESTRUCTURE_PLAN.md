@@ -245,7 +245,8 @@ sweep.
 - Flashcard-level tags — doubles down on the organizing axis the restructure removes.
 - Cram mode — after the session model settles.
 
-Global flashcard search shipped as Phase 4. Still open: Notifications Sprint 2
-(`docs/NOTIFICATIONS_PLAN.md`), the settings time picker deferred out of the
-redesign, and a staging run of the Phase 3 zero-due AI suggestion against the
-real model (App Check has been enforced and wired since 2026-09-06).
+Global flashcard search shipped as Phase 4. Notifications Sprint 2
+(`docs/NOTIFICATIONS_PLAN.md`), including the settings time picker deferred out
+of the redesign, shipped 2026-09-06. Still open: a staging run of the Phase 3
+zero-due AI suggestion against the real model (App Check has been enforced and
+wired since 2026-09-06).

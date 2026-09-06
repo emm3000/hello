@@ -14,7 +14,7 @@ Since 2026-08-26 the product is being restructured session-first — see `docs/R
 
 Still valid, in this order once the restructure allows:
 
-1. **Notifications Sprint 2** (settings toggle + time picker) — finishes the already-scaffolded feature.
+1. **Notifications Sprint 2** (settings toggle + time picker + deep link) — shipped; see below.
 2. **Global flashcard search** — absorbed by restructure Phase 4 (Biblioteca); the task breakdown below still applies.
 
 Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats history / heatmap**, **Flashcard-level tags**, **Cram mode**. Their sections below are kept for sizing only.
@@ -25,23 +25,15 @@ Deferred by the restructure (see `RESTRUCTURE_PLAN.md` → Deferred): **Stats hi
 
 ---
 
-## 1. Notifications Sprint 2
+## 1. Notifications Sprint 2 — SHIPPED
 
-| Field | Value |
-|---|---|
-| Size | Medium (~1.5 h) |
-| Blocks | Nothing |
-| Blocked by | Notifications Sprint 1 (already done, `29d11c1`) |
-| Full plan | `docs/NOTIFICATIONS_PLAN.md` Sprint 2 + Follow-ups |
+Delivered as three commits (`1988e5c`, `8779630`, `6a2c6ad`), in a different shape than planned here: the deep link opens `Study` for all due cards, not the single busiest deck, and there was no separate icon/i18n task since `N2-T7` had already shipped in Sprint 1 (`29d11c1`).
 
-**Tasks:**
+- **N2-T6**: Settings toggle on/off, persisted through `DataStore` / `StudyReminderSettingsRepository`.
+- **N2-T8** (was `F-Time-Picker`): reminder time picker in Settings, persisted as hour/minute.
+- **N2-T9** (was `F-Deep-Link`): tapping the notification opens `Study` for all due cards.
 
-- **N2-T6**: Settings toggle on/off persisted in `DataStore`. Switching OFF → `StudyReminderScheduler.cancel(context)`. ON → `scheduleDaily(context)`.
-- **N2-T7**: i18n strings + Material guideline-compliant icon (white 24×24 vector, no background).
-- **F-Time-Picker**: TimePicker in Settings to pick the hour. Persist as `LocalTime`. `StudyReminderScheduler.scheduleDaily(context, time)` recomputes `initialDelay`.
-- **F-Deep-Link**: tap notification → `Study` for the deck with the most due cards. Requires extending `MainActivity` with intent extras.
-
-**Definition of done:** user can disable the reminder, change the time, and tapping the notification jumps straight into studying the busiest deck.
+See `docs/NOTIFICATIONS_PLAN.md` for the full breakdown, including the open follow-up (`F-Onboarding-Consent`: the app never requests `POST_NOTIFICATIONS`).
 
 ---
 

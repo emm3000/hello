@@ -6,17 +6,19 @@
 | Role | Atomic plan to implement the daily due-cards notification |
 | Source of Truth | Yes (until all tasks close) |
 | Read this when | You're going to touch `WorkManager`, `NotificationChannel`, or `Settings` for opt-in |
-| Last verified against code | 2026-06-11 |
+| Last verified against code | 2026-09-06 |
 
 ## TL;DR
 
-**Sprint 1 complete** (shipped in `29d11c1`). `POST_NOTIFICATIONS` is declared in `AndroidManifest.xml` (verified). Notification infra is live: channel, periodic worker that counts globally due cards, scheduler at startup. **No time picker or deep link in v1** — fixed trigger at 19:00 local, tap opens the app on the main screen. Sprint 2 (settings toggle + i18n strings) is pending.
+**Sprint 1 and Sprint 2 are both complete.** `POST_NOTIFICATIONS` is declared in `AndroidManifest.xml` (verified). Notification infra is live: channel, periodic worker that counts globally due cards, scheduler synced at every startup. The user can turn the reminder off, pick its time (default 19:00), and tapping it opens `Study` for all due cards. Verified end to end on device (`medium_phone`, API 36, 2026-09-06): a reminder scheduled for 00:05 fired at 00:05:03 and tapping it opened Study.
+
+**Open gap:** `POST_NOTIFICATIONS` is declared but the app never requests it (see "Known follow-ups" → `F-Onboarding-Consent`, next up).
 
 ## Explicit decisions
 
-- **Fixed trigger at 19:00 local** in v1. Time picker is a follow-up.
-- **No deep link to Study** in v1 — the `PendingIntent` opens `MainActivity`. Follow-up: deep link to deck/study.
-- **Default ON** — users get the reminder on install. Toggle off lives in Settings. Follow-up: onboarding consent dialog.
+- **Default time 19:00, user-editable** — `StudyReminderSettings.DEFAULT_TIME`. Shipped in Sprint 2 (`N2-T8`); no longer fixed.
+- **Deep link to Study on tap** — the `PendingIntent` opens `MainActivity` with a launch-destination extra that routes to `Study` for all due cards. Shipped in Sprint 2 (`N2-T9`); no per-deck targeting.
+- **Default ON** — users get the reminder on install. Toggle off lives in Settings. Follow-up: onboarding consent for the runtime permission (`F-Onboarding-Consent`).
 - **No exponential backoff** — if network/disk fails, next run is in 24h.
 - **Global due-cards count**, not per deck. The notification is generic ("You have N cards to review today").
 - **Skip if due_count == 0** — don't bother when there's nothing.
@@ -30,7 +32,7 @@
     1. Add `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`.
     2. (Optional v2) `RECEIVE_BOOT_COMPLETED` to revive the schedule after reboot — WorkManager handles it alone if you use `PeriodicWorkRequest`, so SKIP.
     3. Create a simple white vector `ic_notification.xml` (24×24). Otherwise, use `R.mipmap.ic_launcher` as fallback (not recommended per guidelines).
-- **Criterion:** build passes. The app requests notification permission on first use (automatically from Android 13+ when posting is attempted).
+- **Criterion:** build passes. **Superseded (verified on device, 2026-09-06):** Android 13+ shows no automatic permission prompt when posting is attempted — there is no such system behavior. `POST_NOTIFICATIONS` must be requested explicitly, and until it is, `DueCardsReminderWorker` silently no-ops. See `F-Onboarding-Consent`.
 - **Estimate:** 15 min.
 - **Status:** [x] — shipped in `29d11c1`.
 
@@ -71,9 +73,9 @@
 
 - **File:** `app/src/main/kotlin/com/emm/hello/notifications/DueCardsReminderWorker.kt` (new).
 - **What to do:**
-    1. `class DueCardsReminderWorker(context, params, useCase, clock) : CoroutineWorker` — injected via Koin (`WorkerFactory` or `koin-androidx-workmanager`).
-    2. `doWork()`: invokes `CountDueFlashcardsUseCase`. If count == 0, return `Result.success()` without notifying. If count > 0, post notification with title "Your daily review" and body "You have N cards to review".
-    3. PendingIntent target: `MainActivity` with immutable flags (`FLAG_IMMUTABLE`).
+    1. `class DueCardsReminderWorker(context, params) : CoroutineWorker`. **Superseded:** it does not take an injected use case or `Clock`, and there is no `WorkerFactory`. `doWork()` resolves `CountDueFlashcardsUseCase` through `GlobalContext.get()` (a Koin service locator call), because `WorkManager` constructs workers itself via reflection on the two-arg constructor.
+    2. `doWork()`: invokes `CountDueFlashcardsUseCase`. On failure, `Result.retry()`. If count == 0, `Result.success()` without notifying. If count > 0, posts the notification with title/body strings and returns `Result.success()`.
+    3. PendingIntent target: `MainActivity` with `FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE`, carrying the `LaunchDestination` extra (see N2-T9).
     4. Constant notification ID (`STUDY_REMINDER_NOTIFICATION_ID = 1001`) → re-posts over the previous one if the user doesn't open it.
 - **Criterion:** running the worker manually from a unit-style test (or WorkManager test runner) with count > 0 produces a visible notification.
 - **Estimate:** 45 min.
@@ -89,43 +91,57 @@
     3. Call from `App.onCreate()` after `startKoin`.
 - **Criterion:** `adb shell dumpsys jobscheduler | grep emm` shows the scheduled job. Change the clock to 19:00 and the notification appears within the 1h window.
 - **Estimate:** 30 min.
-- **Status:** [x] — shipped in `29d11c1`.
+- **Status:** [x] — shipped in `29d11c1`, **superseded in `8779630`**. The `flexInterval` + `initialDelay` scheme above never actually re-pinned the run time after the first enqueue (see "Decisions that aren't obvious" for why); `WorkManagerStudyReminderScheduler.schedule(time)` now enqueues with `setNextScheduleTimeOverride(nextOccurrence(time, now))` instead, and no flex.
 - **Depends on:** N1-T4.
 
-## Sprint 2 — Opt-out + polish (goal: 1.5 h)
+## Sprint 2 — Opt-out + polish (goal: 1.5 h) — done
 
 ### N2-T6: Settings toggle on/off
 
-- **Files:** `data/.../UserPreferences` (new or extend), `app/.../settings/SettingsViewModel.kt`, `SettingsScreen.kt`.
-- **What to do:**
-    1. Store preference in `DataStore`/`SharedPreferences`: `study_reminder_enabled: Boolean` (default `true`).
-    2. UI in Settings: `Switch` "Daily study reminder" with sublabel "Every day at 19:00".
-    3. On OFF → `WorkManager.cancelUniqueWork(...)`. On ON → re-enqueue.
-- **Criterion:** toggle off → `adb shell dumpsys jobscheduler` no longer shows the job. Toggle on → it reappears.
-- **Estimate:** 1 h.
-- **Status:** [ ]
+- **Files:** `data/src/main/kotlin/com/emm/data/remote/DataStore.kt` (`isStudyReminderEnabled`, backed by `SharedPreferences` key `STUDY_REMINDER_ENABLED`, default `true`), `data/src/main/kotlin/com/emm/data/reminder/DataStoreStudyReminderSettingsRepository.kt`, `domain/src/main/kotlin/com/emm/domain/reminder/*` (`StudyReminderSettings`, `StudyReminderSettingsRepository`, `StudyReminderScheduler`, `GetStudyReminderSettingsUseCase`, `SetStudyReminderEnabledUseCase`, `SyncStudyReminderUseCase`), `app/.../newfeatures/settings/SettingsUiState.kt`, `SettingsUiIntent.kt`, `SettingsViewModel.kt`, `SettingsScreen.kt`, `core/ui/Switch.kt` (new `HSwitch`).
+- **What shipped:** a "Reminders" section in Settings with an `HSwitch`. `SetStudyReminderEnabledUseCase` persists the flag, then `SyncStudyReminderUseCase` schedules or cancels the `WorkManager` unique work accordingly. `App.onCreate()` also calls `SyncStudyReminderUseCase` on every launch, so the schedule is re-pinned (or cancelled) even if it drifted.
+- **Criterion:** toggle off → `adb shell dumpsys jobscheduler` no longer shows the job. Toggle on → it reappears. Verified on device.
+- **Status:** [x] — shipped in `1988e5c`.
 - **Depends on:** N1-T5.
 
 ### N2-T7: i18n strings + final icon
 
-- **Files:** `values/strings.xml`, `values-en/strings.xml` (if it exists), `res/drawable/ic_notification.xml`.
-- **What to do:**
-    1. Extract strings: `notification_title`, `notification_body` (plurals), `notification_channel_name`, `notification_channel_description`, `settings_study_reminder_title`, `settings_study_reminder_subtitle`.
-    2. Use `<plurals>` for "1 card" vs "N cards".
-    3. Replace mock icon with a final one (white vector, 24×24, no background — Material guideline).
+- **Files:** `app/src/main/res/values/strings.xml`, `app/src/main/res/drawable/ic_notification.xml`.
+- **What shipped:** `notification_channel_name`, `notification_channel_description`, `notification_reminder_title`, `<plurals name="notification_reminder_body">`, plus the Settings row strings. The icon is a white vector, no background.
 - **Criterion:** notification renders the correct plural. Changing device locale respects the language.
-- **Estimate:** 30 min.
-- **Status:** [ ]
+- **Status:** [x] — closed in Sprint 1, commit `29d11c1` (it shipped earlier than planned, alongside the base infra).
+
+### N2-T8: Reminder time picker
+
+- **Files:** `domain/src/main/kotlin/com/emm/domain/reminder/SetStudyReminderTimeUseCase.kt`, `data/src/main/kotlin/com/emm/data/remote/DataStore.kt` (`studyReminderHour`, `studyReminderMinute`, keys `STUDY_REMINDER_HOUR` / `STUDY_REMINDER_MINUTE`), `data/src/main/kotlin/com/emm/data/reminder/DataStoreStudyReminderSettingsRepository.kt`, `app/.../newfeatures/settings/SettingsUiState.kt` (`reminderTime`, `isReminderTimePickerVisible`), `SettingsUiIntent.kt` (`EditReminderTime`, `SetReminderTime`, `DismissReminderTimePicker`), `SettingsViewModel.kt`, `SettingsScreen.kt`, `core/ui/TimePicker.kt` (new `HTimePickerDialog`), `app/.../notifications/StudyReminderSchedule.kt` (new `nextOccurrence`), `app/.../notifications/WorkManagerStudyReminderScheduler.kt` (rewritten to use `setNextScheduleTimeOverride`).
+- **What shipped:** tapping the reminder row opens `HTimePickerDialog` (24h, Save/Cancel); confirming persists the time and re-syncs the scheduler. Time is stored as separate hour/minute ints, not millis, so it survives a timezone or DST change unaffected.
+- **Criterion (used on device, 2026-09-06):** with the old `initialDelay` + `flexInterval` scheme, picking 07:30 at 23:47 produced a first run at 06:16 the day after tomorrow. With `setNextScheduleTimeOverride`, the same pick runs at the next 07:30. A reminder set for 00:05 fired at 00:05:03.
+- **Status:** [x] — shipped in `8779630`, which also carries the N1-T5 scheduler rewrite above.
+- **Depends on:** N2-T6.
+
+### N2-T9: Deep link to Study
+
+- **Files:** `app/src/main/kotlin/com/emm/hello/navigation/LaunchDestination.kt` (new enum, `StudyDue` → extra value `"study_due"`), `app/.../notifications/DueCardsReminderWorker.kt` (the `PendingIntent` carries extra `com.emm.hello.extra.LAUNCH_DESTINATION`), `app/src/main/kotlin/com/emm/hello/MainActivity.kt` (reads the extra on `onCreate` only when `savedInstanceState == null`, and again in `onNewIntent`), `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt` (a `LaunchedEffect` consumes it and calls `Navigator.resetTo(TodayRoute, StudyRoute(deckId = null))`, only once onboarding has been seen; the request is cleared right after).
+- **What shipped:** tapping the notification opens `Study` for all due cards. Rotating the device does not re-trigger the navigation, because `MainActivity` only reads the extra on a truly fresh start.
+- **Criterion (verified on device, 2026-09-06):** tapping a fired notification opened Study directly, with the back stack becoming Today → Study.
+- **Status:** [x] — shipped in `6a2c6ad`.
+- **Depends on:** N1-T4.
 
 ## Known follow-ups (NOT in this iteration)
 
-- **F-Time-Picker**: let the user pick the reminder time (not fixed 19:00). Requires DataStore + `initialDelay` re-computation logic.
-- **F-Deep-Link**: tap on notification → `Study` for a specific deck (or the deck with the most due).
-- **F-Onboarding-Consent**: ask `POST_NOTIFICATIONS` permission with contextual UI during onboarding (on Android 13+) instead of at first post.
+- **F-Onboarding-Consent** (next up): `POST_NOTIFICATIONS` is declared in the manifest but never requested. On Android 13+ there is no automatic system prompt when a notification is posted — verified on the test emulator, where the permission was `granted=false` and `DueCardsReminderWorker` silently returned early on `areNotificationsEnabled() == false`. The reminder never shows unless the user grants it manually in system settings. Fix: request the permission when the Settings toggle is switched ON, and reflect a denied state in the Settings row (e.g. a hint to open system settings).
 - **F-Multi-Reminder**: multiple notifications per deck instead of a single global one (richer UX but noisier).
 
 ## Decisions that aren't obvious
 
-- **Why `flexInterval = 1h`?** WorkManager `PeriodicWorkRequest` allows a flex window the system uses to batch wakes and save battery. Without flex, the system might attempt an exact wake, which is not possible in Doze mode. 1h is a good tradeoff: the user sees the notif between 18:00 and 19:00, not strictly at 19:00.
+- **Why `UPDATE` + `setNextScheduleTimeOverride`, no `initialDelay`, no flex?** `ExistingPeriodicWorkPolicy.UPDATE` preserves the original `WorkSpec.lastEnqueueTime` and `periodCount` (see `WorkSpec.calculateNextRunTime` in the WorkManager source). An `initialDelay` computed from "now" is only honored on the very first enqueue of a `WorkSpec` — every later `UPDATE` (toggling the reminder, changing its time) ignores it, because the delay is baked into that first `lastEnqueueTime`. The old 1h `flexInterval` compounded this: the first run landed `interval - flex` (23h) after that anchor, in the next day's window rather than at the picked time. On device, the old scheme sent a 07:30 pick made at 23:47 to a first run at 06:16 the day after tomorrow. `setNextScheduleTimeOverride(nextOccurrence(time, now))` sidesteps all of this: it tells WorkManager the exact next fire time directly, independent of `lastEnqueueTime` or `periodCount`, so every `UPDATE` — including the one `App.onCreate()` performs via `SyncStudyReminderUseCase` on every launch — re-pins the next run correctly. `nextOccurrence` itself is pure and unit-tested against a fixed `ZonedDateTime`.
 - **Why Worker in `app/` and not `:data`?** The worker depends on notifications (Android API) which don't fit in pure `:data`. It lives with UI/scaffolding.
-- **Why `UPDATE` instead of `KEEP`?** The plan allows changing the time later (F-Time-Picker). `UPDATE` re-enqueues with the new spec without requiring manual cancellation.
+- **Why `GlobalContext.get()` instead of a Koin `WorkerFactory`?** `WorkManager` instantiates `CoroutineWorker` subclasses itself via reflection on the `(Context, WorkerParameters)` constructor; there is no injection point for extra dependencies without wiring a custom `WorkerFactory`. `DueCardsReminderWorker.doWork()` reaches into the running Koin container directly instead, since a `WorkerFactory` was not worth the ceremony for a single dependency.
+
+### How to verify on device
+
+- The `WorkManager` database lives at `no_backup/androidx.work.workdb` inside the app's data directory. Pull it, and its `-wal`/`-shm` files, via `adb shell run-as com.emm.hello`; pulling the `.workdb` file alone shows stale rows, since SQLite keeps recent writes in the WAL until it checkpoints.
+- The scheduled fire time is `WorkSpec.next_schedule_time_override` in that database.
+- `adb shell dumpsys jobscheduler`, look for the job under the app's package; the `Delay=` field shows the remaining time until the next run.
+- WorkManager can also dump its own diagnostics on demand: broadcast `androidx.work.diagnostics.REQUEST_DIAGNOSTICS` and read logcat.
+- `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <package> <job-id>` starts the JobScheduler job, but WorkManager refuses to run the worker before its schedule (`WM-WorkerWrapper` logs "executed before schedule" and re-enqueues). The reliable end-to-end test is to pick a time a few minutes ahead in Settings and wait for it to fire.
