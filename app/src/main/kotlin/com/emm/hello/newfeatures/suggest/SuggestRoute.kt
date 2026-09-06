@@ -1,10 +1,12 @@
 package com.emm.hello.newfeatures.suggest
 
+import android.content.res.Resources
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.domain.ids.toFlashcardId
@@ -21,6 +23,7 @@ fun SuggestDestination(navigator: Navigator) {
     val vm: SuggestViewModel = koinViewModel()
     val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources: Resources = LocalResources.current
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -31,7 +34,7 @@ fun SuggestDestination(navigator: Navigator) {
                     }
                 }
                 is SuggestUiEffect.ShowMessage -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
                 }
                 SuggestUiEffect.NavigateBack -> navigator.goBack()
             }

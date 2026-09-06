@@ -237,7 +237,12 @@ private fun nextDueCopy(nextDue: NextDueBatch?): String {
     return when (nextDue.daysFromToday) {
         0 -> stringResource(R.string.today_next_due_later_today, words)
         1 -> stringResource(R.string.today_next_due_tomorrow, words)
-        else -> stringResource(R.string.today_next_due_in_days, words, nextDue.daysFromToday)
+        else -> pluralStringResource(
+            R.plurals.today_next_due_in_days,
+            nextDue.daysFromToday,
+            words,
+            nextDue.daysFromToday,
+        )
     }
 }
 

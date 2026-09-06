@@ -18,10 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.destructiveInk
 import com.emm.hello.core.theme.hairline
-import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.inkMuted
@@ -75,26 +75,21 @@ internal fun FieldShell(
     }
 }
 
-@Composable
-internal fun fieldShellContainerModifier(
-    modifier: Modifier = Modifier,
+internal fun Modifier.fieldShellContainer(
     borderColor: Color,
-): Modifier = modifier
+    shape: Shape,
+): Modifier = this
     .fillMaxWidth()
     .defaultMinSize(minHeight = fieldShellMinHeight)
-    .clip(MaterialTheme.helloShapes.control)
+    .clip(shape)
     .background(surface)
     .border(
         width = 1.dp,
         color = borderColor,
-        shape = MaterialTheme.helloShapes.control,
+        shape = shape,
     )
 
-@Composable
-internal fun fieldShellUnderlineModifier(
-    modifier: Modifier = Modifier,
-    lineColor: Color,
-): Modifier = modifier
+internal fun Modifier.fieldShellUnderline(lineColor: Color): Modifier = this
     .fillMaxWidth()
     .defaultMinSize(minHeight = fieldShellUnderlineMinHeight)
     .drawBehind {

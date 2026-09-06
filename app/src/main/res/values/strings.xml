@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Hello</string>
 
     <!-- General -->
@@ -23,9 +23,12 @@
     <string name="today_nothing_due">Nothing due</string>
     <string name="today_next_due_later_today">%1$s later today</string>
     <string name="today_next_due_tomorrow">%1$s tomorrow</string>
-    <string name="today_next_due_in_days">%1$s in %2$d days</string>
+    <plurals name="today_next_due_in_days">
+        <item quantity="one">%1$s in %2$d day</item>
+        <item quantity="other">%1$s in %2$d days</item>
+    </plurals>
     <string name="today_next_due_none">Nothing scheduled yet</string>
-    <string name="today_ring_content_description">Today\'s progress, %1$d percent</string>
+    <string name="today_ring_content_description" tools:ignore="PluralsCandidate">Today\'s progress, %1$d percent</string>
     <string name="today_get_new_words">Get new words</string>
 
     <!-- Decks Screen -->
@@ -83,7 +86,7 @@
     <string name="study_grade_forgot">Forgot</string>
     <string name="study_grade_knew">Knew it</string>
     <string name="study_done_title">Done for today.</string>
-    <string name="study_done_stats">%1$d reviewed · %2$d knew it · %3$d to see again</string>
+    <string name="study_done_stats" tools:ignore="PluralsCandidate">%1$d reviewed · %2$d knew it · %3$d to see again</string>
     <string name="study_done_get_new_words">Get new words</string>
     <string name="study_done_add_word">Add a word</string>
     <string name="study_done_back">Back to Today</string>

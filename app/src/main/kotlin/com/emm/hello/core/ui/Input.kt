@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.pageBackground
@@ -69,11 +70,11 @@ fun HInput(
     val containerModifier: Modifier = when (variant) {
         HFieldVariant.Outlined -> {
             val borderColor: Color = fieldShellBorderColor(isError = isError, enabled = enabled, isActive = isFocused)
-            fieldShellContainerModifier(borderColor = borderColor)
+            Modifier.fieldShellContainer(borderColor = borderColor, shape = MaterialTheme.helloShapes.control)
         }
         HFieldVariant.Underline -> {
             val lineColor: Color = fieldShellUnderlineColor(isError = isError, enabled = enabled, isActive = isFocused)
-            fieldShellUnderlineModifier(lineColor = lineColor)
+            Modifier.fieldShellUnderline(lineColor = lineColor)
         }
     }
 

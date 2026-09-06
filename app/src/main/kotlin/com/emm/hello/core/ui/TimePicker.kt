@@ -2,7 +2,6 @@ package com.emm.hello.core.ui
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,7 +28,6 @@ import java.time.LocalTime
 
 private val timePickerDialogShape = RoundedCornerShape(16.dp)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HTimePickerDialog(
     initialTime: LocalTime,

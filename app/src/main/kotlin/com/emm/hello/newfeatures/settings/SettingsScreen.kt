@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Upload
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -63,7 +62,6 @@ import java.time.format.DateTimeFormatter
 
 private val reminderTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,

@@ -191,7 +191,7 @@ fun StudyScreen(
                             audioState = AudioState(isSpeaking = isSpeaking, ttsReady = ttsReady),
                             onSpeak = {
                                 if (ttsReady) {
-                                    tts.speak(state.currentItem?.word.orEmpty())
+                                    tts.speak(state.currentItem.word)
                                 }
                             },
                             onStop = { tts.stop() },

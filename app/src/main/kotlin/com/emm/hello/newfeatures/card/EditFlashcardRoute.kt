@@ -1,10 +1,12 @@
 package com.emm.hello.newfeatures.card
 
+import android.content.res.Resources
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
@@ -23,6 +25,7 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String) {
 
     val uiState by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources: Resources = LocalResources.current
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -30,7 +33,7 @@ fun EditFlashcardDestination(navigator: Navigator, cardId: String) {
                 EditFlashcardUiEffect.NavigateBack -> navigator.goBack()
                 EditFlashcardUiEffect.FlashcardDeleted -> navigator.goBack()
                 is EditFlashcardUiEffect.ShowMessage -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
             }
         }
