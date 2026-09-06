@@ -1,5 +1,7 @@
 package com.emm.hello.startup
 
+import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
+import com.emm.domain.ids.FlashcardId
 import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.seed.SeedDataInitializer
@@ -18,6 +20,8 @@ class AppStartupCoordinator(
     private val localIdentityInitializer: LocalIdentityInitializer,
     private val seedDataInitializer: SeedDataInitializer,
     private val onboardingStateRepository: OnboardingStateRepository,
+    private val findPendingEnrichments: FindPendingEnrichmentsUseCase,
+    private val requeueEnrichments: (List<FlashcardId>) -> Unit,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
     private val startMutex = Mutex()
@@ -37,6 +41,7 @@ class AppStartupCoordinator(
                     mutableState.value = AppStartupState.Ready(
                         hasSeenWelcome = onboardingStateRepository.hasSeenWelcome(),
                     )
+                    requeuePendingEnrichments()
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)
                     mutableState.value = AppStartupState.Error(
@@ -45,6 +50,13 @@ class AppStartupCoordinator(
                 }
             }
         }
+    }
+
+    private suspend fun requeuePendingEnrichments() {
+        runCatching {
+            val pending: List<FlashcardId> = findPendingEnrichments()
+            if (pending.isNotEmpty()) requeueEnrichments(pending)
+        }.onFailure { error -> logError(TAG, "requeue:error ${error.message}", error) }
     }
 }
 

@@ -29,6 +29,7 @@ import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
+import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
@@ -86,6 +87,7 @@ import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.enrichment.FlashcardEnrichmentScheduler
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
 import kotlinx.coroutines.Dispatchers
@@ -166,7 +168,15 @@ fun Module.repository() {
             deckName = androidContext().getString(R.string.onboarding_seed_deck_name),
         )
     }
-    single { AppStartupCoordinator(get(), get(), get()) }
+    single {
+        AppStartupCoordinator(
+            localIdentityInitializer = get(),
+            seedDataInitializer = get(),
+            onboardingStateRepository = get(),
+            findPendingEnrichments = get(),
+            requeueEnrichments = { ids -> ids.forEach { FlashcardEnrichmentScheduler.enqueue(androidContext(), it) } },
+        )
+    }
 }
 
 fun Module.useCases() {
@@ -182,6 +192,7 @@ fun Module.useCases() {
     factoryOf(::CaptureFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
     factoryOf(::RetryFailedEnrichmentsUseCase)
+    factoryOf(::FindPendingEnrichmentsUseCase)
     factoryOf(::MarkEnrichmentFailedUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
     factoryOf(::IsExactDuplicateGeneratedNoteUseCase)
