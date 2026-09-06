@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -27,6 +29,7 @@ import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HAlert
 import com.emm.hello.core.ui.HButton
+import com.emm.hello.navigation.LaunchDestination
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.card.CardDetailDestination
 import com.emm.hello.newfeatures.card.CardDetailRoute
@@ -57,7 +60,10 @@ import org.koin.androidx.compose.koinViewModel
 private const val NAV_TRANSITION_DURATION_MS = 350
 
 @Composable
-fun NewRoot() {
+fun NewRoot(
+    launchDestination: LaunchDestination? = null,
+    onLaunchDestinationConsumed: () -> Unit = {},
+) {
     val startupViewModel: AppStartupViewModel = koinViewModel()
     when (val startupState = startupViewModel.state.collectAsStateWithLifecycle().value) {
         AppStartupState.Initializing -> StartupLoadingScreen()
@@ -65,15 +71,31 @@ fun NewRoot() {
             message = startupState.message,
             onRetry = startupViewModel::retry,
         )
-        is AppStartupState.Ready -> AppNavigation(hasSeenWelcome = startupState.hasSeenWelcome)
+        is AppStartupState.Ready -> AppNavigation(
+            hasSeenWelcome = startupState.hasSeenWelcome,
+            launchDestination = launchDestination,
+            onLaunchDestinationConsumed = onLaunchDestinationConsumed,
+        )
     }
 }
 
 @Composable
-private fun AppNavigation(hasSeenWelcome: Boolean) {
+private fun AppNavigation(
+    hasSeenWelcome: Boolean,
+    launchDestination: LaunchDestination?,
+    onLaunchDestinationConsumed: () -> Unit,
+) {
     val startKey = remember(hasSeenWelcome) { if (hasSeenWelcome) TodayRoute else OnboardingRoute }
     val backStack = rememberNavBackStack(startKey)
     val navigator = remember(backStack) { Navigator(backStack) }
+
+    LaunchedEffect(launchDestination) {
+        if (launchDestination == null) return@LaunchedEffect
+        if (hasSeenWelcome) {
+            navigator.resetTo(TodayRoute, launchDestination.toNavKey())
+        }
+        onLaunchDestinationConsumed()
+    }
 
     NavDisplay(
         backStack = backStack,
@@ -181,4 +203,8 @@ private fun StartupErrorScreen(
             )
         }
     }
+}
+
+private fun LaunchDestination.toNavKey(): NavKey = when (this) {
+    LaunchDestination.StudyDue -> StudyRoute(deckId = null)
 }

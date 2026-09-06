@@ -18,4 +18,10 @@ class Navigator(
         backStack.clear()
         backStack.add(destination)
     }
+
+    fun resetTo(root: NavKey, destination: NavKey) {
+        backStack.clear()
+        backStack.add(root)
+        backStack.add(destination)
+    }
 }

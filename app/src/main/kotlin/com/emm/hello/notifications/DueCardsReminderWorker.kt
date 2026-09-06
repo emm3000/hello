@@ -12,6 +12,7 @@ import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.hello.MainActivity
 import com.emm.hello.R
 import com.emm.hello.core.theme.ink
+import com.emm.hello.navigation.LaunchDestination
 import org.koin.core.context.GlobalContext
 
 class DueCardsReminderWorker(
@@ -36,6 +37,7 @@ class DueCardsReminderWorker(
 
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(LaunchDestination.EXTRA_NAME, LaunchDestination.StudyDue.extraValue)
         }
         val contentIntent = PendingIntent.getActivity(
             context,

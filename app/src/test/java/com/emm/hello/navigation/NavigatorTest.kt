@@ -85,4 +85,18 @@ class NavigatorTest {
         assertEquals(1, backStack.size)
         assertEquals(RouteA, backStack.last())
     }
+
+    @Test
+    fun `resetTo clears back stack and leaves root then destination`() {
+        val backStack: SnapshotStateList<NavKey> = mutableListOf<NavKey>(
+            RouteA,
+            RouteB("1"),
+            RouteB("2"),
+        ).toMutableStateList()
+        val navigator = Navigator(backStack)
+
+        navigator.resetTo(RouteA, RouteB("3"))
+
+        assertEquals(listOf(RouteA, RouteB("3")), backStack)
+    }
 }
