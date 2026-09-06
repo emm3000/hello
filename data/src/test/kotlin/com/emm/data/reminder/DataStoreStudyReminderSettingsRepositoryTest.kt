@@ -24,8 +24,10 @@ class DataStoreStudyReminderSettingsRepositoryTest {
     private fun buildRepo() = DataStoreStudyReminderSettingsRepository(DataStore(prefs))
 
     @Test
-    fun `get defaults to enabled with 19_00 when the key is absent`() {
+    fun `get defaults to enabled with 19_00 when the keys are absent`() {
         every { prefs.getBoolean("STUDY_REMINDER_ENABLED", true) } returns true
+        every { prefs.getInt("STUDY_REMINDER_HOUR", 19) } returns 19
+        every { prefs.getInt("STUDY_REMINDER_MINUTE", 0) } returns 0
 
         val repo = buildRepo()
         val settings: StudyReminderSettings = repo.get()
@@ -44,5 +46,32 @@ class DataStoreStudyReminderSettingsRepositoryTest {
 
         assertEquals(false, stored.captured)
         verify { editor.apply() }
+    }
+
+    @Test
+    fun `setTime writes the hour and minute and applies`() {
+        val storedHour = slot<Int>()
+        val storedMinute = slot<Int>()
+        every { editor.putInt("STUDY_REMINDER_HOUR", capture(storedHour)) } returns editor
+        every { editor.putInt("STUDY_REMINDER_MINUTE", capture(storedMinute)) } returns editor
+
+        val repo = buildRepo()
+        repo.setTime(LocalTime.of(7, 30))
+
+        assertEquals(7, storedHour.captured)
+        assertEquals(30, storedMinute.captured)
+        verify { editor.apply() }
+    }
+
+    @Test
+    fun `get reads back a stored 7_30 as LocalTime`() {
+        every { prefs.getBoolean("STUDY_REMINDER_ENABLED", true) } returns true
+        every { prefs.getInt("STUDY_REMINDER_HOUR", 19) } returns 7
+        every { prefs.getInt("STUDY_REMINDER_MINUTE", 0) } returns 30
+
+        val repo = buildRepo()
+        val settings: StudyReminderSettings = repo.get()
+
+        assertEquals(LocalTime.of(7, 30), settings.time)
     }
 }

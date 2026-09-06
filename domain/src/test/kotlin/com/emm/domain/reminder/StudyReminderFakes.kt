@@ -9,11 +9,19 @@ class FakeStudyReminderSettingsRepository(
     var setEnabledCalls: List<Boolean> = emptyList()
         private set
 
+    var setTimeCalls: List<LocalTime> = emptyList()
+        private set
+
     override fun get(): StudyReminderSettings = settings
 
     override fun setEnabled(isEnabled: Boolean) {
         settings = settings.copy(isEnabled = isEnabled)
         setEnabledCalls = setEnabledCalls + isEnabled
+    }
+
+    override fun setTime(time: LocalTime) {
+        settings = settings.copy(time = time)
+        setTimeCalls = setTimeCalls + time
     }
 }
 

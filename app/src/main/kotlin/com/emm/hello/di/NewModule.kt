@@ -81,6 +81,7 @@ import com.emm.data.reminder.DataStoreStudyReminderSettingsRepository
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.domain.reminder.StudyReminderScheduler
@@ -171,7 +172,7 @@ fun Module.repository() {
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
-    single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext()) }
+    single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext(), get()) }
     single<SeedDataInitializer> {
         DefaultSeedDataInitializer(
             deckRepository = get(),
@@ -223,6 +224,7 @@ fun Module.useCases() {
     factoryOf(::SuggestWordsUseCase)
     factoryOf(::SyncStudyReminderUseCase)
     factoryOf(::SetStudyReminderEnabledUseCase)
+    factoryOf(::SetStudyReminderTimeUseCase)
     factoryOf(::GetStudyReminderSettingsUseCase)
 }
 
@@ -266,7 +268,7 @@ fun Module.viewModels() {
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }
 

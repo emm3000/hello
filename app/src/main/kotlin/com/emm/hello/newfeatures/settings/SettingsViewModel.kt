@@ -7,9 +7,11 @@ import com.emm.data.export.BackupImporter
 import com.emm.data.export.IncompatibleSchemaException
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import java.time.LocalTime
 import kotlinx.coroutines.launch
 
 private const val TAG = "SettingsViewModel"
@@ -19,6 +21,7 @@ class SettingsViewModel(
     private val importDataSource: BackupImporter,
     private val getStudyReminderSettings: GetStudyReminderSettingsUseCase,
     private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
+    private val setStudyReminderTime: SetStudyReminderTimeUseCase,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(),
 ) {
@@ -39,12 +42,20 @@ class SettingsViewModel(
             is SettingsUiIntent.ConfirmImport -> confirmImport()
             is SettingsUiIntent.CancelImport -> cancelImport()
             is SettingsUiIntent.SetReminderEnabled -> setReminderEnabled(intent.isEnabled)
+            is SettingsUiIntent.EditReminderTime -> setState { copy(isReminderTimePickerVisible = true) }
+            is SettingsUiIntent.DismissReminderTimePicker -> setState { copy(isReminderTimePickerVisible = false) }
+            is SettingsUiIntent.SetReminderTime -> setReminderTime(intent.time)
         }
     }
 
     private fun setReminderEnabled(isEnabled: Boolean) {
         setStudyReminderEnabled(isEnabled)
         setState { copy(isReminderEnabled = isEnabled) }
+    }
+
+    private fun setReminderTime(time: LocalTime) {
+        setStudyReminderTime(time)
+        setState { copy(reminderTime = time, isReminderTimePickerVisible = false) }
     }
 
     private fun exportToUri(uri: Uri) {

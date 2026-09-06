@@ -5,6 +5,7 @@ import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderScheduler
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
@@ -36,6 +37,10 @@ class SettingsViewModelTest {
         reminderRepository,
         SyncStudyReminderUseCase(reminderRepository, reminderScheduler),
     )
+    private val setStudyReminderTime = SetStudyReminderTimeUseCase(
+        reminderRepository,
+        SyncStudyReminderUseCase(reminderRepository, reminderScheduler),
+    )
 
     @Before
     fun setup() {
@@ -51,6 +56,7 @@ class SettingsViewModelTest {
         importDataSource,
         getStudyReminderSettings,
         setStudyReminderEnabled,
+        setStudyReminderTime,
     )
 
     @Test
@@ -230,6 +236,50 @@ class SettingsViewModelTest {
         assertThat(reminderScheduler.scheduledTimes).containsExactly(StudyReminderSettings.DEFAULT_TIME)
         assertThat(viewModel.state.value.isReminderEnabled).isTrue()
     }
+
+    @Test
+    fun `EditReminderTime shows the picker`() = runTest {
+        val viewModel = buildViewModel()
+
+        viewModel.onIntent(SettingsUiIntent.EditReminderTime)
+
+        assertThat(viewModel.state.value.isReminderTimePickerVisible).isTrue()
+    }
+
+    @Test
+    fun `DismissReminderTimePicker hides the picker`() = runTest {
+        val viewModel = buildViewModel()
+        viewModel.onIntent(SettingsUiIntent.EditReminderTime)
+
+        viewModel.onIntent(SettingsUiIntent.DismissReminderTimePicker)
+
+        assertThat(viewModel.state.value.isReminderTimePickerVisible).isFalse()
+    }
+
+    @Test
+    fun `SetReminderTime persists the time, schedules once when enabled, and hides the picker`() = runTest {
+        val time: LocalTime = LocalTime.of(7, 30)
+        val repository = FakeStudyReminderSettingsRepository(
+            StudyReminderSettings(isEnabled = true, time = StudyReminderSettings.DEFAULT_TIME),
+        )
+        val scheduler = RecordingStudyReminderScheduler()
+        val syncStudyReminder = SyncStudyReminderUseCase(repository, scheduler)
+        val viewModel = SettingsViewModel(
+            FakeBackupExporter(),
+            FakeBackupImporter(),
+            GetStudyReminderSettingsUseCase(repository),
+            SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
+            SetStudyReminderTimeUseCase(repository, syncStudyReminder),
+        )
+        viewModel.onIntent(SettingsUiIntent.EditReminderTime)
+
+        viewModel.onIntent(SettingsUiIntent.SetReminderTime(time))
+
+        assertThat(repository.setTimeCalls).containsExactly(time)
+        assertThat(scheduler.scheduledTimes).containsExactly(time)
+        assertThat(viewModel.state.value.reminderTime).isEqualTo(time)
+        assertThat(viewModel.state.value.isReminderTimePickerVisible).isFalse()
+    }
 }
 
 private class FakeBackupExporter(
@@ -267,11 +317,19 @@ private class FakeStudyReminderSettingsRepository(
     var setEnabledCalls: List<Boolean> = emptyList()
         private set
 
+    var setTimeCalls: List<LocalTime> = emptyList()
+        private set
+
     override fun get(): StudyReminderSettings = settings
 
     override fun setEnabled(isEnabled: Boolean) {
         settings = settings.copy(isEnabled = isEnabled)
         setEnabledCalls = setEnabledCalls + isEnabled
+    }
+
+    override fun setTime(time: LocalTime) {
+        settings = settings.copy(time = time)
+        setTimeCalls = setTimeCalls + time
     }
 }
 

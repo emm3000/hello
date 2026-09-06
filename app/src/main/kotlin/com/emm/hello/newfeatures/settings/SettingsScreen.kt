@@ -56,6 +56,7 @@ import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSwitch
+import com.emm.hello.core.ui.HTimePickerDialog
 import com.emm.hello.core.ui.HTopBar
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -75,6 +76,9 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
     onDecks: () -> Unit = {},
     onReminderEnabledChange: (Boolean) -> Unit = {},
+    onEditReminderTime: () -> Unit = {},
+    onReminderTimeChange: (LocalTime) -> Unit = {},
+    onDismissReminderTimePicker: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -109,6 +113,7 @@ fun SettingsScreen(
                             isReminderEnabled = state.isReminderEnabled,
                             reminderTime = state.reminderTime,
                             onReminderEnabledChange = onReminderEnabledChange,
+                            onEditReminderTime = onEditReminderTime,
                         )
                         Spacer(Modifier.height(28.dp))
                     }
@@ -144,6 +149,15 @@ fun SettingsScreen(
             cancelText = stringResource(R.string.restore_confirm_no),
             icon = Icons.Outlined.Delete,
             isDangerous = true,
+        )
+    }
+
+    if (state.isReminderTimePickerVisible) {
+        HTimePickerDialog(
+            initialTime = state.reminderTime,
+            onConfirm = onReminderTimeChange,
+            onDismiss = onDismissReminderTimePicker,
+            title = stringResource(R.string.settings_reminder_time_title),
         )
     }
 }
@@ -197,6 +211,7 @@ private fun RemindersSection(
     isReminderEnabled: Boolean,
     reminderTime: LocalTime,
     onReminderEnabledChange: (Boolean) -> Unit,
+    onEditReminderTime: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HSectionLabel(stringResource(R.string.settings_section_reminders))
@@ -213,7 +228,7 @@ private fun RemindersSection(
                     R.string.settings_study_reminder_subtitle,
                     reminderTime.format(reminderTimeFormatter),
                 ),
-                onClick = { onReminderEnabledChange(!isReminderEnabled) },
+                onClick = onEditReminderTime,
                 trailing = {
                     HSwitch(checked = isReminderEnabled, onCheckedChange = onReminderEnabledChange)
                 },

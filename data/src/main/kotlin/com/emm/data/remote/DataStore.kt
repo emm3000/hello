@@ -1,11 +1,14 @@
 package com.emm.data.remote
 
 import android.content.SharedPreferences
+import com.emm.domain.reminder.StudyReminderSettings
 
 private const val KEY_DEFAULT_DECK = "DEFAULT_DECK"
 private const val KEY_SEEN_ONBOARDING = "HAS_SEEN_ONBOARDING"
 private const val KEY_SEEDED_STARTER_DECK = "HAS_SEEDED_STARTER_DECK"
 private const val KEY_STUDY_REMINDER_ENABLED = "STUDY_REMINDER_ENABLED"
+private const val KEY_STUDY_REMINDER_HOUR = "STUDY_REMINDER_HOUR"
+private const val KEY_STUDY_REMINDER_MINUTE = "STUDY_REMINDER_MINUTE"
 
 class DataStore(
     private val sharedPreferences: SharedPreferences,
@@ -37,5 +40,17 @@ class DataStore(
         get() = sharedPreferences.getBoolean(KEY_STUDY_REMINDER_ENABLED, true)
         set(value) {
             sharedPreferences.edit().putBoolean(KEY_STUDY_REMINDER_ENABLED, value).apply()
+        }
+
+    var studyReminderHour: Int
+        get() = sharedPreferences.getInt(KEY_STUDY_REMINDER_HOUR, StudyReminderSettings.DEFAULT_TIME.hour)
+        set(value) {
+            sharedPreferences.edit().putInt(KEY_STUDY_REMINDER_HOUR, value).apply()
+        }
+
+    var studyReminderMinute: Int
+        get() = sharedPreferences.getInt(KEY_STUDY_REMINDER_MINUTE, StudyReminderSettings.DEFAULT_TIME.minute)
+        set(value) {
+            sharedPreferences.edit().putInt(KEY_STUDY_REMINDER_MINUTE, value).apply()
         }
 }

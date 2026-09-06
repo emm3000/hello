@@ -68,5 +68,8 @@ fun SettingsDestination(navigator: Navigator) {
         onNavigateBack = { navigator.goBack() },
         onDecks = { navigator.navigateTo(DecksRoute) },
         onReminderEnabledChange = { vm.onIntent(SettingsUiIntent.SetReminderEnabled(it)) },
+        onEditReminderTime = { vm.onIntent(SettingsUiIntent.EditReminderTime) },
+        onReminderTimeChange = { vm.onIntent(SettingsUiIntent.SetReminderTime(it)) },
+        onDismissReminderTimePicker = { vm.onIntent(SettingsUiIntent.DismissReminderTimePicker) },
     )
 }

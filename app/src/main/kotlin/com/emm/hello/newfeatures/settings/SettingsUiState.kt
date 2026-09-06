@@ -12,4 +12,5 @@ data class SettingsUiState(
     val pendingImportUri: Uri? = null,
     val isReminderEnabled: Boolean = true,
     val reminderTime: LocalTime = StudyReminderSettings.DEFAULT_TIME,
+    val isReminderTimePickerVisible: Boolean = false,
 ) : MviState

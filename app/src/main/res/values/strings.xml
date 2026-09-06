@@ -206,6 +206,7 @@
     <string name="settings_section_reminders">Reminders</string>
     <string name="settings_study_reminder_title">Daily study reminder</string>
     <string name="settings_study_reminder_subtitle">Every day at %1$s</string>
+    <string name="settings_reminder_time_title">Reminder time</string>
     <string name="error_restore_deck">Couldn\'t restore the deck</string>
 
     <!-- Suggest -->
