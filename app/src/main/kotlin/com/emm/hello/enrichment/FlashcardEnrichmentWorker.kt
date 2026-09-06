@@ -8,6 +8,7 @@ import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.validation.DomainValidationException
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
 import org.koin.core.context.GlobalContext
@@ -36,8 +37,15 @@ class FlashcardEnrichmentWorker(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
-            logError(TAG, "enrich:error ${flashcardId.value} ${error.message}", error)
+            logError(TAG, "enrich:error ${flashcardId.value} ${error.describe()}", error)
             EnrichmentStatus.FAILED
+        }
+    }
+
+    private fun Throwable.describe(): String {
+        if (this !is DomainValidationException) return message.orEmpty()
+        return issues.joinToString(prefix = "domain_validation_failed [", postfix = "]") { issue ->
+            "${issue.code.value}@${issue.field}"
         }
     }
 
