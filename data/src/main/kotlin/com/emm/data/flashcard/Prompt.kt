@@ -50,12 +50,13 @@ object Prompt {
         - simple_definition_en: short, plain English definition.
         - why_useful: the concrete communicative payoff (no generic "helps you learn English").
         - example_sentence / example_translation: natural example + LatAm Spanish translation; the example MUST support the chosen meaning.
-        - usage_pattern: required for note_type = phrase, phrasal_verb, sentence_pattern.
+        - usage_pattern: REQUIRED and non-empty for note_type = phrase, phrasal_verb, sentence_pattern — the expression plus its slots (e.g. "give up + [noun / -ing]"); a response that leaves it empty for those types is rejected.
         - cloze_sentence: required for note_type = sentence_pattern; otherwise include only if it adds distinct retrieval value.
         - common_mistake / confusable_with: include only when they add real learner value.
         - source_context: brief paraphrase of the user's situation.
         - cards: 2 to 4 active retrieval cards. Include a recognition card AND a production card whenever each adds retrieval value. Add a cloze card only when it gives distinct value vs. the others.
         - Each card: prompt is specific and unambiguous (never a discussion question); expected_answer is short, objective, ideally one expression; accepted_answers contains only true equivalents, not loose paraphrases; source_field names the note field the card derives from (e.g. expression, example_sentence, cloze_sentence).
+        - Before quality_checks, confirm every field the chosen note_type requires is filled: usage_pattern for phrase, phrasal_verb and sentence_pattern; cloze_sentence for sentence_pattern.
         - quality_checks: report each of these codes exactly once with an honest passed/message —
           single_meaning, natural_example, non_ambiguous_answers, clear_card_focus,
           note_card_alignment.
