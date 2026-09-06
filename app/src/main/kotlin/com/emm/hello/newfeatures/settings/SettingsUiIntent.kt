@@ -15,4 +15,7 @@ sealed interface SettingsUiIntent : MviIntent {
     data object EditReminderTime : SettingsUiIntent
     data object DismissReminderTimePicker : SettingsUiIntent
     data class SetReminderTime(val time: LocalTime) : SettingsUiIntent
+    data object NotificationPermissionSettled : SettingsUiIntent
+    data object RefreshNotificationPermission : SettingsUiIntent
+    data object OpenNotificationSettings : SettingsUiIntent
 }

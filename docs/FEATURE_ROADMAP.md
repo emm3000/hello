@@ -33,7 +33,7 @@ Delivered as three commits (`1988e5c`, `8779630`, `6a2c6ad`), in a different sha
 - **N2-T8** (was `F-Time-Picker`): reminder time picker in Settings, persisted as hour/minute.
 - **N2-T9** (was `F-Deep-Link`): tapping the notification opens `Study` for all due cards.
 
-See `docs/NOTIFICATIONS_PLAN.md` for the full breakdown, including the open follow-up (`F-Onboarding-Consent`: the app never requests `POST_NOTIFICATIONS`).
+See `docs/NOTIFICATIONS_PLAN.md` for the full breakdown, including the open follow-up (`F-First-Launch-Prompt`: a fresh install never sees the `POST_NOTIFICATIONS` prompt until the user opens Settings).
 
 ---
 

@@ -79,6 +79,7 @@ fun SettingsScreen(
     onEditReminderTime: () -> Unit = {},
     onReminderTimeChange: (LocalTime) -> Unit = {},
     onDismissReminderTimePicker: () -> Unit = {},
+    onOpenNotificationSettings: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -112,8 +113,10 @@ fun SettingsScreen(
                         RemindersSection(
                             isReminderEnabled = state.isReminderEnabled,
                             reminderTime = state.reminderTime,
+                            isNotificationPermissionGranted = state.isNotificationPermissionGranted,
                             onReminderEnabledChange = onReminderEnabledChange,
                             onEditReminderTime = onEditReminderTime,
+                            onOpenNotificationSettings = onOpenNotificationSettings,
                         )
                         Spacer(Modifier.height(28.dp))
                     }
@@ -210,8 +213,10 @@ private fun OrganizationSection(onDecks: () -> Unit) {
 private fun RemindersSection(
     isReminderEnabled: Boolean,
     reminderTime: LocalTime,
+    isNotificationPermissionGranted: Boolean,
     onReminderEnabledChange: (Boolean) -> Unit,
     onEditReminderTime: () -> Unit,
+    onOpenNotificationSettings: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HSectionLabel(stringResource(R.string.settings_section_reminders))
@@ -224,11 +229,9 @@ private fun RemindersSection(
             SettingsRow(
                 icon = Icons.Outlined.Notifications,
                 title = stringResource(R.string.settings_study_reminder_title),
-                sub = stringResource(
-                    R.string.settings_study_reminder_subtitle,
-                    reminderTime.format(reminderTimeFormatter),
-                ),
-                onClick = onEditReminderTime,
+                sub = reminderSubtitle(isNotificationPermissionGranted, reminderTime),
+                subTone = if (isNotificationPermissionGranted) SubTone.Muted else SubTone.Danger,
+                onClick = if (isNotificationPermissionGranted) onEditReminderTime else onOpenNotificationSettings,
                 trailing = {
                     HSwitch(checked = isReminderEnabled, onCheckedChange = onReminderEnabledChange)
                 },
@@ -236,6 +239,14 @@ private fun RemindersSection(
         }
     }
 }
+
+@Composable
+private fun reminderSubtitle(isNotificationPermissionGranted: Boolean, reminderTime: LocalTime): String =
+    if (isNotificationPermissionGranted) {
+        stringResource(R.string.settings_study_reminder_subtitle, reminderTime.format(reminderTimeFormatter))
+    } else {
+        stringResource(R.string.settings_notifications_blocked)
+    }
 
 @Composable
 private fun DataSection(

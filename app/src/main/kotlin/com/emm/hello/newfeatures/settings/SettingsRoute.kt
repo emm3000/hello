@@ -1,6 +1,10 @@
 package com.emm.hello.newfeatures.settings
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
@@ -9,6 +13,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
@@ -26,6 +33,7 @@ fun SettingsDestination(navigator: Navigator) {
     val uiState: SettingsUiState by vm.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context: Context = LocalContext.current
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
@@ -37,6 +45,14 @@ fun SettingsDestination(navigator: Navigator) {
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri: Uri? ->
         uri?.let { vm.onIntent(SettingsUiIntent.ImportUriReceived(it)) }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { vm.onIntent(SettingsUiIntent.NotificationPermissionSettled) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        vm.onIntent(SettingsUiIntent.RefreshNotificationPermission)
     }
 
     LaunchedEffect(Unit) {
@@ -53,6 +69,15 @@ fun SettingsDestination(navigator: Navigator) {
                 }
                 SettingsUiEffect.LaunchImportPicker -> {
                     importLauncher.launch(arrayOf("application/json"))
+                }
+                SettingsUiEffect.RequestNotificationPermission -> {
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                SettingsUiEffect.OpenNotificationSettings -> {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                    )
                 }
             }
         }
@@ -71,5 +96,6 @@ fun SettingsDestination(navigator: Navigator) {
         onEditReminderTime = { vm.onIntent(SettingsUiIntent.EditReminderTime) },
         onReminderTimeChange = { vm.onIntent(SettingsUiIntent.SetReminderTime(it)) },
         onDismissReminderTimePicker = { vm.onIntent(SettingsUiIntent.DismissReminderTimePicker) },
+        onOpenNotificationSettings = { vm.onIntent(SettingsUiIntent.OpenNotificationSettings) },
     )
 }

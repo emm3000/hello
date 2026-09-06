@@ -7,4 +7,6 @@ sealed interface SettingsUiEffect : MviEffect {
     data class ShowError(val message: String) : SettingsUiEffect
     data object LaunchExportPicker : SettingsUiEffect
     data object LaunchImportPicker : SettingsUiEffect
+    data object RequestNotificationPermission : SettingsUiEffect
+    data object OpenNotificationSettings : SettingsUiEffect
 }

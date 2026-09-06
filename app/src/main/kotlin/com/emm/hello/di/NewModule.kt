@@ -85,6 +85,8 @@ import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.domain.reminder.StudyReminderScheduler
+import com.emm.hello.notifications.NotificationPermission
+import com.emm.hello.notifications.SystemNotificationPermission
 import com.emm.hello.notifications.WorkManagerStudyReminderScheduler
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
@@ -173,6 +175,7 @@ fun Module.repository() {
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
     single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext(), get()) }
+    single<NotificationPermission> { SystemNotificationPermission(androidContext()) }
     single<SeedDataInitializer> {
         DefaultSeedDataInitializer(
             deckRepository = get(),
@@ -268,7 +271,7 @@ fun Module.viewModels() {
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }
 

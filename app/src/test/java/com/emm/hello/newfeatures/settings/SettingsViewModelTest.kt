@@ -11,6 +11,7 @@ import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.notifications.NotificationPermission
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
@@ -19,6 +20,7 @@ import java.time.LocalTime
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,12 +53,14 @@ class SettingsViewModelTest {
     private fun buildViewModel(
         exportDataSource: BackupExporter = FakeBackupExporter(),
         importDataSource: BackupImporter = FakeBackupImporter(),
+        notificationPermission: NotificationPermission = FakeNotificationPermission(),
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
         importDataSource,
         getStudyReminderSettings,
         setStudyReminderEnabled,
         setStudyReminderTime,
+        notificationPermission,
     )
 
     @Test
@@ -270,6 +274,7 @@ class SettingsViewModelTest {
             GetStudyReminderSettingsUseCase(repository),
             SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
             SetStudyReminderTimeUseCase(repository, syncStudyReminder),
+            FakeNotificationPermission(),
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
 
@@ -279,6 +284,119 @@ class SettingsViewModelTest {
         assertThat(scheduler.scheduledTimes).containsExactly(time)
         assertThat(viewModel.state.value.reminderTime).isEqualTo(time)
         assertThat(viewModel.state.value.isReminderTimePickerVisible).isFalse()
+    }
+
+    @Test
+    fun `enabling the reminder with notifications allowed persists it and emits no effect`() = runTest {
+        val viewModel = buildViewModel()
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+
+        val effect: SettingsUiEffect? = withTimeoutOrNull(100) { effectDeferred.await() }
+        assertThat(effect).isNull()
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(true)
+        assertThat(viewModel.state.value.isReminderEnabled).isTrue()
+    }
+
+    @Test
+    fun `enabling the reminder without notifications allowed asks for permission, keeps the toggle off`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val viewModel = buildViewModel(notificationPermission = notificationPermission)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+
+        val effect = effectDeferred.await()
+        assertThat(effect).isEqualTo(SettingsUiEffect.RequestNotificationPermission)
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+        assertThat(reminderRepository.setEnabledCalls).isEmpty()
+    }
+
+    @Test
+    fun `a granted permission after the request enables the reminder and clears the blocked flag`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val viewModel = buildViewModel(notificationPermission = notificationPermission)
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+        notificationPermission.granted = true
+
+        viewModel.onIntent(SettingsUiIntent.NotificationPermissionSettled)
+
+        assertThat(viewModel.state.value.isReminderEnabled).isTrue()
+        assertThat(viewModel.state.value.isNotificationPermissionGranted).isTrue()
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(true)
+    }
+
+    @Test
+    fun `a denied permission after the request keeps the reminder off and sets the blocked flag`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val viewModel = buildViewModel(notificationPermission = notificationPermission)
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+
+        viewModel.onIntent(SettingsUiIntent.NotificationPermissionSettled)
+
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+        assertThat(viewModel.state.value.isNotificationPermissionGranted).isFalse()
+        assertThat(reminderRepository.setEnabledCalls).isEmpty()
+    }
+
+    @Test
+    fun `opening settings with an enabled but blocked reminder shows the blocked flag`() = runTest {
+        val repository = FakeStudyReminderSettingsRepository(
+            StudyReminderSettings(isEnabled = true, time = StudyReminderSettings.DEFAULT_TIME),
+        )
+        val scheduler = RecordingStudyReminderScheduler()
+        val syncStudyReminder = SyncStudyReminderUseCase(repository, scheduler)
+        val notificationPermission = FakeNotificationPermission(granted = false)
+
+        val viewModel = SettingsViewModel(
+            FakeBackupExporter(),
+            FakeBackupImporter(),
+            GetStudyReminderSettingsUseCase(repository),
+            SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
+            SetStudyReminderTimeUseCase(repository, syncStudyReminder),
+            notificationPermission,
+        )
+
+        assertThat(viewModel.state.value.isReminderEnabled).isTrue()
+        assertThat(viewModel.state.value.isNotificationPermissionGranted).isFalse()
+    }
+
+    @Test
+    fun `refreshing after granting permission in system settings clears the blocked flag`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val viewModel = buildViewModel(notificationPermission = notificationPermission)
+        notificationPermission.granted = true
+
+        viewModel.onIntent(SettingsUiIntent.RefreshNotificationPermission)
+
+        assertThat(viewModel.state.value.isNotificationPermissionGranted).isTrue()
+        assertThat(reminderRepository.setEnabledCalls).isEmpty()
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+    }
+
+    @Test
+    fun `asking to open notification settings emits the OpenNotificationSettings effect`() = runTest {
+        val viewModel = buildViewModel()
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.OpenNotificationSettings)
+
+        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.OpenNotificationSettings)
+    }
+
+    @Test
+    fun `disabling the reminder never asks for the permission`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val viewModel = buildViewModel(notificationPermission = notificationPermission)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(false))
+
+        val effect: SettingsUiEffect? = withTimeoutOrNull(100) { effectDeferred.await() }
+        assertThat(effect).isNull()
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(false)
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
     }
 }
 
@@ -348,4 +466,9 @@ private class RecordingStudyReminderScheduler : StudyReminderScheduler {
     override fun cancel() {
         cancelCount += 1
     }
+}
+
+private class FakeNotificationPermission(var granted: Boolean = true) : NotificationPermission {
+
+    override fun isGranted(): Boolean = granted
 }

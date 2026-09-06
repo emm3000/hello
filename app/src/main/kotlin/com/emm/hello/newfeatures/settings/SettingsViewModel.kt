@@ -11,6 +11,7 @@ import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import com.emm.hello.notifications.NotificationPermission
 import java.time.LocalTime
 import kotlinx.coroutines.launch
 
@@ -22,13 +23,20 @@ class SettingsViewModel(
     private val getStudyReminderSettings: GetStudyReminderSettingsUseCase,
     private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
     private val setStudyReminderTime: SetStudyReminderTimeUseCase,
+    private val notificationPermission: NotificationPermission,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(),
 ) {
 
     init {
         val settings: StudyReminderSettings = getStudyReminderSettings()
-        setState { copy(isReminderEnabled = settings.isEnabled, reminderTime = settings.time) }
+        setState {
+            copy(
+                isReminderEnabled = settings.isEnabled,
+                reminderTime = settings.time,
+                isNotificationPermissionGranted = notificationPermission.isGranted(),
+            )
+        }
     }
 
     override fun onIntent(intent: SettingsUiIntent) {
@@ -45,12 +53,38 @@ class SettingsViewModel(
             is SettingsUiIntent.EditReminderTime -> setState { copy(isReminderTimePickerVisible = true) }
             is SettingsUiIntent.DismissReminderTimePicker -> setState { copy(isReminderTimePickerVisible = false) }
             is SettingsUiIntent.SetReminderTime -> setReminderTime(intent.time)
+            is SettingsUiIntent.NotificationPermissionSettled -> notificationPermissionSettled()
+            is SettingsUiIntent.RefreshNotificationPermission -> refreshNotificationPermission()
+            is SettingsUiIntent.OpenNotificationSettings -> sendEffect(SettingsUiEffect.OpenNotificationSettings)
         }
     }
 
     private fun setReminderEnabled(isEnabled: Boolean) {
-        setStudyReminderEnabled(isEnabled)
-        setState { copy(isReminderEnabled = isEnabled) }
+        if (!isEnabled) {
+            setStudyReminderEnabled(false)
+            setState { copy(isReminderEnabled = false) }
+            return
+        }
+        if (!notificationPermission.isGranted()) {
+            sendEffect(SettingsUiEffect.RequestNotificationPermission)
+            return
+        }
+        setStudyReminderEnabled(true)
+        setState { copy(isReminderEnabled = true, isNotificationPermissionGranted = true) }
+    }
+
+    private fun notificationPermissionSettled() {
+        val isGranted: Boolean = notificationPermission.isGranted()
+        setState { copy(isNotificationPermissionGranted = isGranted) }
+        if (isGranted) {
+            setStudyReminderEnabled(true)
+            setState { copy(isReminderEnabled = true) }
+        }
+    }
+
+    private fun refreshNotificationPermission() {
+        val isGranted: Boolean = notificationPermission.isGranted()
+        setState { copy(isNotificationPermissionGranted = isGranted) }
     }
 
     private fun setReminderTime(time: LocalTime) {

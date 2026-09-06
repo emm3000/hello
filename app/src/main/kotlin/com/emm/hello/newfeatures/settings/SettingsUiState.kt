@@ -13,4 +13,5 @@ data class SettingsUiState(
     val isReminderEnabled: Boolean = true,
     val reminderTime: LocalTime = StudyReminderSettings.DEFAULT_TIME,
     val isReminderTimePickerVisible: Boolean = false,
+    val isNotificationPermissionGranted: Boolean = true,
 ) : MviState
