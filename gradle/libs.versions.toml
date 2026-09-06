@@ -21,7 +21,6 @@ nav3Core = "1.1.7"
 lifecycleViewmodelNav3 = "2.11.0"
 appcompat = "1.8.0"
 material = "1.14.0"
-coreKtxVersion = "1.7.0"
 androidDriver = "2.3.2"
 truth = "1.4.5"
 turbine = "1.2.1"
@@ -69,7 +68,6 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "androidDriver" }
 coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "androidDriver" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }

@@ -1,6 +1,7 @@
 package com.emm.data.flashcard
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.emm.domain.generation.GenerationQuota
 import java.time.Clock
 import java.time.LocalDate
@@ -23,10 +24,10 @@ class DailyGenerationQuota(
             return GenerationQuota.Outcome.Exceeded(limit = limit, resetAt = resetAt)
         }
 
-        preferences.edit()
-            .putString(KEY_DATE, today.toString())
-            .putInt(KEY_COUNT, countToday + 1)
-            .apply()
+        preferences.edit {
+            putString(KEY_DATE, today.toString())
+            putInt(KEY_COUNT, countToday + 1)
+        }
 
         return GenerationQuota.Outcome.Allowed
     }

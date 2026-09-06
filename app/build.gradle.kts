@@ -85,6 +85,10 @@ configure<ApplicationExtension> {
         compose = true
         buildConfig = true
     }
+
+    lint {
+        checkDependencies = true
+    }
 }
 
 kotlin {
