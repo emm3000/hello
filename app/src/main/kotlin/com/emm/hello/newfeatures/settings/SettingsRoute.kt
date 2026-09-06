@@ -67,5 +67,6 @@ fun SettingsDestination(navigator: Navigator) {
         onDismissImport = { vm.onIntent(SettingsUiIntent.CancelImport) },
         onNavigateBack = { navigator.goBack() },
         onDecks = { navigator.navigateTo(DecksRoute) },
+        onReminderEnabledChange = { vm.onIntent(SettingsUiIntent.SetReminderEnabled(it)) },
     )
 }

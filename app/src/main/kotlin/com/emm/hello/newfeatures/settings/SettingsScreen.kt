@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,7 +55,12 @@ import com.emm.hello.core.ui.HAlertDialog
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
+import com.emm.hello.core.ui.HSwitch
 import com.emm.hello.core.ui.HTopBar
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+private val reminderTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +74,7 @@ fun SettingsScreen(
     onDismissImport: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onDecks: () -> Unit = {},
+    onReminderEnabledChange: (Boolean) -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -95,6 +102,14 @@ fun SettingsScreen(
                     }
                     item {
                         OrganizationSection(onDecks = onDecks)
+                        Spacer(Modifier.height(28.dp))
+                    }
+                    item {
+                        RemindersSection(
+                            isReminderEnabled = state.isReminderEnabled,
+                            reminderTime = state.reminderTime,
+                            onReminderEnabledChange = onReminderEnabledChange,
+                        )
                         Spacer(Modifier.height(28.dp))
                     }
                     item {
@@ -172,6 +187,36 @@ private fun OrganizationSection(onDecks: () -> Unit) {
                 title = stringResource(R.string.decks_title),
                 sub = stringResource(R.string.settings_decks_subtitle),
                 onClick = onDecks,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RemindersSection(
+    isReminderEnabled: Boolean,
+    reminderTime: LocalTime,
+    onReminderEnabledChange: (Boolean) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(stringResource(R.string.settings_section_reminders))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = surface,
+            shape = MaterialTheme.helloShapes.control,
+        ) {
+            SettingsRow(
+                icon = Icons.Outlined.Notifications,
+                title = stringResource(R.string.settings_study_reminder_title),
+                sub = stringResource(
+                    R.string.settings_study_reminder_subtitle,
+                    reminderTime.format(reminderTimeFormatter),
+                ),
+                onClick = { onReminderEnabledChange(!isReminderEnabled) },
+                trailing = {
+                    HSwitch(checked = isReminderEnabled, onCheckedChange = onReminderEnabledChange)
+                },
             )
         }
     }

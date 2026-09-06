@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.IncompatibleSchemaException
+import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
+import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.launch
@@ -14,9 +17,16 @@ private const val TAG = "SettingsViewModel"
 class SettingsViewModel(
     private val exportDataSource: BackupExporter,
     private val importDataSource: BackupImporter,
+    private val getStudyReminderSettings: GetStudyReminderSettingsUseCase,
+    private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(),
 ) {
+
+    init {
+        val settings: StudyReminderSettings = getStudyReminderSettings()
+        setState { copy(isReminderEnabled = settings.isEnabled, reminderTime = settings.time) }
+    }
 
     override fun onIntent(intent: SettingsUiIntent) {
         when (intent) {
@@ -28,7 +38,13 @@ class SettingsViewModel(
             }
             is SettingsUiIntent.ConfirmImport -> confirmImport()
             is SettingsUiIntent.CancelImport -> cancelImport()
+            is SettingsUiIntent.SetReminderEnabled -> setReminderEnabled(intent.isEnabled)
         }
+    }
+
+    private fun setReminderEnabled(isEnabled: Boolean) {
+        setStudyReminderEnabled(isEnabled)
+        setState { copy(isReminderEnabled = isEnabled) }
     }
 
     private fun exportToUri(uri: Uri) {

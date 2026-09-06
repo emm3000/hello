@@ -10,4 +10,5 @@ sealed interface SettingsUiIntent : MviIntent {
     data object CancelImport : SettingsUiIntent
     data class ExportUriReceived(val uri: Uri) : SettingsUiIntent
     data class ImportUriReceived(val uri: Uri) : SettingsUiIntent
+    data class SetReminderEnabled(val isEnabled: Boolean) : SettingsUiIntent
 }

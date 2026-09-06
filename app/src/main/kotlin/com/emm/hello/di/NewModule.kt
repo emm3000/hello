@@ -77,7 +77,14 @@ import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
 import com.emm.data.onboarding.DataStoreOnboardingStateRepository
+import com.emm.data.reminder.DataStoreStudyReminderSettingsRepository
 import com.emm.domain.onboarding.OnboardingStateRepository
+import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
+import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.StudyReminderSettingsRepository
+import com.emm.domain.reminder.SyncStudyReminderUseCase
+import com.emm.domain.reminder.StudyReminderScheduler
+import com.emm.hello.notifications.WorkManagerStudyReminderScheduler
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
 import com.emm.hello.newfeatures.shared.UndoEventHolder
@@ -163,6 +170,8 @@ fun Module.repository() {
     factoryOf(::ExportBackupDataSource) bind BackupExporter::class
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
+    factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
+    single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext()) }
     single<SeedDataInitializer> {
         DefaultSeedDataInitializer(
             deckRepository = get(),
@@ -212,6 +221,9 @@ fun Module.useCases() {
     factoryOf(::CountDueFlashcardsUseCase)
     factoryOf(::SearchLibraryUseCase)
     factoryOf(::SuggestWordsUseCase)
+    factoryOf(::SyncStudyReminderUseCase)
+    factoryOf(::SetStudyReminderEnabledUseCase)
+    factoryOf(::GetStudyReminderSettingsUseCase)
 }
 
 fun Module.viewModels() {
@@ -254,7 +266,7 @@ fun Module.viewModels() {
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }
 

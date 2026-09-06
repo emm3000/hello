@@ -3,11 +3,18 @@ package com.emm.hello.newfeatures.settings
 import android.net.Uri
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
+import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
+import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
+import com.emm.domain.reminder.StudyReminderScheduler
+import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.domain.reminder.StudyReminderSettingsRepository
+import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import java.time.LocalTime
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -20,17 +27,37 @@ class SettingsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val reminderRepository = FakeStudyReminderSettingsRepository(
+        StudyReminderSettings(isEnabled = false, time = StudyReminderSettings.DEFAULT_TIME),
+    )
+    private val reminderScheduler = RecordingStudyReminderScheduler()
+    private val getStudyReminderSettings = GetStudyReminderSettingsUseCase(reminderRepository)
+    private val setStudyReminderEnabled = SetStudyReminderEnabledUseCase(
+        reminderRepository,
+        SyncStudyReminderUseCase(reminderRepository, reminderScheduler),
+    )
+
     @Before
     fun setup() {
         mockkStatic(Uri::class)
         every { Uri.parse(any()) } returns mockk(relaxed = true)
     }
 
+    private fun buildViewModel(
+        exportDataSource: BackupExporter = FakeBackupExporter(),
+        importDataSource: BackupImporter = FakeBackupImporter(),
+    ): SettingsViewModel = SettingsViewModel(
+        exportDataSource,
+        importDataSource,
+        getStudyReminderSettings,
+        setStudyReminderEnabled,
+    )
+
     @Test
     fun `ExportUriReceived success emits ShowSuccess effect`() = runTest {
         val exportDataSource = FakeBackupExporter(Result.success(Unit))
         val importDataSource = FakeBackupImporter()
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
 
@@ -46,7 +73,7 @@ class SettingsViewModelTest {
     fun `ExportUriReceived failure emits ShowError effect`() = runTest {
         val exportDataSource = FakeBackupExporter(Result.failure(Exception("Export failed")))
         val importDataSource = FakeBackupImporter()
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
 
@@ -63,7 +90,7 @@ class SettingsViewModelTest {
     fun `ImportUriReceived shows confirmation dialog and stores uri`() = runTest {
         val exportDataSource = FakeBackupExporter()
         val importDataSource = FakeBackupImporter()
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onIntent(SettingsUiIntent.ImportUriReceived(uri))
@@ -76,7 +103,7 @@ class SettingsViewModelTest {
     fun `confirmImport success emits ShowSuccess and clears dialog`() = runTest {
         val exportDataSource = FakeBackupExporter()
         val importDataSource = FakeBackupImporter(Result.success(Unit))
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onIntent(SettingsUiIntent.ImportUriReceived(uri))
@@ -96,7 +123,7 @@ class SettingsViewModelTest {
     fun `confirmImport failure emits ShowError and clears dialog`() = runTest {
         val exportDataSource = FakeBackupExporter()
         val importDataSource = FakeBackupImporter(Result.failure(Exception("Import failed")))
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onIntent(SettingsUiIntent.ImportUriReceived(uri))
@@ -114,7 +141,7 @@ class SettingsViewModelTest {
     fun `cancelImport dismisses dialog without importing`() = runTest {
         val exportDataSource = FakeBackupExporter()
         val importDataSource = FakeBackupImporter()
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onIntent(SettingsUiIntent.ImportUriReceived(uri))
@@ -131,7 +158,7 @@ class SettingsViewModelTest {
     fun `isExporting is true during export operation`() = runTest {
         val exportDataSource = FakeBackupExporter(suspendDuring = 100L)
         val importDataSource = FakeBackupImporter()
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/export.json")
 
@@ -143,7 +170,7 @@ class SettingsViewModelTest {
     fun `isImporting is true during import operation`() = runTest {
         val exportDataSource = FakeBackupExporter()
         val importDataSource = FakeBackupImporter(suspendDuring = 100L)
-        val viewModel = SettingsViewModel(exportDataSource, importDataSource)
+        val viewModel = buildViewModel(exportDataSource, importDataSource)
 
         val uri = Uri.parse("content://test/import.json")
         viewModel.onIntent(SettingsUiIntent.ImportUriReceived(uri))
@@ -154,7 +181,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `ExportData intent emits LaunchExportPicker effect`() = runTest {
-        val viewModel = SettingsViewModel(FakeBackupExporter(), FakeBackupImporter())
+        val viewModel = buildViewModel()
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.ExportData)
@@ -165,13 +192,43 @@ class SettingsViewModelTest {
 
     @Test
     fun `ImportData intent emits LaunchImportPicker effect`() = runTest {
-        val viewModel = SettingsViewModel(FakeBackupExporter(), FakeBackupImporter())
+        val viewModel = buildViewModel()
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.ImportData)
 
         assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.LaunchImportPicker)
         assertThat(viewModel.state.value.isConfirmDialogVisible).isFalse()
+    }
+
+    @Test
+    fun `initial state reflects a disabled reminder repository`() = runTest {
+        val viewModel = buildViewModel()
+
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+        assertThat(viewModel.state.value.reminderTime).isEqualTo(LocalTime.of(19, 0))
+    }
+
+    @Test
+    fun `SetReminderEnabled false persists false and cancels`() = runTest {
+        val viewModel = buildViewModel()
+
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(false))
+
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(false)
+        assertThat(reminderScheduler.cancelCount).isEqualTo(1)
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+    }
+
+    @Test
+    fun `SetReminderEnabled true persists true and schedules with stored time`() = runTest {
+        val viewModel = buildViewModel()
+
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(true)
+        assertThat(reminderScheduler.scheduledTimes).containsExactly(StudyReminderSettings.DEFAULT_TIME)
+        assertThat(viewModel.state.value.isReminderEnabled).isTrue()
     }
 }
 
@@ -200,5 +257,37 @@ private class FakeBackupImporter(
         importCalled = true
         if (suspendDuring > 0) kotlinx.coroutines.delay(suspendDuring)
         return result
+    }
+}
+
+private class FakeStudyReminderSettingsRepository(
+    private var settings: StudyReminderSettings,
+) : StudyReminderSettingsRepository {
+
+    var setEnabledCalls: List<Boolean> = emptyList()
+        private set
+
+    override fun get(): StudyReminderSettings = settings
+
+    override fun setEnabled(isEnabled: Boolean) {
+        settings = settings.copy(isEnabled = isEnabled)
+        setEnabledCalls = setEnabledCalls + isEnabled
+    }
+}
+
+private class RecordingStudyReminderScheduler : StudyReminderScheduler {
+
+    var scheduledTimes: List<LocalTime> = emptyList()
+        private set
+
+    var cancelCount: Int = 0
+        private set
+
+    override fun schedule(time: LocalTime) {
+        scheduledTimes = scheduledTimes + time
+    }
+
+    override fun cancel() {
+        cancelCount += 1
     }
 }
