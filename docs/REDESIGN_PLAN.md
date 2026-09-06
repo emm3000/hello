@@ -156,9 +156,9 @@ This is the one stage that changes learning behavior and touches a migration; it
 | 7.2 `feat(data): persist when a card graduated` | Migration adds the nullable column; row mapping both ways. | `:data:verifySqlDelightMigration`; mapping test. |
 | 7.3 `feat(study): mature cards ask for the english` | `StudySessionItem.direction`; front shows the Spanish and `How do you say it?`; back shows the English word with its IPA. | Item mapping test; device. Judgment Day over 7.1–7.3. |
 
-### Stage 8 — New words (blocked)
+### Stage 8 — New words
 
-Every AI generation fails in the field: `Firebase AI Logic has been deactivated in this project. To resume using Firebase AI Logic, you must enforce Firebase App Check.` The owner enforces App Check in the Firebase console; no code workaround exists. Then:
+Every AI generation fails in the field: `Firebase AI Logic has been deactivated in this project. To resume using Firebase AI Logic, you must enforce Firebase App Check.` The owner enforces App Check in the Firebase console; no code workaround exists. **Update 2026-09-06:** enforced, and the app attests itself through `App.installAppCheck()`; a real capture on the emulator ended `READY`. Then:
 
 | Unit | Scope | Falsifier |
 |---|---|---|

@@ -67,6 +67,8 @@ Current flow:
 
 `App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady() -> SeedDataInitializer.ensureSeeded()`
 
+Before Koin, `App.installAppCheck()` installs the Firebase App Check provider: the debug provider in `debug` builds, Play Integrity in `staging` and `release`. Firebase AI Logic enforces App Check, so every Gemini call carries an attestation token; the token is fetched lazily on the first AI call, never during startup.
+
 On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `TodayRoute`. On failure, or when both steps together exceed `STARTUP_TIMEOUT_MS` (5 s), it emits `AppStartupState.Error`; Retry on the error screen calls `start()` again.
 
 There are no other mandatory product stages in startup, and none of them requires the network.
@@ -92,7 +94,7 @@ There are no other mandatory product stages in startup, and none of them require
 ## Features relevant today
 
 - capture is one field: `CaptureScreen` saves the word immediately and enrichment runs in the background, tracked as pending/failed
-- a zero-due day can ask for a situation and ~6 candidate words to add, gated behind `BuildConfig.USE_CANNED_AI` (canned suggestions in debug, Gemini in release) until Firebase App Check is enforced
+- a zero-due day can ask for a situation and ~6 candidate words to add, gated behind `BuildConfig.USE_CANNED_AI` (canned suggestions in debug, Gemini in staging and release)
 - study shows each due flashcard once: `StudySessionItem` is a 1:1 projection of `StudyFlashcard`
 - one review per flashcard, scheduled with FSRS-6 and persisted the moment the card is graded
 

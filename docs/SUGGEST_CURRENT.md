@@ -158,8 +158,12 @@ Otherwise it proceeds to:
   with six hardcoded words, picked by `recentWords.size % 3`.
 
 `app/build.gradle.kts` sets `USE_CANNED_AI` to `true` for `debug`, `false` for
-`release` and `false` for `staging`. Debug builds use the canned repository
-because Firebase AI Logic is unavailable until App Check is enforced.
+`release` and `false` for `staging`. Debug builds keep the canned repository so
+Suggest stays deterministic and offline while developing; the flag only covers
+Suggest, Capture enrichment always calls Gemini. Firebase AI Logic enforces App
+Check since 2026-09-06 and `App.installAppCheck()` attests every build (debug
+provider in `debug`, Play Integrity otherwise), so flipping the flag in a debug
+build reaches the real model.
 
 Picking words and confirming (`AddSelected`) resolves a target deck via
 `GetDecksUseCase` and `DefaultDeckSelectionRepository` (the default deck if

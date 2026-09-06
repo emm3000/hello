@@ -162,6 +162,12 @@ capture CTA"; the brief is later and more specific. Its AI half cannot be
 verified on device while Firebase AI Logic is deactivated in the project, so
 the non-AI half shipped alone and the suggestion flow waits on App Check.
 
+**Update 2026-09-06.** App Check is enforced for AI Logic and the app attests
+itself (`App.installAppCheck()`: debug provider in `debug`, Play Integrity
+otherwise). Capture enrichment was verified on device against the real Gemini
+path. The suggestion flow no longer waits on App Check; it waits on a staging
+run against the real model.
+
 ## Phase 4 — Biblioteca
 
 The plan's one line — "all-cards list with content search; absorbs Deck Detail;
@@ -241,5 +247,5 @@ sweep.
 
 Global flashcard search shipped as Phase 4. Still open: Notifications Sprint 2
 (`docs/NOTIFICATIONS_PLAN.md`), the settings time picker deferred out of the
-redesign, and the Phase 3 zero-due AI suggestion, which is blocked on Firebase
-App Check rather than on engineering.
+redesign, and a staging run of the Phase 3 zero-due AI suggestion against the
+real model (App Check has been enforced and wired since 2026-09-06).
