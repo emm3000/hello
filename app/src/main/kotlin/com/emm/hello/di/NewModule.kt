@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
+import com.emm.data.connectivity.AndroidConnectivityRepository
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultTagRepository
@@ -35,6 +36,7 @@ import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -119,6 +121,7 @@ fun Module.repository() {
         }
     }
     single<SharedPreferences> { provideSharedPreferences(androidContext()) }
+    single<ConnectivityRepository> { AndroidConnectivityRepository(androidContext()) }
 
     factory<com.emm.domain.deck.DeckRepository> {
         DefaultDeckRepository(get(), get())
@@ -249,8 +252,8 @@ fun Module.viewModels() {
             softDeleteFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { SuggestViewModel(get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }

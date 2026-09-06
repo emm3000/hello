@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.suggest
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -23,6 +24,7 @@ class SuggestViewModel(
     private val captureFlashcardUseCase: CaptureFlashcardUseCase,
     private val getDecksUseCase: GetDecksUseCase,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+    private val connectivityRepository: ConnectivityRepository,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
     initialState = SuggestUiState(),
 ) {
@@ -41,7 +43,11 @@ class SuggestViewModel(
     }
 
     private fun load() = viewModelScope.launch {
-        setState { copy(isLoading = true, loadFailed = false) }
+        setState { copy(isLoading = true, loadFailed = false, isOffline = false) }
+        if (!isOnline()) {
+            setState { copy(isLoading = false, isOffline = true) }
+            return@launch
+        }
         try {
             val suggestions: WordSuggestions = suggestWordsUseCase()
             setState {
@@ -59,6 +65,8 @@ class SuggestViewModel(
             setState { copy(isLoading = false, loadFailed = true) }
         }
     }
+
+    private suspend fun isOnline(): Boolean = connectivityRepository.observeOnline().first()
 
     private fun toggleWord(word: String) {
         setState {

@@ -7,7 +7,7 @@
 | Scope | `Suggest` flow (new words for a situation) |
 | Source of Truth | No |
 | Read this when | You need to understand how AI-suggested words are generated, picked and captured |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-05 |
 
 ## Summary
 
@@ -29,6 +29,8 @@ its own tab: `Hoy` when nothing is due, and the end of a study session.
 - `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestions.kt`
 - `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestionRepository.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
+- `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
 - `data/src/main/kotlin/com/emm/data/suggestion/GeminiWordSuggestionRepository.kt`
 - `data/src/main/kotlin/com/emm/data/suggestion/CannedWordSuggestionRepository.kt`
 - `data/src/main/kotlin/com/emm/data/suggestion/WordSuggestionPrompt.kt`
@@ -58,6 +60,8 @@ Both entry points land on the same `SuggestRoute` destination.
 - `isLoading: Boolean` — true until the first `SuggestWordsUseCase` result (or
   failure) arrives; defaults `true`.
 - `loadFailed: Boolean` — true when the load threw.
+- `isOffline: Boolean` — true when `load()` finds the device offline before
+  ever calling `SuggestWordsUseCase`; defaults `false`.
 - `situation: String` — the one-sentence English situation the words belong
   to (e.g. "Ordering food at a busy restaurant").
 - `words: List<SuggestedWord>` — the candidate words for this situation, each
@@ -95,9 +99,14 @@ Two values are derived, not stored:
 ## Screen
 
 Full-bleed `cardPeriwinkle` background behind an `HTopBar` with only a back
-action. Body state is a `when` over `isLoading` / `loadFailed` / `words.isEmpty()`:
+action. Body state is a `when` over `isLoading` / `isOffline` / `loadFailed` /
+`words.isEmpty()`, checked in that order:
 
 - **Loading** — centered `HLoadingSpinner` plus `suggest_loading`.
+- **Offline** (`isOffline`) — `HEmptyState` with `suggest_offline_title`
+  ("You're offline") / `suggest_offline_body`, a primary `suggest_retry` CTA
+  (`Retry`) and a ghost `suggest_not_now` CTA (`BackClicked`); same layout as
+  the error state.
 - **Error** (`loadFailed`) — `HEmptyState` with `suggest_error_title` /
   `suggest_error_body`, a primary `suggest_retry` CTA (`Retry`) and a ghost
   `suggest_not_now` CTA (`BackClicked`).
@@ -116,6 +125,12 @@ selected or the plural `suggest_add_selected` ("Add N word(s)") once
 button that sends `BackClicked`.
 
 ## Data path
+
+`SuggestViewModel.load()` first resets `isOffline` to `false`, then checks
+`connectivityRepository.observeOnline().first()`. If offline, it sets
+`isLoading = false, isOffline = true` and returns without calling
+`SuggestWordsUseCase` at all — `Retry` re-runs `load()`, so it re-checks.
+Otherwise it proceeds to:
 
 `SuggestWordsUseCase(flashcardRepository, suggestionRepository)`:
 
@@ -169,8 +184,12 @@ navigates back.
   suggestion repository returned.
 - No manual situation prompt from the user; the situation is chosen entirely
   by the suggestion repository.
-- No offline queue for the Gemini path — a failed `geminiService.process`
-  call surfaces as the error state, it does not retry automatically.
+- No offline queue for the Gemini path — once online, a failed
+  `geminiService.process` call surfaces as the error state and does not retry
+  automatically. Being offline is caught earlier: `load()` checks
+  `ConnectivityRepository.observeOnline()` before ever calling
+  `SuggestWordsUseCase`, so the offline state is shown instead of attempting
+  the network call.
 
 ## Related docs
 

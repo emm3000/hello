@@ -168,6 +168,7 @@
     <string name="capture_done">Done</string>
     <string name="capture_recent_label">Your last:</string>
     <string name="capture_status_preparing">Preparing…</string>
+    <string name="capture_status_waiting_for_connection">Waiting for connection</string>
     <string name="capture_status_ready">Ready</string>
     <string name="capture_status_failed">Failed</string>
 
@@ -212,6 +213,8 @@
     <string name="suggest_retry">Try again</string>
     <string name="suggest_error_title">Couldn\'t find words</string>
     <string name="suggest_error_body">Check your connection and try again.</string>
+    <string name="suggest_offline_title">You\'re offline</string>
+    <string name="suggest_offline_body">You can still study what you already have. Come back for new words when you\'re connected.</string>
     <string name="suggest_empty_title">Nothing new to add</string>
     <string name="suggest_empty_body">You already know these. Try again for another situation.</string>
     <string name="suggest_added">Words added. They\'ll be ready to study soon.</string>

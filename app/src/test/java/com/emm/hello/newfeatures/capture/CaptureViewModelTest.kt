@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.capture
 import app.cash.turbine.test
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -178,11 +179,46 @@ class CaptureViewModelTest {
         assertThat(viewModel.state.value.recentCaptures.first().status).isEqualTo(EnrichmentStatus.ENRICHED)
     }
 
+    @Test
+    fun `state starts online`() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isOnline).isTrue()
+    }
+
+    @Test
+    fun `going offline is reflected in state`() = runTest {
+        val connectivityRepository = FakeConnectivityRepository()
+        val viewModel = buildViewModel(connectivityRepository = connectivityRepository)
+        advanceUntilIdle()
+
+        connectivityRepository.setOnline(false)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isOnline).isFalse()
+    }
+
+    @Test
+    fun `coming back online is reflected in state`() = runTest {
+        val connectivityRepository = FakeConnectivityRepository()
+        val viewModel = buildViewModel(connectivityRepository = connectivityRepository)
+        advanceUntilIdle()
+
+        connectivityRepository.setOnline(false)
+        advanceUntilIdle()
+        connectivityRepository.setOnline(true)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isOnline).isTrue()
+    }
+
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
         retryFailedEnrichments: RetryFailedEnrichmentsUseCase = mockk(),
         backlog: EnrichmentBacklog = EnrichmentBacklog(),
         libraryRepository: LibraryRepository = FakeLibraryRepository(),
+        connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
     ): CaptureViewModel {
         val enrichmentRepository = mockk<FlashcardEnrichmentRepository>()
         every { enrichmentRepository.observeBacklog() } returns flowOf(backlog)
@@ -200,6 +236,7 @@ class CaptureViewModelTest {
             defaultDeckSelectionRepository = deckSelectionRepository,
             getDecksUseCase = getDecksUseCase,
             libraryRepository = libraryRepository,
+            connectivityRepository = connectivityRepository,
         )
     }
 
@@ -230,6 +267,16 @@ class CaptureViewModelTest {
 
         fun emit(vararg flashcards: LibraryFlashcard) {
             cards.value = flashcards.toList()
+        }
+    }
+
+    private class FakeConnectivityRepository(
+        private val online: MutableStateFlow<Boolean> = MutableStateFlow(true),
+    ) : ConnectivityRepository {
+        override fun observeOnline(): Flow<Boolean> = online
+
+        fun setOnline(value: Boolean) {
+            online.value = value
         }
     }
 

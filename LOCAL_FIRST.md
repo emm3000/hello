@@ -55,7 +55,7 @@ Current pattern:
 - the current product is local-first single-device
 - local-first applies to the study loop and persistence
 - AI-assisted content entry is online by design and is not considered a break of the contract
-- without network the user can study what they already have; they cannot create new cards until the connection is back
+- without network the user can study what they already have and can still capture words; a captured card waits as PENDING and is enriched when the connection is back. Asking for new words needs the connection, and the screen says so instead of trying
 - legacy references to sync or Supabase are not part of the current runtime
 
 ## See also

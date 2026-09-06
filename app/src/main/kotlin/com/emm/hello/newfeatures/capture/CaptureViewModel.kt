@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.capture
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -29,6 +30,7 @@ class CaptureViewModel(
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
     getDecksUseCase: GetDecksUseCase,
     libraryRepository: LibraryRepository,
+    connectivityRepository: ConnectivityRepository,
 ) : MviViewModel<CaptureUiState, CaptureUiIntent, CaptureUiEffect>(
     initialState = CaptureUiState(),
 ) {
@@ -44,6 +46,10 @@ class CaptureViewModel(
 
         libraryRepository.observeLibrary()
             .onEach { cards -> setState { copy(recentCaptures = recentCaptures.refreshedFrom(cards)) } }
+            .launchIn(viewModelScope)
+
+        connectivityRepository.observeOnline()
+            .onEach { isOnline -> setState { copy(isOnline = isOnline) } }
             .launchIn(viewModelScope)
     }
 

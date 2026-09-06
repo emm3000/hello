@@ -6,6 +6,7 @@ import com.emm.hello.core.mvi.MviState
 data class SuggestUiState(
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
+    val isOffline: Boolean = false,
     val situation: String = "",
     val words: List<SuggestedWord> = emptyList(),
     val selectedWords: Set<String> = emptySet(),

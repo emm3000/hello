@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.suggest
 
 import app.cash.turbine.test
 import com.emm.domain.authoring.CaptureFlashcardUseCase
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -24,6 +25,8 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -154,11 +157,47 @@ class SuggestViewModelTest {
         coVerify(exactly = 0) { captureFlashcardUseCase(any(), any(), any()) }
     }
 
+    @Test
+    fun `offline skips the request and reports offline`() = runTest {
+        val suggestWordsUseCase = defaultSuggestWordsUseCase()
+        val connectivityRepository = FakeConnectivityRepository(online = false)
+        val viewModel = buildViewModel(
+            suggestWordsUseCase = suggestWordsUseCase,
+            connectivityRepository = connectivityRepository,
+        )
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { suggestWordsUseCase() }
+        assertThat(viewModel.state.value.isOffline).isTrue()
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.loadFailed).isFalse()
+    }
+
+    @Test
+    fun `retry after coming back online loads the suggestions`() = runTest {
+        val suggestWordsUseCase = defaultSuggestWordsUseCase()
+        val connectivityRepository = FakeConnectivityRepository(online = false)
+        val viewModel = buildViewModel(
+            suggestWordsUseCase = suggestWordsUseCase,
+            connectivityRepository = connectivityRepository,
+        )
+        advanceUntilIdle()
+
+        connectivityRepository.setOnline(true)
+        viewModel.onIntent(SuggestUiIntent.Retry)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { suggestWordsUseCase() }
+        assertThat(viewModel.state.value.isOffline).isFalse()
+        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
+    }
+
     private fun buildViewModel(
         suggestWordsUseCase: SuggestWordsUseCase = defaultSuggestWordsUseCase(),
         captureFlashcardUseCase: CaptureFlashcardUseCase = mockk(),
         decks: List<Deck> = listOf(deck()),
         defaultDeckId: DeckId? = DECK_ID,
+        connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
     ): SuggestViewModel {
         val getDecksUseCase = mockk<GetDecksUseCase>()
         every { getDecksUseCase() } returns flowOf(decks)
@@ -171,6 +210,7 @@ class SuggestViewModelTest {
             captureFlashcardUseCase = captureFlashcardUseCase,
             getDecksUseCase = getDecksUseCase,
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            connectivityRepository = connectivityRepository,
         )
     }
 
@@ -188,6 +228,16 @@ class SuggestViewModelTest {
         cards = emptyList(),
         cardsCount = 0L,
     )
+
+    private class FakeConnectivityRepository(online: Boolean = true) : ConnectivityRepository {
+        private val online: MutableStateFlow<Boolean> = MutableStateFlow(online)
+
+        override fun observeOnline(): Flow<Boolean> = online
+
+        fun setOnline(value: Boolean) {
+            online.value = value
+        }
+    }
 
     private companion object {
         const val SITUATION: String = "At a coffee shop"

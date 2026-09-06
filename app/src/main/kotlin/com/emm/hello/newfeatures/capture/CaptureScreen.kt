@@ -242,7 +242,7 @@ private fun CaptureRecentList(state: CaptureUiState) {
                         color = ink,
                     )
                     Text(
-                        text = stringResource(capture.status.labelRes()),
+                        text = stringResource(capture.status.labelRes(isOnline = state.isOnline)),
                         fontFamily = schibsted,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
@@ -254,8 +254,9 @@ private fun CaptureRecentList(state: CaptureUiState) {
     }
 }
 
-private fun EnrichmentStatus.labelRes(): Int = when (this) {
-    EnrichmentStatus.PENDING -> R.string.capture_status_preparing
+private fun EnrichmentStatus.labelRes(isOnline: Boolean): Int = when (this) {
+    EnrichmentStatus.PENDING ->
+        if (isOnline) R.string.capture_status_preparing else R.string.capture_status_waiting_for_connection
     EnrichmentStatus.ENRICHED -> R.string.capture_status_ready
     EnrichmentStatus.FAILED -> R.string.capture_status_failed
 }

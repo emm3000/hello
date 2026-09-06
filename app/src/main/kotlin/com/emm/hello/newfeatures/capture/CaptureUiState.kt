@@ -12,6 +12,7 @@ data class CaptureUiState(
     val pending: Int = 0,
     val failed: Int = 0,
     val recentCaptures: List<RecentCapture> = emptyList(),
+    val isOnline: Boolean = true,
 ) : MviState {
 
     val canSubmit: Boolean

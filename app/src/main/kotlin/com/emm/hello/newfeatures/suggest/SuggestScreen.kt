@@ -55,6 +55,7 @@ fun SuggestScreen(
 
             when {
                 state.isLoading -> SuggestLoadingState(modifier = Modifier.weight(1f))
+                state.isOffline -> SuggestOfflineState(onIntent = onIntent, modifier = Modifier.weight(1f))
                 state.loadFailed -> SuggestErrorState(onIntent = onIntent, modifier = Modifier.weight(1f))
                 state.words.isEmpty() -> SuggestEmptyState(onIntent = onIntent, modifier = Modifier.weight(1f))
                 else -> SuggestLoadedContent(state = state, onIntent = onIntent, modifier = Modifier.weight(1f))
@@ -88,6 +89,31 @@ private fun SuggestErrorState(onIntent: (SuggestUiIntent) -> Unit, modifier: Mod
         modifier = modifier.fillMaxSize(),
         headline = stringResource(R.string.suggest_error_title),
         body = stringResource(R.string.suggest_error_body),
+        primaryCta = {
+            HButton(
+                text = stringResource(R.string.suggest_retry),
+                onClick = { onIntent(SuggestUiIntent.Retry) },
+                variant = HButtonVariant.Primary,
+                full = true,
+            )
+        },
+        ghostCta = {
+            HButton(
+                text = stringResource(R.string.suggest_not_now),
+                onClick = { onIntent(SuggestUiIntent.BackClicked) },
+                variant = HButtonVariant.Text,
+                full = true,
+            )
+        },
+    )
+}
+
+@Composable
+private fun SuggestOfflineState(onIntent: (SuggestUiIntent) -> Unit, modifier: Modifier = Modifier) {
+    HEmptyState(
+        modifier = modifier.fillMaxSize(),
+        headline = stringResource(R.string.suggest_offline_title),
+        body = stringResource(R.string.suggest_offline_body),
         primaryCta = {
             HButton(
                 text = stringResource(R.string.suggest_retry),
@@ -226,6 +252,14 @@ private fun SuggestScreenLoadingPreview() {
 private fun SuggestScreenErrorPreview() {
     HelloTheme {
         SuggestScreen(state = SuggestUiState(isLoading = false, loadFailed = true), onIntent = {})
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SuggestScreenOfflinePreview() {
+    HelloTheme {
+        SuggestScreen(state = SuggestUiState(isLoading = false, isOffline = true), onIntent = {})
     }
 }
 

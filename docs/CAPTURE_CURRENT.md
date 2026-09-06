@@ -7,7 +7,7 @@
 | Scope | `Capturar` flow (bare-word capture + background enrichment) |
 | Source of Truth | No |
 | Read this when | You need to understand how a word enters the app today and what happens to it after Save |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-05 |
 
 ## Summary
 
@@ -27,6 +27,8 @@ is the default deck (falling back to the first deck). Editing the result is
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiEffect.kt`
+- `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
+- `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
 - `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentScheduler.kt`
 - `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentWorker.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
@@ -40,7 +42,7 @@ nothing-due CTA), `Biblioteca` (`OpenCapture`) and `Study`
 
 ## State
 
-`CaptureUiState` holds six fields:
+`CaptureUiState` holds seven fields:
 
 - `word: String` — the text field content
 - `targetDeck: Deck?` — resolved at init from `GetDecksUseCase` +
@@ -56,6 +58,9 @@ nothing-due CTA), `Biblioteca` (`OpenCapture`) and `Study`
   `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
   `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
   and starts empty on every visit.
+- `isOnline: Boolean` — mirrors `ConnectivityRepository.observeOnline()`,
+  collected in `init`; defaults `true` and only changes the `PENDING` status
+  label, never `canSubmit` or Save.
 
 Two values are computed, not stored:
 
@@ -120,9 +125,11 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   mic. The mic icon is `Mic` while listening and `MicNone` otherwise.
 - **Recent list** — rendered only when `recentCaptures` is non-empty: the
   `capture_recent_label` ("Your last:") caption, then one row per capture with
-  the word in semibold and the status label at the trailing edge
-  (`capture_status_preparing` / `capture_status_ready` /
-  `capture_status_failed`).
+  the word in semibold and the status label at the trailing edge. A `PENDING`
+  card reads `capture_status_preparing` while `state.isOnline`, or
+  `capture_status_waiting_for_connection` while offline; `ENRICHED` always
+  reads `capture_status_ready` and `FAILED` always reads
+  `capture_status_failed`.
 - **Retry** — a text `HButton` `capture_retry` rendered only when
   `failed > 0`. `pending` is not surfaced anywhere on the screen.
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,
