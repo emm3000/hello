@@ -3,8 +3,6 @@ package com.emm.hello.core.audio
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -19,188 +17,141 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
-enum class STTState { IDLE, READY_TO_LISTEN, LISTENING, PROCESSING, ERROR }
-
 /** Exists as an interface to stub in Compose previews (layoutlib does not include android.speech). */
 interface SpeechToTextManager {
     val isListening: StateFlow<Boolean>
-    val textResult: StateFlow<String>
-    val error: StateFlow<String?>
-    val state: StateFlow<STTState>
+    val error: StateFlow<SpeechRecognitionError?>
     var onResultCallback: ((String) -> Unit)?
     fun startListening(locale: Locale = Locale.US)
     fun stopListening()
     fun clearError()
 }
 
-class AndroidSpeechToTextManager(private val context: Context) : RecognitionListener, SpeechToTextManager {
+class AndroidSpeechToTextManager(context: Context) : RecognitionListener, SpeechToTextManager {
+
+    private val applicationContext: Context = context.applicationContext
 
     private var recognizer: SpeechRecognizer? = null
-
-    private val mainHandler = Handler(Looper.getMainLooper())
 
     private val _isListening = MutableStateFlow(false)
     override val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
 
-    private val _textResult = MutableStateFlow("")
-    override val textResult: StateFlow<String> = _textResult.asStateFlow()
-
-    private val _error = MutableStateFlow<String?>(null)
-    override val error: StateFlow<String?> = _error.asStateFlow()
-
-    private val _state = MutableStateFlow(STTState.IDLE)
-    override val state: StateFlow<STTState> = _state.asStateFlow()
+    private val _error = MutableStateFlow<SpeechRecognitionError?>(null)
+    override val error: StateFlow<SpeechRecognitionError?> = _error.asStateFlow()
 
     override var onResultCallback: ((String) -> Unit)? = null
 
     fun init() {
         if (recognizer != null) return
-        recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+        if (!SpeechRecognizer.isRecognitionAvailable(applicationContext)) return
+
+        recognizer = SpeechRecognizer.createSpeechRecognizer(applicationContext).apply {
             setRecognitionListener(this@AndroidSpeechToTextManager)
         }
     }
 
     override fun startListening(locale: Locale) {
-        _error.value = null
-        _textResult.value = ""
-
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale.toLanguageTag())
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        val available: SpeechRecognizer = recognizer ?: run {
+            fail(SpeechRecognitionError.Unavailable)
+            return
         }
 
+        _error.value = null
         try {
-            recognizer?.startListening(intent)
+            available.startListening(recognitionIntent(locale))
             _isListening.value = true
-            _state.value = STTState.READY_TO_LISTEN
         } catch (_: SecurityException) {
-            _error.value = "Couldn't start speech recognition."
-            _isListening.value = false
-            _state.value = STTState.ERROR
+            fail(SpeechRecognitionError.PermissionMissing)
         } catch (_: IllegalStateException) {
-            _error.value = "Couldn't start speech recognition."
-            _isListening.value = false
-            _state.value = STTState.ERROR
+            fail(SpeechRecognitionError.Unavailable)
         }
-    }
-
-    override fun clearError() {
-        _error.value = null
-        if (_state.value == STTState.ERROR) _state.value = STTState.IDLE
     }
 
     override fun stopListening() {
         recognizer?.stopListening()
         _isListening.value = false
-        _state.value = STTState.IDLE
     }
 
-    fun cancel() {
-        recognizer?.cancel()
-        _isListening.value = false
-        _state.value = STTState.IDLE
+    override fun clearError() {
+        _error.value = null
     }
 
     fun destroy() {
         recognizer?.destroy()
         recognizer = null
         _isListening.value = false
-        _state.value = STTState.IDLE
     }
 
-    override fun onReadyForSpeech(params: Bundle?) {
-        mainHandler.post { _state.value = STTState.LISTENING }
+    override fun onEndOfSpeech() {
+        _isListening.value = false
     }
 
-    override fun onBeginningOfSpeech() {
-        mainHandler.post { _state.value = STTState.LISTENING }
+    override fun onError(error: Int) {
+        fail(SpeechRecognitionError.fromCode(error))
     }
+
+    override fun onResults(results: Bundle?) {
+        _isListening.value = false
+        val spoken: String = results
+            ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            ?.firstOrNull()
+            ?.trim()
+            ?.replaceFirstChar { it.uppercase() }
+            .orEmpty()
+
+        if (spoken.isNotEmpty()) onResultCallback?.invoke(spoken)
+    }
+
+    override fun onReadyForSpeech(params: Bundle?) = Unit
+
+    override fun onBeginningOfSpeech() = Unit
 
     override fun onRmsChanged(rmsdB: Float) = Unit
 
     override fun onBufferReceived(buffer: ByteArray?) = Unit
 
-    override fun onEndOfSpeech() {
-        mainHandler.post {
-            _isListening.value = false
-            _state.value = STTState.PROCESSING
-        }
-    }
-
-    override fun onError(error: Int) {
-        mainHandler.post {
-            _isListening.value = false
-            _error.value = when (error) {
-                SpeechRecognizer.ERROR_NO_MATCH,
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "We didn't hear you. Try speaking closer to the microphone."
-                SpeechRecognizer.ERROR_NETWORK,
-                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "No connection. Voice dictation needs internet."
-                SpeechRecognizer.ERROR_AUDIO -> "We couldn't access the microphone."
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission is missing."
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Dictation is busy, wait a moment."
-                else -> "Voice dictation isn't available on this device."
-            }
-            _state.value = STTState.ERROR
-        }
-    }
-
-    override fun onResults(results: Bundle?) {
-        mainHandler.post {
-            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            if (!matches.isNullOrEmpty()) {
-                val result = matches[0].trim().replaceFirstChar { it.uppercase() }
-                _textResult.value = result
-                onResultCallback?.invoke(result)
-                _state.value = STTState.IDLE
-            }
-        }
-    }
-
-    override fun onPartialResults(partialResults: Bundle?) {
-        mainHandler.post {
-            val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            if (!matches.isNullOrEmpty()) {
-                _textResult.value = matches[0]
-            }
-        }
-    }
+    override fun onPartialResults(partialResults: Bundle?) = Unit
 
     override fun onEvent(eventType: Int, params: Bundle?) = Unit
+
+    private fun fail(reason: SpeechRecognitionError) {
+        _isListening.value = false
+        _error.value = reason
+    }
+
+    private fun recognitionIntent(locale: Locale): Intent {
+        return Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale.toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+    }
 }
 
 @Composable
-fun rememberSpeechToTextManager(
-    onResult: (String) -> Unit = {},
-): SpeechToTextManager {
-    val isPreview = LocalInspectionMode.current
-    val context = LocalContext.current
-
-    if (isPreview) {
-        return remember {
-            object : SpeechToTextManager {
-                override val isListening: StateFlow<Boolean> = MutableStateFlow(false)
-                override val textResult: StateFlow<String> = MutableStateFlow("")
-                override val error: StateFlow<String?> = MutableStateFlow(null)
-                override val state: StateFlow<STTState> = MutableStateFlow(STTState.IDLE)
-                override var onResultCallback: ((String) -> Unit)? = null
-                override fun startListening(locale: Locale) = Unit
-                override fun stopListening() = Unit
-                override fun clearError() = Unit
-            }
-        }
+fun rememberSpeechToTextManager(onResult: (String) -> Unit = {}): SpeechToTextManager {
+    if (LocalInspectionMode.current) {
+        return remember { PreviewSpeechToTextManager() }
     }
 
-    val manager = remember { AndroidSpeechToTextManager(context) }
-    // rememberUpdatedState: the lambda captured in init() must keep pointing to the latest onResult after recomposition.
+    val context: Context = LocalContext.current
+    val manager: AndroidSpeechToTextManager = remember { AndroidSpeechToTextManager(context) }
     val currentOnResult = rememberUpdatedState(onResult)
 
-    DisposableEffect(Unit) {
+    DisposableEffect(manager) {
         manager.init()
         manager.onResultCallback = { currentOnResult.value(it) }
         onDispose { manager.destroy() }
     }
 
     return manager
+}
+
+private class PreviewSpeechToTextManager : SpeechToTextManager {
+    override val isListening: StateFlow<Boolean> = MutableStateFlow(false)
+    override val error: StateFlow<SpeechRecognitionError?> = MutableStateFlow(null)
+    override var onResultCallback: ((String) -> Unit)? = null
+    override fun startListening(locale: Locale) = Unit
+    override fun stopListening() = Unit
+    override fun clearError() = Unit
 }

@@ -118,6 +118,12 @@
     <string name="settings_footer_meta">hello · 2026</string>
     <string name="settings_content_description">Settings</string>
     <string name="mic_permission_denied">We need microphone permission to dictate.</string>
+    <string name="speech_error_not_heard">We didn\'t hear you. Try speaking closer to the microphone.</string>
+    <string name="speech_error_no_connection">No connection. Voice dictation needs internet.</string>
+    <string name="speech_error_microphone_unavailable">We couldn\'t access the microphone.</string>
+    <string name="speech_error_permission_missing">Microphone permission is missing.</string>
+    <string name="speech_error_recognizer_busy">Dictation is busy, wait a moment.</string>
+    <string name="speech_error_unavailable">Voice dictation isn\'t available on this device.</string>
 
 
     <!-- Flashcard edit/delete -->

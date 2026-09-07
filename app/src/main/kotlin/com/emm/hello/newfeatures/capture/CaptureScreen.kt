@@ -41,6 +41,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.R
+import androidx.annotation.StringRes
+import com.emm.hello.core.audio.SpeechRecognitionError
 import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.cardMint
@@ -66,7 +68,8 @@ fun CaptureScreen(
     val snackbarScope = rememberCoroutineScope()
     val sttManager = rememberSpeechToTextManager { voiceText -> onIntent(CaptureUiIntent.WordChanged(voiceText)) }
     val isListening by sttManager.isListening.collectAsStateWithLifecycle()
-    val sttError by sttManager.error.collectAsStateWithLifecycle()
+    val sttError: SpeechRecognitionError? by sttManager.error.collectAsStateWithLifecycle()
+    val sttErrorMessage: String? = sttError?.let { stringResource(it.messageRes()) }
     val micPermissionDeniedMessage = stringResource(R.string.mic_permission_denied)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -79,10 +82,9 @@ fun CaptureScreen(
         },
     )
 
-    LaunchedEffect(sttError) {
-        val message: String? = sttError
-        if (!message.isNullOrBlank()) {
-            snackbarHostState.showSnackbar(message)
+    LaunchedEffect(sttErrorMessage) {
+        if (sttErrorMessage != null) {
+            snackbarHostState.showSnackbar(sttErrorMessage)
             sttManager.clearError()
         }
     }
@@ -284,5 +286,17 @@ private fun CaptureScreenPreview() {
             onNavigateBack = {},
             onIntent = {},
         )
+    }
+}
+
+@StringRes
+private fun SpeechRecognitionError.messageRes(): Int {
+    return when (this) {
+        SpeechRecognitionError.NotHeard -> R.string.speech_error_not_heard
+        SpeechRecognitionError.NoConnection -> R.string.speech_error_no_connection
+        SpeechRecognitionError.MicrophoneUnavailable -> R.string.speech_error_microphone_unavailable
+        SpeechRecognitionError.PermissionMissing -> R.string.speech_error_permission_missing
+        SpeechRecognitionError.RecognizerBusy -> R.string.speech_error_recognizer_busy
+        SpeechRecognitionError.Unavailable -> R.string.speech_error_unavailable
     }
 }
