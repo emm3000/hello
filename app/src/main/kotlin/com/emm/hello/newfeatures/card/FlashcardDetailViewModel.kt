@@ -20,10 +20,6 @@ class FlashcardDetailViewModel(
     initialState = FlashcardDetailUiState(),
 ) {
 
-    init {
-        onIntent(FlashcardDetailUiIntent.Load)
-    }
-
     override fun onIntent(intent: FlashcardDetailUiIntent) {
         when (intent) {
             FlashcardDetailUiIntent.Load -> loadFlashcard()

@@ -28,22 +28,49 @@ class FlashcardDetailViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `init loads flashcard and state reflects id and word`() = runTest {
-        val detail = FlashcardDetail(
-            flashcard = Flashcard.empty(SystemClock).copy(
-                id = "card-1".toFlashcardId(),
-                word = "hello",
-            ),
-        )
+    fun `Load fetches the flashcard and state reflects id and word`() = runTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
-            flashcardRepository = FakeFlashcardReadRepo(detail),
+            flashcardRepository = FakeFlashcardReadRepo(detailOf("hello")),
             softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
 
+        viewModel.onIntent(FlashcardDetailUiIntent.Load)
+
         assertThat(viewModel.state.value.flashcard.id.value).isEqualTo("card-1")
         assertThat(viewModel.state.value.flashcard.word).isEqualTo("hello")
+        assertThat(viewModel.state.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun `nothing loads until Load is sent`() = runTest {
+        val viewModel = FlashcardDetailViewModel(
+            flashcardId = "card-1",
+            flashcardRepository = FakeFlashcardReadRepo(detailOf("hello")),
+            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
+            undoEventHolder = UndoEventHolder(),
+        )
+
+        assertThat(viewModel.state.value.isLoading).isTrue()
+        assertThat(viewModel.state.value.flashcard.word).isEmpty()
+    }
+
+    @Test
+    fun `a second Load reflects the card as it is now`() = runTest {
+        val repo = FakeFlashcardReadRepo(detailOf("hello"))
+        val viewModel = FlashcardDetailViewModel(
+            flashcardId = "card-1",
+            flashcardRepository = repo,
+            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
+            undoEventHolder = UndoEventHolder(),
+        )
+        viewModel.onIntent(FlashcardDetailUiIntent.Load)
+
+        repo.detail = detailOf("hello there")
+        viewModel.onIntent(FlashcardDetailUiIntent.Load)
+
+        assertThat(viewModel.state.value.flashcard.word).isEqualTo("hello there")
     }
 
     @Test
@@ -70,6 +97,8 @@ class FlashcardDetailViewModelTest {
             undoEventHolder = UndoEventHolder(),
         )
 
+        viewModel.onIntent(FlashcardDetailUiIntent.Load)
+
         viewModel.effect.test {
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(FlashcardDetailUiEffect.LoadFailed::class.java)
@@ -77,8 +106,15 @@ class FlashcardDetailViewModelTest {
         }
     }
 
+    private fun detailOf(word: String): FlashcardDetail = FlashcardDetail(
+        flashcard = Flashcard.empty(SystemClock).copy(
+            id = "card-1".toFlashcardId(),
+            word = word,
+        ),
+    )
+
     private class FakeFlashcardReadRepo(
-        private val detail: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
+        var detail: FlashcardDetail = FlashcardDetail(Flashcard.empty(SystemClock)),
         private val shouldFail: Boolean = false,
     ) : FlashcardRepository {
         override fun fetchAll(): Flow<List<Flashcard>> = emptyFlow()

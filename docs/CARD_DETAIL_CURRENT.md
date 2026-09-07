@@ -7,7 +7,7 @@
 | Scope | `Card Detail` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how an existing card is shown and deleted |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-06 |
 
 ## Summary
 
@@ -33,9 +33,12 @@
 
 ## Loading
 
-`FlashcardDetailViewModel.init`:
+`FlashcardDetailViewModel` has no `init` block; nothing loads until `FlashcardDetailUiIntent.Load` is sent. `CardDetailDestination` sends `Load` from a `LaunchedEffect(Unit)` every time the destination enters composition.
 
-- fires `FlashcardDetailUiIntent.Load`
+Because Navigation 3 (1.1.7) renders only the top entry in single-pane and re-composes the previous entry on pop, this means the card is re-fetched when the user returns from Edit Flashcard, so an edited word, meaning, translation, or a status that went from `FAILED` to `ENRICHED`, shows immediately. Rotation also re-fetches once. There is no per-entry `Lifecycle` in Navigation 3, so `LifecycleEventEffect(ON_RESUME)` was deliberately not used (the Activity stays resumed during in-app navigation).
+
+On `Load`, `loadFlashcard()`:
+
 - calls `FlashcardRepository.fetchById(flashcardId)`
 - on success sets `flashcard = detail.flashcard` and flips `isLoading = false`
 - on error emits `LoadFailed("Couldn't load the card")` (hard-coded literal, not a string resource); `CardDetailDestination` shows it as a `Toast` and navigates back

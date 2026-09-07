@@ -25,6 +25,10 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        vm.onIntent(FlashcardDetailUiIntent.Load)
+    }
+
+    LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when (effect) {
                 is FlashcardDetailUiEffect.LoadFailed -> {
