@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "test": "deno test --allow-env",
+    "check": "deno fmt --check && deno lint && deno check . && deno test --allow-env"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-import-prefix"]
+    }
+  }
+}

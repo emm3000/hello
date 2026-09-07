@@ -47,6 +47,12 @@ jobs:
             cp .github/google-services.dummy.json app/google-services.json
           fi
 
+      - name: Provision Supabase configuration
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: printf 'supabase.url=%s\nsupabase.publishableKey=%s\n' "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY" > local.properties
+
       - name: Set Up JDK 17
         uses: actions/setup-java@v5
         with:

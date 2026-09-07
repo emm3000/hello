@@ -1,5 +1,8 @@
 import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
+import java.io.Serializable
 import java.util.Properties
 
 plugins {
@@ -30,6 +33,13 @@ val debugSupabasePublishableKey: String = localSupabasePublishableKey
     .ifEmpty { "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" }
 
 fun quoted(value: String): String = "\"$value\""
+
+fun requireSupabaseProperty(value: String, propertyName: String, variantName: String): String {
+    require(value.isNotBlank()) {
+        "The $variantName build needs $propertyName in local.properties (CI provisions it from the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY secrets)."
+    }
+    return quoted(value)
+}
 
 // Temporary runtime gate for the stacked local-only rollout.
 // Default stays false so regular builds keep remote startup enabled.
@@ -109,6 +119,39 @@ configure<ApplicationExtension> {
 
     lint {
         checkDependencies = true
+    }
+}
+
+configure<ApplicationAndroidComponentsExtension> {
+    listOf("release", "staging").forEach { guardedBuildType: String ->
+        onVariants(selector().withBuildType(guardedBuildType)) { variant ->
+            val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
+                checkNotNull(variant.buildConfigFields)
+            buildConfigFields.put(
+                "SUPABASE_URL",
+                provider {
+                    BuildConfigField(
+                        "String",
+                        requireSupabaseProperty(localSupabaseUrl, "supabase.url", variant.name),
+                        null,
+                    )
+                },
+            )
+            buildConfigFields.put(
+                "SUPABASE_PUBLISHABLE_KEY",
+                provider {
+                    BuildConfigField(
+                        "String",
+                        requireSupabaseProperty(
+                            localSupabasePublishableKey,
+                            "supabase.publishableKey",
+                            variant.name,
+                        ),
+                        null,
+                    )
+                },
+            )
+        }
     }
 }
 
