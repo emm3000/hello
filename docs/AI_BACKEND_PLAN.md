@@ -29,7 +29,7 @@ Every AI call moves from Firebase AI Logic inside the app to one Supabase Edge F
 | 4 | The response envelope `success / data / error` stays byte-compatible with today. | `GeneratedLearningNoteResponseParser` and all `:domain` policies stay untouched. |
 | 5 | Guest identity is a Supabase anonymous user, created lazily on first AI use, never at startup. | Startup stays local. Credits need a stable subject. `linkIdentity` upgrades the same user later. |
 | 6 | The Firebase App Check token is verified inside the function as a second factor. | Anonymous sign-ups can be scripted; consuming allowance cannot. |
-| 7 | Credits are charged only on provider success. Cache hits, refusals and provider failures are free. | No refund logic. Users never pay for a typo. |
+| 7 | Credits are charged only on provider success. Refusals, cache hits and provider failures stay free of generation credits, but refusals are capped per user per UTC day by `DAILY_REFUSAL_ALLOWANCE` (default 10) so gibberish cannot loop on free provider calls. Hitting either cap returns the same `402`. | No refund logic. Users never pay for a typo, and a stream of unique typos cannot buy unlimited provider calls. |
 | 8 | Daily allowance instead of a lifetime count. | Two lifetime generations cannot demonstrate a spaced-repetition app. Free provider quotas reset daily too. |
 | 9 | Providers are OpenAI-compatible configs in an ordered array. No plugin system. | Gemini and OpenRouter share the wire format, so a provider is base URL, key, model and output mode. |
 | 10 | The legacy `supabase/` directory is deleted and re-initialised. | Its migrations describe the sync stack removed in `0c512da`; none of it applies. |
@@ -41,10 +41,10 @@ Every AI call moves from Firebase AI Logic inside the app to one Supabase Edge F
 1. `FlashcardEnrichmentWorker` asks `SupabaseSessionInitializer.ensureSession()`. First call signs in anonymously; the SDK persists the session.
 2. `RemoteFlashcardGenerationRepository` posts the structured input to `generate-note` with two headers: `Authorization: Bearer <session JWT>` and `X-Firebase-AppCheck: <App Check token>`.
 3. The Supabase gateway rejects an invalid session before the function runs (`verify_jwt = true`).
-4. The function runs, in this order: verify App Check, build the cache key, read the cache, check the allowance, call the provider chain, validate with zod, write the cache, write the event, respond.
+4. The function runs, in this order: verify App Check, build the cache key, read the cache, reserve the credit, call the provider chain, validate with zod, write the cache, settle the reservation, respond.
 5. The app parses `data` with the existing parser. A `:domain` rejection retries once with `previous_issues`; that request skips the cache read and overwrites the entry.
 
-Cache read runs before the allowance check so hits never consume. The allowance check runs before any provider call so an exhausted user costs nothing.
+Cache read runs before the reservation so hits never consume. The reservation runs before any provider call so an exhausted user costs nothing.
 
 ### Components
 
@@ -115,7 +115,7 @@ create table provider_state (
 );
 ```
 
-`generation_events` is both the credit ledger and the telemetry. When billing arrives, a `credit_grants` table joins it and balance becomes grants minus charged events. Nothing migrates.
+`generation_events` is both the credit ledger and the telemetry. A request first reserves a `pending` row through the `reserve_generation` RPC, which counts the day under a per-user advisory lock and inserts the reservation in the same transaction, then settles that row to `success`, `refusal`, `providers_exhausted` or `error` once the provider call returns. A `pending` row that is never settled counts as charged until midnight; there is no refund. When billing arrives, a `credit_grants` table joins it and balance becomes grants minus charged events. Nothing migrates.
 
 ### Cache key
 
@@ -137,11 +137,12 @@ Refusals (`success = false`) are cached with `expires_at = now() + 24 h`. Succes
 | Rule | Value |
 |---|---|
 | Allowance | `DAILY_ALLOWANCE` successes per user per UTC day, shared by `generate-note` and `suggest-words` |
-| Counted | `generation_events` rows with `outcome = 'success'` and `cached = false` since 00:00 UTC |
-| Charged | Only when a provider returned a valid note or suggestion |
+| Refusal allowance | `DAILY_REFUSAL_ALLOWANCE` refusals per user per UTC day, shared by both functions |
+| Counted | `generation_events` rows with `cached = false` since 00:00 UTC: `outcome in ('success', 'pending')` against the allowance, `outcome = 'refusal'` against the refusal allowance |
+| Charged | Reserved before the provider call, released on anything but a provider success |
 | Reported | `meta.credits_remaining` on every response so the UI can show the count |
 
-Concurrent requests from one user may exceed the allowance by one. Accepted.
+Concurrent requests from one user cannot exceed the allowance: the count and the reservation share one transaction behind a per-user advisory lock.
 
 ## API contract
 
@@ -195,6 +196,7 @@ Errors:
 | `402` | `credits_exhausted` | `GenerationCreditsExhaustedException` (new) | Not retried; failure reason shown on the card row |
 | `200` | `success: false` | `AmbiguousGenerationInputException` (exists) | Not retried |
 | `503` | `providers_exhausted`, with `retry_after` seconds | `IOException` (`GenerationQuotaExceededException` is deleted, not reused) | Retried by the existing WorkManager backoff |
+| `503` | `credits_unavailable`, with `retry_after` seconds | `IOException` (existing mapping, no client change) | Retried by `EnrichmentRetryPolicy` |
 | `5xx` other | any | `IOException` | Retried by the existing backoff |
 
 ### `POST /functions/v1/suggest-words`
@@ -236,7 +238,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 |---|---|
 | Supabase Auth | Anonymous sign-ins enabled |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) is read by both functions; `credits.ts` fails open when the count query errors |
+| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) and `DAILY_REFUSAL_ALLOWANCE` (default 10) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
 
@@ -250,6 +252,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 | 2 Function, auth, providers | `generate-note` and `suggest-words` without cache or credits; app migrated; Firebase AI removed | A capture on `medium_phone` ends READY through the function. A request without the App Check header returns `401`. With an invalid `GEMINI_API_KEY` the note arrives from MiniMax and `meta.provider` says so. | Done — 28 Deno tests, `401` without App Check, `503 providers_exhausted` with a real App Check token and no keys, JVM tests for the mapper and repositories; device READY verified on 2026-09-07 ("look forward to" captured on Medium_Phone_2 came back from Gemini); with an invalid Gemini key the note arrived from OpenRouter with meta.provider = "openrouter" |
 | 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for the same word returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider | Done — 40 Deno tests; migration `20260907135456_ai_backend_cache.sql` applied with `supabase migration up`; device-verified on 2026-09-07: "make up" came from Gemini in 5662 ms, then "Make  Up" (same key after normalisation) returned `cached: true` in 18 ms with no `provider_attempt`, `note_cache.hits = 1`, and its `generation_events` row has `cached = true` and a null provider |
 | 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Done — 51 Deno tests, `FunctionsReplyMapperTest` parses `reset_at` and `message`, `EnrichmentFailureReasonTest`; device-verified on 2026-09-07 with `DAILY_ALLOWANCE=1` and one success already charged: "figure out" came back `402` in 473 ms with no provider call, the Capture row showed the Spanish reason, `generation_events` has the `credits_exhausted` row; "make up" then returned `cached: true` in 21 ms at zero credits |
+| 4b Credits hardening | Atomic `reserve_generation` RPC, refusal cap, fail closed on credits errors | Ten concurrent reservations with allowance 1 yield exactly one; the request after the refusal cap returns `402`; a credits query failure returns `503 credits_unavailable` and the card keeps retrying | Done — 73 Deno tests; migration `20260907154000_credits_reservation.sql` applied with `supabase migration up`; 10 parallel `psql` calls to `reserve_generation` with allowance 1 gave 1 `pending` and 9 `credits_exhausted`; device-verified on 2026-09-07: "steady" reserved `pending` then settled `success` from Gemini and the card showed Ready; with ten seeded refusals "wander" returned `credits_exhausted` in 19 ms with no provider call and the card showed the Spanish reason; with the RPC renamed away "gentle" returned `credits_unavailable` in 17 ms, wrote no event, and the worker retried with the card still Preparing |
 | 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking | Pending |
 | 6 Billing | Out of scope for this plan | | Pending |
 
@@ -267,6 +270,8 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 
 - `DAILY_ALLOWANCE` value: 5, decided 2026-09-07 (env override per environment).
 - Suggest shares the allowance, decided 2026-09-07.
+- `DAILY_REFUSAL_ALLOWANCE` value: 10, decided 2026-09-07 (env override per environment).
+- Credits fail closed on a database error, decided 2026-09-07; availability lost to a Postgres outage is preferable to unlimited free generations.
 - Whether to fund OpenRouter once for the 1000 per day tier.
 
 ## Evidence

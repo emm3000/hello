@@ -12,15 +12,24 @@ import {
   readNoteCache,
 } from "../_shared/cache.ts";
 import {
-  checkCredits,
+  CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS,
   type CreditsSnapshot,
+  CreditsUnavailableError,
+  type GenerationOperation,
   type GenerationOutcome,
+  readCredits,
   readDailyAllowance,
+  readDailyRefusalAllowance,
   recordGenerationEvent,
+  remainingAfter,
+  type Reservation,
+  reserveGeneration,
+  settleGeneration,
 } from "../_shared/credits.ts";
 import {
   buildMeta,
   creditsExhaustedResponse,
+  creditsUnavailableResponse,
   errorResponse,
   methodNotAllowedResponse,
   providersExhaustedResponse,
@@ -47,6 +56,15 @@ import {
 } from "../_shared/schema.ts";
 
 const APP_CHECK_HEADER: string = "X-Firebase-AppCheck";
+
+function respondCreditsUnavailable(
+  operation: GenerationOperation,
+  cached: boolean,
+  startedAt: number,
+): Response {
+  logRequest(operation, cached, "credits_unavailable", startedAt);
+  return creditsUnavailableResponse(CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS);
+}
 
 async function handle(req: Request): Promise<Response> {
   const startedAt: number = performance.now();
@@ -108,27 +126,37 @@ async function handle(req: Request): Promise<Response> {
   const userId: string = ctx.userClaims.id;
   const now: Date = new Date();
   const allowance: number = readDailyAllowance();
+  const refusalAllowance: number = readDailyRefusalAllowance();
   const cacheKey: string = await buildCacheKey(request);
 
   if (request.previous_issues.length === 0) {
     const hit: NoteCacheRow | null = await readNoteCache(client, cacheKey);
     if (hit !== null) {
       const outcome: GenerationOutcome = hit.success ? "success" : "refusal";
-      await recordGenerationEvent(client, {
-        userId,
-        operation: "generate-note",
-        cacheKey,
-        provider: null,
-        model: null,
-        cached: true,
-        outcome,
-      });
-      const cachedCredits: CreditsSnapshot = await checkCredits(
-        client,
-        userId,
-        now,
-        allowance,
-      );
+      let cachedCredits: CreditsSnapshot;
+      try {
+        await recordGenerationEvent(client, {
+          userId,
+          operation: "generate-note",
+          cacheKey,
+          provider: null,
+          model: null,
+          cached: true,
+          outcome,
+        });
+        cachedCredits = await readCredits(
+          client,
+          userId,
+          now,
+          allowance,
+          refusalAllowance,
+        );
+      } catch (error: unknown) {
+        if (error instanceof CreditsUnavailableError) {
+          return respondCreditsUnavailable("generate-note", true, startedAt);
+        }
+        throw error;
+      }
       const meta: ResponseMeta = buildMeta(
         hit.provider,
         hit.model,
@@ -143,86 +171,95 @@ async function handle(req: Request): Promise<Response> {
     }
   }
 
-  const credits: CreditsSnapshot = await checkCredits(
-    client,
-    userId,
-    now,
-    allowance,
-  );
-  if (credits.remaining <= 0) {
-    await recordGenerationEvent(client, {
+  let reservation: Reservation;
+  try {
+    reservation = await reserveGeneration(client, {
       userId,
       operation: "generate-note",
       cacheKey,
-      provider: null,
-      model: null,
-      cached: false,
-      outcome: "credits_exhausted",
+      now,
+      allowance,
+      refusalAllowance,
     });
-    logRequest("generate-note", false, "credits_exhausted", startedAt);
-    return creditsExhaustedResponse(credits.resetAt);
+  } catch (error: unknown) {
+    if (error instanceof CreditsUnavailableError) {
+      return respondCreditsUnavailable("generate-note", false, startedAt);
+    }
+    throw error;
   }
+  if (!reservation.reserved) {
+    logRequest("generate-note", false, "credits_exhausted", startedAt);
+    return creditsExhaustedResponse(reservation.credits.resetAt);
+  }
+  const eventId: number = reservation.eventId;
+  const credits: CreditsSnapshot = reservation.credits;
 
   try {
-    const generated: GenerationResult<LearningNoteResponse> =
-      await generateStructured<LearningNoteResponse>({
-        prompt: buildLearningNotePrompt(request),
-        schemaName: "learning_note",
-        jsonSchema: learningNoteJsonSchema,
-        parse: learningNoteResponseSchema.parse,
-        providerState: createProviderStateStore(client),
+    try {
+      const generated: GenerationResult<LearningNoteResponse> =
+        await generateStructured<LearningNoteResponse>({
+          prompt: buildLearningNotePrompt(request),
+          schemaName: "learning_note",
+          jsonSchema: learningNoteJsonSchema,
+          parse: learningNoteResponseSchema.parse,
+          providerState: createProviderStateStore(client),
+        });
+      const cleaned: LearningNoteResponse = withoutNulls(generated.value);
+      const outcome: "success" | "refusal" = cleaned.success
+        ? "success"
+        : "refusal";
+      await commitNoteCache(client, request, {
+        cache_key: cacheKey,
+        response: cleaned,
+        success: cleaned.success,
+        provider: generated.provider,
+        model: generated.model,
+        prompt_version: PROMPT_VERSION,
+        schema_version: SCHEMA_VERSION,
+        expires_at: cacheExpiry(cleaned.success, now),
       });
-    const cleaned: LearningNoteResponse = withoutNulls(generated.value);
-    const outcome: GenerationOutcome = cleaned.success ? "success" : "refusal";
-    await commitNoteCache(client, request, {
-      cache_key: cacheKey,
-      response: cleaned,
-      success: cleaned.success,
-      provider: generated.provider,
-      model: generated.model,
-      prompt_version: PROMPT_VERSION,
-      schema_version: SCHEMA_VERSION,
-      expires_at: cacheExpiry(cleaned.success, now),
-    });
-    await recordGenerationEvent(client, {
-      userId,
-      operation: "generate-note",
-      cacheKey,
-      provider: generated.provider,
-      model: generated.model,
-      cached: false,
-      outcome,
-    });
-    const remaining: number = cleaned.success
-      ? Math.max(credits.remaining - 1, 0)
-      : credits.remaining;
-    const meta: ResponseMeta = buildMeta(
-      generated.provider,
-      generated.model,
-      false,
-      remaining,
-    );
-    logRequest("generate-note", false, outcome, startedAt);
-    if (cleaned.success && cleaned.data !== undefined) {
-      return successResponse(cleaned.data, meta);
-    }
-    return refusalResponse(cleaned.error ?? null, meta);
-  } catch (error: unknown) {
-    if (error instanceof ProvidersExhaustedError) {
-      await recordGenerationEvent(client, {
-        userId,
-        operation: "generate-note",
-        cacheKey,
+      await settleGeneration(client, eventId, {
+        outcome,
+        provider: generated.provider,
+        model: generated.model,
+      });
+      const meta: ResponseMeta = buildMeta(
+        generated.provider,
+        generated.model,
+        false,
+        remainingAfter(credits, outcome),
+      );
+      logRequest("generate-note", false, outcome, startedAt);
+      if (cleaned.success && cleaned.data !== undefined) {
+        return successResponse(cleaned.data, meta);
+      }
+      return refusalResponse(cleaned.error ?? null, meta);
+    } catch (error: unknown) {
+      if (error instanceof CreditsUnavailableError) {
+        throw error;
+      }
+      if (error instanceof ProvidersExhaustedError) {
+        await settleGeneration(client, eventId, {
+          outcome: "providers_exhausted",
+          provider: null,
+          model: null,
+        });
+        logRequest("generate-note", false, "providers_exhausted", startedAt);
+        return providersExhaustedResponse(error.retryAfterSeconds);
+      }
+      await settleGeneration(client, eventId, {
+        outcome: "error",
         provider: null,
         model: null,
-        cached: false,
-        outcome: "providers_exhausted",
       });
-      logRequest("generate-note", false, "providers_exhausted", startedAt);
-      return providersExhaustedResponse(error.retryAfterSeconds);
+      console.error(error instanceof Error ? error.name : "UnknownError");
+      return errorResponse("internal", "The note could not be generated.");
     }
-    console.error(error instanceof Error ? error.name : "UnknownError");
-    return errorResponse("internal", "The note could not be generated.");
+  } catch (error: unknown) {
+    if (error instanceof CreditsUnavailableError) {
+      return respondCreditsUnavailable("generate-note", false, startedAt);
+    }
+    throw error;
   }
 }
 

@@ -20,6 +20,7 @@ export type ErrorCode =
   | "app_check_rejected"
   | "invalid_request"
   | "credits_exhausted"
+  | "credits_unavailable"
   | "providers_exhausted"
   | "misconfigured"
   | "internal";
@@ -33,6 +34,7 @@ const ERROR_STATUS: Record<ErrorCode, number> = {
   app_check_rejected: 401,
   invalid_request: 400,
   credits_exhausted: 402,
+  credits_unavailable: 503,
   providers_exhausted: 503,
   misconfigured: 500,
   internal: 500,
@@ -115,6 +117,25 @@ export function creditsExhaustedResponse(resetAt: string): Response {
       meta: null,
     },
     ERROR_STATUS.credits_exhausted,
+  );
+}
+
+export function creditsUnavailableResponse(
+  retryAfterSeconds: number,
+): Response {
+  return jsonResponse(
+    {
+      success: false,
+      data: null,
+      error: {
+        code: "credits_unavailable",
+        message: "The daily allowance could not be checked right now.",
+        retry_after: retryAfterSeconds,
+      },
+      meta: null,
+    },
+    ERROR_STATUS.credits_unavailable,
+    { "Retry-After": String(retryAfterSeconds) },
   );
 }
 
