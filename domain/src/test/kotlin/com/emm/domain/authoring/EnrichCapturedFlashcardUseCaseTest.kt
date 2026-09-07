@@ -50,6 +50,38 @@ class EnrichCapturedFlashcardUseCaseTest {
     }
 
     @Test
+    fun `invoke records the prompt version of the generated note before marking the card enriched`() = runTest {
+        val repository = RecordingRepository()
+        val useCase: EnrichCapturedFlashcardUseCase = useCase(
+            repository = repository,
+            generationRepository = NoteGenerationRepository(
+                outcomes = listOf(Result.success(sampleWordNote().copy(promptVersion = 2))),
+            ),
+        )
+
+        useCase(FLASHCARD_ID)
+
+        assertEquals(listOf(FLASHCARD_ID to 2), repository.recordedPromptVersions)
+        assertEquals(
+            listOf("update", "recordPromptVersion", "upsertExamples", "updateEnrichmentStatus"),
+            repository.writes,
+        )
+    }
+
+    @Test
+    fun `invoke records prompt version zero when the generated note carries no version`() = runTest {
+        val repository = RecordingRepository()
+        val useCase: EnrichCapturedFlashcardUseCase = useCase(
+            repository = repository,
+            generationRepository = NoteGenerationRepository(outcomes = listOf(Result.success(sampleWordNote()))),
+        )
+
+        useCase(FLASHCARD_ID)
+
+        assertEquals(listOf(FLASHCARD_ID to 0), repository.recordedPromptVersions)
+    }
+
+    @Test
     fun `invoke generates from the captured word`() = runTest {
         val generationRepository = NoteGenerationRepository(outcomes = listOf(Result.success(sampleWordNote())))
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
@@ -184,12 +216,15 @@ private class RecordingRepository : FlashcardRepository {
     var lastUpdate: UpdateFlashcardInput? = null
     var lastStatus: EnrichmentStatus? = null
     var lastExamples: List<Example> = emptyList()
+    val writes: MutableList<String> = mutableListOf()
+    val recordedPromptVersions: MutableList<Pair<FlashcardId, Int>> = mutableListOf()
 
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id, word = "borrow"))
     }
 
     override suspend fun update(input: UpdateFlashcardInput) {
+        writes += "update"
         lastUpdate = input
     }
 
@@ -198,10 +233,17 @@ private class RecordingRepository : FlashcardRepository {
         status: EnrichmentStatus,
         failureReason: String?,
     ) {
+        writes += "updateEnrichmentStatus"
         lastStatus = status
     }
 
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) {
+        writes += "recordPromptVersion"
+        recordedPromptVersions += flashcardId to promptVersion
+    }
+
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) {
+        writes += "upsertExamples"
         lastExamples = examples
     }
 

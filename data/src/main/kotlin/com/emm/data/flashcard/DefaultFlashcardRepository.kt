@@ -151,6 +151,13 @@ class DefaultFlashcardRepository(
         )
     }
 
+    override suspend fun recordPromptVersion(
+        flashcardId: FlashcardId,
+        promptVersion: Int,
+    ): Unit = withContext(ioDispatcher) {
+        dao.setPromptVersion(promptVersion = promptVersion.toLong(), id = flashcardId.value)
+    }
+
     override suspend fun countDueFlashcards(nowMillis: Long): Long = withContext(ioDispatcher) {
         dao.countDueFlashcards(now = nowMillis).executeAsOne()
     }

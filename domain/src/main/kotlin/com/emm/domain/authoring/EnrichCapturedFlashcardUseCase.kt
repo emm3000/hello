@@ -24,6 +24,7 @@ class EnrichCapturedFlashcardUseCase(
         repository.update(
             generatedLearningNoteMapper.toUpdateFlashcardInput(flashcardId = flashcardId, note = note),
         )
+        repository.recordPromptVersion(flashcardId, note.promptVersion)
         repository.upsertExamples(generatedLearningNoteMapper.toExamples(note), flashcardId)
         repository.updateEnrichmentStatus(flashcardId, EnrichmentStatus.ENRICHED, failureReason = null)
 

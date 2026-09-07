@@ -217,6 +217,7 @@ private class FakeFlashcardRepo(
         status: EnrichmentStatus,
         failureReason: String?,
     ) = Unit
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit

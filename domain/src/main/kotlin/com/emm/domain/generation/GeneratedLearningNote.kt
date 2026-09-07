@@ -29,4 +29,5 @@ data class GeneratedLearningNote(
     val clozeSentence: String = "",
     val sourceContext: String = "",
     val warnings: List<String> = emptyList(),
+    val promptVersion: Int = 0,
 )

@@ -61,6 +61,7 @@ private class StatusRecordingRepository : FlashcardRepository {
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = throw UnsupportedOperationException()
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
     override suspend fun update(input: UpdateFlashcardInput) = throw UnsupportedOperationException()
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L

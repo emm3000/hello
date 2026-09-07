@@ -238,7 +238,7 @@ These tasks do NOT block launch. Prioritize by signals from real users.
 
 #### S3-T4: Version prompts
 - Add `promptVersion` to each generated note. Enables A/B testing and tracking quality regressions per prompt version.
-- **Status:** [ ]
+- **Status:** [x] — shipped 2026-09-07: every AI-generated card now stores the prompt version that produced it. The `generate-note` envelope already returned `meta.prompt_version` (currently 2) and the app discarded it; `GeneratedLearningNoteResponseDto` now parses a `meta` block, `GeneratedLearningNoteResponseParser` carries it into `GeneratedLearningNote.promptVersion`, and `EnrichCapturedFlashcardUseCase` writes it through the new `FlashcardRepository.recordPromptVersion` between `update` and `updateEnrichmentStatus`, so a card is never marked `ENRICHED` without its version. Persistence is the new `Flashcard.promptVersion` column (migration `7.sqm`, schema v8) written only by `setPromptVersion`: `update` never touches it, so a user edit cannot rewrite the version that generated the card. `0` means unknown — manual cards, legacy rows and seed data. Pinned by `PromptVersionMigrationTest` (legacy rows land on 0, pre-existing columns untouched), `DefaultFlashcardRepositoryPromptVersionTest` (fresh card reads 0, `recordPromptVersion` persists, a later `update` leaves it, `fetchByDeckId` carries it), `RemoteFlashcardGenerationRepositoryTest` (meta present -> 2, meta absent -> 0) and `EnrichCapturedFlashcardUseCaseTest` (write order and the recorded value). Backup export/import was left out of scope.
 
 #### S3-T5: i18n for static catalogs ~~(void)~~
 - **Status:** ✅ **Void.** No static catalog survives to translate. See section 1.2.

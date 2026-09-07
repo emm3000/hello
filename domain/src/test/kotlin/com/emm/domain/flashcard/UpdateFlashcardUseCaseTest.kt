@@ -146,6 +146,8 @@ private class UpdateRecordingRepository(
         calls += "status"
     }
 
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = error("unused")
+
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = error("unused")
 
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = error("unused")

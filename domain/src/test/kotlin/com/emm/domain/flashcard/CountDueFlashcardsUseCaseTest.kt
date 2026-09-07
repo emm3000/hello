@@ -49,6 +49,7 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
         status: EnrichmentStatus,
         failureReason: String?,
     ) = Unit
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = error("not used")
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = error("not used")
     override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = error("not used")

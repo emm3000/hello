@@ -124,6 +124,7 @@ private class FakeFlashcardRepository(
         status: EnrichmentStatus,
         failureReason: String?,
     ): Unit = error("not used")
+    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int): Unit = error("not used")
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = error("not used")
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long): Unit = error("not used")
     override suspend fun countDueFlashcards(nowMillis: Long): Long = error("not used")

@@ -37,7 +37,7 @@ object GeneratedLearningNoteResponseParser {
                     ?: "La IA necesita más contexto para generar la tarjeta."
                 throw AmbiguousGenerationInputException(reason = message)
             }
-            data.toValidatedDomain()
+            data.toValidatedDomain(promptVersion = response.meta?.promptVersion ?: 0)
         } catch (error: SerializationException) {
             throw IllegalArgumentException(
                 "La respuesta de la IA no coincide con el formato esperado para learning note",
@@ -46,7 +46,7 @@ object GeneratedLearningNoteResponseParser {
         }
     }
 
-    private fun GeneratedLearningNoteDto.toValidatedDomain(): GeneratedLearningNote {
+    private fun GeneratedLearningNoteDto.toValidatedDomain(promptVersion: Int): GeneratedLearningNote {
         val note = GeneratedLearningNote(
             noteId = noteId,
             noteType = noteType.toLearningNoteType(),
@@ -72,6 +72,7 @@ object GeneratedLearningNoteResponseParser {
             clozeSentence = clozeSentence,
             sourceContext = sourceContext,
             warnings = warnings,
+            promptVersion = promptVersion,
         )
         val validation = validateGeneratedLearningNoteUseCase(note)
         if (!validation.isValid) {

@@ -50,6 +50,7 @@ internal fun toDomainSummary(
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        promptVersion = entity.promptVersion.toInt(),
     )
 }
 
@@ -83,6 +84,7 @@ internal fun toDomainSummary(
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        promptVersion = entity.promptVersion.toInt(),
     )
 }
 
@@ -116,6 +118,7 @@ internal fun toDomainSummary(
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        promptVersion = entity.promptVersion.toInt(),
     )
 }
 
@@ -150,6 +153,7 @@ internal fun toDomainDetail(
         sourceContext = entity.sourceContext.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        promptVersion = entity.promptVersion.toInt(),
     )
 }
 

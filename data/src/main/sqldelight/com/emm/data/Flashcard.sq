@@ -31,6 +31,7 @@ CREATE TABLE Flashcard (
     deletedAt INTEGER,
     enrichmentStatus TEXT NOT NULL DEFAULT 'ENRICHED',
     enrichmentFailureReason TEXT,
+    promptVersion INTEGER NOT NULL DEFAULT 0,
 
     PRIMARY KEY (id),
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
@@ -272,6 +273,12 @@ UPDATE Flashcard
 SET enrichmentStatus = :enrichmentStatus,
     enrichmentFailureReason = :enrichmentFailureReason,
     updatedAt = :updatedAt
+WHERE id = :id
+  AND deletedAt IS NULL;
+
+setPromptVersion:
+UPDATE Flashcard
+SET promptVersion = :promptVersion
 WHERE id = :id
   AND deletedAt IS NULL;
 

@@ -93,6 +93,30 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     @Test
+    fun `generateLearningNote reads the prompt version from the reply meta`() = runTest {
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY))
+        val repository = repository(transport)
+
+        val note: GeneratedLearningNote = repository.generateLearningNote(
+            FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+        )
+
+        assertEquals(2, note.promptVersion)
+    }
+
+    @Test
+    fun `generateLearningNote falls back to prompt version zero when the reply carries no meta`() = runTest {
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY_WITHOUT_META))
+        val repository = repository(transport)
+
+        val note: GeneratedLearningNote = repository.generateLearningNote(
+            FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+        )
+
+        assertEquals(0, note.promptVersion)
+    }
+
+    @Test
     fun `generateLearningNote surfaces a refusal as an ambiguous input error`() = runTest {
         val body = """
             {
@@ -129,10 +153,8 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     private companion object {
-        val SUCCESS_BODY: String = """
+        val NOTE_DATA: String = """
             {
-              "success": true,
-              "data": {
                 "note_id": "note-1",
                 "note_type": "phrasal_verb",
                 "expression": "pick up",
@@ -180,16 +202,30 @@ class RemoteFlashcardGenerationRepositoryTest {
                   { "code": "clear_card_focus", "passed": true, "message": "ok" },
                   { "code": "note_card_alignment", "passed": true, "message": "ok" }
                 ]
-              },
+            }
+        """.trimIndent()
+
+        val SUCCESS_BODY: String = """
+            {
+              "success": true,
+              "data": $NOTE_DATA,
               "error": null,
               "meta": {
                 "cached": false,
                 "provider": "gemini",
                 "model": "gemini-3.1-flash-lite",
-                "prompt_version": 1,
+                "prompt_version": 2,
                 "schema_version": 1,
                 "credits_remaining": 4
               }
+            }
+        """.trimIndent()
+
+        val SUCCESS_BODY_WITHOUT_META: String = """
+            {
+              "success": true,
+              "data": $NOTE_DATA,
+              "error": null
             }
         """.trimIndent()
     }

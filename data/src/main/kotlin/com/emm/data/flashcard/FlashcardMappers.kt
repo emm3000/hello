@@ -23,6 +23,7 @@ fun FlashcardEntity.toDomain(): Flashcard {
         noteType = type.orEmpty(),
         noteSummary = note.orEmpty(),
         enrichmentStatus = toEnrichmentStatus(enrichmentStatus),
+        promptVersion = promptVersion.toInt(),
     )
 }
 
