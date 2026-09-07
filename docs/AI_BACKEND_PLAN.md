@@ -218,7 +218,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | Item | Notes |
 |---|---|
 | `supabase-bom`, `auth-kt` in `:data` | Already declared in `libs.versions.toml` at 3.8.0. Transport is `SupabaseFunctionsTransport` on top of the `functions-kt` plugin. |
-| `SupabaseClient` singleton in DI | Reads `BuildConfig.SUPABASE_URL` and `BuildConfig.SUPABASE_PUBLISHABLE_KEY`; debug defaults to `http://127.0.0.1:54321` and the local demo publishable key, overridable via `supabase.url` and `supabase.publishableKey` in `local.properties`; release and staging read `local.properties` only. The emulator reaches it through adb reverse tcp:54321 tcp:54321, run after every emulator boot; on macOS with Docker Desktop, ports published by Docker are not reachable from the emulator via 10.0.2.2. |
+| `SupabaseClient` singleton in DI | Reads `BuildConfig.SUPABASE_URL` and `BuildConfig.SUPABASE_PUBLISHABLE_KEY`; debug defaults to `http://127.0.0.1:54321` and the local demo publishable key, overridable via `supabase.url` and `supabase.publishableKey` in `local.properties`; release reads `local.properties` only. The emulator reaches it through adb reverse tcp:54321 tcp:54321, run after every emulator boot; on macOS with Docker Desktop, ports published by Docker are not reachable from the emulator via 10.0.2.2. |
 | `SupabaseSessionInitializer.ensureSession()` | Called by the worker and by Suggest before the first call |
 | `RemoteFlashcardGenerationRepository` | Replaces `DefaultFlashcardGenerationRepository` |
 | `RemoteWordSuggestionRepository` | Replaces `GeminiWordSuggestionRepository`; `USE_CANNED_AI` keeps selecting `CannedWordSuggestionRepository` |
@@ -236,7 +236,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | Supabase Auth rate limit | `anonymous_users = 10` per hour per IP in `config.toml`; captcha stays off, App Check gates consumption (see Risks) |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
 | Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) and `DAILY_REFUSAL_ALLOWANCE` (default 10) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
-| App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets; `release` and `staging` refuse to build when either value is blank, while `debug` keeps its local defaults; `uploadApk.yml` provisions both from the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets |
+| App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets; `release` refuses to build when either value is blank, while `debug` keeps its local defaults; `uploadApk.yml` provisions both from the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets |
 | Table grants | `anon` and `authenticated` hold no privileges on `note_cache`, `generation_events`, `provider_state`; only the service role and the two `security definer` functions with `search_path = ''` reach them |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
 

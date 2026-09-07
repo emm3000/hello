@@ -41,12 +41,7 @@ fun requireSupabaseProperty(value: String, propertyName: String, variantName: St
     return quoted(value)
 }
 
-// Temporary runtime gate for the stacked local-only rollout.
-// Default stays false so regular builds keep remote startup enabled.
-val localOnlyMode: Boolean = providers.gradleProperty("hello.localOnlyMode")
-    .orNull
-    ?.toBooleanStrictOrNull()
-    ?: false
+val releaseVersionCode: Int = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 1
 
 configure<ApplicationExtension> {
     namespace = "com.emm.hello"
@@ -56,11 +51,10 @@ configure<ApplicationExtension> {
         applicationId = "com.emm.hello"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = releaseVersionCode
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("Boolean", "LOCAL_ONLY_MODE", localOnlyMode.toString())
     }
 
     signingConfigs {
@@ -77,7 +71,6 @@ configure<ApplicationExtension> {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs["config"]
-            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "false")
             buildConfigField("Boolean", "USE_CANNED_AI", "false")
             buildConfigField("String", "SUPABASE_URL", quoted(localSupabaseUrl))
             buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(localSupabasePublishableKey))
@@ -85,25 +78,10 @@ configure<ApplicationExtension> {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            signingConfig = signingConfigs["config"]
-            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             buildConfigField("Boolean", "USE_CANNED_AI", "true")
             buildConfigField("String", "SUPABASE_URL", quoted(debugSupabaseUrl))
             buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(debugSupabasePublishableKey))
             manifestPlaceholders["usesCleartextTraffic"] = "true"
-            matchingFallbacks += listOf("release")
-        }
-
-        create("staging") {
-            initWith(getByName("release"))
-            isMinifyEnabled = false
-            isShrinkResources = false
-            signingConfig = signingConfigs["config"]
-            buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
-            buildConfigField("Boolean", "USE_CANNED_AI", "false")
-            buildConfigField("String", "SUPABASE_URL", quoted(localSupabaseUrl))
-            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(localSupabasePublishableKey))
-            matchingFallbacks += listOf("release")
         }
     }
 
@@ -123,35 +101,33 @@ configure<ApplicationExtension> {
 }
 
 configure<ApplicationAndroidComponentsExtension> {
-    listOf("release", "staging").forEach { guardedBuildType: String ->
-        onVariants(selector().withBuildType(guardedBuildType)) { variant ->
-            val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
-                checkNotNull(variant.buildConfigFields)
-            buildConfigFields.put(
-                "SUPABASE_URL",
-                provider {
-                    BuildConfigField(
-                        "String",
-                        requireSupabaseProperty(localSupabaseUrl, "supabase.url", variant.name),
-                        null,
-                    )
-                },
-            )
-            buildConfigFields.put(
-                "SUPABASE_PUBLISHABLE_KEY",
-                provider {
-                    BuildConfigField(
-                        "String",
-                        requireSupabaseProperty(
-                            localSupabasePublishableKey,
-                            "supabase.publishableKey",
-                            variant.name,
-                        ),
-                        null,
-                    )
-                },
-            )
-        }
+    onVariants(selector().withBuildType("release")) { variant ->
+        val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
+            checkNotNull(variant.buildConfigFields)
+        buildConfigFields.put(
+            "SUPABASE_URL",
+            provider {
+                BuildConfigField(
+                    "String",
+                    requireSupabaseProperty(localSupabaseUrl, "supabase.url", variant.name),
+                    null,
+                )
+            },
+        )
+        buildConfigFields.put(
+            "SUPABASE_PUBLISHABLE_KEY",
+            provider {
+                BuildConfigField(
+                    "String",
+                    requireSupabaseProperty(
+                        localSupabasePublishableKey,
+                        "supabase.publishableKey",
+                        variant.name,
+                    ),
+                    null,
+                )
+            },
+        )
     }
 }
 

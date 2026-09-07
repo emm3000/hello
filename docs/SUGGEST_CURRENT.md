@@ -157,8 +157,8 @@ Otherwise it proceeds to:
   (restaurant ordering, asking for directions, a junior job interview), each
   with six hardcoded words, picked by `recentWords.size % 3`.
 
-`app/build.gradle.kts` sets `USE_CANNED_AI` to `true` for `debug`, `false` for
-`release` and `false` for `staging`. Debug builds keep the canned repository so
+`app/build.gradle.kts` sets `USE_CANNED_AI` to `true` for `debug` and `false`
+for `release`. Debug builds keep the canned repository so
 Suggest stays deterministic and offline while developing; the flag only covers
 Suggest, Capture enrichment always calls Gemini. Firebase AI Logic enforces App
 Check since 2026-09-06 and `App.installAppCheck()` attests every build (debug

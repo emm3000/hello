@@ -1,4 +1,4 @@
-name: Android Action Generated APKs
+name: Release build
 
 on:
   push:
@@ -16,6 +16,8 @@ concurrency:
 jobs:
   upload_release_apk:
     runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
     steps:
       - name: Checkout the code
         uses: actions/checkout@v6
@@ -62,35 +64,51 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Verify and build the staging APK
+      - name: Verify and build the release
         run: >-
           ./gradlew
           detekt
           testDebugUnitTest
           :domain:test
           :data:verifySqlDelightMigration
-          assembleStaging
+          bundleRelease
+          assembleRelease
 
-      - name: Get Staging APK path and size
-        id: releaseApkPath
+      - name: Locate the release artifacts
+        id: artifacts
         run: |
-          apk=$(find app/build/outputs/apk/staging -name '*.apk' -type f | head -1)
+          apk=$(find app/build/outputs/apk/release -name '*.apk' -type f | head -1)
           if [ -z "$apk" ]; then
-            echo "No staging APK found" >&2
+            echo "No release APK found" >&2
+            exit 1
+          fi
+          aab=$(find app/build/outputs/bundle/release -name '*.aab' -type f | head -1)
+          if [ -z "$aab" ]; then
+            echo "No release AAB found" >&2
             exit 1
           fi
           echo "apk=$apk" >> $GITHUB_OUTPUT
-          echo "size=$(ls -lh "$apk" | awk '{print $5}')" >> $GITHUB_OUTPUT
+          echo "apk_size=$(ls -lh "$apk" | awk '{print $5}')" >> $GITHUB_OUTPUT
+          echo "aab=$aab" >> $GITHUB_OUTPUT
 
-      - name: Upload Release to Firebase App Distribution
+      - name: Upload the Play bundle as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello-release-${{ github.run_number }}
+          path: ${{ steps.artifacts.outputs.aab }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload the release APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1.7.1
         with:
           appId: ${{secrets.FIREBASE_RELEASE_APP_ID}}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: Hello
-          file: ${{ steps.releaseApkPath.outputs.apk }}
+          file: ${{ steps.artifacts.outputs.apk }}
           releaseNotes: |
             ${{ github.event.head_commit.message || 'workflow_dispatch' }}
             ${{ github.event.compare || github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
             Branch: ${{ github.ref_name }}  ·  ${{ github.actor }}  ·  ${{ env.date_today }}
-            APK: ${{ steps.releaseApkPath.outputs.size }}
+            versionCode: ${{ github.run_number }}
+            APK: ${{ steps.artifacts.outputs.apk_size }}
