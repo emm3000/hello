@@ -33,18 +33,15 @@ class TextToSpeechManager(private val context: Context) {
         if (tts != null) return
 
         tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                setup(locale, speed, pitch)
-                _isReady.value = true
-            } else {
-                _isReady.value = false
-            }
+            _isReady.value = status == TextToSpeech.SUCCESS && setup(locale, speed, pitch)
         }
     }
 
-    private fun setup(locale: Locale, speed: Float, pitch: Float) {
-        tts?.apply {
-            language = locale
+    private fun setup(locale: Locale, speed: Float, pitch: Float): Boolean {
+        val engine: TextToSpeech = tts ?: return false
+        if (!TtsLanguagePolicy.isUsable(engine.setLanguage(locale))) return false
+
+        engine.apply {
             setSpeechRate(speed)
             setPitch(pitch)
             setOnUtteranceProgressListener(object : UtteranceProgressListener() {
@@ -76,6 +73,7 @@ class TextToSpeechManager(private val context: Context) {
                 }
             })
         }
+        return true
     }
 
     fun speak(text: String) {
