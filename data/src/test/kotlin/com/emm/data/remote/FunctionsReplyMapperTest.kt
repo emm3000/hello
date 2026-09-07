@@ -2,6 +2,7 @@ package com.emm.data.remote
 
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCreditsExhaustedException
+import com.emm.domain.generation.SessionExpiredException
 import java.io.IOException
 import java.time.Instant
 import kotlinx.serialization.json.Json
@@ -36,6 +37,40 @@ class FunctionsReplyMapperTest {
         }
 
         assertEquals("app_check_rejected", error.message)
+    }
+
+    @Test
+    fun `map turns an unauthorized gateway body into an expired session`() {
+        val reply = FunctionsReply(status = 401, body = "{\"msg\":\"Invalid JWT\"}")
+
+        val error: SessionExpiredException = assertThrows(SessionExpiredException::class.java) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+
+        assertEquals("{\"msg\":\"Invalid JWT\"}", error.message)
+    }
+
+    @Test
+    fun `map turns an unauthorized empty body into an expired session`() {
+        val reply = FunctionsReply(status = 401, body = "")
+
+        assertThrows(SessionExpiredException::class.java) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+    }
+
+    @Test
+    fun `map keeps an unauthorized envelope as its declared code`() {
+        val reply = FunctionsReply(
+            status = 401,
+            body = "{\"success\":false,\"error\":{\"code\":\"unauthorized\",\"message\":\"Missing token\"}}",
+        )
+
+        val error: AppCheckRejectedException = assertThrows(AppCheckRejectedException::class.java) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+
+        assertEquals("unauthorized", error.message)
     }
 
     @Test

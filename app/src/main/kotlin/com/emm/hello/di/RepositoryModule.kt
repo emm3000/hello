@@ -9,7 +9,9 @@ import com.emm.domain.telemetry.GenerationTelemetry
 import com.emm.hello.BuildConfig
 import com.emm.hello.remote.FirebaseAppCheckTokenProvider
 import com.emm.hello.telemetry.CrashlyticsGenerationTelemetry
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -24,9 +26,12 @@ val repositoryModule = module {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY,
         ) {
-            install(Auth)
+            install(Auth) {
+                enableLifecycleCallbacks = false
+            }
         }
     }
+    single<Auth> { get<SupabaseClient>().auth }
     single {
         HttpClient(Android) {
             expectSuccess = false

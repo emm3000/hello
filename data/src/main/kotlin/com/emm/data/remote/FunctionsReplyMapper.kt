@@ -2,6 +2,7 @@ package com.emm.data.remote
 
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCreditsExhaustedException
+import com.emm.domain.generation.SessionExpiredException
 import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -25,7 +26,7 @@ object FunctionsReplyMapper {
     private fun FunctionsReply.toError(json: Json): Throwable {
         val error: FunctionsErrorDto? = json.decodeErrorOrNull(body)
         return when (status) {
-            UNAUTHORIZED -> AppCheckRejectedException(IllegalStateException(error?.code ?: body))
+            UNAUTHORIZED -> unauthorizedError(error)
             PAYMENT_REQUIRED -> GenerationCreditsExhaustedException(
                 resetAt = error?.resetAt?.let(::parseInstantOrNull),
                 reason = error?.message,
@@ -33,6 +34,11 @@ object FunctionsReplyMapper {
             BAD_REQUEST -> IllegalArgumentException(error?.message ?: body)
             else -> IOException("generate function returned $status")
         }
+    }
+
+    private fun FunctionsReply.unauthorizedError(error: FunctionsErrorDto?): Throwable {
+        if (error == null) return SessionExpiredException(IllegalStateException(body))
+        return AppCheckRejectedException(IllegalStateException(error.code ?: body))
     }
 
     private fun parseInstantOrNull(raw: String): Instant? {

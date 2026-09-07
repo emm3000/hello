@@ -3,6 +3,7 @@ package com.emm.hello.enrichment
 import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCreditsExhaustedException
+import com.emm.domain.generation.SessionExpiredException
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
@@ -47,6 +48,13 @@ class EnrichmentRetryPolicyTest {
         val error = AppCheckRejectedException(IllegalStateException("Firebase App Check token is invalid."))
 
         assertThat(EnrichmentRetryPolicy.shouldRetry(error)).isFalse()
+    }
+
+    @Test
+    fun `shouldRetry is true for an expired session`() {
+        val error = SessionExpiredException(IllegalStateException("Invalid JWT"))
+
+        assertThat(EnrichmentRetryPolicy.shouldRetry(error)).isTrue()
     }
 
     @Test
