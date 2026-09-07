@@ -1,14 +1,18 @@
 package com.emm.hello.newfeatures.study
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.capture.CaptureRoute
 import com.emm.hello.newfeatures.suggest.SuggestRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 /**
@@ -35,6 +39,14 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         parameters = { parametersOf(deckId ?: StudyRoute.ALL_DUE_DECKS) }
     )
     val uiState = vm.state.collectAsStateWithLifecycle()
+    val textToSpeech: TextToSpeechManager = koinInject()
+    val isSpeaking: Boolean by textToSpeech.isSpeaking.collectAsStateWithLifecycle()
+    val isTtsReady: Boolean by textToSpeech.isReady.collectAsStateWithLifecycle()
+
+    DisposableEffect(textToSpeech) {
+        textToSpeech.init()
+        onDispose { textToSpeech.stop() }
+    }
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -59,6 +71,9 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         onGetNewWords = { vm.onIntent(StudyUiIntent.GetNewWordsClicked) },
         onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
+        onSpeak = textToSpeech::speak,
+        onStopSpeech = textToSpeech::stop,
+        audioState = AudioState(isSpeaking = isSpeaking, isTtsReady = isTtsReady),
         state = uiState.value,
     )
 }

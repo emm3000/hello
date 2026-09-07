@@ -99,6 +99,7 @@ import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.enrichment.FlashcardEnrichmentScheduler
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
@@ -132,6 +133,7 @@ fun Module.repository() {
     }
     single<SharedPreferences> { provideSharedPreferences(androidContext()) }
     single<ConnectivityRepository> { AndroidConnectivityRepository(androidContext()) }
+    single { TextToSpeechManager(androidContext()) }
 
     factory<com.emm.domain.deck.DeckRepository> {
         DefaultDeckRepository(get(), get())

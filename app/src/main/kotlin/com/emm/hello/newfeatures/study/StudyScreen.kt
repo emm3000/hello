@@ -60,14 +60,11 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
-import com.emm.hello.core.audio.TextToSpeechManager
-import com.emm.hello.core.audio.rememberTextToSpeechManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.bricolage
 import com.emm.hello.core.theme.cardHues
@@ -93,11 +90,6 @@ private const val CARD_ENTER_SCALE = 0.96f
 private const val CARD_EXIT_SCALE = 0.92f
 private val gradeButtonMinHeight = 56.dp
 
-private data class AudioState(
-    val isSpeaking: Boolean,
-    val ttsReady: Boolean,
-)
-
 @Composable
 fun StudyScreen(
     modifier: Modifier = Modifier,
@@ -106,12 +98,12 @@ fun StudyScreen(
     onCreateCard: () -> Unit = {},
     onGetNewWords: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
+    onSpeak: (String) -> Unit = {},
+    onStopSpeech: () -> Unit = {},
+    audioState: AudioState = AudioState(),
     state: StudyUiState = StudyUiState(),
 ) {
     BackHandler(onBack = onExit)
-    val tts: TextToSpeechManager = rememberTextToSpeechManager()
-    val isSpeaking: Boolean by tts.isSpeaking.collectAsStateWithLifecycle()
-    val ttsReady: Boolean by tts.isReady.collectAsStateWithLifecycle()
     val haptics: HapticFeedback = LocalHapticFeedback.current
 
     var cardFace by remember { mutableStateOf(CardFace.Front) }
@@ -142,7 +134,7 @@ fun StudyScreen(
     val wordRevealed: Boolean = onCard && (state.currentItem?.revealsWordOn(cardFace) ?: false)
     LaunchedEffect(wordRevealed) {
         if (!wordRevealed) {
-            tts.stop()
+            onStopSpeech()
         }
     }
     val hueIndex: Int = if (state.totalCount > 0) {
@@ -188,13 +180,9 @@ fun StudyScreen(
                 actions = if (wordRevealed) {
                     {
                         TtsFloatingButton(
-                            audioState = AudioState(isSpeaking = isSpeaking, ttsReady = ttsReady),
-                            onSpeak = {
-                                if (ttsReady) {
-                                    tts.speak(state.currentItem.word)
-                                }
-                            },
-                            onStop = { tts.stop() },
+                            audioState = audioState,
+                            onSpeak = { onSpeak(state.currentItem.word) },
+                            onStop = onStopSpeech,
                         )
                     }
                 } else {
@@ -351,7 +339,7 @@ private fun TtsFloatingButton(
         onClick = { if (isSpeaking) onStop() else onSpeak() },
         modifier = modifier,
         tint = ink,
-        enabled = audioState.ttsReady,
+        enabled = audioState.isTtsReady,
     )
 }
 
