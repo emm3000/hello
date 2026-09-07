@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.ids.toFlashcardId
@@ -18,7 +17,6 @@ class EditFlashcardViewModel(
     private val flashcardId: String,
     private val flashcardRepository: FlashcardRepository,
     private val updateFlashcardUseCase: UpdateFlashcardUseCase,
-    private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
 ) : MviViewModel<EditFlashcardUiState, EditFlashcardUiIntent, EditFlashcardUiEffect>(
     initialState = EditFlashcardUiState(flashcardId = flashcardId),
 ) {
@@ -130,7 +128,7 @@ class EditFlashcardViewModel(
     private fun handleDelete() = viewModelScope.launch {
         setState { copy(isDeleteConfirmationVisible = false) }
         try {
-            softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
+            flashcardRepository.softDeleteFlashcard(flashcardId.toFlashcardId())
             sendEffect(EditFlashcardUiEffect.FlashcardDeleted)
         } catch (e: CancellationException) {
             throw e

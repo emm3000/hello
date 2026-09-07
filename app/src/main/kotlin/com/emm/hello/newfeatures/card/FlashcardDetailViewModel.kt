@@ -2,7 +2,6 @@ package com.emm.hello.newfeatures.card
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
@@ -14,7 +13,6 @@ import kotlinx.coroutines.launch
 class FlashcardDetailViewModel(
     private val flashcardId: String,
     private val flashcardRepository: FlashcardRepository,
-    private val softDeleteFlashcardUseCase: SoftDeleteFlashcardUseCase,
     private val undoEventHolder: UndoEventHolder,
 ) : MviViewModel<FlashcardDetailUiState, FlashcardDetailUiIntent, FlashcardDetailUiEffect>(
     initialState = FlashcardDetailUiState(),
@@ -54,7 +52,7 @@ class FlashcardDetailViewModel(
     private fun deleteFlashcard() = viewModelScope.launch {
         setState { copy(isDeleteConfirmationVisible = false) }
         try {
-            val deletedAt = softDeleteFlashcardUseCase(flashcardId.toFlashcardId())
+            val deletedAt: Long = flashcardRepository.softDeleteFlashcard(flashcardId.toFlashcardId())
             undoEventHolder.tryEmit(
                 UndoEvent.CardDeleted(flashcardId = flashcardId, deletedAt = deletedAt)
             )

@@ -51,7 +51,7 @@ On `Load`, `loadFlashcard()`:
 - `BackClicked` (back icon in top bar) → emits `NavigateBack`
 - `EditFlashcard` ("Edit" text button in top bar) → emits `NavigateToEditFlashcard(flashcardId)`
 - `DeleteFlashcard` ("Delete" destructive item inside the "more" dropdown) → opens confirmation dialog (`isDeleteConfirmationVisible = true`)
-- `ConfirmDeleteFlashcard` → closes the dialog, runs `SoftDeleteFlashcardUseCase`, emits `UndoEvent.CardDeleted(flashcardId, deletedAt)` to `UndoEventHolder` so `LibraryViewModel` can show an undo snackbar, then emits `FlashcardDeleted`; on error emits `ShowMessage("Couldn't delete the card")` (hard-coded literal)
+- `ConfirmDeleteFlashcard` → closes the dialog, runs `FlashcardRepository.softDeleteFlashcard`, emits `UndoEvent.CardDeleted(flashcardId, deletedAt)` to `UndoEventHolder` so `LibraryViewModel` can show an undo snackbar, then emits `FlashcardDeleted`; on error emits `ShowMessage("Couldn't delete the card")` (hard-coded literal)
 - `DismissDeleteFlashcard` → closes dialog
 
 ## Effects
@@ -84,7 +84,7 @@ The delete confirmation is an `HAlertDialog` with `isDangerous = true`, title `R
 ## Persistence
 
 - Read: `FlashcardRepository.fetchById` (local).
-- Delete: soft delete via `SoftDeleteFlashcardUseCase`.
+- Delete: soft delete via `FlashcardRepository.softDeleteFlashcard`.
 - No remote sync involved.
 
 ## Strings

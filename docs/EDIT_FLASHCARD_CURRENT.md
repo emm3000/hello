@@ -11,7 +11,7 @@
 
 ## Summary
 
-`Edit Flashcard` loads an existing card, lets you edit seven fields (word, meaning, translation, first example sentence, its translation, part of speech, phonetic) on the card's own hue, validates the word live, and persists the change via `UpdateFlashcardUseCase`. It also exposes an in-screen "Delete card" text button that soft-deletes the card via `SoftDeleteFlashcardUseCase` after a confirmation dialog. Opened from `Card Detail` (`EditFlashcardRoute(cardId, deckId)`; only `cardId` reaches the destination).
+`Edit Flashcard` loads an existing card, lets you edit seven fields (word, meaning, translation, first example sentence, its translation, part of speech, phonetic) on the card's own hue, validates the word live, and persists the change via `UpdateFlashcardUseCase`. It also exposes an in-screen "Delete card" text button that soft-deletes the card via `FlashcardRepository.softDeleteFlashcard` after a confirmation dialog. Opened from `Card Detail` (`EditFlashcardRoute(cardId, deckId)`; only `cardId` reaches the destination).
 
 ## Key files
 
@@ -58,7 +58,7 @@ Supported intents:
 - `CloseClicked` — emits `NavigateBack` without saving
 - `Submit` — short-circuits if `!isValid || isSubmitting`
 - `DeleteFlashcard` — opens the soft-delete confirmation dialog (sets `isDeleteConfirmationVisible = true`)
-- `ConfirmDeleteFlashcard` — runs `SoftDeleteFlashcardUseCase` and emits `FlashcardDeleted` on success
+- `ConfirmDeleteFlashcard` — runs `FlashcardRepository.softDeleteFlashcard` and emits `FlashcardDeleted` on success
 - `DismissDeleteFlashcard` — closes the confirmation dialog
 
 ## Submit
@@ -85,7 +85,7 @@ Supported intents:
 `handleDelete()` (triggered by `ConfirmDeleteFlashcard`):
 
 - clears `isDeleteConfirmationVisible`
-- calls `SoftDeleteFlashcardUseCase(flashcardId)`
+- calls `FlashcardRepository.softDeleteFlashcard(flashcardId)`
 - on success: emits `FlashcardDeleted`
 - on error: `ShowMessage(R.string.error_delete_card)`
 
@@ -110,5 +110,5 @@ The whole screen is a `Surface` colored with `cardHueFor(state.flashcardId)`. A 
 
 - Read: `FlashcardRepository.fetchById` (local).
 - Write: `UpdateFlashcardUseCase` (local).
-- Soft delete: `SoftDeleteFlashcardUseCase` (local).
+- Soft delete: `FlashcardRepository.softDeleteFlashcard` (local).
 - No remote sync involved.

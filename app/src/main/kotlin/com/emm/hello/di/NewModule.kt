@@ -50,7 +50,6 @@ import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.CountDueFlashcardsUseCase
 import com.emm.domain.flashcard.RestoreFlashcardUseCase
-import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.library.LibraryRepository
 import com.emm.domain.library.SearchLibraryUseCase
@@ -222,7 +221,6 @@ fun Module.useCases() {
     factoryOf(::SoftDeleteDeckUseCase)
     factoryOf(::RestoreDeckUseCase)
     factoryOf(::UpdateFlashcardUseCase)
-    factoryOf(::SoftDeleteFlashcardUseCase)
     factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
     factoryOf(::SearchLibraryUseCase)
@@ -259,7 +257,6 @@ fun Module.viewModels() {
         FlashcardDetailViewModel(
             flashcardId = it.get(),
             flashcardRepository = get(),
-            softDeleteFlashcardUseCase = get(),
             undoEventHolder = get(),
         )
     }
@@ -268,7 +265,6 @@ fun Module.viewModels() {
             flashcardId = it.get(),
             flashcardRepository = get(),
             updateFlashcardUseCase = get(),
-            softDeleteFlashcardUseCase = get(),
         )
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }

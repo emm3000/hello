@@ -7,7 +7,6 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.ids.DeckId
@@ -161,7 +160,6 @@ class EditFlashcardViewModelTest {
             flashcardId = "card-1",
             flashcardRepository = repo,
             updateFlashcardUseCase = UpdateFlashcardUseCase(repo),
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(repo),
         )
     }
 

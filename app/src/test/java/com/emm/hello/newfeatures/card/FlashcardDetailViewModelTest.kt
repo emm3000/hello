@@ -7,7 +7,6 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.SoftDeleteFlashcardUseCase
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -32,7 +31,6 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(detailOf("hello")),
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
 
@@ -48,7 +46,6 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(detailOf("hello")),
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
 
@@ -62,7 +59,6 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = repo,
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
         viewModel.onIntent(FlashcardDetailUiIntent.Load)
@@ -78,7 +74,6 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(),
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
 
@@ -93,7 +88,6 @@ class FlashcardDetailViewModelTest {
         val viewModel = FlashcardDetailViewModel(
             flashcardId = "card-1",
             flashcardRepository = FakeFlashcardReadRepo(shouldFail = true),
-            softDeleteFlashcardUseCase = SoftDeleteFlashcardUseCase(FakeFlashcardReadRepo()),
             undoEventHolder = UndoEventHolder(),
         )
 
