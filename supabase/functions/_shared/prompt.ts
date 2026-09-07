@@ -1,6 +1,6 @@
 import type { GenerateNoteRequest } from "./schema.ts";
 
-export const PROMPT_VERSION: number = 1;
+export const PROMPT_VERSION: number = 2;
 
 const SCHEMA_APPENDIX_HEADER: string =
   "Respond with a single JSON object that validates against this JSON Schema, with no markdown and no text outside the JSON:";
@@ -24,13 +24,10 @@ Principles (non-negotiable):
 Input data:
 - input_type: "${input.input_type}"
 - user_text: "${input.user_text}"
-- intended_meaning_es: "${input.intended_meaning_es}"
-- context_sentence: "${input.context_sentence}"
 - learning_goal: "${input.learning_goal}"
 - level_band: "${input.level_band}"
 - register: "${input.register}"
 - domain: "${input.domain}"
-- communicative_intent_id: "${input.communicative_intent_id}"
 
 Decision policy:
 - If the input is a broad communicative goal, infer the single highest-value English expression.

@@ -32,9 +32,6 @@ export async function buildCacheKey(
     level_band: request.level_band,
     register: request.register,
     domain: request.domain,
-    intended_meaning_es: request.intended_meaning_es,
-    context_sentence: request.context_sentence,
-    communicative_intent_id: request.communicative_intent_id,
     prompt_version: PROMPT_VERSION,
     schema_version: SCHEMA_VERSION,
   });

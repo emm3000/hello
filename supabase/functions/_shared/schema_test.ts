@@ -447,13 +447,10 @@ Deno.test("the request schema applies the domain defaults", () => {
     input_type: "Word",
     user_text: "give up",
   });
-  assertEquals(parsed.intended_meaning_es, "");
-  assertEquals(parsed.context_sentence, "");
   assertEquals(parsed.learning_goal, "Both");
   assertEquals(parsed.level_band, "A1_A2");
   assertEquals(parsed.register, "Neutral");
   assertEquals(parsed.domain, "DailyLife");
-  assertEquals(parsed.communicative_intent_id, "");
   assertEquals(parsed.previous_issues, []);
 });
 
@@ -461,19 +458,27 @@ Deno.test("the request schema trims and collapses free text", () => {
   const parsed = generateNoteRequestSchema.parse({
     input_type: "CommunicativeGoal",
     user_text: "  give   up  ",
-    intended_meaning_es: "\n rendirse   ya \n",
-    context_sentence: "  he   gave up  ",
-    communicative_intent_id: "  intent-1  ",
     previous_issues: [{
       code: "missing_usage_pattern",
       field: "usage_pattern",
     }],
   });
   assertEquals(parsed.user_text, "give up");
-  assertEquals(parsed.intended_meaning_es, "rendirse ya");
-  assertEquals(parsed.context_sentence, "he gave up");
-  assertEquals(parsed.communicative_intent_id, "intent-1");
   assertEquals(parsed.previous_issues.length, 1);
+});
+
+Deno.test("generateNoteRequestSchema ignores the retired fields sent by older clients", () => {
+  const parsed = generateNoteRequestSchema.parse({
+    input_type: "Word",
+    user_text: "give up",
+    intended_meaning_es: "prestar",
+    context_sentence: "he gave up",
+    communicative_intent_id: "intent-1",
+  });
+  assertEquals(parsed.user_text, "give up");
+  assertEquals("intended_meaning_es" in parsed, false);
+  assertEquals("context_sentence" in parsed, false);
+  assertEquals("communicative_intent_id" in parsed, false);
 });
 
 Deno.test("an empty user_text is rejected", () => {
@@ -553,43 +558,6 @@ Deno.test("more than twelve previous issues are rejected", () => {
       input_type: "Word",
       user_text: "give up",
       previous_issues: new Array(13).fill(issue),
-    })
-  );
-});
-
-Deno.test("free text at the maximum length is accepted", () => {
-  const parsed = generateNoteRequestSchema.parse({
-    input_type: "Word",
-    user_text: "give up",
-    intended_meaning_es: "a".repeat(500),
-    context_sentence: "b".repeat(1000),
-    communicative_intent_id: "c".repeat(64),
-  });
-  assertEquals(parsed.intended_meaning_es.length, 500);
-  assertEquals(parsed.context_sentence.length, 1000);
-  assertEquals(parsed.communicative_intent_id.length, 64);
-});
-
-Deno.test("free text over the maximum length is rejected", () => {
-  assertThrows(() =>
-    generateNoteRequestSchema.parse({
-      input_type: "Word",
-      user_text: "give up",
-      intended_meaning_es: "a".repeat(501),
-    })
-  );
-  assertThrows(() =>
-    generateNoteRequestSchema.parse({
-      input_type: "Word",
-      user_text: "give up",
-      context_sentence: "b".repeat(1001),
-    })
-  );
-  assertThrows(() =>
-    generateNoteRequestSchema.parse({
-      input_type: "Word",
-      user_text: "give up",
-      communicative_intent_id: "c".repeat(65),
     })
   );
 });

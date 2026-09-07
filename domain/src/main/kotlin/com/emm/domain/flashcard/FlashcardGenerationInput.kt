@@ -8,23 +8,15 @@ import com.emm.domain.validation.ValidationIssue
 data class FlashcardGenerationInput(
     val inputType: FlashcardInputType,
     val userText: String,
-    val intendedMeaningEs: String = "",
-    val contextSentence: String = "",
     val learningGoal: LearningGoal = LearningGoal.Both,
     val levelBand: LevelBand = LevelBand.A1_A2,
     val register: RegisterPreference = RegisterPreference.Neutral,
     val domain: LearningDomain = LearningDomain.DailyLife,
-    val communicativeIntentId: String = "",
     val previousIssues: List<ValidationIssue> = emptyList(),
 ) {
 
     fun normalized(): FlashcardGenerationInput {
-        return copy(
-            userText = userText.normalizeWhitespace(),
-            intendedMeaningEs = intendedMeaningEs.normalizeWhitespace(),
-            contextSentence = contextSentence.normalizeWhitespace(),
-            communicativeIntentId = communicativeIntentId.trim(),
-        )
+        return copy(userText = userText.normalizeWhitespace())
     }
 }
 

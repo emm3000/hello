@@ -243,10 +243,6 @@ const collapsedText = z.string().transform((value: string): string =>
   value.trim().replace(/\s+/g, " ")
 );
 
-const trimmedText = z.string().transform((value: string): string =>
-  value.trim()
-);
-
 const ISSUE_CODE_PATTERN: RegExp = /^[a-z][a-z0-9_]*$/;
 
 const ISSUE_FIELD_PATTERN: RegExp = /^[A-Za-z0-9_.\[\]]+$/;
@@ -254,13 +250,10 @@ const ISSUE_FIELD_PATTERN: RegExp = /^[A-Za-z0-9_.\[\]]+$/;
 export const generateNoteRequestSchema = z.object({
   input_type: z.enum(INPUT_TYPES),
   user_text: collapsedText.pipe(z.string().min(1).max(500)),
-  intended_meaning_es: collapsedText.pipe(z.string().max(500)).default(""),
-  context_sentence: collapsedText.pipe(z.string().max(1000)).default(""),
   learning_goal: z.enum(LEARNING_GOALS).default("Both"),
   level_band: z.enum(LEVEL_BANDS).default("A1_A2"),
   register: z.enum(REGISTER_PREFERENCES).default("Neutral"),
   domain: z.enum(LEARNING_DOMAINS).default("DailyLife"),
-  communicative_intent_id: trimmedText.pipe(z.string().max(64)).default(""),
   previous_issues: z.array(
     z.object({
       code: z.string().max(64).regex(ISSUE_CODE_PATTERN),

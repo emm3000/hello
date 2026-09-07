@@ -10,13 +10,10 @@ import { generateNoteRequestSchema } from "./schema.ts";
 const INPUT_DATA_BLOCK = `Input data:
 - input_type: "Word"
 - user_text: "give up"
-- intended_meaning_es: ""
-- context_sentence: ""
 - learning_goal: "Both"
 - level_band: "A1_A2"
 - register: "Neutral"
-- domain: "DailyLife"
-- communicative_intent_id: ""`;
+- domain: "DailyLife"`;
 
 const FEEDBACK_SECTION =
   `Your previous answer for this exact input was rejected by these deterministic checks:
@@ -24,8 +21,8 @@ const FEEDBACK_SECTION =
 - ambiguous_answer (field: cards)
 Fix every listed field and return the complete JSON again.`;
 
-Deno.test("the prompt version is one", () => {
-  assertEquals(PROMPT_VERSION, 1);
+Deno.test("the prompt version is two", () => {
+  assertEquals(PROMPT_VERSION, 2);
 });
 
 Deno.test("the learning note prompt carries the input data block", () => {

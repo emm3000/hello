@@ -9,13 +9,10 @@ import kotlinx.serialization.Serializable
 data class GenerateNoteRequestDto(
     @SerialName("input_type") val inputType: String,
     @SerialName("user_text") val userText: String,
-    @SerialName("intended_meaning_es") val intendedMeaningEs: String,
-    @SerialName("context_sentence") val contextSentence: String,
     @SerialName("learning_goal") val learningGoal: String,
     @SerialName("level_band") val levelBand: String,
     @SerialName("register") val register: String,
     @SerialName("domain") val domain: String,
-    @SerialName("communicative_intent_id") val communicativeIntentId: String,
     @SerialName("previous_issues") val previousIssues: List<PreviousIssueDto>,
 )
 
@@ -30,13 +27,10 @@ fun FlashcardGenerationInput.toRequestDto(): GenerateNoteRequestDto {
     return GenerateNoteRequestDto(
         inputType = normalized.inputType.name,
         userText = normalized.userText,
-        intendedMeaningEs = normalized.intendedMeaningEs,
-        contextSentence = normalized.contextSentence,
         learningGoal = normalized.learningGoal.name,
         levelBand = normalized.levelBand.name,
         register = normalized.register.name,
         domain = normalized.domain.name,
-        communicativeIntentId = normalized.communicativeIntentId,
         previousIssues = normalized.previousIssues.map { issue -> issue.toDto() },
     )
 }

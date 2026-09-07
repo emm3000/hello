@@ -125,7 +125,6 @@ create table provider_state (
 |---|---|
 | `user_text` | trim, collapse whitespace, lowercase |
 | `input_type`, `learning_goal`, `level_band`, `register`, `domain` | as sent |
-| `intended_meaning_es`, `context_sentence`, `communicative_intent_id` | trim, collapse whitespace; usually empty |
 | `prompt_version`, `schema_version` | server constants |
 
 `previous_issues` is never part of the key. Its presence means regenerate.
@@ -162,13 +161,10 @@ Request:
 {
   "input_type": "Word",
   "user_text": "give up",
-  "intended_meaning_es": "",
-  "context_sentence": "",
   "learning_goal": "Both",
   "level_band": "A1_A2",
   "register": "Neutral",
   "domain": "DailyLife",
-  "communicative_intent_id": "",
   "previous_issues": []
 }
 ```
@@ -180,7 +176,7 @@ Response, `200`:
   "success": true,
   "data": { "note_id": "...", "note_type": "phrasal_verb", "...": "unchanged from today" },
   "error": null,
-  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 1, "schema_version": 1, "credits_remaining": 4 }
+  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 2, "schema_version": 1, "credits_remaining": 4 }
 }
 ```
 
