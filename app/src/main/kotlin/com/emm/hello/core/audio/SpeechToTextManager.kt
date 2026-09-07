@@ -55,11 +55,8 @@ class AndroidSpeechToTextManager(private val context: Context) : RecognitionList
 
     fun init() {
         if (recognizer != null) return
-        // SpeechRecognizer.createSpeechRecognizer requires Main Thread; without this it crashes at runtime.
-        mainHandler.post {
-            recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
-                setRecognitionListener(this@AndroidSpeechToTextManager)
-            }
+        recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+            setRecognitionListener(this@AndroidSpeechToTextManager)
         }
     }
 
