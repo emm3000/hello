@@ -1,16 +1,25 @@
 import { createSupabaseContext } from "npm:@supabase/server@^1";
+import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   AppCheckRejectedError,
   verifyAppCheckToken,
 } from "../_shared/appcheck.ts";
 import {
+  checkCredits,
+  type CreditsSnapshot,
+  readDailyAllowance,
+  recordGenerationEvent,
+} from "../_shared/credits.ts";
+import {
   buildMeta,
+  creditsExhaustedResponse,
   errorResponse,
   jsonResponse,
   methodNotAllowedResponse,
   providersExhaustedResponse,
   type ResponseMeta,
 } from "../_shared/envelope.ts";
+import { logRequest } from "../_shared/log.ts";
 import { buildWordSuggestionPrompt } from "../_shared/prompt.ts";
 import { createProviderStateStore } from "../_shared/provider_state.ts";
 import {
@@ -30,6 +39,7 @@ import {
 const APP_CHECK_HEADER: string = "X-Firebase-AppCheck";
 
 async function handle(req: Request): Promise<Response> {
+  const startedAt: number = performance.now();
   if (req.method !== "POST") {
     return methodNotAllowedResponse();
   }
@@ -84,6 +94,28 @@ async function handle(req: Request): Promise<Response> {
   }
   const request: SuggestWordsRequest = parsed.data;
 
+  const client: SupabaseClient = ctx.supabaseAdmin;
+  const userId: string = ctx.userClaims.id;
+  const credits: CreditsSnapshot = await checkCredits(
+    client,
+    userId,
+    new Date(),
+    readDailyAllowance(),
+  );
+  if (credits.remaining <= 0) {
+    await recordGenerationEvent(client, {
+      userId,
+      operation: "suggest-words",
+      cacheKey: null,
+      provider: null,
+      model: null,
+      cached: false,
+      outcome: "credits_exhausted",
+    });
+    logRequest("suggest-words", false, "credits_exhausted", startedAt);
+    return creditsExhaustedResponse(credits.resetAt);
+  }
+
   try {
     const generated: GenerationResult<WordSuggestionResponse> =
       await generateStructured<WordSuggestionResponse>({
@@ -91,10 +123,25 @@ async function handle(req: Request): Promise<Response> {
         schemaName: "word_suggestions",
         jsonSchema: wordSuggestionJsonSchema,
         parse: wordSuggestionSchema.parse,
-        providerState: createProviderStateStore(ctx.supabaseAdmin),
+        providerState: createProviderStateStore(client),
       });
-    const meta: ResponseMeta = buildMeta(generated.provider, generated.model);
+    await recordGenerationEvent(client, {
+      userId,
+      operation: "suggest-words",
+      cacheKey: null,
+      provider: generated.provider,
+      model: generated.model,
+      cached: false,
+      outcome: "success",
+    });
+    const meta: ResponseMeta = buildMeta(
+      generated.provider,
+      generated.model,
+      false,
+      Math.max(credits.remaining - 1, 0),
+    );
     const cleaned: WordSuggestionResponse = withoutNulls(generated.value);
+    logRequest("suggest-words", false, "success", startedAt);
     return jsonResponse({
       situation: cleaned.situation,
       words: cleaned.words,
@@ -102,6 +149,16 @@ async function handle(req: Request): Promise<Response> {
     }, 200);
   } catch (error: unknown) {
     if (error instanceof ProvidersExhaustedError) {
+      await recordGenerationEvent(client, {
+        userId,
+        operation: "suggest-words",
+        cacheKey: null,
+        provider: null,
+        model: null,
+        cached: false,
+        outcome: "providers_exhausted",
+      });
+      logRequest("suggest-words", false, "providers_exhausted", startedAt);
       return providersExhaustedResponse(error.retryAfterSeconds);
     }
     console.error(error instanceof Error ? error.name : "UnknownError");

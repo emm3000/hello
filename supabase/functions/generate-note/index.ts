@@ -12,11 +12,15 @@ import {
   writeNoteCache,
 } from "../_shared/cache.ts";
 import {
+  checkCredits,
+  type CreditsSnapshot,
   type GenerationOutcome,
+  readDailyAllowance,
   recordGenerationEvent,
 } from "../_shared/credits.ts";
 import {
   buildMeta,
+  creditsExhaustedResponse,
   errorResponse,
   methodNotAllowedResponse,
   providersExhaustedResponse,
@@ -24,6 +28,7 @@ import {
   type ResponseMeta,
   successResponse,
 } from "../_shared/envelope.ts";
+import { logRequest } from "../_shared/log.ts";
 import { buildLearningNotePrompt, PROMPT_VERSION } from "../_shared/prompt.ts";
 import { createProviderStateStore } from "../_shared/provider_state.ts";
 import {
@@ -42,19 +47,6 @@ import {
 } from "../_shared/schema.ts";
 
 const APP_CHECK_HEADER: string = "X-Firebase-AppCheck";
-
-function logRequest(
-  cached: boolean,
-  outcome: GenerationOutcome,
-  startedAt: number,
-): void {
-  console.info(JSON.stringify({
-    op: "generate-note",
-    cached,
-    outcome,
-    ms: Math.round(performance.now() - startedAt),
-  }));
-}
 
 async function handle(req: Request): Promise<Response> {
   const startedAt: number = performance.now();
@@ -114,6 +106,8 @@ async function handle(req: Request): Promise<Response> {
 
   const client: SupabaseClient = ctx.supabaseAdmin;
   const userId: string = ctx.userClaims.id;
+  const now: Date = new Date();
+  const allowance: number = readDailyAllowance();
   const cacheKey: string = await buildCacheKey(request);
 
   if (request.previous_issues.length === 0) {
@@ -129,13 +123,44 @@ async function handle(req: Request): Promise<Response> {
         cached: true,
         outcome,
       });
-      const meta: ResponseMeta = buildMeta(hit.provider, hit.model, true);
-      logRequest(true, outcome, startedAt);
+      const cachedCredits: CreditsSnapshot = await checkCredits(
+        client,
+        userId,
+        now,
+        allowance,
+      );
+      const meta: ResponseMeta = buildMeta(
+        hit.provider,
+        hit.model,
+        true,
+        cachedCredits.remaining,
+      );
+      logRequest("generate-note", true, outcome, startedAt);
       if (hit.success && hit.response.data !== undefined) {
         return successResponse(hit.response.data, meta);
       }
       return refusalResponse(hit.response.error ?? null, meta);
     }
+  }
+
+  const credits: CreditsSnapshot = await checkCredits(
+    client,
+    userId,
+    now,
+    allowance,
+  );
+  if (credits.remaining <= 0) {
+    await recordGenerationEvent(client, {
+      userId,
+      operation: "generate-note",
+      cacheKey,
+      provider: null,
+      model: null,
+      cached: false,
+      outcome: "credits_exhausted",
+    });
+    logRequest("generate-note", false, "credits_exhausted", startedAt);
+    return creditsExhaustedResponse(credits.resetAt);
   }
 
   try {
@@ -157,7 +182,7 @@ async function handle(req: Request): Promise<Response> {
       model: generated.model,
       prompt_version: PROMPT_VERSION,
       schema_version: SCHEMA_VERSION,
-      expires_at: cacheExpiry(cleaned.success, new Date()),
+      expires_at: cacheExpiry(cleaned.success, now),
     });
     await recordGenerationEvent(client, {
       userId,
@@ -168,12 +193,16 @@ async function handle(req: Request): Promise<Response> {
       cached: false,
       outcome,
     });
+    const remaining: number = cleaned.success
+      ? Math.max(credits.remaining - 1, 0)
+      : credits.remaining;
     const meta: ResponseMeta = buildMeta(
       generated.provider,
       generated.model,
       false,
+      remaining,
     );
-    logRequest(false, outcome, startedAt);
+    logRequest("generate-note", false, outcome, startedAt);
     if (cleaned.success && cleaned.data !== undefined) {
       return successResponse(cleaned.data, meta);
     }
@@ -189,7 +218,7 @@ async function handle(req: Request): Promise<Response> {
         cached: false,
         outcome: "providers_exhausted",
       });
-      logRequest(false, "providers_exhausted", startedAt);
+      logRequest("generate-note", false, "providers_exhausted", startedAt);
       return providersExhaustedResponse(error.retryAfterSeconds);
     }
     console.error(error instanceof Error ? error.name : "UnknownError");

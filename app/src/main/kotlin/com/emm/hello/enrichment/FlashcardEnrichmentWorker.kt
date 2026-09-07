@@ -5,7 +5,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
-import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.validation.DomainValidationException
@@ -65,7 +64,7 @@ class FlashcardEnrichmentWorker(
     }
 
     private suspend fun markFailed(flashcardId: FlashcardId, error: Throwable) {
-        val reason: String? = (error as? AmbiguousGenerationInputException)?.reason
+        val reason: String? = EnrichmentFailureReason.of(error)
         GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId, reason)
     }
 

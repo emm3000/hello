@@ -4,4 +4,5 @@ import java.time.Instant
 
 class GenerationCreditsExhaustedException(
     val resetAt: Instant?,
-) : RuntimeException("Generation credits exhausted")
+    val reason: String? = null,
+) : RuntimeException(reason ?: "Generation credits exhausted")

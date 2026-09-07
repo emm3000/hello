@@ -5,6 +5,7 @@ export type ResponseMeta = {
   cached: boolean;
   provider: string;
   model: string;
+  credits_remaining: number;
   prompt_version: number;
   schema_version: number;
 };
@@ -18,6 +19,7 @@ export type ErrorCode =
   | "unauthorized"
   | "app_check_rejected"
   | "invalid_request"
+  | "credits_exhausted"
   | "providers_exhausted"
   | "misconfigured"
   | "internal";
@@ -30,6 +32,7 @@ const ERROR_STATUS: Record<ErrorCode, number> = {
   unauthorized: 401,
   app_check_rejected: 401,
   invalid_request: 400,
+  credits_exhausted: 402,
   providers_exhausted: 503,
   misconfigured: 500,
   internal: 500,
@@ -38,12 +41,14 @@ const ERROR_STATUS: Record<ErrorCode, number> = {
 export function buildMeta(
   provider: string,
   model: string,
-  cached: boolean = false,
+  cached: boolean,
+  creditsRemaining: number,
 ): ResponseMeta {
   return {
     cached,
     provider,
     model,
+    credits_remaining: creditsRemaining,
     prompt_version: PROMPT_VERSION,
     schema_version: SCHEMA_VERSION,
   };
@@ -93,6 +98,23 @@ export function methodNotAllowedResponse(): Response {
       meta: null,
     },
     405,
+  );
+}
+
+export function creditsExhaustedResponse(resetAt: string): Response {
+  return jsonResponse(
+    {
+      success: false,
+      data: null,
+      error: {
+        code: "credits_exhausted",
+        message:
+          "Alcanzaste el límite diario de generaciones con IA. Vuelve a intentarlo mañana.",
+        reset_at: resetAt,
+      },
+      meta: null,
+    },
+    ERROR_STATUS.credits_exhausted,
   );
 }
 

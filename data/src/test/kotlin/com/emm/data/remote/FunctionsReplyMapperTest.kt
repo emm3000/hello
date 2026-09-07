@@ -3,6 +3,7 @@ package com.emm.data.remote
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCreditsExhaustedException
 import java.io.IOException
+import java.time.Instant
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -51,6 +52,58 @@ class FunctionsReplyMapperTest {
         }
 
         assertNull(error.resetAt)
+    }
+
+    @Test
+    fun `map reads the reset instant and the reason from a full payment required body`() {
+        val reply = FunctionsReply(
+            status = 402,
+            body = "{\"success\":false,\"error\":{\"code\":\"credits_exhausted\"," +
+                "\"message\":\"Alcanzaste el limite diario\",\"reset_at\":\"2026-09-08T00:00:00Z\"}}",
+        )
+
+        val error: GenerationCreditsExhaustedException = assertThrows(
+            GenerationCreditsExhaustedException::class.java,
+        ) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+
+        assertEquals(Instant.parse("2026-09-08T00:00:00Z"), error.resetAt)
+        assertEquals("Alcanzaste el limite diario", error.reason)
+        assertEquals("Alcanzaste el limite diario", error.message)
+    }
+
+    @Test
+    fun `map yields null fields when payment required carries an empty body`() {
+        val reply = FunctionsReply(status = 402, body = "")
+
+        val error: GenerationCreditsExhaustedException = assertThrows(
+            GenerationCreditsExhaustedException::class.java,
+        ) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+
+        assertNull(error.resetAt)
+        assertNull(error.reason)
+        assertEquals("Generation credits exhausted", error.message)
+    }
+
+    @Test
+    fun `map keeps the reason when the reset instant is malformed`() {
+        val reply = FunctionsReply(
+            status = 402,
+            body = "{\"success\":false,\"error\":{\"code\":\"credits_exhausted\"," +
+                "\"message\":\"Sin creditos\",\"reset_at\":\"manana\"}}",
+        )
+
+        val error: GenerationCreditsExhaustedException = assertThrows(
+            GenerationCreditsExhaustedException::class.java,
+        ) {
+            FunctionsReplyMapper.map(reply, json, ::failOnSuccess)
+        }
+
+        assertNull(error.resetAt)
+        assertEquals("Sin creditos", error.reason)
     }
 
     @Test

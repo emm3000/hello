@@ -3,6 +3,9 @@ package com.emm.data.remote
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCreditsExhaustedException
 import java.io.IOException
+import java.time.Instant
+import java.time.format.DateTimeParseException
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -23,9 +26,20 @@ object FunctionsReplyMapper {
         val error: FunctionsErrorDto? = json.decodeErrorOrNull(body)
         return when (status) {
             UNAUTHORIZED -> AppCheckRejectedException(IllegalStateException(error?.code ?: body))
-            PAYMENT_REQUIRED -> GenerationCreditsExhaustedException(resetAt = null)
+            PAYMENT_REQUIRED -> GenerationCreditsExhaustedException(
+                resetAt = error?.resetAt?.let(::parseInstantOrNull),
+                reason = error?.message,
+            )
             BAD_REQUEST -> IllegalArgumentException(error?.message ?: body)
             else -> IOException("generate function returned $status")
+        }
+    }
+
+    private fun parseInstantOrNull(raw: String): Instant? {
+        return try {
+            Instant.parse(raw)
+        } catch (ignored: DateTimeParseException) {
+            null
         }
     }
 
@@ -49,4 +63,5 @@ private data class FunctionsErrorEnvelopeDto(
 private data class FunctionsErrorDto(
     val code: String? = null,
     val message: String? = null,
+    @SerialName("reset_at") val resetAt: String? = null,
 )
