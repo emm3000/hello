@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.capture
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
+import com.emm.domain.authoring.CreateManualFlashcardUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 
 class CaptureViewModel(
     private val captureFlashcard: CaptureFlashcardUseCase,
+    private val createManualFlashcard: CreateManualFlashcardUseCase,
     private val retryFailedEnrichments: RetryFailedEnrichmentsUseCase,
     private val enrichmentRepository: FlashcardEnrichmentRepository,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
@@ -56,6 +58,9 @@ class CaptureViewModel(
     override fun onIntent(intent: CaptureUiIntent) {
         when (intent) {
             is CaptureUiIntent.WordChanged -> setState { copy(word = intent.word) }
+            CaptureUiIntent.ManualModeToggled -> toggleManualMode()
+            is CaptureUiIntent.TranslationChanged -> setState { copy(translation = intent.translation) }
+            is CaptureUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             CaptureUiIntent.Submit -> handleSubmit()
             CaptureUiIntent.RetryFailed -> handleRetryFailed()
         }
@@ -66,6 +71,10 @@ class CaptureViewModel(
         return decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
     }
 
+    private fun toggleManualMode() = setState {
+        if (isManual) copy(isManual = false, translation = "", meaning = "") else copy(isManual = true)
+    }
+
     private fun handleSubmit() = viewModelScope.launch {
         val current: CaptureUiState = currentState
         val deck: Deck = current.targetDeck ?: return@launch
@@ -73,15 +82,11 @@ class CaptureViewModel(
 
         setState { copy(isSaving = true) }
         try {
-            val flashcardId: FlashcardId = captureFlashcard(deckId = deck.id, word = current.word)
-            val captured = RecentCapture(
-                flashcardId = flashcardId,
-                word = current.word.trim(),
-                status = EnrichmentStatus.PENDING,
-            )
-            setState { copy(word = "", isSaving = false, recentCaptures = listOf(captured) + recentCaptures) }
-            sendEffect(CaptureUiEffect.EnqueueEnrichment(listOf(flashcardId.value)))
-            sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_message))
+            if (current.isManual) {
+                saveWrittenCard(deck = deck, current = current)
+            } else {
+                saveForEnrichment(deck = deck, current = current)
+            }
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (validation: DomainValidationException) {
@@ -92,6 +97,42 @@ class CaptureViewModel(
             setState { copy(isSaving = false) }
             sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_error_generic))
         }
+    }
+
+    private suspend fun saveForEnrichment(deck: Deck, current: CaptureUiState) {
+        val flashcardId: FlashcardId = captureFlashcard(deckId = deck.id, word = current.word)
+        val captured = RecentCapture(
+            flashcardId = flashcardId,
+            word = current.word.trim(),
+            status = EnrichmentStatus.PENDING,
+        )
+        setState { copy(word = "", isSaving = false, recentCaptures = listOf(captured) + recentCaptures) }
+        sendEffect(CaptureUiEffect.EnqueueEnrichment(listOf(flashcardId.value)))
+        sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_message))
+    }
+
+    private suspend fun saveWrittenCard(deck: Deck, current: CaptureUiState) {
+        val flashcardId: FlashcardId = createManualFlashcard(
+            deckId = deck.id,
+            word = current.word,
+            translation = current.translation,
+            meaning = current.meaning,
+        )
+        val captured = RecentCapture(
+            flashcardId = flashcardId,
+            word = current.word.trim(),
+            status = EnrichmentStatus.ENRICHED,
+        )
+        setState {
+            copy(
+                word = "",
+                translation = "",
+                meaning = "",
+                isSaving = false,
+                recentCaptures = listOf(captured) + recentCaptures,
+            )
+        }
+        sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_ready_message))
     }
 
     private fun handleRetryFailed() = viewModelScope.launch {
@@ -122,6 +163,7 @@ private fun DomainValidationException.messageRes(): Int {
     val codes: List<IssueCode> = issues.map { it.code }
     return when {
         codes.contains(IssueCode.DuplicateWordInDeck) -> R.string.capture_error_duplicate
+        codes.contains(IssueCode.EmptyTranslation) -> R.string.capture_error_translation_required
         codes.contains(IssueCode.EmptyUserText) -> R.string.capture_error_empty
         else -> R.string.capture_error_generic
     }

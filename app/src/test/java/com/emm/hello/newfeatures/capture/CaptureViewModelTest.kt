@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.capture
 
 import app.cash.turbine.test
 import com.emm.domain.authoring.CaptureFlashcardUseCase
+import com.emm.domain.authoring.CreateManualFlashcardUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
@@ -238,8 +239,118 @@ class CaptureViewModelTest {
         assertThat(viewModel.state.value.isOnline).isTrue()
     }
 
+    @Test
+    fun `manual submit creates an enriched card and does not enqueue enrichment`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
+        coEvery { createManualFlashcard(any(), any(), any(), any()) } returns CARD_ID
+        val viewModel = buildViewModel(
+            captureFlashcard = captureFlashcard,
+            createManualFlashcard = createManualFlashcard,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+
+        viewModel.effect.test {
+            viewModel.onIntent(CaptureUiIntent.Submit)
+            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_saved_ready_message))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        coVerify(exactly = 1) {
+            createManualFlashcard(
+                deckId = DECK_ID,
+                word = "give up",
+                translation = "rendirse",
+                meaning = "",
+            )
+        }
+        coVerify(exactly = 0) { captureFlashcard(any(), any()) }
+        assertThat(viewModel.state.value.recentCaptures.first().status).isEqualTo(EnrichmentStatus.ENRICHED)
+    }
+
+    @Test
+    fun `manual mode blocks submit until the translation is filled`() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+
+        assertThat(viewModel.state.value.canSubmit).isFalse()
+
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+
+        assertThat(viewModel.state.value.canSubmit).isTrue()
+    }
+
+    @Test
+    fun `manual submit clears the fields and keeps manual mode`() = runTest {
+        val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
+        coEvery { createManualFlashcard(any(), any(), any(), any()) } returns CARD_ID
+        val viewModel = buildViewModel(createManualFlashcard = createManualFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+        viewModel.onIntent(CaptureUiIntent.MeaningChanged("to stop trying"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        val state: CaptureUiState = viewModel.state.value
+        assertThat(state.word).isEmpty()
+        assertThat(state.translation).isEmpty()
+        assertThat(state.meaning).isEmpty()
+        assertThat(state.isManual).isTrue()
+    }
+
+    @Test
+    fun `manual duplicate shows the duplicate message`() = runTest {
+        val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
+        coEvery { createManualFlashcard(any(), any(), any(), any()) } throws DomainValidationException(
+            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+        )
+        val viewModel = buildViewModel(createManualFlashcard = createManualFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+
+        viewModel.effect.test {
+            viewModel.onIntent(CaptureUiIntent.Submit)
+            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_error_duplicate))
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `leaving manual mode clears the manual fields`() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+        viewModel.onIntent(CaptureUiIntent.MeaningChanged("to stop trying"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+
+        val state: CaptureUiState = viewModel.state.value
+        assertThat(state.isManual).isFalse()
+        assertThat(state.translation).isEmpty()
+        assertThat(state.meaning).isEmpty()
+        assertThat(state.word).isEqualTo("give up")
+    }
+
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
+        createManualFlashcard: CreateManualFlashcardUseCase = mockk(),
         retryFailedEnrichments: RetryFailedEnrichmentsUseCase = mockk(),
         backlog: EnrichmentBacklog = EnrichmentBacklog(),
         libraryRepository: LibraryRepository = FakeLibraryRepository(),
@@ -256,6 +367,7 @@ class CaptureViewModelTest {
 
         return CaptureViewModel(
             captureFlashcard = captureFlashcard,
+            createManualFlashcard = createManualFlashcard,
             retryFailedEnrichments = retryFailedEnrichments,
             enrichmentRepository = enrichmentRepository,
             defaultDeckSelectionRepository = deckSelectionRepository,

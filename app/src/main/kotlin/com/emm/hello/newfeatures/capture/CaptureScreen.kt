@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -132,6 +134,18 @@ private fun CaptureContent(
                 )
             }
 
+            HButton(
+                text = stringResource(
+                    if (state.isManual) R.string.capture_manual_toggle_ai else R.string.capture_manual_toggle_write,
+                ),
+                onClick = { onIntent(CaptureUiIntent.ManualModeToggled) },
+                variant = HButtonVariant.Text,
+            )
+
+            if (state.isManual) {
+                CaptureManualFields(state = state, onIntent = onIntent)
+            }
+
             if (state.recentCaptures.isNotEmpty()) {
                 CaptureRecentList(state = state)
             }
@@ -152,6 +166,39 @@ private fun CaptureContent(
             isLoading = state.isSaving,
             variant = HButtonVariant.Primary,
             full = true,
+        )
+    }
+}
+
+@Composable
+private fun CaptureManualFields(
+    state: CaptureUiState,
+    onIntent: (CaptureUiIntent) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        HInput(
+            modifier = Modifier.fillMaxWidth(),
+            value = state.translation,
+            onValueChange = { onIntent(CaptureUiIntent.TranslationChanged(it)) },
+            label = stringResource(R.string.capture_manual_translation_label),
+            placeholder = stringResource(R.string.capture_manual_translation_placeholder),
+            variant = HFieldVariant.Underline,
+            enabled = !state.isSaving,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        )
+
+        HInput(
+            modifier = Modifier.fillMaxWidth(),
+            value = state.meaning,
+            onValueChange = { onIntent(CaptureUiIntent.MeaningChanged(it)) },
+            label = stringResource(R.string.capture_manual_meaning_label),
+            placeholder = stringResource(R.string.capture_manual_meaning_placeholder),
+            variant = HFieldVariant.Underline,
+            enabled = !state.isSaving,
+            singleLine = false,
+            minLines = 2,
+            maxLines = 4,
         )
     }
 }

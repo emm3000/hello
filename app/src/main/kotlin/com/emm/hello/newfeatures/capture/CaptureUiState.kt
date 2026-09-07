@@ -13,10 +13,16 @@ data class CaptureUiState(
     val failed: Int = 0,
     val recentCaptures: List<RecentCapture> = emptyList(),
     val isOnline: Boolean = true,
+    val isManual: Boolean = false,
+    val translation: String = "",
+    val meaning: String = "",
 ) : MviState {
 
     val canSubmit: Boolean
-        get() = word.isNotBlank() && targetDeck != null && !isSaving
+        get() = word.isNotBlank() &&
+            targetDeck != null &&
+            !isSaving &&
+            (!isManual || translation.isNotBlank())
 
     val hasBacklog: Boolean
         get() = pending > 0 || failed > 0

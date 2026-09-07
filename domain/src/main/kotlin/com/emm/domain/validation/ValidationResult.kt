@@ -4,6 +4,7 @@ sealed interface IssueCode {
     val value: String
 
     data object EmptyUserText : IssueCode { override val value: String = "empty_user_text" }
+    data object EmptyTranslation : IssueCode { override val value: String = "empty_translation" }
     data object MissingNoteId : IssueCode { override val value: String = "missing_note_id" }
     data object MissingExpression : IssueCode { override val value: String = "missing_expression" }
     data object MissingIntendedMeaning : IssueCode { override val value: String = "missing_intended_meaning" }
@@ -40,6 +41,7 @@ sealed interface IssueCode {
     companion object {
         val all: Set<IssueCode> = setOf(
             EmptyUserText,
+            EmptyTranslation,
             MissingNoteId,
             MissingExpression,
             MissingIntendedMeaning,

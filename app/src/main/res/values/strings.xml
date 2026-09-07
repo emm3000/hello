@@ -171,9 +171,17 @@
     <string name="capture_mic_content_description">Dictate the word</string>
     <string name="capture_save">Save</string>
     <string name="capture_saved_message">Saved. We\'re preparing it.</string>
+    <string name="capture_saved_ready_message">Saved. Ready to study.</string>
     <string name="capture_retry">Retry</string>
+    <string name="capture_manual_toggle_write">Write it myself</string>
+    <string name="capture_manual_toggle_ai">Let AI write it</string>
+    <string name="capture_manual_translation_label">Spanish translation</string>
+    <string name="capture_manual_translation_placeholder">e.g. rendirse</string>
+    <string name="capture_manual_meaning_label">Meaning in English (optional)</string>
+    <string name="capture_manual_meaning_placeholder">A short definition</string>
     <string name="capture_error_duplicate">That word is already in the deck.</string>
     <string name="capture_error_empty">Type a word first.</string>
+    <string name="capture_error_translation_required">Add the Spanish translation</string>
     <string name="capture_error_generic">We couldn\'t save the card.</string>
     <string name="capture_error_retry">We couldn\'t retry right now.</string>
     <string name="capture_done">Done</string>

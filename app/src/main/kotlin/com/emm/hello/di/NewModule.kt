@@ -29,6 +29,7 @@ import com.emm.data.remote.DataStore
 import com.emm.data.remote.provideSharedPreferences
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
+import com.emm.domain.authoring.CreateManualFlashcardUseCase
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
@@ -217,6 +218,7 @@ fun Module.useCases() {
     factoryOf(::GetDecksUseCase)
     factoryOf(::CreateFlashcardUseCase)
     factoryOf(::CaptureFlashcardUseCase)
+    factoryOf(::CreateManualFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
     factoryOf(::RetryFailedEnrichmentsUseCase)
     factoryOf(::FindPendingEnrichmentsUseCase)
@@ -277,7 +279,7 @@ fun Module.viewModels() {
             updateFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get(), get()) }
