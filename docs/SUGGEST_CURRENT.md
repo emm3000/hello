@@ -7,7 +7,7 @@
 | Scope | `Suggest` flow (new words for a situation) |
 | Source of Truth | No |
 | Read this when | You need to understand how AI-suggested words are generated, picked and captured |
-| Last verified | 2026-09-05 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 
@@ -31,9 +31,8 @@ its own tab: `Hoy` when nothing is due, and the end of a study session.
 - `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
 - `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
-- `data/src/main/kotlin/com/emm/data/suggestion/GeminiWordSuggestionRepository.kt`
+- `data/src/main/kotlin/com/emm/data/suggestion/RemoteWordSuggestionRepository.kt`
 - `data/src/main/kotlin/com/emm/data/suggestion/CannedWordSuggestionRepository.kt`
-- `data/src/main/kotlin/com/emm/data/suggestion/WordSuggestionPrompt.kt`
 - `data/src/main/kotlin/com/emm/data/suggestion/WordSuggestionResponse.kt`
 - `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentScheduler.kt`
 - `app/src/main/kotlin/com/emm/hello/di/NewModule.kt`
@@ -146,24 +145,27 @@ Otherwise it proceeds to:
 `WordSuggestionRepository` has two implementations, chosen in
 `app/src/main/kotlin/com/emm/hello/di/NewModule.kt` by `BuildConfig.USE_CANNED_AI`:
 
-- **`GeminiWordSuggestionRepository`** (used when `USE_CANNED_AI` is false) —
-  builds a strict-JSON prompt with `WordSuggestionPrompt.build(recentWords)`,
-  makes exactly one `geminiService.process(prompt)` call (one quota consume),
-  and parses the result with `WordSuggestionResponseParser`, which strips
-  Markdown code fences and decodes `{"situation": ..., "words": [...]}`,
-  throwing if `situation` is blank or `words` is empty.
+- **`RemoteWordSuggestionRepository`** (used when `USE_CANNED_AI` is false) —
+  calls the Supabase edge function `suggest-words` through `FunctionsTransport`,
+  after `SessionInitializer.ensureSession()` and attaching an
+  `AppCheckTokenProvider.token()`, sending `SuggestWordsRequestDto(recentWords)`.
+  The reply is decoded with `FunctionsReplyMapper.map` plus
+  `WordSuggestionResponseParser`, which strips Markdown code fences and decodes
+  `{"situation": ..., "words": [...]}`, throwing if `situation` is blank or
+  `words` is empty. A call or parse failure is recorded on `GenerationTelemetry`
+  and rethrown; the repository itself does not retry.
 - **`CannedWordSuggestionRepository`** (used when `USE_CANNED_AI` is true) —
   no network call. Waits 600 ms, then returns one of three fixed scenarios
   (restaurant ordering, asking for directions, a junior job interview), each
   with six hardcoded words, picked by `recentWords.size % 3`.
 
 `app/build.gradle.kts` sets `USE_CANNED_AI` to `true` for `debug` and `false`
-for `release`. Debug builds keep the canned repository so
-Suggest stays deterministic and offline while developing; the flag only covers
-Suggest, Capture enrichment always calls Gemini. Firebase AI Logic enforces App
-Check since 2026-09-06 and `App.installAppCheck()` attests every build (debug
-provider in `debug`, Play Integrity otherwise), so flipping the flag in a debug
-build reaches the real model.
+for `release` (only these two build types exist). Debug builds keep the canned
+repository so Suggest stays deterministic and offline while developing. Both
+word suggestions and Capture's card enrichment go through Supabase edge
+functions (`suggest-words` and `generate-note` respectively) over the same
+`functions-kt` transport, authenticated with a Firebase App Check token — see
+`docs/AI_BACKEND_PLAN.md`.
 
 Picking words and confirming (`AddSelected`) resolves a target deck via
 `GetDecksUseCase` and `DefaultDeckSelectionRepository` (the default deck if
@@ -188,9 +190,9 @@ navigates back.
   suggestion repository returned.
 - No manual situation prompt from the user; the situation is chosen entirely
   by the suggestion repository.
-- No offline queue for the Gemini path — once online, a failed
-  `geminiService.process` call surfaces as the error state and does not retry
-  automatically. Being offline is caught earlier: `load()` checks
+- No offline queue for the remote path — once online, a failed `suggest-words`
+  call surfaces as the error state and does not retry automatically. Being
+  offline is caught earlier: `load()` checks
   `ConnectivityRepository.observeOnline()` before ever calling
   `SuggestWordsUseCase`, so the offline state is shown instead of attempting
   the network call.

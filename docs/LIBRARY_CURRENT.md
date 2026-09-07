@@ -7,7 +7,7 @@
 | Scope | `Library` flow (all cards, content search) |
 | Source of Truth | No |
 | Read this when | You need to understand how cards are listed, searched and filtered |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 
@@ -46,7 +46,8 @@ It replaced the dashboard deck list and Deck Detail. Reached from the
 ## Read model
 
 `LibraryFlashcard` carries `id`, `deckId`, `deckName`, `word`, `translation`,
-`meaning`, `enrichmentStatus` and a nullable `nextReviewAt`.
+`meaning`, `enrichmentStatus`, `enrichmentFailureReason` and a nullable
+`nextReviewAt`.
 
 `libraryFlashcards` inner-joins `Deck` for the name and left-joins
 `ReviewProjection` for `nextReviewAt`, which stays null for a card that has

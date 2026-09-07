@@ -29,7 +29,7 @@ Global sources of truth still live at the root:
 - `STUDY_CURRENT.md`: current state of the `Study` flow
 - `SETTINGS_CURRENT.md`: current state of the `Settings` flow (export/import backup, daily study reminder)
 - `ONBOARDING_CURRENT.md`: current state of the first-run onboarding flow (welcome gate + seeded starter deck)
-- `SUGGEST_CURRENT.md`: current state of the `Suggest` flow (a situation and new words for a zero-due day)
+- `SUGGEST_CURRENT.md`: current state of the `Suggest` flow (a situation and new words, reached from Hoy when nothing is due or from the end of a study session)
 
 ## Plans & history (not source of truth)
 

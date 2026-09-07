@@ -7,7 +7,7 @@
 | Scope | `Edit Flashcard` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how an existing card's fields are edited |
-| Last verified | 2026-09-06 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 

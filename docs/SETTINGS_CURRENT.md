@@ -7,7 +7,7 @@
 | Scope | `Settings` flow (backup export/import, daily study reminder) |
 | Source of Truth | No |
 | Read this when | You need to understand exporting/importing local data, or the daily study reminder |
-| Last verified | 2026-09-06 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 
@@ -27,6 +27,7 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `app/src/main/kotlin/com/emm/hello/core/ui/TimePicker.kt` (`HTimePickerDialog`)
 - `app/src/main/kotlin/com/emm/hello/notifications/NotificationPermission.kt` (port, `isGranted()`)
 - `app/src/main/kotlin/com/emm/hello/notifications/SystemNotificationPermission.kt` (impl over `NotificationManagerCompat.areNotificationsEnabled()`)
+- `app/src/main/kotlin/com/emm/hello/notifications/PostNotificationsRequest.kt` (`requestPostNotificationsPermission`)
 
 ## :data / :domain dependencies
 

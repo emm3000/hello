@@ -41,9 +41,10 @@ deck (falling back to the first deck). Editing the result is
 - `domain/src/main/kotlin/com/emm/domain/authoring/RetryFailedEnrichmentsUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/MarkEnrichmentFailedUseCase.kt`
 
-Entry points: `NewRoot` registers `CaptureRoute`; `Hoy` (FAB and the
-nothing-due CTA), `Biblioteca` (`OpenCapture`) and `Study`
-(`NavigateToCapture`) all navigate to it.
+Entry points: `NewRoot` registers `CaptureRoute`; `Hoy` (the "Add a word"
+button, present in both its session-ready and nothing-due layouts),
+`Biblioteca` (`OpenCapture`) and `Study` (`NavigateToCapture`) all navigate
+to it.
 
 ## State
 
@@ -58,8 +59,8 @@ nothing-due CTA), `Biblioteca` (`OpenCapture`) and `Study`
   `FlashcardEnrichmentRepository.observeBacklog()` (`EnrichmentBacklog`),
   refreshed on every DB change
 - `recentCaptures: List<RecentCapture>` — the words saved in this ViewModel
-  instance, newest first; each has `flashcardId`, `word` and
-  `status: EnrichmentStatus`. Statuses are refreshed from
+  instance, newest first; each has `flashcardId`, `word`, `status:
+  EnrichmentStatus` and a nullable `failureReason`. Statuses are refreshed from
   `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
   `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
   and starts empty on every visit.
@@ -130,13 +131,16 @@ backoff starting at 5 minutes.
 Koin, which reads the stored word, calls
 `FlashcardGenerationRepository.generateLearningNote` with
 `FlashcardInputType.Word`, validates the note, writes it back through
-`repository.update` + `upsertExamples`, and sets the status to `ENRICHED`. On
-a validation failure the use case regenerates once, feeding the rejected
-issue codes back into the prompt, before giving up. A transient failure
-(timeout, 5xx, quota) returns `Result.retry()` until `MAX_ATTEMPTS = 3`; a
-`DomainValidationException` or `GenerationQuotaExceededException` is not
-retried by the worker — `EnrichmentRetryPolicy` marks the card `FAILED` on
-the first attempt through `MarkEnrichmentFailedUseCase`. A card in `FAILED`
+`repository.update`, records the prompt version, then `upsertExamples`, and
+sets the status to `ENRICHED`. On a validation failure the use case
+regenerates once, feeding the rejected issue codes back into the prompt,
+before giving up. `EnrichmentRetryPolicy.shouldRetry` decides per error: a
+`DomainValidationException`, `AmbiguousGenerationInputException`,
+`AppCheckRejectedException` or `GenerationCreditsExhaustedException` is not
+retried — the worker marks the card `FAILED` on the first attempt through
+`MarkEnrichmentFailedUseCase`; a `SessionExpiredException` or anything else
+(timeout, 5xx, an unrecognized error) returns `Result.retry()` until
+`MAX_ATTEMPTS = 3`, then also marks it `FAILED`. A card in `FAILED`
 is what `RetryFailed` picks up. A `FAILED` card can also be completed by hand,
 without retrying generation, by filling in its meaning from Edit Flashcard —
 see `EDIT_FLASHCARD_CURRENT.md`.
@@ -165,7 +169,8 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   card reads `capture_status_preparing` while `state.isOnline`, or
   `capture_status_waiting_for_connection` while offline; `ENRICHED` always
   reads `capture_status_ready` and `FAILED` always reads
-  `capture_status_failed`.
+  `capture_status_failed`. A `FAILED` row with a non-null `failureReason`
+  shows that reason as a second line below the word.
 - **Retry** — a text `HButton` `capture_retry` rendered only when
   `failed > 0`. `pending` is not surfaced anywhere on the screen.
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,

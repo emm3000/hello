@@ -252,7 +252,7 @@ These tasks do NOT block launch. Prioritize by signals from real users.
 
 #### S3-T8: Clean up redundancy in docs
 - Reconcile `docs/*_CURRENT.md` with current code post-UI refactor.
-- **Status:** [ ]
+- **Status:** [x] — re-verified 2026-09-07: all ten `*_CURRENT.md` docs checked line by line against their feature code, use cases and repositories; `SUGGEST_CURRENT.md` had the largest drift (the word-suggestion path moved from a direct Gemini call to the `suggest-words` Supabase edge function, same as `generate-note`), the rest were minor field/behavior omissions and one stale `docs/README.md` one-liner.
 
 ---
 

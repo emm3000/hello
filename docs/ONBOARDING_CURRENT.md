@@ -7,7 +7,7 @@
 | Scope | First-run onboarding (welcome screen + starter deck) |
 | Source of Truth | No |
 | Read this when | You need to understand what a fresh install sees before Today |
-| Last verified | 2026-09-06 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 
@@ -25,6 +25,7 @@ On a fresh install the app opens on a single welcome screen instead of Today, an
 - `app/src/main/kotlin/com/emm/hello/newfeatures/NewRoot.kt` (start destination)
 - `app/src/main/kotlin/com/emm/hello/notifications/NotificationPermission.kt` (port, `isGranted()`)
 - `app/src/main/kotlin/com/emm/hello/notifications/SystemNotificationPermission.kt` (impl over `NotificationManagerCompat.areNotificationsEnabled()`)
+- `app/src/main/kotlin/com/emm/hello/notifications/PostNotificationsRequest.kt` (`requestPostNotificationsPermission`)
 
 ## :domain / :data dependencies
 
@@ -37,7 +38,9 @@ On a fresh install the app opens on a single welcome screen instead of Today, an
 
 1. `LocalIdentityInitializer.ensureReady()`
 2. `SeedDataInitializer.ensureSeeded()`
-3. on success emits `AppStartupState.Ready(hasSeenWelcome = onboardingStateRepository.hasSeenWelcome())`
+3. on success emits `AppStartupState.Ready(hasSeenWelcome = onboardingStateRepository.hasSeenWelcome())`,
+   then requeues any pending flashcard enrichment work via `FindPendingEnrichmentsUseCase` — unrelated
+   to onboarding itself, but part of the same startup sequence
 4. on failure emits `AppStartupState.Error`
 
 `NewRoot` renders the loading/error screens for the first two states. On `Ready` it calls `AppNavigation(hasSeenWelcome)`, which picks the start key:

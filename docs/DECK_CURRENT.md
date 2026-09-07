@@ -7,7 +7,7 @@
 | Scope | `Decks` and `New/Edit Deck` flows |
 | Source of Truth | No |
 | Read this when | You need to understand deck creation, editing and deletion |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 

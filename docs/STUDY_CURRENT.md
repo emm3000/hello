@@ -7,7 +7,7 @@
 | Scope | `Study` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how the study session works today |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 

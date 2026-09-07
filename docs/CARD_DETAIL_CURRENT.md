@@ -7,7 +7,7 @@
 | Scope | `Card Detail` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how an existing card is shown and deleted |
-| Last verified | 2026-09-06 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 

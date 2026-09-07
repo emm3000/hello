@@ -7,7 +7,7 @@
 | Scope | `Today` flow (session-first home) |
 | Source of Truth | No |
 | Read this when | You need to understand what the home screen shows and what it does not |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-07 |
 
 ## Summary
 
