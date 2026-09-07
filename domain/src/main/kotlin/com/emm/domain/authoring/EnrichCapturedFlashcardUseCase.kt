@@ -8,6 +8,7 @@ import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.FlashcardId
+import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.requireValid
 
 class EnrichCapturedFlashcardUseCase(
@@ -31,7 +32,16 @@ class EnrichCapturedFlashcardUseCase(
 
     private suspend fun generatedNote(flashcardId: FlashcardId): GeneratedLearningNote {
         val word: String = repository.fetchById(flashcardId).flashcard.word
-        val note: GeneratedLearningNote = generationRepository.generateLearningNote(generationInput(word))
+        val input: FlashcardGenerationInput = generationInput(word)
+        return try {
+            generateValidated(input)
+        } catch (firstError: DomainValidationException) {
+            generateValidated(input.copy(previousIssues = firstError.issues))
+        }
+    }
+
+    private suspend fun generateValidated(input: FlashcardGenerationInput): GeneratedLearningNote {
+        val note: GeneratedLearningNote = generationRepository.generateLearningNote(input)
         validateGeneratedLearningNoteUseCase(note).requireValid()
         return note
     }

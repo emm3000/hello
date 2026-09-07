@@ -3,6 +3,7 @@ package com.emm.domain.flashcard
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.RegisterPreference
+import com.emm.domain.validation.ValidationIssue
 
 data class FlashcardGenerationInput(
     val inputType: FlashcardInputType,
@@ -14,6 +15,7 @@ data class FlashcardGenerationInput(
     val register: RegisterPreference = RegisterPreference.Neutral,
     val domain: LearningDomain = LearningDomain.DailyLife,
     val communicativeIntentId: String = "",
+    val previousIssues: List<ValidationIssue> = emptyList(),
 ) {
 
     fun normalized(): FlashcardGenerationInput {

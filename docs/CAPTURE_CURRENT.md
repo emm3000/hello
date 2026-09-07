@@ -108,10 +108,14 @@ backoff starting at 5 minutes.
 Koin, which reads the stored word, calls
 `FlashcardGenerationRepository.generateLearningNote` with
 `FlashcardInputType.Word`, validates the note, writes it back through
-`repository.update` + `upsertExamples`, and sets the status to `ENRICHED`. Any
-failure returns `Result.retry()` until `MAX_ATTEMPTS = 3`; on the last attempt
-`MarkEnrichmentFailedUseCase` sets `FAILED` and the worker gives up. A card in
-`FAILED` is what `RetryFailed` picks up.
+`repository.update` + `upsertExamples`, and sets the status to `ENRICHED`. On
+a validation failure the use case regenerates once, feeding the rejected
+issue codes back into the prompt, before giving up. A transient failure
+(timeout, 5xx, quota) returns `Result.retry()` until `MAX_ATTEMPTS = 3`; a
+`DomainValidationException` or `GenerationQuotaExceededException` is not
+retried by the worker — `EnrichmentRetryPolicy` marks the card `FAILED` on
+the first attempt through `MarkEnrichmentFailedUseCase`. A card in `FAILED`
+is what `RetryFailed` picks up.
 
 ## Screen
 

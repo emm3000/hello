@@ -40,7 +40,7 @@ class DailyGenerationQuota(
     }
 
     companion object {
-        const val DEFAULT_LIMIT: Int = 50
+        const val DEFAULT_LIMIT: Int = 20
         const val KEY_DATE: String = "gen_quota_date"
         const val KEY_COUNT: String = "gen_quota_count"
     }

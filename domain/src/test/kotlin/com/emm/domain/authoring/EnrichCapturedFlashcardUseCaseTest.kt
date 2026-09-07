@@ -18,12 +18,15 @@ import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.domain.validation.DomainValidationException
-import kotlinx.coroutines.test.runTest
+import com.emm.domain.validation.IssueCode
+import com.emm.domain.validation.ValidationIssue
 import java.time.Instant
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class EnrichCapturedFlashcardUseCaseTest {
 
@@ -32,7 +35,7 @@ class EnrichCapturedFlashcardUseCaseTest {
         val repository = RecordingRepository()
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
-            generationRepository = NoteGenerationRepository(note = sampleWordNote()),
+            generationRepository = NoteGenerationRepository(outcomes = listOf(Result.success(sampleWordNote()))),
         )
 
         val status: EnrichmentStatus = useCase(FLASHCARD_ID)
@@ -48,7 +51,7 @@ class EnrichCapturedFlashcardUseCaseTest {
 
     @Test
     fun `invoke generates from the captured word`() = runTest {
-        val generationRepository = NoteGenerationRepository(note = sampleWordNote())
+        val generationRepository = NoteGenerationRepository(outcomes = listOf(Result.success(sampleWordNote())))
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = RecordingRepository(),
             generationRepository = generationRepository,
@@ -56,7 +59,7 @@ class EnrichCapturedFlashcardUseCaseTest {
 
         useCase(FLASHCARD_ID)
 
-        val input: FlashcardGenerationInput = requireNotNull(generationRepository.lastInput)
+        val input: FlashcardGenerationInput = requireNotNull(generationRepository.inputs.firstOrNull())
         assertEquals("borrow", input.userText)
         assertEquals(FlashcardInputType.Word, input.inputType)
     }
@@ -64,15 +67,19 @@ class EnrichCapturedFlashcardUseCaseTest {
     @Test
     fun `invoke propagates the generation error without storing anything`() = runTest {
         val repository = RecordingRepository()
+        val generationRepository = NoteGenerationRepository(
+            outcomes = listOf(Result.failure(IllegalStateException("boom"))),
+        )
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
-            generationRepository = NoteGenerationRepository(error = IllegalStateException("boom")),
+            generationRepository = generationRepository,
         )
 
         assertFailsWith<IllegalStateException> { useCase(FLASHCARD_ID) }
 
         assertNull(repository.lastStatus)
         assertNull(repository.lastUpdate)
+        assertEquals(1, generationRepository.inputs.size)
     }
 
     @Test
@@ -81,7 +88,7 @@ class EnrichCapturedFlashcardUseCaseTest {
         val quotaError = GenerationQuotaExceededException(limit = 50, resetAt = Instant.EPOCH)
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
-            generationRepository = NoteGenerationRepository(error = quotaError),
+            generationRepository = NoteGenerationRepository(outcomes = listOf(Result.failure(quotaError))),
         )
 
         assertFailsWith<GenerationQuotaExceededException> { useCase(FLASHCARD_ID) }
@@ -91,18 +98,69 @@ class EnrichCapturedFlashcardUseCaseTest {
     }
 
     @Test
-    fun `invoke propagates the validation error without storing anything`() = runTest {
+    fun `invoke regenerates once when the first note fails validation and the second note is valid`() = runTest {
         val repository = RecordingRepository()
+        val invalidNote = sampleWordNote().copy(cards = emptyList())
+        val generationRepository = NoteGenerationRepository(
+            outcomes = listOf(Result.success(invalidNote), Result.success(sampleWordNote())),
+        )
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
-            generationRepository = NoteGenerationRepository(note = sampleWordNote().copy(cards = emptyList())),
+            generationRepository = generationRepository,
         )
 
-        assertFailsWith<DomainValidationException> { useCase(FLASHCARD_ID) }
+        val status: EnrichmentStatus = useCase(FLASHCARD_ID)
 
-        assertNull(repository.lastStatus)
-        assertNull(repository.lastUpdate)
+        assertEquals(EnrichmentStatus.ENRICHED, status)
+        assertEquals(2, generationRepository.inputs.size)
+        assertTrue(generationRepository.inputs[0].previousIssues.isEmpty())
+        val expectedIssues = ValidateGeneratedLearningNoteUseCase()(invalidNote).errors
+        assertEquals(expectedIssues, generationRepository.inputs[1].previousIssues)
+        assertEquals("borrow", generationRepository.inputs[1].userText)
     }
+
+    @Test
+    fun `invoke regenerates once when the repository throws a validation error and the second attempt succeeds`() =
+        runTest {
+            val repository = RecordingRepository()
+            val issues = listOf(ValidationIssue.Error(IssueCode.MissingUsagePattern, "usage_pattern"))
+            val generationRepository = NoteGenerationRepository(
+                outcomes = listOf(
+                    Result.failure(DomainValidationException(issues)),
+                    Result.success(sampleWordNote()),
+                ),
+            )
+            val useCase: EnrichCapturedFlashcardUseCase = useCase(
+                repository = repository,
+                generationRepository = generationRepository,
+            )
+
+            val status: EnrichmentStatus = useCase(FLASHCARD_ID)
+
+            assertEquals(EnrichmentStatus.ENRICHED, status)
+            assertEquals(2, generationRepository.inputs.size)
+            assertEquals(issues, generationRepository.inputs[1].previousIssues)
+        }
+
+    @Test
+    fun `invoke propagates the second validation error without storing anything when both attempts fail`() =
+        runTest {
+            val repository = RecordingRepository()
+            val invalidNote = sampleWordNote().copy(cards = emptyList())
+            val generationRepository = NoteGenerationRepository(
+                outcomes = listOf(Result.success(invalidNote), Result.success(invalidNote)),
+            )
+            val useCase: EnrichCapturedFlashcardUseCase = useCase(
+                repository = repository,
+                generationRepository = generationRepository,
+            )
+
+            assertFailsWith<DomainValidationException> { useCase(FLASHCARD_ID) }
+
+            assertEquals(2, generationRepository.inputs.size)
+            assertNull(repository.lastStatus)
+            assertNull(repository.lastUpdate)
+        }
 
     private fun useCase(
         repository: FlashcardRepository,
@@ -153,15 +211,16 @@ private class RecordingRepository : FlashcardRepository {
 }
 
 private class NoteGenerationRepository(
-    private val note: GeneratedLearningNote? = null,
-    private val error: Throwable? = null,
+    private val outcomes: List<Result<GeneratedLearningNote>>,
 ) : FlashcardGenerationRepository {
 
-    var lastInput: FlashcardGenerationInput? = null
+    val inputs: MutableList<FlashcardGenerationInput> = mutableListOf()
+    private var callIndex: Int = 0
 
     override suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote {
-        lastInput = input
-        error?.let { throw it }
-        return requireNotNull(note)
+        inputs += input
+        val outcome = outcomes[callIndex]
+        callIndex += 1
+        return outcome.getOrThrow()
     }
 }

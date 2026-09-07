@@ -5,7 +5,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
-import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.validation.DomainValidationException
@@ -22,23 +21,30 @@ class FlashcardEnrichmentWorker(
         val rawFlashcardId: String = inputData.getString(KEY_FLASHCARD_ID) ?: return Result.failure()
         val flashcardId: FlashcardId = rawFlashcardId.toFlashcardId()
 
-        if (enrich(flashcardId) == EnrichmentStatus.ENRICHED) return Result.success()
+        val error: Throwable = enrich(flashcardId) ?: return Result.success()
+
+        if (!EnrichmentRetryPolicy.shouldRetry(error)) {
+            markFailed(flashcardId)
+            logError(TAG, "enrich:abandoned ${flashcardId.value} non_retryable")
+            return Result.failure()
+        }
 
         return retryOrGiveUp(flashcardId)
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun enrich(flashcardId: FlashcardId): EnrichmentStatus {
+    private suspend fun enrich(flashcardId: FlashcardId): Throwable? {
         val enrichCapturedFlashcard: EnrichCapturedFlashcardUseCase =
             GlobalContext.get().get<EnrichCapturedFlashcardUseCase>()
 
         return try {
             enrichCapturedFlashcard(flashcardId)
+            null
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
             logError(TAG, "enrich:error ${flashcardId.value} ${error.describe()}", error)
-            EnrichmentStatus.FAILED
+            error
         }
     }
 
@@ -52,9 +58,13 @@ class FlashcardEnrichmentWorker(
     private suspend fun retryOrGiveUp(flashcardId: FlashcardId): Result {
         if (runAttemptCount + 1 < MAX_ATTEMPTS) return Result.retry()
 
-        GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId)
+        markFailed(flashcardId)
         logError(TAG, "enrich:abandoned ${flashcardId.value} after $MAX_ATTEMPTS attempts")
         return Result.failure()
+    }
+
+    private suspend fun markFailed(flashcardId: FlashcardId) {
+        GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId)
     }
 
     companion object {

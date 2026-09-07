@@ -1,10 +1,12 @@
 package com.emm.data.flashcard
 
+import com.emm.domain.validation.ValidationIssue
+
 object Prompt {
 
     @Suppress("LongMethod")
     fun buildLearningNotePrompt(input: com.emm.domain.flashcard.FlashcardGenerationInput): String {
-        return """
+        val base: String = """
         You are a bilingual English-learning assistant for native Spanish speakers
         (neutral Latin American Spanish; avoid Iberian voseo/leísmo).
 
@@ -121,5 +123,16 @@ object Prompt {
 
         If the input is too ambiguous or unusable, return success=false with a short error.message explaining why. Do not include markdown or any text outside the JSON.
         """.trimIndent()
+        if (input.previousIssues.isEmpty()) return base
+        return base + "\n\n" + feedbackSection(input.previousIssues)
+    }
+
+    private fun feedbackSection(previousIssues: List<ValidationIssue>): String {
+        val issueLines: String = previousIssues.joinToString(separator = "\n") { issue ->
+            "- ${issue.code.value} (field: ${issue.field})"
+        }
+        return "Your previous answer for this exact input was rejected by these deterministic checks:\n" +
+            issueLines +
+            "\nFix every listed field and return the complete JSON again."
     }
 }

@@ -11,6 +11,7 @@ import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.generationConfig
+import java.time.ZoneId
 import org.koin.dsl.module
 
 private const val MODEL_NAME = "gemini-2.5-flash-lite"
@@ -19,7 +20,7 @@ private const val DEFAULT_TOP_P = 0.95f
 
 val repositoryModule = module {
     single<GeminiTelemetry> { CrashlyticsGeminiTelemetry() }
-    single<GenerationQuota> { DailyGenerationQuota(preferences = get()) }
+    single<GenerationQuota> { DailyGenerationQuota(preferences = get(), zone = ZoneId.of("America/Los_Angeles")) }
     single {
         GeminiService(
             generativeModel = provideGenericModel(),

@@ -5,6 +5,11 @@ import com.emm.domain.generation.GenerationQuotaExceededException
 import com.emm.domain.telemetry.GeminiTelemetry
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
+import com.google.firebase.ai.type.QuotaExceededException
+import com.google.firebase.ai.type.RequestTimeoutException
+import com.google.firebase.ai.type.ServerException
+import com.google.firebase.ai.type.UnknownException
+import java.io.IOException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
@@ -27,47 +32,40 @@ open class GeminiService(
         }
     }
 
-    // Parsing happens inside the retry loop, so a malformed payload retries the whole call
-    // instead of reaching the user.
     open suspend fun <T> processLearningNoteWithParser(
         prompt: String,
         parse: (String) -> T,
     ): T {
         enforceQuota(kind = "learning_note")
-        val totalAttempts = backoffMs.size + 1
-        var lastError: Throwable? = null
-        var lastRaw = ""
-        repeat(totalAttempts) { attempt ->
+        val totalAttempts: Int = backoffMs.size + 1
+        var lastError: Throwable = IllegalStateException("Learning note generation failed without throwable")
+        for (attempt in 0 until totalAttempts) {
+            var raw: String = ""
             try {
-                val raw = withTimeout(perAttemptTimeoutMs) {
+                raw = withTimeout(perAttemptTimeoutMs) {
                     learningNoteModel.generateContent(prompt).text.orEmpty()
                 }
-                lastRaw = raw
                 return parse(raw)
+            } catch (timeout: TimeoutCancellationException) {
+                lastError = timeout
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (t: Throwable) {
                 lastError = t
             }
+            if (raw.isNotEmpty()) recordParseFailureAndThrow(raw = raw, error = lastError)
+            if (!lastError.isTransient()) {
+                recordCallFailureAndThrow(kind = "learning_note", attempts = attempt + 1, error = lastError)
+            }
             if (attempt < backoffMs.size) {
                 delay(backoffMs[attempt])
             }
         }
-        val error = lastError ?: IllegalStateException("Learning note generation failed without throwable")
-        if (lastRaw.isNotEmpty()) {
-            telemetry.recordParseFailure(
-                kind = "learning_note",
-                rawResponse = lastRaw.take(MAX_RAW_RESPONSE_CHARS),
-                cause = error,
-            )
-        } else {
-            telemetry.recordCallFailure(kind = "learning_note", attempts = totalAttempts, cause = error)
-        }
-        throw error
+        recordCallFailureAndThrow(kind = "learning_note", attempts = totalAttempts, error = lastError)
     }
 
     private suspend fun enforceQuota(kind: String) {
-        val outcome = quota.tryConsume()
+        val outcome: GenerationQuota.Outcome = quota.tryConsume()
         if (outcome is GenerationQuota.Outcome.Exceeded) {
             telemetry.recordQuotaExceeded(kind = kind, limit = outcome.limit)
             throw GenerationQuotaExceededException(limit = outcome.limit, resetAt = outcome.resetAt)
@@ -75,25 +73,52 @@ open class GeminiService(
     }
 
     private suspend fun callWithRetry(kind: String, block: suspend () -> String): String {
-        val totalAttempts = backoffMs.size + 1
-        var lastError: Throwable? = null
-        repeat(totalAttempts) { attempt ->
-            lastError = try {
+        val totalAttempts: Int = backoffMs.size + 1
+        var lastError: Throwable = IllegalStateException("Gemini call failed without throwable")
+        for (attempt in 0 until totalAttempts) {
+            try {
                 return withTimeout(perAttemptTimeoutMs) { block() }
             } catch (timeout: TimeoutCancellationException) {
-                timeout
+                lastError = timeout
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (t: Throwable) {
-                t
+                lastError = t
+            }
+            if (!lastError.isTransient()) {
+                recordCallFailureAndThrow(kind = kind, attempts = attempt + 1, error = lastError)
             }
             if (attempt < backoffMs.size) {
                 delay(backoffMs[attempt])
             }
         }
-        val error = lastError ?: IllegalStateException("Gemini call failed without throwable")
-        telemetry.recordCallFailure(kind = kind, attempts = totalAttempts, cause = error)
+        recordCallFailureAndThrow(kind = kind, attempts = totalAttempts, error = lastError)
+    }
+
+    private fun recordCallFailureAndThrow(kind: String, attempts: Int, error: Throwable): Nothing {
+        telemetry.recordCallFailure(kind = kind, attempts = attempts, cause = error)
         throw error
+    }
+
+    private fun recordParseFailureAndThrow(raw: String, error: Throwable): Nothing {
+        telemetry.recordParseFailure(
+            kind = "learning_note",
+            rawResponse = raw.take(MAX_RAW_RESPONSE_CHARS),
+            cause = error,
+        )
+        throw error
+    }
+
+    private fun Throwable.isTransient(): Boolean {
+        return when (this) {
+            is TimeoutCancellationException -> true
+            is IOException -> true
+            is RequestTimeoutException -> true
+            is ServerException -> true
+            is QuotaExceededException -> true
+            is UnknownException -> true
+            else -> false
+        }
     }
 
     private companion object {
