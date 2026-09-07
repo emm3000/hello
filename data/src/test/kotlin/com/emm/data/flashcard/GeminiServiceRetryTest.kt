@@ -1,5 +1,6 @@
 package com.emm.data.flashcard
 
+import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationQuota
 import com.emm.domain.generation.GenerationQuotaExceededException
 import com.emm.domain.telemetry.GeminiTelemetry
@@ -181,21 +182,21 @@ class GeminiServiceRetryTest {
     }
 
     @Test
-    fun `process rethrows an App Check rejection immediately instead of retrying`() = runTest {
+    fun `process maps an App Check rejection to a domain error without retrying`() = runTest {
         val model = mockk<GenerativeModel>()
         val rejected: ServerException = firebaseAiException(message = "Firebase App Check token is invalid.")
         coEvery { model.generateContent(any<String>()) } throws rejected
 
         val service = newService(model)
 
-        val thrown: ServerException = try {
+        val thrown: AppCheckRejectedException = try {
             service.process("prompt")
-            error("expected ServerException")
-        } catch (t: ServerException) {
+            error("expected AppCheckRejectedException")
+        } catch (t: AppCheckRejectedException) {
             t
         }
 
-        assertSame(rejected, thrown)
+        assertSame(rejected, thrown.cause)
         coVerify(exactly = 1) { model.generateContent(any<String>()) }
         verify(exactly = 1) {
             telemetry.recordCallFailure(kind = "generic", attempts = 1, cause = rejected)
@@ -203,21 +204,21 @@ class GeminiServiceRetryTest {
     }
 
     @Test
-    fun `processLearningNoteWithParser rethrows an App Check rejection immediately instead of retrying`() = runTest {
+    fun `processLearningNoteWithParser maps an App Check rejection to a domain error`() = runTest {
         val model = mockk<GenerativeModel>()
         val rejected: ServerException = firebaseAiException(message = "Firebase App Check token is invalid.")
         coEvery { model.generateContent(any<String>()) } throws rejected
 
         val service = newService(model)
 
-        val thrown: ServerException = try {
+        val thrown: AppCheckRejectedException = try {
             service.processLearningNoteWithParser("prompt") { it }
-            error("expected ServerException")
-        } catch (t: ServerException) {
+            error("expected AppCheckRejectedException")
+        } catch (t: AppCheckRejectedException) {
             t
         }
 
-        assertSame(rejected, thrown)
+        assertSame(rejected, thrown.cause)
         coVerify(exactly = 1) { model.generateContent(any<String>()) }
         verify(exactly = 1) {
             telemetry.recordCallFailure(kind = "learning_note", attempts = 1, cause = rejected)

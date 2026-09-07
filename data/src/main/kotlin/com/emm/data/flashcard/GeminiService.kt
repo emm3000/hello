@@ -1,5 +1,6 @@
 package com.emm.data.flashcard
 
+import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationQuota
 import com.emm.domain.generation.GenerationQuotaExceededException
 import com.emm.domain.telemetry.GeminiTelemetry
@@ -97,7 +98,12 @@ open class GeminiService(
 
     private fun recordCallFailureAndThrow(kind: String, attempts: Int, error: Throwable): Nothing {
         telemetry.recordCallFailure(kind = kind, attempts = attempts, cause = error)
-        throw error
+        throw error.asDomainError()
+    }
+
+    private fun Throwable.asDomainError(): Throwable {
+        if (this is ServerException && isAppCheckRejection()) return AppCheckRejectedException(this)
+        return this
     }
 
     private fun recordParseFailureAndThrow(raw: String, error: Throwable): Nothing {
