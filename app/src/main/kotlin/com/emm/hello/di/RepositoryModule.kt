@@ -1,55 +1,48 @@
 package com.emm.hello.di
 
-import com.emm.data.flashcard.DailyGenerationQuota
-import com.emm.data.flashcard.GeminiService
-import com.emm.domain.telemetry.GeminiTelemetry
-import com.emm.data.flashcard.LearningNoteResponseSchema
-import com.emm.domain.generation.GenerationQuota
-import com.emm.hello.telemetry.CrashlyticsGeminiTelemetry
-import com.google.firebase.Firebase
-import com.google.firebase.ai.GenerativeModel
-import com.google.firebase.ai.ai
-import com.google.firebase.ai.type.GenerativeBackend
-import com.google.firebase.ai.type.generationConfig
-import java.time.ZoneId
+import com.emm.data.remote.AppCheckTokenProvider
+import com.emm.data.remote.FunctionsTransport
+import com.emm.data.remote.HttpFunctionsTransport
+import com.emm.data.remote.SessionInitializer
+import com.emm.data.remote.SupabaseSessionInitializer
+import com.emm.domain.telemetry.GenerationTelemetry
+import com.emm.hello.BuildConfig
+import com.emm.hello.remote.FirebaseAppCheckTokenProvider
+import com.emm.hello.telemetry.CrashlyticsGenerationTelemetry
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.createSupabaseClient
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.HttpTimeout
 import org.koin.dsl.module
 
-private const val MODEL_NAME = "gemini-2.5-flash-lite"
-private const val DEFAULT_TEMPERATURE = 0f
-private const val DEFAULT_TOP_P = 0.95f
+private const val REQUEST_TIMEOUT_MS: Long = 100_000L
 
 val repositoryModule = module {
-    single<GeminiTelemetry> { CrashlyticsGeminiTelemetry() }
-    single<GenerationQuota> { DailyGenerationQuota(preferences = get(), zone = ZoneId.of("America/Los_Angeles")) }
     single {
-        GeminiService(
-            generativeModel = provideGenericModel(),
-            learningNoteModel = provideLearningNoteModel(),
-            telemetry = get(),
-            quota = get(),
+        createSupabaseClient(
+            supabaseUrl = BuildConfig.SUPABASE_URL,
+            supabaseKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY,
+        ) {
+            install(Auth)
+        }
+    }
+    single {
+        HttpClient(Android) {
+            expectSuccess = false
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MS
+            }
+        }
+    }
+    single<FunctionsTransport> {
+        HttpFunctionsTransport(
+            httpClient = get(),
+            baseUrl = BuildConfig.SUPABASE_URL,
+            publishableKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY,
         )
     }
+    single<SessionInitializer> { SupabaseSessionInitializer(get()) }
+    single<AppCheckTokenProvider> { FirebaseAppCheckTokenProvider() }
+    single<GenerationTelemetry> { CrashlyticsGenerationTelemetry() }
 }
-
-private fun provideGenericModel(): GenerativeModel = Firebase.ai(
-    backend = GenerativeBackend.googleAI()
-).generativeModel(
-    modelName = MODEL_NAME,
-    generationConfig = generationConfig {
-        responseMimeType = "application/json"
-        temperature = DEFAULT_TEMPERATURE
-        topP = DEFAULT_TOP_P
-    }
-)
-
-private fun provideLearningNoteModel(): GenerativeModel = Firebase.ai(
-    backend = GenerativeBackend.googleAI()
-).generativeModel(
-    modelName = MODEL_NAME,
-    generationConfig = generationConfig {
-        responseMimeType = "application/json"
-        responseSchema = LearningNoteResponseSchema.schema
-        temperature = DEFAULT_TEMPERATURE
-        topP = DEFAULT_TOP_P
-    }
-)

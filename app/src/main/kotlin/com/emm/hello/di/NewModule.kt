@@ -11,14 +11,14 @@ import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultTagRepository
 import com.emm.data.flashcard.DefaultFlashcardDuplicateRepository
-import com.emm.data.flashcard.DefaultFlashcardGenerationRepository
 import com.emm.data.flashcard.DefaultFlashcardEnrichmentRepository
 import com.emm.data.library.DefaultLibraryRepository
 import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
+import com.emm.data.flashcard.RemoteFlashcardGenerationRepository
 import com.emm.data.suggestion.CannedWordSuggestionRepository
-import com.emm.data.suggestion.GeminiWordSuggestionRepository
+import com.emm.data.suggestion.RemoteWordSuggestionRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
@@ -153,17 +153,25 @@ fun Module.repository() {
         DefaultStudySessionRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
     }
     single<FlashcardGenerationRepository> {
-        DefaultFlashcardGenerationRepository(
-            geminiService = get(),
+        RemoteFlashcardGenerationRepository(
+            transport = get(),
+            session = get(),
+            appCheck = get(),
+            telemetry = get(),
             json = get(),
-            ioDispatcher = Dispatchers.IO,
         )
     }
     single<WordSuggestionRepository> {
         if (BuildConfig.USE_CANNED_AI) {
             CannedWordSuggestionRepository()
         } else {
-            GeminiWordSuggestionRepository(geminiService = get(), json = get(), ioDispatcher = Dispatchers.IO)
+            RemoteWordSuggestionRepository(
+                transport = get(),
+                session = get(),
+                appCheck = get(),
+                telemetry = get(),
+                json = get(),
+            )
         }
     }
     factoryOf(::DefaultFlashcardDuplicateRepository) bind FlashcardDuplicateRepository::class

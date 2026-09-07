@@ -31,7 +31,7 @@ All three steps are local; none of them touches the network.
 
 - local identity with `deviceId`
 - local repositories over SQLDelight
-- generation with Firebase AI
+- generation through the Hello backend (Supabase Edge Function)
 - local study with `ReviewEvent` and `ReviewProjection`
 
 ## Does not exist in active runtime

@@ -2,7 +2,7 @@ package com.emm.hello.enrichment
 
 import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.AppCheckRejectedException
-import com.emm.domain.generation.GenerationQuotaExceededException
+import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
@@ -22,8 +22,15 @@ class EnrichmentRetryPolicyTest {
     }
 
     @Test
-    fun `shouldRetry is false for a quota error`() {
-        val error = GenerationQuotaExceededException(limit = 20, resetAt = Instant.EPOCH)
+    fun `shouldRetry is false for exhausted generation credits`() {
+        val error = GenerationCreditsExhaustedException(resetAt = Instant.EPOCH)
+
+        assertThat(EnrichmentRetryPolicy.shouldRetry(error)).isFalse()
+    }
+
+    @Test
+    fun `shouldRetry is false for exhausted generation credits without a reset instant`() {
+        val error = GenerationCreditsExhaustedException(resetAt = null)
 
         assertThat(EnrichmentRetryPolicy.shouldRetry(error)).isFalse()
     }

@@ -3,6 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Proposed, 2026-09-07 |
+| Progress | Phases 1 and 2 implemented on 2026-09-07 (local stack); cache, credits and account linking pending. |
 | Role | Plan for moving every AI call behind one Supabase Edge Function |
 | Source of Truth | No. `*_CURRENT.md` and the code win. Becomes history once shipped. |
 | Read this when | You touch AI generation, quotas, guest identity or the `supabase/` directory |
@@ -71,7 +72,7 @@ Cache read runs before the allowance check so hits never consume. The allowance 
 
 Rules:
 
-- A `429` marks the provider exhausted in `provider_state` until its cooldown ends.
+- A `429` marks the provider exhausted, tracked in memory per isolate for now (resets on cold start); the `provider_state` table arrives with the cache phase.
 - A `503`, a timeout or a zod failure skips to the next provider for this request only.
 - At most two provider attempts per request. Total budget stays under 90 s, inside the 150 s free-plan wall clock.
 - Every provider response passes the zod schema before it is cached or returned, whatever the output mode.
@@ -177,9 +178,11 @@ Response, `200`:
   "success": true,
   "data": { "note_id": "...", "note_type": "phrasal_verb", "...": "unchanged from today" },
   "error": null,
-  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 1, "credits_remaining": 4 }
+  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 1 }
 }
 ```
+
+`meta.credits_remaining` arrives with phase 4.
 
 A refusal is `200` with `success: false` and `error.message` in neutral Latin American Spanish, exactly as today.
 
@@ -190,7 +193,7 @@ Errors:
 | `401` | `app_check_rejected` or gateway rejection | `AppCheckRejectedException` (exists) | Not retried |
 | `402` | `credits_exhausted` | `GenerationCreditsExhaustedException` (new) | Not retried; failure reason shown on the card row |
 | `200` | `success: false` | `AmbiguousGenerationInputException` (exists) | Not retried |
-| `503` | `providers_exhausted`, with `retry_after` seconds | `GenerationQuotaExceededException` (exists) | Same handling as today |
+| `503` | `providers_exhausted`, with `retry_after` seconds | `IOException` (`GenerationQuotaExceededException` is deleted, not reused) | Retried by the existing WorkManager backoff |
 | `5xx` other | any | `IOException` | Retried by the existing backoff |
 
 ### `POST /functions/v1/suggest-words`
@@ -215,14 +218,14 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 
 | Item | Notes |
 |---|---|
-| `supabase-bom`, `auth-kt`, `functions-kt` in `:data` | Already declared in `libs.versions.toml` at 3.8.0 |
-| `SupabaseClient` singleton in DI | URL and publishable key from `BuildConfig`, per flavour |
+| `supabase-bom`, `auth-kt` in `:data` | Already declared in `libs.versions.toml` at 3.8.0. Transport is plain Ktor (`HttpFunctionsTransport`); `functions-kt` is not used. |
+| `SupabaseClient` singleton in DI | Reads `BuildConfig.SUPABASE_URL` and `BuildConfig.SUPABASE_PUBLISHABLE_KEY`; debug defaults to `http://127.0.0.1:54321` and the local demo publishable key, overridable via `supabase.url` and `supabase.publishableKey` in `local.properties`; release and staging read `local.properties` only. The emulator reaches it through adb reverse tcp:54321 tcp:54321, run after every emulator boot; on macOS with Docker Desktop, ports published by Docker are not reachable from the emulator via 10.0.2.2. |
 | `SupabaseSessionInitializer.ensureSession()` | Called by the worker and by Suggest before the first call |
 | `RemoteFlashcardGenerationRepository` | Replaces `DefaultFlashcardGenerationRepository` |
 | `RemoteWordSuggestionRepository` | Replaces `GeminiWordSuggestionRepository`; `USE_CANNED_AI` keeps selecting `CannedWordSuggestionRepository` |
 | `GenerationCreditsExhaustedException` | `:domain`, carries `resetAt` |
 | `GenerationTelemetry` | `GeminiTelemetry` renamed; same Crashlytics sink |
-| Per-attempt timeout 45 s | Was 15 s; the OpenRouter fallback needs it |
+| Client request timeout 100 s | Was 15 s; covers the provider chain's 30 s + 45 s server-side budget |
 
 `EnrichmentRetryPolicy` adds `GenerationCreditsExhaustedException` to its non-retryable set. `LOCAL_FIRST.md` changes one line: generation goes through the Hello backend instead of Firebase AI.
 
@@ -232,7 +235,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 |---|---|
 | Supabase Auth | Anonymous sign-ins enabled |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER`, `DAILY_ALLOWANCE` |
+| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` is not read yet |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
 
@@ -240,14 +243,14 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 
 Each phase is one work unit with its falsifier. Nothing ships without it.
 
-| Phase | Scope | Falsifier |
-|---|---|---|
-| 1 Cleanup | Delete `supabase/`, run `supabase init`, drop unused `supabase-*` aliases | `rg -i supabase` returns only the new tree and the Gradle aliases still in use |
-| 2 Function, auth, providers | `generate-note` and `suggest-words` without cache or credits; app migrated; Firebase AI removed | A capture on `medium_phone` ends READY through the function. A request without the App Check header returns `401`. With an invalid `GEMINI_API_KEY` the note arrives from MiniMax and `meta.provider` says so. |
-| 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for `give up` returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider |
-| 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today |
-| 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking |
-| 6 Billing | Out of scope for this plan | |
+| Phase | Scope | Falsifier | Status |
+|---|---|---|---|
+| 1 Cleanup | Delete `supabase/`, run `supabase init`, drop unused `supabase-*` aliases | `rg -i supabase` returns only the new tree and the Gradle aliases still in use | Done — `rg -i supabase` clean |
+| 2 Function, auth, providers | `generate-note` and `suggest-words` without cache or credits; app migrated; Firebase AI removed | A capture on `medium_phone` ends READY through the function. A request without the App Check header returns `401`. With an invalid `GEMINI_API_KEY` the note arrives from MiniMax and `meta.provider` says so. | Done — 28 Deno tests, `401` without App Check, `503 providers_exhausted` with a real App Check token and no keys, JVM tests for the mapper and repositories; device READY check pending keys |
+| 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for `give up` returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider | Pending |
+| 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Pending |
+| 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking | Pending |
+| 6 Billing | Out of scope for this plan | | Pending |
 
 ## Risks
 

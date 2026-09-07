@@ -57,6 +57,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.ktor.client.mock)
     testImplementation("app.cash.sqldelight:sqlite-driver:${libs.versions.androidDriver.get()}")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,8 +69,9 @@ dependencies {
     api(libs.android.driver)
     implementation(libs.coroutines.extensions)
 
-    implementation(platform(libs.firebase.bom))
-    api(libs.firebase.ai)
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth.kt)
+    implementation(libs.ktor.client.core)
 }
 
 sqldelight {

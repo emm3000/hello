@@ -41,7 +41,7 @@ A function either orchestrates named steps or performs one step. Never both. Thi
 | Letter | Status here |
 |---|---|
 | **SRP** | Adopted. One reason to change per class. A ViewModel that also formats strings and also talks to two repositories has three. |
-| **ISP** | Adopted. Small, purpose-built interfaces. `GenerationQuota` exposes exactly `tryConsume()` and `remainingToday()`. |
+| **ISP** | Adopted. Small, purpose-built interfaces. `AppCheckTokenProvider` exposes exactly `suspend fun token(): String`. |
 | **DIP** | Adopted, and it is the module seam. The domain declares the interface, the infrastructure implements it — see `architecture.md`. |
 | **OCP** | Adopted **only after the second real variant appears**. Applied early it is YAGNI with a respectable name: an extension point for a variant that never arrives is dead complexity. Rule of three — duplicate twice, abstract on the third. |
 | **LSP** | Low ceremony. Inheritance is rare here; sealed hierarchies and composition make it nearly moot. Do not build type hierarchies to satisfy it. |

@@ -11,7 +11,7 @@ import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.generation.GeneratedLearningNote
-import com.emm.domain.generation.GenerationQuotaExceededException
+import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -83,15 +83,15 @@ class EnrichCapturedFlashcardUseCaseTest {
     }
 
     @Test
-    fun `invoke propagates the quota error without storing anything`() = runTest {
+    fun `invoke propagates the credits error without storing anything`() = runTest {
         val repository = RecordingRepository()
-        val quotaError = GenerationQuotaExceededException(limit = 50, resetAt = Instant.EPOCH)
+        val creditsError = GenerationCreditsExhaustedException(resetAt = Instant.EPOCH)
         val useCase: EnrichCapturedFlashcardUseCase = useCase(
             repository = repository,
-            generationRepository = NoteGenerationRepository(outcomes = listOf(Result.failure(quotaError))),
+            generationRepository = NoteGenerationRepository(outcomes = listOf(Result.failure(creditsError))),
         )
 
-        assertFailsWith<GenerationQuotaExceededException> { useCase(FLASHCARD_ID) }
+        assertFailsWith<GenerationCreditsExhaustedException> { useCase(FLASHCARD_ID) }
 
         assertNull(repository.lastStatus)
         assertNull(repository.lastUpdate)

@@ -16,6 +16,21 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val localPropertiesFile: File = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+val localSupabaseUrl: String = localProperties.getProperty("supabase.url").orEmpty()
+val localSupabasePublishableKey: String = localProperties.getProperty("supabase.publishableKey").orEmpty()
+
+val debugSupabaseUrl: String = localSupabaseUrl.ifEmpty { "http://127.0.0.1:54321" }
+val debugSupabasePublishableKey: String = localSupabasePublishableKey
+    .ifEmpty { "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" }
+
+fun quoted(value: String): String = "\"$value\""
+
 // Temporary runtime gate for the stacked local-only rollout.
 // Default stays false so regular builds keep remote startup enabled.
 val localOnlyMode: Boolean = providers.gradleProperty("hello.localOnlyMode")
@@ -54,6 +69,8 @@ configure<ApplicationExtension> {
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "false")
             buildConfigField("Boolean", "USE_CANNED_AI", "false")
+            buildConfigField("String", "SUPABASE_URL", quoted(localSupabaseUrl))
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(localSupabasePublishableKey))
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -61,6 +78,8 @@ configure<ApplicationExtension> {
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             buildConfigField("Boolean", "USE_CANNED_AI", "true")
+            buildConfigField("String", "SUPABASE_URL", quoted(debugSupabaseUrl))
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(debugSupabasePublishableKey))
             manifestPlaceholders["usesCleartextTraffic"] = "true"
             matchingFallbacks += listOf("release")
         }
@@ -72,6 +91,8 @@ configure<ApplicationExtension> {
             signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "SHOW_SYNC_DEBUG_PANEL", "true")
             buildConfigField("Boolean", "USE_CANNED_AI", "false")
+            buildConfigField("String", "SUPABASE_URL", quoted(localSupabaseUrl))
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(localSupabasePublishableKey))
             matchingFallbacks += listOf("release")
         }
     }
@@ -157,4 +178,10 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.coroutines.extensions)
+
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth.kt)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
+    implementation(libs.kotlinx.coroutines.play.services)
 }

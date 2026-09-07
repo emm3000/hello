@@ -12,7 +12,7 @@ Clean Architecture in three modules. `ARCHITECTURE.md` describes what the struct
 | Module | Contains |
 |---|---|
 | `:domain` | Pure Kotlin. Models, value objects, use cases, and the **interfaces** the outer layers implement. |
-| `:data` | Implementations of the domain interfaces: SQLDelight, Firebase AI, local identity, backup, mappers. |
+| `:data` | Implementations of the domain interfaces: SQLDelight, the Hello backend transport (Supabase Edge Functions over Ktor), local identity, backup, mappers. |
 | `:app` | Presentation. MVI features, Compose UI, navigation, Koin wiring, startup. |
 
 Allowed dependencies, and nothing else:
@@ -31,7 +31,7 @@ data -> domain
 
 The domain declares the contract; the infrastructure obeys it. The domain never imports an implementation.
 
-Reference implementation already in the repo: `GenerationQuota` is an interface in `domain/generation/`, and `DailyGenerationQuota` implements it in `data/flashcard/` on top of `SharedPreferences`. The domain knows there is a quota; it does not know it is stored in preferences.
+Reference implementation already in the repo: `AppCheckTokenProvider` is an interface in `data/remote/`, and `FirebaseAppCheckTokenProvider` implements it in `:app`, because Firebase lives in `:app`. The same package also declares `SessionInitializer`, implemented by `SupabaseSessionInitializer` on top of supabase-kt's `auth-kt`. `:data` knows it needs a token and a session; it does not know Firebase or Supabase are behind them.
 
 Repository interfaces live in `:domain`. Implementations live in `:data`.
 

@@ -13,7 +13,7 @@
 - Jetpack Compose
 - Koin
 - SQLDelight (`HelloDb`)
-- Firebase AI with `gemini-2.5-flash-lite`
+- Supabase Edge Functions backend (Ktor client) for AI generation
 
 ## Toolchain
 
@@ -36,7 +36,7 @@
 - concrete repositories
 - local persistence with SQLDelight
 - local install identity
-- content generation with Firebase AI
+- content generation via the Hello Supabase Edge Function backend
 
 ### `domain`
 
@@ -67,11 +67,15 @@ Current flow:
 
 `App -> Koin -> AppStartupCoordinator.start() -> LocalIdentityInitializer.ensureReady() -> SeedDataInitializer.ensureSeeded()`
 
-Before Koin, `App.installAppCheck()` installs the Firebase App Check provider: the debug provider in `debug` builds, Play Integrity in `staging` and `release`. Firebase AI Logic enforces App Check, so every Gemini call carries an attestation token; the token is fetched lazily on the first AI call, never during startup.
+Before Koin, `App.installAppCheck()` installs the Firebase App Check provider: the debug provider in `debug` builds, Play Integrity in `staging` and `release`. The Hello backend enforces App Check on every Edge Function call, so each request carries an attestation token from `AppCheckTokenProvider`; the token is fetched lazily on the first AI call, never during startup.
 
 On success the coordinator emits `AppStartupState.Ready(hasSeenWelcome)`, reading the flag from `OnboardingStateRepository.hasSeenWelcome()`; that flag decides whether `NewRoot` starts on `OnboardingRoute` or `TodayRoute`. On failure, or when both steps together exceed `STARTUP_TIMEOUT_MS` (5 s), it emits `AppStartupState.Error`; Retry on the error screen calls `start()` again.
 
 There are no other mandatory product stages in startup, and none of them requires the network.
+
+## AI generation
+
+Every AI call goes through the Hello backend: the enrichment worker calls `SupabaseSessionInitializer.ensureSession()` for the anonymous session, then `AppCheckTokenProvider.token()` for the attestation token, then `HttpFunctionsTransport` posts to `/functions/v1/generate-note` with `Authorization`, `apikey` and `X-Firebase-AppCheck` headers. `FunctionsReplyMapper` turns the response into a domain result: `200` parses to the existing note/suggestion shape, `401` throws `AppCheckRejectedException`, `402` throws `GenerationCreditsExhaustedException`, `400` throws `IllegalArgumentException`, and any `5xx` throws `IOException`, retried by WorkManager's existing backoff. Firebase stays in the app only for App Check, Crashlytics and Analytics.
 
 ## Current persistence
 
@@ -94,7 +98,7 @@ There are no other mandatory product stages in startup, and none of them require
 ## Features relevant today
 
 - capture is one field: `CaptureScreen` saves the word immediately and enrichment runs in the background, tracked as pending/failed
-- a zero-due day can ask for a situation and ~6 candidate words to add, gated behind `BuildConfig.USE_CANNED_AI` (canned suggestions in debug, Gemini in staging and release)
+- a zero-due day can ask for a situation and ~6 candidate words to add, gated behind `BuildConfig.USE_CANNED_AI` (canned suggestions in debug, the Edge Function backend in staging and release)
 - study shows each due flashcard once: `StudySessionItem` is a 1:1 projection of `StudyFlashcard`
 - one review per flashcard, scheduled with FSRS-6 and persisted the moment the card is graded
 

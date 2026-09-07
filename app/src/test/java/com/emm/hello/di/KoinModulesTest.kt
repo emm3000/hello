@@ -2,7 +2,8 @@ package com.emm.hello.di
 
 import android.content.Context
 import com.emm.hello.newfeatures.deck.DeckFormMode
-import com.google.firebase.ai.GenerativeModel
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
@@ -16,7 +17,8 @@ class KoinModulesTest {
         module { includes(repositoryModule, newModule) }.verify(
             extraTypes = listOf(
                 Context::class,
-                GenerativeModel::class,
+                HttpClientEngine::class,
+                HttpClientConfig::class,
                 Function1::class,
                 DoubleArray::class,
                 DeckFormMode::class,
