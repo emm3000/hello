@@ -7,9 +7,9 @@ import {
 import {
   buildCacheKey,
   cacheExpiry,
+  commitNoteCache,
   type NoteCacheRow,
   readNoteCache,
-  writeNoteCache,
 } from "../_shared/cache.ts";
 import {
   checkCredits,
@@ -174,7 +174,7 @@ async function handle(req: Request): Promise<Response> {
       });
     const cleaned: LearningNoteResponse = withoutNulls(generated.value);
     const outcome: GenerationOutcome = cleaned.success ? "success" : "refusal";
-    await writeNoteCache(client, {
+    await commitNoteCache(client, request, {
       cache_key: cacheKey,
       response: cleaned,
       success: cleaned.success,
