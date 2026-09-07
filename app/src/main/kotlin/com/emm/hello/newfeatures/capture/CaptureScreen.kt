@@ -1,9 +1,5 @@
 package com.emm.hello.newfeatures.capture
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,26 +18,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.R
 import androidx.annotation.StringRes
 import com.emm.hello.core.audio.SpeechRecognitionError
-import com.emm.hello.core.audio.rememberSpeechToTextManager
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.cardMint
 import com.emm.hello.core.theme.ink
@@ -51,7 +42,6 @@ import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HFieldVariant
 import com.emm.hello.core.ui.HInput
-import java.util.Locale
 import kotlinx.coroutines.launch
 
 @Composable
@@ -60,42 +50,21 @@ fun CaptureScreen(
     onNavigateBack: () -> Unit,
     onIntent: (CaptureUiIntent) -> Unit,
 ) {
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
-    val sttManager = rememberSpeechToTextManager { voiceText -> onIntent(CaptureUiIntent.WordChanged(voiceText)) }
-    val isListening by sttManager.isListening.collectAsStateWithLifecycle()
-    val micLevel: State<Float> = sttManager.level.collectAsStateWithLifecycle()
-    val sttError: SpeechRecognitionError? by sttManager.error.collectAsStateWithLifecycle()
-    val sttErrorMessage: String? = sttError?.let { stringResource(it.messageRes()) }
-    val micPermissionDeniedMessage = stringResource(R.string.mic_permission_denied)
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
-                sttManager.startListening(Locale.US)
-            } else {
-                snackbarScope.launch { snackbarHostState.showSnackbar(micPermissionDeniedMessage) }
-            }
+    val micPermissionDeniedMessage: String = stringResource(R.string.mic_permission_denied)
+    val dictation: DictationState = rememberDictationState(
+        onText = { voiceText -> onIntent(CaptureUiIntent.WordChanged(voiceText)) },
+        onPermissionDenied = {
+            snackbarScope.launch { snackbarHostState.showSnackbar(micPermissionDeniedMessage) }
         },
     )
+    val dictationErrorMessage: String? = dictation.error?.let { stringResource(it.messageRes()) }
 
-    LaunchedEffect(sttErrorMessage) {
-        if (sttErrorMessage != null) {
-            snackbarHostState.showSnackbar(sttErrorMessage)
-            sttManager.clearError()
-        }
-    }
-
-    val onMicToggle: () -> Unit = {
-        val granted: Boolean = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO,
-        ) == PackageManager.PERMISSION_GRANTED
-        when {
-            isListening -> sttManager.stopListening()
-            granted -> sttManager.startListening(Locale.US)
-            else -> permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    LaunchedEffect(dictationErrorMessage) {
+        if (dictationErrorMessage != null) {
+            snackbarHostState.showSnackbar(dictationErrorMessage)
+            dictation.onClearError()
         }
     }
 
@@ -103,10 +72,10 @@ fun CaptureScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             CaptureContent(
                 state = state,
-                isListening = isListening,
-                micLevel = { micLevel.value },
+                isListening = dictation.isListening,
+                micLevel = dictation.level,
                 onNavigateBack = onNavigateBack,
-                onMicToggle = onMicToggle,
+                onMicToggle = dictation.onToggle,
                 onIntent = onIntent,
             )
 
