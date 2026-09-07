@@ -14,7 +14,7 @@ import java.time.Instant
 class ScheduleFlashcardReviewUseCaseTest {
 
     private val fixedNow = Instant.parse("2026-06-12T12:00:00Z")
-    private val useCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow })
+    private val useCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow }, FsrsParameters.DEFAULT)
 
     @Test
     fun `invoke schedules a NEW card with GOOD and returns LEARNING state`() {
@@ -84,8 +84,8 @@ class ScheduleFlashcardReviewUseCaseTest {
     @Test
     fun `invoke keeps the original productionSince on a later review after graduation`() {
         val laterNow = fixedNow.plusSeconds(30 * 86_400L)
-        val graduationUseCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow })
-        val laterUseCase = ScheduleFlashcardReviewUseCase(Clock { laterNow })
+        val graduationUseCase = ScheduleFlashcardReviewUseCase(Clock { fixedNow }, FsrsParameters.DEFAULT)
+        val laterUseCase = ScheduleFlashcardReviewUseCase(Clock { laterNow }, FsrsParameters.DEFAULT)
         val card = reviewCard("card-6".toFlashcardId(), stability = 10.0)
 
         val graduated = graduationUseCase(card, ReviewGrade.GOOD, "card-6".toFlashcardId())
@@ -133,7 +133,7 @@ class ScheduleFlashcardReviewUseCaseTest {
             elapsedMillis += 1_000L
             fixedNow.plusMillis(elapsedMillis)
         }
-        val advancingUseCase = ScheduleFlashcardReviewUseCase(advancingClock)
+        val advancingUseCase = ScheduleFlashcardReviewUseCase(advancingClock, FsrsParameters.DEFAULT)
         val card = reviewCard("card-10".toFlashcardId(), stability = 10.0)
 
         val result = advancingUseCase(card, ReviewGrade.GOOD, "card-10".toFlashcardId())

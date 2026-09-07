@@ -8,7 +8,7 @@ import com.emm.domain.time.Clock
 
 class ScheduleFlashcardReviewUseCase(
     private val clock: Clock,
-    private val params: FsrsParameters = FsrsParameters.DEFAULT,
+    private val params: FsrsParameters,
 ) {
 
     operator fun invoke(card: FsrsCard, grade: ReviewGrade, flashcardId: FlashcardId): FsrsCard {

@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.study
 import app.cash.turbine.test
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
+import com.emm.domain.flashcard.FsrsParameters
 import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
@@ -350,7 +351,7 @@ class StudyViewModelTest {
         val viewModel = StudyViewModel(
             deckId = "deck-1",
             studySessionRepository = repo,
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
         advanceUntilIdle()
@@ -368,7 +369,7 @@ class StudyViewModelTest {
         val viewModel = StudyViewModel(
             deckId = StudyRoute.ALL_DUE_DECKS,
             studySessionRepository = repo,
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
         advanceUntilIdle()
@@ -396,7 +397,7 @@ class StudyViewModelTest {
         val viewModel = StudyViewModel(
             deckId = "deck-1",
             studySessionRepository = repo,
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
         advanceUntilIdle()
@@ -414,7 +415,7 @@ class StudyViewModelTest {
         val viewModel = StudyViewModel(
             deckId = "deck-1",
             studySessionRepository = repo,
-            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
         advanceUntilIdle()
@@ -434,7 +435,7 @@ class StudyViewModelTest {
     ): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
         studySessionRepository = FakeStudySessionRepo(cards),
-        scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock),
+        scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
         flashcardReviewRepository = reviewRepo,
     )
 
