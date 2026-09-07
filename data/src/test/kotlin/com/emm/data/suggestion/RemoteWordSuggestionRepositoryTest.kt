@@ -20,7 +20,7 @@ class RemoteWordSuggestionRepositoryTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
-    fun `suggest posts the recent words and returns the parsed suggestions`() = runTest {
+    fun `suggest ensures the session, posts the recent words and returns the parsed suggestions`() = runTest {
         val body = """
             {
               "situation": "Ordering food at a busy restaurant",
@@ -29,11 +29,13 @@ class RemoteWordSuggestionRepositoryTest {
             }
         """.trimIndent()
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
-        val repository = repository(transport)
+        val session = FakeSessionInitializer()
+        val repository = repository(transport, session)
 
         val suggestions: WordSuggestions = repository.suggest(listOf("hello", "goodbye"))
 
         val payload: String = transport.body.toString()
+        assertTrue(session.ensured)
         assertEquals("suggest-words", transport.function)
         assertTrue(payload, payload.contains("\"recent_words\":[\"hello\",\"goodbye\"]"))
         assertEquals("Ordering food at a busy restaurant", suggestions.situation)
@@ -52,10 +54,13 @@ class RemoteWordSuggestionRepositoryTest {
         assertTrue(error is AppCheckRejectedException)
     }
 
-    private fun repository(transport: FunctionsTransport): RemoteWordSuggestionRepository {
+    private fun repository(
+        transport: FunctionsTransport,
+        session: SessionInitializer = FakeSessionInitializer(),
+    ): RemoteWordSuggestionRepository {
         return RemoteWordSuggestionRepository(
             transport = transport,
-            session = FakeSessionInitializer("session-jwt"),
+            session = session,
             appCheck = FakeAppCheckTokenProvider("app-check-token"),
             telemetry = GenerationTelemetry.NoOp,
             json = json,
@@ -75,7 +80,6 @@ private class RecordingFunctionsTransport(
     override suspend fun invoke(
         function: String,
         body: JsonElement,
-        accessToken: String,
         appCheckToken: String,
     ): FunctionsReply {
         this.function = function
@@ -84,8 +88,14 @@ private class RecordingFunctionsTransport(
     }
 }
 
-private class FakeSessionInitializer(private val accessToken: String) : SessionInitializer {
-    override suspend fun ensureSession(): String = accessToken
+private class FakeSessionInitializer : SessionInitializer {
+
+    var ensured: Boolean = false
+        private set
+
+    override suspend fun ensureSession() {
+        ensured = true
+    }
 }
 
 private class FakeAppCheckTokenProvider(private val appCheckToken: String) : AppCheckTokenProvider {

@@ -7,7 +7,6 @@ interface FunctionsTransport {
     suspend fun invoke(
         function: String,
         body: JsonElement,
-        accessToken: String,
         appCheckToken: String,
     ): FunctionsReply
 }

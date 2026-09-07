@@ -221,7 +221,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 
 | Item | Notes |
 |---|---|
-| `supabase-bom`, `auth-kt` in `:data` | Already declared in `libs.versions.toml` at 3.8.0. Transport is plain Ktor (`HttpFunctionsTransport`); `functions-kt` is not used. |
+| `supabase-bom`, `auth-kt` in `:data` | Already declared in `libs.versions.toml` at 3.8.0. Transport is `SupabaseFunctionsTransport` on top of the `functions-kt` plugin. |
 | `SupabaseClient` singleton in DI | Reads `BuildConfig.SUPABASE_URL` and `BuildConfig.SUPABASE_PUBLISHABLE_KEY`; debug defaults to `http://127.0.0.1:54321` and the local demo publishable key, overridable via `supabase.url` and `supabase.publishableKey` in `local.properties`; release and staging read `local.properties` only. The emulator reaches it through adb reverse tcp:54321 tcp:54321, run after every emulator boot; on macOS with Docker Desktop, ports published by Docker are not reachable from the emulator via 10.0.2.2. |
 | `SupabaseSessionInitializer.ensureSession()` | Called by the worker and by Suggest before the first call |
 | `RemoteFlashcardGenerationRepository` | Replaces `DefaultFlashcardGenerationRepository` |

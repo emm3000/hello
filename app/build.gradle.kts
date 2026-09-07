@@ -224,6 +224,7 @@ dependencies {
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.functions.kt)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.android)
     implementation(libs.kotlinx.coroutines.play.services)

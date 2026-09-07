@@ -17,15 +17,17 @@ class SupabaseSessionInitializer(
 
     private val signInLock = Mutex()
 
-    override suspend fun ensureSession(): String = signInLock.withLock {
-        auth.awaitInitialization()
-        when (auth.sessionStatus.value) {
-            is SessionStatus.Authenticated -> refreshExpiringSession()
-            is SessionStatus.NotAuthenticated -> auth.signInAnonymously()
-            is SessionStatus.RefreshFailure -> recoverFailedSession()
-            SessionStatus.Initializing -> error("Supabase auth is still initializing")
+    override suspend fun ensureSession() {
+        signInLock.withLock {
+            auth.awaitInitialization()
+            when (auth.sessionStatus.value) {
+                is SessionStatus.Authenticated -> refreshExpiringSession()
+                is SessionStatus.NotAuthenticated -> auth.signInAnonymously()
+                is SessionStatus.RefreshFailure -> recoverFailedSession()
+                SessionStatus.Initializing -> error("Supabase auth is still initializing")
+            }
+            checkNotNull(auth.currentSessionOrNull()) { "No Supabase session" }
         }
-        auth.currentAccessTokenOrNull() ?: error("No Supabase session")
     }
 
     private suspend fun refreshExpiringSession() {

@@ -17,7 +17,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -31,7 +30,6 @@ class SupabaseSessionInitializerTest {
         every { auth.sessionStatus } returns status
         coEvery { auth.awaitInitialization() } returns Unit
         every { auth.currentSessionOrNull() } answers { authenticatedSession() }
-        every { auth.currentAccessTokenOrNull() } answers { authenticatedSession()?.accessToken }
     }
 
     @Test
@@ -46,32 +44,35 @@ class SupabaseSessionInitializerTest {
     }
 
     @Test
-    fun `an expired access token is refreshed before it is returned`() = runTest {
+    fun `an expired access token is refreshed before the session is used`() = runTest {
         status.value = authenticated("stale-token", expiresIn = (-1).hours)
         coEvery { auth.refreshCurrentSession() } coAnswers {
             status.value = authenticated("fresh-token", expiresIn = 1.hours)
         }
 
-        assertEquals("fresh-token", initializer.ensureSession())
+        initializer.ensureSession()
+
         coVerify(exactly = 1) { auth.refreshCurrentSession() }
     }
 
     @Test
-    fun `an access token inside the refresh leeway is refreshed before it is returned`() = runTest {
+    fun `an access token inside the refresh leeway is refreshed before the session is used`() = runTest {
         status.value = authenticated("stale-token", expiresIn = 30.seconds)
         coEvery { auth.refreshCurrentSession() } coAnswers {
             status.value = authenticated("fresh-token", expiresIn = 1.hours)
         }
 
-        assertEquals("fresh-token", initializer.ensureSession())
+        initializer.ensureSession()
+
         coVerify(exactly = 1) { auth.refreshCurrentSession() }
     }
 
     @Test
-    fun `a session well inside its lifetime is returned without a refresh`() = runTest {
+    fun `a session well inside its lifetime is kept without a refresh`() = runTest {
         status.value = authenticated("valid-token", expiresIn = 1.hours)
 
-        assertEquals("valid-token", initializer.ensureSession())
+        initializer.ensureSession()
+
         coVerify(exactly = 0) { auth.refreshCurrentSession() }
     }
 
@@ -82,7 +83,8 @@ class SupabaseSessionInitializerTest {
             status.value = authenticated("anonymous-token", expiresIn = 1.hours)
         }
 
-        assertEquals("anonymous-token", initializer.ensureSession())
+        initializer.ensureSession()
+
         coVerify(exactly = 1) { auth.signInAnonymously(any(), any()) }
     }
 

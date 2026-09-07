@@ -44,15 +44,16 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     @Test
-    fun `generateLearningNote sends the session and app check tokens to the transport`() = runTest {
+    fun `generateLearningNote ensures the session and sends the app check token to the transport`() = runTest {
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY))
-        val repository = repository(transport)
+        val session = FakeSessionInitializer()
+        val repository = repository(transport, session)
 
         repository.generateLearningNote(
             FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "give up"),
         )
 
-        assertEquals("session-jwt", transport.accessToken)
+        assertTrue(session.ensured)
         assertEquals("app-check-token", transport.appCheckToken)
     }
 
@@ -114,10 +115,13 @@ class RemoteFlashcardGenerationRepositoryTest {
         assertEquals("El texto de entrada no es inteligible.", (error as AmbiguousGenerationInputException).reason)
     }
 
-    private fun repository(transport: FunctionsTransport): RemoteFlashcardGenerationRepository {
+    private fun repository(
+        transport: FunctionsTransport,
+        session: SessionInitializer = FakeSessionInitializer(),
+    ): RemoteFlashcardGenerationRepository {
         return RemoteFlashcardGenerationRepository(
             transport = transport,
-            session = FakeSessionInitializer("session-jwt"),
+            session = session,
             appCheck = FakeAppCheckTokenProvider("app-check-token"),
             telemetry = GenerationTelemetry.NoOp,
             json = json,
@@ -199,27 +203,29 @@ private class RecordingFunctionsTransport(
         private set
     var body: JsonElement = JsonNull
         private set
-    var accessToken: String = ""
-        private set
     var appCheckToken: String = ""
         private set
 
     override suspend fun invoke(
         function: String,
         body: JsonElement,
-        accessToken: String,
         appCheckToken: String,
     ): FunctionsReply {
         this.function = function
         this.body = body
-        this.accessToken = accessToken
         this.appCheckToken = appCheckToken
         return reply
     }
 }
 
-private class FakeSessionInitializer(private val accessToken: String) : SessionInitializer {
-    override suspend fun ensureSession(): String = accessToken
+private class FakeSessionInitializer : SessionInitializer {
+
+    var ensured: Boolean = false
+        private set
+
+    override suspend fun ensureSession() {
+        ensured = true
+    }
 }
 
 private class FakeAppCheckTokenProvider(private val appCheckToken: String) : AppCheckTokenProvider {

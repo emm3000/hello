@@ -13,7 +13,7 @@
 - Jetpack Compose
 - Koin
 - SQLDelight (`HelloDb`)
-- Supabase Edge Functions backend (Ktor client) for AI generation
+- Supabase Edge Functions backend (supabase-kt `functions-kt`) for AI generation
 
 ## Toolchain
 
@@ -75,7 +75,7 @@ There are no other mandatory product stages in startup, and none of them require
 
 ## AI generation
 
-Every AI call goes through the Hello backend: the enrichment worker calls `SupabaseSessionInitializer.ensureSession()` for the anonymous session, then `AppCheckTokenProvider.token()` for the attestation token, then `HttpFunctionsTransport` posts to `/functions/v1/generate-note` with `Authorization`, `apikey` and `X-Firebase-AppCheck` headers. `FunctionsReplyMapper` turns the response into a domain result: `200` parses to the existing note/suggestion shape, `401` throws `AppCheckRejectedException`, `402` throws `GenerationCreditsExhaustedException`, `400` throws `IllegalArgumentException`, and any `5xx` throws `IOException`, retried by WorkManager's existing backoff. Firebase stays in the app only for App Check, Crashlytics and Analytics.
+Every AI call goes through the Hello backend: the enrichment worker calls `SupabaseSessionInitializer.ensureSession()` for the anonymous session, then `AppCheckTokenProvider.token()` for the attestation token, then `SupabaseFunctionsTransport` posts through the supabase-kt `functions-kt` plugin to `/functions/v1/generate-note` with `Authorization`, `apikey` and `X-Firebase-AppCheck` headers. `FunctionsReplyMapper` turns the response into a domain result: `200` parses to the existing note/suggestion shape, `401` throws `AppCheckRejectedException`, `402` throws `GenerationCreditsExhaustedException`, `400` throws `IllegalArgumentException`, and any `5xx` throws `IOException`, retried by WorkManager's existing backoff. Firebase stays in the app only for App Check, Crashlytics and Analytics.
 
 ## Current persistence
 

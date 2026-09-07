@@ -29,10 +29,10 @@ class RemoteWordSuggestionRepository(
     @Suppress("TooGenericExceptionCaught")
     private suspend fun send(recentWords: List<String>): FunctionsReply {
         return try {
+            session.ensureSession()
             transport.invoke(
                 function = FUNCTION_NAME,
                 body = json.encodeToJsonElement(SuggestWordsRequestDto(recentWords = recentWords)),
-                accessToken = session.ensureSession(),
                 appCheckToken = appCheck.token(),
             )
         } catch (cancellation: CancellationException) {

@@ -30,10 +30,10 @@ class RemoteFlashcardGenerationRepository(
     @Suppress("TooGenericExceptionCaught")
     private suspend fun send(input: FlashcardGenerationInput): FunctionsReply {
         return try {
+            session.ensureSession()
             transport.invoke(
                 function = FUNCTION_NAME,
                 body = json.encodeToJsonElement(input.toRequestDto()),
-                accessToken = session.ensureSession(),
                 appCheckToken = appCheck.token(),
             )
         } catch (cancellation: CancellationException) {
