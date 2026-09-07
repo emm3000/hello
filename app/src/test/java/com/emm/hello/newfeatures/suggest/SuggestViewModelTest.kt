@@ -138,6 +138,35 @@ class SuggestViewModelTest {
     }
 
     @Test
+    fun `add selected with every word already in the deck shows the all-known message and stays`() = runTest {
+        val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
+        coEvery {
+            captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
+        } throws DomainValidationException(
+            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+        )
+        coEvery {
+            captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
+        } throws DomainValidationException(
+            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+        )
+        val viewModel = buildViewModel(captureFlashcardUseCase = captureFlashcardUseCase)
+        advanceUntilIdle()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+
+        viewModel.effect.test {
+            viewModel.onIntent(SuggestUiIntent.AddSelected)
+            assertThat(awaitItem()).isEqualTo(SuggestUiEffect.ShowMessage(R.string.suggest_all_known))
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(viewModel.state.value.isAdding).isFalse()
+        assertThat(viewModel.state.value.selectedWords).isEmpty()
+    }
+
+    @Test
     fun `add selected with no deck shows the no-deck message and does not capture`() = runTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
         val viewModel = buildViewModel(

@@ -242,6 +242,7 @@
     <string name="suggest_empty_title">Nothing new to add</string>
     <string name="suggest_empty_body">You already know these. Try again for another situation.</string>
     <string name="suggest_added">Words added. They\'ll be ready to study soon.</string>
+    <string name="suggest_all_known">Those words are already in your deck.</string>
     <string name="suggest_error_add">Couldn\'t add the words. Try again.</string>
     <string name="suggest_error_no_deck">Create a deck first.</string>
     <plurals name="suggest_add_selected">

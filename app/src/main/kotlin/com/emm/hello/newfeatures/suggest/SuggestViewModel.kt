@@ -99,11 +99,11 @@ class SuggestViewModel(
         try {
             val selectedWords: List<SuggestedWord> = current.words.filter { it.word in current.selectedWords }
             val flashcardIds: List<String> = selectedWords.mapNotNull { captureOrSkip(deckId, it) }
-            if (flashcardIds.isNotEmpty()) {
-                sendEffect(SuggestUiEffect.EnqueueEnrichment(flashcardIds))
+            if (flashcardIds.isEmpty()) {
+                reportAllWordsAlreadyKnown()
+            } else {
+                reportWordsAdded(flashcardIds)
             }
-            sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_added))
-            sendEffect(SuggestUiEffect.NavigateBack)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
@@ -111,6 +111,17 @@ class SuggestViewModel(
             setState { copy(isAdding = false) }
             sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_error_add))
         }
+    }
+
+    private suspend fun reportAllWordsAlreadyKnown() {
+        setState { copy(isAdding = false, selectedWords = emptySet()) }
+        sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_all_known))
+    }
+
+    private suspend fun reportWordsAdded(flashcardIds: List<String>) {
+        sendEffect(SuggestUiEffect.EnqueueEnrichment(flashcardIds))
+        sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_added))
+        sendEffect(SuggestUiEffect.NavigateBack)
     }
 
     private suspend fun captureOrSkip(deckId: DeckId, suggestedWord: SuggestedWord): String? {

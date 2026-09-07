@@ -180,7 +180,10 @@ silently rather than failing the whole batch; any other capture failure
 propagates and shows `suggest_error_add`. Every flashcard id that was
 successfully created is enqueued for background enrichment via
 `FlashcardEnrichmentScheduler`, then `suggest_added` is shown and the screen
-navigates back.
+navigates back. If every selected word turns out to be a duplicate, nothing
+was created: `suggest_all_known` is shown instead, `selectedWords` is cleared,
+`isAdding` goes back to `false`, and the screen stays put so the user can pick
+other words or tap `suggest_not_now`.
 
 ## Not in scope
 
