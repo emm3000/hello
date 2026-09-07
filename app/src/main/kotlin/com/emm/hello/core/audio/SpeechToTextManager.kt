@@ -20,6 +20,7 @@ import java.util.Locale
 /** Exists as an interface to stub in Compose previews (layoutlib does not include android.speech). */
 interface SpeechToTextManager {
     val isListening: StateFlow<Boolean>
+    val level: StateFlow<Float>
     val error: StateFlow<SpeechRecognitionError?>
     var onResultCallback: ((String) -> Unit)?
     fun startListening(locale: Locale = Locale.US)
@@ -35,6 +36,9 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
 
     private val _isListening = MutableStateFlow(false)
     override val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
+
+    private val _level = MutableStateFlow(0f)
+    override val level: StateFlow<Float> = _level.asStateFlow()
 
     private val _error = MutableStateFlow<SpeechRecognitionError?>(null)
     override val error: StateFlow<SpeechRecognitionError?> = _error.asStateFlow()
@@ -69,7 +73,7 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
 
     override fun stopListening() {
         recognizer?.stopListening()
-        _isListening.value = false
+        idle()
     }
 
     override fun clearError() {
@@ -79,11 +83,11 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
     fun destroy() {
         recognizer?.destroy()
         recognizer = null
-        _isListening.value = false
+        idle()
     }
 
     override fun onEndOfSpeech() {
-        _isListening.value = false
+        idle()
     }
 
     override fun onError(error: Int) {
@@ -91,7 +95,7 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
     }
 
     override fun onResults(results: Bundle?) {
-        _isListening.value = false
+        idle()
         val spoken: String = results
             ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             ?.firstOrNull()
@@ -106,7 +110,9 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
 
     override fun onBeginningOfSpeech() = Unit
 
-    override fun onRmsChanged(rmsdB: Float) = Unit
+    override fun onRmsChanged(rmsdB: Float) {
+        _level.value = MicLevel.smooth(previous = _level.value, target = MicLevel.fromRms(rmsdB))
+    }
 
     override fun onBufferReceived(buffer: ByteArray?) = Unit
 
@@ -115,8 +121,13 @@ class AndroidSpeechToTextManager(context: Context) : RecognitionListener, Speech
     override fun onEvent(eventType: Int, params: Bundle?) = Unit
 
     private fun fail(reason: SpeechRecognitionError) {
-        _isListening.value = false
+        idle()
         _error.value = reason
+    }
+
+    private fun idle() {
+        _isListening.value = false
+        _level.value = 0f
     }
 
     private fun recognitionIntent(locale: Locale): Intent {
@@ -149,6 +160,7 @@ fun rememberSpeechToTextManager(onResult: (String) -> Unit = {}): SpeechToTextMa
 
 private class PreviewSpeechToTextManager : SpeechToTextManager {
     override val isListening: StateFlow<Boolean> = MutableStateFlow(false)
+    override val level: StateFlow<Float> = MutableStateFlow(0f)
     override val error: StateFlow<SpeechRecognitionError?> = MutableStateFlow(null)
     override var onResultCallback: ((String) -> Unit)? = null
     override fun startListening(locale: Locale) = Unit

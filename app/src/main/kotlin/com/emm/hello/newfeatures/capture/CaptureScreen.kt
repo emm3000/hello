@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -25,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -52,7 +50,6 @@ import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HFieldVariant
-import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HInput
 import java.util.Locale
 import kotlinx.coroutines.launch
@@ -68,6 +65,7 @@ fun CaptureScreen(
     val snackbarScope = rememberCoroutineScope()
     val sttManager = rememberSpeechToTextManager { voiceText -> onIntent(CaptureUiIntent.WordChanged(voiceText)) }
     val isListening by sttManager.isListening.collectAsStateWithLifecycle()
+    val micLevel: State<Float> = sttManager.level.collectAsStateWithLifecycle()
     val sttError: SpeechRecognitionError? by sttManager.error.collectAsStateWithLifecycle()
     val sttErrorMessage: String? = sttError?.let { stringResource(it.messageRes()) }
     val micPermissionDeniedMessage = stringResource(R.string.mic_permission_denied)
@@ -106,6 +104,7 @@ fun CaptureScreen(
             CaptureContent(
                 state = state,
                 isListening = isListening,
+                micLevel = { micLevel.value },
                 onNavigateBack = onNavigateBack,
                 onMicToggle = onMicToggle,
                 onIntent = onIntent,
@@ -125,6 +124,7 @@ fun CaptureScreen(
 private fun CaptureContent(
     state: CaptureUiState,
     isListening: Boolean,
+    micLevel: () -> Float,
     onNavigateBack: () -> Unit,
     onMicToggle: () -> Unit,
     onIntent: (CaptureUiIntent) -> Unit,
@@ -156,12 +156,10 @@ private fun CaptureContent(
                     enabled = !state.isSaving,
                 )
 
-                HIconButton(
-                    icon = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
-                    contentDescription = stringResource(R.string.capture_mic_content_description),
+                MicButton(
+                    isListening = isListening,
+                    level = micLevel,
                     onClick = onMicToggle,
-                    tint = ink,
-                    buttonSize = 44.dp,
                 )
             }
 
