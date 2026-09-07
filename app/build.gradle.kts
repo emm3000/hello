@@ -147,6 +147,8 @@ dependencies {
     androidTestImplementation(libs.koin.test)
     androidTestImplementation(libs.koin.test.junit4)
     androidTestImplementation(libs.mockk.android)
+    testImplementation(platform(libs.koin.bom))
+    testImplementation(libs.koin.test)
 
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
