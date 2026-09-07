@@ -35,9 +35,13 @@ const ERROR_STATUS: Record<ErrorCode, number> = {
   internal: 500,
 };
 
-export function buildMeta(provider: string, model: string): ResponseMeta {
+export function buildMeta(
+  provider: string,
+  model: string,
+  cached: boolean = false,
+): ResponseMeta {
   return {
-    cached: false,
+    cached,
     provider,
     model,
     prompt_version: PROMPT_VERSION,

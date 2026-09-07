@@ -26,6 +26,11 @@ export type GenerationResult<T> = {
   model: string;
 };
 
+export interface ProviderStateStore {
+  load(): Promise<Map<string, number>>;
+  markExhausted(providerId: string, untilMs: number): Promise<void>;
+}
+
 export type GenerateStructuredArgs<T> = {
   prompt: string;
   schemaName: string;
@@ -35,6 +40,7 @@ export type GenerateStructuredArgs<T> = {
   fetchFn?: typeof fetch;
   env?: (name: string) => string | undefined;
   now?: () => Date;
+  providerState?: ProviderStateStore;
 };
 
 export class ProvidersExhaustedError extends Error {
@@ -261,6 +267,17 @@ export async function generateStructured<T>(
   const readEnv: (name: string) => string | undefined = args.env ??
     ((name: string): string | undefined => Deno.env.get(name));
   const now: () => Date = args.now ?? ((): Date => new Date());
+  const providerState: ProviderStateStore | undefined = args.providerState;
+
+  if (providerState !== undefined) {
+    const persisted: Map<string, number> = await providerState.load();
+    for (const [providerId, untilMs] of persisted) {
+      const known: number | undefined = exhaustedUntil.get(providerId);
+      if (known === undefined || untilMs > known) {
+        exhaustedUntil.set(providerId, untilMs);
+      }
+    }
+  }
 
   for (const provider of providers) {
     const cooldownEnd: number | undefined = exhaustedUntil.get(provider.id);
@@ -295,10 +312,12 @@ export async function generateStructured<T>(
       );
       status = response.status;
       if (response.status === 429) {
-        exhaustedUntil.set(
-          provider.id,
-          provider.cooldownAfterRateLimit(now()).getTime(),
-        );
+        const untilMs: number = provider.cooldownAfterRateLimit(now())
+          .getTime();
+        exhaustedUntil.set(provider.id, untilMs);
+        if (providerState !== undefined) {
+          await providerState.markExhausted(provider.id, untilMs);
+        }
         logProviderAttempt(
           provider,
           status,

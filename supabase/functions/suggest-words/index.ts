@@ -12,6 +12,7 @@ import {
   type ResponseMeta,
 } from "../_shared/envelope.ts";
 import { buildWordSuggestionPrompt } from "../_shared/prompt.ts";
+import { createProviderStateStore } from "../_shared/provider_state.ts";
 import {
   generateStructured,
   type GenerationResult,
@@ -90,6 +91,7 @@ async function handle(req: Request): Promise<Response> {
         schemaName: "word_suggestions",
         jsonSchema: wordSuggestionJsonSchema,
         parse: wordSuggestionSchema.parse,
+        providerState: createProviderStateStore(ctx.supabaseAdmin),
       });
     const meta: ResponseMeta = buildMeta(generated.provider, generated.model);
     const cleaned: WordSuggestionResponse = withoutNulls(generated.value);
