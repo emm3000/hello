@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Proposed, 2026-09-07 |
-| Progress | Phases 1, 2 and 3 implemented on 2026-09-07 (local stack); credits and account linking pending. |
+| Progress | Phases 1 to 4 implemented on 2026-09-07 (local stack); account linking pending. |
 | Role | Plan for moving every AI call behind one Supabase Edge Function |
 | Source of Truth | No. `*_CURRENT.md` and the code win. Becomes history once shipped. |
 | Read this when | You touch AI generation, quotas, guest identity or the `supabase/` directory |
@@ -179,11 +179,11 @@ Response, `200`:
   "success": true,
   "data": { "note_id": "...", "note_type": "phrasal_verb", "...": "unchanged from today" },
   "error": null,
-  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 1 }
+  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 1, "schema_version": 1, "credits_remaining": 4 }
 }
 ```
 
-`meta.credits_remaining` arrives with phase 4.
+A `402` body is `{ "success": false, "data": null, "error": { "code": "credits_exhausted", "message": "<neutral Spanish, stored as the card failure reason>", "reset_at": "<next 00:00 UTC, ISO>" }, "meta": null }`. Cache hits are served even at zero credits.
 
 A refusal is `200` with `success: false` and `error.message` in neutral Latin American Spanish, exactly as today.
 
@@ -236,7 +236,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 |---|---|
 | Supabase Auth | Anonymous sign-ins enabled |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` is not read yet |
+| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) is read by both functions; `credits.ts` fails open when the count query errors |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
 
@@ -249,7 +249,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 | 1 Cleanup | Delete `supabase/`, run `supabase init`, drop unused `supabase-*` aliases | `rg -i supabase` returns only the new tree and the Gradle aliases still in use | Done — `rg -i supabase` clean |
 | 2 Function, auth, providers | `generate-note` and `suggest-words` without cache or credits; app migrated; Firebase AI removed | A capture on `medium_phone` ends READY through the function. A request without the App Check header returns `401`. With an invalid `GEMINI_API_KEY` the note arrives from MiniMax and `meta.provider` says so. | Done — 28 Deno tests, `401` without App Check, `503 providers_exhausted` with a real App Check token and no keys, JVM tests for the mapper and repositories; device READY verified on 2026-09-07 ("look forward to" captured on Medium_Phone_2 came back from Gemini); with an invalid Gemini key the note arrived from OpenRouter with meta.provider = "openrouter" |
 | 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for the same word returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider | Done — 40 Deno tests; migration `20260907135456_ai_backend_cache.sql` applied with `supabase migration up`; device-verified on 2026-09-07: "make up" came from Gemini in 5662 ms, then "Make  Up" (same key after normalisation) returned `cached: true` in 18 ms with no `provider_attempt`, `note_cache.hits = 1`, and its `generation_events` row has `cached = true` and a null provider |
-| 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Pending |
+| 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Done — 51 Deno tests, `FunctionsReplyMapperTest` parses `reset_at` and `message`, `EnrichmentFailureReasonTest`; device-verified on 2026-09-07 with `DAILY_ALLOWANCE=1` and one success already charged: "figure out" came back `402` in 473 ms with no provider call, the Capture row showed the Spanish reason, `generation_events` has the `credits_exhausted` row; "make up" then returned `cached: true` in 21 ms at zero credits |
 | 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking | Pending |
 | 6 Billing | Out of scope for this plan | | Pending |
 
@@ -265,8 +265,8 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 
 ## Open decisions
 
-- `DAILY_ALLOWANCE` value. Proposal: 5.
-- Whether Suggest shares the allowance or stays free. Proposal: shares it.
+- `DAILY_ALLOWANCE` value: 5, decided 2026-09-07 (env override per environment).
+- Suggest shares the allowance, decided 2026-09-07.
 - Whether to fund OpenRouter once for the 1000 per day tier.
 
 ## Evidence
