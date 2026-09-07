@@ -3,6 +3,7 @@ import {
   assertRejects,
   assertStringIncludes,
 } from "jsr:@std/assert@^1";
+import { z } from "npm:zod@^4";
 import {
   generateStructured,
   PROVIDER_CHAIN,
@@ -290,4 +291,88 @@ Deno.test("the openrouter cooldown runs for one hour", () => {
       .toISOString(),
     "2026-09-07T11:00:00.000Z",
   );
+});
+
+Deno.test("a schema failure logs an invalid_output line without the payload", async () => {
+  resetProviderState();
+  const probeSchema = z.object({ ok: z.string() });
+  const calls: FetchCall[] = [];
+  const captured: string[] = [];
+  const originalLog: (...data: unknown[]) => void = console.log;
+  console.log = (...data: unknown[]): void => {
+    captured.push(data.map((item: unknown): string => String(item)).join(" "));
+  };
+  try {
+    await generateStructured<{ ok: string }>({
+      prompt: "PROMPT",
+      schemaName: "probe",
+      jsonSchema: JSON_SCHEMA,
+      parse: probeSchema.parse,
+      providers: testChain(),
+      fetchFn: recordingFetch(
+        [completion(`{"ok":123}`), completion(`{"ok":"yes"}`)],
+        calls,
+      ),
+      env,
+      now: (): Date => NOW,
+    });
+  } finally {
+    console.log = originalLog;
+  }
+
+  const events: Record<string, unknown>[] = captured.map(
+    (line: string): Record<string, unknown> =>
+      JSON.parse(line) as Record<string, unknown>,
+  );
+  const invalidOutput: Record<string, unknown>[] = events.filter(
+    (event: Record<string, unknown>): boolean =>
+      event.event === "invalid_output",
+  );
+  assertEquals(invalidOutput.length, 1);
+  assertEquals(invalidOutput[0].provider, "first");
+  assertEquals(invalidOutput[0].model, "first-model");
+  assertEquals(invalidOutput[0].reason, "schema");
+  assertEquals(String(invalidOutput[0].detail).startsWith("ok "), true);
+  assertEquals(String(invalidOutput[0].detail).includes("123"), false);
+  assertEquals(String(invalidOutput[0].detail).length <= 160, true);
+});
+
+Deno.test("a json parse failure logs a reason without the provider content", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const captured: string[] = [];
+  const originalLog: (...data: unknown[]) => void = console.log;
+  console.log = (...data: unknown[]): void => {
+    captured.push(data.map((item: unknown): string => String(item)).join(" "));
+  };
+  try {
+    await run(
+      recordingFetch(
+        [
+          completion("no json here, just the learner word pordiosear"),
+          completion(`{"ok":"yes"}`),
+        ],
+        calls,
+      ),
+      testChain(),
+    );
+  } finally {
+    console.log = originalLog;
+  }
+
+  const invalidOutput: Record<string, unknown>[] = captured
+    .map((line: string): Record<string, unknown> =>
+      JSON.parse(line) as Record<string, unknown>
+    )
+    .filter((event: Record<string, unknown>): boolean =>
+      event.event === "invalid_output"
+    );
+  assertEquals(invalidOutput.length, 1);
+  assertEquals(invalidOutput[0].reason, "json_parse");
+  const detail: string = String(invalidOutput[0].detail);
+  assertEquals(detail.includes("pordiosear"), false);
+  assertEquals(detail.includes("no json"), false);
+  assertEquals(detail.includes('"'), true);
+  assertEquals(detail.length > 0, true);
+  assertEquals(detail.length <= 160, true);
 });

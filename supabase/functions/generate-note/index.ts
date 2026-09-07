@@ -24,6 +24,7 @@ import {
   learningNoteJsonSchema,
   type LearningNoteResponse,
   learningNoteResponseSchema,
+  withoutNulls,
 } from "../_shared/schema.ts";
 
 const APP_CHECK_HEADER: string = "X-Firebase-AppCheck";
@@ -95,10 +96,11 @@ async function handle(req: Request): Promise<Response> {
       generated.provider,
       generated.model,
     );
-    if (generated.value.success && generated.value.data !== undefined) {
-      return successResponse(generated.value.data, meta);
+    const cleaned: LearningNoteResponse = withoutNulls(generated.value);
+    if (cleaned.success && cleaned.data !== undefined) {
+      return successResponse(cleaned.data, meta);
     }
-    return refusalResponse(generated.value.error ?? null, meta);
+    return refusalResponse(cleaned.error ?? null, meta);
   } catch (error: unknown) {
     if (error instanceof ProvidersExhaustedError) {
       return providersExhaustedResponse(error.retryAfterSeconds);

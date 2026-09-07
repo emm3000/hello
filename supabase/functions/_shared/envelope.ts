@@ -10,7 +10,7 @@ export type ResponseMeta = {
 };
 
 export type GenerationRefusal = {
-  input?: string;
+  input?: string | null;
   message: string;
 };
 

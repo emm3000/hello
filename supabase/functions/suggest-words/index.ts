@@ -20,6 +20,7 @@ import {
 import {
   type SuggestWordsRequest,
   suggestWordsRequestSchema,
+  withoutNulls,
   wordSuggestionJsonSchema,
   type WordSuggestionResponse,
   wordSuggestionSchema,
@@ -91,9 +92,10 @@ async function handle(req: Request): Promise<Response> {
         parse: wordSuggestionSchema.parse,
       });
     const meta: ResponseMeta = buildMeta(generated.provider, generated.model);
+    const cleaned: WordSuggestionResponse = withoutNulls(generated.value);
     return jsonResponse({
-      situation: generated.value.situation,
-      words: generated.value.words,
+      situation: cleaned.situation,
+      words: cleaned.words,
       meta,
     }, 200);
   } catch (error: unknown) {

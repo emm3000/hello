@@ -81,11 +81,11 @@ const studyCardSchema = z.object({
   prompt: z.string(),
   expected_answer: z.string(),
   evaluation_mode: z.enum(EVALUATION_MODES),
-  is_active: z.boolean().optional(),
-  accepted_answers: z.array(z.string()).optional(),
-  hint: z.string().optional(),
-  explanation: z.string().optional(),
-  source_field: z.string().optional(),
+  is_active: z.boolean().nullish(),
+  accepted_answers: z.array(z.string()).nullish(),
+  hint: z.string().nullish(),
+  explanation: z.string().nullish(),
+  source_field: z.string().nullish(),
 });
 
 const qualityCheckSchema = z.object({
@@ -109,30 +109,49 @@ const learningNoteSchema = z.object({
   example_translation: z.string(),
   cards: z.array(studyCardSchema),
   quality_checks: z.array(qualityCheckSchema),
-  lemma: z.string().optional(),
-  ipa: z.string().optional(),
-  usage_pattern: z.string().optional(),
-  irregular_forms: z.array(z.string()).optional(),
-  collocations: z.array(z.string()).optional(),
-  common_mistake: z.string().optional(),
-  confusable_with: z.array(z.string()).optional(),
-  cloze_sentence: z.string().optional(),
-  source_context: z.string().optional(),
-  warnings: z.array(z.string()).optional(),
+  lemma: z.string().nullish(),
+  ipa: z.string().nullish(),
+  usage_pattern: z.string().nullish(),
+  irregular_forms: z.array(z.string()).nullish(),
+  collocations: z.array(z.string()).nullish(),
+  common_mistake: z.string().nullish(),
+  confusable_with: z.array(z.string()).nullish(),
+  cloze_sentence: z.string().nullish(),
+  source_context: z.string().nullish(),
+  warnings: z.array(z.string()).nullish(),
 });
 
 const generationErrorSchema = z.object({
-  input: z.string().optional(),
+  input: z.string().nullish(),
   message: z.string(),
 });
 
 export const learningNoteResponseSchema = z.object({
   success: z.boolean(),
-  data: learningNoteSchema.optional(),
-  error: generationErrorSchema.optional(),
+  data: learningNoteSchema.nullish(),
+  error: generationErrorSchema.nullish(),
 });
 
 export type LearningNoteResponse = z.infer<typeof learningNoteResponseSchema>;
+
+export function withoutNulls<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item: unknown): unknown => withoutNulls(item)) as T;
+  }
+  if (value !== null && typeof value === "object") {
+    const cleaned: Record<string, unknown> = {};
+    for (
+      const [key, item] of Object.entries(value as Record<string, unknown>)
+    ) {
+      if (item === null) {
+        continue;
+      }
+      cleaned[key] = withoutNulls(item);
+    }
+    return cleaned as T;
+  }
+  return value;
+}
 
 const strictStudyCardSchema = z.strictObject({
   card_id: z.string(),

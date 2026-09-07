@@ -2,8 +2,10 @@ import { assertEquals, assertThrows } from "jsr:@std/assert@^1";
 import {
   generateNoteRequestSchema,
   learningNoteJsonSchema,
+  type LearningNoteResponse,
   learningNoteResponseSchema,
   suggestWordsRequestSchema,
+  withoutNulls,
   wordSuggestionSchema,
 } from "./schema.ts";
 
@@ -499,4 +501,92 @@ Deno.test("the suggest-words request accepts recent words", () => {
       recent_words: new Array(51).fill("word"),
     })
   );
+});
+
+Deno.test("a successful envelope with an explicit null error parses", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: true,
+    data: goldNote,
+    error: null,
+  });
+  assertEquals(parsed.success, true);
+  assertEquals(parsed.error, null);
+  assertEquals(parsed.data?.expression, "don't make a big deal out of it");
+});
+
+Deno.test("null optional note and card fields parse", () => {
+  const cards: Record<string, unknown>[] =
+    (goldNote.cards as Record<string, unknown>[]).map(
+      (card: Record<string, unknown>, index: number): Record<string, unknown> =>
+        index === 0 ? { ...card, hint: null } : card,
+    );
+  const note: Record<string, unknown> = {
+    ...goldNote,
+    lemma: null,
+    cloze_sentence: null,
+    warnings: null,
+    cards,
+  };
+  const parsed = learningNoteResponseSchema.parse({
+    success: true,
+    data: note,
+    error: null,
+  });
+  assertEquals(parsed.data?.lemma, null);
+  assertEquals(parsed.data?.cloze_sentence, null);
+  assertEquals(parsed.data?.warnings, null);
+  assertEquals(parsed.data?.cards[0].hint, null);
+});
+
+Deno.test("withoutNulls drops null keys and keeps every falsy value", () => {
+  const raw: Record<string, unknown> = {
+    success: true,
+    data: {
+      lemma: null,
+      cloze_sentence: null,
+      warnings: null,
+      collocations: [],
+      source_context: "",
+      cards: [
+        {
+          card_id: "c1",
+          is_active: false,
+          accepted_answers: [],
+          hint: null,
+          explanation: "",
+        },
+      ],
+    },
+  };
+  const cleaned: Record<string, unknown> = withoutNulls(raw);
+  assertEquals(cleaned, {
+    success: true,
+    data: {
+      collocations: [],
+      source_context: "",
+      cards: [
+        {
+          card_id: "c1",
+          is_active: false,
+          accepted_answers: [],
+          explanation: "",
+        },
+      ],
+    },
+  });
+});
+
+Deno.test("a refusal with a null data and a null input is parsed and cleaned", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { input: null, message: "El texto está vacío." },
+  });
+  assertEquals(parsed.data, null);
+  assertEquals(parsed.error?.input, null);
+  const cleaned: LearningNoteResponse = withoutNulls(parsed);
+  assertEquals(cleaned, {
+    success: false,
+    error: { message: "El texto está vacío." },
+  });
 });

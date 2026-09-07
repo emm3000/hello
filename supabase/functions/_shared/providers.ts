@@ -139,6 +139,53 @@ function logProviderAttempt(
   }));
 }
 
+type InvalidOutputReason = "json_parse" | "schema";
+
+const MAX_DETAIL_LENGTH: number = 160;
+
+function truncate(detail: string): string {
+  return detail.length <= MAX_DETAIL_LENGTH
+    ? detail
+    : detail.slice(0, MAX_DETAIL_LENGTH);
+}
+
+function errorMessage(error: unknown): string {
+  const message: string = error instanceof Error
+    ? error.message
+    : String(error);
+  return message.replace(/"[^"]*"/g, '"..."').replace(/'[^']*'/g, "'...'");
+}
+
+function schemaDetail(error: unknown): string {
+  const issues: unknown = (error as { issues?: unknown }).issues;
+  if (Array.isArray(issues) && issues.length > 0) {
+    const issue: { path?: unknown; message?: unknown } = issues[0] as {
+      path?: unknown;
+      message?: unknown;
+    };
+    const path: string = Array.isArray(issue.path) ? issue.path.join(".") : "";
+    const message: string = typeof issue.message === "string"
+      ? issue.message
+      : "";
+    return truncate((path + " " + message).trim());
+  }
+  return truncate(errorMessage(error));
+}
+
+function logInvalidOutput(
+  provider: ProviderConfig,
+  reason: InvalidOutputReason,
+  detail: string,
+): void {
+  console.log(JSON.stringify({
+    event: "invalid_output",
+    provider: provider.id,
+    model: provider.model,
+    reason,
+    detail,
+  }));
+}
+
 function stripJsonFences(raw: string): string {
   const trimmed: string = raw.trim();
   if (!trimmed.startsWith("```")) {
@@ -282,17 +329,32 @@ export async function generateStructured<T>(
         continue;
       }
       const payload: unknown = await response.json();
-      const value: T = args.parse(
-        JSON.parse(stripJsonFences(readContent(payload))),
+      const decoded: unknown = JSON.parse(
+        stripJsonFences(readContent(payload)),
       );
-      logProviderAttempt(provider, status, now().getTime() - startedAt, "ok");
-      return { value, provider: provider.id, model: provider.model };
-    } catch (_error: unknown) {
+      try {
+        const value: T = args.parse(decoded);
+        logProviderAttempt(provider, status, now().getTime() - startedAt, "ok");
+        return { value, provider: provider.id, model: provider.model };
+      } catch (error: unknown) {
+        logInvalidOutput(provider, "schema", schemaDetail(error));
+        logProviderAttempt(
+          provider,
+          status,
+          now().getTime() - startedAt,
+          "invalid_output",
+        );
+        continue;
+      }
+    } catch (error: unknown) {
       const outcome: ProviderOutcome = controller.signal.aborted
         ? "timeout"
         : status === null
         ? "unavailable"
         : "invalid_output";
+      if (outcome === "invalid_output") {
+        logInvalidOutput(provider, "json_parse", truncate(errorMessage(error)));
+      }
       logProviderAttempt(
         provider,
         status,
