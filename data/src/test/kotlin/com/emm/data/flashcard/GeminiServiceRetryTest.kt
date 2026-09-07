@@ -10,6 +10,7 @@ import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
 import com.google.firebase.ai.type.PromptBlockedException
 import com.google.firebase.ai.type.QuotaExceededException
+import com.google.firebase.ai.type.ServerException
 import com.google.firebase.ai.type.UnknownException
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -177,6 +178,67 @@ class GeminiServiceRetryTest {
         verify(exactly = 1) {
             telemetry.recordCallFailure(kind = "generic", attempts = 1, cause = blocked)
         }
+    }
+
+    @Test
+    fun `process rethrows an App Check rejection immediately instead of retrying`() = runTest {
+        val model = mockk<GenerativeModel>()
+        val rejected: ServerException = firebaseAiException(message = "Firebase App Check token is invalid.")
+        coEvery { model.generateContent(any<String>()) } throws rejected
+
+        val service = newService(model)
+
+        val thrown: ServerException = try {
+            service.process("prompt")
+            error("expected ServerException")
+        } catch (t: ServerException) {
+            t
+        }
+
+        assertSame(rejected, thrown)
+        coVerify(exactly = 1) { model.generateContent(any<String>()) }
+        verify(exactly = 1) {
+            telemetry.recordCallFailure(kind = "generic", attempts = 1, cause = rejected)
+        }
+    }
+
+    @Test
+    fun `processLearningNoteWithParser rethrows an App Check rejection immediately instead of retrying`() = runTest {
+        val model = mockk<GenerativeModel>()
+        val rejected: ServerException = firebaseAiException(message = "Firebase App Check token is invalid.")
+        coEvery { model.generateContent(any<String>()) } throws rejected
+
+        val service = newService(model)
+
+        val thrown: ServerException = try {
+            service.processLearningNoteWithParser("prompt") { it }
+            error("expected ServerException")
+        } catch (t: ServerException) {
+            t
+        }
+
+        assertSame(rejected, thrown)
+        coVerify(exactly = 1) { model.generateContent(any<String>()) }
+        verify(exactly = 1) {
+            telemetry.recordCallFailure(kind = "learning_note", attempts = 1, cause = rejected)
+        }
+    }
+
+    @Test
+    fun `process retries a server error that is not an App Check rejection`() = runTest {
+        val model = mockk<GenerativeModel>()
+        val response = mockk<GenerateContentResponse>()
+        every { response.text } returns "ok"
+        val serverError: ServerException = firebaseAiException(message = "Internal error encountered.")
+        coEvery { model.generateContent(any<String>()) } throws serverError andThen response
+
+        val service = newService(model)
+
+        val result = service.process("prompt")
+
+        assertEquals("ok", result)
+        coVerify(exactly = 2) { model.generateContent(any<String>()) }
+        verify(exactly = 0) { telemetry.recordCallFailure(any(), any(), any()) }
     }
 
     @Test

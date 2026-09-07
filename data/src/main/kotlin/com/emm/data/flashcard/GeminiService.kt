@@ -114,14 +114,19 @@ open class GeminiService(
             is TimeoutCancellationException -> true
             is IOException -> true
             is RequestTimeoutException -> true
-            is ServerException -> true
+            is ServerException -> !isAppCheckRejection()
             is QuotaExceededException -> true
             is UnknownException -> true
             else -> false
         }
     }
 
+    private fun ServerException.isAppCheckRejection(): Boolean {
+        return message.orEmpty().contains(APP_CHECK_REJECTION_MARKER, ignoreCase = true)
+    }
+
     private companion object {
+        const val APP_CHECK_REJECTION_MARKER: String = "App Check"
         const val DEFAULT_TIMEOUT_MS: Long = 15_000L
         const val MAX_RAW_RESPONSE_CHARS: Int = 8_000
         val DEFAULT_BACKOFF_MS: List<Long> = listOf(1_000L, 2_000L, 4_000L)
