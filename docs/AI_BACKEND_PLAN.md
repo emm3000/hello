@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Proposed, 2026-09-07 |
-| Progress | Phases 1 and 2 implemented on 2026-09-07 (local stack); cache, credits and account linking pending. |
+| Progress | Phases 1, 2 and 3 implemented on 2026-09-07 (local stack); credits and account linking pending. |
 | Role | Plan for moving every AI call behind one Supabase Edge Function |
 | Source of Truth | No. `*_CURRENT.md` and the code win. Becomes history once shipped. |
 | Read this when | You touch AI generation, quotas, guest identity or the `supabase/` directory |
@@ -57,7 +57,8 @@ Cache read runs before the allowance check so hits never consume. The allowance 
 | | `prompt.ts` | Learning-note and suggestion prompts, `PROMPT_VERSION` |
 | | `schema.ts` | zod schema, `SCHEMA_VERSION`, JSON Schema export for strict providers |
 | | `cache.ts` | Cache key, read, write, negative TTL |
-| | `credits.ts` | Daily allowance check and event write |
+| | `credits.ts` | Event write today; daily allowance check arrives with phase 4 |
+| | `provider_state.ts` | Persisted `provider_state` store for the circuit breaker |
 | `:data` | `RemoteFlashcardGenerationRepository` | Transport for `generate-note`, HTTP to domain error mapping |
 | | `RemoteWordSuggestionRepository` | Transport for `suggest-words` |
 | | `SupabaseSessionInitializer` | Lazy anonymous session |
@@ -72,7 +73,7 @@ Cache read runs before the allowance check so hits never consume. The allowance 
 
 Rules:
 
-- A `429` marks the provider exhausted, tracked in memory per isolate for now (resets on cold start); the `provider_state` table arrives with the cache phase.
+- A `429` marks the provider exhausted in the in-memory map of the isolate and in the `provider_state` table, so every isolate and both functions honour the cooldown.
 - A `503`, a timeout or a zod failure skips to the next provider for this request only.
 - At most two provider attempts per request. Total budget stays under 90 s, inside the 150 s free-plan wall clock.
 - Every provider response passes the zod schema before it is cached or returned, whatever the output mode.
@@ -247,7 +248,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 |---|---|---|---|
 | 1 Cleanup | Delete `supabase/`, run `supabase init`, drop unused `supabase-*` aliases | `rg -i supabase` returns only the new tree and the Gradle aliases still in use | Done — `rg -i supabase` clean |
 | 2 Function, auth, providers | `generate-note` and `suggest-words` without cache or credits; app migrated; Firebase AI removed | A capture on `medium_phone` ends READY through the function. A request without the App Check header returns `401`. With an invalid `GEMINI_API_KEY` the note arrives from MiniMax and `meta.provider` says so. | Done — 28 Deno tests, `401` without App Check, `503 providers_exhausted` with a real App Check token and no keys, JVM tests for the mapper and repositories; device READY verified on 2026-09-07 ("look forward to" captured on Medium_Phone_2 came back from Gemini); with an invalid Gemini key the note arrived from OpenRouter with meta.provider = "openrouter" |
-| 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for `give up` returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider | Pending |
+| 3 Cache | `note_cache`, negative TTL, `previous_issues` bypass | The second request for the same word returns `cached: true` in under 200 ms and `generation_events` shows `cached = true` with no provider | Done — 40 Deno tests; migration `20260907135456_ai_backend_cache.sql` applied with `supabase migration up`; device-verified on 2026-09-07: "make up" came from Gemini in 5662 ms, then "Make  Up" (same key after normalisation) returned `cached: true` in 18 ms with no `provider_attempt`, `note_cache.hits = 1`, and its `generation_events` row has `cached = true` and a null provider |
 | 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Pending |
 | 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking | Pending |
 | 6 Billing | Out of scope for this plan | | Pending |
