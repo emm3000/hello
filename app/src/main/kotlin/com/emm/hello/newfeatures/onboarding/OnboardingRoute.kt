@@ -1,6 +1,5 @@
 package com.emm.hello.newfeatures.onboarding
 
-import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.today.TodayRoute
+import com.emm.hello.notifications.requestPostNotificationsPermission
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -31,7 +31,9 @@ fun OnboardingDestination(navigator: Navigator) {
             when (effect) {
                 is OnboardingUiEffect.NavigateToToday -> navigator.replaceAll(TodayRoute)
                 is OnboardingUiEffect.RequestNotificationPermission -> {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    permissionLauncher.requestPostNotificationsPermission {
+                        vm.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
+                    }
                 }
                 is OnboardingUiEffect.CloseOnboarding -> navigator.goBack()
             }

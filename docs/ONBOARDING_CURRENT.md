@@ -83,7 +83,7 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 `OnboardingUiEffect`:
 
 - `NavigateToToday` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
-- `RequestNotificationPermission` — the `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()`
+- `RequestNotificationPermission` — the `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()` through `requestPostNotificationsPermission`; below Android 13 there is no prompt, so the `Route` dispatches `NotificationPermissionSettled` directly
 - `CloseOnboarding` — `navigator.goBack()`
 
 `OnboardingDestination` installs a `BackHandler` that forwards system back to `BackPressed`.

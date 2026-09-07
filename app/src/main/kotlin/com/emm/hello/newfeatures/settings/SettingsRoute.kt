@@ -1,10 +1,10 @@
 package com.emm.hello.newfeatures.settings
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.deck.DecksRoute
+import com.emm.hello.notifications.requestPostNotificationsPermission
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -47,7 +48,7 @@ fun SettingsDestination(navigator: Navigator) {
         uri?.let { vm.onIntent(SettingsUiIntent.ImportUriReceived(it)) }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
+    val permissionLauncher: ManagedActivityResultLauncher<String, Boolean> = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { vm.onIntent(SettingsUiIntent.NotificationPermissionSettled) }
 
@@ -71,7 +72,9 @@ fun SettingsDestination(navigator: Navigator) {
                     importLauncher.launch(arrayOf("application/json"))
                 }
                 SettingsUiEffect.RequestNotificationPermission -> {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    permissionLauncher.requestPostNotificationsPermission {
+                        vm.onIntent(SettingsUiIntent.NotificationPermissionSettled)
+                    }
                 }
                 SettingsUiEffect.OpenNotificationSettings -> {
                     context.startActivity(

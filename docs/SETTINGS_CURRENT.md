@@ -105,7 +105,7 @@ The switch itself always toggles the reminder, independent of the row tap target
 - **Toggle off:** `SetReminderEnabled(false)` persists the flag directly (`SetStudyReminderEnabledUseCase(false)`) and sets `isReminderEnabled = false`. No permission check.
 - **Toggle on:** `SetReminderEnabled(true)` first checks `NotificationPermission.isGranted()`.
   - If granted, persists the flag (`SetStudyReminderEnabledUseCase(true)`) and sets `isReminderEnabled = true`.
-  - If not granted, the flag is **not** persisted and `isReminderEnabled` stays `false`; the ViewModel emits `RequestNotificationPermission` instead. The `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()`.
+  - If not granted, the flag is **not** persisted and `isReminderEnabled` stays `false`; the ViewModel emits `RequestNotificationPermission` instead. The `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()` through `requestPostNotificationsPermission`; below Android 13 there is no prompt, so the `Route` dispatches `NotificationPermissionSettled` directly.
 - **After the system dialog closes:** the `Route` always sends `NotificationPermissionSettled`, regardless of the launcher's own `Boolean` result (that result is ignored on purpose). The ViewModel re-reads `NotificationPermission.isGranted()` directly:
   - Granted → `isNotificationPermissionGranted = true`, and the reminder is now enabled and persisted (`SetStudyReminderEnabledUseCase(true)`, `isReminderEnabled = true`).
   - Denied → `isNotificationPermissionGranted = false`, the switch stays off, and the row shows the blocked subtitle.
