@@ -9,6 +9,7 @@ import {
   PROVIDER_CHAIN,
   type ProviderConfig,
   ProvidersExhaustedError,
+  type ProviderStateStore,
   resetProviderState,
 } from "./providers.ts";
 
@@ -63,6 +64,13 @@ function completion(content: string): Response {
 
 function failure(status: number): Response {
   return new Response("upstream failure", { status });
+}
+
+function embeddedError(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 function recordingFetch(
@@ -375,4 +383,242 @@ Deno.test("a json parse failure logs a reason without the provider content", asy
   assertEquals(detail.includes('"'), true);
   assertEquals(detail.length > 0, true);
   assertEquals(detail.length <= 160, true);
+});
+
+Deno.test("a rate limit embedded in a 200 body cools the provider down", async () => {
+  resetProviderState();
+  const providers: ProviderConfig[] = testChain();
+  const firstCalls: FetchCall[] = [];
+  const first = await run(
+    recordingFetch(
+      [
+        embeddedError({
+          error: {
+            code: 429,
+            message: "Rate limit exceeded",
+            metadata: { error_type: "rate_limit_exceeded" },
+          },
+        }),
+        completion(`{"ok":"yes"}`),
+      ],
+      firstCalls,
+    ),
+    providers,
+  );
+  assertEquals(first.provider, "second");
+  assertEquals(first.value, { ok: "yes" });
+  assertEquals(firstCalls.length, 2);
+
+  const secondCalls: FetchCall[] = [];
+  const second = await run(
+    recordingFetch([completion(`{"ok":"again"}`)], secondCalls),
+    providers,
+  );
+  assertEquals(second.provider, "second");
+  assertEquals(secondCalls.length, 1);
+  assertEquals(secondCalls[0].url, "https://second.test/v1/chat/completions");
+});
+
+Deno.test("a rate limit embedded in a choice cools the provider down", async () => {
+  resetProviderState();
+  const providers: ProviderConfig[] = testChain();
+  const firstCalls: FetchCall[] = [];
+  const first = await run(
+    recordingFetch(
+      [
+        embeddedError({
+          choices: [
+            {
+              message: { role: "assistant", content: '{"ok":"par' },
+              finish_reason: "error",
+              error: {
+                code: 429,
+                message: "Rate limit exceeded",
+                metadata: { error_type: "rate_limit_exceeded" },
+              },
+            },
+          ],
+        }),
+        completion(`{"ok":"yes"}`),
+      ],
+      firstCalls,
+    ),
+    providers,
+  );
+  assertEquals(first.provider, "second");
+  assertEquals(first.value, { ok: "yes" });
+  assertEquals(firstCalls.length, 2);
+
+  const secondCalls: FetchCall[] = [];
+  const second = await run(
+    recordingFetch([completion(`{"ok":"again"}`)], secondCalls),
+    providers,
+  );
+  assertEquals(second.provider, "second");
+  assertEquals(secondCalls.length, 1);
+  assertEquals(secondCalls[0].url, "https://second.test/v1/chat/completions");
+});
+
+Deno.test("an embedded rate limit is persisted to the provider state store", async () => {
+  resetProviderState();
+  const marked: { providerId: string; untilMs: number }[] = [];
+  const providerState: ProviderStateStore = {
+    load: (): Promise<Map<string, number>> =>
+      Promise.resolve(new Map<string, number>()),
+    markExhausted: (providerId: string, untilMs: number): Promise<void> => {
+      marked.push({ providerId, untilMs });
+      return Promise.resolve();
+    },
+  };
+  const calls: FetchCall[] = [];
+  const result = await generateStructured<Probe>({
+    prompt: "PROMPT",
+    schemaName: "probe",
+    jsonSchema: JSON_SCHEMA,
+    parse: parseProbe,
+    providers: testChain(),
+    fetchFn: recordingFetch(
+      [
+        embeddedError({
+          error: { code: 429, message: "Rate limit exceeded" },
+        }),
+        completion(`{"ok":"yes"}`),
+      ],
+      calls,
+    ),
+    env,
+    now: (): Date => NOW,
+    providerState,
+  });
+  assertEquals(result.provider, "second");
+  assertEquals(marked.length, 1);
+  assertEquals(marked[0].providerId, "first");
+  assertEquals(marked[0].untilMs, NOW.getTime() + 3_600_000);
+});
+
+Deno.test("an embedded upstream failure is retried on the next request", async () => {
+  resetProviderState();
+  const providers: ProviderConfig[] = testChain();
+  const firstCalls: FetchCall[] = [];
+  const first = await run(
+    recordingFetch(
+      [
+        embeddedError({
+          choices: [
+            {
+              message: { role: "assistant", content: '{"ok":"par' },
+              finish_reason: "error",
+              error: {
+                code: 502,
+                message: "Provider disconnected mid-stream",
+                metadata: { error_type: "provider_unavailable" },
+              },
+            },
+          ],
+        }),
+        completion(`{"ok":"yes"}`),
+      ],
+      firstCalls,
+    ),
+    providers,
+  );
+  assertEquals(first.provider, "second");
+  assertEquals(firstCalls.length, 2);
+
+  const secondCalls: FetchCall[] = [];
+  const second = await run(
+    recordingFetch(
+      [completion(`{"ok":"direct"}`), completion(`{"ok":"spare"}`)],
+      secondCalls,
+    ),
+    providers,
+  );
+  assertEquals(second.provider, "first");
+  assertEquals(secondCalls[0].url, "https://first.test/v1/chat/completions");
+});
+
+Deno.test("an embedded unauthorized code falls through without a cooldown", async () => {
+  resetProviderState();
+  const providers: ProviderConfig[] = testChain();
+  const firstCalls: FetchCall[] = [];
+  const first = await run(
+    recordingFetch(
+      [
+        embeddedError({
+          error: {
+            code: 401,
+            message: "No auth credentials found",
+            metadata: { error_type: "unauthorized" },
+          },
+        }),
+        completion(`{"ok":"yes"}`),
+      ],
+      firstCalls,
+    ),
+    providers,
+  );
+  assertEquals(first.provider, "second");
+  assertEquals(firstCalls.length, 2);
+
+  const secondCalls: FetchCall[] = [];
+  const second = await run(
+    recordingFetch([completion(`{"ok":"direct"}`)], secondCalls),
+    providers,
+  );
+  assertEquals(second.provider, "first");
+  assertEquals(secondCalls[0].url, "https://first.test/v1/chat/completions");
+});
+
+Deno.test("an embedded error logs its code as the attempt status", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const captured: string[] = [];
+  const originalLog: (...data: unknown[]) => void = console.log;
+  console.log = (...data: unknown[]): void => {
+    captured.push(data.map((item: unknown): string => String(item)).join(" "));
+  };
+  try {
+    await run(
+      recordingFetch(
+        [
+          embeddedError({
+            error: {
+              code: 429,
+              message: "Rate limit exceeded",
+              metadata: { error_type: "rate_limit_exceeded" },
+            },
+          }),
+          completion(`{"ok":"yes"}`),
+        ],
+        calls,
+      ),
+      testChain(),
+    );
+  } finally {
+    console.log = originalLog;
+  }
+
+  const attempts: Record<string, unknown>[] = captured
+    .map((line: string): Record<string, unknown> =>
+      JSON.parse(line) as Record<string, unknown>
+    )
+    .filter((event: Record<string, unknown>): boolean =>
+      event.event === "provider_attempt" && event.provider === "first"
+    );
+  assertEquals(attempts.length, 1);
+  assertEquals(attempts[0].status, 429);
+  assertEquals(attempts[0].outcome, "rate_limited");
+});
+
+Deno.test("a body without an embedded error is unchanged", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const result = await run(
+    recordingFetch([completion(`{"ok":"plain"}`)], calls),
+    testChain(),
+  );
+  assertEquals(result.provider, "first");
+  assertEquals(result.model, "first-model");
+  assertEquals(result.value, { ok: "plain" });
+  assertEquals(calls.length, 1);
 });

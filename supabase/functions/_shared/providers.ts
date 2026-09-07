@@ -209,6 +209,30 @@ function stripJsonFences(raw: string): string {
   return body.trim();
 }
 
+function readCode(holder: unknown): number | null {
+  if (typeof holder !== "object" || holder === null) {
+    return null;
+  }
+  const error: unknown = (holder as { error?: unknown }).error;
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+  const code: unknown = (error as { code?: unknown }).code;
+  return typeof code === "number" ? code : null;
+}
+
+function embeddedErrorCode(payload: unknown): number | null {
+  const topLevel: number | null = readCode(payload);
+  if (topLevel !== null) {
+    return topLevel;
+  }
+  if (typeof payload !== "object" || payload === null) {
+    return null;
+  }
+  const choices: unknown = (payload as { choices?: unknown }).choices;
+  return Array.isArray(choices) ? readCode(choices[0]) : null;
+}
+
 function readContent(payload: unknown): string {
   const choices: { message?: { content?: unknown } }[] | undefined =
     (payload as { choices?: { message?: { content?: unknown } }[] }).choices;
@@ -257,6 +281,26 @@ function retryAfterSeconds(nowMs: number): number {
     return DEFAULT_RETRY_AFTER_SECONDS;
   }
   return Math.max(1, Math.round((earliest - nowMs) / 1000));
+}
+
+async function classifyFailure(
+  code: number,
+  provider: ProviderConfig,
+  now: () => Date,
+  providerState: ProviderStateStore | undefined,
+): Promise<ProviderOutcome> {
+  if (code === 429) {
+    const untilMs: number = provider.cooldownAfterRateLimit(now()).getTime();
+    exhaustedUntil.set(provider.id, untilMs);
+    if (providerState !== undefined) {
+      await providerState.markExhausted(provider.id, untilMs);
+    }
+    return "rate_limited";
+  }
+  if (code === 401 || code === 403) {
+    return "unauthorized";
+  }
+  return "unavailable";
 }
 
 export async function generateStructured<T>(
@@ -311,43 +355,39 @@ export async function generateStructured<T>(
         },
       );
       status = response.status;
-      if (response.status === 429) {
-        const untilMs: number = provider.cooldownAfterRateLimit(now())
-          .getTime();
-        exhaustedUntil.set(provider.id, untilMs);
-        if (providerState !== undefined) {
-          await providerState.markExhausted(provider.id, untilMs);
-        }
-        logProviderAttempt(
-          provider,
-          status,
-          now().getTime() - startedAt,
-          "rate_limited",
-        );
-        await response.body?.cancel();
-        continue;
-      }
-      if (response.status === 401 || response.status === 403) {
-        logProviderAttempt(
-          provider,
-          status,
-          now().getTime() - startedAt,
-          "unauthorized",
-        );
-        await response.body?.cancel();
-        continue;
-      }
       if (!response.ok) {
+        const outcome: ProviderOutcome = await classifyFailure(
+          response.status,
+          provider,
+          now,
+          providerState,
+        );
         logProviderAttempt(
           provider,
           status,
           now().getTime() - startedAt,
-          "unavailable",
+          outcome,
         );
         await response.body?.cancel();
         continue;
       }
       const payload: unknown = await response.json();
+      const embeddedCode: number | null = embeddedErrorCode(payload);
+      if (embeddedCode !== null) {
+        const outcome: ProviderOutcome = await classifyFailure(
+          embeddedCode,
+          provider,
+          now,
+          providerState,
+        );
+        logProviderAttempt(
+          provider,
+          embeddedCode,
+          now().getTime() - startedAt,
+          outcome,
+        );
+        continue;
+      }
       const decoded: unknown = JSON.parse(
         stripJsonFences(readContent(payload)),
       );
