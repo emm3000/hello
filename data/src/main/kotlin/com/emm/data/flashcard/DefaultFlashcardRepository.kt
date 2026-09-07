@@ -141,9 +141,11 @@ class DefaultFlashcardRepository(
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
+        failureReason: String?,
     ): Unit = withContext(ioDispatcher) {
         dao.setEnrichmentStatus(
             enrichmentStatus = status.name,
+            enrichmentFailureReason = failureReason,
             updatedAt = Instant.now().toEpochMilli(),
             id = flashcardId.value,
         )

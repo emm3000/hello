@@ -196,27 +196,39 @@ private fun CaptureRecentList(state: CaptureUiState) {
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             state.recentCaptures.forEach { capture ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 28.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = capture.word,
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp,
-                        color = ink,
-                    )
-                    Text(
-                        text = stringResource(capture.status.labelRes(isOnline = state.isOnline)),
-                        fontFamily = schibsted,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp,
-                        color = inkSoft,
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 28.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = capture.word,
+                            fontFamily = schibsted,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 17.sp,
+                            color = ink,
+                        )
+                        Text(
+                            text = stringResource(capture.status.labelRes(isOnline = state.isOnline)),
+                            fontFamily = schibsted,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 13.sp,
+                            color = inkSoft,
+                        )
+                    }
+
+                    if (capture.status == EnrichmentStatus.FAILED && capture.failureReason != null) {
+                        Text(
+                            text = capture.failureReason,
+                            fontFamily = schibsted,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 13.sp,
+                            color = inkSoft,
+                        )
+                    }
                 }
             }
         }
@@ -247,6 +259,12 @@ private fun CaptureScreenPreview() {
                         flashcardId = "2".toFlashcardId(),
                         word = "compelling",
                         status = EnrichmentStatus.PENDING,
+                    ),
+                    RecentCapture(
+                        flashcardId = "3".toFlashcardId(),
+                        word = "asdkjqwe",
+                        status = EnrichmentStatus.FAILED,
+                        failureReason = "No pude entender esa entrada.",
                     ),
                 ),
             ),

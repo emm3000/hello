@@ -13,6 +13,12 @@ class ProductionSinceMigrationTest {
 
     private fun createSchema5Driver(): JdbcSqliteDriver {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        createReviewProjectionTable(driver)
+        createFlashcardTable(driver)
+        return driver
+    }
+
+    private fun createReviewProjectionTable(driver: JdbcSqliteDriver) {
         driver.execute(
             null,
             """
@@ -34,7 +40,46 @@ class ProductionSinceMigrationTest {
             """.trimIndent(),
             0,
         )
-        return driver
+    }
+
+    private fun createFlashcardTable(driver: JdbcSqliteDriver) {
+        driver.execute(
+            null,
+            """
+                CREATE TABLE Flashcard (
+                    id TEXT NOT NULL,
+                    deckId TEXT NOT NULL,
+                    word TEXT NOT NULL,
+                    meaning TEXT NOT NULL,
+                    translation TEXT,
+                    phonetic TEXT,
+                    partOfSpeech TEXT,
+                    type TEXT,
+                    note TEXT,
+                    register TEXT,
+                    levelBand TEXT,
+                    domain TEXT,
+                    lemma TEXT,
+                    whyUseful TEXT,
+                    usagePattern TEXT,
+                    irregularFormsJson TEXT,
+                    collocationsJson TEXT,
+                    commonMistake TEXT,
+                    confusableWithJson TEXT,
+                    clozeSentence TEXT,
+                    sourceContext TEXT,
+                    warningsJson TEXT,
+                    studyCardsJson TEXT,
+                    qualityChecksJson TEXT,
+                    createdAt INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    deletedAt INTEGER,
+                    enrichmentStatus TEXT NOT NULL DEFAULT 'ENRICHED',
+                    PRIMARY KEY (id)
+                )
+            """.trimIndent(),
+            0,
+        )
     }
 
     private fun insertPreMigrationProjection(

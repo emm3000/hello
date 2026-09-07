@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
+import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.validation.DomainValidationException
@@ -24,12 +25,12 @@ class FlashcardEnrichmentWorker(
         val error: Throwable = enrich(flashcardId) ?: return Result.success()
 
         if (!EnrichmentRetryPolicy.shouldRetry(error)) {
-            markFailed(flashcardId)
+            markFailed(flashcardId, error)
             logError(TAG, "enrich:abandoned ${flashcardId.value} non_retryable")
             return Result.failure()
         }
 
-        return retryOrGiveUp(flashcardId)
+        return retryOrGiveUp(flashcardId, error)
     }
 
     @Suppress("TooGenericExceptionCaught")
@@ -55,16 +56,17 @@ class FlashcardEnrichmentWorker(
         }
     }
 
-    private suspend fun retryOrGiveUp(flashcardId: FlashcardId): Result {
+    private suspend fun retryOrGiveUp(flashcardId: FlashcardId, error: Throwable): Result {
         if (runAttemptCount + 1 < MAX_ATTEMPTS) return Result.retry()
 
-        markFailed(flashcardId)
+        markFailed(flashcardId, error)
         logError(TAG, "enrich:abandoned ${flashcardId.value} after $MAX_ATTEMPTS attempts")
         return Result.failure()
     }
 
-    private suspend fun markFailed(flashcardId: FlashcardId) {
-        GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId)
+    private suspend fun markFailed(flashcardId: FlashcardId, error: Throwable) {
+        val reason: String? = (error as? AmbiguousGenerationInputException)?.reason
+        GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId, reason)
     }
 
     companion object {

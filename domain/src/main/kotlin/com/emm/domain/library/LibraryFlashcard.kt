@@ -12,5 +12,6 @@ data class LibraryFlashcard(
     val translation: String,
     val meaning: String,
     val enrichmentStatus: EnrichmentStatus,
+    val enrichmentFailureReason: String?,
     val nextReviewAt: Long?,
 )

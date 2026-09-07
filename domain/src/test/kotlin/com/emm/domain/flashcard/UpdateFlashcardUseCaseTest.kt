@@ -137,7 +137,11 @@ private class UpdateRecordingRepository(
 
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("unused")
 
-    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) {
+    override suspend fun updateEnrichmentStatus(
+        flashcardId: FlashcardId,
+        status: EnrichmentStatus,
+        failureReason: String?,
+    ) {
         statusUpdates += flashcardId to status
         calls += "status"
     }

@@ -180,6 +180,31 @@ class CaptureViewModelTest {
     }
 
     @Test
+    fun `a library update carries the failure reason to the recent capture`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val libraryRepository = FakeLibraryRepository()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, libraryRepository = libraryRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        libraryRepository.emit(
+            libraryFlashcard(
+                id = CARD_ID,
+                status = EnrichmentStatus.FAILED,
+                failureReason = "No pude entender esa entrada.",
+            ),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.recentCaptures.first().failureReason)
+            .isEqualTo("No pude entender esa entrada.")
+    }
+
+    @Test
     fun `state starts online`() = runTest {
         val viewModel = buildViewModel()
         advanceUntilIdle()
@@ -249,7 +274,11 @@ class CaptureViewModelTest {
         cardsCount = 0L,
     )
 
-    private fun libraryFlashcard(id: FlashcardId, status: EnrichmentStatus): LibraryFlashcard = LibraryFlashcard(
+    private fun libraryFlashcard(
+        id: FlashcardId,
+        status: EnrichmentStatus,
+        failureReason: String? = null,
+    ): LibraryFlashcard = LibraryFlashcard(
         id = id,
         deckId = DECK_ID,
         deckName = "Primeras palabras",
@@ -257,6 +286,7 @@ class CaptureViewModelTest {
         translation = "prestar",
         meaning = "",
         enrichmentStatus = status,
+        enrichmentFailureReason = failureReason,
         nextReviewAt = null,
     )
 

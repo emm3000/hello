@@ -119,7 +119,11 @@ class FlashcardDetailViewModelTest {
         }
         override suspend fun create(input: CreateFlashcardInput): FlashcardId = throw UnsupportedOperationException()
         override suspend fun update(input: UpdateFlashcardInput) = throw UnsupportedOperationException()
-        override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) = Unit
+        override suspend fun updateEnrichmentStatus(
+            flashcardId: FlashcardId,
+            status: EnrichmentStatus,
+            failureReason: String?,
+        ) = Unit
         override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L
         override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
         override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit

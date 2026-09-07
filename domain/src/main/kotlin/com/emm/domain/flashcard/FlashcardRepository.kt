@@ -15,7 +15,7 @@ interface FlashcardRepository {
 
     suspend fun update(input: UpdateFlashcardInput)
 
-    suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus)
+    suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus, failureReason: String?)
 
     suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long
 

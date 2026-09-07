@@ -9,7 +9,11 @@ class UpdateFlashcardUseCase(
 
         flashcardRepository.update(input)
         if (completesFailedEnrichment(input)) {
-            flashcardRepository.updateEnrichmentStatus(input.flashcardId, EnrichmentStatus.ENRICHED)
+            flashcardRepository.updateEnrichmentStatus(
+                input.flashcardId,
+                EnrichmentStatus.ENRICHED,
+                failureReason = null,
+            )
         }
     }
 

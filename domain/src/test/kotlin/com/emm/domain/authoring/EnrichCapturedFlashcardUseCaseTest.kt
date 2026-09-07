@@ -193,7 +193,11 @@ private class RecordingRepository : FlashcardRepository {
         lastUpdate = input
     }
 
-    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) {
+    override suspend fun updateEnrichmentStatus(
+        flashcardId: FlashcardId,
+        status: EnrichmentStatus,
+        failureReason: String?,
+    ) {
         lastStatus = status
     }
 

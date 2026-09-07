@@ -26,4 +26,5 @@ data class RecentCapture(
     val flashcardId: FlashcardId,
     val word: String,
     val status: EnrichmentStatus,
+    val failureReason: String? = null,
 )

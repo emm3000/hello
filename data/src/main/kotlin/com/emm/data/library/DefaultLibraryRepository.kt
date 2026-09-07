@@ -36,5 +36,6 @@ private fun LibraryFlashcards.toLibraryFlashcard(): LibraryFlashcard = LibraryFl
     translation = translation.orEmpty(),
     meaning = meaning,
     enrichmentStatus = toEnrichmentStatus(enrichmentStatus),
+    enrichmentFailureReason = enrichmentFailureReason,
     nextReviewAt = nextReviewAt,
 )

@@ -111,8 +111,11 @@ class CaptureViewModel(
 private const val TAG = "CaptureViewModel"
 
 private fun List<RecentCapture>.refreshedFrom(cards: List<LibraryFlashcard>): List<RecentCapture> {
-    val statusById: Map<FlashcardId, EnrichmentStatus> = cards.associate { it.id to it.enrichmentStatus }
-    return map { capture -> statusById[capture.flashcardId]?.let { capture.copy(status = it) } ?: capture }
+    val cardsById: Map<FlashcardId, LibraryFlashcard> = cards.associateBy { it.id }
+    return map { capture ->
+        val card: LibraryFlashcard = cardsById[capture.flashcardId] ?: return@map capture
+        capture.copy(status = card.enrichmentStatus, failureReason = card.enrichmentFailureReason)
+    }
 }
 
 private fun DomainValidationException.messageRes(): Int {

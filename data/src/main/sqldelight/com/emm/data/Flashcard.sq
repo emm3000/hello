@@ -30,6 +30,7 @@ CREATE TABLE Flashcard (
     updatedAt INTEGER NOT NULL,
     deletedAt INTEGER,
     enrichmentStatus TEXT NOT NULL DEFAULT 'ENRICHED',
+    enrichmentFailureReason TEXT,
 
     PRIMARY KEY (id),
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
@@ -203,6 +204,7 @@ SELECT f.id,
     f.translation,
     f.meaning,
     f.enrichmentStatus,
+    f.enrichmentFailureReason,
     rp.nextReviewAt
 FROM Flashcard f
 INNER JOIN Deck d
@@ -228,6 +230,7 @@ ORDER BY createdAt;
 markPendingEnrichment:
 UPDATE Flashcard
 SET enrichmentStatus = 'PENDING',
+    enrichmentFailureReason = NULL,
     updatedAt = :updatedAt
 WHERE id IN :ids;
 
@@ -267,6 +270,7 @@ WHERE id = :id
 setEnrichmentStatus:
 UPDATE Flashcard
 SET enrichmentStatus = :enrichmentStatus,
+    enrichmentFailureReason = :enrichmentFailureReason,
     updatedAt = :updatedAt
 WHERE id = :id
   AND deletedAt IS NULL;

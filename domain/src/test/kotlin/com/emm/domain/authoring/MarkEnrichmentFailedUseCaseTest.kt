@@ -16,13 +16,27 @@ import kotlin.test.assertEquals
 class MarkEnrichmentFailedUseCaseTest {
 
     @Test
-    fun `invoke stores the failed status for the given card`() = runTest {
+    fun `invoke stores the failed status and reason for the given card`() = runTest {
         val repository = StatusRecordingRepository()
         val useCase = MarkEnrichmentFailedUseCase(repository)
 
-        useCase(FLASHCARD_ID)
+        useCase(FLASHCARD_ID, "No pude entender esa entrada.")
 
-        assertEquals(listOf(FLASHCARD_ID to EnrichmentStatus.FAILED), repository.written)
+        val expected: List<Triple<FlashcardId, EnrichmentStatus, String?>> =
+            listOf(Triple(FLASHCARD_ID, EnrichmentStatus.FAILED, "No pude entender esa entrada."))
+        assertEquals(expected, repository.written)
+    }
+
+    @Test
+    fun `invoke passes a null reason through as null`() = runTest {
+        val repository = StatusRecordingRepository()
+        val useCase = MarkEnrichmentFailedUseCase(repository)
+
+        useCase(FLASHCARD_ID, null)
+
+        val expected: List<Triple<FlashcardId, EnrichmentStatus, String?>> =
+            listOf(Triple(FLASHCARD_ID, EnrichmentStatus.FAILED, null))
+        assertEquals(expected, repository.written)
     }
 
     private companion object {
@@ -32,10 +46,14 @@ class MarkEnrichmentFailedUseCaseTest {
 
 private class StatusRecordingRepository : FlashcardRepository {
 
-    val written: MutableList<Pair<FlashcardId, EnrichmentStatus>> = mutableListOf()
+    val written: MutableList<Triple<FlashcardId, EnrichmentStatus, String?>> = mutableListOf()
 
-    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) {
-        written += flashcardId to status
+    override suspend fun updateEnrichmentStatus(
+        flashcardId: FlashcardId,
+        status: EnrichmentStatus,
+        failureReason: String?,
+    ) {
+        written += Triple(flashcardId, status, failureReason)
     }
 
     override fun fetchAll() = throw UnsupportedOperationException()
