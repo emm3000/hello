@@ -7,6 +7,7 @@ data class EditFlashcardUiState(
     val flashcardId: String = "",
     val isLoading: Boolean = true,
     val word: String = "",
+    val meaning: String = "",
     val translation: String = "",
     val exampleText: String = "",
     val exampleTranslation: String = "",

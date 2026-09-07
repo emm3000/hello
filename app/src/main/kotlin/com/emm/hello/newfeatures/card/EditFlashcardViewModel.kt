@@ -32,6 +32,7 @@ class EditFlashcardViewModel(
     override fun onIntent(intent: EditFlashcardUiIntent) {
         when (intent) {
             is EditFlashcardUiIntent.WordChanged -> handleWordChanged(intent.word)
+            is EditFlashcardUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             is EditFlashcardUiIntent.TranslationChanged -> setState { copy(translation = intent.translation) }
             is EditFlashcardUiIntent.ExampleTextChanged -> setState { copy(exampleText = intent.text) }
             is EditFlashcardUiIntent.ExampleTranslationChanged -> {
@@ -56,6 +57,7 @@ class EditFlashcardViewModel(
             setState {
                 copy(
                     word = card.word,
+                    meaning = card.meaning,
                     translation = card.translation,
                     exampleText = firstExample?.text.orEmpty(),
                     exampleTranslation = firstExample?.translation.orEmpty(),
@@ -88,7 +90,7 @@ class EditFlashcardViewModel(
                 UpdateFlashcardInput(
                     flashcardId = flashcardId.toFlashcardId(),
                     word = current.word,
-                    meaning = loadedCard?.meaning.orEmpty(),
+                    meaning = current.meaning,
                     translation = current.translation,
                     phonetic = current.phonetic,
                     partOfSpeech = current.partOfSpeech,

@@ -98,7 +98,6 @@ class DefaultFlashcardRepository(
 
     override suspend fun update(input: UpdateFlashcardInput) = withContext(ioDispatcher) {
         require(input.word.isNotBlank()) { "Flashcard word must not be blank." }
-        require(input.meaning.isNotBlank()) { "Flashcard meaning must not be blank." }
 
         val now: Long = Instant.now().toEpochMilli()
         val cardId: String = input.flashcardId.value

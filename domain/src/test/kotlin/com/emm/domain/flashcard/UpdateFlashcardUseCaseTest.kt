@@ -3,6 +3,7 @@ package com.emm.domain.flashcard
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.time.SystemClock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -46,6 +47,57 @@ class UpdateFlashcardUseCaseTest {
         assertEquals(listOf(expected), repository.updated)
     }
 
+    @Test
+    fun `invoke marks a FAILED card ENRICHED when it is saved with a meaning`() = runTest {
+        val repository = UpdateRecordingRepository(status = EnrichmentStatus.FAILED)
+        val useCase = UpdateFlashcardUseCase(repository)
+
+        useCase(input(word = "lantern", meaning = "a definition"))
+
+        assertEquals(listOf(FLASHCARD_ID to EnrichmentStatus.ENRICHED), repository.statusUpdates)
+    }
+
+    @Test
+    fun `invoke leaves a FAILED card FAILED when it is saved with a blank meaning`() = runTest {
+        val repository = UpdateRecordingRepository(status = EnrichmentStatus.FAILED)
+        val useCase = UpdateFlashcardUseCase(repository)
+
+        useCase(input(word = "lantern", meaning = ""))
+
+        assertTrue(repository.statusUpdates.isEmpty())
+        assertEquals(0, repository.fetches)
+    }
+
+    @Test
+    fun `invoke leaves a PENDING card PENDING when it is saved with a meaning`() = runTest {
+        val repository = UpdateRecordingRepository(status = EnrichmentStatus.PENDING)
+        val useCase = UpdateFlashcardUseCase(repository)
+
+        useCase(input(word = "lantern", meaning = "a definition"))
+
+        assertTrue(repository.statusUpdates.isEmpty())
+    }
+
+    @Test
+    fun `invoke never rewrites the status of an ENRICHED card`() = runTest {
+        val repository = UpdateRecordingRepository(status = EnrichmentStatus.ENRICHED)
+        val useCase = UpdateFlashcardUseCase(repository)
+
+        useCase(input(word = "lantern", meaning = "a definition"))
+
+        assertTrue(repository.statusUpdates.isEmpty())
+    }
+
+    @Test
+    fun `invoke saves the fields before it marks the card ENRICHED`() = runTest {
+        val repository = UpdateRecordingRepository(status = EnrichmentStatus.FAILED)
+        val useCase = UpdateFlashcardUseCase(repository)
+
+        useCase(input(word = "lantern", meaning = "a definition"))
+
+        assertEquals(listOf("update", "status"), repository.calls)
+    }
+
     private fun input(word: String, meaning: String = ""): UpdateFlashcardInput {
         return UpdateFlashcardInput(
             flashcardId = FLASHCARD_ID,
@@ -60,24 +112,35 @@ class UpdateFlashcardUseCaseTest {
     }
 }
 
-private class UpdateRecordingRepository : FlashcardRepository {
+private class UpdateRecordingRepository(
+    private val status: EnrichmentStatus = EnrichmentStatus.ENRICHED,
+) : FlashcardRepository {
 
     val updated: MutableList<UpdateFlashcardInput> = mutableListOf()
+    val statusUpdates: MutableList<Pair<FlashcardId, EnrichmentStatus>> = mutableListOf()
+    val calls: MutableList<String> = mutableListOf()
+    var fetches: Int = 0
 
     override suspend fun update(input: UpdateFlashcardInput) {
         updated += input
+        calls += "update"
     }
 
     override fun fetchAll(): Flow<List<Flashcard>> = error("unused")
 
     override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = error("unused")
 
-    override suspend fun fetchById(id: FlashcardId): FlashcardDetail = error("unused")
+    override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
+        fetches += 1
+        return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id, enrichmentStatus = status))
+    }
 
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("unused")
 
-    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) =
-        error("unused")
+    override suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus) {
+        statusUpdates += flashcardId to status
+        calls += "status"
+    }
 
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = error("unused")
 

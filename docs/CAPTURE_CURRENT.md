@@ -7,7 +7,7 @@
 | Scope | `Capturar` flow (bare-word capture + background enrichment) |
 | Source of Truth | No |
 | Read this when | You need to understand how a word enters the app today and what happens to it after Save |
-| Last verified | 2026-09-05 |
+| Last verified | 2026-09-06 |
 
 ## Summary
 
@@ -115,7 +115,9 @@ issue codes back into the prompt, before giving up. A transient failure
 `DomainValidationException` or `GenerationQuotaExceededException` is not
 retried by the worker — `EnrichmentRetryPolicy` marks the card `FAILED` on
 the first attempt through `MarkEnrichmentFailedUseCase`. A card in `FAILED`
-is what `RetryFailed` picks up.
+is what `RetryFailed` picks up. A `FAILED` card can also be completed by hand,
+without retrying generation, by filling in its meaning from Edit Flashcard —
+see `EDIT_FLASHCARD_CURRENT.md`.
 
 ## Screen
 

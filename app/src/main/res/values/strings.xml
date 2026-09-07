@@ -61,6 +61,7 @@
 
     <!-- Flashcards -->
     <string name="word_label">English word or phrase</string>
+    <string name="meaning_label">Meaning</string>
     <string name="phonetics_label">Phonetics</string>
     <string name="translation_label">Translation</string>
     <string name="example_sentence_label">Example sentence</string>
@@ -122,6 +123,7 @@
     <!-- Flashcard edit/delete -->
     <string name="edit_flashcard_title">Edit card</string>
     <string name="edit_flashcard_word_placeholder">e.g. serendipity</string>
+    <string name="edit_flashcard_meaning_placeholder">Definition in English</string>
     <string name="edit_flashcard_translation_placeholder">Spanish translation</string>
     <string name="edit_flashcard_phonetic_placeholder">e.g. /ˌserənˈdɪpɪti/</string>
     <string name="edit_flashcard_part_of_speech_placeholder">e.g. noun, verb</string>

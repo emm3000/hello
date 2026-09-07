@@ -147,6 +147,16 @@ private fun FieldList(
         )
 
         HInput(
+            value = state.meaning,
+            onValueChange = { onIntent(EditFlashcardUiIntent.MeaningChanged(it)) },
+            label = stringResource(R.string.meaning_label),
+            placeholder = stringResource(R.string.edit_flashcard_meaning_placeholder),
+            variant = HFieldVariant.Underline,
+            singleLine = false,
+            minLines = 2,
+        )
+
+        HInput(
             value = state.translation,
             onValueChange = { onIntent(EditFlashcardUiIntent.TranslationChanged(it)) },
             label = stringResource(R.string.translation_label),

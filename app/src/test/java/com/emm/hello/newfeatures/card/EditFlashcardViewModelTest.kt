@@ -43,6 +43,13 @@ class EditFlashcardViewModelTest {
     }
 
     @Test
+    fun `init surfaces the meaning of the loaded card`() = runTest {
+        val viewModel = buildViewModel(FakeFlashcardRepo(detail = detailOf(enrichedCard())))
+
+        assertThat(viewModel.state.value.meaning).isEqualTo("pleasing to look at")
+    }
+
+    @Test
     fun `a blank word invalidates the form`() = runTest {
         val viewModel = buildViewModel(FakeFlashcardRepo(detail = detailOf(enrichedCard())))
 
@@ -53,7 +60,16 @@ class EditFlashcardViewModelTest {
     }
 
     @Test
-    fun `Submit keeps the meaning and the examples tail the form never showed`() = runTest {
+    fun `MeaningChanged updates the meaning`() = runTest {
+        val viewModel = buildViewModel(FakeFlashcardRepo(detail = detailOf(enrichedCard())))
+
+        viewModel.onIntent(EditFlashcardUiIntent.MeaningChanged("a new meaning"))
+
+        assertThat(viewModel.state.value.meaning).isEqualTo("a new meaning")
+    }
+
+    @Test
+    fun `Submit keeps the examples tail the form never showed and the untouched meaning`() = runTest {
         val repo = FakeFlashcardRepo(detail = detailOf(enrichedCard()))
         val viewModel = buildViewModel(repo)
 
@@ -69,6 +85,22 @@ class EditFlashcardViewModelTest {
         assertThat(input.examples.first().text).isEqualTo("A new sentence.")
         assertThat(input.examples.first().exampleId).isEqualTo("e1")
         assertThat(input.examples.map(Example::exampleId)).containsExactly("e1", "e2").inOrder()
+    }
+
+    @Test
+    fun `Submit sends the edited meaning`() = runTest {
+        val repo = FakeFlashcardRepo(detail = detailOf(enrichedCard()))
+        val viewModel = buildViewModel(repo)
+
+        viewModel.onIntent(EditFlashcardUiIntent.MeaningChanged("a definition"))
+        viewModel.effect.test {
+            viewModel.onIntent(EditFlashcardUiIntent.Submit)
+            awaitItem()
+            awaitItem()
+        }
+
+        val input: UpdateFlashcardInput = repo.updated.single()
+        assertThat(input.meaning).isEqualTo("a definition")
     }
 
     @Test

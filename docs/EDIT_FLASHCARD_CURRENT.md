@@ -7,11 +7,11 @@
 | Scope | `Edit Flashcard` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how an existing card's fields are edited |
-| Last verified | 2026-08-28 |
+| Last verified | 2026-09-06 |
 
 ## Summary
 
-`Edit Flashcard` loads an existing card, lets you edit six fields (word, translation, first example sentence, its translation, part of speech, phonetic) on the card's own hue, validates the word live, and persists the change via `UpdateFlashcardUseCase`. It also exposes an in-screen "Delete card" text button that soft-deletes the card via `SoftDeleteFlashcardUseCase` after a confirmation dialog. Opened from `Card Detail` (`EditFlashcardRoute(cardId, deckId)`; only `cardId` reaches the destination).
+`Edit Flashcard` loads an existing card, lets you edit seven fields (word, meaning, translation, first example sentence, its translation, part of speech, phonetic) on the card's own hue, validates the word live, and persists the change via `UpdateFlashcardUseCase`. It also exposes an in-screen "Delete card" text button that soft-deletes the card via `SoftDeleteFlashcardUseCase` after a confirmation dialog. Opened from `Card Detail` (`EditFlashcardRoute(cardId, deckId)`; only `cardId` reaches the destination).
 
 ## Key files
 
@@ -28,20 +28,20 @@
 
 - `flashcardId` (seeds the screen hue via `cardHueFor`)
 - `isLoading` (true while the card loads)
-- editable fields: `word`, `translation`, `exampleText`, `exampleTranslation`, `partOfSpeech`, `phonetic`
+- editable fields: `word`, `meaning`, `translation`, `exampleText`, `exampleTranslation`, `partOfSpeech`, `phonetic`
 - `wordError: Int?` (`@StringRes`)
 - `isSubmitting`
 - `isDeleteConfirmationVisible` (toggles the soft-delete confirmation dialog)
-- `isValid` (computed): `word` non-blank and `wordError == null`
+- `isValid` (computed): `word` non-blank and `wordError == null` — `meaning` has no validation and can be submitted blank
 
-`meaning` and the remaining examples are not editable; the ViewModel keeps the loaded `Flashcard` in a private `loadedCard` and carries them through unchanged on submit.
+The remaining examples (after the first) are not editable; the ViewModel keeps the loaded `Flashcard` in a private `loadedCard` and carries them through unchanged on submit.
 
 ## Load
 
 `EditFlashcardViewModel.init` calls `loadFlashcard()`:
 
 - `FlashcardRepository.fetchById(flashcardId).flashcard`, stored in `loadedCard`
-- on success populates `word`, `translation`, `partOfSpeech`, `phonetic`, and `exampleText` / `exampleTranslation` from `examples.firstOrNull()` (empty if none)
+- on success populates `word`, `meaning`, `translation`, `partOfSpeech`, `phonetic`, and `exampleText` / `exampleTranslation` from `examples.firstOrNull()` (empty if none)
 - on error: `isLoading = false` + `ShowMessage(R.string.error_load_card)`
 
 ## Actions
@@ -49,6 +49,7 @@
 Supported intents:
 
 - `WordChanged(word)` — sets `wordError = R.string.validation_word_required` when blank
+- `MeaningChanged(meaning)`
 - `TranslationChanged(translation)`
 - `ExampleTextChanged(text)`
 - `ExampleTranslationChanged(translation)`
@@ -65,9 +66,9 @@ Supported intents:
 `handleSubmit()`:
 
 - validates state
-- builds `UpdateFlashcardInput(flashcardId, word, meaning = loadedCard.meaning, translation, phonetic, partOfSpeech, examples = mergedExamples(current))`
+- builds `UpdateFlashcardInput(flashcardId, word, meaning = current.meaning, translation, phonetic, partOfSpeech, examples = mergedExamples(current))`
 - `mergedExamples`: if both example fields are blank the first loaded example is dropped; otherwise the first loaded example is copied with the new `text` / `translation`, or a new `Example(exampleId = "", type = "")` is created when the card had none. Loaded examples after the first are appended untouched.
-- calls `UpdateFlashcardUseCase`
+- calls `UpdateFlashcardUseCase`, which persists via `FlashcardRepository.update` (a blank `word` is still rejected there; a blank `meaning` is not) and then, only when the submitted `meaning` is non-blank, re-fetches the card and flips its `enrichmentStatus` from `FAILED` to `ENRICHED` — `PENDING` and `ENRICHED` are left untouched, and a blank `meaning` never triggers the re-fetch. This is how filling in a `FAILED` card by hand makes it studiable again, since the `StudiableFlashcard` view only selects `ENRICHED` cards.
 - on success: emits `ShowMessage(R.string.card_updated_message)` then `NavigateBack`
 - on error: `ShowMessage(R.string.error_save_card)` + releases `isSubmitting`
 
@@ -102,7 +103,7 @@ The whole screen is a `Surface` colored with `cardHueFor(state.flashcardId)`. A 
 |---|---|---|
 | `EditTopBar` | `HIconButton` `Close` (`R.string.edit_flashcard_close_content_description`) dispatching `CloseClicked` · spacer · `HButton` text variant "Save" (`R.string.edit_flashcard_action_save`) dispatching `Submit`. | Save is enabled only when `isValid && !isSubmitting && !isLoading`. Plain `Row`, not `HTopBar`. |
 | `LoadingBody` | Centered `HLoadingSpinner`. | Shown while `isLoading`. |
-| `FieldList` | Uppercase caption "Edit card" (`R.string.edit_flashcard_title`), then six `HInput` fields in `HFieldVariant.Underline`: word (`word_label`, error from `wordError`), translation (`translation_label`), example sentence (`example_sentence_label`, multiline), example translation (`example_translation_label`, multiline), part of speech (`part_of_speech_label`), phonetics (`phonetics_label`). | Placeholders come from `edit_flashcard_*_placeholder`. Scrollable. |
+| `FieldList` | Uppercase caption "Edit card" (`R.string.edit_flashcard_title`), then seven `HInput` fields in `HFieldVariant.Underline`: word (`word_label`, error from `wordError`), meaning (`meaning_label`, multiline), translation (`translation_label`), example sentence (`example_sentence_label`, multiline), example translation (`example_translation_label`, multiline), part of speech (`part_of_speech_label`), phonetics (`phonetics_label`). | Placeholders come from `edit_flashcard_*_placeholder` / `meaning_label`'s own placeholder `edit_flashcard_meaning_placeholder`. Scrollable. |
 | Delete | `HButton` text variant with `danger = true`, "Delete card" (`R.string.edit_flashcard_delete_action`), dispatching `DeleteFlashcard`. | Sits below the fields inside the scrollable column. |
 
 ## Persistence
