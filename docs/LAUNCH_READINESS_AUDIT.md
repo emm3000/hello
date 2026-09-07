@@ -230,7 +230,7 @@ These tasks do NOT block launch. Prioritize by signals from real users.
 
 #### S3-T2: Per-feature ViewModel tests
 - Start with the feature with the most reported bugs. Pattern: intent routing, state updates, effect emissions.
-- **Status:** [ ]
+- **Status:** [x] — every feature ViewModel under `app/newfeatures` now has a test; `DecksViewModelTest` was the last one added.
 
 #### S3-T3: Decide between standard SM-2 / FSRS
 - Validate with retention feedback whether the current scheduler performs. If not, migrate to FSRS (modern Anki) with default parameter tables.
