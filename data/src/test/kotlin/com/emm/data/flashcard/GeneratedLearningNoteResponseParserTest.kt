@@ -1,5 +1,6 @@
 package com.emm.data.flashcard
 
+import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GeneratedNoteQualityCode
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LearningNoteType
@@ -108,6 +109,43 @@ class GeneratedLearningNoteResponseParserTest {
         assertEquals(3, result.cards.size)
         assertEquals(StudyCardType.Cloze, result.cards[2].cardType)
         assertEquals(GeneratedNoteQualityCode.SingleMeaning, result.qualityChecks.first().code)
+    }
+
+    @Test
+    fun `parse without input field surfaces the refusal message`() {
+        val raw = """
+            {
+              "success": false,
+              "error": {
+                "message": "El texto de entrada 'zzqxwvk' no es inteligible."
+              }
+            }
+        """.trimIndent()
+
+        val error = assertThrows(AmbiguousGenerationInputException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+
+        assertEquals("El texto de entrada 'zzqxwvk' no es inteligible.", error.reason)
+    }
+
+    @Test
+    fun `parse with input field surfaces the refusal message`() {
+        val raw = """
+            {
+              "success": false,
+              "error": {
+                "input": "zzqxwvk",
+                "message": "El texto de entrada no es inteligible."
+              }
+            }
+        """.trimIndent()
+
+        val error = assertThrows(AmbiguousGenerationInputException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+
+        assertEquals("El texto de entrada no es inteligible.", error.reason)
     }
 
     @Test

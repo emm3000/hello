@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class ResponseError(
 
     @SerialName("input")
-    val input: String,
+    val input: String? = null,
 
     @SerialName("message")
     val message: String,
