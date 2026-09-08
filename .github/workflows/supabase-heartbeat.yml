@@ -1,0 +1,44 @@
+name: Supabase heartbeat
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-heartbeat
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: ping
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run a database query
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_PUBLISHABLE_KEY}" ]; then
+            echo "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be set as repository secrets."
+            exit 1
+          fi
+          body="$(mktemp)"
+          status="$(curl --silent --show-error --max-time 30 \
+            --output "${body}" --write-out '%{http_code}' \
+            --request POST "${SUPABASE_URL}/rest/v1/rpc/heartbeat" \
+            --header "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            --header "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+            --header 'Content-Type: application/json' \
+            --data '{}')"
+          echo "HTTP ${status}"
+          cat "${body}"
+          echo
+          if [ "${status}" != "200" ]; then
+            echo "The heartbeat query did not reach the database."
+            exit 1
+          fi
