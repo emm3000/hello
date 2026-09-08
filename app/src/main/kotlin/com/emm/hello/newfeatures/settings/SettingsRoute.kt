@@ -100,5 +100,6 @@ fun SettingsDestination(navigator: Navigator) {
         onReminderTimeChange = { vm.onIntent(SettingsUiIntent.SetReminderTime(it)) },
         onDismissReminderTimePicker = { vm.onIntent(SettingsUiIntent.DismissReminderTimePicker) },
         onOpenNotificationSettings = { vm.onIntent(SettingsUiIntent.OpenNotificationSettings) },
+        onLinkGoogleAccount = { vm.onIntent(SettingsUiIntent.LinkGoogleAccount) },
     )
 }

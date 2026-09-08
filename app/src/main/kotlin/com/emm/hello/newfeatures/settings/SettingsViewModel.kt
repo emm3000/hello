@@ -5,18 +5,27 @@ import androidx.lifecycle.viewModelScope
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.IncompatibleSchemaException
+import com.emm.domain.account.Account
+import com.emm.domain.account.GetAccountUseCase
+import com.emm.domain.account.LinkGoogleAccountUseCase
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.hello.core.auth.GoogleSignInLauncher
+import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.notifications.NotificationPermission
 import java.time.LocalTime
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 private const val TAG = "SettingsViewModel"
+private const val GOOGLE_LINK_SUCCESS_MESSAGE = "Google account linked"
+private const val GOOGLE_LINK_ERROR_MESSAGE = "Couldn't link your Google account"
 
+@Suppress("LongParameterList")
 class SettingsViewModel(
     private val exportDataSource: BackupExporter,
     private val importDataSource: BackupImporter,
@@ -24,6 +33,12 @@ class SettingsViewModel(
     private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
     private val setStudyReminderTime: SetStudyReminderTimeUseCase,
     private val notificationPermission: NotificationPermission,
+    private val getAccount: GetAccountUseCase,
+    private val linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
+    private val googleSignInLauncher: GoogleSignInLauncher,
+    private val googleServerClientId: String,
+    private val noGoogleAccountMessage: String,
+    private val googleLinkFailedMessage: String,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(),
 ) {
@@ -37,6 +52,7 @@ class SettingsViewModel(
                 isNotificationPermissionGranted = notificationPermission.isGranted(),
             )
         }
+        loadAccount()
     }
 
     override fun onIntent(intent: SettingsUiIntent) {
@@ -56,7 +72,48 @@ class SettingsViewModel(
             is SettingsUiIntent.NotificationPermissionSettled -> notificationPermissionSettled()
             is SettingsUiIntent.RefreshNotificationPermission -> refreshNotificationPermission()
             is SettingsUiIntent.OpenNotificationSettings -> sendEffect(SettingsUiEffect.OpenNotificationSettings)
+            is SettingsUiIntent.LinkGoogleAccount -> requestGoogleSignIn()
         }
+    }
+
+    private fun loadAccount() {
+        viewModelScope.launch {
+            val account: Account? = getAccount()
+            setState { copy(account = account) }
+        }
+    }
+
+    private fun requestGoogleSignIn() {
+        setState { copy(isLinkingAccount = true) }
+        viewModelScope.launch {
+            when (val result: GoogleSignInResult = googleSignInLauncher.signIn(googleServerClientId)) {
+                is GoogleSignInResult.Success -> linkGoogleAccount(result.idToken, result.rawNonce)
+                GoogleSignInResult.Cancelled -> setState { copy(isLinkingAccount = false) }
+                GoogleSignInResult.NoCredentials -> googleLinkFailed(noGoogleAccountMessage)
+                is GoogleSignInResult.Failure -> googleLinkFailed(googleLinkFailedMessage)
+            }
+        }
+    }
+
+    private fun linkGoogleAccount(idToken: String, rawNonce: String) {
+        viewModelScope.launch {
+            try {
+                val account: Account = linkGoogleAccountUseCase(idToken = idToken, rawNonce = rawNonce)
+                setState { copy(account = account, isLinkingAccount = false) }
+                sendEffect(SettingsUiEffect.ShowSuccess(GOOGLE_LINK_SUCCESS_MESSAGE))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Exception) {
+                logError(TAG, "linkGoogleAccount:error ${error.message}", error)
+                setState { copy(isLinkingAccount = false) }
+                sendEffect(SettingsUiEffect.ShowError(GOOGLE_LINK_ERROR_MESSAGE))
+            }
+        }
+    }
+
+    private fun googleLinkFailed(message: String) {
+        setState { copy(isLinkingAccount = false) }
+        sendEffect(SettingsUiEffect.ShowError(message))
     }
 
     private fun setReminderEnabled(isEnabled: Boolean) {

@@ -3,6 +3,10 @@ package com.emm.hello.newfeatures.settings
 import android.net.Uri
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
+import com.emm.domain.account.Account
+import com.emm.domain.account.AccountRepository
+import com.emm.domain.account.GetAccountUseCase
+import com.emm.domain.account.LinkGoogleAccountUseCase
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
@@ -11,6 +15,8 @@ import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.core.auth.GoogleSignInLauncher
+import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.notifications.NotificationPermission
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
@@ -24,6 +30,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
+private const val NO_GOOGLE_ACCOUNT_MESSAGE = "No Google account on this device"
+private const val GOOGLE_LINK_FAILED_MESSAGE = "Couldn't link your Google account"
 
 class SettingsViewModelTest {
 
@@ -54,6 +64,8 @@ class SettingsViewModelTest {
         exportDataSource: BackupExporter = FakeBackupExporter(),
         importDataSource: BackupImporter = FakeBackupImporter(),
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
+        accountRepository: AccountRepository = FakeAccountRepository(),
+        googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
         importDataSource,
@@ -61,6 +73,12 @@ class SettingsViewModelTest {
         setStudyReminderEnabled,
         setStudyReminderTime,
         notificationPermission,
+        GetAccountUseCase(accountRepository),
+        LinkGoogleAccountUseCase(accountRepository),
+        googleSignInLauncher,
+        GOOGLE_SERVER_CLIENT_ID,
+        NO_GOOGLE_ACCOUNT_MESSAGE,
+        GOOGLE_LINK_FAILED_MESSAGE,
     )
 
     @Test
@@ -275,6 +293,12 @@ class SettingsViewModelTest {
             SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
             SetStudyReminderTimeUseCase(repository, syncStudyReminder),
             FakeNotificationPermission(),
+            GetAccountUseCase(FakeAccountRepository()),
+            LinkGoogleAccountUseCase(FakeAccountRepository()),
+            FakeGoogleSignInLauncher(),
+            GOOGLE_SERVER_CLIENT_ID,
+            NO_GOOGLE_ACCOUNT_MESSAGE,
+            GOOGLE_LINK_FAILED_MESSAGE,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
 
@@ -356,6 +380,12 @@ class SettingsViewModelTest {
             SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
             SetStudyReminderTimeUseCase(repository, syncStudyReminder),
             notificationPermission,
+            GetAccountUseCase(FakeAccountRepository()),
+            LinkGoogleAccountUseCase(FakeAccountRepository()),
+            FakeGoogleSignInLauncher(),
+            GOOGLE_SERVER_CLIENT_ID,
+            NO_GOOGLE_ACCOUNT_MESSAGE,
+            GOOGLE_LINK_FAILED_MESSAGE,
         )
 
         assertThat(viewModel.state.value.isReminderEnabled).isTrue()
@@ -383,6 +413,104 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.OpenNotificationSettings)
 
         assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.OpenNotificationSettings)
+    }
+
+    @Test
+    fun `the initial state carries the account the repository already knows`() = runTest {
+        val anonymous = Account(id = "user-1", isAnonymous = true, email = null)
+        val viewModel = buildViewModel(accountRepository = FakeAccountRepository(account = anonymous))
+
+        assertThat(viewModel.state.value.account).isEqualTo(anonymous)
+    }
+
+    @Test
+    fun `LinkGoogleAccount marks the link as in flight while it awaits Google`() = runTest {
+        val googleSignInLauncher = FakeGoogleSignInLauncher(suspendDuring = 100L)
+        val viewModel = buildViewModel(googleSignInLauncher = googleSignInLauncher)
+
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(viewModel.state.value.isLinkingAccount).isTrue()
+    }
+
+    @Test
+    fun `LinkGoogleAccount success links the account, stores it and announces the success`() = runTest {
+        val linked = Account(id = "user-1", isAnonymous = false, email = "someone@example.com")
+        val accountRepository = FakeAccountRepository(linkResult = Result.success(linked))
+        val googleSignInLauncher = FakeGoogleSignInLauncher(
+            result = GoogleSignInResult.Success(idToken = "id-token", rawNonce = "raw-nonce"),
+        )
+        val viewModel = buildViewModel(
+            accountRepository = accountRepository,
+            googleSignInLauncher = googleSignInLauncher,
+        )
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowSuccess("Google account linked"))
+        assertThat(accountRepository.linkCalls).containsExactly("id-token" to "raw-nonce")
+        assertThat(viewModel.state.value.account).isEqualTo(linked)
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `a failing link announces the error and stops the in flight link`() = runTest {
+        val accountRepository = FakeAccountRepository(linkResult = Result.failure(Exception("link failed")))
+        val googleSignInLauncher = FakeGoogleSignInLauncher(
+            result = GoogleSignInResult.Success(idToken = "id-token", rawNonce = "raw-nonce"),
+        )
+        val viewModel = buildViewModel(
+            accountRepository = accountRepository,
+            googleSignInLauncher = googleSignInLauncher,
+        )
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        val effect = effectDeferred.await()
+        assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
+        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't link your Google account")
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `LinkGoogleAccount cancelled by the user clears the in flight flag and emits no effect`() = runTest {
+        val googleSignInLauncher = FakeGoogleSignInLauncher(result = GoogleSignInResult.Cancelled)
+        val viewModel = buildViewModel(googleSignInLauncher = googleSignInLauncher)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        val effect: SettingsUiEffect? = withTimeoutOrNull(100) { effectDeferred.await() }
+        assertThat(effect).isNull()
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `LinkGoogleAccount with no credentials on the device clears the flag and announces it`() = runTest {
+        val googleSignInLauncher = FakeGoogleSignInLauncher(result = GoogleSignInResult.NoCredentials)
+        val viewModel = buildViewModel(googleSignInLauncher = googleSignInLauncher)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowError(NO_GOOGLE_ACCOUNT_MESSAGE))
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `LinkGoogleAccount failing to reach the credential sheet clears the flag and announces it`() = runTest {
+        val googleSignInLauncher = FakeGoogleSignInLauncher(
+            result = GoogleSignInResult.Failure(IllegalStateException("boom")),
+        )
+        val viewModel = buildViewModel(googleSignInLauncher = googleSignInLauncher)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowError(GOOGLE_LINK_FAILED_MESSAGE))
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
 
     @Test
@@ -471,4 +599,37 @@ private class RecordingStudyReminderScheduler : StudyReminderScheduler {
 private class FakeNotificationPermission(var granted: Boolean = true) : NotificationPermission {
 
     override fun isGranted(): Boolean = granted
+}
+
+private class FakeAccountRepository(
+    private val account: Account? = null,
+    private val linkResult: Result<Account> = Result.success(
+        Account(id = "user-1", isAnonymous = false, email = "someone@example.com"),
+    ),
+) : AccountRepository {
+
+    var linkCalls: List<Pair<String, String>> = emptyList()
+        private set
+
+    override suspend fun currentAccount(): Account? = account
+
+    override suspend fun linkGoogleAccount(idToken: String, rawNonce: String): Account {
+        linkCalls = linkCalls + (idToken to rawNonce)
+        return linkResult.getOrThrow()
+    }
+}
+
+private class FakeGoogleSignInLauncher(
+    private val result: GoogleSignInResult = GoogleSignInResult.Success(idToken = "id-token", rawNonce = "raw-nonce"),
+    private val suspendDuring: Long = 0L,
+) : GoogleSignInLauncher {
+
+    var signInCalls: List<String> = emptyList()
+        private set
+
+    override suspend fun signIn(serverClientId: String): GoogleSignInResult {
+        signInCalls = signInCalls + serverClientId
+        if (suspendDuring > 0) kotlinx.coroutines.delay(suspendDuring)
+        return result
+    }
 }

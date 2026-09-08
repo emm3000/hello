@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Notifications
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.emm.domain.account.Account
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
@@ -78,6 +80,7 @@ fun SettingsScreen(
     onReminderTimeChange: (LocalTime) -> Unit = {},
     onDismissReminderTimePicker: () -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
+    onLinkGoogleAccount: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -115,6 +118,14 @@ fun SettingsScreen(
                             onReminderEnabledChange = onReminderEnabledChange,
                             onEditReminderTime = onEditReminderTime,
                             onOpenNotificationSettings = onOpenNotificationSettings,
+                        )
+                        Spacer(Modifier.height(28.dp))
+                    }
+                    item {
+                        AccountSection(
+                            account = state.account,
+                            isLinkingAccount = state.isLinkingAccount,
+                            onLinkGoogleAccount = onLinkGoogleAccount,
                         )
                         Spacer(Modifier.height(28.dp))
                     }
@@ -244,6 +255,39 @@ private fun reminderSubtitle(isNotificationPermissionGranted: Boolean, reminderT
         stringResource(R.string.settings_study_reminder_subtitle, reminderTime.format(reminderTimeFormatter))
     } else {
         stringResource(R.string.settings_notifications_blocked)
+    }
+
+@Composable
+private fun AccountSection(
+    account: Account?,
+    isLinkingAccount: Boolean,
+    onLinkGoogleAccount: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(label = stringResource(R.string.settings_section_account))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = surface,
+            shape = MaterialTheme.helloShapes.control,
+        ) {
+            SettingsRow(
+                icon = Icons.Outlined.AccountCircle,
+                title = stringResource(R.string.settings_google_account_title),
+                sub = googleAccountSubtitle(account),
+                isBusy = isLinkingAccount,
+                onClick = onLinkGoogleAccount,
+            )
+        }
+    }
+}
+
+@Composable
+private fun googleAccountSubtitle(account: Account?): String =
+    if (account?.isAnonymous == false) {
+        account.email ?: stringResource(R.string.settings_google_account_linked)
+    } else {
+        stringResource(R.string.settings_google_account_not_linked)
     }
 
 @Composable

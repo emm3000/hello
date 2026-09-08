@@ -26,7 +26,11 @@ import com.emm.data.seed.DefaultSeedDataInitializer
 import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.seed.SeedDataInitializer
 import com.emm.data.remote.DataStore
+import com.emm.data.remote.SupabaseAccountRepository
 import com.emm.data.remote.provideSharedPreferences
+import com.emm.domain.account.AccountRepository
+import com.emm.domain.account.GetAccountUseCase
+import com.emm.domain.account.LinkGoogleAccountUseCase
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateFlashcardUseCase
 import com.emm.domain.authoring.CreateManualFlashcardUseCase
@@ -100,7 +104,11 @@ import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
+import com.emm.hello.core.activity.CurrentActivityHolder
 import com.emm.hello.core.audio.TextToSpeechManager
+import com.emm.hello.core.auth.ActivityGoogleSignInLauncher
+import com.emm.hello.core.auth.GoogleCredentialClient
+import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.enrichment.FlashcardEnrichmentScheduler
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
@@ -135,6 +143,10 @@ fun Module.repository() {
     single<SharedPreferences> { provideSharedPreferences(androidContext()) }
     single<ConnectivityRepository> { AndroidConnectivityRepository(androidContext()) }
     single { TextToSpeechManager(androidContext()) }
+    single { GoogleCredentialClient() }
+    single { CurrentActivityHolder() }
+    single<GoogleSignInLauncher> { ActivityGoogleSignInLauncher(activityHolder = get(), client = get()) }
+    single<AccountRepository> { SupabaseAccountRepository(auth = get(), sessionInitializer = get()) }
 
     factory<com.emm.domain.deck.DeckRepository> {
         DefaultDeckRepository(get(), get())
@@ -241,6 +253,8 @@ fun Module.useCases() {
     factoryOf(::SetStudyReminderEnabledUseCase)
     factoryOf(::SetStudyReminderTimeUseCase)
     factoryOf(::GetStudyReminderSettingsUseCase)
+    factoryOf(::GetAccountUseCase)
+    factoryOf(::LinkGoogleAccountUseCase)
 }
 
 fun Module.viewModels() {
@@ -281,7 +295,22 @@ fun Module.viewModels() {
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        SettingsViewModel(
+            exportDataSource = get(),
+            importDataSource = get(),
+            getStudyReminderSettings = get(),
+            setStudyReminderEnabled = get(),
+            setStudyReminderTime = get(),
+            notificationPermission = get(),
+            getAccount = get(),
+            linkGoogleAccountUseCase = get(),
+            googleSignInLauncher = get(),
+            googleServerClientId = androidContext().getString(R.string.default_web_client_id),
+            noGoogleAccountMessage = androidContext().getString(R.string.settings_google_no_credentials),
+            googleLinkFailedMessage = androidContext().getString(R.string.settings_google_link_failed),
+        )
+    }
     viewModel { OnboardingViewModel(get(), get()) }
 }
 

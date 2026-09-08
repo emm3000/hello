@@ -12,7 +12,12 @@
           "package_name": "com.emm.hello"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "000000000000-dummyclientidforcibuildsonly0000.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "dummy-key"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "000000000000-dummyclientidforcibuildsonly0000.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
