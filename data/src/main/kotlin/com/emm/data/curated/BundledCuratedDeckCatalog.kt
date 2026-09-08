@@ -5,5 +5,6 @@ import com.emm.domain.curated.CuratedDeckCatalog
 
 class BundledCuratedDeckCatalog : CuratedDeckCatalog {
 
-    override fun decks(): List<CuratedDeck> = listOf(SpanishTrapsDeck.deck, JobInterviewDeck.deck)
+    override fun decks(): List<CuratedDeck> =
+        listOf(SpanishTrapsDeck.deck, JobInterviewDeck.deck, TechInterviewDeck.deck)
 }
