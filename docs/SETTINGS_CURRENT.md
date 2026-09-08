@@ -4,16 +4,16 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Settings` flow (backup export/import, daily study reminder) |
+| Scope | `Settings` flow (backup export/import, daily study reminder, Google account linking) |
 | Source of Truth | No |
-| Read this when | You need to understand exporting/importing local data, or the daily study reminder |
+| Read this when | You need to understand exporting/importing local data, the daily study reminder, or linking a Google account |
 | Last verified | 2026-09-07 |
 
 ## Summary
 
-`Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF), and configure the daily study reminder (on/off, time). It's the only feature that interacts with OS `Uri`s. Enabling the reminder also gates the `POST_NOTIFICATIONS` runtime permission (Android 13+): turning it on requests the permission if not already granted, and a blocked state is surfaced directly on the reminder row.
+`Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF), and configure the daily study reminder (on/off, time). It's the only feature that interacts with OS `Uri`s. Enabling the reminder also gates the `POST_NOTIFICATIONS` runtime permission (Android 13+): turning it on requests the permission if not already granted, and a blocked state is surfaced directly on the reminder row. It also lets you link the local, lazily-created anonymous Supabase account to a Google account, so AI credits and study history survive a reinstall.
 
-Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Reminders" section with a single row for the daily study reminder; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
+Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a single row for linking a Google account; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
 
 ## Key files
 
@@ -28,6 +28,11 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `app/src/main/kotlin/com/emm/hello/notifications/NotificationPermission.kt` (port, `isGranted()`)
 - `app/src/main/kotlin/com/emm/hello/notifications/SystemNotificationPermission.kt` (impl over `NotificationManagerCompat.areNotificationsEnabled()`)
 - `app/src/main/kotlin/com/emm/hello/notifications/PostNotificationsRequest.kt` (`requestPostNotificationsPermission`)
+- `app/src/main/kotlin/com/emm/hello/core/auth/GoogleSignInLauncher.kt` (port, `signIn(serverClientId)`)
+- `app/src/main/kotlin/com/emm/hello/core/auth/ActivityGoogleSignInLauncher.kt` (impl, delegates to `GoogleCredentialClient` on the current foreground `Activity`)
+- `app/src/main/kotlin/com/emm/hello/core/auth/GoogleCredentialClient.kt` (wraps Android's `CredentialManager` / Google ID token flow)
+- `app/src/main/kotlin/com/emm/hello/core/auth/GoogleSignInResult.kt` (`Success` / `Cancelled` / `NoCredentials` / `Failure`)
+- `app/src/main/kotlin/com/emm/hello/core/activity/CurrentActivityHolder.kt` (`Application.ActivityLifecycleCallbacks`, tracks the foreground `Activity`)
 
 ## :data / :domain dependencies
 
@@ -36,6 +41,9 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `com.emm.domain.reminder.GetStudyReminderSettingsUseCase`
 - `com.emm.domain.reminder.SetStudyReminderEnabledUseCase`
 - `com.emm.domain.reminder.SetStudyReminderTimeUseCase`
+- `com.emm.domain.account.GetAccountUseCase`
+- `com.emm.domain.account.LinkGoogleAccountUseCase`
+- `com.emm.domain.account.AccountRepository` (interface), implemented by `com.emm.data.remote.SupabaseAccountRepository`
 
 ## State
 
@@ -49,6 +57,8 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `reminderTime: LocalTime` — default `StudyReminderSettings.DEFAULT_TIME` (19:00)
 - `isReminderTimePickerVisible: Boolean`
 - `isNotificationPermissionGranted: Boolean` — default `true`; overwritten in `init` with `NotificationPermission.isGranted()`
+- `account: Account?` — default `null`; loaded asynchronously in `init` — see "Account flow"
+- `isLinkingAccount: Boolean` — default `false`
 
 ## Intents
 
@@ -67,6 +77,7 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `NotificationPermissionSettled` → re-reads `NotificationPermission.isGranted()` after the system permission dialog closes; if granted, also enables and persists the reminder
 - `RefreshNotificationPermission` → re-reads `NotificationPermission.isGranted()` and updates state; sent by the `Route` on `ON_RESUME`
 - `OpenNotificationSettings` → emits `OpenNotificationSettings`
+- `LinkGoogleAccount` → starts the Google sign-in flow — see "Account flow"
 
 ## Export flow
 
@@ -117,7 +128,31 @@ The switch itself always toggles the reminder, independent of the row tap target
 - **Sync contract:** `SyncStudyReminderUseCase` reads `StudyReminderSettingsRepository.get()` and calls `StudyReminderScheduler.schedule(time)` when enabled, or `StudyReminderScheduler.cancel()` when not. The same use case also runs once on every app launch (`App.onCreate()`), so the schedule is re-pinned even if it was never touched in this session — see `docs/NOTIFICATIONS_PLAN.md` for the scheduler mechanics.
 - **Persistence:** `DataStoreStudyReminderSettingsRepository` (`:data`) stores the flag and the hour/minute as three separate `SharedPreferences` entries through the `DataStore` wrapper (`STUDY_REMINDER_ENABLED`, `STUDY_REMINDER_HOUR`, `STUDY_REMINDER_MINUTE`), not a serialized `LocalTime`.
 - **Permission port:** `NotificationPermission.isGranted()` (`com.emm.hello.notifications`) is implemented by `SystemNotificationPermission` over `NotificationManagerCompat.from(context).areNotificationsEnabled()`, and wired as a Koin `single` in `NewModule.kt`.
-- **Tests:** `SettingsViewModelTest` has 8 tests covering this flow (24 total in the file).
+- **Tests:** `SettingsViewModelTest` has 8 tests covering this flow (31 total in the file).
+
+## Account flow
+
+An "Account" section sits between "Reminders" and "Your data": one row with an `AccountCircle` icon, title "Google account" (`settings_google_account_title`), and a subtitle that depends on the loaded `account`:
+
+- **Anonymous, or not loaded yet** (`account == null` or `account.isAnonymous`): subtitle `settings_google_account_not_linked` ("Not linked — your cards live only on this device").
+- **Linked** (`account.isAnonymous == false`): subtitle is `account.email` when present, otherwise the fallback `settings_google_account_linked` ("Linked").
+
+The row keeps the default `ChevronTrailing`. While `isLinkingAccount` is `true` it shows an `HLoadingSpinner` instead of the trailing icon and the row is disabled (`clickable(enabled = !isBusy)`), the same mechanism the export/import rows use for `isExporting` / `isImporting`.
+
+`SettingsViewModel.init` calls `loadAccount()` in `viewModelScope`, which reads `GetAccountUseCase()` and sets `account`. `SupabaseAccountRepository.currentAccount()` calls `auth.awaitInitialization()` before `auth.currentUserOrNull()`, so the read waits for session restoration to finish first — without that wait, a cold start could read no session yet and report an already-linked account as "not linked".
+
+- **Tapping the row** → `LinkGoogleAccount` → `requestGoogleSignIn()`:
+  - `isLinkingAccount = true`.
+  - `googleSignInLauncher.signIn(googleServerClientId)` (port `GoogleSignInLauncher`, impl `ActivityGoogleSignInLauncher`) drives Android's Credential Manager Google ID flow (`GoogleCredentialClient`) on the current foreground `Activity`, tracked by `CurrentActivityHolder` (an `Application.ActivityLifecycleCallbacks` registered in `App.onCreate()`). A random nonce is generated and SHA-256-hashed for the request; the raw nonce comes back with the ID token for later verification.
+  - `GoogleSignInResult.Success(idToken, rawNonce)` → `linkGoogleAccount(idToken, rawNonce)`:
+    - `LinkGoogleAccountUseCase(idToken, rawNonce)` → `SupabaseAccountRepository.linkGoogleAccount` calls `sessionInitializer.ensureSession()` then `auth.linkIdentityWithIdToken(provider = Google, idToken) { nonce = rawNonce }` — **never** `auth.signInWith(IDToken)`, which would mint a fresh user and orphan the anonymous one. The Supabase user id is unchanged before and after linking, so AI credits and study history survive.
+    - On success: `account` is updated, `isLinkingAccount = false`, `ShowSuccess("Google account linked")`.
+    - On any other exception (`CancellationException` is rethrown): logged, `isLinkingAccount = false`, `ShowError("Couldn't link your Google account")`.
+  - `GoogleSignInResult.Cancelled` (user dismissed the credential sheet) → `isLinkingAccount = false`, no effect.
+  - `GoogleSignInResult.NoCredentials` → `isLinkingAccount = false`, `ShowError(noGoogleAccountMessage)` = "No Google account on this device" (`settings_google_no_credentials`).
+  - `GoogleSignInResult.Failure` (includes "no foreground `Activity`") → `isLinkingAccount = false`, `ShowError(googleLinkFailedMessage)` = "Couldn't link your Google account" (`settings_google_link_failed`).
+- **DI:** `googleServerClientId` comes from `R.string.default_web_client_id`, emitted into `google-services.json` because the CI fixture now declares a web OAuth client too; `noGoogleAccountMessage` and `googleLinkFailedMessage` are read from string resources and injected as plain `String`s so the ViewModel stays free of `Context` / `R`. Wired in `NewModule.kt`.
+- **Tests:** `SettingsViewModelTest` has 7 tests covering this flow (31 total in the file).
 
 ## Effects
 
@@ -132,4 +167,4 @@ The switch itself always toggles the reminder, independent of the row tap target
 
 ## MVI notes
 
-`SettingsViewModel` follows the pure `onIntent(intent)` contract. The SAF pickers are side effects: the VM asks for them through `LaunchExportPicker` / `LaunchImportPicker`, and the `Route` feeds the resulting `Uri` back as `ExportUriReceived` / `ImportUriReceived` intents. `EditReminderTime`, `DismissReminderTimePicker` and `SetReminderTime` never emit an effect — they only call a use case and/or update state directly. `SetReminderEnabled` conditionally emits `RequestNotificationPermission` (turning on while blocked); `OpenNotificationSettings` (intent) always emits `OpenNotificationSettings` (effect); `NotificationPermissionSettled` and `RefreshNotificationPermission` never emit an effect, they only re-read the port and update state. The permission round trip follows the same effect-in / intent-back shape as the SAF pickers: the VM asks for the system dialog, the `Route` shows it and reports back once it's settled, and the VM never touches `Context` directly. `SettingsViewModel` takes four extra constructor dependencies for this (`GetStudyReminderSettingsUseCase`, `SetStudyReminderEnabledUseCase`, `SetStudyReminderTimeUseCase`, `NotificationPermission`) and loads the initial reminder settings and permission state in `init`. There are no extra VM entry points.
+`SettingsViewModel` follows the pure `onIntent(intent)` contract. The SAF pickers are side effects: the VM asks for them through `LaunchExportPicker` / `LaunchImportPicker`, and the `Route` feeds the resulting `Uri` back as `ExportUriReceived` / `ImportUriReceived` intents. `EditReminderTime`, `DismissReminderTimePicker` and `SetReminderTime` never emit an effect — they only call a use case and/or update state directly. `SetReminderEnabled` conditionally emits `RequestNotificationPermission` (turning on while blocked); `OpenNotificationSettings` (intent) always emits `OpenNotificationSettings` (effect); `NotificationPermissionSettled` and `RefreshNotificationPermission` never emit an effect, they only re-read the port and update state. The permission round trip follows the same effect-in / intent-back shape as the SAF pickers: the VM asks for the system dialog, the `Route` shows it and reports back once it's settled, and the VM never touches `Context` directly. `SettingsViewModel` takes four extra constructor dependencies for this (`GetStudyReminderSettingsUseCase`, `SetStudyReminderEnabledUseCase`, `SetStudyReminderTimeUseCase`, `NotificationPermission`) and loads the initial reminder settings and permission state in `init`. It takes six more for the account flow (`GetAccountUseCase`, `LinkGoogleAccountUseCase`, `GoogleSignInLauncher`, the server client id and two failure-message strings) and loads the account asynchronously in `init` too, via `viewModelScope`. `LinkGoogleAccount` breaks the effect-in/intent-back pattern used by the SAF pickers and the permission prompt: the `GoogleSignInLauncher` port runs the whole credential exchange itself (it needs a foreground `Activity`, supplied by `CurrentActivityHolder` rather than the `Route`) and returns a typed `GoogleSignInResult` straight to the ViewModel, so `SettingsRoute` has no involvement beyond forwarding the `LinkGoogleAccount` intent. There are no extra VM entry points.
