@@ -19,6 +19,7 @@ keystore.properties
 .kotlin
 domain/bin/
 google-services.json
+google-services (*).json
 .atl/
 .agent/
 .agents/
