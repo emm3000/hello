@@ -83,6 +83,23 @@ fun StoreDeckCard(
 
 @Composable
 private fun StoreDeckCardFooter(item: StoreDeckItem) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        StoreDeckCardMeta(item = item)
+        if (!item.isInstalled && item.tags.isNotEmpty()) {
+            Text(
+                text = item.tags.joinToString(separator = " · ") { tag: String -> tag.uppercase() },
+                style = MaterialTheme.typography.metadata,
+                color = inkMuted,
+            )
+        }
+    }
+}
+
+@Composable
+private fun StoreDeckCardMeta(item: StoreDeckItem) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -111,17 +128,6 @@ private fun StoreDeckCardFooter(item: StoreDeckItem) {
             style = MaterialTheme.typography.metadata,
             color = inkMuted,
         )
-
-        if (!item.isInstalled && item.tags.isNotEmpty()) {
-            FooterDivider()
-            item.tags.forEach { tag: String ->
-                Text(
-                    text = tag.uppercase(),
-                    style = MaterialTheme.typography.metadata,
-                    color = inkMuted,
-                )
-            }
-        }
     }
 }
 
