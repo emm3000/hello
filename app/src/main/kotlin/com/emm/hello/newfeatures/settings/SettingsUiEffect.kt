@@ -9,4 +9,5 @@ sealed interface SettingsUiEffect : MviEffect {
     data object LaunchImportPicker : SettingsUiEffect
     data object RequestNotificationPermission : SettingsUiEffect
     data object OpenNotificationSettings : SettingsUiEffect
+    data class CopyToClipboard(val text: String) : SettingsUiEffect
 }

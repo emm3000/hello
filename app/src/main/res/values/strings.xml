@@ -244,6 +244,9 @@
     <string name="settings_google_account_not_linked">Not linked — your cards live only on this device</string>
     <string name="settings_google_no_credentials">No Google account on this device</string>
     <string name="settings_google_link_failed">Couldn\'t link your Google account</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_build_title">Build</string>
+    <string name="settings_build_copied">Copied</string>
     <string name="error_restore_deck">Couldn\'t restore the deck</string>
 
     <!-- Suggest -->

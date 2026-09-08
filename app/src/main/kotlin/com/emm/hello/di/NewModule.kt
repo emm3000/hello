@@ -107,6 +107,7 @@ import com.emm.hello.newfeatures.today.TodayViewModel
 import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
+import com.emm.hello.newfeatures.settings.BuildInfo
 import com.emm.hello.newfeatures.settings.SettingsViewModel
 import com.emm.hello.newfeatures.store.StoreViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
@@ -306,6 +307,13 @@ fun Module.viewModels() {
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
+    single {
+        BuildInfo(
+            versionName = BuildConfig.VERSION_NAME,
+            versionCode = BuildConfig.VERSION_CODE,
+            commit = BuildConfig.GIT_COMMIT,
+        )
+    }
     viewModel {
         SettingsViewModel(
             exportDataSource = get(),
@@ -320,6 +328,7 @@ fun Module.viewModels() {
             googleServerClientId = androidContext().getString(R.string.default_web_client_id),
             noGoogleAccountMessage = androidContext().getString(R.string.settings_google_no_credentials),
             googleLinkFailedMessage = androidContext().getString(R.string.settings_google_link_failed),
+            buildInfo = get(),
         )
     }
     viewModel { OnboardingViewModel(get(), get()) }

@@ -1,8 +1,10 @@
 package com.emm.hello.newfeatures.settings
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,11 +15,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.hello.R
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.deck.DecksRoute
 import com.emm.hello.notifications.requestPostNotificationsPermission
@@ -35,6 +42,9 @@ fun SettingsDestination(navigator: Navigator) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context: Context = LocalContext.current
+    val clipboard: Clipboard = LocalClipboard.current
+    val copiedMessage: String = stringResource(R.string.settings_build_copied)
+    val buildClipLabel: String = stringResource(R.string.settings_build_title)
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
@@ -82,6 +92,12 @@ fun SettingsDestination(navigator: Navigator) {
                             .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
                     )
                 }
+                is SettingsUiEffect.CopyToClipboard -> {
+                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(buildClipLabel, effect.text)))
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                    }
+                }
             }
         }
     }
@@ -101,5 +117,6 @@ fun SettingsDestination(navigator: Navigator) {
         onDismissReminderTimePicker = { vm.onIntent(SettingsUiIntent.DismissReminderTimePicker) },
         onOpenNotificationSettings = { vm.onIntent(SettingsUiIntent.OpenNotificationSettings) },
         onLinkGoogleAccount = { vm.onIntent(SettingsUiIntent.LinkGoogleAccount) },
+        onCopyBuildInfo = { vm.onIntent(SettingsUiIntent.CopyBuildInfo) },
     )
 }

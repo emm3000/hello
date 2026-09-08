@@ -21,8 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
@@ -81,6 +83,7 @@ fun SettingsScreen(
     onDismissReminderTimePicker: () -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onLinkGoogleAccount: () -> Unit = {},
+    onCopyBuildInfo: () -> Unit = {},
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -135,6 +138,13 @@ fun SettingsScreen(
                             isImporting = state.isImporting,
                             onExport = onExport,
                             onImport = onImport,
+                        )
+                        Spacer(Modifier.height(28.dp))
+                    }
+                    item {
+                        AboutSection(
+                            buildInfo = state.buildInfo,
+                            onCopyBuildInfo = onCopyBuildInfo,
                         )
                         Spacer(Modifier.height(40.dp))
                     }
@@ -327,6 +337,27 @@ private fun DataSection(
     }
 }
 
+@Composable
+private fun AboutSection(buildInfo: BuildInfo, onCopyBuildInfo: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(label = stringResource(R.string.settings_section_about))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = surface,
+            shape = MaterialTheme.helloShapes.control,
+        ) {
+            SettingsRow(
+                icon = Icons.Outlined.Info,
+                title = stringResource(R.string.settings_build_title),
+                sub = buildInfo.label,
+                onClick = onCopyBuildInfo,
+                trailing = { CopyTrailing() },
+            )
+        }
+    }
+}
+
 private enum class SubTone { Muted, Danger }
 
 @Composable
@@ -393,6 +424,16 @@ private fun RowScope.ChevronTrailing() {
         contentDescription = null,
         tint = inkMuted,
         modifier = Modifier.size(20.dp),
+    )
+}
+
+@Composable
+private fun RowScope.CopyTrailing() {
+    Icon(
+        imageVector = Icons.Outlined.ContentCopy,
+        contentDescription = null,
+        tint = inkMuted,
+        modifier = Modifier.size(18.dp),
     )
 }
 

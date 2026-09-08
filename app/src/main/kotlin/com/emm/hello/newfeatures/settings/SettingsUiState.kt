@@ -17,4 +17,5 @@ data class SettingsUiState(
     val isNotificationPermissionGranted: Boolean = true,
     val account: Account? = null,
     val isLinkingAccount: Boolean = false,
+    val buildInfo: BuildInfo = BuildInfo(versionName = "", versionCode = 0, commit = ""),
 ) : MviState

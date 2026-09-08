@@ -1,9 +1,14 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.BuildConfigField
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.Serializable
 import java.util.Properties
+import javax.inject.Inject
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.process.ExecOperations
 
 plugins {
     alias(libs.plugins.android.application)
@@ -31,6 +36,32 @@ val localSupabasePublishableKey: String = localProperties.getProperty("supabase.
 val debugSupabaseUrl: String = localSupabaseUrl.ifEmpty { "http://127.0.0.1:54321" }
 val debugSupabasePublishableKey: String = localSupabasePublishableKey
     .ifEmpty { "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" }
+
+abstract class GitCommitValueSource : ValueSource<String, ValueSourceParameters.None> {
+
+    @get:Inject
+    abstract val execOperations: ExecOperations
+
+    override fun obtain(): String {
+        val shortSha: String = git("rev-parse", "--short", "HEAD")
+        if (shortSha.isBlank()) return "unknown"
+        val porcelain: String = git("status", "--porcelain")
+        return if (porcelain.isBlank()) shortSha else "$shortSha-dirty"
+    }
+
+    private fun git(vararg arguments: String): String {
+        val standard = ByteArrayOutputStream()
+        val exitValue: Int = execOperations.exec {
+            commandLine("git", *arguments)
+            standardOutput = standard
+            errorOutput = ByteArrayOutputStream()
+            isIgnoreExitValue = true
+        }.exitValue
+        return if (exitValue == 0) standard.toString().trim() else ""
+    }
+}
+
+val gitCommit: Provider<String> = providers.of(GitCommitValueSource::class) {}
 
 fun quoted(value: String): String = "\"$value\""
 
@@ -101,6 +132,15 @@ configure<ApplicationExtension> {
 }
 
 configure<ApplicationAndroidComponentsExtension> {
+    onVariants { variant ->
+        val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
+            checkNotNull(variant.buildConfigFields)
+        buildConfigFields.put(
+            "GIT_COMMIT",
+            gitCommit.map { commit: String -> BuildConfigField("String", "\"$commit\"", null) },
+        )
+    }
+
     onVariants(selector().withBuildType("release")) { variant ->
         val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
             checkNotNull(variant.buildConfigFields)

@@ -34,6 +34,7 @@ import org.junit.Test
 private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
 private const val NO_GOOGLE_ACCOUNT_MESSAGE = "No Google account on this device"
 private const val GOOGLE_LINK_FAILED_MESSAGE = "Couldn't link your Google account"
+private val testBuildInfo = BuildInfo(versionName = "1.0.0", versionCode = 142, commit = "abc1234")
 
 class SettingsViewModelTest {
 
@@ -66,6 +67,7 @@ class SettingsViewModelTest {
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
         accountRepository: AccountRepository = FakeAccountRepository(),
         googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
+        buildInfo: BuildInfo = testBuildInfo,
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
         importDataSource,
@@ -79,6 +81,7 @@ class SettingsViewModelTest {
         GOOGLE_SERVER_CLIENT_ID,
         NO_GOOGLE_ACCOUNT_MESSAGE,
         GOOGLE_LINK_FAILED_MESSAGE,
+        buildInfo,
     )
 
     @Test
@@ -299,6 +302,7 @@ class SettingsViewModelTest {
             GOOGLE_SERVER_CLIENT_ID,
             NO_GOOGLE_ACCOUNT_MESSAGE,
             GOOGLE_LINK_FAILED_MESSAGE,
+            testBuildInfo,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
 
@@ -386,6 +390,7 @@ class SettingsViewModelTest {
             GOOGLE_SERVER_CLIENT_ID,
             NO_GOOGLE_ACCOUNT_MESSAGE,
             GOOGLE_LINK_FAILED_MESSAGE,
+            testBuildInfo,
         )
 
         assertThat(viewModel.state.value.isReminderEnabled).isTrue()
@@ -511,6 +516,24 @@ class SettingsViewModelTest {
 
         assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowError(GOOGLE_LINK_FAILED_MESSAGE))
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `the initial state carries the injected build info`() = runTest {
+        val viewModel = buildViewModel(buildInfo = testBuildInfo)
+
+        assertThat(viewModel.state.value.buildInfo).isEqualTo(testBuildInfo)
+    }
+
+    @Test
+    fun `copy build info emits the clipboard effect with the build label`() = runTest {
+        val viewModel = buildViewModel(buildInfo = testBuildInfo)
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.CopyBuildInfo)
+
+        assertThat(effectDeferred.await())
+            .isEqualTo(SettingsUiEffect.CopyToClipboard("1.0.0 (142) · abc1234"))
     }
 
     @Test

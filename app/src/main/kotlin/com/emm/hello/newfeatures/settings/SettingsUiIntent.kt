@@ -19,4 +19,5 @@ sealed interface SettingsUiIntent : MviIntent {
     data object RefreshNotificationPermission : SettingsUiIntent
     data object OpenNotificationSettings : SettingsUiIntent
     data object LinkGoogleAccount : SettingsUiIntent
+    data object CopyBuildInfo : SettingsUiIntent
 }

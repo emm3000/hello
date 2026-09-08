@@ -39,8 +39,9 @@ class SettingsViewModel(
     private val googleServerClientId: String,
     private val noGoogleAccountMessage: String,
     private val googleLinkFailedMessage: String,
+    buildInfo: BuildInfo,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
-    initialState = SettingsUiState(),
+    initialState = SettingsUiState(buildInfo = buildInfo),
 ) {
 
     init {
@@ -73,6 +74,8 @@ class SettingsViewModel(
             is SettingsUiIntent.RefreshNotificationPermission -> refreshNotificationPermission()
             is SettingsUiIntent.OpenNotificationSettings -> sendEffect(SettingsUiEffect.OpenNotificationSettings)
             is SettingsUiIntent.LinkGoogleAccount -> requestGoogleSignIn()
+            is SettingsUiIntent.CopyBuildInfo ->
+                sendEffect(SettingsUiEffect.CopyToClipboard(currentState.buildInfo.label))
         }
     }
 
