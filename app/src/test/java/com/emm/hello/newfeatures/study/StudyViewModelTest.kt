@@ -8,22 +8,28 @@ import com.emm.domain.generation.EvaluationMode
 import com.emm.domain.generation.GeneratedStudyCard
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
 import com.emm.domain.study.StudySessionRepository
+import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
+import kotlin.random.Random
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudyViewModelTest {
@@ -39,8 +45,33 @@ class StudyViewModelTest {
         val viewModel = makeViewModel(cards)
         advanceUntilIdle()
 
-        assertThat(viewModel.state.value.currentItem?.flashcardId?.value).isEqualTo("a")
+        assertThat(viewModel.state.value.currentItem?.flashcardId?.value)
+            .isEqualTo(expectedSession(cards).first())
         assertThat(viewModel.state.value.totalCount).isEqualTo(3)
+    }
+
+    @Test
+    fun `the session is shown in exactly the order the use case returned`() = runTest {
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"), studyFlashcard("c"), studyFlashcard("d"))
+        val expected: List<String> = expectedSession(cards)
+        assertThat(expected).isNotEqualTo(cards.map { it.word })
+        val viewModel = makeViewModel(cards)
+        advanceUntilIdle()
+
+        val shown: List<String> = buildList {
+            repeat(cards.size) {
+                add(viewModel.state.value.currentItem?.flashcardId?.value.orEmpty())
+                viewModel.onIntent(
+                    StudyUiIntent.ReviewAnswered(
+                        item = viewModel.state.value.currentItem,
+                        reviewGrade = ReviewGrade.GOOD,
+                    )
+                )
+                advanceUntilIdle()
+            }
+        }
+
+        assertThat(shown).isEqualTo(expected)
     }
 
     @Test
@@ -127,7 +158,8 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.state.value.currentItem?.flashcardId?.value).isEqualTo("b")
+        assertThat(viewModel.state.value.currentItem?.flashcardId?.value)
+            .isEqualTo(expectedSession(cards)[1])
         assertThat(viewModel.state.value.reviewedCount).isEqualTo(1)
     }
 
@@ -176,10 +208,9 @@ class StudyViewModelTest {
     @Test
     fun `each review is persisted immediately with the grade as given`() = runTest {
         val reviewRepo = FakeFlashcardReviewRepo()
-        val viewModel = makeViewModel(
-            listOf(studyFlashcard("a"), studyFlashcard("b")),
-            reviewRepo = reviewRepo,
-        )
+        val cards = listOf(studyFlashcard("a"), studyFlashcard("b"))
+        val expected: List<String> = expectedSession(cards)
+        val viewModel = makeViewModel(cards, reviewRepo = reviewRepo)
         advanceUntilIdle()
 
         viewModel.onIntent(
@@ -190,7 +221,7 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
         assertThat(reviewRepo.updates.map { it.first.flashcardId.value to it.second })
-            .containsExactly("a" to ReviewGrade.AGAIN)
+            .containsExactly(expected[0] to ReviewGrade.AGAIN)
 
         viewModel.onIntent(
             StudyUiIntent.ReviewAnswered(
@@ -200,7 +231,7 @@ class StudyViewModelTest {
         )
         advanceUntilIdle()
         assertThat(reviewRepo.updates.map { it.first.flashcardId.value to it.second })
-            .containsExactly("a" to ReviewGrade.AGAIN, "b" to ReviewGrade.GOOD)
+            .containsExactly(expected[0] to ReviewGrade.AGAIN, expected[1] to ReviewGrade.GOOD)
             .inOrder()
     }
 
@@ -350,7 +381,7 @@ class StudyViewModelTest {
         val repo = FakeStudySessionRepo(listOf(studyFlashcard("a")))
         val viewModel = StudyViewModel(
             deckId = "deck-1",
-            studySessionRepository = repo,
+            getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
@@ -368,7 +399,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = StudyRoute.ALL_DUE_DECKS,
-            studySessionRepository = repo,
+            getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
@@ -396,7 +427,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = "deck-1",
-            studySessionRepository = repo,
+            getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
@@ -414,7 +445,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = "deck-1",
-            studySessionRepository = repo,
+            getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
@@ -429,12 +460,25 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.totalCount).isEqualTo(1)
     }
 
+    private fun useCase(sessionRepository: StudySessionRepository): GetStudySessionUseCase =
+        GetStudySessionUseCase(
+            studySessionRepository = sessionRepository,
+            studyStatsRepository = FakeStatsRepo(),
+            clock = fixedClock,
+            zone = ZoneOffset.UTC,
+            random = Random(SESSION_SEED),
+        )
+
+    private fun expectedSession(cards: List<StudyFlashcard>): List<String> = runBlocking {
+        useCase(FakeStudySessionRepo(cards))("deck-1".toDeckId()).map { it.word }
+    }
+
     private fun makeViewModel(
         cards: List<StudyFlashcard>,
         reviewRepo: FlashcardReviewRepository = FakeFlashcardReviewRepo(),
     ): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
-        studySessionRepository = FakeStudySessionRepo(cards),
+        getStudySessionUseCase = useCase(FakeStudySessionRepo(cards)),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
         flashcardReviewRepository = reviewRepo,
     )
@@ -508,4 +552,17 @@ class StudyViewModelTest {
             updates += card to grade
         }
     }
+
+    private class FakeStatsRepo : StudyStatsRepository {
+        override suspend fun countDistinctCardsStudiedToday(): Int = 0
+        override suspend fun countReviewsDue(now: Instant): Int = 0
+        override suspend fun countNewCards(): Int = 0
+        override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int = 0
+        override suspend fun countCardsDueThisWeek(): Int = 0
+        override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = 0
+        override suspend fun findNextReviewAtAfter(millis: Long): Long? = null
+        override suspend fun findReviewTimestampsDescending(): List<Long> = emptyList()
+    }
 }
+
+private const val SESSION_SEED: Int = 42

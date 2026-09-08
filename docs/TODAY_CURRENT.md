@@ -33,7 +33,10 @@ The progress ring is `core/ui/HRing`, shared, not a feature-local file.
 
 - `isLoading` — true until the first `GetDashboardStatsUseCase` result arrives
 - `stats: DashboardStats?` — cards studied today, cards due today, current
-  streak, cards due this week, and `nextDue: NextDueBatch?`
+  streak, cards due this week, and `nextDue: NextDueBatch?`. `cardsDueToday`
+  is due reviews plus the new cards still allowed today
+  (`NewCardBudget`, 10 per local calendar day), so it matches the session
+  `GetStudySessionUseCase` will actually build
 
 Seven values are computed from `stats`, not stored:
 

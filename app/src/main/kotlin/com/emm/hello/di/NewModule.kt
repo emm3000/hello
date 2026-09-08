@@ -64,6 +64,7 @@ import com.emm.domain.library.LibraryRepository
 import com.emm.domain.library.SearchLibraryUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
+import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.suggestion.SuggestWordsUseCase
 import com.emm.domain.suggestion.WordSuggestionRepository
@@ -247,6 +248,7 @@ fun Module.useCases() {
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
     factory { GetDashboardStatsUseCase(get(), get()) }
+    factory { GetStudySessionUseCase(get(), get(), get()) }
     factoryOf(::UpdateDeckUseCase)
     factoryOf(::SoftDeleteDeckUseCase)
     factoryOf(::RestoreDeckUseCase)
@@ -283,7 +285,7 @@ fun Module.viewModels() {
     viewModel {
         StudyViewModel(
             deckId = it.get(),
-            studySessionRepository = get(),
+            getStudySessionUseCase = get(),
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),
         )

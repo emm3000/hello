@@ -1,6 +1,8 @@
 package com.emm.domain.study
 
 import com.emm.domain.time.Clock
+import com.emm.domain.time.DayRange
+import com.emm.domain.time.todayRange
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -15,10 +17,10 @@ class GetDashboardStatsUseCase(
     suspend operator fun invoke(): DashboardStats {
         val now: Instant = clock.now()
 
-        val cardsStudiedToday = repository.countDistinctCardsStudiedToday()
-        val cardsDueToday = repository.countCardsDueToday()
-        val cardsDueThisWeek = repository.countCardsDueThisWeek()
-        val currentStreak = computeStreak(now)
+        val cardsStudiedToday: Int = repository.countDistinctCardsStudiedToday()
+        val cardsDueToday: Int = countCardsDueToday(now)
+        val cardsDueThisWeek: Int = repository.countCardsDueThisWeek()
+        val currentStreak: Int = computeStreak(now)
 
         return DashboardStats(
             cardsStudiedToday = cardsStudiedToday,
@@ -27,6 +29,17 @@ class GetDashboardStatsUseCase(
             cardsDueThisWeek = cardsDueThisWeek,
             nextDue = if (cardsDueToday > 0) null else findNextDue(now),
         )
+    }
+
+    private suspend fun countCardsDueToday(now: Instant): Int {
+        val today: DayRange = clock.todayRange(zone)
+        val budget = NewCardBudget(
+            introducedToday = repository.countCardsFirstReviewedIn(
+                start = today.start,
+                endExclusive = today.endExclusive,
+            ),
+        )
+        return repository.countReviewsDue(now) + budget.allow(repository.countNewCards())
     }
 
     private suspend fun findNextDue(now: Instant): NextDueBatch? {

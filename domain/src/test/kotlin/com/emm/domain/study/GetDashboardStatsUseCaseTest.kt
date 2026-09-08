@@ -22,7 +22,7 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke returns stats from repository`() = runTest {
         val fakeRepo = FakeStatsRepo(
             cardsStudiedToday = 5,
-            cardsDueToday = 3,
+            reviewsDue = 3,
             cardsDueThisWeek = 10,
             reviewTimestamps = listOf(
                 reviewAt(today, 15, 0),
@@ -37,6 +37,52 @@ class GetDashboardStatsUseCaseTest {
         assertEquals(3, result.cardsDueToday)
         assertEquals(10, result.cardsDueThisWeek)
         assertEquals(3, result.currentStreak)
+    }
+
+    @Test
+    fun `cards due today counts every due review plus the whole untouched daily allowance`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 25, firstReviewedInRange = 0)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(13, result.cardsDueToday)
+    }
+
+    @Test
+    fun `cards due today drops the new cards already introduced today`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 25, firstReviewedInRange = 4)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(9, result.cardsDueToday)
+    }
+
+    @Test
+    fun `cards due today counts reviews only once the daily allowance is spent`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 25, firstReviewedInRange = 10)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(3, result.cardsDueToday)
+    }
+
+    @Test
+    fun `cards due today never invents new cards that do not exist`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 2, firstReviewedInRange = 0)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(5, result.cardsDueToday)
+    }
+
+    @Test
+    fun `the daily allowance is measured over the local calendar day`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 1, newCards = 1)
+
+        useCase(fakeRepo)()
+
+        assertEquals(today.atStartOfDay(zone).toInstant(), fakeRepo.firstReviewedStart)
+        assertEquals(today.plusDays(1).atStartOfDay(zone).toInstant(), fakeRepo.firstReviewedEndExclusive)
     }
 
     @Test
@@ -108,7 +154,7 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke with long consecutive streak counts correctly`() = runTest {
         val fakeRepo = FakeStatsRepo(
             cardsStudiedToday = 3,
-            cardsDueToday = 5,
+            reviewsDue = 5,
             cardsDueThisWeek = 15,
             reviewTimestamps = listOf(0L, 1L, 2L, 3L, 4L, 5L, 7L)
                 .map { dayOffset -> reviewAt(today.minusDays(dayOffset), 15, 0) },
@@ -167,7 +213,7 @@ class GetDashboardStatsUseCaseTest {
     fun `invoke with nothing due today reports the next batch and the days until it`() = runTest {
         val tomorrowMorning: Long = reviewAt(today.plusDays(1), 9, 0)
         val fakeRepo = FakeStatsRepo(
-            cardsDueToday = 0,
+            reviewsDue = 0,
             nextReviewAt = tomorrowMorning,
             cardsDueInRange = 5,
         )
@@ -185,7 +231,7 @@ class GetDashboardStatsUseCaseTest {
         val nextDay: LocalDate = today.plusDays(1)
         val nextReviewAt: Long = reviewAt(nextDay, 9, 0)
         val fakeRepo = FakeStatsRepo(
-            cardsDueToday = 0,
+            reviewsDue = 0,
             nextReviewAt = nextReviewAt,
             cardsDueInRange = 2,
         )
@@ -201,7 +247,7 @@ class GetDashboardStatsUseCaseTest {
 
     @Test
     fun `invoke with cards due today never looks up the next batch`() = runTest {
-        val fakeRepo = FakeStatsRepo(cardsDueToday = 3, nextReviewAt = 1L, cardsDueInRange = 9)
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, nextReviewAt = 1L, cardsDueInRange = 9)
 
         val result: DashboardStats = useCase(fakeRepo)()
 
@@ -211,7 +257,7 @@ class GetDashboardStatsUseCaseTest {
 
     @Test
     fun `invoke with nothing scheduled at all reports no next batch`() = runTest {
-        val fakeRepo = FakeStatsRepo(cardsDueToday = 0, nextReviewAt = null)
+        val fakeRepo = FakeStatsRepo(reviewsDue = 0, nextReviewAt = null)
 
         val result: DashboardStats = useCase(fakeRepo)()
 
@@ -221,7 +267,7 @@ class GetDashboardStatsUseCaseTest {
     @Test
     fun `invoke drops a next batch that resolves to zero cards`() = runTest {
         val fakeRepo = FakeStatsRepo(
-            cardsDueToday = 0,
+            reviewsDue = 0,
             nextReviewAt = reviewAt(today.plusDays(1), 9, 0),
             cardsDueInRange = 0,
         )
@@ -241,7 +287,9 @@ class GetDashboardStatsUseCaseTest {
 
     private class FakeStatsRepo(
         private val cardsStudiedToday: Int = 0,
-        private val cardsDueToday: Int = 0,
+        private val reviewsDue: Int = 0,
+        private val newCards: Int = 0,
+        private val firstReviewedInRange: Int = 0,
         private val cardsDueThisWeek: Int = 0,
         private val cardsDueInRange: Int = 0,
         private val nextReviewAt: Long? = null,
@@ -257,9 +305,23 @@ class GetDashboardStatsUseCaseTest {
         var rangeEndMillis: Long? = null
             private set
 
+        var firstReviewedStart: Instant? = null
+            private set
+
+        var firstReviewedEndExclusive: Instant? = null
+            private set
+
         override suspend fun countDistinctCardsStudiedToday(): Int = cardsStudiedToday
 
-        override suspend fun countCardsDueToday(): Int = cardsDueToday
+        override suspend fun countReviewsDue(now: Instant): Int = reviewsDue
+
+        override suspend fun countNewCards(): Int = newCards
+
+        override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int {
+            firstReviewedStart = start
+            firstReviewedEndExclusive = endExclusive
+            return firstReviewedInRange
+        }
 
         override suspend fun countCardsDueThisWeek(): Int = cardsDueThisWeek
 

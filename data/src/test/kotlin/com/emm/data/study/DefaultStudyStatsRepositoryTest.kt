@@ -55,67 +55,139 @@ class DefaultStudyStatsRepositoryTest {
     }
 
     @Test
-    fun `countCardsDueToday returns 0 when no flashcards exist`() = runTest {
-        assertEquals(0, subject.countCardsDueToday())
+    fun `an empty library has neither due reviews nor new cards`() = runTest {
+        assertEquals(0, subject.countReviewsDue(Instant.now()))
+        assertEquals(0, subject.countNewCards())
     }
 
     @Test
-    fun `countCardsDueToday counts never-reviewed flashcard with no ReviewProjection row`() = runTest {
-        // A brand-new card has no ReviewProjection. NULL nextReviewAt means due now.
+    fun `countNewCards counts a flashcard with no ReviewProjection row`() = runTest {
         val deckId = "deck-a"
         insertDeck(deckId)
         insertFlashcard(flashcardId = "card-new", deckId = deckId)
 
-        assertEquals(1, subject.countCardsDueToday())
+        assertEquals(1, subject.countNewCards())
+        assertEquals(0, subject.countReviewsDue(Instant.now()))
     }
 
     @Test
-    fun `countCardsDueToday does not count soft-deleted flashcard with no ReviewProjection row`() = runTest {
+    fun `countNewCards does not count a soft-deleted flashcard`() = runTest {
         val deckId = "deck-a"
         insertDeck(deckId)
         insertFlashcard(flashcardId = "card-deleted", deckId = deckId, deleted = true)
 
-        assertEquals(0, subject.countCardsDueToday())
+        assertEquals(0, subject.countNewCards())
     }
 
     @Test
-    fun `countCardsDueToday counts cards with nextReviewAt at or before now`() = runTest {
-        val now = Instant.now().toEpochMilli()
-        val deckId = "deck-a"
-        insertDeck(deckId)
-        insertFlashcard(flashcardId = "card-1", deckId = deckId)
-        insertFlashcard(flashcardId = "card-2", deckId = deckId)
-        insertFlashcard(flashcardId = "card-3", deckId = deckId)
-
-        insertProjection(flashcardId = "card-1", nextReviewAt = now - 1000)
-        insertProjection(flashcardId = "card-2", nextReviewAt = now - 500)
-        insertProjection(flashcardId = "card-3", nextReviewAt = now + 1000)
-
-        assertEquals(2, subject.countCardsDueToday())
-    }
-
-    @Test
-    fun `countCardsDueToday counts never-reviewed card alongside reviewed due cards`() = runTest {
-        val now = Instant.now().toEpochMilli()
-        val deckId = "deck-a"
-        insertDeck(deckId)
-        insertFlashcard(flashcardId = "card-1", deckId = deckId)
-        insertFlashcard(flashcardId = "card-2", deckId = deckId)
-        insertProjection(flashcardId = "card-2", nextReviewAt = now - 1000)
-        insertFlashcard(flashcardId = "card-3", deckId = deckId)
-        insertProjection(flashcardId = "card-3", nextReviewAt = now + 86400000)
-
-        assertEquals(2, subject.countCardsDueToday())
-    }
-
-    @Test
-    fun `countCardsDueToday excludes un-enriched cards`() = runTest {
+    fun `countNewCards excludes un-enriched cards`() = runTest {
         val deckId = "deck-a"
         insertDeck(deckId)
         insertFlashcard(flashcardId = "card-pending", deckId = deckId, enrichmentStatus = "PENDING")
         insertFlashcard(flashcardId = "card-enriched", deckId = deckId, enrichmentStatus = "ENRICHED")
 
-        assertEquals(1, subject.countCardsDueToday())
+        assertEquals(1, subject.countNewCards())
+    }
+
+    @Test
+    fun `countReviewsDue counts cards with nextReviewAt at or before now`() = runTest {
+        val now = Instant.now()
+        val nowMillis = now.toEpochMilli()
+        val deckId = "deck-a"
+        insertDeck(deckId)
+        insertFlashcard(flashcardId = "card-1", deckId = deckId)
+        insertFlashcard(flashcardId = "card-2", deckId = deckId)
+        insertFlashcard(flashcardId = "card-3", deckId = deckId)
+
+        insertProjection(flashcardId = "card-1", nextReviewAt = nowMillis - 1000)
+        insertProjection(flashcardId = "card-2", nextReviewAt = nowMillis - 500)
+        insertProjection(flashcardId = "card-3", nextReviewAt = nowMillis + 1000)
+
+        assertEquals(2, subject.countReviewsDue(now))
+        assertEquals(0, subject.countNewCards())
+    }
+
+    @Test
+    fun `countReviewsDue excludes soft-deleted and un-enriched cards`() = runTest {
+        val now = Instant.now()
+        val nowMillis = now.toEpochMilli()
+        val deckId = "deck-a"
+        insertDeck(deckId)
+        insertFlashcard(flashcardId = "card-deleted", deckId = deckId, deleted = true)
+        insertFlashcard(flashcardId = "card-pending", deckId = deckId, enrichmentStatus = "PENDING")
+        insertFlashcard(flashcardId = "card-alive", deckId = deckId)
+        insertProjection(flashcardId = "card-deleted", nextReviewAt = nowMillis - 1000)
+        insertProjection(flashcardId = "card-pending", nextReviewAt = nowMillis - 1000)
+        insertProjection(flashcardId = "card-alive", nextReviewAt = nowMillis - 1000)
+
+        assertEquals(1, subject.countReviewsDue(now))
+    }
+
+    @Test
+    fun `due reviews and new cards partition the whole due total without overlap`() = runTest {
+        val now = Instant.now()
+        val nowMillis = now.toEpochMilli()
+        val deckId = "deck-a"
+        insertDeck(deckId)
+        insertFlashcard(flashcardId = "card-new-1", deckId = deckId)
+        insertFlashcard(flashcardId = "card-new-2", deckId = deckId)
+        insertFlashcard(flashcardId = "card-due", deckId = deckId)
+        insertFlashcard(flashcardId = "card-future", deckId = deckId)
+        insertFlashcard(flashcardId = "card-deleted", deckId = deckId, deleted = true)
+        insertFlashcard(flashcardId = "card-pending", deckId = deckId, enrichmentStatus = "PENDING")
+        insertProjection(flashcardId = "card-due", nextReviewAt = nowMillis - 1000)
+        insertProjection(flashcardId = "card-future", nextReviewAt = nowMillis + 86400000)
+        insertProjection(flashcardId = "card-deleted", nextReviewAt = nowMillis - 1000)
+
+        val uncappedDueTotal: Int = db.localFirstQueries.countCardsDueBy(nowMillis).executeAsOne().toInt()
+
+        assertEquals(3, uncappedDueTotal)
+        assertEquals(uncappedDueTotal, subject.countReviewsDue(now) + subject.countNewCards())
+    }
+
+    @Test
+    fun `countCardsFirstReviewedIn ignores a card whose first review predates the window`() = runTest {
+        val todayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+        val tomorrowStart = todayStart.plusSeconds(86400)
+        val yesterdayStart = todayStart.minusSeconds(86400)
+
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = yesterdayStart.toEpochMilli())
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli() + 5000)
+
+        assertEquals(0, subject.countCardsFirstReviewedIn(todayStart, tomorrowStart))
+    }
+
+    @Test
+    fun `countCardsFirstReviewedIn counts a card once no matter how often it was reviewed today`() = runTest {
+        val todayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+        val tomorrowStart = todayStart.plusSeconds(86400)
+
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli())
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli() + 1000)
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli() + 2000)
+
+        assertEquals(1, subject.countCardsFirstReviewedIn(todayStart, tomorrowStart))
+    }
+
+    @Test
+    fun `countCardsFirstReviewedIn counts every card introduced inside the window`() = runTest {
+        val todayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+        val tomorrowStart = todayStart.plusSeconds(86400)
+        val yesterdayStart = todayStart.minusSeconds(86400)
+
+        insertReviewEvent(flashcardId = "card-old", reviewedAt = yesterdayStart.toEpochMilli())
+        insertReviewEvent(flashcardId = "card-1", reviewedAt = todayStart.toEpochMilli())
+        insertReviewEvent(flashcardId = "card-2", reviewedAt = todayStart.toEpochMilli() + 10_000)
+        insertReviewEvent(flashcardId = "card-3", reviewedAt = tomorrowStart.toEpochMilli())
+
+        assertEquals(2, subject.countCardsFirstReviewedIn(todayStart, tomorrowStart))
+    }
+
+    @Test
+    fun `countCardsFirstReviewedIn returns 0 when nothing was ever reviewed`() = runTest {
+        val todayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+
+        assertEquals(0, subject.countCardsFirstReviewedIn(todayStart, todayStart.plusSeconds(86400)))
     }
 
     @Test

@@ -184,6 +184,32 @@ SELECT COUNT(*) FROM StudiableFlashcard f
 LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
 WHERE rp.nextReviewAt IS NULL OR rp.nextReviewAt <= :nowMillis;
 
+-- The reviewed half of countCardsDueBy: cards with a projection already past its nextReviewAt.
+-- Never-reviewed cards are excluded here; they are countNewCards.
+-- Excludes soft-deleted flashcards.
+countReviewsDueBy:
+SELECT COUNT(*) FROM StudiableFlashcard f
+LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
+WHERE rp.nextReviewAt <= :nowMillis;
+
+-- The never-reviewed half of countCardsDueBy: no ReviewProjection row at all.
+-- Together with countReviewsDueBy this partitions countCardsDueBy exactly.
+-- Excludes soft-deleted flashcards.
+countNewCards:
+SELECT COUNT(*) FROM StudiableFlashcard f
+LEFT JOIN ReviewProjection rp ON f.id = rp.flashcardId
+WHERE rp.nextReviewAt IS NULL;
+
+-- Distinct flashcards whose EARLIEST review fell inside [startMillis, endMillis): the cards
+-- introduced in that window. A card reviewed again later never counts twice.
+countCardsFirstReviewedInRange:
+SELECT COUNT(*) FROM (
+    SELECT flashcardId, MIN(reviewedAt) AS firstReviewedAt
+    FROM ReviewEvent
+    GROUP BY flashcardId
+)
+WHERE firstReviewedAt >= :startMillis AND firstReviewedAt < :endMillis;
+
 -- Count flashcards due within a future window [nowMillis, endMillis).
 -- NULL nextReviewAt (never reviewed) means the card is overdue, not scheduled in the future window,
 -- so the NULL branch is intentionally excluded here. Only explicitly scheduled future cards count.

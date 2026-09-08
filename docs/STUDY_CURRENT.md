@@ -74,7 +74,7 @@ Once set, `productionSince` is never cleared: a graduated card is asked in produ
 `loadSession()` (called from `init`, and again by `RetryLoad`):
 
 - clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `knewCount = 0`, `forgotCount = 0`, `sessionFinished = false`
-- fetches via `studySessionRepository.sessionTodayAllDecks()` when the target is `null`, otherwise `studySessionRepository.sessionToday(deckId.toDeckId())`
+- fetches via `GetStudySessionUseCase(deckId?.toDeckId())`, which reads `sessionTodayAllDecks()` when the target is `null` and `sessionToday(deckId)` otherwise, then orders and caps the result: due reviews first, never-reviewed (`FsrsState.NEW`) cards last, shuffled within each group, with at most `DEFAULT_DAILY_NEW_CARD_LIMIT` (10) new cards per local calendar day. "Introduced today" is the number of distinct cards whose earliest `ReviewEvent` falls in today's `DayRange`; `NewCardBudget` turns it into the remaining allowance. The same budget drives Today's `cardsDueToday`, so the count on Today equals the session length.
 - maps each `StudyFlashcard` to one `StudySessionItem` and queues them in an `ArrayDeque`
 - sets `totalCount` to the number of cards
 - shows the first card

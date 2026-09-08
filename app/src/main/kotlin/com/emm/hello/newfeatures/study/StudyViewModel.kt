@@ -4,10 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardReviewRepository
 import com.emm.domain.flashcard.FsrsCard
 import com.emm.domain.ids.toDeckId
+import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudyFlashcard
-import com.emm.domain.study.StudySessionRepository
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class StudyViewModel(
     deckId: String,
-    private val studySessionRepository: StudySessionRepository,
+    private val getStudySessionUseCase: GetStudySessionUseCase,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
@@ -55,14 +55,7 @@ class StudyViewModel(
         }
     }
 
-    private suspend fun fetchSession(): List<StudyFlashcard> {
-        val target = deckId
-        return if (target == null) {
-            studySessionRepository.sessionTodayAllDecks()
-        } else {
-            studySessionRepository.sessionToday(target.toDeckId())
-        }
-    }
+    private suspend fun fetchSession(): List<StudyFlashcard> = getStudySessionUseCase(deckId?.toDeckId())
 
     private fun showNextCard() {
         val nextItem = studyItemsForToday.removeFirstOrNull()

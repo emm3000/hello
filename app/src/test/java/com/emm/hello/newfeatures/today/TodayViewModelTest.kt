@@ -135,7 +135,9 @@ class TodayViewModelTest {
         private val nextReviewAt: Long? = null,
     ) : StudyStatsRepository {
         override suspend fun countDistinctCardsStudiedToday(): Int = cardsStudiedToday
-        override suspend fun countCardsDueToday(): Int = cardsDueToday
+        override suspend fun countReviewsDue(now: Instant): Int = cardsDueToday
+        override suspend fun countNewCards(): Int = 0
+        override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int = 0
         override suspend fun countCardsDueThisWeek(): Int = cardsDueThisWeek
         override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = cardsDueInRange
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = nextReviewAt

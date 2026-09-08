@@ -26,12 +26,25 @@ class DefaultStudyStatsRepository(
         ).executeAsOne().toInt()
     }
 
-    override suspend fun countCardsDueToday(): Int = withContext(Dispatchers.IO) {
-        val nowMillis = Instant.now().toEpochMilli()
-        localFirstQueries.countCardsDueBy(nowMillis = nowMillis)
+    override suspend fun countReviewsDue(now: Instant): Int = withContext(Dispatchers.IO) {
+        localFirstQueries.countReviewsDueBy(nowMillis = now.toEpochMilli())
             .executeAsOne()
             .toInt()
     }
+
+    override suspend fun countNewCards(): Int = withContext(Dispatchers.IO) {
+        localFirstQueries.countNewCards()
+            .executeAsOne()
+            .toInt()
+    }
+
+    override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int =
+        withContext(Dispatchers.IO) {
+            localFirstQueries.countCardsFirstReviewedInRange(
+                startMillis = start.toEpochMilli(),
+                endMillis = endExclusive.toEpochMilli(),
+            ).executeAsOne().toInt()
+        }
 
     override suspend fun countCardsDueThisWeek(): Int = withContext(Dispatchers.IO) {
         val now = Instant.now()
