@@ -62,8 +62,8 @@ function completion(content: string): Response {
   });
 }
 
-function failure(status: number): Response {
-  return new Response("upstream failure", { status });
+function failure(status: number, headers?: HeadersInit): Response {
+  return new Response("upstream failure", { status, headers });
 }
 
 function embeddedError(body: unknown): Response {
@@ -223,6 +223,184 @@ Deno.test("every provider rate limited throws with the cooldown delay", async ()
     ProvidersExhaustedError,
   );
   assertEquals(error.retryAfterSeconds, 3600);
+});
+
+Deno.test("a retry-after header overrides the provider cooldown", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const error = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [failure(429, { "retry-after": "6" }), failure(429)],
+          calls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(error.retryAfterSeconds, 6);
+  assertEquals(calls.length, 2);
+});
+
+Deno.test("a 429 without a retry-after header keeps the provider cooldown", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const error = await assertRejects(
+    () => run(recordingFetch([failure(429), failure(429)], calls), testChain()),
+    ProvidersExhaustedError,
+  );
+  assertEquals(error.retryAfterSeconds, 3600);
+  assertEquals(calls.length, 2);
+});
+
+Deno.test("an unparseable retry-after falls back to the provider cooldown", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const error = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [failure(429, { "retry-after": "soon" }), failure(429)],
+          calls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(error.retryAfterSeconds, 3600);
+  assertEquals(calls.length, 2);
+});
+
+Deno.test("a retry-after above the cap is clamped to one day", async () => {
+  resetProviderState();
+  const marked: { providerId: string; untilMs: number }[] = [];
+  const providerState: ProviderStateStore = {
+    load: (): Promise<Map<string, number>> =>
+      Promise.resolve(new Map<string, number>()),
+    markExhausted: (providerId: string, untilMs: number): Promise<void> => {
+      marked.push({ providerId, untilMs });
+      return Promise.resolve();
+    },
+  };
+  const calls: FetchCall[] = [];
+  const result = await generateStructured<Probe>({
+    prompt: "PROMPT",
+    schemaName: "probe",
+    jsonSchema: JSON_SCHEMA,
+    parse: parseProbe,
+    providers: testChain(),
+    fetchFn: recordingFetch(
+      [
+        failure(429, { "retry-after": "999999" }),
+        completion(`{"ok":"yes"}`),
+      ],
+      calls,
+    ),
+    env,
+    now: (): Date => NOW,
+    providerState,
+  });
+  assertEquals(result.provider, "second");
+  assertEquals(marked.length, 1);
+  assertEquals(marked[0].providerId, "first");
+  assertEquals(marked[0].untilMs, NOW.getTime() + 86_400_000);
+});
+
+Deno.test("a zero or negative retry-after keeps the provider cooldown", async () => {
+  resetProviderState();
+  const zeroCalls: FetchCall[] = [];
+  const zero = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [failure(429, { "retry-after": "0" }), failure(429)],
+          zeroCalls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(zero.retryAfterSeconds, 3600);
+  assertEquals(zeroCalls.length, 2);
+
+  resetProviderState();
+  const negativeCalls: FetchCall[] = [];
+  const negative = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [failure(429, { "retry-after": "-5" }), failure(429)],
+          negativeCalls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(negative.retryAfterSeconds, 3600);
+  assertEquals(negativeCalls.length, 2);
+});
+
+Deno.test("an empty, whitespace or infinite retry-after keeps the provider cooldown", async () => {
+  for (const value of ["", "   ", "Infinity"]) {
+    resetProviderState();
+    const calls: FetchCall[] = [];
+    const error = await assertRejects(
+      () =>
+        run(
+          recordingFetch(
+            [failure(429, { "retry-after": value }), failure(429)],
+            calls,
+          ),
+          testChain(),
+        ),
+      ProvidersExhaustedError,
+    );
+    assertEquals(error.retryAfterSeconds, 3600);
+    assertEquals(calls.length, 2);
+  }
+});
+
+Deno.test("an http-date retry-after sets the cooldown", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const error = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [
+            failure(429, { "retry-after": "Mon, 07 Sep 2026 10:02:00 GMT" }),
+            failure(429),
+          ],
+          calls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(error.retryAfterSeconds, 120);
+  assertEquals(calls.length, 2);
+});
+
+Deno.test("an http-date retry-after in the past keeps the provider cooldown", async () => {
+  resetProviderState();
+  const calls: FetchCall[] = [];
+  const error = await assertRejects(
+    () =>
+      run(
+        recordingFetch(
+          [
+            failure(429, { "retry-after": "Mon, 07 Sep 2026 09:59:00 GMT" }),
+            failure(429),
+          ],
+          calls,
+        ),
+        testChain(),
+      ),
+    ProvidersExhaustedError,
+  );
+  assertEquals(error.retryAfterSeconds, 3600);
+  assertEquals(calls.length, 2);
 });
 
 Deno.test("a fenced json body is accepted", async () => {

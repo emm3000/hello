@@ -57,6 +57,8 @@ const MINUTE_IN_MS: number = 60_000;
 
 const HOUR_IN_MS: number = 3_600_000;
 
+const MAX_RETRY_AFTER_SECONDS: number = 86_400;
+
 const DEFAULT_RETRY_AFTER_SECONDS: number = 60;
 
 const exhaustedUntil: Map<string, number> = new Map<string, number>();
@@ -295,14 +297,45 @@ function retryAfterSeconds(nowMs: number): number {
   return Math.max(1, Math.round((earliest - nowMs) / 1000));
 }
 
+function cooldownFromRetryAfter(headers: Headers, now: Date): Date | null {
+  const raw: string | null = headers.get("retry-after");
+  if (raw === null) {
+    return null;
+  }
+  const seconds: number = Number(raw.trim());
+  if (Number.isFinite(seconds)) {
+    if (seconds <= 0) {
+      return null;
+    }
+    return new Date(
+      now.getTime() + Math.min(seconds, MAX_RETRY_AFTER_SECONDS) * 1000,
+    );
+  }
+  const parsed: number = Date.parse(raw);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+  const deltaMs: number = parsed - now.getTime();
+  if (deltaMs <= 0) {
+    return null;
+  }
+  return new Date(
+    now.getTime() + Math.min(deltaMs, MAX_RETRY_AFTER_SECONDS * 1000),
+  );
+}
+
 async function classifyFailure(
   code: number,
+  headers: Headers,
   provider: ProviderConfig,
   now: () => Date,
   providerState: ProviderStateStore | undefined,
 ): Promise<ProviderOutcome> {
   if (code === 429) {
-    const untilMs: number = provider.cooldownAfterRateLimit(now()).getTime();
+    const at: Date = now();
+    const fromHeader: Date | null = cooldownFromRetryAfter(headers, at);
+    const untilMs: number = (fromHeader ?? provider.cooldownAfterRateLimit(at))
+      .getTime();
     exhaustedUntil.set(provider.id, untilMs);
     if (providerState !== undefined) {
       await providerState.markExhausted(provider.id, untilMs);
@@ -370,6 +403,7 @@ export async function generateStructured<T>(
       if (!response.ok) {
         const outcome: ProviderOutcome = await classifyFailure(
           response.status,
+          response.headers,
           provider,
           now,
           providerState,
@@ -388,6 +422,7 @@ export async function generateStructured<T>(
       if (embeddedCode !== null) {
         const outcome: ProviderOutcome = await classifyFailure(
           embeddedCode,
+          response.headers,
           provider,
           now,
           providerState,
