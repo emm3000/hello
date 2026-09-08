@@ -7,6 +7,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.emm.data.HelloDb
 import com.emm.data.connectivity.AndroidConnectivityRepository
+import com.emm.data.curated.BundledCuratedDeckCatalog
 import com.emm.data.deck.DefaultDeckRepository
 import com.emm.data.deck.DefaultDeckSelectionPreferencesRepository
 import com.emm.data.deck.DefaultTagRepository
@@ -42,6 +43,9 @@ import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
+import com.emm.domain.curated.CuratedDeckCatalog
+import com.emm.domain.curated.GetCuratedDecksUseCase
+import com.emm.domain.curated.InstallCuratedDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
@@ -197,6 +201,7 @@ fun Module.repository() {
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
+    single<CuratedDeckCatalog> { BundledCuratedDeckCatalog() }
     single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext(), get()) }
     single<NotificationPermission> { SystemNotificationPermission(androidContext()) }
     single<SeedDataInitializer> {
@@ -255,6 +260,8 @@ fun Module.useCases() {
     factoryOf(::GetStudyReminderSettingsUseCase)
     factoryOf(::GetAccountUseCase)
     factoryOf(::LinkGoogleAccountUseCase)
+    factoryOf(::GetCuratedDecksUseCase)
+    factoryOf(::InstallCuratedDeckUseCase)
 }
 
 fun Module.viewModels() {
