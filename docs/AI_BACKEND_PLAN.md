@@ -31,7 +31,7 @@ Every AI call moves from Firebase AI Logic inside the app to one Supabase Edge F
 | 6 | The Firebase App Check token is verified inside the function as a second factor. | Anonymous sign-ups can be scripted; consuming allowance cannot. |
 | 7 | Credits are charged only on provider success. Refusals, cache hits and provider failures stay free of generation credits, but refusals are capped per user per UTC day by `DAILY_REFUSAL_ALLOWANCE` (default 10) so gibberish cannot loop on free provider calls. Hitting either cap returns the same `402`. | No refund logic. Users never pay for a typo, and a stream of unique typos cannot buy unlimited provider calls. |
 | 8 | Daily allowance instead of a lifetime count. | Two lifetime generations cannot demonstrate a spaced-repetition app. Free provider quotas reset daily too. |
-| 9 | Providers are OpenAI-compatible configs in an ordered array. No plugin system. | Gemini and OpenRouter share the wire format, so a provider is base URL, key, model and output mode. |
+| 9 | Providers are OpenAI-compatible configs in an ordered array. No plugin system. | Groq, Gemini and OpenRouter share the wire format, so a provider is base URL, key, model and output mode. |
 | 10 | The legacy `supabase/` directory is deleted and re-initialised. | Its migrations describe the sync stack removed in `0c512da`; none of it applies. |
 
 ## Architecture
@@ -68,14 +68,17 @@ Cache read runs before the reservation so hits never consume. The reservation ru
 
 | Order | Provider | Model | Output mode | Timeout | Cooldown on `429` |
 |---|---|---|---|---|---|
-| 1 | Gemini Developer API, OpenAI endpoint | `gemini-3.1-flash-lite` | `json_schema` | 30 s | until next 00:00 America/Los_Angeles |
-| 2 | OpenRouter | `minimax/minimax-m3:free` | `json_object`, schema embedded in the prompt | 45 s | 1 h |
+| 1 | Groq | `openai/gpt-oss-120b` | `json_object`, schema embedded in the prompt | 15 s | 1 min |
+| 2 | Gemini Developer API, OpenAI endpoint | `gemini-3.1-flash-lite` | `json_schema` | 30 s | until next 00:00 America/Los_Angeles |
+| 3 | OpenRouter | `minimax/minimax-m3:free` | `json_object`, schema embedded in the prompt | 45 s | 1 h |
+
+Groq leads because it carries the largest free daily budget by an order of magnitude, measured on 2026-09-08: 1000 requests per day against 20 for Gemini and 50 for OpenRouter, and it answers in 3.6 s to 5.1 s where the other two are configured for a 30 s to 45 s ceiling. Its binding limit is 8000 tokens per minute, roughly two requests of this prompt size, which is why its `429` cooldown is one minute and not one hour: the daily bucket is almost never the constraint, the per-minute one is.
 
 Rules:
 
 - A `429` marks the provider exhausted in the in-memory map of the isolate and in the `provider_state` table, so every isolate and both functions honour the cooldown.
 - A `503`, a timeout or a zod failure skips to the next provider for this request only.
-- At most two provider attempts per request. Total budget stays under 90 s, inside the 150 s free-plan wall clock.
+- At most three provider attempts per request. Total budget stays under 90 s, inside the 150 s free-plan wall clock.
 - Every provider response passes the zod schema before it is cached or returned, whatever the output mode.
 
 ### Data model
@@ -224,7 +227,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | `RemoteWordSuggestionRepository` | Replaces `GeminiWordSuggestionRepository`; `USE_CANNED_AI` keeps selecting `CannedWordSuggestionRepository` |
 | `GenerationCreditsExhaustedException` | `:domain`, carries `resetAt` |
 | `GenerationTelemetry` | `GeminiTelemetry` renamed; same Crashlytics sink |
-| Client request timeout 100 s | Was 15 s; covers the provider chain's 30 s + 45 s server-side budget |
+| Client request timeout 100 s | Was 15 s; covers the provider chain's 15 s + 30 s + 45 s server-side budget, which leaves about 10 s for App Check, cache, credits and the settle write |
 
 `EnrichmentRetryPolicy` adds `GenerationCreditsExhaustedException` to its non-retryable set. `LOCAL_FIRST.md` changes one line: generation goes through the Hello backend instead of Firebase AI.
 
@@ -235,7 +238,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | Supabase Auth | Anonymous sign-ins enabled |
 | Supabase Auth rate limit | `anonymous_users = 10` per hour per IP in `config.toml`; captcha stays off, App Check gates consumption (see Risks) |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) and `DAILY_REFUSAL_ALLOWANCE` (default 10) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
+| Function secrets | `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) and `DAILY_REFUSAL_ALLOWANCE` (default 10) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets; `release` refuses to build when either value is blank, while `debug` keeps its local defaults; `uploadApk.yml` provisions both from the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets |
 | Table grants | `anon` and `authenticated` hold no privileges on `note_cache`, `generation_events`, `provider_state`; only the service role and the two `security definer` functions with `search_path = ''` reach them |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |

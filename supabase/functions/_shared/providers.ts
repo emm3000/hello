@@ -53,6 +53,8 @@ export class ProvidersExhaustedError extends Error {
   }
 }
 
+const MINUTE_IN_MS: number = 60_000;
+
 const HOUR_IN_MS: number = 3_600_000;
 
 const DEFAULT_RETRY_AFTER_SECONDS: number = 60;
@@ -104,6 +106,16 @@ function nextMidnightInLosAngeles(now: Date): Date {
 }
 
 export const PROVIDER_CHAIN: ProviderConfig[] = [
+  {
+    id: "groq",
+    baseUrl: "https://api.groq.com/openai/v1/",
+    apiKeyEnv: "GROQ_API_KEY",
+    model: "openai/gpt-oss-120b",
+    outputMode: "json_object",
+    timeoutMs: 15000,
+    cooldownAfterRateLimit: (now: Date): Date =>
+      new Date(now.getTime() + MINUTE_IN_MS),
+  },
   {
     id: "gemini",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",

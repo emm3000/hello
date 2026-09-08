@@ -271,7 +271,7 @@ Deno.test("each output mode shapes its own request", async () => {
 });
 
 Deno.test("the gemini cooldown runs to the next midnight in Los Angeles", () => {
-  const gemini: ProviderConfig = PROVIDER_CHAIN[0];
+  const gemini: ProviderConfig = PROVIDER_CHAIN[1];
   assertEquals(gemini.id, "gemini");
   assertEquals(gemini.model, "gemini-3.1-flash-lite");
   assertEquals(gemini.outputMode, "json_schema");
@@ -289,7 +289,7 @@ Deno.test("the gemini cooldown runs to the next midnight in Los Angeles", () => 
 });
 
 Deno.test("the openrouter cooldown runs for one hour", () => {
-  const openrouter: ProviderConfig = PROVIDER_CHAIN[1];
+  const openrouter: ProviderConfig = PROVIDER_CHAIN[2];
   assertEquals(openrouter.id, "openrouter");
   assertEquals(openrouter.model, "minimax/minimax-m3:free");
   assertEquals(openrouter.outputMode, "json_object");
@@ -298,6 +298,20 @@ Deno.test("the openrouter cooldown runs for one hour", () => {
     openrouter.cooldownAfterRateLimit(new Date("2026-09-07T10:00:00.000Z"))
       .toISOString(),
     "2026-09-07T11:00:00.000Z",
+  );
+});
+
+Deno.test("groq leads the chain and cools down for one minute", () => {
+  const groq: ProviderConfig = PROVIDER_CHAIN[0];
+  assertEquals(PROVIDER_CHAIN.length, 3);
+  assertEquals(groq.id, "groq");
+  assertEquals(groq.model, "openai/gpt-oss-120b");
+  assertEquals(groq.outputMode, "json_object");
+  assertEquals(groq.timeoutMs, 15000);
+  assertEquals(
+    groq.cooldownAfterRateLimit(new Date("2026-09-07T10:00:00.000Z"))
+      .toISOString(),
+    "2026-09-07T10:01:00.000Z",
   );
 });
 
