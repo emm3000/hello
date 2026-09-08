@@ -33,6 +33,7 @@ androidxCredentials = "1.6.0"
 googleId = "1.2.0"
 
 [libraries]
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }

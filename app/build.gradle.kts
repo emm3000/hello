@@ -1,14 +1,4 @@
 import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.api.variant.BuildConfigField
-import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.io.Serializable
-import java.util.Properties
-import javax.inject.Inject
-import org.gradle.api.provider.ValueSource
-import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.process.ExecOperations
 
 plugins {
     alias(libs.plugins.android.application)
@@ -16,60 +6,9 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.google.crashlytics)
     kotlin("plugin.serialization") version libs.versions.kotlin
-}
-
-val keystorePropertiesFile: File = rootProject.file("keystore.properties")
-val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-}
-
-val localPropertiesFile: File = rootProject.file("local.properties")
-val localProperties = Properties()
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-
-val localSupabaseUrl: String = localProperties.getProperty("supabase.url").orEmpty()
-val localSupabasePublishableKey: String = localProperties.getProperty("supabase.publishableKey").orEmpty()
-
-val debugSupabaseUrl: String = localSupabaseUrl.ifEmpty { "http://127.0.0.1:54321" }
-val debugSupabasePublishableKey: String = localSupabasePublishableKey
-    .ifEmpty { "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" }
-
-abstract class GitCommitValueSource : ValueSource<String, ValueSourceParameters.None> {
-
-    @get:Inject
-    abstract val execOperations: ExecOperations
-
-    override fun obtain(): String {
-        val shortSha: String = git("rev-parse", "--short", "HEAD")
-        if (shortSha.isBlank()) return "unknown"
-        val porcelain: String = git("status", "--porcelain")
-        return if (porcelain.isBlank()) shortSha else "$shortSha-dirty"
-    }
-
-    private fun git(vararg arguments: String): String {
-        val standard = ByteArrayOutputStream()
-        val exitValue: Int = execOperations.exec {
-            commandLine("git", *arguments)
-            standardOutput = standard
-            errorOutput = ByteArrayOutputStream()
-            isIgnoreExitValue = true
-        }.exitValue
-        return if (exitValue == 0) standard.toString().trim() else ""
-    }
-}
-
-val gitCommit: Provider<String> = providers.of(GitCommitValueSource::class) {}
-
-fun quoted(value: String): String = "\"$value\""
-
-fun requireSupabaseProperty(value: String, propertyName: String, variantName: String): String {
-    require(value.isNotBlank()) {
-        "The $variantName build needs $propertyName in local.properties (CI provisions it from the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY secrets)."
-    }
-    return quoted(value)
+    id("hello.git-commit")
+    id("hello.supabase-config")
+    id("hello.signing")
 }
 
 val releaseVersionCode: Int = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 1
@@ -88,30 +27,16 @@ configure<ApplicationExtension> {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        create("config") {
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: ""
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
-            storeFile = file(keystoreProperties.getProperty("storeFile") ?: "keystore.p12")
-            storePassword = keystoreProperties.getProperty("storePassword") ?: ""
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs["config"]
             buildConfigField("Boolean", "USE_CANNED_AI", "false")
-            buildConfigField("String", "SUPABASE_URL", quoted(localSupabaseUrl))
-            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(localSupabasePublishableKey))
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             buildConfigField("Boolean", "USE_CANNED_AI", "true")
-            buildConfigField("String", "SUPABASE_URL", quoted(debugSupabaseUrl))
-            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", quoted(debugSupabasePublishableKey))
             manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
     }
@@ -128,46 +53,6 @@ configure<ApplicationExtension> {
 
     lint {
         checkDependencies = true
-    }
-}
-
-configure<ApplicationAndroidComponentsExtension> {
-    onVariants { variant ->
-        val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
-            checkNotNull(variant.buildConfigFields)
-        buildConfigFields.put(
-            "GIT_COMMIT",
-            gitCommit.map { commit: String -> BuildConfigField("String", "\"$commit\"", null) },
-        )
-    }
-
-    onVariants(selector().withBuildType("release")) { variant ->
-        val buildConfigFields: MapProperty<String, BuildConfigField<out Serializable>> =
-            checkNotNull(variant.buildConfigFields)
-        buildConfigFields.put(
-            "SUPABASE_URL",
-            provider {
-                BuildConfigField(
-                    "String",
-                    requireSupabaseProperty(localSupabaseUrl, "supabase.url", variant.name),
-                    null,
-                )
-            },
-        )
-        buildConfigFields.put(
-            "SUPABASE_PUBLISHABLE_KEY",
-            provider {
-                BuildConfigField(
-                    "String",
-                    requireSupabaseProperty(
-                        localSupabasePublishableKey,
-                        "supabase.publishableKey",
-                        variant.name,
-                    ),
-                    null,
-                )
-            },
-        )
     }
 }
 

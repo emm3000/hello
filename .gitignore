@@ -30,3 +30,4 @@ google-services (*).json
 !.claude/settings.json
 skills-lock.json
 openspec/
+/build-logic/build

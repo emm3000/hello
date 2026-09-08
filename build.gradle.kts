@@ -40,3 +40,7 @@ detekt {
     parallel = true
     basePath = rootDir.absolutePath
 }
+
+tasks.named("detekt") {
+    dependsOn(gradle.includedBuild("build-logic").task(":detekt"))
+}
