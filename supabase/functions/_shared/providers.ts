@@ -223,6 +223,26 @@ function stripJsonFences(raw: string): string {
   return body.trim();
 }
 
+function unwrapArrayEnvelope(
+  decoded: unknown,
+  provider: ProviderConfig,
+): unknown {
+  if (!Array.isArray(decoded)) {
+    return decoded;
+  }
+  const first: unknown = decoded[0];
+  if (typeof first !== "object" || first === null) {
+    return decoded;
+  }
+  console.log(JSON.stringify({
+    event: "array_envelope_unwrapped",
+    provider: provider.id,
+    model: provider.model,
+    discarded: decoded.length - 1,
+  }));
+  return first;
+}
+
 function readCode(holder: unknown): number | null {
   if (typeof holder !== "object" || holder === null) {
     return null;
@@ -435,8 +455,9 @@ export async function generateStructured<T>(
         );
         continue;
       }
-      const decoded: unknown = JSON.parse(
-        stripJsonFences(readContent(payload)),
+      const decoded: unknown = unwrapArrayEnvelope(
+        JSON.parse(stripJsonFences(readContent(payload))),
+        provider,
       );
       try {
         const value: T = args.parse(decoded);

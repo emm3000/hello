@@ -133,6 +133,7 @@ const PROVEN_PROVIDER_SCHEMA: Record<string, unknown> = {
             },
             "cards": {
               "type": "array",
+              "minItems": 2,
               "items": {
                 "type": "object",
                 "additionalProperties": false,
@@ -423,6 +424,24 @@ Deno.test("a note without cards is rejected", () => {
   assertThrows(() =>
     learningNoteResponseSchema.parse({ success: true, data: note })
   );
+});
+
+Deno.test("a note with a single card is rejected", () => {
+  const cards: Record<string, unknown>[] = goldNote.cards as Record<
+    string,
+    unknown
+  >[];
+  assertThrows(() =>
+    learningNoteResponseSchema.parse({
+      success: true,
+      data: { ...goldNote, cards: [cards[0]] },
+    })
+  );
+  const parsed = learningNoteResponseSchema.parse({
+    success: true,
+    data: { ...goldNote, cards: [cards[0], cards[1]] },
+  });
+  assertEquals(parsed.data?.cards.length, 2);
 });
 
 Deno.test("an unknown note_type is rejected", () => {

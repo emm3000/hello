@@ -79,6 +79,7 @@ Rules:
 - A `429` marks the provider exhausted in the in-memory map of the isolate and in the `provider_state` table, so every isolate and both functions honour the cooldown.
 - A `503`, a timeout or a zod failure skips to the next provider for this request only.
 - At most three provider attempts per request. Total budget stays under 90 s, inside the 150 s free-plan wall clock.
+- A provider that wraps the object in a JSON array is unwrapped to its first object before validation. Measured on `openai/gpt-oss-120b`, one response in seven arrives as `[{"success":true,"data":{...}},"error",":null"]`; the leading object is complete and `data` and `error` are `nullish`, so it validates. Recovery never bypasses zod.
 - Every provider response passes the zod schema before it is cached or returned, whatever the output mode.
 
 ### Data model

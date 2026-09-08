@@ -537,6 +537,83 @@ Deno.test("a schema failure logs an invalid_output line without the payload", as
   assertEquals(String(invalidOutput[0].detail).length <= 160, true);
 });
 
+Deno.test("a malformed array envelope still yields the first object", async () => {
+  resetProviderState();
+  const envelopeSchema = z.object({
+    success: z.boolean(),
+    data: z.object({ ok: z.string() }),
+  });
+  const malformed: string =
+    '[\n{"success":true,"data":{"ok":"yes"}},"error",":null"\n]';
+  const calls: FetchCall[] = [];
+  const result = await generateStructured<
+    { success: boolean; data: { ok: string } }
+  >({
+    prompt: "PROMPT",
+    schemaName: "probe",
+    jsonSchema: JSON_SCHEMA,
+    parse: envelopeSchema.parse,
+    providers: testChain(),
+    fetchFn: recordingFetch([completion(malformed)], calls),
+    env,
+    now: (): Date => NOW,
+  });
+  assertEquals(result.value, { success: true, data: { ok: "yes" } });
+  assertEquals(result.provider, "first");
+  assertEquals(calls.length, 1);
+});
+
+Deno.test("a malformed array envelope logs an array_envelope_unwrapped line", async () => {
+  resetProviderState();
+  const envelopeSchema = z.object({
+    success: z.boolean(),
+    data: z.object({ ok: z.string() }),
+  });
+  const malformed: string =
+    '[\n{"success":true,"data":{"ok":"yes"}},"error",":null"\n]';
+  const calls: FetchCall[] = [];
+  const captured: string[] = [];
+  const originalLog: (...data: unknown[]) => void = console.log;
+  console.log = (...data: unknown[]): void => {
+    captured.push(data.map((item: unknown): string => String(item)).join(" "));
+  };
+  try {
+    await generateStructured<{ success: boolean; data: { ok: string } }>({
+      prompt: "PROMPT",
+      schemaName: "probe",
+      jsonSchema: JSON_SCHEMA,
+      parse: envelopeSchema.parse,
+      providers: testChain(),
+      fetchFn: recordingFetch([completion(malformed)], calls),
+      env,
+      now: (): Date => NOW,
+    });
+  } finally {
+    console.log = originalLog;
+  }
+
+  const events: Record<string, unknown>[] = captured.map(
+    (line: string): Record<string, unknown> =>
+      JSON.parse(line) as Record<string, unknown>,
+  );
+  const unwrapped: Record<string, unknown>[] = events.filter(
+    (event: Record<string, unknown>): boolean =>
+      event.event === "array_envelope_unwrapped",
+  );
+  assertEquals(unwrapped.length, 1);
+  assertEquals(unwrapped[0].provider, "first");
+  assertEquals(unwrapped[0].model, "first-model");
+  assertEquals(unwrapped[0].discarded, 2);
+
+  const attempts: Record<string, unknown>[] = events.filter(
+    (event: Record<string, unknown>): boolean =>
+      event.event === "provider_attempt",
+  );
+  assertEquals(attempts.length, 1);
+  assertEquals(attempts[0].provider, "first");
+  assertEquals(attempts[0].outcome, "ok");
+});
+
 Deno.test("a json parse failure logs a reason without the provider content", async () => {
   resetProviderState();
   const calls: FetchCall[] = [];
