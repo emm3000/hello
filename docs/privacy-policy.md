@@ -81,7 +81,7 @@ Only the text you submitted and the generation parameters are forwarded, inside 
 
 The app uses three Google Firebase services.
 
-- **Firebase Crashlytics.** Collection is enabled in the app. When the app crashes or when an AI response fails to parse, Crashlytics receives a stack trace, the device model, the operating system version, the app version and a Firebase installation identifier. In the specific case of a response that fails to parse, the report also includes up to 8,000 characters of the raw response body received from the backend, which contains the generated note derived from the text you submitted.
+- **Firebase Crashlytics.** Collection is enabled in the app. When the app crashes or when an AI response fails to parse, Crashlytics receives a stack trace, the device model, the operating system version, the app version and a Firebase installation identifier. When an AI response fails to parse, the report carries only the kind of request, the length of the response and the type of the parsing error, never the response text or the text you submitted.
 - **Firebase Analytics.** The app initializes Analytics and does not log any custom events. Analytics therefore collects only the automatically collected events and parameters that the Firebase SDK gathers by default, together with a Firebase installation identifier and basic device and app metadata.
 - **Firebase App Check.** Release builds use the Play Integrity provider; debug builds use the debug provider. App Check produces a short-lived attestation token that is sent with every backend request so the backend can reject traffic that does not come from a genuine installation of the app. It attests the app installation, not you.
 

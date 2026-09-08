@@ -58,7 +58,7 @@ class RemoteFlashcardGenerationRepository(
         if (reply.status == HTTP_OK) {
             telemetry.recordParseFailure(
                 kind = KIND,
-                rawResponse = reply.body.take(MAX_RAW_RESPONSE_CHARS),
+                responseLength = reply.body.length,
                 cause = error,
             )
         } else {
@@ -70,6 +70,5 @@ class RemoteFlashcardGenerationRepository(
         const val FUNCTION_NAME: String = "generate-note"
         const val KIND: String = "learning_note"
         const val HTTP_OK: Int = 200
-        const val MAX_RAW_RESPONSE_CHARS: Int = 8_000
     }
 }

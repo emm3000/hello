@@ -139,15 +139,32 @@ class RemoteFlashcardGenerationRepositoryTest {
         assertEquals("El texto de entrada no es inteligible.", (error as AmbiguousGenerationInputException).reason)
     }
 
+    @Test
+    fun `generateLearningNote reports a parse failure with the body length, never the body`() = runTest {
+        val body = "<html>not json at all</html>"
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
+        val telemetry = RecordingGenerationTelemetry()
+        val repository = repository(transport, telemetry = telemetry)
+
+        runCatching {
+            repository.generateLearningNote(
+                FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+            )
+        }
+
+        assertEquals(listOf("learning_note" to body.length), telemetry.parseFailures)
+    }
+
     private fun repository(
         transport: FunctionsTransport,
         session: SessionInitializer = FakeSessionInitializer(),
+        telemetry: GenerationTelemetry = GenerationTelemetry.NoOp,
     ): RemoteFlashcardGenerationRepository {
         return RemoteFlashcardGenerationRepository(
             transport = transport,
             session = session,
             appCheck = FakeAppCheckTokenProvider("app-check-token"),
-            telemetry = GenerationTelemetry.NoOp,
+            telemetry = telemetry,
             json = json,
         )
     }
@@ -266,4 +283,14 @@ private class FakeSessionInitializer : SessionInitializer {
 
 private class FakeAppCheckTokenProvider(private val appCheckToken: String) : AppCheckTokenProvider {
     override suspend fun token(): String = appCheckToken
+}
+
+private class RecordingGenerationTelemetry : GenerationTelemetry {
+    val parseFailures: MutableList<Pair<String, Int>> = mutableListOf()
+
+    override fun recordCallFailure(kind: String, attempts: Int, cause: Throwable) = Unit
+
+    override fun recordParseFailure(kind: String, responseLength: Int, cause: Throwable) {
+        parseFailures += kind to responseLength
+    }
 }

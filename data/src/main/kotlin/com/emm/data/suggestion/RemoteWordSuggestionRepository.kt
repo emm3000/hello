@@ -57,7 +57,7 @@ class RemoteWordSuggestionRepository(
         if (reply.status == HTTP_OK) {
             telemetry.recordParseFailure(
                 kind = KIND,
-                rawResponse = reply.body.take(MAX_RAW_RESPONSE_CHARS),
+                responseLength = reply.body.length,
                 cause = error,
             )
         } else {
@@ -69,6 +69,5 @@ class RemoteWordSuggestionRepository(
         const val FUNCTION_NAME: String = "suggest-words"
         const val KIND: String = "word_suggestion"
         const val HTTP_OK: Int = 200
-        const val MAX_RAW_RESPONSE_CHARS: Int = 8_000
     }
 }

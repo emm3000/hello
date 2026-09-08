@@ -19,11 +19,16 @@ class CrashlyticsGenerationTelemetry(
         crashlytics.recordException(cause)
     }
 
-    override fun recordParseFailure(kind: String, rawResponse: String, cause: Throwable) {
+    override fun recordParseFailure(kind: String, responseLength: Int, cause: Throwable) {
+        val causeType: String = cause.javaClass.name
         crashlytics.setCustomKey("generation_parse_kind", kind)
-        crashlytics.setCustomKey("generation_parse_raw_truncated", rawResponse)
-        crashlytics.log("Generation parse failed (kind=$kind)")
-        crashlytics.recordException(cause)
-        logError(TAG, "generation:parse-failed kind=$kind raw=$rawResponse", cause)
+        crashlytics.setCustomKey("generation_parse_response_length", responseLength)
+        crashlytics.setCustomKey("generation_parse_cause", causeType)
+        crashlytics.log("Generation parse failed (kind=$kind, length=$responseLength)")
+        crashlytics.recordException(GenerationParseFailure(kind, causeType))
+        logError(TAG, "generation:parse-failed kind=$kind length=$responseLength cause=$causeType")
     }
 }
+
+class GenerationParseFailure(kind: String, causeType: String) :
+    RuntimeException("Generation parse failed: kind=$kind cause=$causeType")
