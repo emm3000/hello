@@ -5,8 +5,8 @@ import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LevelBand
 import com.emm.domain.generation.PartOfSpeechTag
 
-private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
-    FalseFriendSpec(
+private val wordSpecs: List<WordSpec> = listOf(
+    WordSpec(
         expression = "actually",
         partOfSpeech = PartOfSpeechTag.Adverb,
         levelBand = LevelBand.B1_B2,
@@ -19,11 +19,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         translation = "Pensé que era gratis, pero en realidad cuesta diez dólares.",
         commonMistake =
         "using 'actually' to mean 'actualmente' (currently) — for that, say 'currently' or 'right now'.",
-        spanishFalseFriend = "actualmente",
+        falseFriend = "actualmente",
         confusableWith = listOf("actualmente → currently"),
         acceptedAnswers = listOf("in fact"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "realize",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.B1_B2,
@@ -35,11 +35,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "I didn't realize the meeting was today.",
         translation = "No me di cuenta de que la reunión era hoy.",
         commonMistake = "using 'realize' for 'realizar' (to carry out) — say 'carry out', 'do' or 'make'.",
-        spanishFalseFriend = "realizar",
+        falseFriend = "realizar",
         confusableWith = listOf("realizar → carry out / do"),
         acceptedAnswers = listOf("realise"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "assist",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.B1_B2,
@@ -51,13 +51,13 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "A nurse will assist you with the form.",
         translation = "Una enfermera te ayudará con el formulario.",
         commonMistake = "using 'assist' for 'asistir a' (to attend) — say 'attend'.",
-        spanishFalseFriend = "asistir",
+        falseFriend = "asistir",
         confusableWith = listOf("asistir → attend"),
         collocations = listOf("assist a customer"),
         acceptedAnswers = listOf("help"),
         productionHint = "the formal verb used at work",
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "attend",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.B1_B2,
@@ -70,11 +70,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         translation = "Tengo que asistir a una reunión a las nueve.",
         commonMistake =
         "using 'attend' for 'atender' (to serve or pay attention) — say 'serve', 'help' or 'pay attention'.",
-        spanishFalseFriend = "atender",
+        falseFriend = "atender",
         confusableWith = listOf("atender → serve / pay attention"),
         collocations = listOf("attend a meeting", "attend class"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "embarrassed",
         partOfSpeech = PartOfSpeechTag.Adjective,
         levelBand = LevelBand.B1_B2,
@@ -86,12 +86,12 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "I was so embarrassed when I forgot her name.",
         translation = "Me dio mucha vergüenza cuando olvidé su nombre.",
         commonMistake = "saying 'embarrassed' for 'embarazada' (pregnant) — the English word is 'pregnant'.",
-        spanishFalseFriend = "embarazada",
+        falseFriend = "embarazada",
         confusableWith = listOf("embarazada → pregnant"),
         collocations = listOf("so embarrassed", "embarrassed about"),
         acceptedAnswers = listOf("ashamed"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "eventually",
         partOfSpeech = PartOfSpeechTag.Adverb,
         levelBand = LevelBand.B1_B2,
@@ -103,11 +103,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "The bus eventually arrived, forty minutes late.",
         translation = "El bus finalmente llegó, con cuarenta minutos de retraso.",
         commonMistake = "using 'eventually' for 'eventualmente' (possibly) — say 'possibly' or 'occasionally'.",
-        spanishFalseFriend = "eventualmente",
+        falseFriend = "eventualmente",
         confusableWith = listOf("eventualmente → possibly / occasionally"),
         acceptedAnswers = listOf("finally", "in the end"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "sensible",
         partOfSpeech = PartOfSpeechTag.Adjective,
         levelBand = LevelBand.B1_B2,
@@ -119,12 +119,12 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "Bringing an umbrella was a sensible decision.",
         translation = "Traer paraguas fue una decisión sensata.",
         commonMistake = "using 'sensible' for 'sensible' (emotionally sensitive) — the English word is 'sensitive'.",
-        spanishFalseFriend = "sensible (es)",
+        falseFriend = "sensible (es)",
         confusableWith = listOf("sensible (es) → sensitive"),
         collocations = listOf("a sensible decision", "sensible shoes"),
         acceptedAnswers = listOf("reasonable"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "library",
         partOfSpeech = PartOfSpeechTag.Noun,
         levelBand = LevelBand.A1_A2,
@@ -136,11 +136,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "I study at the library on Saturdays.",
         translation = "Estudio en la biblioteca los sábados.",
         commonMistake = "using 'library' for 'librería' (bookshop) — say 'bookstore' or 'bookshop'.",
-        spanishFalseFriend = "librería",
+        falseFriend = "librería",
         confusableWith = listOf("librería → bookstore"),
         collocations = listOf("public library"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "career",
         partOfSpeech = PartOfSpeechTag.Noun,
         levelBand = LevelBand.B1_B2,
@@ -152,11 +152,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "She built her career in marketing.",
         translation = "Ella construyó su carrera profesional en marketing.",
         commonMistake = "using 'career' for 'carrera' as a university degree — say 'degree' or 'major'.",
-        spanishFalseFriend = "carrera universitaria",
+        falseFriend = "carrera universitaria",
         confusableWith = listOf("carrera (universitaria) → degree / major"),
         collocations = listOf("career change", "career path"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "exit",
         partOfSpeech = PartOfSpeechTag.Noun,
         levelBand = LevelBand.A1_A2,
@@ -168,13 +168,13 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "The emergency exit is on the left.",
         translation = "La salida de emergencia está a la izquierda.",
         commonMistake = "confusing 'exit' with 'éxito' (success) — the English word is 'success'.",
-        spanishFalseFriend = "éxito",
+        falseFriend = "éxito",
         confusableWith = listOf("éxito → success"),
         collocations = listOf("emergency exit"),
         acceptedAnswers = listOf("way out"),
         productionHint = "the word on a door sign",
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "constipated",
         partOfSpeech = PartOfSpeechTag.Adjective,
         levelBand = LevelBand.B1_B2,
@@ -186,10 +186,10 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "Drink more water if you feel constipated.",
         translation = "Toma más agua si te sientes estreñido.",
         commonMistake = "saying 'constipated' when you have a cold ('constipado') — say 'I have a cold'.",
-        spanishFalseFriend = "constipado",
+        falseFriend = "constipado",
         confusableWith = listOf("constipado → have a cold"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "pretend",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.B1_B2,
@@ -201,12 +201,12 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "The kids pretend to be pirates.",
         translation = "Los niños fingen ser piratas.",
         commonMistake = "using 'pretend' for 'pretender' (to intend or aim to) — say 'intend', 'expect' or 'try to'.",
-        spanishFalseFriend = "pretender",
+        falseFriend = "pretender",
         confusableWith = listOf("pretender → intend / expect"),
         collocations = listOf("pretend to be"),
         acceptedAnswers = listOf("fake"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "support",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.B1_B2,
@@ -218,12 +218,12 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "My parents support my decision to study abroad.",
         translation = "Mis padres apoyan mi decisión de estudiar en el extranjero.",
         commonMistake = "using 'support' for 'soportar' (to put up with) — say 'stand', 'bear' or 'put up with'.",
-        spanishFalseFriend = "soportar",
+        falseFriend = "soportar",
         confusableWith = listOf("soportar → put up with / stand"),
         collocations = listOf("support a decision"),
         acceptedAnswers = listOf("back"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "introduce",
         partOfSpeech = PartOfSpeechTag.Verb,
         levelBand = LevelBand.A1_A2,
@@ -235,11 +235,11 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "Let me introduce you to my sister.",
         translation = "Déjame presentarte a mi hermana.",
         commonMistake = "using 'introduce' for 'introducir' (to insert) — say 'insert' or 'put in'.",
-        spanishFalseFriend = "introducir",
+        falseFriend = "introducir",
         confusableWith = listOf("introducir → insert"),
         collocations = listOf("introduce someone to"),
     ),
-    FalseFriendSpec(
+    WordSpec(
         expression = "large",
         partOfSpeech = PartOfSpeechTag.Adjective,
         levelBand = LevelBand.A1_A2,
@@ -251,7 +251,7 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
         example = "We need a large table for twelve people.",
         translation = "Necesitamos una mesa grande para doce personas.",
         commonMistake = "using 'large' for 'largo' (long) — the English word is 'long'.",
-        spanishFalseFriend = "largo",
+        falseFriend = "largo",
         confusableWith = listOf("largo → long"),
         collocations = listOf("a large size"),
         acceptedAnswers = listOf("big"),
@@ -259,4 +259,5 @@ private val falseFriendSpecs: List<FalseFriendSpec> = listOf(
     ),
 )
 
-internal val spanishTrapsFalseFriends: List<GeneratedLearningNote> = falseFriendSpecs.map(FalseFriendSpec::toNote)
+internal val spanishTrapsFalseFriends: List<GeneratedLearningNote> =
+    wordSpecs.map { spec -> spec.toNote(SPANISH_TRAPS_DECK_ID) }

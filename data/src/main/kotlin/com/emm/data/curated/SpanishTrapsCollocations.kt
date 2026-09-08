@@ -96,4 +96,4 @@ private val collocationSpecs: List<CollocationSpec> = listOf(
 )
 
 internal val spanishTrapsCollocations: List<GeneratedLearningNote> =
-    collocationSpecs.map(CollocationSpec::toNote)
+    collocationSpecs.map { spec -> spec.toNote(SPANISH_TRAPS_DECK_ID) }

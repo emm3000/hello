@@ -16,7 +16,7 @@ import com.emm.domain.generation.RegisterPreference
 import com.emm.domain.generation.StudyCardType
 import com.emm.domain.text.lowercaseRoot
 
-internal data class FalseFriendSpec(
+internal data class WordSpec(
     val expression: String,
     val partOfSpeech: PartOfSpeechTag,
     val levelBand: LevelBand,
@@ -28,8 +28,10 @@ internal data class FalseFriendSpec(
     val example: String,
     val translation: String,
     val commonMistake: String,
-    val spanishFalseFriend: String,
     val confusableWith: List<String>,
+    val falseFriend: String = "",
+    val sourceContext: String = "",
+    val register: RegisterPreference = RegisterPreference.Neutral,
     val collocations: List<String> = emptyList(),
     val acceptedAnswers: List<String> = emptyList(),
     val productionHint: String = "",
@@ -51,6 +53,7 @@ internal data class CollocationSpec(
     val usagePattern: String,
     val sourceContext: String,
     val clozeAnswer: String,
+    val register: RegisterPreference = RegisterPreference.Neutral,
     val acceptedAnswers: List<String> = emptyList(),
     val productionHint: String = "",
 )
@@ -71,11 +74,12 @@ internal data class SentencePatternSpec(
     val clozeSentence: String,
     val clozeAnswer: String,
     val sourceContext: String,
+    val register: RegisterPreference = RegisterPreference.Neutral,
     val acceptedAnswers: List<String> = emptyList(),
 )
 
-internal fun FalseFriendSpec.toNote(): GeneratedLearningNote {
-    val noteId: String = curatedNoteId(expression)
+internal fun WordSpec.toNote(deckId: String): GeneratedLearningNote {
+    val noteId: String = curatedNoteId(deckId = deckId, expression = expression)
     return GeneratedLearningNote(
         noteId = noteId,
         noteType = LearningNoteType.Word,
@@ -83,7 +87,7 @@ internal fun FalseFriendSpec.toNote(): GeneratedLearningNote {
         intendedMeaningEs = meaningEs.toIntendedMeaningEs(),
         simpleDefinitionEn = definitionEn.toDefinitionEn(),
         partOfSpeech = partOfSpeech,
-        register = RegisterPreference.Neutral,
+        register = register,
         levelBand = levelBand,
         domain = domain,
         whyUseful = whyUseful,
@@ -92,7 +96,7 @@ internal fun FalseFriendSpec.toNote(): GeneratedLearningNote {
         cards = listOf(
             recognitionCard(
                 noteId = noteId,
-                prompt = "What does '$expression' mean? (careful: not '$spanishFalseFriend')",
+                prompt = wordRecognitionPrompt(expression = expression, falseFriend = falseFriend),
                 meaningEs = meaningEs,
             ),
             productionCard(
@@ -109,12 +113,16 @@ internal fun FalseFriendSpec.toNote(): GeneratedLearningNote {
         collocations = collocations,
         commonMistake = commonMistake,
         confusableWith = confusableWith,
-        sourceContext = "Falso amigo: $expression ≠ $spanishFalseFriend",
+        sourceContext = wordSourceContext(
+            sourceContext = sourceContext,
+            expression = expression,
+            falseFriend = falseFriend,
+        ),
     )
 }
 
-internal fun CollocationSpec.toNote(): GeneratedLearningNote {
-    val noteId: String = curatedNoteId(expression)
+internal fun CollocationSpec.toNote(deckId: String): GeneratedLearningNote {
+    val noteId: String = curatedNoteId(deckId = deckId, expression = expression)
     return GeneratedLearningNote(
         noteId = noteId,
         noteType = LearningNoteType.Phrase,
@@ -122,7 +130,7 @@ internal fun CollocationSpec.toNote(): GeneratedLearningNote {
         intendedMeaningEs = meaningEs.toIntendedMeaningEs(),
         simpleDefinitionEn = definitionEn.toDefinitionEn(),
         partOfSpeech = PartOfSpeechTag.Chunk,
-        register = RegisterPreference.Neutral,
+        register = register,
         levelBand = levelBand,
         domain = domain,
         whyUseful = whyUseful,
@@ -158,8 +166,8 @@ internal fun CollocationSpec.toNote(): GeneratedLearningNote {
     )
 }
 
-internal fun SentencePatternSpec.toNote(): GeneratedLearningNote {
-    val noteId: String = curatedNoteId(expression)
+internal fun SentencePatternSpec.toNote(deckId: String): GeneratedLearningNote {
+    val noteId: String = curatedNoteId(deckId = deckId, expression = expression)
     return GeneratedLearningNote(
         noteId = noteId,
         noteType = LearningNoteType.SentencePattern,
@@ -167,7 +175,7 @@ internal fun SentencePatternSpec.toNote(): GeneratedLearningNote {
         intendedMeaningEs = meaningEs.toIntendedMeaningEs(),
         simpleDefinitionEn = definitionEn.toDefinitionEn(),
         partOfSpeech = PartOfSpeechTag.Chunk,
-        register = RegisterPreference.Neutral,
+        register = register,
         levelBand = levelBand,
         domain = domain,
         whyUseful = whyUseful,
@@ -203,8 +211,26 @@ internal fun SentencePatternSpec.toNote(): GeneratedLearningNote {
     )
 }
 
-private fun curatedNoteId(expression: String): String =
-    "$CURATED_NOTE_ID_PREFIX${expression.lowercaseRoot().replace(' ', '-')}"
+private fun curatedNoteId(deckId: String, expression: String): String =
+    "curated.$deckId.${expression.toCatalogSlug()}"
+
+private fun String.toCatalogSlug(): String =
+    lowercaseRoot().replace(' ', '-').replace(charactersOutsideCatalogSlug, "")
+
+private fun wordRecognitionPrompt(expression: String, falseFriend: String): String {
+    val question = "What does '$expression' mean?"
+    return if (falseFriend.isBlank()) question else "$question (careful: not '$falseFriend')"
+}
+
+private fun wordSourceContext(
+    sourceContext: String,
+    expression: String,
+    falseFriend: String,
+): String = when {
+    sourceContext.isNotBlank() -> sourceContext
+    falseFriend.isBlank() -> ""
+    else -> "Falso amigo: $expression ≠ $falseFriend"
+}
 
 private fun recognitionCard(
     noteId: String,
@@ -252,8 +278,9 @@ private fun clozeCard(
     sourceField = sourceField,
 )
 
-private const val CURATED_NOTE_ID_PREFIX = "curated.spanish-traps."
 private const val CLOZE_BLANK = "___"
+
+private val charactersOutsideCatalogSlug: Regex = Regex("[^a-z0-9-]")
 
 private val curatedQualityChecks: List<GeneratedNoteQualityCheck> = listOf(
     GeneratedNoteQualityCheck(

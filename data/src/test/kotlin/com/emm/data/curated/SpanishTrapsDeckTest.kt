@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 private const val EXPECTED_NOTE_COUNT = 25
+private const val EXPECTED_CARD_COUNT = 60
+private const val NOTE_ID_PREFIX = "curated.spanish-traps."
+private const val FIRST_NOTE_ID = "curated.spanish-traps.actually"
+private const val FIRST_CARD_ID = "curated.spanish-traps.actually.production"
+private const val LAST_CARD_ID = "curated.spanish-traps.tell-me.recognition"
 
 class SpanishTrapsDeckTest {
 
@@ -69,6 +74,26 @@ class SpanishTrapsDeckTest {
             .map(GeneratedLearningNote::noteId)
 
         assertEquals(emptyList<String>(), offenders)
+    }
+
+    @Test
+    fun `note ids keep the pilot prefix`() {
+        val offenders: List<String> = notes.map(GeneratedLearningNote::noteId)
+            .filterNot { it.startsWith(NOTE_ID_PREFIX) }
+
+        assertEquals(emptyList<String>(), offenders)
+        assertEquals(FIRST_NOTE_ID, notes.first().noteId)
+    }
+
+    @Test
+    fun `card ids stay exactly as installed copies key off them`() {
+        val cardIds: List<String> = notes.flatMap(GeneratedLearningNote::cards)
+            .map(GeneratedStudyCard::cardId)
+            .sorted()
+
+        assertEquals(EXPECTED_CARD_COUNT, cardIds.size)
+        assertEquals(FIRST_CARD_ID, cardIds.first())
+        assertEquals(LAST_CARD_ID, cardIds.last())
     }
 
     private fun List<String>.repeatedValues(): List<String> =

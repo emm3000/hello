@@ -94,4 +94,4 @@ private val sentencePatternSpecs: List<SentencePatternSpec> = listOf(
 )
 
 internal val spanishTrapsPatterns: List<GeneratedLearningNote> =
-    sentencePatternSpecs.map(SentencePatternSpec::toNote)
+    sentencePatternSpecs.map { spec -> spec.toNote(SPANISH_TRAPS_DECK_ID) }
