@@ -47,6 +47,7 @@ class DecksViewModel(
         when (intent) {
             is DecksUiIntent.DeckOpened -> sendEffect(DecksUiEffect.OpenDeckForm(intent.deckId))
             DecksUiIntent.CreateDeckRequested -> sendEffect(DecksUiEffect.OpenDeckForm(null))
+            DecksUiIntent.StoreRequested -> sendEffect(DecksUiEffect.OpenStore)
             is DecksUiIntent.UndoDeleteDeck -> undoDeleteDeck(intent.deckId, intent.deletedAt)
         }
     }

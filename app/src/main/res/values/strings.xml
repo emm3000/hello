@@ -220,6 +220,17 @@
     <string name="decks_create_action">New deck</string>
     <string name="decks_empty_headline">No decks yet</string>
     <string name="decks_empty_body">A deck groups cards. It\'s optional: you can capture without creating one.</string>
+    <string name="decks_store_action">Store</string>
+    <string name="store_title">Store</string>
+    <string name="store_headline">Curated decks</string>
+    <string name="store_intro">Hand-made decks that pass the same checks as every AI card. Install one and study it like your own.</string>
+    <string name="store_install">Install</string>
+    <string name="store_open_deck">Open deck</string>
+    <string name="store_installed">Installed</string>
+    <string name="store_install_failed">The deck could not be installed. Try again.</string>
+    <string name="store_level_a1_a2">A1–A2</string>
+    <string name="store_level_b1_b2">B1–B2</string>
+    <string name="store_level_c1_plus">C1+</string>
     <string name="settings_section_organization">Organization</string>
     <string name="settings_decks_subtitle">Create, rename or delete decks</string>
     <string name="settings_section_reminders">Reminders</string>

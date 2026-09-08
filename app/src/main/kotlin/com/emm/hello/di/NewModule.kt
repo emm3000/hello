@@ -107,6 +107,7 @@ import com.emm.hello.newfeatures.deck.DecksViewModel
 import com.emm.hello.newfeatures.library.LibraryViewModel
 import com.emm.hello.newfeatures.deck.NewDeckViewModel
 import com.emm.hello.newfeatures.settings.SettingsViewModel
+import com.emm.hello.newfeatures.store.StoreViewModel
 import com.emm.hello.newfeatures.study.StudyViewModel
 import com.emm.hello.core.activity.CurrentActivityHolder
 import com.emm.hello.core.audio.TextToSpeechManager
@@ -278,6 +279,7 @@ fun Module.viewModels() {
     viewModel { TodayViewModel(get()) }
     viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
     viewModel { DecksViewModel(get(), get(), get()) }
+    viewModel { StoreViewModel(get(), get()) }
     viewModel {
         StudyViewModel(
             deckId = it.get(),

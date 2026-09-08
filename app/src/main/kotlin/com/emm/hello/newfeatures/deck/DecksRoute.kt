@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.R
 import com.emm.hello.navigation.Navigator
+import com.emm.hello.newfeatures.store.StoreRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -39,6 +40,7 @@ fun DecksDestination(navigator: Navigator) {
         vm.effect.collect { effect ->
             when (effect) {
                 is DecksUiEffect.OpenDeckForm -> navigator.navigateTo(NewDeckRoute(effect.deckId))
+                DecksUiEffect.OpenStore -> navigator.navigateTo(StoreRoute)
                 is DecksUiEffect.ShowMessage -> {
                     Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }

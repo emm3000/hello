@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,6 +33,7 @@ import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
+import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HTopBar
 import java.time.LocalDateTime
@@ -53,6 +55,15 @@ fun DecksScreen(
             HTopBar(
                 onBack = onBack,
                 title = stringResource(R.string.decks_title),
+                actions = {
+                    HIconButton(
+                        icon = Icons.Outlined.Storefront,
+                        contentDescription = stringResource(R.string.decks_store_action),
+                        onClick = { onIntent(DecksUiIntent.StoreRequested) },
+                        iconSize = 20.dp,
+                        buttonSize = 44.dp,
+                    )
+                },
             )
 
             when {

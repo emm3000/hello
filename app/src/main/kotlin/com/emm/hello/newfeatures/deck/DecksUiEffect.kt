@@ -5,6 +5,7 @@ import com.emm.hello.core.mvi.MviEffect
 
 sealed interface DecksUiEffect : MviEffect {
     data class OpenDeckForm(val deckId: String?) : DecksUiEffect
+    data object OpenStore : DecksUiEffect
     data class ShowUndoDeckDeleted(
         val deckName: String,
         val deckId: String,

@@ -112,6 +112,23 @@ class DecksViewModelTest {
     }
 
     @Test
+    fun `store requested emits open store`() = runTest {
+        val repository = FakeDeckRepository()
+        val viewModel = DecksViewModel(
+            restoreDeckUseCase = RestoreDeckUseCase(repository),
+            undoEventHolder = UndoEventHolder(),
+            getDecksUseCase = GetDecksUseCase(repository),
+        )
+
+        val effectDeferred: Deferred<List<DecksUiEffect>> =
+            backgroundScope.async { viewModel.effect.take(1).toList() }
+        viewModel.onIntent(DecksUiIntent.StoreRequested)
+
+        val effects: List<DecksUiEffect> = effectDeferred.await()
+        assertThat(effects).containsExactly(DecksUiEffect.OpenStore)
+    }
+
+    @Test
     fun `deck deleted undo event emits show undo effect`() = runTest {
         val repository = FakeDeckRepository()
         val undoEventHolder = UndoEventHolder()

@@ -49,6 +49,8 @@ import com.emm.hello.newfeatures.onboarding.OnboardingDestination
 import com.emm.hello.newfeatures.onboarding.OnboardingRoute
 import com.emm.hello.newfeatures.settings.SettingsDestination
 import com.emm.hello.newfeatures.settings.SettingsRoute
+import com.emm.hello.newfeatures.store.StoreDestination
+import com.emm.hello.newfeatures.store.StoreRoute
 import com.emm.hello.newfeatures.study.StudyDestination
 import com.emm.hello.newfeatures.study.StudyRoute
 import com.emm.hello.newfeatures.suggest.SuggestDestination
@@ -147,6 +149,7 @@ private fun AppNavigation(
             entry<EditFlashcardRoute> { key -> EditFlashcardDestination(navigator, key.cardId) }
             entry<SettingsRoute> { SettingsDestination(navigator) }
             entry<DecksRoute> { DecksDestination(navigator) }
+            entry<StoreRoute> { StoreDestination(navigator) }
         }
     )
 }
