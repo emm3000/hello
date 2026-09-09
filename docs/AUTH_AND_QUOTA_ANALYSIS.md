@@ -182,6 +182,6 @@ Two consequences worth carrying forward:
 | Done | `signInWithIdToken` fallback | Shipped with `AccountLinkResult`, the `:data` mapping, the inert row and tests. Device check 2026-09-09: anonymous `4233c82a` stayed anonymous, `88b8af3b` got the sign-in one second later |
 | Done | Account copy | `settings_google_account_not_linked` now says the allowance is tied to the install |
 | Done | `app/google-services.json` on disk | Re-downloaded 2026-09-09 after the fingerprint fix: carries `938a7ce1…`, no bogus hash. `GOOGLE_SERVICES_JSON` secret refreshed from it |
-| Soon | Swallowed errors | `GoogleCredentialClient` catches `NoCredentialException` and discards its message, which is where Play Services reports the real reason. Log it the way `SettingsViewModel` logs the link error; that log is how `identity_already_exists` was found |
+| Done | Swallowed errors | `GoogleCredentialClient` now logs the `NoCredentialException` message, which is where Play Services reports the real reason (on the emulator it was a 3 s Credential Manager timeout, not a missing account) |
 | Later | Leftover auth users | Six users: four anonymous, plus `88b8af3b` holding the owner's primary Gmail and `04804872` now linked to the second account. Delete the anonymous ones once the fallback is verified |
 | Later | Quota reset hour | UTC midnight lands at 19:00 Lima. Needs a per-user timezone or a rolling window; not worth it before there are users |

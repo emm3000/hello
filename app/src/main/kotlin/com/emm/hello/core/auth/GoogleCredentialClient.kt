@@ -8,11 +8,14 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import com.emm.hello.logging.logError
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import java.security.MessageDigest
 import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
+
+private const val TAG = "GoogleCredentialClient"
 
 class GoogleCredentialClient {
 
@@ -45,7 +48,8 @@ class GoogleCredentialClient {
         }
     } catch (_: GetCredentialCancellationException) {
         GoogleSignInResult.Cancelled
-    } catch (_: NoCredentialException) {
+    } catch (e: NoCredentialException) {
+        logError(TAG, "signIn:noCredential ${e.message}", e)
         GoogleSignInResult.NoCredentials
     } catch (e: CancellationException) {
         throw e
