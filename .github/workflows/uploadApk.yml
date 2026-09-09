@@ -121,6 +121,7 @@ jobs:
           retention-days: 30
 
       - name: Upload the release APK to Firebase App Distribution
+        if: github.ref == 'refs/heads/main'
         uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1.7.1
         with:
           appId: ${{secrets.FIREBASE_RELEASE_APP_ID}}
@@ -144,5 +145,4 @@ jobs:
           releaseName: ${{ github.ref_name }} (${{ github.run_number }})
           track: internal
           status: draft
-          changesNotSentForReview: true
           mappingFile: ${{ steps.artifacts.outputs.mapping }}
