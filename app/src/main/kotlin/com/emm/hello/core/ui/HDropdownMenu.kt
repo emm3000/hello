@@ -1,5 +1,7 @@
 package com.emm.hello.core.ui
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -10,8 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.surface
@@ -31,6 +36,8 @@ fun HDropdownMenu(
     onDismissRequest: () -> Unit,
     items: List<HMenuItem>,
 ) {
+    val reservesIconSlot: Boolean = items.any { it.icon != null }
+
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
@@ -46,19 +53,32 @@ fun HDropdownMenu(
                     )
                 },
                 onClick = item.onClick,
-                leadingIcon = item.icon?.let { icon ->
-                    {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = inkMuted,
-                        )
-                    }
-                },
+                leadingIcon = menuItemLeadingIcon(icon = item.icon, reservesIconSlot = reservesIconSlot),
             )
         }
     }
 }
+
+private fun menuItemLeadingIcon(
+    icon: ImageVector?,
+    reservesIconSlot: Boolean,
+): (@Composable () -> Unit)? = when {
+    icon != null -> {
+        {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = inkMuted,
+            )
+        }
+    }
+    reservesIconSlot -> {
+        { Spacer(modifier = Modifier.size(menuIconSize)) }
+    }
+    else -> null
+}
+
+private val menuIconSize: Dp = 24.dp
 
 @PreviewLightDark
 @Composable

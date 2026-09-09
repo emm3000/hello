@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -45,6 +49,7 @@ import com.emm.hello.core.theme.cardMint
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkSoft
 import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HDropdownMenu
@@ -213,6 +218,13 @@ private fun CaptureDestination(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
                 color = ink,
+            )
+
+            Icon(
+                imageVector = Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+                tint = inkSoft,
+                modifier = Modifier.size(MaterialTheme.spacing.lg),
             )
         }
 
