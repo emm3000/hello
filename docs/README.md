@@ -42,6 +42,7 @@ These documents capture planning context, decisions, and delivery history. They 
 - `LAUNCH_READINESS_AUDIT.md` — Status: **Active**. Pre-launch hardening audit; Sprint 2 items still open.
 - `NOTIFICATIONS_PLAN.md` — Status: **Active**. Sprint 1 and Sprint 2 both complete (toggle, time picker, deep link); only the runtime notification-permission request (`F-Onboarding-Consent`) remains open.
 - `AI_BACKEND_PLAN.md` — Status: **In progress**. Moves every AI call behind one Supabase Edge Function with a provider chain, a shared note cache, guest identity and a daily allowance; six phases, each with its falsifier. Phases 1 to 4 are implemented.
+- `AUTH_AND_QUOTA_ANALYSIS.md` — Status: **Active**. Postmortem of the Play-build App Check and Google Sign-In failures (wrong signing fingerprints, unlinked Cloud project), plus the account-linking dead end and the daily-allowance model. The attestation fix shipped; the `signInWithIdToken` fallback is proposed and open.
 - `privacy-policy.md` — Status: **Draft**. Minimal privacy policy covering local data, Firebase AI/Gemini, Crashlytics and Analytics. Pending public URL and Play Console Data Safety form.
 
 ## Rule
