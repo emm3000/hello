@@ -329,6 +329,7 @@ fun Module.viewModels() {
             googleServerClientId = androidContext().getString(R.string.default_web_client_id),
             noGoogleAccountMessage = androidContext().getString(R.string.settings_google_no_credentials),
             googleLinkFailedMessage = androidContext().getString(R.string.settings_google_link_failed),
+            googleSignedInMessageTemplate = androidContext().getString(R.string.settings_google_signed_in_as),
             buildInfo = get(),
         )
     }

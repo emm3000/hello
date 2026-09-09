@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Analysis, 2026-09-09. Attestation fixed and device-verified; sign-in fallback specified, not implemented |
+| Status | Analysis, 2026-09-09. Attestation fixed and device-verified; sign-in fallback implemented and device-verified |
 | Role | Postmortem of the Play-build attestation failure, plus the account and quota model it exposed |
 | Source of Truth | No. The code and the Firebase / Supabase consoles win |
 | Read this when | You touch App Check, Google Sign-In, account linking or the daily allowance |
@@ -14,11 +14,11 @@ The first Play internal-testing build `1.0.0 (1)` failed twice: AI generation ne
 | Problem | State | Where |
 |---|---|---|
 | Play could not attest the app | Fixed: Cloud project linked, Play signing certificate registered in Firebase | Section 1 |
-| A Google account that already exists in Supabase cannot sign in | Specified, not implemented: fall back to `signInWithIdToken`; the row goes inert once linked | Section 2 |
+| A Google account that already exists in Supabase cannot sign in | Fixed: falls back to `signInWithIdToken`; the row goes inert once linked. Verified on the emulator: a fresh anonymous user signing in with an existing Google account lands on the existing uuid | Section 2 |
 | Switching or signing out of a linked account | Out of scope until sync; rules written down | Section 2, "Future" |
 | The quota is per install, resets at 19:00 Lima | Known, accepted for now | Section 3 |
 
-Next action: implement the fallback in section 2 and fix the account copy. Everything else is in section 4.
+Next action: the "Soon" items in section 4.
 
 ## 1. The attestation failure
 
@@ -109,7 +109,7 @@ Decisions inside that table:
 
 - **A linked user cannot switch from this row.** Today `AccountSection` in `SettingsScreen.kt` keeps `onClick` wired regardless of `account.isAnonymous`, so a linked user can pick a second Google account and land in the refused-link path. Disabling the tap removes that whole branch instead of deciding what a switch means. The cost is that a user who linked the wrong Google account cannot correct it without clearing app data; with one tester and a 50-a-day allowance that is acceptable.
 - **Detect by code, not by message.** supabase-kt 3.8.0 throws `AuthRestException` whose `errorCode` is `AuthErrorCode.IdentityAlreadyExists`. String matching on `identity_already_exists` is the fallback only if the code is ever null.
-- **The fallback reuses the same `idToken` and `rawNonce`.** A refused link does not consume the nonce; Supabase only checks that the nonce hashed into the token matches the raw one it receives. Verify this on device before merging: if the token is rejected on the second call, the client must request a fresh credential instead.
+- **The fallback reuses the same `idToken` and `rawNonce`.** A refused link does not consume the nonce; Supabase only checks that the nonce hashed into the token matches the raw one it receives. Verified on device 2026-09-09.
 - **The port changes shape.** `linkGoogleAccount` returns `Account` today, which cannot tell the UI whether it linked or switched. Return a result with two cases (linked, switched to existing) so `SettingsViewModel` can pick the message. The domain stays JVM-only; the Supabase error mapping lives in `:data`.
 - **Local cards are untouched in every row.** Cards never leave `HelloDb`. Abandoning an anonymous user costs at most one day of allowance, which is immaterial against 50.
 
@@ -179,8 +179,8 @@ Two consequences worth carrying forward:
 
 | Priority | Item | Next action |
 |---|---|---|
-| Now | `signInWithIdToken` fallback | Implement section 2; port result type, `:data` mapping, ViewModel copy, inert row once linked, tests |
-| Now | Account copy | Replace `settings_google_account_not_linked` with the wording above |
+| Done | `signInWithIdToken` fallback | Shipped with `AccountLinkResult`, the `:data` mapping, the inert row and tests. Device check 2026-09-09: anonymous `4233c82a` stayed anonymous, `88b8af3b` got the sign-in one second later |
+| Done | Account copy | `settings_google_account_not_linked` now says the allowance is tied to the install |
 | Soon | `app/google-services.json` on disk | Still carries the bogus `1301d2c9…` and lacks `938a7ce1…`. Nothing breaks at runtime. Re-download it and update the `GOOGLE_SERVICES_JSON` GitHub secret, which was set from this stale copy |
 | Soon | Swallowed errors | `GoogleCredentialClient` catches `NoCredentialException` and discards its message, which is where Play Services reports the real reason. Log it the way `SettingsViewModel` logs the link error; that log is how `identity_already_exists` was found |
 | Later | Leftover auth users | Six users: four anonymous, plus `88b8af3b` holding the owner's primary Gmail and `04804872` now linked to the second account. Delete the anonymous ones once the fallback is verified |

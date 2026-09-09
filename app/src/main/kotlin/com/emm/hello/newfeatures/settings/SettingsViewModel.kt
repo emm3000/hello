@@ -6,6 +6,7 @@ import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.data.export.IncompatibleSchemaException
 import com.emm.domain.account.Account
+import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
@@ -39,6 +40,7 @@ class SettingsViewModel(
     private val googleServerClientId: String,
     private val noGoogleAccountMessage: String,
     private val googleLinkFailedMessage: String,
+    private val googleSignedInMessageTemplate: String,
     buildInfo: BuildInfo,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(buildInfo = buildInfo),
@@ -87,6 +89,7 @@ class SettingsViewModel(
     }
 
     private fun requestGoogleSignIn() {
+        if (isAccountLinked()) return
         setState { copy(isLinkingAccount = true) }
         viewModelScope.launch {
             when (val result: GoogleSignInResult = googleSignInLauncher.signIn(googleServerClientId)) {
@@ -101,9 +104,9 @@ class SettingsViewModel(
     private fun linkGoogleAccount(idToken: String, rawNonce: String) {
         viewModelScope.launch {
             try {
-                val account: Account = linkGoogleAccountUseCase(idToken = idToken, rawNonce = rawNonce)
-                setState { copy(account = account, isLinkingAccount = false) }
-                sendEffect(SettingsUiEffect.ShowSuccess(GOOGLE_LINK_SUCCESS_MESSAGE))
+                val result: AccountLinkResult = linkGoogleAccountUseCase(idToken = idToken, rawNonce = rawNonce)
+                setState { copy(account = result.account, isLinkingAccount = false) }
+                sendEffect(SettingsUiEffect.ShowSuccess(linkSuccessMessage(result)))
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
@@ -113,6 +116,16 @@ class SettingsViewModel(
             }
         }
     }
+
+    private fun isAccountLinked(): Boolean = currentState.account?.isAnonymous == false
+
+    private fun linkSuccessMessage(result: AccountLinkResult): String = when (result) {
+        is AccountLinkResult.Linked -> GOOGLE_LINK_SUCCESS_MESSAGE
+        is AccountLinkResult.SwitchedToExisting -> signedInMessage(result.account.email)
+    }
+
+    private fun signedInMessage(email: String?): String =
+        if (email == null) GOOGLE_LINK_SUCCESS_MESSAGE else googleSignedInMessageTemplate.format(email)
 
     private fun googleLinkFailed(message: String) {
         setState { copy(isLinkingAccount = false) }

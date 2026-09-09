@@ -273,6 +273,7 @@ private fun AccountSection(
     isLinkingAccount: Boolean,
     onLinkGoogleAccount: () -> Unit,
 ) {
+    val isLinked: Boolean = account?.isAnonymous == false
     Column(modifier = Modifier.fillMaxWidth()) {
         HSectionLabel(label = stringResource(R.string.settings_section_account))
         Spacer(Modifier.height(10.dp))
@@ -286,7 +287,9 @@ private fun AccountSection(
                 title = stringResource(R.string.settings_google_account_title),
                 sub = googleAccountSubtitle(account),
                 isBusy = isLinkingAccount,
+                enabled = !isLinked,
                 onClick = onLinkGoogleAccount,
+                trailing = { if (!isLinked) ChevronTrailing() },
             )
         }
     }
@@ -367,13 +370,14 @@ private fun SettingsRow(
     sub: String? = null,
     subTone: SubTone = SubTone.Muted,
     isBusy: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     trailing: @Composable RowScope.() -> Unit = { ChevronTrailing() },
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = !isBusy) { onClick() }
+            .clickable(enabled = enabled && !isBusy) { onClick() }
             .padding(horizontal = MaterialTheme.spacing.lg, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),

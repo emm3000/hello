@@ -4,6 +4,7 @@ import android.net.Uri
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
 import com.emm.domain.account.Account
+import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.AccountRepository
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
@@ -34,6 +35,7 @@ import org.junit.Test
 private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
 private const val NO_GOOGLE_ACCOUNT_MESSAGE = "No Google account on this device"
 private const val GOOGLE_LINK_FAILED_MESSAGE = "Couldn't link your Google account"
+private const val SIGNED_IN_AS_TEMPLATE = "Signed in as %1\$s"
 private val testBuildInfo = BuildInfo(versionName = "1.0.0", versionCode = 142, commit = "abc1234")
 
 class SettingsViewModelTest {
@@ -67,6 +69,7 @@ class SettingsViewModelTest {
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
         accountRepository: AccountRepository = FakeAccountRepository(),
         googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
+        googleSignedInMessageTemplate: String = SIGNED_IN_AS_TEMPLATE,
         buildInfo: BuildInfo = testBuildInfo,
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
@@ -81,6 +84,7 @@ class SettingsViewModelTest {
         GOOGLE_SERVER_CLIENT_ID,
         NO_GOOGLE_ACCOUNT_MESSAGE,
         GOOGLE_LINK_FAILED_MESSAGE,
+        googleSignedInMessageTemplate,
         buildInfo,
     )
 
@@ -302,6 +306,7 @@ class SettingsViewModelTest {
             GOOGLE_SERVER_CLIENT_ID,
             NO_GOOGLE_ACCOUNT_MESSAGE,
             GOOGLE_LINK_FAILED_MESSAGE,
+            SIGNED_IN_AS_TEMPLATE,
             testBuildInfo,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
@@ -390,6 +395,7 @@ class SettingsViewModelTest {
             GOOGLE_SERVER_CLIENT_ID,
             NO_GOOGLE_ACCOUNT_MESSAGE,
             GOOGLE_LINK_FAILED_MESSAGE,
+            SIGNED_IN_AS_TEMPLATE,
             testBuildInfo,
         )
 
@@ -441,7 +447,7 @@ class SettingsViewModelTest {
     @Test
     fun `LinkGoogleAccount success links the account, stores it and announces the success`() = runTest {
         val linked = Account(id = "user-1", isAnonymous = false, email = "someone@example.com")
-        val accountRepository = FakeAccountRepository(linkResult = Result.success(linked))
+        val accountRepository = FakeAccountRepository(linkResult = Result.success(AccountLinkResult.Linked(linked)))
         val googleSignInLauncher = FakeGoogleSignInLauncher(
             result = GoogleSignInResult.Success(idToken = "id-token", rawNonce = "raw-nonce"),
         )
@@ -456,6 +462,45 @@ class SettingsViewModelTest {
         assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowSuccess("Google account linked"))
         assertThat(accountRepository.linkCalls).containsExactly("id-token" to "raw-nonce")
         assertThat(viewModel.state.value.account).isEqualTo(linked)
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `switching to an existing Google account reports the signed-in email`() = runTest {
+        val owner = Account(id = "user-2", isAnonymous = false, email = "owner@example.com")
+        val accountRepository = FakeAccountRepository(
+            linkResult = Result.success(AccountLinkResult.SwitchedToExisting(owner)),
+        )
+        val googleSignInLauncher = FakeGoogleSignInLauncher(
+            result = GoogleSignInResult.Success(idToken = "id-token", rawNonce = "raw-nonce"),
+        )
+        val viewModel = buildViewModel(
+            accountRepository = accountRepository,
+            googleSignInLauncher = googleSignInLauncher,
+        )
+
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(effectDeferred.await())
+            .isEqualTo(SettingsUiEffect.ShowSuccess("Signed in as owner@example.com"))
+        assertThat(viewModel.state.value.account).isEqualTo(owner)
+        assertThat(viewModel.state.value.isLinkingAccount).isFalse()
+    }
+
+    @Test
+    fun `link intent is ignored once the account is linked`() = runTest {
+        val linked = Account(id = "user-1", isAnonymous = false, email = "someone@example.com")
+        val googleSignInLauncher = FakeGoogleSignInLauncher()
+        val viewModel = buildViewModel(
+            accountRepository = FakeAccountRepository(account = linked),
+            googleSignInLauncher = googleSignInLauncher,
+        )
+        assertThat(viewModel.state.value.account).isEqualTo(linked)
+
+        viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
+
+        assertThat(googleSignInLauncher.signInCalls).isEmpty()
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
 
@@ -626,8 +671,8 @@ private class FakeNotificationPermission(var granted: Boolean = true) : Notifica
 
 private class FakeAccountRepository(
     private val account: Account? = null,
-    private val linkResult: Result<Account> = Result.success(
-        Account(id = "user-1", isAnonymous = false, email = "someone@example.com"),
+    private val linkResult: Result<AccountLinkResult> = Result.success(
+        AccountLinkResult.Linked(Account(id = "user-1", isAnonymous = false, email = "someone@example.com")),
     ),
 ) : AccountRepository {
 
@@ -636,7 +681,7 @@ private class FakeAccountRepository(
 
     override suspend fun currentAccount(): Account? = account
 
-    override suspend fun linkGoogleAccount(idToken: String, rawNonce: String): Account {
+    override suspend fun linkGoogleAccount(idToken: String, rawNonce: String): AccountLinkResult {
         linkCalls = linkCalls + (idToken to rawNonce)
         return linkResult.getOrThrow()
     }
