@@ -1,10 +1,12 @@
 package com.emm.hello.startup
 
+import androidx.annotation.StringRes
 import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.seed.SeedDataInitializer
+import com.emm.hello.R
 import com.emm.hello.logging.logError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +50,7 @@ class AppStartupCoordinator(
                     requeuePendingEnrichments()
                 }.onFailure { error ->
                     logError(TAG, "start:error ${error.message}", error)
-                    mutableState.value = AppStartupState.Error(message = error.toStartupMessage())
+                    mutableState.value = AppStartupState.Error(messageRes = error.toStartupMessageRes())
                 }
             }
         }
@@ -62,15 +64,16 @@ class AppStartupCoordinator(
     }
 }
 
-private fun Throwable.toStartupMessage(): String = when (this) {
-    is TimeoutCancellationException -> "The app took too long to start."
-    else -> "Couldn't prepare the app's local mode."
+@StringRes
+private fun Throwable.toStartupMessageRes(): Int = when (this) {
+    is TimeoutCancellationException -> R.string.startup_error_timeout
+    else -> R.string.startup_error_local_mode
 }
 
 sealed interface AppStartupState {
     data object Initializing : AppStartupState
     data class Ready(val hasSeenWelcome: Boolean) : AppStartupState
-    data class Error(val message: String) : AppStartupState
+    data class Error(@StringRes val messageRes: Int) : AppStartupState
 }
 
 internal const val STARTUP_TIMEOUT_MS: Long = 5_000L

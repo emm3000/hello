@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.settings
 
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.emm.data.export.BackupExporter
 import com.emm.data.export.BackupImporter
@@ -13,6 +14,7 @@ import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.hello.R
 import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.core.mvi.MviViewModel
@@ -23,8 +25,6 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
 private const val TAG = "SettingsViewModel"
-private const val GOOGLE_LINK_SUCCESS_MESSAGE = "Google account linked"
-private const val GOOGLE_LINK_ERROR_MESSAGE = "Couldn't link your Google account"
 
 @Suppress("LongParameterList")
 class SettingsViewModel(
@@ -38,9 +38,6 @@ class SettingsViewModel(
     private val linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
     private val googleSignInLauncher: GoogleSignInLauncher,
     private val googleServerClientId: String,
-    private val noGoogleAccountMessage: String,
-    private val googleLinkFailedMessage: String,
-    private val googleSignedInMessageTemplate: String,
     buildInfo: BuildInfo,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(buildInfo = buildInfo),
@@ -95,8 +92,8 @@ class SettingsViewModel(
             when (val result: GoogleSignInResult = googleSignInLauncher.signIn(googleServerClientId)) {
                 is GoogleSignInResult.Success -> linkGoogleAccount(result.idToken, result.rawNonce)
                 GoogleSignInResult.Cancelled -> setState { copy(isLinkingAccount = false) }
-                GoogleSignInResult.NoCredentials -> googleLinkFailed(noGoogleAccountMessage)
-                is GoogleSignInResult.Failure -> googleLinkFailed(googleLinkFailedMessage)
+                GoogleSignInResult.NoCredentials -> googleLinkFailed(R.string.settings_google_no_credentials)
+                is GoogleSignInResult.Failure -> googleLinkFailed(R.string.settings_google_link_failed)
             }
         }
     }
@@ -106,30 +103,34 @@ class SettingsViewModel(
             try {
                 val result: AccountLinkResult = linkGoogleAccountUseCase(idToken = idToken, rawNonce = rawNonce)
                 setState { copy(account = result.account, isLinkingAccount = false) }
-                sendEffect(SettingsUiEffect.ShowSuccess(linkSuccessMessage(result)))
+                sendEffect(linkSuccessEffect(result))
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
                 logError(TAG, "linkGoogleAccount:error ${error.message}", error)
                 setState { copy(isLinkingAccount = false) }
-                sendEffect(SettingsUiEffect.ShowError(GOOGLE_LINK_ERROR_MESSAGE))
+                sendEffect(SettingsUiEffect.ShowError(R.string.settings_google_link_failed))
             }
         }
     }
 
     private fun isAccountLinked(): Boolean = currentState.account?.isAnonymous == false
 
-    private fun linkSuccessMessage(result: AccountLinkResult): String = when (result) {
-        is AccountLinkResult.Linked -> GOOGLE_LINK_SUCCESS_MESSAGE
-        is AccountLinkResult.SwitchedToExisting -> signedInMessage(result.account.email)
+    private fun linkSuccessEffect(result: AccountLinkResult): SettingsUiEffect.ShowSuccess = when (result) {
+        is AccountLinkResult.Linked -> SettingsUiEffect.ShowSuccess(R.string.settings_google_link_success)
+        is AccountLinkResult.SwitchedToExisting -> signedInEffect(result.account.email)
     }
 
-    private fun signedInMessage(email: String?): String =
-        if (email == null) GOOGLE_LINK_SUCCESS_MESSAGE else googleSignedInMessageTemplate.format(email)
+    private fun signedInEffect(email: String?): SettingsUiEffect.ShowSuccess =
+        if (email == null) {
+            SettingsUiEffect.ShowSuccess(R.string.settings_google_link_success)
+        } else {
+            SettingsUiEffect.ShowSuccess(R.string.settings_google_signed_in_as, email)
+        }
 
-    private fun googleLinkFailed(message: String) {
+    private fun googleLinkFailed(@StringRes messageRes: Int) {
         setState { copy(isLinkingAccount = false) }
-        sendEffect(SettingsUiEffect.ShowError(message))
+        sendEffect(SettingsUiEffect.ShowError(messageRes))
     }
 
     private fun setReminderEnabled(isEnabled: Boolean) {
@@ -170,11 +171,11 @@ class SettingsViewModel(
             setState { copy(isExporting = true) }
             exportDataSource.export(uri)
                 .onSuccess {
-                    sendEffect(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
+                    sendEffect(SettingsUiEffect.ShowSuccess(R.string.settings_backup_exported))
                 }
                 .onFailure { error ->
                     logError(TAG, "export:error ${error.message}", error)
-                    sendEffect(SettingsUiEffect.ShowError("Couldn't export the backup"))
+                    sendEffect(SettingsUiEffect.ShowError(R.string.settings_backup_export_failed))
                 }
             setState { copy(isExporting = false) }
         }
@@ -188,11 +189,11 @@ class SettingsViewModel(
             setState { copy(isImporting = true) }
             importDataSource.import(uri)
                 .onSuccess {
-                    sendEffect(SettingsUiEffect.ShowSuccess("Backup restored"))
+                    sendEffect(SettingsUiEffect.ShowSuccess(R.string.settings_backup_restored))
                 }
                 .onFailure { error ->
                     logError(TAG, "import:error ${error.message}", error)
-                    sendEffect(SettingsUiEffect.ShowError(humanizeImportError(error)))
+                    sendEffect(SettingsUiEffect.ShowError(importErrorMessage(error)))
                 }
             setState { copy(isImporting = false, pendingImportUri = null) }
         }
@@ -202,10 +203,11 @@ class SettingsViewModel(
         setState { copy(isConfirmDialogVisible = false, pendingImportUri = null) }
     }
 
-    private fun humanizeImportError(error: Throwable): String = when {
+    @StringRes
+    private fun importErrorMessage(error: Throwable): Int = when {
         error is IncompatibleSchemaException || hasCause<IncompatibleSchemaException>(error) ->
-            "This backup was created with another version of the app. Update the app and try again."
-        else -> "Couldn't restore the backup."
+            R.string.settings_backup_incompatible
+        else -> R.string.settings_backup_restore_failed
     }
 
     private inline fun <reified T : Throwable> hasCause(error: Throwable): Boolean {

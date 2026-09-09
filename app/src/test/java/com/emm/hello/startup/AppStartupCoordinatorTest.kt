@@ -10,6 +10,7 @@ import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.localfirst.LocalIdentityState
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.seed.SeedDataInitializer
+import com.emm.hello.R
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -81,7 +82,7 @@ class AppStartupCoordinatorTest {
 
         assertThat(localIdentityInitializer.calls).isEqualTo(1)
         assertThat(subject.state.value).isEqualTo(
-            AppStartupState.Error("Couldn't prepare the app's local mode.")
+            AppStartupState.Error(R.string.startup_error_local_mode)
         )
     }
 
@@ -182,7 +183,7 @@ class AppStartupCoordinatorTest {
         advanceUntilIdle()
 
         assertThat(subject.state.value).isEqualTo(
-            AppStartupState.Error("Couldn't prepare the app's local mode.")
+            AppStartupState.Error(R.string.startup_error_local_mode)
         )
         assertThat(requeuedBatches).isEmpty()
     }
@@ -206,7 +207,7 @@ class AppStartupCoordinatorTest {
         advanceUntilIdle()
 
         assertThat(subject.state.value).isEqualTo(
-            AppStartupState.Error("The app took too long to start.")
+            AppStartupState.Error(R.string.startup_error_timeout)
         )
     }
 

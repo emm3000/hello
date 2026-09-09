@@ -1,0 +1,304 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Hello</string>
+
+    <!-- General -->
+    <string name="cancel">Cancelar</string>
+    <string name="accept">Aceptar</string>
+    <string name="save">Guardar</string>
+    <string name="retry">Reintentar</string>
+    <string name="error_label">Error</string>
+    <string name="success_label">Éxito</string>
+    <string name="warning_label">Aviso</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Borrar</string>
+    <string name="back_content_description">Volver</string>
+
+    <!-- Shared components -->
+    <string name="search_clear_content_description">Borrar búsqueda</string>
+    <string name="search_field_content_description">Campo de búsqueda</string>
+    <string name="tag_remove_content_description">Quitar %1$s</string>
+
+    <!-- Startup -->
+    <string name="startup_loading_title">Preparando tus datos locales…</string>
+    <string name="startup_loading_body">Enseguida abrimos tu biblioteca local.</string>
+    <string name="startup_error_title">No pudimos iniciar la app</string>
+    <string name="startup_error_timeout">La app tardó demasiado en iniciar.</string>
+    <string name="startup_error_local_mode">No pudimos preparar el modo local de la app.</string>
+
+    <!-- Today Screen -->
+    <string name="today_label">Hoy</string>
+    <string name="today_day_number">Día %1$d</string>
+    <plurals name="today_word_count">
+        <item quantity="one">%d palabra</item>
+        <item quantity="many">%d de palabras</item>
+        <item quantity="other">%d palabras</item>
+    </plurals>
+    <string name="today_estimate">unos %1$d min</string>
+    <string name="today_start">Empezar</string>
+    <string name="today_add_word">Agregar palabra</string>
+    <string name="today_library">Biblioteca</string>
+    <string name="today_nothing_due">Nada pendiente</string>
+    <string name="today_next_due_later_today">%1$s hoy más tarde</string>
+    <string name="today_next_due_tomorrow">%1$s mañana</string>
+    <plurals name="today_next_due_in_days">
+        <item quantity="one">%1$s en %2$d día</item>
+        <item quantity="many">%1$s en %2$d de días</item>
+        <item quantity="other">%1$s en %2$d días</item>
+    </plurals>
+    <string name="today_next_due_none">Nada programado aún</string>
+    <string name="today_ring_content_description" tools:ignore="PluralsCandidate">Progreso de hoy, %1$d por ciento</string>
+    <string name="today_get_new_words">Buscar palabras nuevas</string>
+
+    <!-- Decks Screen -->
+    <plurals name="cards_count">
+        <item quantity="one">%d tarjeta</item>
+        <item quantity="many">%d de tarjetas</item>
+        <item quantity="other">%d tarjetas</item>
+    </plurals>
+
+    <!-- New Deck Screen -->
+    <string name="deck_name_label">Nombre del mazo</string>
+    <string name="deck_name_placeholder">p. ej. Vocabulario de inglés B2</string>
+    <string name="deck_description_label">Descripción</string>
+    <string name="deck_description_placeholder">Un mazo para los verbos irregulares más comunes.</string>
+    <string name="optional">Opcional</string>
+    <string name="tags_label">Etiquetas</string>
+    <string name="tags_placeholder">p. ej. inglés, trabajo, viajes</string>
+    <string name="tags_supporting_text">Enter o coma para agregar. Minúsculas, sin duplicados.</string>
+    <string name="new_deck_top_label">Nuevo mazo</string>
+    <string name="new_deck_headline">Un mazo nuevo.</string>
+    <string name="edit_deck_top_label">Editar mazo</string>
+    <string name="edit_deck_headline">Editar mazo.</string>
+    <string name="new_deck_action_create">Crear</string>
+    <string name="new_deck_action_save">Guardar</string>
+    <string name="new_deck_close_content_description">Cerrar</string>
+
+    <!-- Deck Detail Screen -->
+    <string name="more_options">Más opciones</string>
+    <string name="delete_deck_title">Borrar mazo</string>
+    <string name="delete_deck_description">Se borrarán el mazo y sus tarjetas. Puedes deshacerlo enseguida.</string>
+
+    <!-- Flashcards -->
+    <string name="word_label">Palabra o frase en inglés</string>
+    <string name="meaning_label">Significado</string>
+    <string name="phonetics_label">Fonética</string>
+    <string name="translation_label">Traducción</string>
+    <string name="example_sentence_label">Frase de ejemplo</string>
+    <string name="example_translation_label">Traducción del ejemplo</string>
+
+    <!-- Study Screen -->
+    <string name="exit_session_desc">Terminar sesión</string>
+    <!-- Study Empty state -->
+    <string name="study_empty_headline">Nada que repasar hoy.</string>
+    <string name="study_empty_body">No hay tarjetas pendientes. Vuelve mañana para mantener el ritmo o agrega una palabra nueva.</string>
+    <string name="study_empty_create_card_cta">Agregar palabra</string>
+    <string name="study_recall_cta_reveal">Ver respuesta</string>
+    <string name="study_prompt_label">¿Qué significa?</string>
+    <string name="study_prompt_production">¿Cómo se dice?</string>
+    <string name="study_recall_hint">Intenta recordarlo primero.</string>
+    <string name="study_position">%1$d / %2$d</string>
+    <!-- Study Grade state -->
+    <string name="study_error_headline">No pudimos cargar tu sesión.</string>
+    <string name="study_error_body">Hubo un problema al leer tus tarjetas. Inténtalo de nuevo.</string>
+    <string name="study_error_retry">Reintentar</string>
+    <string name="stop_speech_desc">Detener pronunciación</string>
+    <string name="speak_desc">Reproducir pronunciación</string>
+    <string name="study_grade_forgot">Olvidé</string>
+    <string name="study_grade_knew">La sabía</string>
+    <string name="study_done_title">Listo por hoy.</string>
+    <string name="study_done_stats" tools:ignore="PluralsCandidate">%1$d repasadas · %2$d acertadas · %3$d para volver a ver</string>
+    <string name="study_done_get_new_words">Buscar palabras nuevas</string>
+    <string name="study_done_add_word">Agregar palabra</string>
+    <string name="study_done_back">Volver a Hoy</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Recordatorios de estudio</string>
+    <string name="notification_channel_description">Aviso diario cuando tengas tarjetas listas para repasar.</string>
+    <string name="notification_reminder_title">Tu repaso de hoy</string>
+    <plurals name="notification_reminder_body">
+        <item quantity="one">Tienes %1$d tarjeta para repasar hoy.</item>
+        <item quantity="many">Tienes %1$d de tarjetas para repasar hoy.</item>
+        <item quantity="other">Tienes %1$d tarjetas para repasar hoy.</item>
+    </plurals>
+
+    <!-- Settings Screen -->
+    <string name="export_data">Exportar datos</string>
+    <string name="restore_backup">Restaurar desde una copia</string>
+    <string name="restore_confirm_title">¿Reemplazar todos los datos?</string>
+    <string name="restore_confirm_description">Borrarás los datos actuales y los reemplazarás por la copia de seguridad. Esto no se puede deshacer. ¿Continuar?</string>
+    <string name="restore_confirm_yes">Reemplazar</string>
+    <string name="restore_confirm_no">Cancelar</string>
+    <string name="settings_eyebrow">Ajustes</string>
+    <string name="settings_headline">Como tú quieres que funcione.</string>
+    <string name="settings_subtitle">Local y a tu ritmo.</string>
+    <string name="settings_section_data">Tus datos</string>
+    <string name="settings_export_subtitle">Crea un archivo .hello para guardarlo donde quieras.</string>
+    <string name="settings_import_subtitle">Reemplaza todo lo que tienes ahora.</string>
+    <string name="settings_backup_exported">Copia de seguridad exportada</string>
+    <string name="settings_backup_export_failed">No pudimos exportar la copia de seguridad</string>
+    <string name="settings_backup_restored">Copia de seguridad restaurada</string>
+    <string name="settings_backup_incompatible">Esta copia de seguridad se creó con otra versión de la app. Actualiza la app e inténtalo de nuevo.</string>
+    <string name="settings_backup_restore_failed">No pudimos restaurar la copia de seguridad.</string>
+    <string name="settings_footer_tagline">hecho con tinta y café</string>
+    <string name="settings_footer_meta">hello · 2026</string>
+    <string name="settings_content_description">Ajustes</string>
+    <string name="mic_permission_denied">Necesitamos permiso del micrófono para dictar.</string>
+    <string name="speech_error_not_heard">No te escuchamos. Prueba a hablar más cerca del micrófono.</string>
+    <string name="speech_error_no_connection">Sin conexión. El dictado por voz necesita internet.</string>
+    <string name="speech_error_microphone_unavailable">No pudimos acceder al micrófono.</string>
+    <string name="speech_error_permission_missing">Falta el permiso del micrófono.</string>
+    <string name="speech_error_recognizer_busy">El dictado está ocupado, espera un momento.</string>
+    <string name="speech_error_unavailable">El dictado por voz no está disponible en este dispositivo.</string>
+
+
+    <!-- Flashcard edit/delete -->
+    <string name="edit_flashcard_title">Editar tarjeta</string>
+    <string name="edit_flashcard_word_placeholder">p. ej. serendipity</string>
+    <string name="edit_flashcard_meaning_placeholder">Definición en inglés</string>
+    <string name="edit_flashcard_translation_placeholder">Traducción al español</string>
+    <string name="edit_flashcard_phonetic_placeholder">p. ej. /ˌserənˈdɪpɪti/</string>
+    <string name="edit_flashcard_part_of_speech_placeholder">p. ej. sustantivo, verbo</string>
+    <string name="delete_flashcard_title">Borrar tarjeta</string>
+    <string name="delete_flashcard_description">Se borrarán la tarjeta y sus datos. Puedes deshacerlo enseguida.</string>
+    <string name="edit_flashcard_action_save">Guardar</string>
+    <string name="edit_flashcard_close_content_description">Cerrar</string>
+    <string name="edit_flashcard_delete_action">Borrar tarjeta</string>
+    <string name="part_of_speech_label">Categoría gramatical</string>
+
+    <!-- Undo snackbar -->
+    <string name="undo_action_label">Deshacer</string>
+    <string name="undo_deck_deleted_message">Mazo \"%1$s\" borrado</string>
+    <string name="undo_card_deleted_message">Tarjeta borrada</string>
+
+    <!-- Deck/card feedback (errors, validation, success) -->
+    <string name="error_load_card">No pudimos cargar la tarjeta</string>
+    <string name="error_save_card">No pudimos actualizar la tarjeta</string>
+    <string name="error_delete_card">No pudimos borrar la tarjeta</string>
+    <string name="error_restore_card">No pudimos restaurar la tarjeta</string>
+    <string name="validation_word_required">La palabra es obligatoria</string>
+    <string name="error_load_deck">No pudimos cargar el mazo</string>
+    <string name="error_create_deck">No pudimos crear el mazo</string>
+    <string name="error_update_deck">No pudimos actualizar el mazo</string>
+    <string name="error_delete_deck">No pudimos borrar el mazo</string>
+    <string name="deck_created_message">Mazo creado</string>
+    <string name="deck_updated_message">Mazo actualizado</string>
+    <string name="card_updated_message">Tarjeta actualizada</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_headline">Guarda las palabras que encuentres.</string>
+    <string name="onboarding_body">Nosotros hacemos que se queden.</string>
+    <string name="onboarding_cta_start">Empezar</string>
+    <string name="onboarding_seed_deck_name">Primeras palabras</string>
+
+    <!-- Capture -->
+    <string name="capture_title">Agregar palabra</string>
+    <string name="capture_placeholder">Escribe una palabra</string>
+    <string name="capture_mic_content_description">Dictar la palabra</string>
+    <string name="capture_save">Guardar</string>
+    <string name="capture_saved_message">Guardada. La estamos preparando.</string>
+    <string name="capture_saved_ready_message">Guardada. Lista para estudiar.</string>
+    <string name="capture_retry">Reintentar</string>
+    <string name="capture_manual_toggle_write">Escribirla yo</string>
+    <string name="capture_manual_toggle_ai">Que la escriba la IA</string>
+    <string name="capture_manual_translation_label">Traducción al español</string>
+    <string name="capture_manual_translation_placeholder">p. ej. rendirse</string>
+    <string name="capture_manual_meaning_label">Significado en inglés (opcional)</string>
+    <string name="capture_manual_meaning_placeholder">Una definición corta</string>
+    <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
+    <string name="capture_error_empty">Escribe una palabra primero.</string>
+    <string name="capture_error_translation_required">Agrega la traducción al español</string>
+    <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
+    <string name="capture_error_retry">No pudimos reintentar ahora.</string>
+    <string name="capture_done">Listo</string>
+    <string name="capture_recent_label">Tu última:</string>
+    <string name="capture_status_preparing">Preparando…</string>
+    <string name="capture_status_waiting_for_connection">Esperando conexión</string>
+    <string name="capture_status_ready">Lista</string>
+    <string name="capture_status_failed">Falló</string>
+    <string name="capture_deck_label">Guardando en</string>
+    <string name="capture_deck_picker_content_description">Cambiar el mazo</string>
+
+    <string name="library_title">Biblioteca</string>
+    <string name="library_search_placeholder">Buscar</string>
+    <string name="library_search_clear_content_description">Borrar la búsqueda</string>
+    <string name="library_search_icon_content_description">Buscar en la biblioteca</string>
+    <plurals name="library_card_counter">
+        <item quantity="one">%1$d palabra</item>
+        <item quantity="many">%1$d de palabras</item>
+        <item quantity="other">%1$d palabras</item>
+    </plurals>
+    <string name="library_chip_all">Todas</string>
+    <string name="library_status_pending">Preparando…</string>
+    <string name="library_status_failed">Falló</string>
+    <string name="library_empty_headline">Todavía no tienes</string>
+    <string name="library_empty_accent_word">tarjetas.</string>
+    <string name="library_empty_body">Agrega una palabra y aparecerá aquí, lista para estudiar.</string>
+    <string name="library_empty_cta">Agregar palabra</string>
+    <string name="library_no_results_headline">Sin resultados</string>
+    <string name="library_no_results_body">Ninguna tarjeta coincide con tu búsqueda.</string>
+    <string name="library_no_results_cta">Quitar filtros</string>
+    <string name="library_schedule_new">nueva</string>
+    <string name="library_schedule_due_today">pendiente hoy</string>
+    <plurals name="library_schedule_in_days">
+        <item quantity="one">en %1$d día</item>
+        <item quantity="many">en %1$d de días</item>
+        <item quantity="other">en %1$d días</item>
+    </plurals>
+    <string name="delete_deck_action">Borrar mazo</string>
+    <string name="decks_title">Mazos</string>
+    <string name="decks_create_action">Nuevo mazo</string>
+    <string name="decks_empty_headline">Todavía no hay mazos</string>
+    <string name="decks_empty_body">Un mazo agrupa tarjetas. Es opcional: puedes capturar sin crear ninguno.</string>
+    <string name="decks_store_action">Tienda</string>
+    <string name="store_title">Tienda</string>
+    <string name="store_headline">Mazos seleccionados</string>
+    <string name="store_intro">Mazos hechos a mano que pasan los mismos controles que cada tarjeta de IA. Instala uno y estúdialo como si fuera tuyo.</string>
+    <string name="store_install">Instalar</string>
+    <string name="store_open_deck">Abrir mazo</string>
+    <string name="store_installed">Instalado</string>
+    <string name="store_install_failed">No se pudo instalar el mazo. Inténtalo de nuevo.</string>
+    <string name="store_level_a1_a2">A1–A2</string>
+    <string name="store_level_b1_b2">B1–B2</string>
+    <string name="store_level_c1_plus">C1+</string>
+    <string name="settings_section_organization">Organización</string>
+    <string name="settings_decks_subtitle">Crea, renombra o borra mazos</string>
+    <string name="settings_section_reminders">Recordatorios</string>
+    <string name="settings_study_reminder_title">Recordatorio diario de estudio</string>
+    <string name="settings_study_reminder_subtitle">Todos los días a las %1$s</string>
+    <string name="settings_notifications_blocked">Las notificaciones están bloqueadas. Toca para permitirlas en los ajustes del sistema.</string>
+    <string name="settings_reminder_time_title">Hora del recordatorio</string>
+    <string name="settings_section_account">Cuenta</string>
+    <string name="settings_google_account_title">Cuenta de Google</string>
+    <string name="settings_google_account_linked">Vinculada</string>
+    <string name="settings_google_account_not_linked">Sin vincular — tu cupo diario de IA está ligado a esta instalación</string>
+    <string name="settings_google_signed_in_as">Sesión iniciada como %1$s</string>
+    <string name="settings_google_no_credentials">No hay ninguna cuenta de Google en este dispositivo</string>
+    <string name="settings_google_link_failed">No pudimos vincular tu cuenta de Google</string>
+    <string name="settings_google_link_success">Cuenta de Google vinculada</string>
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_build_title">Compilación</string>
+    <string name="settings_build_copied">Copiado</string>
+    <string name="error_restore_deck">No pudimos restaurar el mazo</string>
+
+    <!-- Suggest -->
+    <string name="suggest_eyebrow">Palabras nuevas</string>
+    <string name="suggest_loading">Buscando palabras para ti…</string>
+    <string name="suggest_pick_some">Elige las palabras que quieras</string>
+    <string name="suggest_not_now">Ahora no</string>
+    <string name="suggest_retry">Inténtalo de nuevo</string>
+    <string name="suggest_error_title">No encontramos palabras</string>
+    <string name="suggest_error_body">Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="suggest_offline_title">Estás sin conexión</string>
+    <string name="suggest_offline_body">Puedes seguir estudiando lo que ya tienes. Vuelve por palabras nuevas cuando tengas conexión.</string>
+    <string name="suggest_empty_title">Nada nuevo que agregar</string>
+    <string name="suggest_empty_body">Ya conoces estas. Prueba con otra situación.</string>
+    <string name="suggest_added">Palabras agregadas. Estarán listas para estudiar pronto.</string>
+    <string name="suggest_all_known">Esas palabras ya están en tu mazo.</string>
+    <string name="suggest_error_add">No pudimos agregar las palabras. Inténtalo de nuevo.</string>
+    <string name="suggest_error_no_deck">Crea un mazo primero.</string>
+    <plurals name="suggest_add_selected">
+        <item quantity="one">Agregar %1$d palabra</item>
+        <item quantity="many">Agregar %1$d de palabras</item>
+        <item quantity="other">Agregar %1$d palabras</item>
+    </plurals>
+</resources>

@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.card
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.ids.toFlashcardId
+import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
@@ -44,7 +45,7 @@ class FlashcardDetailViewModel(
                 throw e
             } catch (e: Throwable) {
                 logError(TAG, "loadFlashcard:error ${e.message}", e)
-                sendEffect(FlashcardDetailUiEffect.LoadFailed("Couldn't load the card"))
+                sendEffect(FlashcardDetailUiEffect.LoadFailed(R.string.error_load_card))
             }
         }
     }
@@ -61,9 +62,7 @@ class FlashcardDetailViewModel(
             throw e
         } catch (e: Throwable) {
             logError(TAG, "deleteFlashcard:error ${e.message}", e)
-            sendEffect(
-                FlashcardDetailUiEffect.ShowMessage("Couldn't delete the card")
-            )
+            sendEffect(FlashcardDetailUiEffect.ShowMessage(R.string.error_delete_card))
         }
     }
 }

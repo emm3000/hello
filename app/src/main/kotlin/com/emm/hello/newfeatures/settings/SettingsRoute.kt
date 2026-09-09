@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.settings
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -19,6 +20,7 @@ import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -43,6 +45,7 @@ fun SettingsDestination(navigator: Navigator) {
     val scope = rememberCoroutineScope()
     val context: Context = LocalContext.current
     val clipboard: Clipboard = LocalClipboard.current
+    val resources: Resources = LocalResources.current
     val copiedMessage: String = stringResource(R.string.settings_build_copied)
     val buildClipLabel: String = stringResource(R.string.settings_build_title)
 
@@ -70,10 +73,14 @@ fun SettingsDestination(navigator: Navigator) {
         vm.effect.collect { effect ->
             when (effect) {
                 is SettingsUiEffect.ShowSuccess -> {
-                    scope.launch { snackbarHostState.showSnackbar(effect.message) }
+                    val message: String = effect.formatArg
+                        ?.let { resources.getString(effect.messageRes, it) }
+                        ?: resources.getString(effect.messageRes)
+                    scope.launch { snackbarHostState.showSnackbar(message) }
                 }
                 is SettingsUiEffect.ShowError -> {
-                    scope.launch { snackbarHostState.showSnackbar(effect.message) }
+                    val message: String = resources.getString(effect.messageRes)
+                    scope.launch { snackbarHostState.showSnackbar(message) }
                 }
                 SettingsUiEffect.LaunchExportPicker -> {
                     exportLauncher.launch("hello-backup-${System.currentTimeMillis()}.json")

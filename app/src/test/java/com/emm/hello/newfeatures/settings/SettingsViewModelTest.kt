@@ -16,6 +16,7 @@ import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.R
 import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.notifications.NotificationPermission
@@ -33,9 +34,6 @@ import org.junit.Rule
 import org.junit.Test
 
 private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
-private const val NO_GOOGLE_ACCOUNT_MESSAGE = "No Google account on this device"
-private const val GOOGLE_LINK_FAILED_MESSAGE = "Couldn't link your Google account"
-private const val SIGNED_IN_AS_TEMPLATE = "Signed in as %1\$s"
 private val testBuildInfo = BuildInfo(versionName = "1.0.0", versionCode = 142, commit = "abc1234")
 
 class SettingsViewModelTest {
@@ -69,7 +67,6 @@ class SettingsViewModelTest {
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
         accountRepository: AccountRepository = FakeAccountRepository(),
         googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
-        googleSignedInMessageTemplate: String = SIGNED_IN_AS_TEMPLATE,
         buildInfo: BuildInfo = testBuildInfo,
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
@@ -82,9 +79,6 @@ class SettingsViewModelTest {
         LinkGoogleAccountUseCase(accountRepository),
         googleSignInLauncher,
         GOOGLE_SERVER_CLIENT_ID,
-        NO_GOOGLE_ACCOUNT_MESSAGE,
-        GOOGLE_LINK_FAILED_MESSAGE,
-        googleSignedInMessageTemplate,
         buildInfo,
     )
 
@@ -100,7 +94,7 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.ExportUriReceived(uri))
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup exported successfully"))
+        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess(R.string.settings_backup_exported))
         assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
@@ -117,7 +111,8 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
-        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't export the backup")
+        assertThat((effect as SettingsUiEffect.ShowError).messageRes)
+            .isEqualTo(R.string.settings_backup_export_failed)
         assertThat(viewModel.state.value.isExporting).isFalse()
     }
 
@@ -148,7 +143,7 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.ConfirmImport)
 
         val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess("Backup restored"))
+        assertThat(effect).isEqualTo(SettingsUiEffect.ShowSuccess(R.string.settings_backup_restored))
         assertThat(viewModel.state.value.isConfirmDialogVisible).isFalse()
         assertThat(viewModel.state.value.isImporting).isFalse()
         assertThat(viewModel.state.value.pendingImportUri).isNull()
@@ -168,7 +163,8 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
-        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't restore the backup.")
+        assertThat((effect as SettingsUiEffect.ShowError).messageRes)
+            .isEqualTo(R.string.settings_backup_restore_failed)
         assertThat(viewModel.state.value.isConfirmDialogVisible).isFalse()
     }
 
@@ -304,9 +300,6 @@ class SettingsViewModelTest {
             LinkGoogleAccountUseCase(FakeAccountRepository()),
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
-            NO_GOOGLE_ACCOUNT_MESSAGE,
-            GOOGLE_LINK_FAILED_MESSAGE,
-            SIGNED_IN_AS_TEMPLATE,
             testBuildInfo,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
@@ -393,9 +386,6 @@ class SettingsViewModelTest {
             LinkGoogleAccountUseCase(FakeAccountRepository()),
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
-            NO_GOOGLE_ACCOUNT_MESSAGE,
-            GOOGLE_LINK_FAILED_MESSAGE,
-            SIGNED_IN_AS_TEMPLATE,
             testBuildInfo,
         )
 
@@ -459,7 +449,8 @@ class SettingsViewModelTest {
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
 
-        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowSuccess("Google account linked"))
+        assertThat(effectDeferred.await())
+            .isEqualTo(SettingsUiEffect.ShowSuccess(R.string.settings_google_link_success))
         assertThat(accountRepository.linkCalls).containsExactly("id-token" to "raw-nonce")
         assertThat(viewModel.state.value.account).isEqualTo(linked)
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
@@ -483,7 +474,7 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
 
         assertThat(effectDeferred.await())
-            .isEqualTo(SettingsUiEffect.ShowSuccess("Signed in as owner@example.com"))
+            .isEqualTo(SettingsUiEffect.ShowSuccess(R.string.settings_google_signed_in_as, "owner@example.com"))
         assertThat(viewModel.state.value.account).isEqualTo(owner)
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
@@ -520,7 +511,8 @@ class SettingsViewModelTest {
 
         val effect = effectDeferred.await()
         assertThat(effect).isInstanceOf(SettingsUiEffect.ShowError::class.java)
-        assertThat((effect as SettingsUiEffect.ShowError).message).isEqualTo("Couldn't link your Google account")
+        assertThat((effect as SettingsUiEffect.ShowError).messageRes)
+            .isEqualTo(R.string.settings_google_link_failed)
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
 
@@ -545,7 +537,8 @@ class SettingsViewModelTest {
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
 
-        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowError(NO_GOOGLE_ACCOUNT_MESSAGE))
+        assertThat(effectDeferred.await())
+            .isEqualTo(SettingsUiEffect.ShowError(R.string.settings_google_no_credentials))
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
 
@@ -559,7 +552,8 @@ class SettingsViewModelTest {
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(SettingsUiIntent.LinkGoogleAccount)
 
-        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.ShowError(GOOGLE_LINK_FAILED_MESSAGE))
+        assertThat(effectDeferred.await())
+            .isEqualTo(SettingsUiEffect.ShowError(R.string.settings_google_link_failed))
         assertThat(viewModel.state.value.isLinkingAccount).isFalse()
     }
 

@@ -16,8 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.surface
 
@@ -31,8 +33,8 @@ fun HAlertDialog(
     modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
-    confirmText: String = "Accept",
-    cancelText: String? = "Cancel",
+    confirmText: String = stringResource(R.string.accept),
+    cancelText: String? = stringResource(R.string.cancel),
     isDangerous: Boolean = false,
 ) {
     AlertDialog(

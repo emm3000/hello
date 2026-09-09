@@ -30,10 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.hairline
 import com.emm.hello.core.theme.helloShapes
@@ -54,10 +56,11 @@ fun HSearchBar(
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    clearContentDescription: String = "Clear search",
+    clearContentDescription: String = stringResource(R.string.search_clear_content_description),
     leadingIconContentDescription: String? = null,
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    val fieldContentDescription: String = stringResource(R.string.search_field_content_description)
 
     val borderColor by animateColorAsState(
         targetValue = if (isFocused) ink else hairline,
@@ -82,7 +85,7 @@ fun HSearchBar(
             )
             .background(surface)
             .padding(horizontal = MaterialTheme.spacing.md)
-            .semantics { contentDescription = "Search field" },
+            .semantics { contentDescription = fieldContentDescription },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {

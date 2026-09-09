@@ -1,10 +1,13 @@
 package com.emm.hello.newfeatures.card
 
+import android.content.Context
+import android.content.res.Resources
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
@@ -22,7 +25,8 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
     )
 
     val uiState by vm.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val context: Context = LocalContext.current
+    val resources: Resources = LocalResources.current
 
     LaunchedEffect(Unit) {
         vm.onIntent(FlashcardDetailUiIntent.Load)
@@ -32,7 +36,7 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
         vm.effect.collect { effect ->
             when (effect) {
                 is FlashcardDetailUiEffect.LoadFailed -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                     navigator.goBack()
                 }
                 FlashcardDetailUiEffect.NavigateBack -> navigator.goBack()
@@ -41,7 +45,7 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
                 }
                 FlashcardDetailUiEffect.FlashcardDeleted -> navigator.goBack()
                 is FlashcardDetailUiEffect.ShowMessage -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
             }
         }

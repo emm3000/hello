@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -17,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -25,6 +27,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.emm.hello.R
 import com.emm.hello.core.ui.AlertVariant
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HAlert
@@ -70,7 +73,7 @@ fun NewRoot(
     when (val startupState = startupViewModel.state.collectAsStateWithLifecycle().value) {
         AppStartupState.Initializing -> StartupLoadingScreen()
         is AppStartupState.Error -> StartupErrorScreen(
-            message = startupState.message,
+            messageRes = startupState.messageRes,
             onRetry = startupViewModel::retry,
         )
         is AppStartupState.Ready -> AppNavigation(
@@ -168,12 +171,12 @@ private fun StartupLoadingScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Preparando tus datos locales...",
+                text = stringResource(R.string.startup_loading_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = "Enseguida abrimos tu biblioteca local.",
+                text = stringResource(R.string.startup_loading_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -183,7 +186,7 @@ private fun StartupLoadingScreen() {
 
 @Composable
 private fun StartupErrorScreen(
-    message: String,
+    @StringRes messageRes: Int,
     onRetry: () -> Unit,
 ) {
     Box(
@@ -195,12 +198,12 @@ private fun StartupErrorScreen(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             HAlert(
-                title = "Couldn't initialize the app",
-                description = message,
+                title = stringResource(R.string.startup_error_title),
+                description = stringResource(messageRes),
                 variant = AlertVariant.Destructive,
             )
             HButton(
-                text = "Retry",
+                text = stringResource(R.string.retry),
                 onClick = onRetry,
                 variant = HButtonVariant.Primary,
             )

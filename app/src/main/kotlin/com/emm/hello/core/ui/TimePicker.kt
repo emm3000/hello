@@ -16,9 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.onInk
@@ -34,9 +36,9 @@ fun HTimePickerDialog(
     onConfirm: (LocalTime) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    title: String = "Reminder time",
-    confirmText: String = "Save",
-    cancelText: String = "Cancel",
+    title: String = stringResource(R.string.settings_reminder_time_title),
+    confirmText: String = stringResource(R.string.save),
+    cancelText: String = stringResource(R.string.cancel),
 ) {
     val state: TimePickerState = rememberTimePickerState(
         initialHour = initialTime.hour,

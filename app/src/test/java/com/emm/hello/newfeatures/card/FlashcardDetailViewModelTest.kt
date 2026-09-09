@@ -13,6 +13,7 @@ import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.time.SystemClock
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.R
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.Flow
@@ -96,7 +97,8 @@ class FlashcardDetailViewModelTest {
         viewModel.effect.test {
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(FlashcardDetailUiEffect.LoadFailed::class.java)
-            assertThat((effect as FlashcardDetailUiEffect.LoadFailed).message).isEqualTo("Couldn't load the card")
+            assertThat((effect as FlashcardDetailUiEffect.LoadFailed).messageRes)
+                .isEqualTo(R.string.error_load_card)
         }
     }
 
