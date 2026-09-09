@@ -8,6 +8,8 @@ import com.emm.hello.core.mvi.MviState
 data class CaptureUiState(
     val word: String = "",
     val targetDeck: Deck? = null,
+    val decks: List<Deck> = emptyList(),
+    val isDeckPickerOpen: Boolean = false,
     val isSaving: Boolean = false,
     val pending: Int = 0,
     val failed: Int = 0,

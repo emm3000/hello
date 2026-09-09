@@ -3,6 +3,7 @@ package com.emm.data.seed
 import com.emm.data.remote.DataStore
 import com.emm.domain.deck.CreateDeckInput
 import com.emm.domain.deck.DeckRepository
+import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardRepository
@@ -21,6 +22,7 @@ class DefaultSeedDataInitializer(
     private val deckRepository: DeckRepository,
     private val flashcardRepository: FlashcardRepository,
     private val dataStore: DataStore,
+    private val deckSelectionRepository: DefaultDeckSelectionRepository,
     private val deckName: String,
 ) : SeedDataInitializer {
 
@@ -43,6 +45,7 @@ class DefaultSeedDataInitializer(
                 id = deckId,
             ),
         )
+        deckSelectionRepository.setDefaultDeckId(deckId)
         STARTER_CARDS.forEach { card ->
             val flashcardId: FlashcardId = UUID.randomUUID().toString().toFlashcardId()
             flashcardRepository.create(

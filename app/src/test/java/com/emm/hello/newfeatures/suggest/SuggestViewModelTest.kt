@@ -221,6 +221,28 @@ class SuggestViewModelTest {
         assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
     }
 
+    @Test
+    fun `with no default selected the words go to the oldest deck and not the newest`() = runTest {
+        val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
+        coEvery {
+            captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
+        } returns CARD_ID_A
+        val viewModel = buildViewModel(
+            captureFlashcardUseCase = captureFlashcardUseCase,
+            decks = listOf(newestDeck(), deck()),
+            defaultDeckId = null,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.AddSelected)
+        advanceUntilIdle()
+
+        coVerify {
+            captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
+        }
+    }
+
     private fun buildViewModel(
         suggestWordsUseCase: SuggestWordsUseCase = defaultSuggestWordsUseCase(),
         captureFlashcardUseCase: CaptureFlashcardUseCase = mockk(),
@@ -249,13 +271,23 @@ class SuggestViewModelTest {
         return useCase
     }
 
-    private fun deck(): Deck = Deck(
-        id = DECK_ID,
-        name = "Primeras palabras",
+    private fun deck(
+        id: DeckId = DECK_ID,
+        name: String = "Primeras palabras",
+        createdAt: LocalDateTime = LocalDateTime.of(2026, 1, 1, 0, 0),
+    ): Deck = Deck(
+        id = id,
+        name = name,
         description = "",
-        createdAt = LocalDateTime.of(2026, 1, 1, 0, 0),
+        createdAt = createdAt,
         cards = emptyList(),
         cardsCount = 0L,
+    )
+
+    private fun newestDeck(): Deck = deck(
+        id = NEWEST_DECK_ID,
+        name = "Job interview",
+        createdAt = LocalDateTime.of(2026, 6, 1, 0, 0),
     )
 
     private class FakeConnectivityRepository(online: Boolean = true) : ConnectivityRepository {
@@ -273,6 +305,7 @@ class SuggestViewModelTest {
         val WORD_A: SuggestedWord = SuggestedWord(word = "borrow", translation = "prestar")
         val WORD_B: SuggestedWord = SuggestedWord(word = "receipt", translation = "recibo")
         val DECK_ID: DeckId = "deck-1".toDeckId()
+        val NEWEST_DECK_ID: DeckId = "deck-2".toDeckId()
         val CARD_ID_A: FlashcardId = "card-a".toFlashcardId()
         val CARD_ID_B: FlashcardId = "card-b".toFlashcardId()
     }

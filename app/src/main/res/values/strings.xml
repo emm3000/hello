@@ -190,6 +190,8 @@
     <string name="capture_status_waiting_for_connection">Waiting for connection</string>
     <string name="capture_status_ready">Ready</string>
     <string name="capture_status_failed">Failed</string>
+    <string name="capture_deck_label">Saving to</string>
+    <string name="capture_deck_picker_content_description">Change the deck</string>
 
     <string name="library_title">Library</string>
     <string name="library_search_placeholder">Search</string>

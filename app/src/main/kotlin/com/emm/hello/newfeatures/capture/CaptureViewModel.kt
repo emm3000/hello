@@ -39,7 +39,7 @@ class CaptureViewModel(
 
     init {
         getDecksUseCase()
-            .onEach { decks -> setState { copy(targetDeck = resolveTargetDeck(decks)) } }
+            .onEach { decks -> setState { copy(decks = decks, targetDeck = resolveTargetDeck(decks)) } }
             .launchIn(viewModelScope)
 
         enrichmentRepository.observeBacklog()
@@ -63,12 +63,25 @@ class CaptureViewModel(
             is CaptureUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             CaptureUiIntent.Submit -> handleSubmit()
             CaptureUiIntent.RetryFailed -> handleRetryFailed()
+            CaptureUiIntent.DeckPickerOpened -> setState { copy(isDeckPickerOpen = true) }
+            CaptureUiIntent.DeckPickerDismissed -> setState { copy(isDeckPickerOpen = false) }
+            is CaptureUiIntent.DeckSelected -> selectDeck(intent.deckId)
         }
     }
 
     private fun resolveTargetDeck(decks: List<Deck>): Deck? {
         val defaultDeckId: DeckId? = defaultDeckSelectionRepository.getDefaultDeckId()
-        return decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
+        return decks.find { it.id == defaultDeckId } ?: decks.minByOrNull(Deck::createdAt)
+    }
+
+    private fun selectDeck(deckId: DeckId) {
+        val selected: Deck? = currentState.decks.find { it.id == deckId }
+        if (selected == null) {
+            setState { copy(isDeckPickerOpen = false) }
+            return
+        }
+        defaultDeckSelectionRepository.setDefaultDeckId(deckId)
+        setState { copy(targetDeck = selected, isDeckPickerOpen = false) }
     }
 
     private fun toggleManualMode() = setState {

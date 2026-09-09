@@ -76,7 +76,7 @@ class SuggestViewModel(
 
     private fun resolveTargetDeck(decks: List<Deck>): Deck? {
         val defaultDeckId: DeckId? = defaultDeckSelectionRepository.getDefaultDeckId()
-        return decks.find { it.id == defaultDeckId } ?: decks.firstOrNull()
+        return decks.find { it.id == defaultDeckId } ?: decks.minByOrNull(Deck::createdAt)
     }
 
     private fun handleAddSelected() = viewModelScope.launch {

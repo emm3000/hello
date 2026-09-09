@@ -212,6 +212,7 @@ fun Module.repository() {
             deckRepository = get(),
             flashcardRepository = get(),
             dataStore = get(),
+            deckSelectionRepository = get(),
             deckName = androidContext().getString(R.string.onboarding_seed_deck_name),
         )
     }

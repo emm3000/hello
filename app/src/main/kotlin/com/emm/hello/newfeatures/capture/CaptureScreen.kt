@@ -1,5 +1,6 @@
 package com.emm.hello.newfeatures.capture
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -30,7 +33,9 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.R
 import androidx.annotation.StringRes
@@ -42,8 +47,11 @@ import com.emm.hello.core.theme.inkSoft
 import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
+import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HFieldVariant
 import com.emm.hello.core.ui.HInput
+import com.emm.hello.core.ui.HMenuItem
+import java.time.LocalDateTime
 import kotlinx.coroutines.launch
 
 @Composable
@@ -110,6 +118,8 @@ private fun CaptureContent(
     ) {
         CaptureHeader(onNavigateBack = onNavigateBack)
 
+        CaptureDestination(state = state, onIntent = onIntent)
+
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
@@ -166,6 +176,56 @@ private fun CaptureContent(
             isLoading = state.isSaving,
             variant = HButtonVariant.Primary,
             full = true,
+        )
+    }
+}
+
+@Composable
+private fun CaptureDestination(
+    state: CaptureUiState,
+    onIntent: (CaptureUiIntent) -> Unit,
+) {
+    val targetDeck: Deck = state.targetDeck ?: return
+    if (state.decks.size <= 1) return
+
+    Box {
+        Row(
+            modifier = Modifier
+                .heightIn(min = 44.dp)
+                .clickable(
+                    onClickLabel = stringResource(R.string.capture_deck_picker_content_description),
+                    onClick = { onIntent(CaptureUiIntent.DeckPickerOpened) },
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.capture_deck_label),
+                fontFamily = schibsted,
+                fontWeight = FontWeight.Normal,
+                fontSize = 13.sp,
+                color = inkSoft,
+            )
+
+            Text(
+                text = targetDeck.name,
+                fontFamily = schibsted,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+                color = ink,
+            )
+        }
+
+        HDropdownMenu(
+            expanded = state.isDeckPickerOpen,
+            onDismissRequest = { onIntent(CaptureUiIntent.DeckPickerDismissed) },
+            items = state.decks.map { candidate ->
+                HMenuItem(
+                    label = candidate.name,
+                    onClick = { onIntent(CaptureUiIntent.DeckSelected(candidate.id)) },
+                    icon = if (candidate.id == targetDeck.id) Icons.Outlined.Check else null,
+                )
+            },
         )
     }
 }
@@ -289,6 +349,24 @@ private fun EnrichmentStatus.labelRes(isOnline: Boolean): Int = when (this) {
     EnrichmentStatus.FAILED -> R.string.capture_status_failed
 }
 
+private val previewStarterDeck: Deck = Deck(
+    id = "deck-1".toDeckId(),
+    name = "Primeras palabras",
+    description = "",
+    createdAt = LocalDateTime.of(2026, 1, 1, 0, 0),
+    cards = emptyList(),
+    cardsCount = 0L,
+)
+
+private val previewInterviewDeck: Deck = Deck(
+    id = "deck-2".toDeckId(),
+    name = "Job interview",
+    description = "",
+    createdAt = LocalDateTime.of(2026, 6, 1, 0, 0),
+    cards = emptyList(),
+    cardsCount = 0L,
+)
+
 @PreviewLightDark
 @Composable
 private fun CaptureScreenPreview() {
@@ -296,6 +374,8 @@ private fun CaptureScreenPreview() {
         CaptureScreen(
             state = CaptureUiState(
                 word = "compelling",
+                targetDeck = previewStarterDeck,
+                decks = listOf(previewStarterDeck, previewInterviewDeck),
                 recentCaptures = listOf(
                     RecentCapture(
                         flashcardId = "1".toFlashcardId(),

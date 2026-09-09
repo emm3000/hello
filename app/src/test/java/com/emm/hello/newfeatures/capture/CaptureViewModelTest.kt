@@ -23,10 +23,13 @@ import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
 import com.google.common.truth.Truth.assertThat
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -348,6 +351,86 @@ class CaptureViewModelTest {
         assertThat(state.word).isEqualTo("give up")
     }
 
+    @Test
+    fun `with no default selected the target deck is the oldest one and not the newest`() = runTest {
+        val viewModel = buildViewModel(decks = listOf(newestDeck(), deck()), defaultDeckId = null)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.targetDeck?.id).isEqualTo(DECK_ID)
+    }
+
+    @Test
+    fun `selecting a deck stores it as the default and moves the target deck`() = runTest {
+        val deckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        every { deckSelectionRepository.setDefaultDeckId(any()) } just Runs
+        val viewModel = buildViewModel(
+            decks = listOf(newestDeck(), deck()),
+            defaultDeckId = null,
+            deckSelectionRepository = deckSelectionRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.DeckSelected(NEWEST_DECK_ID))
+
+        verify { deckSelectionRepository.setDefaultDeckId(NEWEST_DECK_ID) }
+        assertThat(viewModel.state.value.targetDeck?.id).isEqualTo(NEWEST_DECK_ID)
+    }
+
+    @Test
+    fun `selecting a deck closes the picker`() = runTest {
+        val deckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        every { deckSelectionRepository.setDefaultDeckId(any()) } just Runs
+        val viewModel = buildViewModel(
+            decks = listOf(newestDeck(), deck()),
+            defaultDeckId = null,
+            deckSelectionRepository = deckSelectionRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.DeckPickerOpened)
+        viewModel.onIntent(CaptureUiIntent.DeckSelected(NEWEST_DECK_ID))
+
+        assertThat(viewModel.state.value.isDeckPickerOpen).isFalse()
+    }
+
+    @Test
+    fun `selecting an unknown deck leaves the target deck unchanged`() = runTest {
+        val deckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
+        every { deckSelectionRepository.setDefaultDeckId(any()) } just Runs
+        val viewModel = buildViewModel(
+            decks = listOf(newestDeck(), deck()),
+            defaultDeckId = null,
+            deckSelectionRepository = deckSelectionRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.DeckPickerOpened)
+        viewModel.onIntent(CaptureUiIntent.DeckSelected(UNKNOWN_DECK_ID))
+
+        assertThat(viewModel.state.value.targetDeck?.id).isEqualTo(DECK_ID)
+        assertThat(viewModel.state.value.isDeckPickerOpen).isFalse()
+    }
+
+    @Test
+    fun `opening and dismissing the picker flips the picker flag`() = runTest {
+        val viewModel = buildViewModel(decks = listOf(newestDeck(), deck()), defaultDeckId = null)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.DeckPickerOpened)
+        assertThat(viewModel.state.value.isDeckPickerOpen).isTrue()
+
+        viewModel.onIntent(CaptureUiIntent.DeckPickerDismissed)
+        assertThat(viewModel.state.value.isDeckPickerOpen).isFalse()
+    }
+
+    @Test
+    fun `the decks reach the state so the picker can list them`() = runTest {
+        val viewModel = buildViewModel(decks = listOf(newestDeck(), deck()), defaultDeckId = null)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.decks.map { it.id }).containsExactly(NEWEST_DECK_ID, DECK_ID).inOrder()
+    }
+
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
         createManualFlashcard: CreateManualFlashcardUseCase = mockk(),
@@ -355,15 +438,17 @@ class CaptureViewModelTest {
         backlog: EnrichmentBacklog = EnrichmentBacklog(),
         libraryRepository: LibraryRepository = FakeLibraryRepository(),
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
+        decks: List<Deck> = listOf(deck()),
+        defaultDeckId: DeckId? = DECK_ID,
+        deckSelectionRepository: DefaultDeckSelectionRepository = mockk(),
     ): CaptureViewModel {
         val enrichmentRepository = mockk<FlashcardEnrichmentRepository>()
         every { enrichmentRepository.observeBacklog() } returns flowOf(backlog)
 
-        val deckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
-        every { deckSelectionRepository.getDefaultDeckId() } returns DECK_ID
+        every { deckSelectionRepository.getDefaultDeckId() } returns defaultDeckId
 
         val getDecksUseCase = mockk<GetDecksUseCase>()
-        every { getDecksUseCase() } returns flowOf(listOf(deck()))
+        every { getDecksUseCase() } returns flowOf(decks)
 
         return CaptureViewModel(
             captureFlashcard = captureFlashcard,
@@ -377,13 +462,23 @@ class CaptureViewModelTest {
         )
     }
 
-    private fun deck(): Deck = Deck(
-        id = DECK_ID,
-        name = "Primeras palabras",
+    private fun deck(
+        id: DeckId = DECK_ID,
+        name: String = "Primeras palabras",
+        createdAt: LocalDateTime = LocalDateTime.of(2026, 1, 1, 0, 0),
+    ): Deck = Deck(
+        id = id,
+        name = name,
         description = "",
-        createdAt = LocalDateTime.of(2026, 1, 1, 0, 0),
+        createdAt = createdAt,
         cards = emptyList(),
         cardsCount = 0L,
+    )
+
+    private fun newestDeck(): Deck = deck(
+        id = NEWEST_DECK_ID,
+        name = "Job interview",
+        createdAt = LocalDateTime.of(2026, 6, 1, 0, 0),
     )
 
     private fun libraryFlashcard(
@@ -424,6 +519,8 @@ class CaptureViewModelTest {
 
     private companion object {
         val DECK_ID: DeckId = "deck-1".toDeckId()
+        val NEWEST_DECK_ID: DeckId = "deck-2".toDeckId()
+        val UNKNOWN_DECK_ID: DeckId = "deck-missing".toDeckId()
         val CARD_ID: FlashcardId = "card-1".toFlashcardId()
     }
 }
