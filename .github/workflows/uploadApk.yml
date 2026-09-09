@@ -144,5 +144,5 @@ jobs:
           releaseFiles: ${{ steps.artifacts.outputs.aab }}
           releaseName: ${{ github.ref_name }} (${{ github.run_number }})
           track: internal
-          status: draft
+          status: completed
           mappingFile: ${{ steps.artifacts.outputs.mapping }}
