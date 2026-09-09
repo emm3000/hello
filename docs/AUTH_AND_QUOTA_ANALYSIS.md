@@ -183,5 +183,5 @@ Two consequences worth carrying forward:
 | Done | Account copy | `settings_google_account_not_linked` now says the allowance is tied to the install |
 | Done | `app/google-services.json` on disk | Re-downloaded 2026-09-09 after the fingerprint fix: carries `938a7ce1…`, no bogus hash. `GOOGLE_SERVICES_JSON` secret refreshed from it |
 | Done | Swallowed errors | `GoogleCredentialClient` now logs the `NoCredentialException` message, which is where Play Services reports the real reason (on the emulator it was a 3 s Credential Manager timeout, not a missing account) |
-| Later | Leftover auth users | Six users: four anonymous, plus `88b8af3b` holding the owner's primary Gmail and `04804872` now linked to the second account. Delete the anonymous ones once the fallback is verified |
+| Done | Leftover auth users | Five anonymous users and their 10 test `generation_events` deleted 2026-09-09 through the Management API SQL endpoint. Only `88b8af3b` and `04804872` remain |
 | Later | Quota reset hour | UTC midnight lands at 19:00 Lima. Needs a per-user timezone or a rolling window; not worth it before there are users |
