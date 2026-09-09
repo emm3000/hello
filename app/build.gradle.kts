@@ -12,6 +12,7 @@ plugins {
 }
 
 val releaseVersionCode: Int = providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() ?: 1
+val releaseVersionName: String = providers.environmentVariable("VERSION_NAME").orNull ?: "dev"
 
 configure<ApplicationExtension> {
     namespace = "com.emm.hello"
@@ -22,7 +23,7 @@ configure<ApplicationExtension> {
         minSdk = 26
         targetSdk = 37
         versionCode = releaseVersionCode
-        versionName = "1.0.0"
+        versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
