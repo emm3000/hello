@@ -6,6 +6,7 @@ import {
   DEFAULT_DAILY_ALLOWANCE,
   DEFAULT_DAILY_REFUSAL_ALLOWANCE,
   nextUtcMidnight,
+  PENDING_RESERVATION_TTL_MS,
   readCredits,
   readDailyAllowance,
   readDailyRefusalAllowance,
@@ -15,11 +16,15 @@ import {
   reserveGeneration,
   settleGeneration,
   snapshotFrom,
+  staleBefore,
   startOfUtcDay,
 } from "./credits.ts";
 
 const MIDDAY: Date = new Date("2026-09-07T10:00:00.000Z");
 const LAST_SECOND: Date = new Date("2026-09-07T23:59:59.000Z");
+const AN_HOUR_BEFORE_MIDDAY: string = "2026-09-07T09:00:00.000Z";
+const TEN_MINUTES_BEFORE_MIDDAY: string = "2026-09-07T09:50:00.000Z";
+const A_MINUTE_BEFORE_MIDDAY: string = "2026-09-07T09:59:00.000Z";
 
 function envWith(
   value: string | undefined,
@@ -199,8 +204,28 @@ Deno.test("a reservation sends both allowances and the utc day start", async () 
   assertEquals(calls, [
     'reserve_generation:{"p_user_id":"user-1","p_operation":"generate-note",' +
     '"p_cache_key":"cache-key","p_allowance":5,"p_refusal_allowance":10,' +
-    '"p_day_start":"2026-09-07T00:00:00.000Z"}',
+    '"p_day_start":"2026-09-07T00:00:00.000Z",' +
+    '"p_stale_before":"2026-09-07T09:55:00.000Z"}',
   ]);
+});
+
+Deno.test("the reservation passes the stale-before boundary to the rpc", async () => {
+  const calls: string[] = [];
+  await reserveGeneration(
+    rpcClient({
+      data: [{ reserved: true, event_id: 7, charged: 1, refused: 0 }],
+      error: null,
+    }, calls),
+    reservationInput(),
+  );
+
+  const payload: Record<string, unknown> = JSON.parse(
+    calls[0].slice("reserve_generation:".length),
+  );
+
+  assertEquals(PENDING_RESERVATION_TTL_MS, 300_000);
+  assertEquals(staleBefore(MIDDAY).toISOString(), "2026-09-07T09:55:00.000Z");
+  assertEquals(payload.p_stale_before, "2026-09-07T09:55:00.000Z");
 });
 
 Deno.test("a reserved row carries the event id and the charged snapshot", async () => {
@@ -333,11 +358,72 @@ Deno.test("a credits read counts pending and successful events as charged", asyn
   assertEquals(snapshot.refused, 1);
   assertEquals(calls, [
     "from:generation_events",
-    "select:outcome",
+    "select:outcome, created_at",
     "eq:user_id:user-1",
     "eq:cached:false",
     "gte:created_at:2026-09-07T00:00:00.000Z",
   ]);
+});
+
+Deno.test("a pending reservation older than the ttl no longer counts as charged", async () => {
+  const calls: string[] = [];
+  const snapshot: CreditsSnapshot = await readCredits(
+    tableClient({
+      data: [
+        { outcome: "success", created_at: AN_HOUR_BEFORE_MIDDAY },
+        { outcome: "pending", created_at: TEN_MINUTES_BEFORE_MIDDAY },
+      ],
+      error: null,
+    }, calls),
+    "user-1",
+    MIDDAY,
+    DEFAULT_DAILY_ALLOWANCE,
+    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
+  );
+
+  assertEquals(snapshot.charged, 1);
+  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 1);
+});
+
+Deno.test("a pending reservation younger than the ttl still counts as charged", async () => {
+  const calls: string[] = [];
+  const snapshot: CreditsSnapshot = await readCredits(
+    tableClient({
+      data: [
+        { outcome: "success", created_at: AN_HOUR_BEFORE_MIDDAY },
+        { outcome: "pending", created_at: A_MINUTE_BEFORE_MIDDAY },
+      ],
+      error: null,
+    }, calls),
+    "user-1",
+    MIDDAY,
+    DEFAULT_DAILY_ALLOWANCE,
+    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
+  );
+
+  assertEquals(snapshot.charged, 2);
+  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 2);
+});
+
+Deno.test("a pending reservation with an unusable timestamp counts as charged", async () => {
+  const calls: string[] = [];
+  const snapshot: CreditsSnapshot = await readCredits(
+    tableClient({
+      data: [
+        { outcome: "pending", created_at: null },
+        { outcome: "pending" },
+        { outcome: "pending", created_at: "not a timestamp" },
+      ],
+      error: null,
+    }, calls),
+    "user-1",
+    MIDDAY,
+    DEFAULT_DAILY_ALLOWANCE,
+    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
+  );
+
+  assertEquals(snapshot.charged, 3);
+  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 3);
 });
 
 Deno.test("a credits read failure leaves the credits unavailable", async () => {

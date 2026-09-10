@@ -119,7 +119,7 @@ create table provider_state (
 );
 ```
 
-`generation_events` is both the credit ledger and the telemetry. A request first reserves a `pending` row through the `reserve_generation` RPC, which counts the day under a per-user advisory lock and inserts the reservation in the same transaction, then settles that row to `success`, `refusal`, `providers_exhausted` or `error` once the provider call returns. A `pending` row that is never settled counts as charged until midnight; there is no refund. When billing arrives, a `credit_grants` table joins it and balance becomes grants minus charged events. Nothing migrates.
+`generation_events` is both the credit ledger and the telemetry. A request first reserves a `pending` row through the `reserve_generation` RPC, which counts the day under a per-user advisory lock and inserts the reservation in the same transaction, then settles that row to `success`, `refusal`, `providers_exhausted` or `error` once the provider call returns. A `pending` row counts as charged only while it is younger than five minutes, well beyond the 90 s worst case of the provider chain, so an isolate that dies mid-request stops burning a credit for the rest of the day instead of holding it until midnight. A settled row is never refunded. When billing arrives, a `credit_grants` table joins it and balance becomes grants minus charged events. Nothing migrates.
 
 ### Cache key
 
@@ -141,7 +141,7 @@ Refusals (`success = false`) are cached with `expires_at = now() + 24 h`. Succes
 |---|---|
 | Allowance | `DAILY_ALLOWANCE` successes per user per UTC day, shared by `generate-note` and `suggest-words` |
 | Refusal allowance | `DAILY_REFUSAL_ALLOWANCE` refusals per user per UTC day, shared by both functions |
-| Counted | `generation_events` rows with `cached = false` since 00:00 UTC: `outcome in ('success', 'pending')` against the allowance, `outcome = 'refusal'` against the refusal allowance |
+| Counted | `generation_events` rows with `cached = false` since 00:00 UTC: `outcome = 'success'`, plus `outcome = 'pending'` while younger than five minutes, against the allowance; `outcome = 'refusal'` against the refusal allowance |
 | Charged | Reserved before the provider call, released on anything but a provider success |
 | Reported | `meta.credits_remaining` on every response so the UI can show the count |
 

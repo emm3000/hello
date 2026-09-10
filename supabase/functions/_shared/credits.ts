@@ -25,6 +25,8 @@ export const DEFAULT_DAILY_REFUSAL_ALLOWANCE: number = 10;
 
 export const CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS: number = 30;
 
+export const PENDING_RESERVATION_TTL_MS: number = 300_000;
+
 const DAY_MS: number = 86_400_000;
 
 export type GenerationEvent = {
@@ -122,6 +124,10 @@ export function nextUtcMidnight(now: Date): Date {
   return new Date(startOfUtcDay(now).getTime() + DAY_MS);
 }
 
+export function staleBefore(now: Date): Date {
+  return new Date(now.getTime() - PENDING_RESERVATION_TTL_MS);
+}
+
 export function snapshotFrom(
   allowance: number,
   charged: number,
@@ -162,6 +168,7 @@ export async function reserveGeneration(
       p_allowance: input.allowance,
       p_refusal_allowance: input.refusalAllowance,
       p_day_start: startOfUtcDay(input.now).toISOString(),
+      p_stale_before: staleBefore(input.now).toISOString(),
     });
   } catch (_error: unknown) {
     throw creditsUnavailable(
@@ -230,6 +237,17 @@ export async function settleGeneration(
   }
 }
 
+function pendingIsCharged(createdAt: unknown, stale: Date): boolean {
+  if (typeof createdAt !== "string") {
+    return true;
+  }
+  const created: number = Date.parse(createdAt);
+  if (Number.isNaN(created)) {
+    return true;
+  }
+  return created >= stale.getTime();
+}
+
 export async function readCredits(
   client: SupabaseClient,
   userId: string,
@@ -241,7 +259,7 @@ export async function readCredits(
   try {
     result = await client
       .from("generation_events")
-      .select("outcome")
+      .select("outcome, created_at")
       .eq("user_id", userId)
       .eq("cached", false)
       .gte("created_at", startOfUtcDay(now).toISOString());
@@ -254,6 +272,7 @@ export async function readCredits(
   const rows: Record<string, unknown>[] = Array.isArray(result.data)
     ? result.data as Record<string, unknown>[]
     : [];
+  const stale: Date = staleBefore(now);
   let charged: number = 0;
   let refused: number = 0;
   for (const row of rows) {
@@ -261,7 +280,10 @@ export async function readCredits(
     if (typeof outcome !== "string") {
       continue;
     }
-    if (outcome === "success" || outcome === "pending") {
+    if (outcome === "success") {
+      charged += 1;
+    }
+    if (outcome === "pending" && pendingIsCharged(row.created_at, stale)) {
       charged += 1;
     }
     if (outcome === "refusal") {
