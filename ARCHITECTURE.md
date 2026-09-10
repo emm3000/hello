@@ -85,15 +85,17 @@ Every AI call goes through the Hello backend: the enrichment worker calls `Supab
 
 ### SQLDelight migrations
 
-- Current schema version is **2**. Snapshots live in `data/src/main/sqldelight/databases/`: `1.db` (the original baseline) and `2.db` (the current schema). Both must stay committed.
-- Migrations live next to the `.sq` files in `data/src/main/sqldelight/com/emm/data/`. Today there is one: `1.sqm` (v1 -> v2), which adds the FSRS-6 columns (`state`, `stability`, `difficulty`, …) to `ReviewProjection`/`ReviewEvent` additively and seeds them from the legacy SM-2 columns without changing any `nextReviewAt`.
-- `verifyMigrations = true` in `data/build.gradle.kts`: every PR that modifies `.sq` must regenerate the corresponding `.db` and add an `N.sqm` with the required `ALTER`/`CREATE`.
-- Schema change policy:
+- Current schema version is **9**. Snapshots live in `data/src/main/sqldelight/databases/`, one `N.db` per version from `1.db` to `9.db`. All of them stay committed.
+- Migrations live next to the `.sq` files in `data/src/main/sqldelight/com/emm/data/`: `N.sqm` migrates `v(N)` -> `v(N+1)`. Every one is additive; each has a unit test under `data/src/test/kotlin/com/emm/data/migration/` that builds schema `N` by hand, inserts legacy rows and migrates to the current version.
+- `verifyMigrations = true` in `data/build.gradle.kts` replays every committed snapshot through the migrations that follow it and compares the result against the `.sq` files. It cannot notice a snapshot that was never written, so `checkSqlDelightSnapshots` runs before it and fails on any `N.sqm` without its `(N+1).db`. Both run locally and in CI through `:data:verifySqlDelightMigration`.
+- Schema change policy, all in the same commit:
   1. Edit the `.sq` with the change.
   2. Create `data/src/main/sqldelight/com/emm/data/N.sqm` (where `N` is the current version before the bump) with idempotent SQL that migrates `v(N)` -> `v(N+1)`.
   3. Run `./gradlew :data:generateDebugHelloDbSchema` to produce `(N+1).db`.
-  4. Validate with `./gradlew :data:verifySqlDelightMigration`.
+  4. Add the migration test for `N.sqm`.
+  5. Validate with `./gradlew :data:verifySqlDelightMigration`.
 - Never delete previous `.db` files: they are the source for `verifyMigrations`.
+- The rule that binds this on every schema edit is `.claude/rules/sqldelight.md`.
 
 ## Features relevant today
 

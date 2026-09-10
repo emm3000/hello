@@ -84,3 +84,28 @@ sqldelight {
         }
     }
 }
+
+val checkSqlDelightSnapshots: TaskProvider<Task> = tasks.register("checkSqlDelightSnapshots") {
+    val migrationsDirectory: File = layout.projectDirectory.dir("src/main/sqldelight/com/emm/data").asFile
+    val snapshotsDirectory: File = layout.projectDirectory.dir("src/main/sqldelight/databases").asFile
+    inputs.dir(migrationsDirectory)
+    inputs.dir(snapshotsDirectory)
+    doLast {
+        val migrationVersions: List<Int> = migrationsDirectory
+            .listFiles { file -> file.extension == "sqm" }
+            .orEmpty()
+            .map { file -> file.nameWithoutExtension.toInt() }
+            .sorted()
+        val missingSnapshots: List<String> = migrationVersions
+            .map { version -> "${version + 1}.db" }
+            .filterNot { snapshot -> File(snapshotsDirectory, snapshot).exists() }
+        check(missingSnapshots.isEmpty()) {
+            "Missing SQLDelight schema snapshots ${missingSnapshots.joinToString()} in ${snapshotsDirectory.path}: " +
+                "run ./gradlew :data:generateDebugHelloDbSchema at the commit that introduced each migration and commit the .db"
+        }
+    }
+}
+
+tasks.matching { task -> task.name == "verifySqlDelightMigration" }.configureEach {
+    dependsOn(checkSqlDelightSnapshots)
+}
