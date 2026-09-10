@@ -1,6 +1,7 @@
 package com.emm.data.flashcard
 
 import com.emm.data.remote.AppCheckTokenProvider
+import com.emm.data.remote.CreditsMetaReader
 import com.emm.data.remote.FunctionsReply
 import com.emm.data.remote.FunctionsReplyMapper
 import com.emm.data.remote.FunctionsTransport
@@ -9,7 +10,9 @@ import com.emm.data.remote.toRequestDto
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.telemetry.GenerationTelemetry
+import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -19,6 +22,7 @@ class RemoteFlashcardGenerationRepository(
     private val session: SessionInitializer,
     private val appCheck: AppCheckTokenProvider,
     private val telemetry: GenerationTelemetry,
+    private val credits: GenerationCreditsRepository,
     private val json: Json,
 ) : FlashcardGenerationRepository {
 
@@ -47,11 +51,19 @@ class RemoteFlashcardGenerationRepository(
     @Suppress("TooGenericExceptionCaught")
     private fun read(reply: FunctionsReply): GeneratedLearningNote {
         return try {
-            FunctionsReplyMapper.map(reply, json) { body -> GeneratedLearningNoteResponseParser.parse(body, json) }
+            FunctionsReplyMapper.map(reply, json) { body ->
+                recordCredits(body)
+                GeneratedLearningNoteResponseParser.parse(body, json)
+            }
         } catch (error: Throwable) {
             recordReadFailure(reply, error)
             throw error
         }
+    }
+
+    private fun recordCredits(body: String) {
+        val remaining: Int = CreditsMetaReader.remainingOrNull(body, json) ?: return
+        credits.record(remaining = remaining, observedAt = Instant.now())
     }
 
     private fun recordReadFailure(reply: FunctionsReply, error: Throwable) {

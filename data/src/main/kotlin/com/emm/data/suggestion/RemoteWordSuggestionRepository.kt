@@ -1,14 +1,17 @@
 package com.emm.data.suggestion
 
 import com.emm.data.remote.AppCheckTokenProvider
+import com.emm.data.remote.CreditsMetaReader
 import com.emm.data.remote.FunctionsReply
 import com.emm.data.remote.FunctionsReplyMapper
 import com.emm.data.remote.FunctionsTransport
 import com.emm.data.remote.SessionInitializer
 import com.emm.data.remote.SuggestWordsRequestDto
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
+import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -18,6 +21,7 @@ class RemoteWordSuggestionRepository(
     private val session: SessionInitializer,
     private val appCheck: AppCheckTokenProvider,
     private val telemetry: GenerationTelemetry,
+    private val credits: GenerationCreditsRepository,
     private val json: Json,
 ) : WordSuggestionRepository {
 
@@ -46,11 +50,19 @@ class RemoteWordSuggestionRepository(
     @Suppress("TooGenericExceptionCaught")
     private fun read(reply: FunctionsReply): WordSuggestions {
         return try {
-            FunctionsReplyMapper.map(reply, json) { body -> WordSuggestionResponseParser.parse(body, json) }
+            FunctionsReplyMapper.map(reply, json) { body ->
+                recordCredits(body)
+                WordSuggestionResponseParser.parse(body, json)
+            }
         } catch (error: Throwable) {
             recordReadFailure(reply, error)
             throw error
         }
+    }
+
+    private fun recordCredits(body: String) {
+        val remaining: Int = CreditsMetaReader.remainingOrNull(body, json) ?: return
+        credits.record(remaining = remaining, observedAt = Instant.now())
     }
 
     private fun recordReadFailure(reply: FunctionsReply, error: Throwable) {

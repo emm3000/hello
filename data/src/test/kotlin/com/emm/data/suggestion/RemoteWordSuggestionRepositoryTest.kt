@@ -5,8 +5,13 @@ import com.emm.data.remote.FunctionsReply
 import com.emm.data.remote.FunctionsTransport
 import com.emm.data.remote.SessionInitializer
 import com.emm.domain.generation.AppCheckRejectedException
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
+import java.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -54,17 +59,78 @@ class RemoteWordSuggestionRepositoryTest {
         assertTrue(error is AppCheckRejectedException)
     }
 
+    @Test
+    fun `suggest records the remaining credits from the reply meta`() = runTest {
+        val body = """
+            {
+              "situation": "Ordering food at a busy restaurant",
+              "words": [{ "word": "the check", "translation": "la cuenta" }],
+              "meta": { "cached": false, "provider": "gemini", "credits_remaining": 17 }
+            }
+        """.trimIndent()
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        repository.suggest(listOf("hello"))
+
+        assertEquals(listOf(17), credits.recorded)
+    }
+
+    @Test
+    fun `suggest records nothing when the reply carries no credits`() = runTest {
+        val body = """
+            {
+              "situation": "Ordering food at a busy restaurant",
+              "words": [{ "word": "the check", "translation": "la cuenta" }],
+              "meta": { "cached": false, "provider": "gemini" }
+            }
+        """.trimIndent()
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        repository.suggest(listOf("hello"))
+
+        assertEquals(emptyList<Int>(), credits.recorded)
+    }
+
+    @Test
+    fun `suggest records nothing when the reply is an error`() = runTest {
+        val body = "{\"success\":false,\"error\":{\"code\":\"app_check_rejected\"},\"meta\":null}"
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 401, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        runCatching { repository.suggest(listOf("hello")) }
+
+        assertEquals(emptyList<Int>(), credits.recorded)
+    }
+
     private fun repository(
         transport: FunctionsTransport,
         session: SessionInitializer = FakeSessionInitializer(),
+        credits: GenerationCreditsRepository = RecordingGenerationCreditsRepository(),
     ): RemoteWordSuggestionRepository {
         return RemoteWordSuggestionRepository(
             transport = transport,
             session = session,
             appCheck = FakeAppCheckTokenProvider("app-check-token"),
             telemetry = GenerationTelemetry.NoOp,
+            credits = credits,
             json = json,
         )
+    }
+}
+
+private class RecordingGenerationCreditsRepository : GenerationCreditsRepository {
+
+    val recorded: MutableList<Int> = mutableListOf()
+
+    override fun observe(): Flow<GenerationCredits?> = flowOf(null)
+
+    override fun record(remaining: Int, observedAt: Instant) {
+        recorded += remaining
     }
 }
 

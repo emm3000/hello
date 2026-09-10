@@ -8,9 +8,14 @@ import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.telemetry.GenerationTelemetry
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
+import java.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -155,16 +160,44 @@ class RemoteFlashcardGenerationRepositoryTest {
         assertEquals(listOf("learning_note" to body.length), telemetry.parseFailures)
     }
 
+    @Test
+    fun `generateLearningNote records the remaining credits from the reply meta`() = runTest {
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        repository.generateLearningNote(
+            FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+        )
+
+        assertEquals(listOf(4), credits.recorded)
+    }
+
+    @Test
+    fun `generateLearningNote records nothing when the reply carries no meta`() = runTest {
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY_WITHOUT_META))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        repository.generateLearningNote(
+            FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+        )
+
+        assertEquals(emptyList<Int>(), credits.recorded)
+    }
+
     private fun repository(
         transport: FunctionsTransport,
         session: SessionInitializer = FakeSessionInitializer(),
         telemetry: GenerationTelemetry = GenerationTelemetry.NoOp,
+        credits: GenerationCreditsRepository = RecordingGenerationCreditsRepository(),
     ): RemoteFlashcardGenerationRepository {
         return RemoteFlashcardGenerationRepository(
             transport = transport,
             session = session,
             appCheck = FakeAppCheckTokenProvider("app-check-token"),
             telemetry = telemetry,
+            credits = credits,
             json = json,
         )
     }
@@ -283,6 +316,17 @@ private class FakeSessionInitializer : SessionInitializer {
 
 private class FakeAppCheckTokenProvider(private val appCheckToken: String) : AppCheckTokenProvider {
     override suspend fun token(): String = appCheckToken
+}
+
+private class RecordingGenerationCreditsRepository : GenerationCreditsRepository {
+
+    val recorded: MutableList<Int> = mutableListOf()
+
+    override fun observe(): Flow<GenerationCredits?> = flowOf(null)
+
+    override fun record(remaining: Int, observedAt: Instant) {
+        recorded += remaining
+    }
 }
 
 private class RecordingGenerationTelemetry : GenerationTelemetry {

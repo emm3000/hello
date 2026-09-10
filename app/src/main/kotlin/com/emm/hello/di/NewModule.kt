@@ -18,6 +18,7 @@ import com.emm.data.flashcard.DefaultFlashcardRepository
 import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
 import com.emm.data.flashcard.RemoteFlashcardGenerationRepository
+import com.emm.data.generation.DefaultGenerationCreditsRepository
 import com.emm.data.suggestion.CannedWordSuggestionRepository
 import com.emm.data.suggestion.DefaultWordSuggestionCache
 import com.emm.data.suggestion.RemoteWordSuggestionRepository
@@ -79,6 +80,7 @@ import com.emm.domain.generation.GeneratedLearningNoteCoreFieldsPolicy
 import com.emm.domain.generation.GeneratedLearningNoteExamplePolicy
 import com.emm.domain.generation.GeneratedLearningNoteQualityChecksPolicy
 import com.emm.domain.generation.GeneratedLearningNoteTypeRequirementsPolicy
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudySessionRepository
@@ -179,12 +181,14 @@ fun Module.repository() {
     single<WordSuggestionCache> {
         DefaultWordSuggestionCache(db = get(), clock = get(), ioDispatcher = Dispatchers.IO)
     }
+    single<GenerationCreditsRepository> { DefaultGenerationCreditsRepository(dataStore = get()) }
     single<FlashcardGenerationRepository> {
         RemoteFlashcardGenerationRepository(
             transport = get(),
             session = get(),
             appCheck = get(),
             telemetry = get(),
+            credits = get(),
             json = get(),
         )
     }
@@ -197,6 +201,7 @@ fun Module.repository() {
                 session = get(),
                 appCheck = get(),
                 telemetry = get(),
+                credits = get(),
                 json = get(),
             )
         }
