@@ -74,8 +74,8 @@ function baseDeps(
       calls.push("readNoteCache");
       return Promise.resolve(null);
     },
-    commitNoteCache: (): Promise<void> => {
-      calls.push("commitNoteCache");
+    writeNoteCache: (): Promise<void> => {
+      calls.push("writeNoteCache");
       return Promise.resolve();
     },
     generateStructured: <T>(): Promise<GenerationResult<T>> => {
@@ -285,4 +285,5 @@ Deno.test("a retry with previous issues never reads the cache", async () => {
   assertEquals(response.status, 200);
   assertEquals(calls.includes("readNoteCache"), false);
   assertEquals(calls.includes("consumeCredit"), true);
+  assertEquals(calls.includes("writeNoteCache"), true);
 });

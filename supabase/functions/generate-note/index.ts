@@ -7,9 +7,9 @@ import {
 import {
   buildCacheKey,
   cacheExpiry,
-  commitNoteCache,
   type NoteCacheRow,
   readNoteCache,
+  writeNoteCache,
 } from "../_shared/cache.ts";
 import {
   consumeCredit,
@@ -67,9 +67,8 @@ export type GenerateNoteDeps = {
     client: SupabaseClient,
     key: string,
   ) => Promise<NoteCacheRow | null>;
-  commitNoteCache: (
+  writeNoteCache: (
     client: SupabaseClient,
-    request: GenerateNoteRequest,
     row: Omit<NoteCacheRow, "hits">,
   ) => Promise<void>;
   generateStructured<T>(
@@ -98,7 +97,7 @@ export const defaultDeps: GenerateNoteDeps = {
   createSupabaseContext,
   verifyAppCheckToken,
   readNoteCache,
-  commitNoteCache,
+  writeNoteCache,
   generateStructured,
   consumeCredit,
   readCredits,
@@ -253,7 +252,7 @@ export async function handle(
       });
     const cleaned: LearningNoteResponse = withoutNulls(generated.value);
     const outcome: GenerationOutcome = cleaned.success ? "success" : "refusal";
-    await deps.commitNoteCache(client, request, {
+    await deps.writeNoteCache(client, {
       cache_key: cacheKey,
       response: cleaned,
       success: cleaned.success,

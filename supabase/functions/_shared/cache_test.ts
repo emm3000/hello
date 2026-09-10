@@ -3,9 +3,9 @@ import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   buildCacheKey,
   cacheExpiry,
-  commitNoteCache,
   type NoteCacheRow,
   refusalExpiresAt,
+  writeNoteCache,
 } from "./cache.ts";
 import {
   type GenerateNoteRequest,
@@ -43,24 +43,10 @@ function storeClient(
   store: Map<string, unknown>,
   calls: string[],
 ): SupabaseClient {
-  let deleting: boolean = false;
   const builder: Record<string, unknown> = {
     upsert(entry: Record<string, unknown>): unknown {
       calls.push("upsert:" + String(entry.cache_key));
       store.set(String(entry.cache_key), entry);
-      return builder;
-    },
-    delete(): unknown {
-      calls.push("delete");
-      deleting = true;
-      return builder;
-    },
-    eq(column: string, value: unknown): unknown {
-      calls.push("eq:" + column + ":" + String(value));
-      if (deleting && column === "cache_key") {
-        store.delete(String(value));
-        deleting = false;
-      }
       return builder;
     },
     then(resolve: (value: QueryReply) => unknown): unknown {
@@ -120,28 +106,33 @@ Deno.test("a first attempt writes the shared entry", async () => {
   const store: Map<string, unknown> = new Map();
   const calls: string[] = [];
 
-  await commitNoteCache(
-    storeClient(store, calls),
-    request({}),
-    row("key-1"),
-  );
+  await writeNoteCache(storeClient(store, calls), row("key-1"));
 
   assertEquals(store.has("key-1"), true);
   assertEquals(calls, ["from:note_cache", "upsert:key-1"]);
 });
 
-Deno.test("a retry deletes the shared entry instead of overwriting it", async () => {
-  const store: Map<string, unknown> = new Map([["key-1", { hits: 0 }]]);
+Deno.test("a retry with previous issues upserts under the same key as the base request", async () => {
+  const store: Map<string, unknown> = new Map();
   const calls: string[] = [];
+  const client: SupabaseClient = storeClient(store, calls);
 
-  await commitNoteCache(
-    storeClient(store, calls),
+  const baseKey: string = await buildCacheKey(request({}));
+  const retryKey: string = await buildCacheKey(
     request({
       previous_issues: [{ code: "missing_ipa", field: "ipa" }],
     }),
-    row("key-1"),
   );
+  assertEquals(baseKey, retryKey);
 
-  assertEquals(store.has("key-1"), false);
-  assertEquals(calls, ["from:note_cache", "delete", "eq:cache_key:key-1"]);
+  await writeNoteCache(client, row(baseKey));
+  await writeNoteCache(client, row(retryKey));
+
+  assertEquals(store.has(baseKey), true);
+  assertEquals(calls, [
+    "from:note_cache",
+    "upsert:" + baseKey,
+    "from:note_cache",
+    "upsert:" + baseKey,
+  ]);
 });

@@ -90,32 +90,3 @@ export async function writeNoteCache(
     console.error("CacheWriteFailure");
   }
 }
-
-export async function deleteNoteCache(
-  client: SupabaseClient,
-  key: string,
-): Promise<void> {
-  try {
-    const { error }: QueryResult = await client.from("note_cache").delete().eq(
-      "cache_key",
-      key,
-    );
-    if (error !== null) {
-      console.error("CacheDeleteFailure");
-    }
-  } catch (_error: unknown) {
-    console.error("CacheDeleteFailure");
-  }
-}
-
-export async function commitNoteCache(
-  client: SupabaseClient,
-  request: GenerateNoteRequest,
-  row: Omit<NoteCacheRow, "hits">,
-): Promise<void> {
-  if (request.previous_issues.length === 0) {
-    await writeNoteCache(client, row);
-    return;
-  }
-  await deleteNoteCache(client, row.cache_key);
-}
