@@ -5,7 +5,7 @@ import {
   PROMPT_VERSION,
   withSchemaAppendix,
 } from "./prompt.ts";
-import { generateNoteRequestSchema } from "./schema.ts";
+import { generateNoteRequestSchema, REFUSAL_CODES } from "./schema.ts";
 
 const INPUT_DATA_BLOCK = `Input data:
 - input_type: "Word"
@@ -14,6 +14,16 @@ const INPUT_DATA_BLOCK = `Input data:
 - level_band: "A1_A2"
 - register: "Neutral"
 - domain: "DailyLife"`;
+
+const REFUSAL_EXAMPLE = `{
+  "success": false,
+  "data": null,
+  "error": {
+    "input": "",
+    "message": "El texto está vacío. Escribe una palabra, frase u objetivo comunicativo.",
+    "code": "empty_input"
+  }
+}`;
 
 const FEEDBACK_SECTION =
   `Your previous answer for this exact input was rejected by these deterministic checks:
@@ -45,6 +55,29 @@ Deno.test("the learning note prompt carries the input data block", () => {
     ),
     true,
   );
+});
+
+Deno.test("the learning note prompt names every refusal code", () => {
+  const prompt: string = buildLearningNotePrompt(
+    generateNoteRequestSchema.parse({
+      input_type: "Word",
+      user_text: "give up",
+    }),
+  );
+  for (const code of REFUSAL_CODES) {
+    assertStringIncludes(prompt, `"${code}"`);
+  }
+  assertStringIncludes(prompt, "error.code");
+});
+
+Deno.test("the learning note prompt shows a refusal example carrying a code", () => {
+  const prompt: string = buildLearningNotePrompt(
+    generateNoteRequestSchema.parse({
+      input_type: "Word",
+      user_text: "give up",
+    }),
+  );
+  assertStringIncludes(prompt, REFUSAL_EXAMPLE);
 });
 
 Deno.test("the learning note prompt omits the feedback section without issues", () => {

@@ -54,6 +54,15 @@ const QUALITY_CHECK_CODES = [
   "note_card_alignment",
 ] as const;
 
+export const REFUSAL_CODES = [
+  "empty_input",
+  "unintelligible",
+  "contradictory",
+  "unmappable",
+] as const;
+
+export type RefusalCode = typeof REFUSAL_CODES[number];
+
 const INPUT_TYPES = [
   "Word",
   "Phrase",
@@ -124,6 +133,7 @@ const learningNoteSchema = z.object({
 const generationErrorSchema = z.object({
   input: z.string().nullish(),
   message: z.string(),
+  code: z.enum(REFUSAL_CODES).nullish().catch(null),
 });
 
 export const learningNoteResponseSchema = z.object({
@@ -204,7 +214,11 @@ const strictLearningNoteResponseSchema = z.strictObject({
   data: z.union([z.null(), strictLearningNoteSchema]),
   error: z.union([
     z.null(),
-    z.strictObject({ input: z.string(), message: z.string() }),
+    z.strictObject({
+      input: z.string(),
+      message: z.string(),
+      code: z.enum(REFUSAL_CODES),
+    }),
   ]),
 });
 

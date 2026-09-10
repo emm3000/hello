@@ -1,5 +1,5 @@
 import { PROMPT_VERSION } from "./prompt.ts";
-import { SCHEMA_VERSION } from "./schema.ts";
+import { type RefusalCode, SCHEMA_VERSION } from "./schema.ts";
 
 export type ResponseMeta = {
   cached: boolean;
@@ -13,6 +13,7 @@ export type ResponseMeta = {
 export type GenerationRefusal = {
   input?: string | null;
   message: string;
+  code?: RefusalCode | null;
 };
 
 export type ErrorCode =

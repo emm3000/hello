@@ -4,6 +4,7 @@ import {
   learningNoteJsonSchema,
   type LearningNoteResponse,
   learningNoteResponseSchema,
+  REFUSAL_CODES,
   suggestWordsRequestSchema,
   withoutNulls,
   wordSuggestionSchema,
@@ -284,6 +285,7 @@ const PROVEN_PROVIDER_SCHEMA: Record<string, unknown> = {
           "required": [
             "input",
             "message",
+            "code",
           ],
           "properties": {
             "input": {
@@ -291,6 +293,15 @@ const PROVEN_PROVIDER_SCHEMA: Record<string, unknown> = {
             },
             "message": {
               "type": "string",
+            },
+            "code": {
+              "type": "string",
+              "enum": [
+                "empty_input",
+                "unintelligible",
+                "contradictory",
+                "unmappable",
+              ],
             },
           },
         },
@@ -416,6 +427,79 @@ Deno.test("a refusal without data parses", () => {
   assertEquals(parsed.success, false);
   assertEquals(parsed.data, undefined);
   assertEquals(parsed.error?.message, "El texto está vacío.");
+  assertEquals(parsed.error?.code, undefined);
+});
+
+Deno.test("a refusal carrying a typed code keeps it", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { code: "empty_input", message: "El texto está vacío." },
+  });
+  assertEquals(parsed.success, false);
+  assertEquals(parsed.error?.code, "empty_input");
+  assertEquals(parsed.error?.message, "El texto está vacío.");
+});
+
+Deno.test("every refusal code parses", () => {
+  for (const code of REFUSAL_CODES) {
+    const parsed = learningNoteResponseSchema.parse({
+      success: false,
+      data: null,
+      error: { code, message: "No se pudo generar la nota." },
+    });
+    assertEquals(parsed.error?.code, code);
+  }
+});
+
+Deno.test("a refusal written before typed codes still parses", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { input: "asdfgh", message: "El texto no se entiende." },
+  });
+  assertEquals(parsed.error?.code, undefined);
+  assertEquals(parsed.error?.input, "asdfgh");
+});
+
+Deno.test("an unknown refusal code is dropped and the message survives", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { code: "banana", message: "El texto está vacío." },
+  });
+  const cleaned: LearningNoteResponse = withoutNulls(parsed);
+  assertEquals(cleaned, {
+    success: false,
+    error: { message: "El texto está vacío." },
+  });
+});
+
+Deno.test("an empty refusal code is dropped and the message survives", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { code: "", message: "El texto está vacío." },
+  });
+  const cleaned: LearningNoteResponse = withoutNulls(parsed);
+  assertEquals(cleaned, {
+    success: false,
+    error: { message: "El texto está vacío." },
+  });
+});
+
+Deno.test("a refusal with a null code is parsed and cleaned", () => {
+  const parsed = learningNoteResponseSchema.parse({
+    success: false,
+    data: null,
+    error: { code: null, message: "El texto está vacío." },
+  });
+  assertEquals(parsed.error?.code, null);
+  const cleaned: LearningNoteResponse = withoutNulls(parsed);
+  assertEquals(cleaned, {
+    success: false,
+    error: { message: "El texto está vacío." },
+  });
 });
 
 Deno.test("a note without cards is rejected", () => {
@@ -459,6 +543,30 @@ Deno.test("the exported JSON Schema equals the proven provider schema", () => {
     canonical(learningNoteJsonSchema),
     canonical(PROVEN_PROVIDER_SCHEMA),
   );
+});
+
+Deno.test("the exported JSON Schema requires a typed refusal code", () => {
+  const properties: Record<string, unknown> = learningNoteJsonSchema
+    .properties as Record<string, unknown>;
+  const errorVariants: Record<string, unknown>[] =
+    (properties.error as Record<string, unknown>).anyOf as Record<
+      string,
+      unknown
+    >[];
+  const refusal: Record<string, unknown> = errorVariants[1];
+  const refusalProperties: Record<string, unknown> = refusal
+    .properties as Record<string, unknown>;
+  const code: Record<string, unknown> = refusalProperties.code as Record<
+    string,
+    unknown
+  >;
+  assertEquals(code.enum, [
+    "empty_input",
+    "unintelligible",
+    "contradictory",
+    "unmappable",
+  ]);
+  assertEquals((refusal.required as string[]).includes("code"), true);
 });
 
 Deno.test("the request schema applies the domain defaults", () => {

@@ -42,6 +42,7 @@ Accepting the input:
 - Single English words/phrases → produce a note teaching that expression.
 - Only return success=false when the input is empty, unintelligible, internally contradictory, or impossible to map to any English expression. Short ≠ ambiguous.
 - When you DO return success=false, write error.message in neutral Latin American Spanish (never English, no Iberian forms) and include one concrete suggestion the user can act on (e.g. "El texto está vacío. Escribe una palabra, frase u objetivo comunicativo.").
+- When you DO return success=false, also set error.code to exactly one of these four values, matched to the reason: "empty_input" when user_text is empty or only whitespace; "unintelligible" when user_text cannot be read as words in Spanish or English; "contradictory" when user_text contradicts itself; "unmappable" when user_text is readable but maps to no English expression.
 
 Field semantics (shape and enums are enforced by the response schema):
 - expression: a single English target expression — natural, useful, narrow.
@@ -118,7 +119,19 @@ For input like user_text = "quiero decir 'no exageres' cuando alguien dramatiza 
   ]
 }
 
-If the input is too ambiguous or unusable, return success=false with a short error.message explaining why. Do not include markdown or any text outside the JSON.`;
+If the input is too ambiguous or unusable, return success=false with a short error.message explaining why and the matching error.code, like this:
+
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "input": "",
+    "message": "El texto está vacío. Escribe una palabra, frase u objetivo comunicativo.",
+    "code": "empty_input"
+  }
+}
+
+Do not include markdown or any text outside the JSON.`;
   if (input.previous_issues.length === 0) {
     return base;
   }
