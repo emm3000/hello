@@ -117,6 +117,7 @@ class SupabaseFunctionsTransportTest {
                 codeVerifierCache = MemoryCodeVerifierCache()
             }
         }
+        client.auth.awaitInitialization()
         client.auth.importAuthToken("session-jwt")
         return SupabaseFunctionsTransport(client.functions)
     }
