@@ -29,12 +29,12 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +49,7 @@ class SuggestViewModelTest {
     fun `a cached pool is shown without asking the backend`() = runTest {
         val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(OTHER_SITUATION, listOf(WORD_C)))
         val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(suggestionRepository.calls).isEqualTo(0)
         assertThat(viewModel.state.value.isLoading).isFalse()
@@ -66,7 +66,7 @@ class SuggestViewModelTest {
             cache = FakeWordSuggestionCache(),
             suggestionRepository = suggestionRepository,
         )
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(suggestionRepository.calls).isEqualTo(1)
         assertThat(viewModel.state.value.isLoading).isFalse()
@@ -93,7 +93,7 @@ class SuggestViewModelTest {
             cache = FakeWordSuggestionCache(),
             suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, emptyList())),
         )
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(viewModel.state.value.words).isEmpty()
@@ -110,7 +110,7 @@ class SuggestViewModelTest {
             suggestionRepository = suggestionRepository,
             connectivityRepository = FakeConnectivityRepository(online = false),
         )
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(suggestionRepository.calls).isEqualTo(0)
         assertThat(viewModel.state.value.isOffline).isTrue()
@@ -125,7 +125,7 @@ class SuggestViewModelTest {
             cache = FakeWordSuggestionCache(),
             suggestionRepository = FakeWordSuggestionRepository(failure = RuntimeException("boom")),
         )
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(viewModel.state.value.loadFailed).isTrue()
         assertThat(viewModel.state.value.isLoading).isFalse()
@@ -138,10 +138,10 @@ class SuggestViewModelTest {
             scope = this,
             suggestionRepository = FakeWordSuggestionRepository(failure = RuntimeException("boom")),
         )
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.Retry)
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(viewModel.state.value.loadFailed).isFalse()
         assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
@@ -151,10 +151,10 @@ class SuggestViewModelTest {
     fun `retry asks for a new batch and swaps the words`() = runTest {
         val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(OTHER_SITUATION, listOf(WORD_C)))
         val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.Retry)
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(suggestionRepository.calls).isEqualTo(1)
         assertThat(viewModel.state.value.situation).isEqualTo(OTHER_SITUATION)
@@ -167,12 +167,12 @@ class SuggestViewModelTest {
             WordSuggestions(OTHER_SITUATION, listOf(WORD_B, WORD_C)),
         )
         val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
         viewModel.onIntent(SuggestUiIntent.Retry)
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(viewModel.state.value.selectedWords).containsExactly(WORD_B.word)
     }
@@ -187,11 +187,11 @@ class SuggestViewModelTest {
             suggestionRepository = suggestionRepository,
             connectivityRepository = connectivityRepository,
         )
-        advanceUntilIdle()
+        runCurrent()
 
         connectivityRepository.setOnline(true)
         viewModel.onIntent(SuggestUiIntent.Retry)
-        advanceUntilIdle()
+        runCurrent()
 
         assertThat(suggestionRepository.calls).isEqualTo(1)
         assertThat(viewModel.state.value.isOffline).isFalse()
@@ -201,7 +201,7 @@ class SuggestViewModelTest {
     @Test
     fun `toggling a word selects it then deselects it`() = runTest {
         val viewModel: SuggestViewModel = buildViewModel(this)
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
         assertThat(viewModel.state.value.selectedWords).containsExactly(WORD_A.word)
@@ -222,7 +222,7 @@ class SuggestViewModelTest {
             } returns CARD_ID_B
             val viewModel: SuggestViewModel =
                 buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
-            advanceUntilIdle()
+            runCurrent()
 
             viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
             viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
@@ -246,7 +246,7 @@ class SuggestViewModelTest {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
         } returns CARD_ID_B
         val viewModel: SuggestViewModel = buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
@@ -270,7 +270,7 @@ class SuggestViewModelTest {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
         } throws duplicateWordException()
         val viewModel: SuggestViewModel = buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
@@ -294,7 +294,7 @@ class SuggestViewModelTest {
             decks = emptyList(),
             defaultDeckId = null,
         )
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
 
@@ -318,11 +318,11 @@ class SuggestViewModelTest {
             decks = listOf(newestDeck(), deck()),
             defaultDeckId = null,
         )
-        advanceUntilIdle()
+        runCurrent()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
         viewModel.onIntent(SuggestUiIntent.AddSelected)
-        advanceUntilIdle()
+        runCurrent()
 
         coVerify {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
@@ -330,7 +330,7 @@ class SuggestViewModelTest {
     }
 
     private fun buildViewModel(
-        scope: CoroutineScope,
+        scope: TestScope,
         cache: WordSuggestionCache = FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B))),
         suggestionRepository: WordSuggestionRepository = FakeWordSuggestionRepository(),
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
@@ -359,7 +359,7 @@ class SuggestViewModelTest {
                     cache,
                 ),
                 connectivityRepository = connectivityRepository,
-                scope = scope,
+                scope = scope.backgroundScope,
             ),
             captureFlashcardUseCase = captureFlashcardUseCase,
             getDecksUseCase = getDecksUseCase,

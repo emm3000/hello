@@ -14,9 +14,12 @@ import com.emm.domain.ids.FlashcardId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 
 internal class FakeFlashcardRepository(
     var recentWords: List<String>,
+    private val recentWordsGate: CompletableDeferred<Unit>? = null,
 ) : FlashcardRepository {
 
     var receivedLimit: Int = -1
@@ -24,6 +27,7 @@ internal class FakeFlashcardRepository(
 
     override suspend fun fetchRecentWords(limit: Int): List<String> {
         receivedLimit = limit
+        recentWordsGate?.await()
         return recentWords
     }
 
@@ -46,15 +50,21 @@ internal class FakeFlashcardRepository(
 
 internal class FakeWordSuggestionRepository(
     private val result: WordSuggestions = WordSuggestions(situation = "", words = emptyList()),
-    private val failure: Throwable? = null,
+    failure: Throwable? = null,
     private val gate: CompletableDeferred<Unit>? = null,
 ) : WordSuggestionRepository {
+
+    private var failure: Throwable? = failure
 
     var receivedRecentWords: List<String> = emptyList()
         private set
 
     var calls: Int = 0
         private set
+
+    fun clearFailure() {
+        failure = null
+    }
 
     override suspend fun suggest(recentWords: List<String>): WordSuggestions {
         calls += 1
@@ -68,11 +78,16 @@ internal class FakeWordSuggestionRepository(
 internal class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordSuggestionCache {
 
     private val stored: MutableStateFlow<WordSuggestions?> = MutableStateFlow(initial)
+    private var observeFailure: Throwable? = null
 
     val current: WordSuggestions?
         get() = stored.value
 
-    override fun observe(): Flow<WordSuggestions?> = stored
+    override fun observe(): Flow<WordSuggestions?> = flow {
+        val pendingFailure: Throwable? = observeFailure
+        if (pendingFailure != null) throw pendingFailure
+        emitAll(stored)
+    }
 
     override suspend fun replace(suggestions: WordSuggestions) {
         stored.value = suggestions
@@ -81,11 +96,32 @@ internal class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordS
     fun emit(suggestions: WordSuggestions?) {
         stored.value = suggestions
     }
+
+    fun failNextObserveWith(error: Throwable) {
+        observeFailure = error
+    }
 }
 
 internal class FakeConnectivityRepository(online: Boolean = true) : ConnectivityRepository {
 
     private val online: MutableStateFlow<Boolean> = MutableStateFlow(online)
+    private var observeFailure: Throwable? = null
 
-    override fun observeOnline(): Flow<Boolean> = online
+    override fun observeOnline(): Flow<Boolean> = flow {
+        val pendingFailure: Throwable? = observeFailure
+        if (pendingFailure != null) throw pendingFailure
+        emitAll(online)
+    }
+
+    fun setOnline(value: Boolean) {
+        online.value = value
+    }
+
+    fun failNextObserveWith(error: Throwable) {
+        observeFailure = error
+    }
+
+    fun clearFailure() {
+        observeFailure = null
+    }
 }

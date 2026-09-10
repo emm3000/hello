@@ -5,59 +5,80 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class SuggestedWordsRefresher(
     private val observeSuggestedWords: ObserveSuggestedWordsUseCase,
     private val refreshSuggestedWords: RefreshSuggestedWordsUseCase,
     private val connectivityRepository: ConnectivityRepository,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
-    private val refreshMutex = Mutex()
+    private sealed interface Request {
+        data object Ensure : Request
+        data object Force : Request
+    }
+
+    private val requests: Channel<Request> = Channel(Channel.UNLIMITED)
     private val mutableStatus = MutableStateFlow<SuggestionRefreshStatus>(SuggestionRefreshStatus.Idle)
 
     val status: StateFlow<SuggestionRefreshStatus> = mutableStatus.asStateFlow()
 
-    fun ensure() {
-        if (isRunning()) return
+    init {
         scope.launch {
-            refreshMutex.withLock {
-                val pool: WordSuggestions? = observeSuggestedWords().first()
-                if (pool != null && pool.words.isNotEmpty()) return@withLock
-                fetchNewBatch()
+            for (request in requests) {
+                val outcome: SuggestionRefreshStatus? = attempt(request)
+                if (outcome != null) {
+                    discardPendingRequests()
+                    mutableStatus.value = outcome
+                }
             }
         }
     }
 
-    fun refresh() {
-        if (isRunning()) return
-        mutableStatus.value = SuggestionRefreshStatus.Running
-        scope.launch {
-            refreshMutex.withLock { fetchNewBatch() }
-        }
+    fun ensure() {
+        requests.trySend(Request.Ensure)
     }
 
-    private fun isRunning(): Boolean = mutableStatus.value is SuggestionRefreshStatus.Running
+    fun refresh() {
+        requests.trySend(Request.Force)
+    }
 
-    private suspend fun fetchNewBatch() {
-        if (!connectivityRepository.observeOnline().first()) {
-            mutableStatus.value = SuggestionRefreshStatus.Offline
-            return
+    private suspend fun attempt(request: Request): SuggestionRefreshStatus? = try {
+        when (request) {
+            Request.Ensure -> if (hasUsablePool()) null else fetchNewBatch()
+            Request.Force -> fetchNewBatch()
         }
+    } catch (cancellation: CancellationException) {
+        currentCoroutineContext().ensureActive()
+        SuggestionRefreshStatus.Failed(cancellation)
+    } catch (error: Throwable) {
+        SuggestionRefreshStatus.Failed(error)
+    }
+
+    private suspend fun hasUsablePool(): Boolean {
+        val pool: WordSuggestions? = observeSuggestedWords().first()
+        return pool != null && pool.words.isNotEmpty()
+    }
+
+    private suspend fun fetchNewBatch(): SuggestionRefreshStatus {
+        if (!connectivityRepository.observeOnline().first()) return SuggestionRefreshStatus.Offline
         mutableStatus.value = SuggestionRefreshStatus.Running
-        try {
-            refreshSuggestedWords()
-            mutableStatus.value = SuggestionRefreshStatus.Completed
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            mutableStatus.value = SuggestionRefreshStatus.Failed(error)
+        refreshSuggestedWords()
+        return SuggestionRefreshStatus.Completed
+    }
+
+    private fun discardPendingRequests() {
+        var pending: ChannelResult<Request> = requests.tryReceive()
+        while (pending.isSuccess) {
+            pending = requests.tryReceive()
         }
     }
 }
