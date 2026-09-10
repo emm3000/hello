@@ -1,0 +1,116 @@
+package com.emm.hello.core.ui
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.hairline
+import com.emm.hello.core.theme.helloShapes
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
+
+private const val BORDER_ANIMATION_MS: Int = 150
+private const val DISABLED_ALPHA: Float = 0.38f
+private val componentMinHeight: Dp = 48.dp
+
+@Composable
+fun H__Component__(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    active: Boolean = false,
+    enabled: Boolean = true,
+) {
+    val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    val isPressed: Boolean by interactionSource.collectIsPressedAsState()
+    val shape: Shape = MaterialTheme.helloShapes.control
+
+    val targetBorderColor: Color = when {
+        !enabled -> hairline.copy(alpha = DISABLED_ALPHA)
+        active || isPressed -> ink
+        else -> hairline
+    }
+
+    val borderColor: Color by animateColorAsState(
+        targetValue = targetBorderColor,
+        animationSpec = tween(durationMillis = BORDER_ANIMATION_MS),
+        label = "H__Component___border",
+    )
+
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = componentMinHeight)
+            .clip(shape)
+            .border(width = 1.dp, color = borderColor, shape = shape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick,
+            )
+            .padding(
+                horizontal = MaterialTheme.spacing.md,
+                vertical = MaterialTheme.spacing.sm,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (enabled) ink else inkFaint,
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun H__Component__Preview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                H__Component__(
+                    label = "__Component__",
+                    onClick = {},
+                )
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun H__Component__ActivePreview() {
+    HelloTheme {
+        Surface(color = pageBackground) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                H__Component__(
+                    label = "__Component__",
+                    onClick = {},
+                    active = true,
+                )
+            }
+        }
+    }
+}

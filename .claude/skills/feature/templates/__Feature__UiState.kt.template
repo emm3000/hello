@@ -1,0 +1,7 @@
+package com.emm.hello.newfeatures.__feature__
+
+import com.emm.hello.core.mvi.MviState
+
+data class __Feature__UiState(
+    val isLoading: Boolean = true,
+) : MviState

@@ -31,3 +31,6 @@ google-services (*).json
 skills-lock.json
 openspec/
 /build-logic/build
+!.claude/skills/
+.claude/skills/git-commit
+.claude/skills/mobile-android-design

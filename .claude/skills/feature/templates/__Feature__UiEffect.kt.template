@@ -1,0 +1,8 @@
+package com.emm.hello.newfeatures.__feature__
+
+import com.emm.hello.core.mvi.MviEffect
+
+sealed interface __Feature__UiEffect : MviEffect {
+
+    data object NavigateBack : __Feature__UiEffect
+}

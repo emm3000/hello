@@ -1,0 +1,91 @@
+package com.emm.hello.newfeatures.__feature__
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import com.emm.hello.core.theme.HelloTheme
+import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.pageBackground
+import com.emm.hello.core.theme.spacing
+import com.emm.hello.core.ui.HButton
+import com.emm.hello.core.ui.HButtonVariant
+import com.emm.hello.core.ui.HLoadingSpinner
+import com.emm.hello.core.ui.HTopBar
+
+@Composable
+fun __Feature__Screen(
+    state: __Feature__UiState,
+    onIntent: (__Feature__UiIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(modifier = modifier.fillMaxSize(), color = pageBackground) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+        ) {
+            HTopBar(onBack = { onIntent(__Feature__UiIntent.BackClicked) })
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = MaterialTheme.spacing.screenGutter)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (state.isLoading) {
+                        HLoadingSpinner(color = ink)
+                    }
+                }
+
+                HButton(
+                    text = "Volver",
+                    onClick = { onIntent(__Feature__UiIntent.BackClicked) },
+                    variant = HButtonVariant.Text,
+                    full = true,
+                )
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun __Feature__ScreenPreview() {
+    HelloTheme {
+        __Feature__Screen(
+            state = __Feature__UiState(isLoading = false),
+            onIntent = {},
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun __Feature__ScreenLoadingPreview() {
+    HelloTheme {
+        __Feature__Screen(
+            state = __Feature__UiState(isLoading = true),
+            onIntent = {},
+        )
+    }
+}

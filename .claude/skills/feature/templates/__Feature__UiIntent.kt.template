@@ -1,0 +1,8 @@
+package com.emm.hello.newfeatures.__feature__
+
+import com.emm.hello.core.mvi.MviIntent
+
+sealed interface __Feature__UiIntent : MviIntent {
+
+    data object BackClicked : __Feature__UiIntent
+}

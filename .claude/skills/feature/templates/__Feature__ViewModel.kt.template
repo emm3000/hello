@@ -1,0 +1,24 @@
+package com.emm.hello.newfeatures.__feature__
+
+import androidx.lifecycle.viewModelScope
+import com.emm.hello.core.mvi.MviViewModel
+import kotlinx.coroutines.launch
+
+class __Feature__ViewModel : MviViewModel<__Feature__UiState, __Feature__UiIntent, __Feature__UiEffect>(
+    initialState = __Feature__UiState(),
+) {
+
+    init {
+        load()
+    }
+
+    override fun onIntent(intent: __Feature__UiIntent) {
+        when (intent) {
+            __Feature__UiIntent.BackClicked -> sendEffect(__Feature__UiEffect.NavigateBack)
+        }
+    }
+
+    private fun load() = viewModelScope.launch {
+        setState { copy(isLoading = false) }
+    }
+}
