@@ -1,5 +1,6 @@
 package com.emm.domain.suggestion
 
+import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Example
@@ -10,6 +11,7 @@ import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -45,13 +47,19 @@ internal class FakeFlashcardRepository(
 internal class FakeWordSuggestionRepository(
     private val result: WordSuggestions = WordSuggestions(situation = "", words = emptyList()),
     private val failure: Throwable? = null,
+    private val gate: CompletableDeferred<Unit>? = null,
 ) : WordSuggestionRepository {
 
     var receivedRecentWords: List<String> = emptyList()
         private set
 
+    var calls: Int = 0
+        private set
+
     override suspend fun suggest(recentWords: List<String>): WordSuggestions {
+        calls += 1
         receivedRecentWords = recentWords
+        gate?.await()
         failure?.let { throw it }
         return result
     }
@@ -73,4 +81,11 @@ internal class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordS
     fun emit(suggestions: WordSuggestions?) {
         stored.value = suggestions
     }
+}
+
+internal class FakeConnectivityRepository(online: Boolean = true) : ConnectivityRepository {
+
+    private val online: MutableStateFlow<Boolean> = MutableStateFlow(online)
+
+    override fun observeOnline(): Flow<Boolean> = online
 }

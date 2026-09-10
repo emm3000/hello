@@ -4,6 +4,8 @@ import com.emm.domain.text.searchNormalized
 
 object SuggestedWordFilter {
 
+    const val RECENT_WORDS_LIMIT: Int = 20
+
     fun usable(candidates: List<SuggestedWord>, capturedWords: List<String>): List<SuggestedWord> {
         val captured: Set<String> = capturedWords.map { word -> word.searchNormalized() }.toSet()
         val seenWords: MutableSet<String> = mutableSetOf()

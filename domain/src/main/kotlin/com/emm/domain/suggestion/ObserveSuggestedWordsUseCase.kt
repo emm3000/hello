@@ -12,7 +12,7 @@ class ObserveSuggestedWordsUseCase(
     operator fun invoke(): Flow<WordSuggestions?> = cache.observe().map { cached ->
         cached?.let { suggestions ->
             val recentWords: List<String> =
-                flashcardRepository.fetchRecentWords(SuggestWordsUseCase.RECENT_WORDS_LIMIT)
+                flashcardRepository.fetchRecentWords(SuggestedWordFilter.RECENT_WORDS_LIMIT)
             suggestions.copy(words = SuggestedWordFilter.usable(suggestions.words, recentWords))
         }
     }

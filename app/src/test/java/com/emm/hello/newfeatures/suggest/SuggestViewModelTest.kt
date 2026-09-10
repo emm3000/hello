@@ -6,12 +6,17 @@ import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
-import com.emm.domain.suggestion.SuggestWordsUseCase
+import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
+import com.emm.domain.suggestion.RefreshSuggestedWordsUseCase
 import com.emm.domain.suggestion.SuggestedWord
+import com.emm.domain.suggestion.SuggestedWordsRefresher
+import com.emm.domain.suggestion.WordSuggestionCache
+import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
@@ -24,6 +29,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,10 +46,12 @@ class SuggestViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `load success populates the situation and the words`() = runTest {
-        val viewModel = buildViewModel()
+    fun `a cached pool is shown without asking the backend`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(OTHER_SITUATION, listOf(WORD_C)))
+        val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
         advanceUntilIdle()
 
+        assertThat(suggestionRepository.calls).isEqualTo(0)
         assertThat(viewModel.state.value.isLoading).isFalse()
         assertThat(viewModel.state.value.loadFailed).isFalse()
         assertThat(viewModel.state.value.situation).isEqualTo(SITUATION)
@@ -51,32 +59,148 @@ class SuggestViewModelTest {
     }
 
     @Test
-    fun `load failure sets loadFailed`() = runTest {
-        val suggestWordsUseCase = mockk<SuggestWordsUseCase>()
-        coEvery { suggestWordsUseCase() } throws RuntimeException("boom")
-        val viewModel = buildViewModel(suggestWordsUseCase = suggestWordsUseCase)
+    fun `an empty cache asks the backend once and shows the words`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B)))
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = suggestionRepository,
+        )
+        advanceUntilIdle()
+
+        assertThat(suggestionRepository.calls).isEqualTo(1)
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
+    }
+
+    @Test
+    fun `an empty pool with no decision taken yet keeps the spinner up`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, listOf(WORD_A))),
+        )
+
+        assertThat(viewModel.state.value.isLoading).isTrue()
+        assertThat(viewModel.state.value.loadFailed).isFalse()
+        assertThat(viewModel.state.value.isOffline).isFalse()
+    }
+
+    @Test
+    fun `a refresh that yields no usable words ends with the empty state and no spinner`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, emptyList())),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.words).isEmpty()
+        assertThat(viewModel.state.value.loadFailed).isFalse()
+        assertThat(viewModel.state.value.isOffline).isFalse()
+    }
+
+    @Test
+    fun `an empty cache while offline reports offline without asking the backend`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, listOf(WORD_A)))
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = suggestionRepository,
+            connectivityRepository = FakeConnectivityRepository(online = false),
+        )
+        advanceUntilIdle()
+
+        assertThat(suggestionRepository.calls).isEqualTo(0)
+        assertThat(viewModel.state.value.isOffline).isTrue()
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.loadFailed).isFalse()
+    }
+
+    @Test
+    fun `a backend failure with an empty cache sets loadFailed`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = FakeWordSuggestionRepository(failure = RuntimeException("boom")),
+        )
         advanceUntilIdle()
 
         assertThat(viewModel.state.value.loadFailed).isTrue()
         assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(viewModel.state.value.isOffline).isFalse()
     }
 
     @Test
-    fun `retry reloads`() = runTest {
-        val suggestWordsUseCase = mockk<SuggestWordsUseCase>()
-        coEvery { suggestWordsUseCase() } returns WordSuggestions(SITUATION, listOf(WORD_A))
-        val viewModel = buildViewModel(suggestWordsUseCase = suggestWordsUseCase)
+    fun `a backend failure with a cached pool leaves loadFailed false`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            suggestionRepository = FakeWordSuggestionRepository(failure = RuntimeException("boom")),
+        )
         advanceUntilIdle()
 
         viewModel.onIntent(SuggestUiIntent.Retry)
         advanceUntilIdle()
 
-        coVerify(exactly = 2) { suggestWordsUseCase() }
+        assertThat(viewModel.state.value.loadFailed).isFalse()
+        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
+    }
+
+    @Test
+    fun `retry asks for a new batch and swaps the words`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(OTHER_SITUATION, listOf(WORD_C)))
+        val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(SuggestUiIntent.Retry)
+        advanceUntilIdle()
+
+        assertThat(suggestionRepository.calls).isEqualTo(1)
+        assertThat(viewModel.state.value.situation).isEqualTo(OTHER_SITUATION)
+        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_C))
+    }
+
+    @Test
+    fun `a swapped batch drops the selections that disappeared`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(
+            WordSuggestions(OTHER_SITUATION, listOf(WORD_B, WORD_C)),
+        )
+        val viewModel: SuggestViewModel = buildViewModel(this, suggestionRepository = suggestionRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+        viewModel.onIntent(SuggestUiIntent.Retry)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.selectedWords).containsExactly(WORD_B.word)
+    }
+
+    @Test
+    fun `retry after coming back online loads the suggestions`() = runTest {
+        val suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B)))
+        val connectivityRepository = FakeConnectivityRepository(online = false)
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = FakeWordSuggestionCache(),
+            suggestionRepository = suggestionRepository,
+            connectivityRepository = connectivityRepository,
+        )
+        advanceUntilIdle()
+
+        connectivityRepository.setOnline(true)
+        viewModel.onIntent(SuggestUiIntent.Retry)
+        advanceUntilIdle()
+
+        assertThat(suggestionRepository.calls).isEqualTo(1)
+        assertThat(viewModel.state.value.isOffline).isFalse()
+        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
     }
 
     @Test
     fun `toggling a word selects it then deselects it`() = runTest {
-        val viewModel = buildViewModel()
+        val viewModel: SuggestViewModel = buildViewModel(this)
         advanceUntilIdle()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
@@ -96,7 +220,8 @@ class SuggestViewModelTest {
             coEvery {
                 captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
             } returns CARD_ID_B
-            val viewModel = buildViewModel(captureFlashcardUseCase = captureFlashcardUseCase)
+            val viewModel: SuggestViewModel =
+                buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
             advanceUntilIdle()
 
             viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
@@ -116,13 +241,11 @@ class SuggestViewModelTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
         coEvery {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
-        } throws DomainValidationException(
-            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
-        )
+        } throws duplicateWordException()
         coEvery {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
         } returns CARD_ID_B
-        val viewModel = buildViewModel(captureFlashcardUseCase = captureFlashcardUseCase)
+        val viewModel: SuggestViewModel = buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
         advanceUntilIdle()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
@@ -142,15 +265,11 @@ class SuggestViewModelTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
         coEvery {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
-        } throws DomainValidationException(
-            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
-        )
+        } throws duplicateWordException()
         coEvery {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_B.word, translation = WORD_B.translation)
-        } throws DomainValidationException(
-            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
-        )
-        val viewModel = buildViewModel(captureFlashcardUseCase = captureFlashcardUseCase)
+        } throws duplicateWordException()
+        val viewModel: SuggestViewModel = buildViewModel(this, captureFlashcardUseCase = captureFlashcardUseCase)
         advanceUntilIdle()
 
         viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
@@ -169,7 +288,8 @@ class SuggestViewModelTest {
     @Test
     fun `add selected with no deck shows the no-deck message and does not capture`() = runTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
-        val viewModel = buildViewModel(
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
             captureFlashcardUseCase = captureFlashcardUseCase,
             decks = emptyList(),
             defaultDeckId = null,
@@ -187,47 +307,13 @@ class SuggestViewModelTest {
     }
 
     @Test
-    fun `offline skips the request and reports offline`() = runTest {
-        val suggestWordsUseCase = defaultSuggestWordsUseCase()
-        val connectivityRepository = FakeConnectivityRepository(online = false)
-        val viewModel = buildViewModel(
-            suggestWordsUseCase = suggestWordsUseCase,
-            connectivityRepository = connectivityRepository,
-        )
-        advanceUntilIdle()
-
-        coVerify(exactly = 0) { suggestWordsUseCase() }
-        assertThat(viewModel.state.value.isOffline).isTrue()
-        assertThat(viewModel.state.value.isLoading).isFalse()
-        assertThat(viewModel.state.value.loadFailed).isFalse()
-    }
-
-    @Test
-    fun `retry after coming back online loads the suggestions`() = runTest {
-        val suggestWordsUseCase = defaultSuggestWordsUseCase()
-        val connectivityRepository = FakeConnectivityRepository(online = false)
-        val viewModel = buildViewModel(
-            suggestWordsUseCase = suggestWordsUseCase,
-            connectivityRepository = connectivityRepository,
-        )
-        advanceUntilIdle()
-
-        connectivityRepository.setOnline(true)
-        viewModel.onIntent(SuggestUiIntent.Retry)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { suggestWordsUseCase() }
-        assertThat(viewModel.state.value.isOffline).isFalse()
-        assertThat(viewModel.state.value.words).isEqualTo(listOf(WORD_A, WORD_B))
-    }
-
-    @Test
     fun `with no default selected the words go to the oldest deck and not the newest`() = runTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
         coEvery {
             captureFlashcardUseCase(deckId = DECK_ID, word = WORD_A.word, translation = WORD_A.translation)
         } returns CARD_ID_A
-        val viewModel = buildViewModel(
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
             captureFlashcardUseCase = captureFlashcardUseCase,
             decks = listOf(newestDeck(), deck()),
             defaultDeckId = null,
@@ -244,32 +330,46 @@ class SuggestViewModelTest {
     }
 
     private fun buildViewModel(
-        suggestWordsUseCase: SuggestWordsUseCase = defaultSuggestWordsUseCase(),
+        scope: CoroutineScope,
+        cache: WordSuggestionCache = FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B))),
+        suggestionRepository: WordSuggestionRepository = FakeWordSuggestionRepository(),
+        connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
         captureFlashcardUseCase: CaptureFlashcardUseCase = mockk(),
         decks: List<Deck> = listOf(deck()),
         defaultDeckId: DeckId? = DECK_ID,
-        connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
     ): SuggestViewModel {
+        val flashcardRepository = mockk<FlashcardRepository>()
+        coEvery { flashcardRepository.fetchRecentWords(any()) } returns emptyList()
+
         val getDecksUseCase = mockk<GetDecksUseCase>()
         every { getDecksUseCase() } returns flowOf(decks)
 
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns defaultDeckId
 
+        val observeSuggestedWords = ObserveSuggestedWordsUseCase(flashcardRepository, cache)
+
         return SuggestViewModel(
-            suggestWordsUseCase = suggestWordsUseCase,
+            observeSuggestedWords = observeSuggestedWords,
+            refresher = SuggestedWordsRefresher(
+                observeSuggestedWords = observeSuggestedWords,
+                refreshSuggestedWords = RefreshSuggestedWordsUseCase(
+                    flashcardRepository,
+                    suggestionRepository,
+                    cache,
+                ),
+                connectivityRepository = connectivityRepository,
+                scope = scope,
+            ),
             captureFlashcardUseCase = captureFlashcardUseCase,
             getDecksUseCase = getDecksUseCase,
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
-            connectivityRepository = connectivityRepository,
         )
     }
 
-    private fun defaultSuggestWordsUseCase(): SuggestWordsUseCase {
-        val useCase = mockk<SuggestWordsUseCase>()
-        coEvery { useCase() } returns WordSuggestions(SITUATION, listOf(WORD_A, WORD_B))
-        return useCase
-    }
+    private fun duplicateWordException(): DomainValidationException = DomainValidationException(
+        issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+    )
 
     private fun deck(
         id: DeckId = DECK_ID,
@@ -296,14 +396,41 @@ class SuggestViewModelTest {
         override fun observeOnline(): Flow<Boolean> = online
 
         fun setOnline(value: Boolean) {
-            online.value = value
+            this.online.value = value
+        }
+    }
+
+    private class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordSuggestionCache {
+        private val stored: MutableStateFlow<WordSuggestions?> = MutableStateFlow(initial)
+
+        override fun observe(): Flow<WordSuggestions?> = stored
+
+        override suspend fun replace(suggestions: WordSuggestions) {
+            stored.value = suggestions
+        }
+    }
+
+    private class FakeWordSuggestionRepository(
+        private val result: WordSuggestions = WordSuggestions(situation = "", words = emptyList()),
+        private val failure: Throwable? = null,
+    ) : WordSuggestionRepository {
+
+        var calls: Int = 0
+            private set
+
+        override suspend fun suggest(recentWords: List<String>): WordSuggestions {
+            calls += 1
+            failure?.let { throw it }
+            return result
         }
     }
 
     private companion object {
         const val SITUATION: String = "At a coffee shop"
+        const val OTHER_SITUATION: String = "At the airport"
         val WORD_A: SuggestedWord = SuggestedWord(word = "borrow", translation = "prestar")
         val WORD_B: SuggestedWord = SuggestedWord(word = "receipt", translation = "recibo")
+        val WORD_C: SuggestedWord = SuggestedWord(word = "gate", translation = "puerta")
         val DECK_ID: DeckId = "deck-1".toDeckId()
         val NEWEST_DECK_ID: DeckId = "deck-2".toDeckId()
         val CARD_ID_A: FlashcardId = "card-a".toFlashcardId()

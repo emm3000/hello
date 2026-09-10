@@ -18,7 +18,7 @@ class RefreshSuggestedWordsUseCaseTest {
 
         useCase()
 
-        assertEquals(SuggestWordsUseCase.RECENT_WORDS_LIMIT, flashcardRepository.receivedLimit)
+        assertEquals(SuggestedWordFilter.RECENT_WORDS_LIMIT, flashcardRepository.receivedLimit)
         assertEquals(listOf("hello", "world"), suggestionRepository.receivedRecentWords)
     }
 

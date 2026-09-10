@@ -19,6 +19,7 @@ import com.emm.data.flashcard.DefaultFlashcardReviewRepository
 import com.emm.data.flashcard.DefaultStudySessionRepository
 import com.emm.data.flashcard.RemoteFlashcardGenerationRepository
 import com.emm.data.suggestion.CannedWordSuggestionRepository
+import com.emm.data.suggestion.DefaultWordSuggestionCache
 import com.emm.data.suggestion.RemoteWordSuggestionRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
@@ -66,7 +67,10 @@ import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.StudyStatsRepository
-import com.emm.domain.suggestion.SuggestWordsUseCase
+import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
+import com.emm.domain.suggestion.RefreshSuggestedWordsUseCase
+import com.emm.domain.suggestion.SuggestedWordsRefresher
+import com.emm.domain.suggestion.WordSuggestionCache
 import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.hello.newfeatures.suggest.SuggestViewModel
 import com.emm.domain.flashcard.FsrsParameters
@@ -172,6 +176,9 @@ fun Module.repository() {
     single<StudySessionRepository> {
         DefaultStudySessionRepository(db = get(), json = get(), ioDispatcher = Dispatchers.IO)
     }
+    single<WordSuggestionCache> {
+        DefaultWordSuggestionCache(db = get(), clock = get(), ioDispatcher = Dispatchers.IO)
+    }
     single<FlashcardGenerationRepository> {
         RemoteFlashcardGenerationRepository(
             transport = get(),
@@ -217,6 +224,13 @@ fun Module.repository() {
         )
     }
     single {
+        SuggestedWordsRefresher(
+            observeSuggestedWords = get(),
+            refreshSuggestedWords = get(),
+            connectivityRepository = get(),
+        )
+    }
+    single {
         AppStartupCoordinator(
             localIdentityInitializer = get(),
             seedDataInitializer = get(),
@@ -258,7 +272,8 @@ fun Module.useCases() {
     factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
     factoryOf(::SearchLibraryUseCase)
-    factoryOf(::SuggestWordsUseCase)
+    factoryOf(::ObserveSuggestedWordsUseCase)
+    factoryOf(::RefreshSuggestedWordsUseCase)
     factoryOf(::SyncStudyReminderUseCase)
     factoryOf(::SetStudyReminderEnabledUseCase)
     factoryOf(::SetStudyReminderTimeUseCase)

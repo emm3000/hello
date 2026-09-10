@@ -2,13 +2,14 @@ package com.emm.hello.newfeatures.suggest
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
-import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.ids.DeckId
-import com.emm.domain.suggestion.SuggestWordsUseCase
+import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
 import com.emm.domain.suggestion.SuggestedWord
+import com.emm.domain.suggestion.SuggestedWordsRefresher
+import com.emm.domain.suggestion.SuggestionRefreshStatus
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
@@ -16,57 +17,59 @@ import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SuggestViewModel(
-    private val suggestWordsUseCase: SuggestWordsUseCase,
+    private val observeSuggestedWords: ObserveSuggestedWordsUseCase,
+    private val refresher: SuggestedWordsRefresher,
     private val captureFlashcardUseCase: CaptureFlashcardUseCase,
     private val getDecksUseCase: GetDecksUseCase,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
-    private val connectivityRepository: ConnectivityRepository,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
     initialState = SuggestUiState(),
 ) {
 
     init {
-        load()
+        refresher.ensure()
+        observeSuggestions()
     }
 
     override fun onIntent(intent: SuggestUiIntent) {
         when (intent) {
-            SuggestUiIntent.Retry -> load()
+            SuggestUiIntent.Retry -> refresher.refresh()
             is SuggestUiIntent.WordToggled -> toggleWord(intent.word)
             SuggestUiIntent.AddSelected -> handleAddSelected()
             SuggestUiIntent.BackClicked -> sendEffect(SuggestUiEffect.NavigateBack)
         }
     }
 
-    private fun load() = viewModelScope.launch {
-        setState { copy(isLoading = true, loadFailed = false, isOffline = false) }
-        if (!isOnline()) {
-            setState { copy(isLoading = false, isOffline = true) }
-            return@launch
-        }
-        try {
-            val suggestions: WordSuggestions = suggestWordsUseCase()
-            setState {
-                copy(
-                    isLoading = false,
-                    situation = suggestions.situation,
-                    words = suggestions.words,
-                    selectedWords = emptySet(),
-                )
-            }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            logError(TAG, "load:error ${error.message}", error)
-            setState { copy(isLoading = false, loadFailed = true) }
+    private fun observeSuggestions() = viewModelScope.launch {
+        combine(observeSuggestedWords(), refresher.status, ::Pair).collect { (pool, status) ->
+            render(pool, status)
         }
     }
 
-    private suspend fun isOnline(): Boolean = connectivityRepository.observeOnline().first()
+    private fun render(pool: WordSuggestions?, status: SuggestionRefreshStatus) {
+        val words: List<SuggestedWord> = pool?.words.orEmpty()
+        val hasWords: Boolean = words.isNotEmpty()
+        if (status is SuggestionRefreshStatus.Failed) {
+            logError(TAG, "refresh:error ${status.error.message}", status.error)
+        }
+        setState {
+            copy(
+                isLoading = !hasWords && status.isDecisionPending(),
+                loadFailed = !hasWords && status is SuggestionRefreshStatus.Failed,
+                isOffline = !hasWords && status is SuggestionRefreshStatus.Offline,
+                situation = pool?.situation.orEmpty(),
+                words = words,
+                selectedWords = selectedWords.filterTo(mutableSetOf()) { selected ->
+                    words.any { it.word == selected }
+                },
+            )
+        }
+    }
 
     private fun toggleWord(word: String) {
         setState {
@@ -138,6 +141,9 @@ class SuggestViewModel(
         }
     }
 }
+
+private fun SuggestionRefreshStatus.isDecisionPending(): Boolean =
+    this is SuggestionRefreshStatus.Idle || this is SuggestionRefreshStatus.Running
 
 private const val TAG = "SuggestViewModel"
 

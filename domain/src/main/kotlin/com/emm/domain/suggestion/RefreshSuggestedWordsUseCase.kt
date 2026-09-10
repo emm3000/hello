@@ -10,7 +10,7 @@ class RefreshSuggestedWordsUseCase(
 
     suspend operator fun invoke() {
         val recentWords: List<String> =
-            flashcardRepository.fetchRecentWords(SuggestWordsUseCase.RECENT_WORDS_LIMIT)
+            flashcardRepository.fetchRecentWords(SuggestedWordFilter.RECENT_WORDS_LIMIT)
         val suggestions: WordSuggestions = suggestionRepository.suggest(recentWords)
         cache.replace(suggestions.copy(words = SuggestedWordFilter.usable(suggestions.words, recentWords)))
     }
