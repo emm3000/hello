@@ -239,7 +239,7 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | Supabase Auth | Anonymous sign-ins enabled |
 | Supabase Auth rate limit | `anonymous_users = 10` per hour per IP in `config.toml`; captcha stays off, App Check gates consumption (see Risks) |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (default 5) and `DAILY_REFUSAL_ALLOWANCE` (default 10) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
+| Function secrets | `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (50 on the hosted project, fallback 5) and `DAILY_REFUSAL_ALLOWANCE` (10, same as the fallback) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets; `release` refuses to build when either value is blank, while `debug` keeps its local defaults; `uploadApk.yml` provisions both from the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets |
 | Table grants | `anon` and `authenticated` hold no privileges on `note_cache`, `generation_events`, `provider_state`; only the service role and the two `security definer` functions with `search_path = ''` reach them |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
@@ -271,7 +271,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 
 ## Open decisions
 
-- `DAILY_ALLOWANCE` value: 5, decided 2026-09-07 (env override per environment).
+- `DAILY_ALLOWANCE` value: 50 on the hosted project since 2026-09-07 (`5` in `credits.ts` is only the fallback when the secret is unset).
 - Suggest shares the allowance, decided 2026-09-07.
 - `DAILY_REFUSAL_ALLOWANCE` value: 10, decided 2026-09-07 (env override per environment).
 - Credits fail closed on a database error, decided 2026-09-07; availability lost to a Postgres outage is preferable to unlimited free generations.
