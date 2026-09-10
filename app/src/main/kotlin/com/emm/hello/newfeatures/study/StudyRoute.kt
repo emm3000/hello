@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.hello.core.audio.AudioState
 import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.capture.CaptureRoute
@@ -40,7 +41,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
     )
     val uiState = vm.state.collectAsStateWithLifecycle()
     val textToSpeech: TextToSpeechManager = koinInject()
-    val isSpeaking: Boolean by textToSpeech.isSpeaking.collectAsStateWithLifecycle()
+    val speakingUtteranceId: String? by textToSpeech.speakingUtteranceId.collectAsStateWithLifecycle()
     val isTtsReady: Boolean by textToSpeech.isReady.collectAsStateWithLifecycle()
 
     DisposableEffect(textToSpeech) {
@@ -73,7 +74,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
         onSpeak = textToSpeech::speak,
         onStopSpeech = textToSpeech::stop,
-        audioState = AudioState(isSpeaking = isSpeaking, isTtsReady = isTtsReady),
+        audioState = AudioState(speakingUtteranceId = speakingUtteranceId, isTtsReady = isTtsReady),
         state = uiState.value,
     )
 }

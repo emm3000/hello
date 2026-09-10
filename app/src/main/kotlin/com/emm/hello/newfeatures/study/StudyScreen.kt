@@ -33,8 +33,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +63,7 @@ import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
+import com.emm.hello.core.audio.AudioState
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.bricolage
 import com.emm.hello.core.theme.cardHues
@@ -79,15 +78,16 @@ import com.emm.hello.core.theme.schibsted
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HEmptyState
-import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HRing
+import com.emm.hello.core.ui.HSpeakerButton
 import com.emm.hello.core.ui.underlineFirstMatch
 
 private const val CARD_TRANSITION_DURATION_MS = 220
 private const val CARD_EXIT_FADE_DURATION_MS = 160
 private const val CARD_ENTER_SCALE = 0.96f
 private const val CARD_EXIT_SCALE = 0.92f
+private const val WORD_UTTERANCE_ID = "study_word"
 private val gradeButtonMinHeight = 56.dp
 
 @Composable
@@ -98,7 +98,7 @@ fun StudyScreen(
     onCreateCard: () -> Unit = {},
     onGetNewWords: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
-    onSpeak: (String) -> Unit = {},
+    onSpeak: (String, String) -> Unit = { _, _ -> },
     onStopSpeech: () -> Unit = {},
     audioState: AudioState = AudioState(),
     state: StudyUiState = StudyUiState(),
@@ -179,10 +179,11 @@ fun StudyScreen(
                 onClose = onExit,
                 actions = if (wordRevealed) {
                     {
-                        TtsFloatingButton(
-                            audioState = audioState,
-                            onSpeak = { onSpeak(state.currentItem.word) },
+                        HSpeakerButton(
+                            isSpeaking = audioState.isSpeaking(WORD_UTTERANCE_ID),
+                            onSpeak = { onSpeak(state.currentItem.word, WORD_UTTERANCE_ID) },
                             onStop = onStopSpeech,
+                            enabled = audioState.isTtsReady,
                         )
                     }
                 } else {
@@ -320,27 +321,6 @@ private fun StudyCardStage(
             }
         }
     }
-}
-
-@Composable
-private fun TtsFloatingButton(
-    audioState: AudioState,
-    onSpeak: () -> Unit,
-    onStop: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val isSpeaking: Boolean = audioState.isSpeaking
-    val description: String = stringResource(
-        if (isSpeaking) R.string.stop_speech_desc else R.string.speak_desc,
-    )
-    HIconButton(
-        icon = if (isSpeaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
-        contentDescription = description,
-        onClick = { if (isSpeaking) onStop() else onSpeak() },
-        modifier = modifier,
-        tint = ink,
-        enabled = audioState.isTtsReady,
-    )
 }
 
 @Composable

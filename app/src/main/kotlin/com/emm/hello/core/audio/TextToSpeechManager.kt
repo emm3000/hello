@@ -20,8 +20,8 @@ class TextToSpeechManager(context: Context) {
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
-    private val _isSpeaking = MutableStateFlow(false)
-    val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
+    private val _speakingUtteranceId = MutableStateFlow<String?>(null)
+    val speakingUtteranceId: StateFlow<String?> = _speakingUtteranceId.asStateFlow()
 
     fun init(
         locale: Locale = Locale.US,
@@ -35,16 +35,16 @@ class TextToSpeechManager(context: Context) {
         }
     }
 
-    fun speak(text: String) {
+    fun speak(text: String, utteranceId: String) {
         val utterance: String = text.trim()
         if (utterance.isBlank() || !_isReady.value) return
 
-        engine?.speak(utterance, TextToSpeech.QUEUE_FLUSH, null, utterance)
+        engine?.speak(utterance, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 
     fun stop() {
         engine?.stop()
-        _isSpeaking.value = false
+        _speakingUtteranceId.value = null
     }
 
     private fun configure(locale: Locale, speechRate: Float, pitch: Float): Boolean {
@@ -60,24 +60,24 @@ class TextToSpeechManager(context: Context) {
     private inner class SpeakingStateListener : UtteranceProgressListener() {
 
         override fun onStart(utteranceId: String?) {
-            _isSpeaking.value = true
+            _speakingUtteranceId.value = utteranceId
         }
 
         override fun onDone(utteranceId: String?) {
-            _isSpeaking.value = false
+            _speakingUtteranceId.value = TtsUtterancePolicy.resolveOnFinish(_speakingUtteranceId.value, utteranceId)
         }
 
         @Deprecated("Deprecated in Java")
         override fun onError(utteranceId: String?) {
-            _isSpeaking.value = false
+            _speakingUtteranceId.value = TtsUtterancePolicy.resolveOnFinish(_speakingUtteranceId.value, utteranceId)
         }
 
         override fun onError(utteranceId: String?, errorCode: Int) {
-            _isSpeaking.value = false
+            _speakingUtteranceId.value = TtsUtterancePolicy.resolveOnFinish(_speakingUtteranceId.value, utteranceId)
         }
 
         override fun onStop(utteranceId: String?, interrupted: Boolean) {
-            _isSpeaking.value = false
+            _speakingUtteranceId.value = TtsUtterancePolicy.resolveOnFinish(_speakingUtteranceId.value, utteranceId)
         }
     }
 }
