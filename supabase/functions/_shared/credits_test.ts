@@ -1,43 +1,29 @@
 import { assertEquals, assertRejects } from "jsr:@std/assert@^1";
 import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
+  consumeCredit,
+  type Consumption,
   type CreditsSnapshot,
   CreditsUnavailableError,
   DEFAULT_DAILY_ALLOWANCE,
-  DEFAULT_DAILY_REFUSAL_ALLOWANCE,
+  MAX_DAILY_ALLOWANCE,
   nextUtcMidnight,
-  PENDING_RESERVATION_TTL_MS,
   readCredits,
   readDailyAllowance,
-  readDailyRefusalAllowance,
   recordGenerationEvent,
-  remainingAfter,
-  type Reservation,
-  reserveGeneration,
-  settleGeneration,
-  snapshotFrom,
-  staleBefore,
-  startOfUtcDay,
+  snapshot,
+  utcDay,
 } from "./credits.ts";
 
 const MIDDAY: Date = new Date("2026-09-07T10:00:00.000Z");
-const LAST_SECOND: Date = new Date("2026-09-07T23:59:59.000Z");
-const AN_HOUR_BEFORE_MIDDAY: string = "2026-09-07T09:00:00.000Z";
-const TEN_MINUTES_BEFORE_MIDDAY: string = "2026-09-07T09:50:00.000Z";
-const A_MINUTE_BEFORE_MIDDAY: string = "2026-09-07T09:59:00.000Z";
+const LAST_SECOND: Date = new Date("2026-09-10T23:59:59.000Z");
+const FIRST_SECOND: Date = new Date("2026-09-11T00:00:00.000Z");
 
 function envWith(
   value: string | undefined,
 ): (name: string) => string | undefined {
   return (name: string): string | undefined =>
     name === "DAILY_ALLOWANCE" ? value : undefined;
-}
-
-function refusalEnvWith(
-  value: string | undefined,
-): (name: string) => string | undefined {
-  return (name: string): string | undefined =>
-    name === "DAILY_REFUSAL_ALLOWANCE" ? value : undefined;
 }
 
 type QueryReply = { data: unknown; error: { message: string } | null };
@@ -52,16 +38,12 @@ function tableClient(reply: QueryReply, calls: string[]): SupabaseClient {
       calls.push("insert:" + JSON.stringify(payload));
       return builder;
     },
-    update(payload: Record<string, unknown>): unknown {
-      calls.push("update:" + JSON.stringify(payload));
-      return builder;
-    },
     eq(column: string, value: unknown): unknown {
       calls.push("eq:" + column + ":" + String(value));
       return builder;
     },
-    gte(column: string, value: unknown): unknown {
-      calls.push("gte:" + column + ":" + String(value));
+    maybeSingle(): unknown {
+      calls.push("maybeSingle");
       return builder;
     },
     then(resolve: (value: QueryReply) => unknown): unknown {
@@ -96,15 +78,8 @@ function throwingClient(): SupabaseClient {
   } as unknown as SupabaseClient;
 }
 
-function reservationInput(): Parameters<typeof reserveGeneration>[1] {
-  return {
-    userId: "user-1",
-    operation: "generate-note",
-    cacheKey: "cache-key",
-    now: MIDDAY,
-    allowance: 5,
-    refusalAllowance: 10,
-  };
+function consumeInput(): Parameters<typeof consumeCredit>[1] {
+  return { userId: "user-1", now: MIDDAY, allowance: 5 };
 }
 
 Deno.test("an unset allowance falls back to the default", () => {
@@ -125,305 +100,164 @@ Deno.test("a negative allowance falls back to the default", () => {
   assertEquals(readDailyAllowance(envWith("-1")), 5);
 });
 
+Deno.test("an allowance that is not plain digits falls back to the default", () => {
+  assertEquals(readDailyAllowance(envWith("1e2")), 5);
+  assertEquals(readDailyAllowance(envWith("0x10")), 5);
+  assertEquals(readDailyAllowance(envWith("+5")), 5);
+});
+
+Deno.test("an allowance beyond the integer column falls back to the default", () => {
+  assertEquals(MAX_DAILY_ALLOWANCE, 2_147_483_647);
+  assertEquals(readDailyAllowance(envWith("2147483648")), 5);
+  assertEquals(readDailyAllowance(envWith("2147483647")), 2_147_483_647);
+});
+
 Deno.test("an integer allowance is honoured", () => {
+  assertEquals(readDailyAllowance(envWith("50")), 50);
   assertEquals(readDailyAllowance(envWith("2")), 2);
   assertEquals(readDailyAllowance(envWith(" 20 ")), 20);
 });
 
-Deno.test("an unset refusal allowance falls back to the default", () => {
-  assertEquals(
-    readDailyRefusalAllowance(refusalEnvWith(undefined)),
-    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
-  );
-  assertEquals(DEFAULT_DAILY_REFUSAL_ALLOWANCE, 10);
+Deno.test("the utc day is the calendar date of the instant", () => {
+  assertEquals(utcDay(LAST_SECOND), "2026-09-10");
+  assertEquals(utcDay(FIRST_SECOND), "2026-09-11");
 });
 
-Deno.test("an empty refusal allowance falls back to the default", () => {
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith("")), 10);
-});
-
-Deno.test("a non integer refusal allowance falls back to the default", () => {
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith("abc")), 10);
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith("2.5")), 10);
-});
-
-Deno.test("a negative refusal allowance falls back to the default", () => {
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith("-1")), 10);
-});
-
-Deno.test("an integer refusal allowance is honoured", () => {
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith("3")), 3);
-  assertEquals(readDailyRefusalAllowance(refusalEnvWith(" 40 ")), 40);
-});
-
-Deno.test("the utc day starts at midnight for a midday instant", () => {
-  assertEquals(startOfUtcDay(MIDDAY).toISOString(), "2026-09-07T00:00:00.000Z");
+Deno.test("the reset is the next utc midnight", () => {
   assertEquals(
     nextUtcMidnight(MIDDAY).toISOString(),
     "2026-09-08T00:00:00.000Z",
   );
-});
-
-Deno.test("the last second of a utc day still belongs to that day", () => {
-  assertEquals(
-    startOfUtcDay(LAST_SECOND).toISOString(),
-    "2026-09-07T00:00:00.000Z",
-  );
   assertEquals(
     nextUtcMidnight(LAST_SECOND).toISOString(),
-    "2026-09-08T00:00:00.000Z",
+    "2026-09-11T00:00:00.000Z",
   );
 });
 
 Deno.test("a snapshot reports what is left of the allowance", () => {
-  const snapshot: CreditsSnapshot = snapshotFrom(5, 2, 10, 1, MIDDAY);
+  const credits: CreditsSnapshot = snapshot(5, 2, MIDDAY);
 
-  assertEquals(snapshot.allowance, 5);
-  assertEquals(snapshot.charged, 2);
-  assertEquals(snapshot.remaining, 3);
-  assertEquals(snapshot.refusalAllowance, 10);
-  assertEquals(snapshot.refused, 1);
-  assertEquals(snapshot.resetAt, "2026-09-08T00:00:00.000Z");
+  assertEquals(credits.allowance, 5);
+  assertEquals(credits.used, 2);
+  assertEquals(credits.remaining, 3);
+  assertEquals(credits.resetAt, "2026-09-08T00:00:00.000Z");
 });
 
 Deno.test("remaining never falls below zero", () => {
-  assertEquals(snapshotFrom(5, 5, 10, 0, MIDDAY).remaining, 0);
-  assertEquals(snapshotFrom(5, 9, 10, 0, MIDDAY).remaining, 0);
+  assertEquals(snapshot(5, 5, MIDDAY).remaining, 0);
+  assertEquals(snapshot(5, 9, MIDDAY).remaining, 0);
 });
 
-Deno.test("a reservation sends both allowances and the utc day start", async () => {
+Deno.test("consuming a credit sends the user, the utc day and the allowance", async () => {
   const calls: string[] = [];
-  await reserveGeneration(
-    rpcClient({
-      data: [{ reserved: true, event_id: 7, charged: 1, refused: 0 }],
-      error: null,
-    }, calls),
-    reservationInput(),
+  await consumeCredit(
+    rpcClient({ data: [{ consumed: true, used: 1 }], error: null }, calls),
+    consumeInput(),
   );
 
   assertEquals(calls, [
-    'reserve_generation:{"p_user_id":"user-1","p_operation":"generate-note",' +
-    '"p_cache_key":"cache-key","p_allowance":5,"p_refusal_allowance":10,' +
-    '"p_day_start":"2026-09-07T00:00:00.000Z",' +
-    '"p_stale_before":"2026-09-07T09:55:00.000Z"}',
+    'consume_generation:{"p_user_id":"user-1","p_day":"2026-09-07",' +
+    '"p_allowance":5}',
   ]);
 });
 
-Deno.test("the reservation passes the stale-before boundary to the rpc", async () => {
+Deno.test("a consumed row reports the credit as taken", async () => {
   const calls: string[] = [];
-  await reserveGeneration(
-    rpcClient({
-      data: [{ reserved: true, event_id: 7, charged: 1, refused: 0 }],
-      error: null,
-    }, calls),
-    reservationInput(),
+  const consumption: Consumption = await consumeCredit(
+    rpcClient({ data: [{ consumed: true, used: 3 }], error: null }, calls),
+    consumeInput(),
   );
 
-  const payload: Record<string, unknown> = JSON.parse(
-    calls[0].slice("reserve_generation:".length),
-  );
-
-  assertEquals(PENDING_RESERVATION_TTL_MS, 300_000);
-  assertEquals(staleBefore(MIDDAY).toISOString(), "2026-09-07T09:55:00.000Z");
-  assertEquals(payload.p_stale_before, "2026-09-07T09:55:00.000Z");
+  assertEquals(consumption.consumed, true);
+  assertEquals(consumption.credits.used, 3);
+  assertEquals(consumption.credits.remaining, 2);
+  assertEquals(consumption.credits.resetAt, "2026-09-08T00:00:00.000Z");
 });
 
-Deno.test("a reserved row carries the event id and the charged snapshot", async () => {
+Deno.test("a refused row leaves the day exhausted", async () => {
   const calls: string[] = [];
-  const reservation: Reservation = await reserveGeneration(
-    rpcClient({
-      data: [{ reserved: true, event_id: 42, charged: 3, refused: 2 }],
-      error: null,
-    }, calls),
-    reservationInput(),
+  const consumption: Consumption = await consumeCredit(
+    rpcClient({ data: [{ consumed: false, used: 5 }], error: null }, calls),
+    consumeInput(),
   );
 
-  assertEquals(reservation.reserved, true);
-  assertEquals(reservation.reserved ? reservation.eventId : null, 42);
-  assertEquals(reservation.credits.charged, 3);
-  assertEquals(reservation.credits.remaining, 2);
-  assertEquals(reservation.credits.refused, 2);
-  assertEquals(reservation.credits.resetAt, "2026-09-08T00:00:00.000Z");
+  assertEquals(consumption.consumed, false);
+  assertEquals(consumption.credits.used, 5);
+  assertEquals(consumption.credits.remaining, 0);
 });
 
-Deno.test("an exhausted user is refused the reservation and keeps the snapshot", async () => {
-  const calls: string[] = [];
-  const reservation: Reservation = await reserveGeneration(
-    rpcClient({
-      data: [{ reserved: false, event_id: null, charged: 5, refused: 10 }],
-      error: null,
-    }, calls),
-    reservationInput(),
-  );
-
-  assertEquals(reservation.reserved, false);
-  assertEquals("eventId" in reservation, false);
-  assertEquals(reservation.credits.charged, 5);
-  assertEquals(reservation.credits.remaining, 0);
-  assertEquals(reservation.credits.refused, 10);
-});
-
-Deno.test("a reservation error leaves the credits unavailable", async () => {
+Deno.test("a consume error leaves the credits unavailable", async () => {
   const calls: string[] = [];
 
   await assertRejects(
     () =>
-      reserveGeneration(
+      consumeCredit(
         rpcClient({ data: null, error: { message: "boom" } }, calls),
-        reservationInput(),
+        consumeInput(),
       ),
     CreditsUnavailableError,
   );
 });
 
-Deno.test("a reservation call that throws leaves the credits unavailable", async () => {
+Deno.test("a consume call that throws leaves the credits unavailable", async () => {
   await assertRejects(
-    () => reserveGeneration(throwingClient(), reservationInput()),
+    () => consumeCredit(throwingClient(), consumeInput()),
     CreditsUnavailableError,
   );
 });
 
-Deno.test("an empty reservation result leaves the credits unavailable", async () => {
+Deno.test("an empty consume result leaves the credits unavailable", async () => {
   const calls: string[] = [];
 
   await assertRejects(
     () =>
-      reserveGeneration(
+      consumeCredit(
         rpcClient({ data: [], error: null }, calls),
-        reservationInput(),
+        consumeInput(),
+      ),
+    CreditsUnavailableError,
+  );
+  await assertRejects(
+    () =>
+      consumeCredit(
+        rpcClient({ data: [{ consumed: "yes", used: null }], error: null }, []),
+        consumeInput(),
       ),
     CreditsUnavailableError,
   );
 });
 
-Deno.test("a settlement writes the outcome onto the reserved event", async () => {
+Deno.test("a user without a row for the day has spent nothing", async () => {
   const calls: string[] = [];
-  await settleGeneration(
+  const credits: CreditsSnapshot = await readCredits(
     tableClient({ data: null, error: null }, calls),
-    42,
-    { outcome: "refusal", provider: "gemini", model: "flash-lite" },
-  );
-
-  assertEquals(calls, [
-    "from:generation_events",
-    'update:{"outcome":"refusal","provider":"gemini","model":"flash-lite"}',
-    "eq:id:42",
-  ]);
-});
-
-Deno.test("a settlement failure leaves the credits unavailable", async () => {
-  const calls: string[] = [];
-
-  await assertRejects(
-    () =>
-      settleGeneration(
-        tableClient({ data: null, error: { message: "boom" } }, calls),
-        42,
-        { outcome: "success", provider: null, model: null },
-      ),
-    CreditsUnavailableError,
-  );
-  await assertRejects(
-    () =>
-      settleGeneration(throwingClient(), 42, {
-        outcome: "success",
-        provider: null,
-        model: null,
-      }),
-    CreditsUnavailableError,
-  );
-});
-
-Deno.test("a credits read counts pending and successful events as charged", async () => {
-  const calls: string[] = [];
-  const snapshot: CreditsSnapshot = await readCredits(
-    tableClient({
-      data: [
-        { outcome: "success" },
-        { outcome: "pending" },
-        { outcome: "refusal" },
-        { outcome: "providers_exhausted" },
-        { outcome: 7 },
-      ],
-      error: null,
-    }, calls),
     "user-1",
     MIDDAY,
     5,
-    10,
   );
 
-  assertEquals(snapshot.charged, 2);
-  assertEquals(snapshot.remaining, 3);
-  assertEquals(snapshot.refused, 1);
+  assertEquals(credits.used, 0);
+  assertEquals(credits.remaining, 5);
   assertEquals(calls, [
-    "from:generation_events",
-    "select:outcome, created_at",
+    "from:daily_usage",
+    "select:used",
     "eq:user_id:user-1",
-    "eq:cached:false",
-    "gte:created_at:2026-09-07T00:00:00.000Z",
+    "eq:day:2026-09-07",
+    "maybeSingle",
   ]);
 });
 
-Deno.test("a pending reservation older than the ttl no longer counts as charged", async () => {
+Deno.test("a stored row reports what the day has already spent", async () => {
   const calls: string[] = [];
-  const snapshot: CreditsSnapshot = await readCredits(
-    tableClient({
-      data: [
-        { outcome: "success", created_at: AN_HOUR_BEFORE_MIDDAY },
-        { outcome: "pending", created_at: TEN_MINUTES_BEFORE_MIDDAY },
-      ],
-      error: null,
-    }, calls),
+  const credits: CreditsSnapshot = await readCredits(
+    tableClient({ data: { used: 4 }, error: null }, calls),
     "user-1",
     MIDDAY,
-    DEFAULT_DAILY_ALLOWANCE,
-    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
+    5,
   );
 
-  assertEquals(snapshot.charged, 1);
-  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 1);
-});
-
-Deno.test("a pending reservation younger than the ttl still counts as charged", async () => {
-  const calls: string[] = [];
-  const snapshot: CreditsSnapshot = await readCredits(
-    tableClient({
-      data: [
-        { outcome: "success", created_at: AN_HOUR_BEFORE_MIDDAY },
-        { outcome: "pending", created_at: A_MINUTE_BEFORE_MIDDAY },
-      ],
-      error: null,
-    }, calls),
-    "user-1",
-    MIDDAY,
-    DEFAULT_DAILY_ALLOWANCE,
-    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
-  );
-
-  assertEquals(snapshot.charged, 2);
-  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 2);
-});
-
-Deno.test("a pending reservation with an unusable timestamp counts as charged", async () => {
-  const calls: string[] = [];
-  const snapshot: CreditsSnapshot = await readCredits(
-    tableClient({
-      data: [
-        { outcome: "pending", created_at: null },
-        { outcome: "pending" },
-        { outcome: "pending", created_at: "not a timestamp" },
-      ],
-      error: null,
-    }, calls),
-    "user-1",
-    MIDDAY,
-    DEFAULT_DAILY_ALLOWANCE,
-    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
-  );
-
-  assertEquals(snapshot.charged, 3);
-  assertEquals(snapshot.remaining, DEFAULT_DAILY_ALLOWANCE - 3);
+  assertEquals(credits.used, 4);
+  assertEquals(credits.remaining, 1);
 });
 
 Deno.test("a credits read failure leaves the credits unavailable", async () => {
@@ -436,56 +270,59 @@ Deno.test("a credits read failure leaves the credits unavailable", async () => {
         "user-1",
         MIDDAY,
         5,
-        10,
       ),
     CreditsUnavailableError,
   );
   await assertRejects(
-    () => readCredits(throwingClient(), "user-1", MIDDAY, 5, 10),
+    () => readCredits(throwingClient(), "user-1", MIDDAY, 5),
     CreditsUnavailableError,
   );
 });
 
-Deno.test("an event write failure leaves the credits unavailable", async () => {
+Deno.test("telemetry writes the event with the outcome", async () => {
   const calls: string[] = [];
+  await recordGenerationEvent(
+    tableClient({ data: null, error: null }, calls),
+    {
+      userId: "user-1",
+      operation: "generate-note",
+      cacheKey: "cache-key",
+      provider: "groq",
+      model: "oss",
+      cached: false,
+      outcome: "success",
+    },
+  );
 
-  await assertRejects(
-    () =>
-      recordGenerationEvent(
-        tableClient({ data: null, error: { message: "boom" } }, calls),
-        {
-          userId: "user-1",
-          operation: "generate-note",
-          cacheKey: "cache-key",
-          provider: null,
-          model: null,
-          cached: true,
-          outcome: "success",
-        },
-      ),
-    CreditsUnavailableError,
-  );
-  await assertRejects(
-    () =>
-      recordGenerationEvent(throwingClient(), {
-        userId: "user-1",
-        operation: "generate-note",
-        cacheKey: "cache-key",
-        provider: null,
-        model: null,
-        cached: true,
-        outcome: "success",
-      }),
-    CreditsUnavailableError,
-  );
+  assertEquals(calls, [
+    "from:generation_events",
+    'insert:{"user_id":"user-1","operation":"generate-note",' +
+    '"cache_key":"cache-key","provider":"groq","model":"oss",' +
+    '"cached":false,"outcome":"success"}',
+  ]);
 });
 
-Deno.test("only a success keeps the reserved credit charged", () => {
-  const credits: CreditsSnapshot = snapshotFrom(5, 3, 10, 0, MIDDAY);
-
-  assertEquals(remainingAfter(credits, "success"), 2);
-  assertEquals(remainingAfter(credits, "refusal"), 3);
-  assertEquals(remainingAfter(credits, "providers_exhausted"), 3);
-  assertEquals(remainingAfter(credits, "error"), 3);
-  assertEquals(remainingAfter(snapshotFrom(5, 0, 10, 0, MIDDAY), "error"), 5);
+Deno.test("a telemetry failure never reaches the caller", async () => {
+  const calls: string[] = [];
+  await recordGenerationEvent(
+    tableClient({ data: null, error: { message: "boom" } }, calls),
+    {
+      userId: "user-1",
+      operation: "generate-note",
+      cacheKey: "cache-key",
+      provider: null,
+      model: null,
+      cached: true,
+      outcome: "success",
+    },
+  );
+  await recordGenerationEvent(throwingClient(), {
+    userId: "user-1",
+    operation: "suggest-words",
+    cacheKey: null,
+    provider: null,
+    model: null,
+    cached: false,
+    outcome: "error",
+  });
 });

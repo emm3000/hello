@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Proposed, 2026-09-07 |
-| Progress | Phases 1 to 4 implemented on 2026-09-07 (local stack); account linking pending. |
+| Progress | Phases 1 to 4c implemented on 2026-09-07, phase 4d on 2026-09-10; account linking pending. |
 | Role | Plan for moving every AI call behind one Supabase Edge Function |
 | Source of Truth | No. `*_CURRENT.md` and the code win. Becomes history once shipped. |
 | Read this when | You touch AI generation, quotas, guest identity or the `supabase/` directory |
@@ -29,7 +29,7 @@ Every AI call moves from Firebase AI Logic inside the app to one Supabase Edge F
 | 4 | The response envelope `success / data / error` stays byte-compatible with today. | `GeneratedLearningNoteResponseParser` and all `:domain` policies stay untouched. |
 | 5 | Guest identity is a Supabase anonymous user, created lazily on first AI use, never at startup. | Startup stays local. Credits need a stable subject. `linkIdentity` upgrades the same user later. |
 | 6 | The Firebase App Check token is verified inside the function as a second factor. | Anonymous sign-ups can be scripted; consuming allowance cannot. |
-| 7 | Credits are charged only on provider success. Refusals, cache hits and provider failures stay free of generation credits, but refusals are capped per user per UTC day by `DAILY_REFUSAL_ALLOWANCE` (default 10) so gibberish cannot loop on free provider calls. Hitting either cap returns the same `402`. | No refund logic. Users never pay for a typo, and a stream of unique typos cannot buy unlimited provider calls. |
+| 7 | Every request that reaches a provider costs exactly one credit, charged before the call and never refunded. Cache hits are free. | A refusal, a provider failure and a success all burn the same scarce thing: one provider call. Charging them alike removes refund logic, removes the second counter and closes every path that used to reach a provider for free. `DAILY_REFUSAL_ALLOWANCE` is no longer read. |
 | 8 | Daily allowance instead of a lifetime count. | Two lifetime generations cannot demonstrate a spaced-repetition app. Free provider quotas reset daily too. |
 | 9 | Providers are OpenAI-compatible configs in an ordered array. No plugin system. | Groq, Gemini and OpenRouter share the wire format, so a provider is base URL, key, model and output mode. |
 | 10 | The legacy `supabase/` directory is deleted and re-initialised. | Its migrations describe the sync stack removed in `0c512da`; none of it applies. |
@@ -41,10 +41,10 @@ Every AI call moves from Firebase AI Logic inside the app to one Supabase Edge F
 1. `FlashcardEnrichmentWorker` asks `SupabaseSessionInitializer.ensureSession()`. First call signs in anonymously; the SDK persists the session.
 2. `RemoteFlashcardGenerationRepository` posts the structured input to `generate-note` with two headers: `Authorization: Bearer <session JWT>` and `X-Firebase-AppCheck: <App Check token>`.
 3. The Supabase gateway rejects an invalid session before the function runs (`verify_jwt = true`).
-4. The function runs, in this order: verify App Check, build the cache key, read the cache, reserve the credit, call the provider chain, validate with zod, write the cache, settle the reservation, respond.
+4. The function runs, in this order: verify App Check, build the cache key, read the cache, consume one credit, call the provider chain, validate with zod, write the cache, write the telemetry event, respond.
 5. The app parses `data` with the existing parser. A `:domain` rejection retries once with `previous_issues`; that request skips the cache read and overwrites the entry.
 
-Cache read runs before the reservation so hits never consume. The reservation runs before any provider call so an exhausted user costs nothing.
+The cache read runs before the counter, so a hit never consumes. The counter runs before any provider call, so an exhausted user costs nothing and a request that dies between the counter and the response has already paid for the provider call it made.
 
 ### Components
 
@@ -57,7 +57,7 @@ Cache read runs before the reservation so hits never consume. The reservation ru
 | | `prompt.ts` | Learning-note and suggestion prompts, `PROMPT_VERSION` |
 | | `schema.ts` | zod schema, `SCHEMA_VERSION`, JSON Schema export for strict providers |
 | | `cache.ts` | Cache key, read, write, negative TTL |
-| | `credits.ts` | Event write today; daily allowance check arrives with phase 4 |
+| | `credits.ts` | The `daily_usage` counter, the `consume_generation` call, the balance read and the `generation_events` telemetry write |
 | | `provider_state.ts` | Persisted `provider_state` store for the circuit breaker |
 | `:data` | `RemoteFlashcardGenerationRepository` | Transport for `generate-note`, HTTP to domain error mapping |
 | | `RemoteWordSuggestionRepository` | Transport for `suggest-words` |
@@ -84,7 +84,7 @@ Rules:
 
 ### Data model
 
-All three tables are reachable only with the service role. No client policy, no RLS exposure.
+All four tables are reachable only with the service role. No client policy, no RLS exposure.
 
 ```sql
 create table note_cache (
@@ -117,9 +117,16 @@ create table provider_state (
   provider_id text primary key,
   exhausted_until timestamptz
 );
+
+create table daily_usage (
+  user_id uuid not null,
+  day date not null,
+  used int not null default 0 check (used >= 0),
+  primary key (user_id, day)
+);
 ```
 
-`generation_events` is both the credit ledger and the telemetry. A request first reserves a `pending` row through the `reserve_generation` RPC, which counts the day under a per-user advisory lock and inserts the reservation in the same transaction, then settles that row to `success`, `refusal`, `providers_exhausted` or `error` once the provider call returns. A `pending` row counts as charged only while it is younger than five minutes, well beyond the 90 s worst case of the provider chain, so an isolate that dies mid-request stops burning a credit for the rest of the day instead of holding it until midnight. A settled row is never refunded. When billing arrives, a `credit_grants` table joins it and balance becomes grants minus charged events. Nothing migrates.
+`daily_usage` is the ledger and `generation_events` is only telemetry. One row per user per UTC day holds the number of provider calls that day has already bought; `consume_generation` inserts the row when it is missing and increments it in a single conditional `update` that fires only while `used < allowance`, so the row returned is the proof the credit was taken. Nothing decides money by counting event rows any more, which is what let a failed settle, an expired `pending` row or an unwritten outcome hand out a free provider call. `generation_events` keeps recording every request for latency and provider forensics, and its historic `pending` rows stay readable. When billing arrives, a `credit_grants` table joins `daily_usage` and the balance becomes grants minus `used`. Nothing migrates.
 
 ### Cache key
 
@@ -137,15 +144,20 @@ Refusals (`success = false`) are cached with `expires_at = now() + 24 h`. Succes
 
 ### Credits
 
+One rule: every request that reaches a provider costs exactly one credit, charged before the call and never refunded. A cache hit is free.
+
 | Rule | Value |
 |---|---|
-| Allowance | `DAILY_ALLOWANCE` successes per user per UTC day, shared by `generate-note` and `suggest-words` |
-| Refusal allowance | `DAILY_REFUSAL_ALLOWANCE` refusals per user per UTC day, shared by both functions |
-| Counted | `generation_events` rows with `cached = false` since 00:00 UTC: `outcome = 'success'`, plus `outcome = 'pending'` while younger than five minutes, against the allowance; `outcome = 'refusal'` against the refusal allowance |
-| Charged | Reserved before the provider call, released on anything but a provider success |
-| Reported | `meta.credits_remaining` on every response so the UI can show the count |
+| Allowance | `DAILY_ALLOWANCE` provider calls per user per UTC day, shared by `generate-note` and `suggest-words` |
+| Stored | One `daily_usage` row per user per UTC day, holding `used` |
+| Charged | `consume_generation` increments `used` before the provider call. A refusal, a `providers_exhausted`, a timeout and a crashed isolate all stay charged |
+| Free | Cache hits, and every request refused before the counter: a bad method, a rejected App Check token, an invalid body |
+| Reported | `meta.credits_remaining` and `meta.reset_at` on every response that knows the balance; both are `null` and the next UTC midnight when it cannot be read |
+| Reset | The day key is the UTC calendar date, so a new day starts a new row at 00:00 UTC |
 
-Concurrent requests from one user cannot exceed the allowance: the count and the reservation share one transaction behind a per-user advisory lock.
+Concurrent requests from one user cannot exceed the allowance. The increment is a single conditional `update`, so Postgres serialises the contenders on the row lock and re-checks `used < allowance` against the committed value; the loser gets `consumed = false` without a second query. Measured on the local stack on 2026-09-10: twenty parallel calls with allowance 5 returned exactly five `true` and left `used = 5`.
+
+A credits query that errors fails closed with `503 credits_unavailable` and `retry_after` 30, exactly as before.
 
 ## API contract
 
@@ -180,11 +192,23 @@ Response, `200`:
   "success": true,
   "data": { "note_id": "...", "note_type": "phrasal_verb", "...": "unchanged from today" },
   "error": null,
-  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 2, "schema_version": 1, "credits_remaining": 4 }
+  "meta": { "cached": false, "provider": "gemini", "model": "gemini-3.1-flash-lite", "prompt_version": 2, "schema_version": 1, "credits_remaining": 4, "reset_at": "2026-09-11T00:00:00.000Z" }
 }
 ```
 
-A `402` body is `{ "success": false, "data": null, "error": { "code": "credits_exhausted", "message": "<neutral Spanish, stored as the card failure reason>", "reset_at": "<next 00:00 UTC, ISO>" }, "meta": null }`. Cache hits are served even at zero credits.
+`meta` fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `cached` | boolean | The answer came from `note_cache` and cost no credit |
+| `provider`, `model` | string or `null` | Which provider answered; `null` when no provider was reached, as on a `402` or a `providers_exhausted` |
+| `credits_remaining` | int or `null` | What is left of the day; `null` only when the ledger could not be read |
+| `reset_at` | string | Next 00:00 UTC, ISO. Always present |
+| `prompt_version`, `schema_version` | int | Server constants |
+
+Every response carries `meta` except the ones that answer before the user is known or the balance can be read: `401`, `400`, `405`, `500 misconfigured` and `503 credits_unavailable` all send `meta: null`. `200`, `402` and `503 providers_exhausted` carry it.
+
+A `402` body is `{ "success": false, "data": null, "error": { "code": "credits_exhausted", "message": "<neutral Spanish, stored as the card failure reason>", "reset_at": "<next 00:00 UTC, ISO>" }, "meta": { "credits_remaining": 0, "...": "as above" } }`. `error.reset_at` stays where it is because shipped clients read it. Cache hits are served even at zero credits.
 
 A refusal is `200` with `success: false` and `error.message` in neutral Latin American Spanish, exactly as today.
 
@@ -239,9 +263,9 @@ Same headers. Request `{ "recent_words": ["..."] }`. Response body is the JSON `
 | Supabase Auth | Anonymous sign-ins enabled |
 | Supabase Auth rate limit | `anonymous_users = 10` per hour per IP in `config.toml`; captcha stays off, App Check gates consumption (see Risks) |
 | `supabase/config.toml` | `[functions.generate-note] verify_jwt = true`, same for `suggest-words` |
-| Function secrets | `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (50 on the hosted project, fallback 5) and `DAILY_REFUSAL_ALLOWANCE` (10, same as the fallback) are read by both functions; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
+| Function secrets | `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `FIREBASE_PROJECT_NUMBER` for local development, set in `supabase/functions/.env` (gitignored; `.env.example` lists the names); `DAILY_ALLOWANCE` (50 on the hosted project, fallback 5) is read by both functions and only accepts plain digits up to 2147483647, anything else falls back; `DAILY_REFUSAL_ALLOWANCE` is no longer read and can be removed from the project; `credits.ts` fails closed with `503 credits_unavailable` and `retry_after` 30 whenever a credits query errors |
 | App `BuildConfig` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` per flavour, from `local.properties` like the other secrets; `release` refuses to build when either value is blank, while `debug` keeps its local defaults; `uploadApk.yml` provisions both from the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets |
-| Table grants | `anon` and `authenticated` hold no privileges on `note_cache`, `generation_events`, `provider_state`; only the service role and the two `security definer` functions with `search_path = ''` reach them |
+| Table grants | `anon` and `authenticated` hold no privileges on `note_cache`, `generation_events`, `provider_state`, `daily_usage`; only the service role and the `security definer` functions with `search_path = ''` reach them |
 | GitHub Actions | Daily heartbeat query so the free project is never paused for inactivity |
 
 ## Phases
@@ -256,6 +280,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 | 4 Credits | `generation_events` count, `402`, UI reason line | Request number `DAILY_ALLOWANCE + 1` returns `402` and the card row shows the reason, like the AI refusal does today | Done — 51 Deno tests, `FunctionsReplyMapperTest` parses `reset_at` and `message`, `EnrichmentFailureReasonTest`; device-verified on 2026-09-07 with `DAILY_ALLOWANCE=1` and one success already charged: "figure out" came back `402` in 473 ms with no provider call, the Capture row showed the Spanish reason, `generation_events` has the `credits_exhausted` row; "make up" then returned `cached: true` in 21 ms at zero credits |
 | 4b Credits hardening | Atomic `reserve_generation` RPC, refusal cap, fail closed on credits errors | Ten concurrent reservations with allowance 1 yield exactly one; the request after the refusal cap returns `402`; a credits query failure returns `503 credits_unavailable` and the card keeps retrying | Done — 73 Deno tests; migration `20260907154000_credits_reservation.sql` applied with `supabase migration up`; 10 parallel `psql` calls to `reserve_generation` with allowance 1 gave 1 `pending` and 9 `credits_exhausted`; device-verified on 2026-09-07: "steady" reserved `pending` then settled `success` from Gemini and the card showed Ready; with ten seeded refusals "wander" returned `credits_exhausted` in 19 ms with no provider call and the card showed the Spanish reason; with the RPC renamed away "gentle" returned `credits_unavailable` in 17 ms, wrote no event, and the worker retried with the card still Preparing |
 | 4c Hardening | `note_cache_hit` with `search_path = ''`, table grants revoked from `anon` and `authenticated`, anonymous sign-in rate limit 10 per hour per IP, App Check verification under test, `deno.lock`, blank `SUPABASE_URL` refuses to build `release` and `staging` | `psql` shows `search_path=""` on both functions and no table privilege for the two roles; a cache hit still works on device; removing `audience` from `jwtVerify` fails a test; `generateStagingBuildConfig` fails without `supabase.url` while `generateDebugBuildConfig` and `detekt` pass | Done — 88 Deno tests, migration `20260907163000_hardening.sql` applied with `supabase migration up`; all 24 privilege checks false for `anon`/`authenticated`, `note_cache_hit` as `anon` is permission denied and as `service_role` runs; the mutation on `audience` broke exactly one test; `generateStagingBuildConfig` fails with "The staging build needs supabase.url in local.properties" and `generateDebugBuildConfig` plus `detekt` pass; device-verified on 2026-09-07 after the runtime restarted with `deno.json` and `deno.lock`: "steady" recaptured came back `cached: true` in 814 ms, `note_cache.hits` 0 to 1, the card showed Ready |
+| 4d Counter ledger | `daily_usage` plus the atomic `consume_generation` in `20260910180000_daily_usage_counter.sql`; one credit per request that reaches a provider, charged before the call, never refunded; cache hits free; `generation_events` demoted to telemetry; `reserve_generation` dropped | Twenty parallel `consume_generation` calls with allowance 5 yield exactly five `consumed = true` and leave `used = 5`; a refusal and a `providers_exhausted` both leave the credit spent | Done — 122 Deno tests; migration applied with `supabase db reset` on the local stack 2026-09-10; two concurrent calls from `used = 49` with allowance 50 gave one `true`, one `false` and a final `used = 50`; twenty parallel calls with allowance 5 gave 5 `true`, 15 `false` and `used = 5`; allowance 0 on a fresh user returned `(false, 0)` |
 | 5 Link account | Google sign-in through `linkIdentity` | `user_id` and event count are identical before and after linking | Pending |
 | 6 Billing | Out of scope for this plan | | Pending |
 
@@ -273,7 +298,7 @@ Each phase is one work unit with its falsifier. Nothing ships without it.
 
 - `DAILY_ALLOWANCE` value: 50 on the hosted project since 2026-09-07 (`5` in `credits.ts` is only the fallback when the secret is unset).
 - Suggest shares the allowance, decided 2026-09-07.
-- `DAILY_REFUSAL_ALLOWANCE` value: 10, decided 2026-09-07 (env override per environment).
+- The separate refusal cap: retired 2026-09-10. A refusal now costs one credit like any other provider call, so the second counter has nothing left to guard.
 - Credits fail closed on a database error, decided 2026-09-07; availability lost to a Postgres outage is preferable to unlimited free generations.
 - Whether to fund OpenRouter once for the 1000 per day tier.
 

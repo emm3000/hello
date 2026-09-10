@@ -1,7 +1,6 @@
 import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 export type GenerationOutcome =
-  | "pending"
   | "success"
   | "refusal"
   | "providers_exhausted"
@@ -12,22 +11,20 @@ export type GenerationOperation = "generate-note" | "suggest-words";
 
 export type CreditsSnapshot = {
   allowance: number;
-  charged: number;
+  used: number;
   remaining: number;
-  refusalAllowance: number;
-  refused: number;
   resetAt: string;
 };
 
 export const DEFAULT_DAILY_ALLOWANCE: number = 5;
 
-export const DEFAULT_DAILY_REFUSAL_ALLOWANCE: number = 10;
-
 export const CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS: number = 30;
 
-export const PENDING_RESERVATION_TTL_MS: number = 300_000;
+export const MAX_DAILY_ALLOWANCE: number = 2_147_483_647;
 
 const DAY_MS: number = 86_400_000;
+
+const DIGITS_ONLY: RegExp = /^\d+$/;
 
 export type GenerationEvent = {
   userId: string;
@@ -39,33 +36,20 @@ export type GenerationEvent = {
   outcome: GenerationOutcome;
 };
 
-export type Settlement = {
-  outcome: "success" | "refusal" | "providers_exhausted" | "error";
-  provider: string | null;
-  model: string | null;
-};
-
-export type Reservation =
-  | { reserved: true; eventId: number; credits: CreditsSnapshot }
-  | { reserved: false; credits: CreditsSnapshot };
-
-export type ReservationInput = {
+export type ConsumeInput = {
   userId: string;
-  operation: GenerationOperation;
-  cacheKey: string | null;
   now: Date;
   allowance: number;
-  refusalAllowance: number;
+};
+
+export type Consumption = {
+  consumed: boolean;
+  credits: CreditsSnapshot;
 };
 
 type QueryResult = { data: unknown; error: { message: string } | null };
 
-type ReservationRow = {
-  reserved: unknown;
-  event_id: unknown;
-  charged: unknown;
-  refused: unknown;
-};
+type ConsumptionRow = { consumed: unknown; used: unknown };
 
 export class CreditsUnavailableError extends Error {
   constructor(reason: string) {
@@ -78,174 +62,95 @@ function creditsUnavailable(
   failure: string,
   reason: string,
 ): CreditsUnavailableError {
-  console.error(failure);
+  console.error(JSON.stringify({ event: failure, reason }));
   return new CreditsUnavailableError(reason);
-}
-
-function readAllowance(
-  name: string,
-  fallback: number,
-  env: (name: string) => string | undefined,
-): number {
-  const raw: string | undefined = env(name);
-  if (raw === undefined || raw.trim().length === 0) {
-    return fallback;
-  }
-  const parsed: number = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    return fallback;
-  }
-  return parsed;
 }
 
 export function readDailyAllowance(
   env: (name: string) => string | undefined = Deno.env.get,
 ): number {
-  return readAllowance("DAILY_ALLOWANCE", DEFAULT_DAILY_ALLOWANCE, env);
+  const raw: string | undefined = env("DAILY_ALLOWANCE");
+  if (raw === undefined) {
+    return DEFAULT_DAILY_ALLOWANCE;
+  }
+  const trimmed: string = raw.trim();
+  if (!DIGITS_ONLY.test(trimmed)) {
+    return DEFAULT_DAILY_ALLOWANCE;
+  }
+  const parsed: number = Number(trimmed);
+  if (parsed > MAX_DAILY_ALLOWANCE) {
+    return DEFAULT_DAILY_ALLOWANCE;
+  }
+  return parsed;
 }
 
-export function readDailyRefusalAllowance(
-  env: (name: string) => string | undefined = Deno.env.get,
-): number {
-  return readAllowance(
-    "DAILY_REFUSAL_ALLOWANCE",
-    DEFAULT_DAILY_REFUSAL_ALLOWANCE,
-    env,
-  );
-}
-
-export function startOfUtcDay(now: Date): Date {
+function startOfUtcDay(now: Date): Date {
   return new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   );
+}
+
+export function utcDay(now: Date): string {
+  return startOfUtcDay(now).toISOString().slice(0, 10);
 }
 
 export function nextUtcMidnight(now: Date): Date {
   return new Date(startOfUtcDay(now).getTime() + DAY_MS);
 }
 
-export function staleBefore(now: Date): Date {
-  return new Date(now.getTime() - PENDING_RESERVATION_TTL_MS);
-}
-
-export function snapshotFrom(
+export function snapshot(
   allowance: number,
-  charged: number,
-  refusalAllowance: number,
-  refused: number,
+  used: number,
   now: Date,
 ): CreditsSnapshot {
   return {
     allowance,
-    charged,
-    remaining: Math.max(allowance - charged, 0),
-    refusalAllowance,
-    refused,
+    used,
+    remaining: Math.max(allowance - used, 0),
     resetAt: nextUtcMidnight(now).toISOString(),
   };
 }
 
-export function remainingAfter(
-  credits: CreditsSnapshot,
-  outcome: Settlement["outcome"],
-): number {
-  if (outcome === "success") {
-    return credits.remaining;
-  }
-  return Math.min(credits.remaining + 1, credits.allowance);
-}
-
-export async function reserveGeneration(
+export async function consumeCredit(
   client: SupabaseClient,
-  input: ReservationInput,
-): Promise<Reservation> {
+  input: ConsumeInput,
+): Promise<Consumption> {
   let result: QueryResult;
   try {
-    result = await client.rpc("reserve_generation", {
+    result = await client.rpc("consume_generation", {
       p_user_id: input.userId,
-      p_operation: input.operation,
-      p_cache_key: input.cacheKey,
+      p_day: utcDay(input.now),
       p_allowance: input.allowance,
-      p_refusal_allowance: input.refusalAllowance,
-      p_day_start: startOfUtcDay(input.now).toISOString(),
-      p_stale_before: staleBefore(input.now).toISOString(),
     });
   } catch (_error: unknown) {
     throw creditsUnavailable(
-      "CreditsReserveFailure",
-      "reserve_generation failed",
+      "CreditsConsumeFailure",
+      "consume_generation failed",
     );
   }
   if (result.error !== null) {
     throw creditsUnavailable(
-      "CreditsReserveFailure",
-      "reserve_generation failed",
+      "CreditsConsumeFailure",
+      "consume_generation failed",
     );
   }
   if (!Array.isArray(result.data) || result.data.length !== 1) {
     throw creditsUnavailable(
-      "CreditsReserveFailure",
-      "reserve_generation returned no row",
+      "CreditsConsumeFailure",
+      "consume_generation returned no row",
     );
   }
-  const row: ReservationRow = result.data[0] as ReservationRow;
-  if (
-    typeof row.reserved !== "boolean" || typeof row.charged !== "number" ||
-    typeof row.refused !== "number"
-  ) {
+  const row: ConsumptionRow = result.data[0] as ConsumptionRow;
+  if (typeof row.consumed !== "boolean" || typeof row.used !== "number") {
     throw creditsUnavailable(
-      "CreditsReserveFailure",
-      "reserve_generation returned an unusable row",
+      "CreditsConsumeFailure",
+      "consume_generation returned an unusable row",
     );
   }
-  const credits: CreditsSnapshot = snapshotFrom(
-    input.allowance,
-    row.charged,
-    input.refusalAllowance,
-    row.refused,
-    input.now,
-  );
-  if (!row.reserved) {
-    return { reserved: false, credits };
-  }
-  if (typeof row.event_id !== "number") {
-    throw creditsUnavailable(
-      "CreditsReserveFailure",
-      "reserve_generation returned an unusable row",
-    );
-  }
-  return { reserved: true, eventId: row.event_id, credits };
-}
-
-export async function settleGeneration(
-  client: SupabaseClient,
-  eventId: number,
-  settlement: Settlement,
-): Promise<void> {
-  let result: QueryResult;
-  try {
-    result = await client.from("generation_events").update({
-      outcome: settlement.outcome,
-      provider: settlement.provider,
-      model: settlement.model,
-    }).eq("id", eventId);
-  } catch (_error: unknown) {
-    throw creditsUnavailable("CreditsSettleFailure", "the settle write failed");
-  }
-  if (result.error !== null) {
-    throw creditsUnavailable("CreditsSettleFailure", "the settle write failed");
-  }
-}
-
-function pendingIsCharged(createdAt: unknown, stale: Date): boolean {
-  if (typeof createdAt !== "string") {
-    return true;
-  }
-  const created: number = Date.parse(createdAt);
-  if (Number.isNaN(created)) {
-    return true;
-  }
-  return created >= stale.getTime();
+  return {
+    consumed: row.consumed,
+    credits: snapshot(input.allowance, row.used, input.now),
+  };
 }
 
 export async function readCredits(
@@ -253,53 +158,37 @@ export async function readCredits(
   userId: string,
   now: Date,
   allowance: number,
-  refusalAllowance: number,
 ): Promise<CreditsSnapshot> {
   let result: QueryResult;
   try {
     result = await client
-      .from("generation_events")
-      .select("outcome, created_at")
+      .from("daily_usage")
+      .select("used")
       .eq("user_id", userId)
-      .eq("cached", false)
-      .gte("created_at", startOfUtcDay(now).toISOString());
+      .eq("day", utcDay(now))
+      .maybeSingle();
   } catch (_error: unknown) {
     throw creditsUnavailable("CreditsReadFailure", "the credits read failed");
   }
   if (result.error !== null) {
     throw creditsUnavailable("CreditsReadFailure", "the credits read failed");
   }
-  const rows: Record<string, unknown>[] = Array.isArray(result.data)
-    ? result.data as Record<string, unknown>[]
-    : [];
-  const stale: Date = staleBefore(now);
-  let charged: number = 0;
-  let refused: number = 0;
-  for (const row of rows) {
-    const outcome: unknown = row.outcome;
-    if (typeof outcome !== "string") {
-      continue;
-    }
-    if (outcome === "success") {
-      charged += 1;
-    }
-    if (outcome === "pending" && pendingIsCharged(row.created_at, stale)) {
-      charged += 1;
-    }
-    if (outcome === "refusal") {
-      refused += 1;
-    }
-  }
-  return snapshotFrom(allowance, charged, refusalAllowance, refused, now);
+  const row: Record<string, unknown> | null =
+    result.data === null || result.data === undefined
+      ? null
+      : result.data as Record<string, unknown>;
+  const used: number = row !== null && typeof row.used === "number"
+    ? row.used
+    : 0;
+  return snapshot(allowance, used, now);
 }
 
 export async function recordGenerationEvent(
   client: SupabaseClient,
   event: GenerationEvent,
 ): Promise<void> {
-  let result: QueryResult;
   try {
-    result = await client.from("generation_events").insert({
+    const result: QueryResult = await client.from("generation_events").insert({
       user_id: event.userId,
       operation: event.operation,
       cache_key: event.cacheKey,
@@ -308,10 +197,20 @@ export async function recordGenerationEvent(
       cached: event.cached,
       outcome: event.outcome,
     });
+    if (result.error !== null) {
+      console.error(
+        JSON.stringify({
+          event: "GenerationEventWriteFailure",
+          reason: result.error.message,
+        }),
+      );
+    }
   } catch (_error: unknown) {
-    throw creditsUnavailable("EventWriteFailure", "the event write failed");
-  }
-  if (result.error !== null) {
-    throw creditsUnavailable("EventWriteFailure", "the event write failed");
+    console.error(
+      JSON.stringify({
+        event: "GenerationEventWriteFailure",
+        reason: "the event write threw",
+      }),
+    );
   }
 }

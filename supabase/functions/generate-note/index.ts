@@ -12,19 +12,18 @@ import {
   readNoteCache,
 } from "../_shared/cache.ts";
 import {
+  consumeCredit,
+  type ConsumeInput,
+  type Consumption,
   CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS,
   type CreditsSnapshot,
   CreditsUnavailableError,
+  type GenerationEvent,
   type GenerationOperation,
   type GenerationOutcome,
   readCredits,
   readDailyAllowance,
-  readDailyRefusalAllowance,
   recordGenerationEvent,
-  remainingAfter,
-  type Reservation,
-  reserveGeneration,
-  settleGeneration,
 } from "../_shared/credits.ts";
 import {
   buildMeta,
@@ -42,6 +41,7 @@ import { buildLearningNotePrompt, PROMPT_VERSION } from "../_shared/prompt.ts";
 import { createProviderStateStore } from "../_shared/provider_state.ts";
 import {
   generateStructured,
+  type GenerateStructuredArgs,
   type GenerationResult,
   ProvidersExhaustedError,
 } from "../_shared/providers.ts";
@@ -57,6 +57,57 @@ import {
 
 const APP_CHECK_HEADER: string = "X-Firebase-AppCheck";
 
+export type GenerateNoteDeps = {
+  createSupabaseContext: typeof createSupabaseContext;
+  verifyAppCheckToken: (
+    token: string | null,
+    projectNumber: string,
+  ) => Promise<string>;
+  readNoteCache: (
+    client: SupabaseClient,
+    key: string,
+  ) => Promise<NoteCacheRow | null>;
+  commitNoteCache: (
+    client: SupabaseClient,
+    request: GenerateNoteRequest,
+    row: Omit<NoteCacheRow, "hits">,
+  ) => Promise<void>;
+  generateStructured<T>(
+    args: GenerateStructuredArgs<T>,
+  ): Promise<GenerationResult<T>>;
+  consumeCredit: (
+    client: SupabaseClient,
+    input: ConsumeInput,
+  ) => Promise<Consumption>;
+  readCredits: (
+    client: SupabaseClient,
+    userId: string,
+    now: Date,
+    allowance: number,
+  ) => Promise<CreditsSnapshot>;
+  recordGenerationEvent: (
+    client: SupabaseClient,
+    event: GenerationEvent,
+  ) => Promise<void>;
+  readDailyAllowance: (env: (name: string) => string | undefined) => number;
+  now: () => Date;
+  env: (name: string) => string | undefined;
+};
+
+export const defaultDeps: GenerateNoteDeps = {
+  createSupabaseContext,
+  verifyAppCheckToken,
+  readNoteCache,
+  commitNoteCache,
+  generateStructured,
+  consumeCredit,
+  readCredits,
+  recordGenerationEvent,
+  readDailyAllowance,
+  now: (): Date => new Date(),
+  env: (name: string): string | undefined => Deno.env.get(name),
+};
+
 function respondCreditsUnavailable(
   operation: GenerationOperation,
   cached: boolean,
@@ -66,15 +117,19 @@ function respondCreditsUnavailable(
   return creditsUnavailableResponse(CREDITS_UNAVAILABLE_RETRY_AFTER_SECONDS);
 }
 
-async function handle(req: Request): Promise<Response> {
+export async function handle(
+  req: Request,
+  deps: GenerateNoteDeps = defaultDeps,
+): Promise<Response> {
   const startedAt: number = performance.now();
   if (req.method !== "POST") {
     return methodNotAllowedResponse();
   }
 
-  const { data: ctx, error: authError } = await createSupabaseContext(req, {
-    auth: "user",
-  });
+  const { data: ctx, error: authError } = await deps.createSupabaseContext(
+    req,
+    { auth: "user" },
+  );
   if (
     authError !== null || ctx === null || ctx.userClaims === null ||
     ctx.userClaims.role !== "authenticated"
@@ -85,7 +140,7 @@ async function handle(req: Request): Promise<Response> {
     );
   }
 
-  const projectNumber: string | undefined = Deno.env.get(
+  const projectNumber: string | undefined = deps.env(
     "FIREBASE_PROJECT_NUMBER",
   );
   if (projectNumber === undefined || projectNumber.length === 0) {
@@ -96,7 +151,10 @@ async function handle(req: Request): Promise<Response> {
   }
 
   try {
-    await verifyAppCheckToken(req.headers.get(APP_CHECK_HEADER), projectNumber);
+    await deps.verifyAppCheckToken(
+      req.headers.get(APP_CHECK_HEADER),
+      projectNumber,
+    );
   } catch (error: unknown) {
     if (error instanceof AppCheckRejectedError) {
       return errorResponse("app_check_rejected", error.message);
@@ -124,44 +182,38 @@ async function handle(req: Request): Promise<Response> {
 
   const client: SupabaseClient = ctx.supabaseAdmin;
   const userId: string = ctx.userClaims.id;
-  const now: Date = new Date();
-  const allowance: number = readDailyAllowance();
-  const refusalAllowance: number = readDailyRefusalAllowance();
+  const now: Date = deps.now();
+  const allowance: number = deps.readDailyAllowance(deps.env);
   const cacheKey: string = await buildCacheKey(request);
 
   if (request.previous_issues.length === 0) {
-    const hit: NoteCacheRow | null = await readNoteCache(client, cacheKey);
+    const hit: NoteCacheRow | null = await deps.readNoteCache(client, cacheKey);
     if (hit !== null) {
       const outcome: GenerationOutcome = hit.success ? "success" : "refusal";
-      let cachedCredits: CreditsSnapshot;
+      await deps.recordGenerationEvent(client, {
+        userId,
+        operation: "generate-note",
+        cacheKey,
+        provider: null,
+        model: null,
+        cached: true,
+        outcome,
+      });
+      let cachedCredits: CreditsSnapshot | null;
       try {
-        await recordGenerationEvent(client, {
-          userId,
-          operation: "generate-note",
-          cacheKey,
-          provider: null,
-          model: null,
-          cached: true,
-          outcome,
-        });
-        cachedCredits = await readCredits(
-          client,
-          userId,
-          now,
-          allowance,
-          refusalAllowance,
-        );
+        cachedCredits = await deps.readCredits(client, userId, now, allowance);
       } catch (error: unknown) {
-        if (error instanceof CreditsUnavailableError) {
-          return respondCreditsUnavailable("generate-note", true, startedAt);
+        if (!(error instanceof CreditsUnavailableError)) {
+          throw error;
         }
-        throw error;
+        cachedCredits = null;
       }
       const meta: ResponseMeta = buildMeta(
         hit.provider,
         hit.model,
         true,
-        cachedCredits.remaining,
+        cachedCredits,
+        now,
       );
       logRequest("generate-note", true, outcome, startedAt);
       if (hit.success && hit.response.data !== undefined) {
@@ -171,15 +223,12 @@ async function handle(req: Request): Promise<Response> {
     }
   }
 
-  let reservation: Reservation;
+  let consumption: Consumption;
   try {
-    reservation = await reserveGeneration(client, {
+    consumption = await deps.consumeCredit(client, {
       userId,
-      operation: "generate-note",
-      cacheKey,
       now,
       allowance,
-      refusalAllowance,
     });
   } catch (error: unknown) {
     if (error instanceof CreditsUnavailableError) {
@@ -187,84 +236,89 @@ async function handle(req: Request): Promise<Response> {
     }
     throw error;
   }
-  if (!reservation.reserved) {
+  const credits: CreditsSnapshot = consumption.credits;
+  if (!consumption.consumed) {
     logRequest("generate-note", false, "credits_exhausted", startedAt);
-    return creditsExhaustedResponse(reservation.credits.resetAt);
+    return creditsExhaustedResponse(buildMeta(null, null, false, credits, now));
   }
-  const eventId: number = reservation.eventId;
-  const credits: CreditsSnapshot = reservation.credits;
 
   try {
-    try {
-      const generated: GenerationResult<LearningNoteResponse> =
-        await generateStructured<LearningNoteResponse>({
-          prompt: buildLearningNotePrompt(request),
-          schemaName: "learning_note",
-          jsonSchema: learningNoteJsonSchema,
-          parse: learningNoteResponseSchema.parse,
-          providerState: createProviderStateStore(client),
-        });
-      const cleaned: LearningNoteResponse = withoutNulls(generated.value);
-      const outcome: "success" | "refusal" = cleaned.success
-        ? "success"
-        : "refusal";
-      await commitNoteCache(client, request, {
-        cache_key: cacheKey,
-        response: cleaned,
-        success: cleaned.success,
-        provider: generated.provider,
-        model: generated.model,
-        prompt_version: PROMPT_VERSION,
-        schema_version: SCHEMA_VERSION,
-        expires_at: cacheExpiry(cleaned.success, now),
+    const generated: GenerationResult<LearningNoteResponse> = await deps
+      .generateStructured<LearningNoteResponse>({
+        prompt: buildLearningNotePrompt(request),
+        schemaName: "learning_note",
+        jsonSchema: learningNoteJsonSchema,
+        parse: learningNoteResponseSchema.parse,
+        providerState: createProviderStateStore(client),
       });
-      await settleGeneration(client, eventId, {
-        outcome,
-        provider: generated.provider,
-        model: generated.model,
-      });
-      const meta: ResponseMeta = buildMeta(
-        generated.provider,
-        generated.model,
-        false,
-        remainingAfter(credits, outcome),
-      );
-      logRequest("generate-note", false, outcome, startedAt);
-      if (cleaned.success && cleaned.data !== undefined) {
-        return successResponse(cleaned.data, meta);
-      }
-      return refusalResponse(cleaned.error ?? null, meta);
-    } catch (error: unknown) {
-      if (error instanceof CreditsUnavailableError) {
-        throw error;
-      }
-      if (error instanceof ProvidersExhaustedError) {
-        await settleGeneration(client, eventId, {
-          outcome: "providers_exhausted",
-          provider: null,
-          model: null,
-        });
-        logRequest("generate-note", false, "providers_exhausted", startedAt);
-        return providersExhaustedResponse(error.retryAfterSeconds);
-      }
-      await settleGeneration(client, eventId, {
-        outcome: "error",
+    const cleaned: LearningNoteResponse = withoutNulls(generated.value);
+    const outcome: GenerationOutcome = cleaned.success ? "success" : "refusal";
+    await deps.commitNoteCache(client, request, {
+      cache_key: cacheKey,
+      response: cleaned,
+      success: cleaned.success,
+      provider: generated.provider,
+      model: generated.model,
+      prompt_version: PROMPT_VERSION,
+      schema_version: SCHEMA_VERSION,
+      expires_at: cacheExpiry(cleaned.success, now),
+    });
+    await deps.recordGenerationEvent(client, {
+      userId,
+      operation: "generate-note",
+      cacheKey,
+      provider: generated.provider,
+      model: generated.model,
+      cached: false,
+      outcome,
+    });
+    const meta: ResponseMeta = buildMeta(
+      generated.provider,
+      generated.model,
+      false,
+      credits,
+      now,
+    );
+    logRequest("generate-note", false, outcome, startedAt);
+    if (cleaned.success && cleaned.data !== undefined) {
+      return successResponse(cleaned.data, meta);
+    }
+    return refusalResponse(cleaned.error ?? null, meta);
+  } catch (error: unknown) {
+    if (error instanceof ProvidersExhaustedError) {
+      await deps.recordGenerationEvent(client, {
+        userId,
+        operation: "generate-note",
+        cacheKey,
         provider: null,
         model: null,
+        cached: false,
+        outcome: "providers_exhausted",
       });
-      console.error(error instanceof Error ? error.name : "UnknownError");
-      return errorResponse("internal", "The note could not be generated.");
+      logRequest("generate-note", false, "providers_exhausted", startedAt);
+      return providersExhaustedResponse(
+        error.retryAfterSeconds,
+        buildMeta(null, null, false, credits, now),
+      );
     }
-  } catch (error: unknown) {
-    if (error instanceof CreditsUnavailableError) {
-      return respondCreditsUnavailable("generate-note", false, startedAt);
-    }
-    throw error;
+    await deps.recordGenerationEvent(client, {
+      userId,
+      operation: "generate-note",
+      cacheKey,
+      provider: null,
+      model: null,
+      cached: false,
+      outcome: "error",
+    });
+    console.error(error instanceof Error ? error.name : "UnknownError");
+    return errorResponse(
+      "internal",
+      "The note could not be generated.",
+      buildMeta(null, null, false, credits, now),
+    );
   }
 }
 
 export default {
-  fetch(req: Request): Promise<Response> {
-    return handle(req);
-  },
+  fetch: (req: Request): Promise<Response> => handle(req),
 };

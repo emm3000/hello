@@ -1,11 +1,13 @@
+import { type CreditsSnapshot, nextUtcMidnight } from "./credits.ts";
 import { PROMPT_VERSION } from "./prompt.ts";
 import { type RefusalCode, SCHEMA_VERSION } from "./schema.ts";
 
 export type ResponseMeta = {
   cached: boolean;
-  provider: string;
-  model: string;
-  credits_remaining: number;
+  provider: string | null;
+  model: string | null;
+  credits_remaining: number | null;
+  reset_at: string;
   prompt_version: number;
   schema_version: number;
 };
@@ -42,16 +44,18 @@ const ERROR_STATUS: Record<ErrorCode, number> = {
 };
 
 export function buildMeta(
-  provider: string,
-  model: string,
+  provider: string | null,
+  model: string | null,
   cached: boolean,
-  creditsRemaining: number,
+  credits: CreditsSnapshot | null,
+  now: Date,
 ): ResponseMeta {
   return {
     cached,
     provider,
     model,
-    credits_remaining: creditsRemaining,
+    credits_remaining: credits?.remaining ?? null,
+    reset_at: credits?.resetAt ?? nextUtcMidnight(now).toISOString(),
     prompt_version: PROMPT_VERSION,
     schema_version: SCHEMA_VERSION,
   };
@@ -82,9 +86,13 @@ export function refusalResponse(
   );
 }
 
-export function errorResponse(code: ErrorCode, message: string): Response {
+export function errorResponse(
+  code: ErrorCode,
+  message: string,
+  meta: ResponseMeta | null = null,
+): Response {
   return jsonResponse(
-    { success: false, data: null, error: { code, message }, meta: null },
+    { success: false, data: null, error: { code, message }, meta },
     ERROR_STATUS[code],
   );
 }
@@ -104,7 +112,7 @@ export function methodNotAllowedResponse(): Response {
   );
 }
 
-export function creditsExhaustedResponse(resetAt: string): Response {
+export function creditsExhaustedResponse(meta: ResponseMeta): Response {
   return jsonResponse(
     {
       success: false,
@@ -113,9 +121,9 @@ export function creditsExhaustedResponse(resetAt: string): Response {
         code: "credits_exhausted",
         message:
           "Alcanzaste el límite diario de generaciones con IA. Vuelve a intentarlo mañana.",
-        reset_at: resetAt,
+        reset_at: meta.reset_at,
       },
-      meta: null,
+      meta,
     },
     ERROR_STATUS.credits_exhausted,
   );
@@ -142,6 +150,7 @@ export function creditsUnavailableResponse(
 
 export function providersExhaustedResponse(
   retryAfterSeconds: number,
+  meta: ResponseMeta,
 ): Response {
   return jsonResponse(
     {
@@ -152,7 +161,7 @@ export function providersExhaustedResponse(
         message: "Every AI provider is unavailable right now.",
         retry_after: retryAfterSeconds,
       },
-      meta: null,
+      meta,
     },
     ERROR_STATUS.providers_exhausted,
     { "Retry-After": String(retryAfterSeconds) },

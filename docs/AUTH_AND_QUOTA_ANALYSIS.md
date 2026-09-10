@@ -149,26 +149,35 @@ That implies linking changes where cards live. It does not. The backend stores t
 
 ## 3. How the quota works
 
-`reserve_generation` (`supabase/migrations/20260907154000_credits_reservation.sql`) decides every call, keyed on the Supabase user uuid:
+One rule decides every call: a request that reaches a provider costs exactly one credit, charged before the call and never refunded. A cache hit is free.
+
+`consume_generation` (`supabase/migrations/20260910180000_daily_usage_counter.sql`) is the whole ledger, keyed on the Supabase user uuid and the UTC calendar date:
 
 ```sql
-select count(*) filter (where outcome in ('success', 'pending')),
-       count(*) filter (where outcome = 'refusal')
-from public.generation_events
+insert into public.daily_usage (user_id, day, used)
+values (p_user_id, p_day, 0)
+on conflict (user_id, day) do nothing;
+
+update public.daily_usage
+set used = public.daily_usage.used + 1
 where user_id = p_user_id
-  and cached = false
-  and created_at >= p_day_start;
+  and day = p_day
+  and public.daily_usage.used < p_allowance
+returning public.daily_usage.used into v_used;
 ```
 
 | Property | Value |
 |---|---|
 | Daily allowance | 50 (`DAILY_ALLOWANCE` secret; `DEFAULT_DAILY_ALLOWANCE = 5` in `credits.ts` is only the fallback) |
-| Daily refusal allowance | 10 (`DAILY_REFUSAL_ALLOWANCE`, same fallback value in code) |
-| Cache hits | Free — the count filters on `cached = false` |
-| `pending` | Counts as charged, so a failed attempt still costs. Reserving before calling the provider is what stops retries from being free |
-| Concurrency | `pg_advisory_xact_lock(hashtext(user_id))` per user |
-| Access | `execute` revoked from `public`, `anon` and `authenticated`; granted only to `service_role` |
+| Storage | One `public.daily_usage` row per user per UTC day, holding `used` |
+| Charged | Before the provider call. A refusal, a `providers_exhausted` and a crashed isolate all stay charged; there is no refund and no settle step |
+| Cache hits | Free — they return before `consume_generation` is called |
+| Telemetry | `generation_events` still records every request, but it no longer decides money |
+| Concurrency | The conditional `update` is the lock. Contenders serialise on the row and re-check `used < p_allowance` against the committed value, so the loser gets `consumed = false` |
+| Access | `execute` revoked from `public`, `anon` and `authenticated`; granted only to `service_role`. The revoke from `authenticated` is load-bearing: `p_user_id` is a parameter, so without it any signed-in client could call the RPC through PostgREST and drain another user's day |
 | Reset | UTC midnight, which is 19:00 in Lima |
+
+`DAILY_REFUSAL_ALLOWANCE` is no longer read. It existed because a refusal used to be free, so a stream of gibberish could buy unlimited provider calls; now a refusal costs the same credit as a success and the second cap has nothing left to guard.
 
 Two consequences worth carrying forward:
 

@@ -22,12 +22,12 @@ Principles (non-negotiable):
 - Reduce interference: cards must not be near-duplicates of each other.
 
 Input data:
-- input_type: "${input.input_type}"
-- user_text: "${input.user_text}"
-- learning_goal: "${input.learning_goal}"
-- level_band: "${input.level_band}"
-- register: "${input.register}"
-- domain: "${input.domain}"
+- input_type: ${JSON.stringify(input.input_type)}
+- user_text: ${JSON.stringify(input.user_text)}
+- learning_goal: ${JSON.stringify(input.learning_goal)}
+- level_band: ${JSON.stringify(input.level_band)}
+- register: ${JSON.stringify(input.register)}
+- domain: ${JSON.stringify(input.domain)}
 
 Decision policy:
 - If the input is a broad communicative goal, infer the single highest-value English expression.
@@ -167,7 +167,7 @@ function buildLevelContext(recentWords: string[]): string {
     return "The learner is a total beginner with no recorded vocabulary yet. " +
       "Pick an A2-level everyday situation.";
   }
-  const recentWordsList: string = recentWords.join(", ");
+  const recentWordsList: string = JSON.stringify(recentWords);
   return "The learner has recently studied these English words or expressions: " +
     recentWordsList +
     ". Infer the learner's approximate level from this list.";
