@@ -47,7 +47,7 @@ Path-scoped, loaded when Kotlin files are touched:
 | `.claude/rules/ui-components.md` | The `core/ui` `H*` iron rule, theme tokens |
 | `.claude/rules/sqldelight.md` | Schema changes: the three artifacts a migration ships, the migration test |
 
-That last one is scoped to `data/src/main/sqldelight/**`, so it does not load when you are only writing Kotlin. **Read it before specifying any schema change**, not after — a migration specified without it reaches the writer already missing its migration test, and no gate catches that one. `checkSqlDelightSnapshots` catches a missing snapshot; nothing catches a missing test.
+That last one is scoped to `data/src/main/sqldelight/**` and `data/src/test/kotlin/com/emm/data/migration/**`, so it loads when a migration or its test is opened, never while you are only writing other Kotlin. **Read it before specifying any schema change**, not after — the spec is written before any of those files is opened, and a migration specified without it reaches the writer already missing its migration test. `checkSqlDelightSnapshots` catches a missing snapshot; nothing catches a missing test.
 
 ## Work protocol
 

@@ -1,6 +1,7 @@
 ---
 paths:
   - "data/src/main/sqldelight/**"
+  - "data/src/test/kotlin/com/emm/data/migration/**"
 ---
 
 # SQLDelight schema rules

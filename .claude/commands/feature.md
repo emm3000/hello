@@ -13,12 +13,12 @@ Scaffold a new feature called **$ARGUMENTS** under `app/src/main/kotlin/com/emm/
 
 ## Files to create
 
-- `${ARGUMENTS}UiState.kt` — `data class` with initial values, no logic.
-- `${ARGUMENTS}UiIntent.kt` — `sealed interface` covering user actions.
-- `${ARGUMENTS}UiEffect.kt` — `sealed interface` for one-shot effects (navigation, toasts).
-- `${ARGUMENTS}ViewModel.kt` — exposes `state: StateFlow<UiState>`, `effects: Flow<UiEffect>`, public entry point `onIntent(intent: UiIntent)`. Injectable via Koin.
-- `${ARGUMENTS}Route.kt` — Compose entry that wires the ViewModel, observes state, dispatches intents, consumes effects.
-- `${ARGUMENTS}Screen.kt` — stateless `@Composable` that receives state + lambda for intent dispatch.
+- `<FeatureName>UiState.kt` — `data class` with initial values, no logic.
+- `<FeatureName>UiIntent.kt` — `sealed interface` covering user actions.
+- `<FeatureName>UiEffect.kt` — `sealed interface` for one-shot effects (navigation, toasts).
+- `<FeatureName>ViewModel.kt` — exposes `state: StateFlow<UiState>`, `effects: Flow<UiEffect>`, public entry point `onIntent(intent: UiIntent)`. Injectable via Koin.
+- `<FeatureName>Route.kt` — Compose entry that wires the ViewModel, observes state, dispatches intents, consumes effects.
+- `<FeatureName>Screen.kt` — stateless `@Composable` that receives state + lambda for intent dispatch.
 
 ## Hard rules (from `CLAUDE.md` and `.claude/rules/`)
 
