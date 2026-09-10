@@ -32,6 +32,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -307,6 +308,28 @@ class SuggestViewModelTest {
     }
 
     @Test
+    fun `a failure loading the decks releases the button and shows the add error`() = runTest {
+        val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            captureFlashcardUseCase = captureFlashcardUseCase,
+            decksFailure = RuntimeException("boom"),
+        )
+        runCurrent()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+
+        viewModel.effect.test {
+            viewModel.onIntent(SuggestUiIntent.AddSelected)
+            assertThat(awaitItem()).isEqualTo(SuggestUiEffect.ShowMessage(R.string.suggest_error_add))
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(viewModel.state.value.isAdding).isFalse()
+        coVerify(exactly = 0) { captureFlashcardUseCase(any(), any(), any()) }
+    }
+
+    @Test
     fun `with no default selected the words go to the oldest deck and not the newest`() = runTest {
         val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
         coEvery {
@@ -336,13 +359,17 @@ class SuggestViewModelTest {
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
         captureFlashcardUseCase: CaptureFlashcardUseCase = mockk(),
         decks: List<Deck> = listOf(deck()),
+        decksFailure: Throwable? = null,
         defaultDeckId: DeckId? = DECK_ID,
     ): SuggestViewModel {
         val flashcardRepository = mockk<FlashcardRepository>()
         coEvery { flashcardRepository.fetchRecentWords(any()) } returns emptyList()
 
         val getDecksUseCase = mockk<GetDecksUseCase>()
-        every { getDecksUseCase() } returns flowOf(decks)
+        val decksFlow: Flow<List<Deck>> = decksFailure
+            ?.let { failure -> flow { throw failure } }
+            ?: flowOf(decks)
+        every { getDecksUseCase() } returns decksFlow
 
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns defaultDeckId

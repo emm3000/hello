@@ -87,41 +87,41 @@ class SuggestViewModel(
         if (!current.canAdd) return@launch
 
         setState { copy(isAdding = true) }
-        val decks: List<Deck> = getDecksUseCase().first()
-        val deck: Deck? = resolveTargetDeck(decks)
-        if (deck == null) {
-            setState { copy(isAdding = false) }
-            sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_error_no_deck))
-            return@launch
-        }
-
-        addSelectedWords(current, deck.id)
-    }
-
-    private suspend fun addSelectedWords(current: SuggestUiState, deckId: DeckId) {
         try {
-            val selectedWords: List<SuggestedWord> = current.words.filter { it.word in current.selectedWords }
-            val flashcardIds: List<String> = selectedWords.mapNotNull { captureOrSkip(deckId, it) }
-            if (flashcardIds.isEmpty()) {
-                reportAllWordsAlreadyKnown()
-            } else {
-                reportWordsAdded(flashcardIds)
-            }
+            addSelectedWords(current)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
-            logError(TAG, "addSelectedWords:error ${error.message}", error)
-            setState { copy(isAdding = false) }
+            logError(TAG, "addSelected:error ${error.message}", error)
             sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_error_add))
+        } finally {
+            setState { copy(isAdding = false) }
         }
     }
 
-    private suspend fun reportAllWordsAlreadyKnown() {
-        setState { copy(isAdding = false, selectedWords = emptySet()) }
+    private suspend fun addSelectedWords(current: SuggestUiState) {
+        val decks: List<Deck> = getDecksUseCase().first()
+        val deck: Deck? = resolveTargetDeck(decks)
+        if (deck == null) {
+            sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_error_no_deck))
+            return
+        }
+
+        val selectedWords: List<SuggestedWord> = current.words.filter { it.word in current.selectedWords }
+        val flashcardIds: List<String> = selectedWords.mapNotNull { captureOrSkip(deck.id, it) }
+        if (flashcardIds.isEmpty()) {
+            reportAllWordsAlreadyKnown()
+        } else {
+            reportWordsAdded(flashcardIds)
+        }
+    }
+
+    private fun reportAllWordsAlreadyKnown() {
+        setState { copy(selectedWords = emptySet()) }
         sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_all_known))
     }
 
-    private suspend fun reportWordsAdded(flashcardIds: List<String>) {
+    private fun reportWordsAdded(flashcardIds: List<String>) {
         sendEffect(SuggestUiEffect.EnqueueEnrichment(flashcardIds))
         sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_added))
         sendEffect(SuggestUiEffect.NavigateBack)
