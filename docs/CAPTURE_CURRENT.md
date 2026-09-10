@@ -129,8 +129,11 @@ Two values are computed, not stored:
 
 `FlashcardEnrichmentScheduler.enqueue` schedules one unique
 `OneTimeWorkRequest` per card (`flashcard_enrichment_<id>`,
-`ExistingWorkPolicy.REPLACE`) with `NetworkType.CONNECTED` and exponential
-backoff starting at 5 minutes.
+`ExistingWorkPolicy.KEEP`) with `NetworkType.CONNECTED` and exponential
+backoff starting at 5 minutes. `KEEP` means a requeue of a card that already
+has enrichment work pending or running (for example `AppStartupCoordinator`
+requeuing every `PENDING` card on launch) never cancels an in-flight worker
+whose HTTP request the backend may have already charged.
 
 `FlashcardEnrichmentWorker` resolves `EnrichCapturedFlashcardUseCase` from
 Koin, which reads the stored word, calls
