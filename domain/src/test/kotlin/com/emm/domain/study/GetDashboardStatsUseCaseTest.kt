@@ -76,6 +76,36 @@ class GetDashboardStatsUseCaseTest {
     }
 
     @Test
+    fun `a spent allowance holds back every new card that exists`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 25, firstReviewedInRange = 10)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(25, result.heldBackNewCards)
+        assertEquals(3, result.cardsDueToday)
+    }
+
+    @Test
+    fun `an untouched allowance holds back only what exceeds it`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 25, firstReviewedInRange = 0)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(15, result.heldBackNewCards)
+        assertEquals(13, result.cardsDueToday)
+    }
+
+    @Test
+    fun `an allowance wider than the new cards holds nothing back`() = runTest {
+        val fakeRepo = FakeStatsRepo(reviewsDue = 3, newCards = 4, firstReviewedInRange = 0)
+
+        val result: DashboardStats = useCase(fakeRepo)()
+
+        assertEquals(0, result.heldBackNewCards)
+        assertEquals(7, result.cardsDueToday)
+    }
+
+    @Test
     fun `the daily allowance is measured over the local calendar day`() = runTest {
         val fakeRepo = FakeStatsRepo(reviewsDue = 1, newCards = 1)
 

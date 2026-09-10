@@ -23,7 +23,7 @@ import org.koin.core.parameter.parametersOf
  * A non-null [deckId] studies only that deck (no surface offers this yet).
  */
 @Serializable
-data class StudyRoute(val deckId: String? = null) : NavKey {
+data class StudyRoute(val deckId: String? = null, val extraNewCards: Int = 0) : NavKey {
     companion object {
         /**
          * Sentinel passed to Koin/[StudyViewModel] for the all-decks session, since Koin parameter
@@ -35,9 +35,9 @@ data class StudyRoute(val deckId: String? = null) : NavKey {
 }
 
 @Composable
-fun StudyDestination(navigator: Navigator, deckId: String?) {
+fun StudyDestination(navigator: Navigator, deckId: String?, extraNewCards: Int) {
     val vm: StudyViewModel = koinViewModel(
-        parameters = { parametersOf(deckId ?: StudyRoute.ALL_DUE_DECKS) }
+        parameters = { parametersOf(deckId ?: StudyRoute.ALL_DUE_DECKS, extraNewCards) }
     )
     val uiState = vm.state.collectAsStateWithLifecycle()
     val textToSpeech: TextToSpeechManager = koinInject()
@@ -71,6 +71,7 @@ fun StudyDestination(navigator: Navigator, deckId: String?) {
         },
         onCreateCard = { vm.onIntent(StudyUiIntent.CreateCardClicked) },
         onGetNewWords = { vm.onIntent(StudyUiIntent.GetNewWordsClicked) },
+        onStudyMore = { vm.onIntent(StudyUiIntent.StudyMoreClicked) },
         onRetryLoad = { vm.onIntent(StudyUiIntent.RetryLoad) },
         onSpeak = textToSpeech::speak,
         onStopSpeech = textToSpeech::stop,

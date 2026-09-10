@@ -11,6 +11,7 @@ data class StudyUiState(
     val forgotCount: Int = 0,
     val totalCount: Int = 0,
     val sessionFinished: Boolean = false,
+    val moreNewCards: Int = 0,
 ) : MviState
 
 sealed interface StudyLoadError {

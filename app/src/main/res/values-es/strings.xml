@@ -48,6 +48,11 @@
     <string name="today_next_due_none">Nada programado aún</string>
     <string name="today_ring_content_description" tools:ignore="PluralsCandidate">Progreso de hoy, %1$d por ciento</string>
     <string name="today_get_new_words">Buscar palabras nuevas</string>
+    <plurals name="today_new_waiting">
+        <item quantity="one">%1$d palabra nueva te espera</item>
+        <item quantity="many">%1$d de palabras nuevas te esperan</item>
+        <item quantity="other">%1$d palabras nuevas te esperan</item>
+    </plurals>
 
     <!-- Decks Screen -->
     <plurals name="cards_count">
@@ -91,6 +96,7 @@
     <!-- Study Empty state -->
     <string name="study_empty_headline">Nada que repasar hoy.</string>
     <string name="study_empty_body">No hay tarjetas pendientes. Vuelve mañana para mantener el ritmo o agrega una palabra nueva.</string>
+    <string name="study_empty_body_more">Llegaste al límite de tarjetas nuevas de hoy. Vuelve mañana para mantener el ritmo o sigue ahora.</string>
     <string name="study_empty_create_card_cta">Agregar palabra</string>
     <string name="study_recall_cta_reveal">Ver respuesta</string>
     <string name="study_prompt_label">¿Qué significa?</string>
@@ -112,6 +118,7 @@
     <string name="study_done_get_new_words">Buscar palabras nuevas</string>
     <string name="study_done_add_word">Agregar palabra</string>
     <string name="study_done_back">Volver a Hoy</string>
+    <string name="study_more_cta">Estudiar %1$d más</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Recordatorios de estudio</string>

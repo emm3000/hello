@@ -7,7 +7,7 @@
 | Scope | `Study` flow |
 | Source of Truth | No |
 | Read this when | You need to understand how the study session works today |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-09-10 |
 
 ## Summary
 
@@ -24,6 +24,9 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudyUiEffect.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudySessionItem.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
+- `domain/src/main/kotlin/com/emm/domain/study/GetStudySessionUseCase.kt` (ordering, the new-card budget, `StudySession`)
+- `domain/src/main/kotlin/com/emm/domain/study/StudySession.kt` (`cards` + `heldBackNewCards`)
+- `domain/src/main/kotlin/com/emm/domain/study/NewCardBudget.kt` (`DEFAULT_DAILY_NEW_CARD_LIMIT`, `EXTRA_NEW_CARDS_PER_REQUEST`, `extendedBy`)
 - `domain/src/main/kotlin/com/emm/domain/study/ScheduleFlashcardReviewUseCase.kt` (graduation rule)
 - `app/src/main/kotlin/com/emm/hello/core/ui/HSpeakerButton.kt` (shared play/stop button, also used by `Card Detail`; replaces the former private `TtsFloatingButton`)
 - `app/src/main/kotlin/com/emm/hello/core/audio/AudioState.kt` (moved out of `newfeatures/study/`; holds `speakingUtteranceId: String?` + `isTtsReady: Boolean`, exposes `isSpeaking(utteranceId)`)
@@ -69,19 +72,31 @@ Once set, `productionSince` is never cleared: a graduated card is asked in produ
 - `forgotCount` — cards graded `AGAIN`
 - `totalCount` — cards in the session (equals the due count Today shows)
 - `sessionFinished` — true once the last card is graded and the session had at least one card
+- `moreNewCards` — how many never-reviewed cards the next press of "Study N more" would introduce: `min(heldBackNewCards, EXTRA_NEW_CARDS_PER_REQUEST)`. Zero hides the action; any positive value is the number the label promises and the number the reloaded session delivers
 
 ## Session load
 
-`StudyViewModel` is constructed with a `deckId: String`. `StudyRoute.ALL_DUE_DECKS` (`"__all_due_decks__"`) is the sentinel Koin receives for the all-decks session; the viewmodel normalizes it back to `null`.
+`StudyViewModel` is constructed with a `deckId: String` and an `extraNewCards: Int`. `StudyRoute.ALL_DUE_DECKS` (`"__all_due_decks__"`) is the sentinel Koin receives for the all-decks session; the viewmodel normalizes it back to `null`.
 
-`loadSession()` (called from `init`, and again by `RetryLoad`):
+`StudyRoute(deckId, extraNewCards)` carries both: `StudyDestination` passes them to Koin as `parametersOf(deckId ?: ALL_DUE_DECKS, extraNewCards)`, and the viewmodel keeps the extra as `initialExtraNewCards`. `init` and `RetryLoad` both load with it, so a session opened from Today's "Study N more" arrives already extended and a failed load retries into the same session the user asked for. `StudyMoreClicked` is independent of it and always adds `EXTRA_NEW_CARDS_PER_REQUEST`.
 
-- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `knewCount = 0`, `forgotCount = 0`, `sessionFinished = false`
-- fetches via `GetStudySessionUseCase(deckId?.toDeckId())`, which reads `sessionTodayAllDecks()` when the target is `null` and `sessionToday(deckId)` otherwise, then orders and caps the result: due reviews first, never-reviewed (`FsrsState.NEW`) cards last, shuffled within each group, with at most `DEFAULT_DAILY_NEW_CARD_LIMIT` (10) new cards per local calendar day. "Introduced today" is the number of distinct cards whose earliest `ReviewEvent` falls in today's `DayRange`; `NewCardBudget` turns it into the remaining allowance. The same budget drives Today's `cardsDueToday`, so the count on Today equals the session length.
-- maps each `StudyFlashcard` to one `StudySessionItem` and queues them in an `ArrayDeque`
-- sets `totalCount` to the number of cards
+`loadSession(extraNewCards: Int = 0)` (called from `init` and by `RetryLoad` with `0`, and by `StudyMoreClicked` with `EXTRA_NEW_CARDS_PER_REQUEST`):
+
+- clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `knewCount = 0`, `forgotCount = 0`, `sessionFinished = false`, `moreNewCards = 0`
+- fetches via `GetStudySessionUseCase(deckId?.toDeckId(), extraNewCards)`, which reads `sessionTodayAllDecks()` when the target is `null` and `sessionToday(deckId)` otherwise, then orders and caps the result: due reviews first, never-reviewed (`FsrsState.NEW`) cards last, shuffled within each group, with at most `DEFAULT_DAILY_NEW_CARD_LIMIT` (10) new cards per local calendar day. "Introduced today" is the number of distinct cards whose earliest `ReviewEvent` falls in today's `DayRange`; `NewCardBudget` turns it into the remaining allowance. The same budget drives Today's `cardsDueToday`, so the count on Today equals the session length.
+- returns a `StudySession`, not a bare list: `cards` is the ordered queue, `heldBackNewCards` is how many due `NEW` cards the budget refused
+- maps each `StudyFlashcard` in `session.cards` to one `StudySessionItem` and queues them in an `ArrayDeque`
+- sets `totalCount` to the number of cards and `moreNewCards` to `minOf(session.heldBackNewCards, EXTRA_NEW_CARDS_PER_REQUEST)`
 - shows the first card
 - on any throwable (except `CancellationException`) logs and sets `loadError = SessionLoadFailed`
+
+Due reviews are never held back or capped: the budget only gates `NEW` cards, so `heldBackNewCards` counts nothing else.
+
+### Extending the daily allowance
+
+`NewCardBudget.extendedBy(extra)` returns `copy(dailyLimit = introducedToday + extra)`, so the extended budget has `remaining == extra` no matter how many cards today already introduced — including an overspent day. `extra` must be non-negative. `GetStudySessionUseCase` extends the budget only when `extraNewCards > 0`, so the default call keeps the plain daily limit.
+
+`StudyMoreClicked` reloads with `EXTRA_NEW_CARDS_PER_REQUEST` (10), so each press admits at most 10 more never-reviewed cards and can be pressed again while cards remain held back. When fewer than 10 are held back the extension still asks for 10, and the budget admits only what exists — which is why the label reads `moreNewCards`, not the constant: with 1 card held back the button says "Study 1 more" and the reloaded session is exactly `1 / 1`. The reload is a full `loadSession`, so it also resets the tallies and `sessionFinished` for the fresh batch.
 
 ## Grading and persistence
 
@@ -105,7 +120,7 @@ When there is no next card and the session had at least one card, `sessionFinish
 5. `Recall` — card face is Front
 6. `Grade` — card face is Back
 
-`Loading` renders `StudyLoadingState()` (`HLoadingSpinner`), `Error` renders `StudyErrorState()` (`HEmptyState` with `study_error_headline` / `study_error_body`), `Empty` renders `StudyEmptyState()` (`HEmptyState` with `study_empty_headline` "Nothing to review today." / `study_empty_body`), `Done` renders `StudyDoneState()`.
+`Loading` renders `StudyLoadingState()` (`HLoadingSpinner`), `Error` renders `StudyErrorState()` (`HEmptyState` with `study_error_headline` / `study_error_body`), `Empty` renders `StudyEmptyState(moreNewCards)` (`HEmptyState` with `study_empty_headline` "Nothing to review today." and, as body, `study_empty_body_more` when `moreNewCards > 0` or `study_empty_body` otherwise), `Done` renders `StudyDoneState()`.
 
 While a card is on screen (`Recall` / `Grade`) the page background is one of `cardHues`, indexed by `reviewedCount` and animated between cards; every other stage uses `pageBackground`.
 
@@ -137,10 +152,12 @@ A `LaunchedEffect(wordRevealed)` calls `onStopSpeech()` whenever the word stops 
 
 - `Loading` — nothing
 - `Error` — full-width `HButton` Primary `study_error_retry` ("Retry") → `RetryLoad`
-- `Empty` — full-width `HButton` Secondary `study_empty_create_card_cta` ("Add a word") → `CreateCardClicked`
+- `Empty` — full-width `HButton` Secondary `study_empty_create_card_cta` ("Add a word") → `CreateCardClicked`, preceded by a Primary `study_more_cta` ("Study N more") → `StudyMoreClicked` only when `moreNewCards > 0`
 - `Recall` — full-width `HButton` Primary `study_recall_cta_reveal` ("Show answer") flips to `Back`, plus the muted hint `study_recall_hint` ("Try to recall it first.")
 - `Grade` — `AnswerButtons`
-- `Done` — three full-width `HButton`s stacked: Primary `study_done_get_new_words` ("Get new words") → `GetNewWordsClicked`; Secondary `study_done_add_word` ("Add a word") → `CreateCardClicked`; Text `study_done_back` ("Back to Today") → `ExitClicked`
+- `Done` — full-width `HButton`s stacked: Primary `study_done_get_new_words` ("Get new words") → `GetNewWordsClicked`; then, only when `moreNewCards > 0`, Secondary `study_more_cta` ("Study N more") → `StudyMoreClicked`; Secondary `study_done_add_word` ("Add a word") → `CreateCardClicked`; Text `study_done_back` ("Back to Today") → `ExitClicked`
+
+`StudyMoreButton(count, onClick, variant)` is the private composable behind both `study_more_cta` buttons; it formats the label with `count`, never with the constant.
 
 ### Grade buttons
 
@@ -153,7 +170,7 @@ Neither is red, green or accent. `HARD` is unreachable from the dock, and `EASY`
 
 ## Done stage
 
-`StudyDoneState` renders inline (no dialog): a full `HRing` with a check icon, the headline `study_done_title` ("Done for today.") and `study_done_stats` ("%1$d reviewed · %2$d knew it · %3$d to see again") filled with `reviewedCount`, `knewCount`, `forgotCount`. The dock above lists its three CTAs.
+`StudyDoneState` renders inline (no dialog): a full `HRing` with a check icon, the headline `study_done_title` ("Done for today.") and `study_done_stats` ("%1$d reviewed · %2$d knew it · %3$d to see again") filled with `reviewedCount`, `knewCount`, `forgotCount`. The dock above lists its three CTAs, plus "Study N more" when new cards are still held back.
 
 ## Navigation and exit
 
@@ -167,7 +184,8 @@ Neither is red, green or accent. `HARD` is unreachable from the dock, and `EASY`
 
 - `CreateCardClicked` — emits `NavigateToCapture`
 - `GetNewWordsClicked` — emits `NavigateToSuggest`
-- `RetryLoad` — re-runs `loadSession()`
+- `StudyMoreClicked` — re-runs `loadSession(EXTRA_NEW_CARDS_PER_REQUEST)`; stays on the screen, emits no effect
+- `RetryLoad` — re-runs `loadSession(initialExtraNewCards)`, so a retry keeps the extra batch the route asked for
 - `ExitClicked` — emits `NavigateBack`
 - `ReviewAnswered(item, reviewGrade)` — schedules, persists, tallies, advances
 

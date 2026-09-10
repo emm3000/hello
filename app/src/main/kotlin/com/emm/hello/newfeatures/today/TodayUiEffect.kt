@@ -4,4 +4,4 @@ import com.emm.hello.core.mvi.MviEffect
 
 sealed interface TodayUiEffect : MviEffect
 
-data class NavigateToStudy(val deckId: String) : TodayUiEffect
+data class NavigateToStudy(val deckId: String, val extraNewCards: Int = 0) : TodayUiEffect

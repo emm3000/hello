@@ -59,6 +59,7 @@ fun TodayScreen(
     state: TodayUiState = TodayUiState(),
     onCapture: () -> Unit = {},
     onStudy: () -> Unit = {},
+    onStudyMore: () -> Unit = {},
     onSettings: () -> Unit = {},
     onLibrary: () -> Unit = {},
     onGetNewWords: () -> Unit = {},
@@ -89,6 +90,7 @@ fun TodayScreen(
         TodayActions(
             state = state,
             onStudy = onStudy,
+            onStudyMore = onStudyMore,
             onCapture = onCapture,
             onLibrary = onLibrary,
             onGetNewWords = onGetNewWords,
@@ -217,12 +219,23 @@ private fun StackCopy(state: TodayUiState) {
                 color = ink,
             )
             Text(
-                text = nextDueCopy(state.nextDue),
+                text = nothingDueCopy(state),
                 style = MaterialTheme.typography.bodyMedium,
                 color = inkMuted,
             )
         }
     }
+}
+
+@Composable
+private fun nothingDueCopy(state: TodayUiState): String {
+    if (state.moreNewCards <= 0) return nextDueCopy(state.nextDue)
+
+    return pluralStringResource(
+        R.plurals.today_new_waiting,
+        state.moreNewCards,
+        state.moreNewCards,
+    )
 }
 
 @Composable
@@ -250,6 +263,7 @@ private fun nextDueCopy(nextDue: NextDueBatch?): String {
 private fun TodayActions(
     state: TodayUiState,
     onStudy: () -> Unit,
+    onStudyMore: () -> Unit,
     onCapture: () -> Unit,
     onLibrary: () -> Unit,
     onGetNewWords: () -> Unit,
@@ -289,10 +303,19 @@ private fun TodayActions(
                 }
             }
             else -> {
+                val hasMoreNewCards: Boolean = state.moreNewCards > 0
+                if (hasMoreNewCards) {
+                    HButton(
+                        text = stringResource(R.string.study_more_cta, state.moreNewCards),
+                        onClick = onStudyMore,
+                        variant = HButtonVariant.Primary,
+                        full = true,
+                    )
+                }
                 HButton(
                     text = stringResource(R.string.today_get_new_words),
                     onClick = onGetNewWords,
-                    variant = HButtonVariant.Primary,
+                    variant = if (hasMoreNewCards) HButtonVariant.Secondary else HButtonVariant.Primary,
                     full = true,
                     icon = Icons.Default.AutoAwesome,
                 )
@@ -368,6 +391,25 @@ private fun TodayScreenNothingDuePreview() {
                         cardCount = 3,
                         daysFromToday = 1,
                     ),
+                ),
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TodayScreenCapReachedPreview() {
+    HelloTheme {
+        TodayScreen(
+            state = TodayUiState(
+                isLoading = false,
+                stats = DashboardStats(
+                    cardsStudiedToday = 10,
+                    cardsDueToday = 0,
+                    currentStreak = 6,
+                    cardsDueThisWeek = 5,
+                    heldBackNewCards = 25,
                 ),
             ),
         )

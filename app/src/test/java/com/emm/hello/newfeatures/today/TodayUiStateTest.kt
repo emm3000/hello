@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.today
 
 import com.emm.domain.study.DashboardStats
+import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -116,6 +117,57 @@ class TodayUiStateTest {
         )
 
         assertEquals(1, state.dayNumber)
+    }
+
+    @Test
+    fun `more new cards never offers beyond one batch`() {
+        val state = TodayUiState(
+            stats = DashboardStats(
+                cardsStudiedToday = 10,
+                cardsDueToday = 0,
+                currentStreak = 3,
+                cardsDueThisWeek = 0,
+                heldBackNewCards = 25,
+            ),
+        )
+
+        assertEquals(EXTRA_NEW_CARDS_PER_REQUEST, state.moreNewCards)
+    }
+
+    @Test
+    fun `more new cards offers exactly what is held back below a full batch`() {
+        val state = TodayUiState(
+            stats = DashboardStats(
+                cardsStudiedToday = 10,
+                cardsDueToday = 0,
+                currentStreak = 3,
+                cardsDueThisWeek = 0,
+                heldBackNewCards = 3,
+            ),
+        )
+
+        assertEquals(3, state.moreNewCards)
+    }
+
+    @Test
+    fun `more new cards offers nothing while stats are loading`() {
+        val state = TodayUiState()
+
+        assertEquals(0, state.moreNewCards)
+    }
+
+    @Test
+    fun `more new cards offers nothing when nothing was held back`() {
+        val state = TodayUiState(
+            stats = DashboardStats(
+                cardsStudiedToday = 2,
+                cardsDueToday = 4,
+                currentStreak = 1,
+                cardsDueThisWeek = 4,
+            ),
+        )
+
+        assertEquals(0, state.moreNewCards)
     }
 
     @Test

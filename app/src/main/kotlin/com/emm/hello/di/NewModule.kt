@@ -307,6 +307,7 @@ fun Module.viewModels() {
     viewModel {
         StudyViewModel(
             deckId = it.get(),
+            extraNewCards = it.get(),
             getStudySessionUseCase = get(),
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),

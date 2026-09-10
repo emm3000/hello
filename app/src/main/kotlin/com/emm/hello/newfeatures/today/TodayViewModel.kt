@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.today
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.study.DashboardStats
+import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.newfeatures.study.StudyRoute
@@ -17,6 +18,9 @@ class TodayViewModel(
         when (intent) {
             ScreenVisible -> loadStats()
             StudyClicked -> sendEffect(NavigateToStudy(StudyRoute.ALL_DUE_DECKS))
+            StudyMoreClicked -> sendEffect(
+                NavigateToStudy(StudyRoute.ALL_DUE_DECKS, EXTRA_NEW_CARDS_PER_REQUEST)
+            )
         }
     }
 

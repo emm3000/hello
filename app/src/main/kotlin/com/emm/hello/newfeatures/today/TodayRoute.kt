@@ -25,7 +25,9 @@ fun TodayDestination(navigator: Navigator) {
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when (effect) {
-                is NavigateToStudy -> navigator.navigateTo(StudyRoute(effect.deckId))
+                is NavigateToStudy -> navigator.navigateTo(
+                    StudyRoute(effect.deckId, effect.extraNewCards)
+                )
             }
         }
     }
@@ -34,6 +36,7 @@ fun TodayDestination(navigator: Navigator) {
         state = uiState,
         onCapture = { navigator.navigateTo(CaptureRoute) },
         onStudy = { vm.onIntent(StudyClicked) },
+        onStudyMore = { vm.onIntent(StudyMoreClicked) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
         onLibrary = { navigator.navigateTo(LibraryRoute) },
         onGetNewWords = { navigator.navigateTo(SuggestRoute) },

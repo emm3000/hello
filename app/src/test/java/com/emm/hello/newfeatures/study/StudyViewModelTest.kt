@@ -10,6 +10,8 @@ import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
+import com.emm.domain.study.DEFAULT_DAILY_NEW_CARD_LIMIT
+import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
@@ -381,6 +383,7 @@ class StudyViewModelTest {
         val repo = FakeStudySessionRepo(listOf(studyFlashcard("a")))
         val viewModel = StudyViewModel(
             deckId = "deck-1",
+            extraNewCards = 0,
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
@@ -399,6 +402,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = StudyRoute.ALL_DUE_DECKS,
+            extraNewCards = 0,
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
@@ -408,6 +412,123 @@ class StudyViewModelTest {
         assertThat(repo.sessionTodayAllDecksCalled).isTrue()
         assertThat(repo.sessionTodayCalledWith).isNull()
         assertThat(viewModel.state.value.totalCount).isEqualTo(2)
+    }
+
+    @Test
+    fun `a load that held more than one batch back offers exactly one batch`() = runTest {
+        val viewModel = makeViewModel(
+            cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(0)
+        assertThat(viewModel.state.value.moreNewCards).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+    }
+
+    @Test
+    fun `a load that held a single card back offers exactly that card`() = runTest {
+        val viewModel = makeViewModel(
+            cards = listOf(studyFlashcard("a")),
+            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(0)
+        assertThat(viewModel.state.value.moreNewCards).isEqualTo(1)
+    }
+
+    @Test
+    fun `a load that held nothing back offers no more study`() = runTest {
+        val viewModel = makeViewModel(listOf(studyFlashcard("a"), studyFlashcard("b")))
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(2)
+        assertThat(viewModel.state.value.moreNewCards).isEqualTo(0)
+    }
+
+    @Test
+    fun `study more clicked introduces one extra batch of new cards`() = runTest {
+        val viewModel = makeViewModel(
+            cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+        )
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(0)
+        assertThat(viewModel.state.value.moreNewCards).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+
+        viewModel.onIntent(StudyUiIntent.StudyMoreClicked)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+        assertThat(viewModel.state.value.moreNewCards)
+            .isEqualTo(HELD_BACK_NEW_CARDS - EXTRA_NEW_CARDS_PER_REQUEST)
+        assertThat(viewModel.state.value.currentItem).isNotNull()
+        assertThat(viewModel.state.value.sessionFinished).isFalse()
+    }
+
+    @Test
+    fun `study more clicked resets the tallies of the finished session`() = runTest {
+        val viewModel = makeViewModel(
+            cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT - 1),
+        )
+        advanceUntilIdle()
+        viewModel.onIntent(
+            StudyUiIntent.ReviewAnswered(
+                item = viewModel.state.value.currentItem,
+                reviewGrade = ReviewGrade.AGAIN,
+            )
+        )
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.sessionFinished).isTrue()
+        assertThat(viewModel.state.value.forgotCount).isEqualTo(1)
+
+        viewModel.onIntent(StudyUiIntent.StudyMoreClicked)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.forgotCount).isEqualTo(0)
+        assertThat(viewModel.state.value.knewCount).isEqualTo(0)
+        assertThat(viewModel.state.value.reviewedCount).isEqualTo(0)
+        assertThat(viewModel.state.value.sessionFinished).isFalse()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+    }
+
+    @Test
+    fun `a route carrying an extra batch loads it on the very first session`() = runTest {
+        val viewModel = makeViewModel(
+            cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+            extraNewCards = EXTRA_NEW_CARDS_PER_REQUEST,
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.totalCount).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+        assertThat(viewModel.state.value.currentItem).isNotNull()
+        assertThat(viewModel.state.value.moreNewCards)
+            .isEqualTo(HELD_BACK_NEW_CARDS - EXTRA_NEW_CARDS_PER_REQUEST)
+    }
+
+    @Test
+    fun `retry after a failure keeps the extra batch the route asked for`() = runTest {
+        val repo = RecoveringStudySessionRepo(
+            recoveredFlashcards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+        )
+        val viewModel = StudyViewModel(
+            deckId = "deck-1",
+            extraNewCards = EXTRA_NEW_CARDS_PER_REQUEST,
+            getStudySessionUseCase = useCase(repo, FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT)),
+            scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
+            flashcardReviewRepository = FakeFlashcardReviewRepo(),
+        )
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
+
+        viewModel.onIntent(StudyUiIntent.RetryLoad)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.loadError).isNull()
+        assertThat(viewModel.state.value.totalCount).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
     }
 
     @Test
@@ -427,6 +548,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = "deck-1",
+            extraNewCards = 0,
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
@@ -445,6 +567,7 @@ class StudyViewModelTest {
         )
         val viewModel = StudyViewModel(
             deckId = "deck-1",
+            extraNewCards = 0,
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
@@ -460,25 +583,31 @@ class StudyViewModelTest {
         assertThat(viewModel.state.value.totalCount).isEqualTo(1)
     }
 
-    private fun useCase(sessionRepository: StudySessionRepository): GetStudySessionUseCase =
+    private fun useCase(
+        sessionRepository: StudySessionRepository,
+        statsRepository: StudyStatsRepository = FakeStatsRepo(),
+    ): GetStudySessionUseCase =
         GetStudySessionUseCase(
             studySessionRepository = sessionRepository,
-            studyStatsRepository = FakeStatsRepo(),
+            studyStatsRepository = statsRepository,
             clock = fixedClock,
             zone = ZoneOffset.UTC,
             random = Random(SESSION_SEED),
         )
 
     private fun expectedSession(cards: List<StudyFlashcard>): List<String> = runBlocking {
-        useCase(FakeStudySessionRepo(cards))("deck-1".toDeckId()).map { it.word }
+        useCase(FakeStudySessionRepo(cards))("deck-1".toDeckId()).cards.map { it.word }
     }
 
     private fun makeViewModel(
         cards: List<StudyFlashcard>,
         reviewRepo: FlashcardReviewRepository = FakeFlashcardReviewRepo(),
+        statsRepo: StudyStatsRepository = FakeStatsRepo(),
+        extraNewCards: Int = 0,
     ): StudyViewModel = StudyViewModel(
         deckId = "deck-1",
-        getStudySessionUseCase = useCase(FakeStudySessionRepo(cards)),
+        extraNewCards = extraNewCards,
+        getStudySessionUseCase = useCase(FakeStudySessionRepo(cards), statsRepo),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
         flashcardReviewRepository = reviewRepo,
     )
@@ -553,11 +682,13 @@ class StudyViewModelTest {
         }
     }
 
-    private class FakeStatsRepo : StudyStatsRepository {
+    private class FakeStatsRepo(
+        private val introducedToday: Int = 0,
+    ) : StudyStatsRepository {
         override suspend fun countDistinctCardsStudiedToday(): Int = 0
         override suspend fun countReviewsDue(now: Instant): Int = 0
         override suspend fun countNewCards(): Int = 0
-        override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int = 0
+        override suspend fun countCardsFirstReviewedIn(start: Instant, endExclusive: Instant): Int = introducedToday
         override suspend fun countCardsDueThisWeek(): Int = 0
         override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = 0
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = null
@@ -566,3 +697,4 @@ class StudyViewModelTest {
 }
 
 private const val SESSION_SEED: Int = 42
+private const val HELD_BACK_NEW_CARDS: Int = 12

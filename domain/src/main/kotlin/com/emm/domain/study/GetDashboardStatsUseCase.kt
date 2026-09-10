@@ -8,6 +8,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
+private data class DueTodayCount(
+    val cards: Int,
+    val heldBackNewCards: Int,
+)
+
 class GetDashboardStatsUseCase(
     private val repository: StudyStatsRepository,
     private val clock: Clock,
@@ -18,20 +23,21 @@ class GetDashboardStatsUseCase(
         val now: Instant = clock.now()
 
         val cardsStudiedToday: Int = repository.countDistinctCardsStudiedToday()
-        val cardsDueToday: Int = countCardsDueToday(now)
+        val dueToday: DueTodayCount = countDueToday(now)
         val cardsDueThisWeek: Int = repository.countCardsDueThisWeek()
         val currentStreak: Int = computeStreak(now)
 
         return DashboardStats(
             cardsStudiedToday = cardsStudiedToday,
-            cardsDueToday = cardsDueToday,
+            cardsDueToday = dueToday.cards,
             currentStreak = currentStreak,
             cardsDueThisWeek = cardsDueThisWeek,
-            nextDue = if (cardsDueToday > 0) null else findNextDue(now),
+            nextDue = if (dueToday.cards > 0) null else findNextDue(now),
+            heldBackNewCards = dueToday.heldBackNewCards,
         )
     }
 
-    private suspend fun countCardsDueToday(now: Instant): Int {
+    private suspend fun countDueToday(now: Instant): DueTodayCount {
         val today: DayRange = clock.todayRange(zone)
         val budget = NewCardBudget(
             introducedToday = repository.countCardsFirstReviewedIn(
@@ -39,7 +45,13 @@ class GetDashboardStatsUseCase(
                 endExclusive = today.endExclusive,
             ),
         )
-        return repository.countReviewsDue(now) + budget.allow(repository.countNewCards())
+        val newCards: Int = repository.countNewCards()
+        val admitted: Int = budget.allow(newCards)
+
+        return DueTodayCount(
+            cards = repository.countReviewsDue(now) + admitted,
+            heldBackNewCards = newCards - admitted,
+        )
     }
 
     private suspend fun findNextDue(now: Instant): NextDueBatch? {

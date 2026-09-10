@@ -7,7 +7,7 @@
 | Scope | `Today` flow (session-first home) |
 | Source of Truth | No |
 | Read this when | You need to understand what the home screen shows and what it does not |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-09-10 |
 
 ## Summary
 
@@ -33,17 +33,24 @@ The progress ring is `core/ui/HRing`, shared, not a feature-local file.
 
 - `isLoading` — true until the first `GetDashboardStatsUseCase` result arrives
 - `stats: DashboardStats?` — cards studied today, cards due today, current
-  streak, cards due this week, and `nextDue: NextDueBatch?`. `cardsDueToday`
-  is due reviews plus the new cards still allowed today
-  (`NewCardBudget`, 10 per local calendar day), so it matches the session
-  `GetStudySessionUseCase` will actually build
+  streak, cards due this week, `nextDue: NextDueBatch?`, and
+  `heldBackNewCards`. `cardsDueToday` is due reviews plus the new cards still
+  allowed today (`NewCardBudget`, 10 per local calendar day), so it matches
+  the session `GetStudySessionUseCase` will actually build.
+  `heldBackNewCards` is the other side of that budget: never-reviewed cards
+  that exist and are ready but were not admitted today. Both come from one
+  budget computed once in `GetDashboardStatsUseCase`, so they can never
+  disagree
 
-Seven values are computed from `stats`, not stored:
+Eight values are computed from `stats`, not stored:
 
 - `cardsDueToday`
 - `cardsStudiedToday`
 - `hasSessionReady` — `cardsDueToday > 0`
 - `nextDue` — non-null only when nothing is due today
+- `moreNewCards` — `min(heldBackNewCards, EXTRA_NEW_CARDS_PER_REQUEST)`; the
+  number the "Study N more" CTA promises and the number the session it opens
+  will deliver. `0` while loading and whenever nothing is held back
 - `estimatedSessionMinutes` — `cardsDueToday × 15 s`, rounded up, floor 1 min;
   `0` when nothing is due
 - `ringProgress` — `cardsStudiedToday / (cardsStudiedToday + cardsDueToday)`,
@@ -57,6 +64,10 @@ Seven values are computed from `stats`, not stored:
 - `StudyClicked` — emits `NavigateToStudy(StudyRoute.ALL_DUE_DECKS)`. The CTA
   keys off `stats.cardsDueToday` across every deck, so the session must study
   all of them; `StudyViewModel` resolves the sentinel to the all-decks session.
+- `StudyMoreClicked` — emits
+  `NavigateToStudy(StudyRoute.ALL_DUE_DECKS, EXTRA_NEW_CARDS_PER_REQUEST)`.
+  It is the only way into a session when the daily cap is spent and nothing is
+  due, so the CTA that fires it is what keeps Today from being a dead end.
 
 Capture, Library, Settings and Suggest are not intents: `TodayDestination`
 navigates to `CaptureRoute`, `LibraryRoute`, `SettingsRoute` and
@@ -67,8 +78,10 @@ ViewModel.
 
 `TodayUiEffect`:
 
-- `NavigateToStudy(deckId)` — collected in `TodayDestination`, navigates to
-  `StudyRoute(deckId)`.
+- `NavigateToStudy(deckId, extraNewCards = 0)` — collected in
+  `TodayDestination`, navigates to `StudyRoute(deckId, extraNewCards)`. The
+  extra travels in the route key, so `StudyViewModel` applies it to its very
+  first load instead of making the user press a second button on arrival.
 
 ## Layout
 
@@ -84,7 +97,9 @@ actions while `isLoading`.
   ratio 300:220. The front panel carries the copy bottom-left:
   - Session ready — the `today_word_count` plural ("8 words") in
     `displaySmall`, then `today_estimate` ("about 2 min") in muted.
-  - Nothing due — "Nothing due" in `displaySmall`, then `nextDueCopy`:
+  - Nothing due — "Nothing due" in `displaySmall`, then `nothingDueCopy`.
+    With `moreNewCards > 0` that is the `today_new_waiting` plural
+    ("10 new words are waiting"); otherwise it falls through to `nextDueCopy`:
     "N words later today" / "N words tomorrow" / "N words in D days", or
     "Nothing scheduled yet" when `nextDue` is null. A truly empty library
     lands here too: no separate empty state exists.
@@ -94,6 +109,11 @@ actions while `isLoading`.
 - **Actions, nothing due** — three full-width stacked buttons: `Primary`
   "Get new words" (`AutoAwesome` icon, navigates to `SuggestRoute`), then
   `Secondary` "Add a word" (`onCapture`), then `Text` "Library" (`onLibrary`).
+- **Actions, nothing due but new cards held back** (`moreNewCards > 0`) — a
+  `Primary` `study_more_cta` ("Study N more", `onStudyMore`) is inserted
+  first and "Get new words" drops to `Secondary`, keeping its icon. "Add a
+  word" and "Library" are unchanged. The accent stays on exactly one button,
+  as `.claude/rules/ui-components.md` requires.
 
 There is no metrics section and no FAB on this screen. `docs/DESIGN_BRIEF.md`
 rejects a large metric as the hero, so the count lives on the stack as

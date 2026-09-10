@@ -143,7 +143,7 @@ private fun AppNavigation(
         entryProvider = entryProvider {
             entry<OnboardingRoute> { OnboardingDestination(navigator) }
             entry<TodayRoute> { TodayDestination(navigator) }
-            entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId) }
+            entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId, key.extraNewCards) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
             entry<SuggestRoute> { SuggestDestination(navigator) }
             entry<LibraryRoute> { LibraryDestination(navigator) }

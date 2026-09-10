@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.today
 
 import app.cash.turbine.test
 import com.emm.domain.study.DashboardStats
+import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
@@ -70,6 +71,29 @@ class TodayViewModelTest {
             val effect: TodayUiEffect = awaitItem()
             assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
             assertThat((effect as NavigateToStudy).deckId).isEqualTo(StudyRoute.ALL_DUE_DECKS)
+        }
+    }
+
+    @Test
+    fun `StudyMoreClicked targets the all-due-decks session with one extra batch`() = runTest {
+        val viewModel = makeViewModel()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyMoreClicked)
+            val effect: TodayUiEffect = awaitItem()
+            assertThat(effect).isInstanceOf(NavigateToStudy::class.java)
+            assertThat((effect as NavigateToStudy).deckId).isEqualTo(StudyRoute.ALL_DUE_DECKS)
+            assertThat(effect.extraNewCards).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+        }
+    }
+
+    @Test
+    fun `StudyClicked asks for no extra new cards`() = runTest {
+        val viewModel = makeViewModel()
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyClicked)
+            assertThat((awaitItem() as NavigateToStudy).extraNewCards).isEqualTo(0)
         }
     }
 

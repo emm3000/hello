@@ -46,6 +46,10 @@
     <string name="today_next_due_none">Nothing scheduled yet</string>
     <string name="today_ring_content_description" tools:ignore="PluralsCandidate">Today\'s progress, %1$d percent</string>
     <string name="today_get_new_words">Get new words</string>
+    <plurals name="today_new_waiting">
+        <item quantity="one">%1$d new word is waiting</item>
+        <item quantity="other">%1$d new words are waiting</item>
+    </plurals>
 
     <!-- Decks Screen -->
     <plurals name="cards_count">
@@ -88,6 +92,7 @@
     <!-- Study Empty state -->
     <string name="study_empty_headline">Nothing to review today.</string>
     <string name="study_empty_body">No cards are due. Come back tomorrow to keep the rhythm, or add a new word.</string>
+    <string name="study_empty_body_more">You reached today\'s limit of new cards. Come back tomorrow to keep the rhythm, or keep going now.</string>
     <string name="study_empty_create_card_cta">Add a word</string>
     <string name="study_recall_cta_reveal">Show answer</string>
     <string name="study_prompt_label">What does it mean?</string>
@@ -109,6 +114,7 @@
     <string name="study_done_get_new_words">Get new words</string>
     <string name="study_done_add_word">Add a word</string>
     <string name="study_done_back">Back to Today</string>
+    <string name="study_more_cta">Study %1$d more</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Study reminders</string>

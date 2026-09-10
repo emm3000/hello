@@ -71,4 +71,44 @@ class NewCardBudgetTest {
             NewCardBudget(introducedToday = 0, dailyLimit = -1)
         }
     }
+
+    @Test
+    fun `extending a spent budget allows exactly the extra`() {
+        val budget: NewCardBudget = NewCardBudget(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT)
+            .extendedBy(EXTRA_NEW_CARDS_PER_REQUEST)
+
+        assertEquals(EXTRA_NEW_CARDS_PER_REQUEST, budget.remaining)
+        assertEquals(EXTRA_NEW_CARDS_PER_REQUEST, budget.allow(available = 50))
+    }
+
+    @Test
+    fun `extending an untouched budget still allows exactly the extra`() {
+        val budget: NewCardBudget = NewCardBudget(introducedToday = 0).extendedBy(4)
+
+        assertEquals(4, budget.remaining)
+        assertEquals(4, budget.allow(available = 50))
+    }
+
+    @Test
+    fun `extending an overspent budget allows exactly the extra`() {
+        val budget: NewCardBudget = NewCardBudget(introducedToday = 17).extendedBy(3)
+
+        assertEquals(3, budget.remaining)
+        assertEquals(3, budget.allow(available = 50))
+    }
+
+    @Test
+    fun `extending by nothing allows nothing`() {
+        val budget: NewCardBudget = NewCardBudget(introducedToday = 2).extendedBy(0)
+
+        assertEquals(0, budget.remaining)
+        assertEquals(0, budget.allow(available = 50))
+    }
+
+    @Test
+    fun `a negative extension is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            NewCardBudget(introducedToday = 0).extendedBy(-1)
+        }
+    }
 }

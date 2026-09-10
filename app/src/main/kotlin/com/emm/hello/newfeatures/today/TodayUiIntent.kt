@@ -6,4 +6,6 @@ sealed interface TodayUiIntent : MviIntent
 
 data object StudyClicked : TodayUiIntent
 
+data object StudyMoreClicked : TodayUiIntent
+
 data object ScreenVisible : TodayUiIntent

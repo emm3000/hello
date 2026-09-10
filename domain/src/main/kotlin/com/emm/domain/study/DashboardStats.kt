@@ -6,4 +6,5 @@ data class DashboardStats(
     val currentStreak: Int,
     val cardsDueThisWeek: Int,
     val nextDue: NextDueBatch? = null,
+    val heldBackNewCards: Int = 0,
 )

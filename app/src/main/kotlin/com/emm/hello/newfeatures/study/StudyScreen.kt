@@ -97,6 +97,7 @@ fun StudyScreen(
     onReviewAnswer: (StudySessionItem?, ReviewGrade) -> Unit = { _, _ -> },
     onCreateCard: () -> Unit = {},
     onGetNewWords: () -> Unit = {},
+    onStudyMore: () -> Unit = {},
     onRetryLoad: () -> Unit = {},
     onSpeak: (String, String) -> Unit = { _, _ -> },
     onStopSpeech: () -> Unit = {},
@@ -195,6 +196,7 @@ fun StudyScreen(
                 sessionStage = sessionStage,
                 currentItem = currentItem,
                 cardFace = cardFace,
+                moreNewCards = state.moreNewCards,
                 reviewedCount = state.reviewedCount,
                 knewCount = state.knewCount,
                 forgotCount = state.forgotCount,
@@ -209,6 +211,7 @@ fun StudyScreen(
 
             StudyActionDock(
                 sessionStage = sessionStage,
+                moreNewCards = state.moreNewCards,
                 onRevealAnswer = {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     cardFace = CardFace.Back
@@ -219,6 +222,7 @@ fun StudyScreen(
                 },
                 onCreateCard = onCreateCard,
                 onGetNewWords = onGetNewWords,
+                onStudyMore = onStudyMore,
                 onRetryLoad = onRetryLoad,
                 onExit = onExit,
             )
@@ -240,6 +244,7 @@ private fun StudyCanvas(
     sessionStage: StudyStage,
     currentItem: StudySessionItem?,
     cardFace: CardFace,
+    moreNewCards: Int,
     reviewedCount: Int,
     knewCount: Int,
     forgotCount: Int,
@@ -250,7 +255,7 @@ private fun StudyCanvas(
         when (sessionStage) {
             StudyStage.Loading -> StudyLoadingState()
             StudyStage.Error -> StudyErrorState()
-            StudyStage.Empty -> StudyEmptyState()
+            StudyStage.Empty -> StudyEmptyState(moreNewCards = moreNewCards)
             StudyStage.Done -> StudyDoneState(
                 reviewedCount = reviewedCount,
                 knewCount = knewCount,
@@ -326,10 +331,12 @@ private fun StudyCardStage(
 @Composable
 private fun StudyActionDock(
     sessionStage: StudyStage,
+    moreNewCards: Int,
     onRevealAnswer: () -> Unit,
     onReviewAnswer: (ReviewGrade) -> Unit,
     onCreateCard: () -> Unit,
     onGetNewWords: () -> Unit,
+    onStudyMore: () -> Unit,
     onRetryLoad: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
@@ -359,12 +366,21 @@ private fun StudyActionDock(
             }
 
             StudyStage.Empty -> {
-                HButton(
-                    text = stringResource(R.string.study_empty_create_card_cta),
-                    onClick = onCreateCard,
-                    variant = HButtonVariant.Secondary,
-                    full = true,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (moreNewCards > 0) {
+                        StudyMoreButton(
+                            count = moreNewCards,
+                            onClick = onStudyMore,
+                            variant = HButtonVariant.Primary,
+                        )
+                    }
+                    HButton(
+                        text = stringResource(R.string.study_empty_create_card_cta),
+                        onClick = onCreateCard,
+                        variant = HButtonVariant.Secondary,
+                        full = true,
+                    )
+                }
             }
 
             StudyStage.Recall -> {
@@ -399,6 +415,13 @@ private fun StudyActionDock(
                         variant = HButtonVariant.Primary,
                         full = true,
                     )
+                    if (moreNewCards > 0) {
+                        StudyMoreButton(
+                            count = moreNewCards,
+                            onClick = onStudyMore,
+                            variant = HButtonVariant.Secondary,
+                        )
+                    }
                     HButton(
                         text = stringResource(R.string.study_done_add_word),
                         onClick = onCreateCard,
@@ -418,11 +441,30 @@ private fun StudyActionDock(
 }
 
 @Composable
-private fun StudyEmptyState() {
+private fun StudyMoreButton(
+    count: Int,
+    onClick: () -> Unit,
+    variant: HButtonVariant,
+) {
+    HButton(
+        text = stringResource(R.string.study_more_cta, count),
+        onClick = onClick,
+        variant = variant,
+        full = true,
+    )
+}
+
+@Composable
+private fun StudyEmptyState(moreNewCards: Int) {
+    val bodyRes: Int = if (moreNewCards > 0) {
+        R.string.study_empty_body_more
+    } else {
+        R.string.study_empty_body
+    }
     HEmptyState(
         modifier = Modifier.fillMaxSize(),
         headline = stringResource(R.string.study_empty_headline),
-        body = stringResource(R.string.study_empty_body),
+        body = stringResource(bodyRes),
     )
 }
 

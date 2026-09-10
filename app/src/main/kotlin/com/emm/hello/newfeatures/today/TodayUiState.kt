@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.today
 
 import com.emm.domain.study.DashboardStats
+import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.NextDueBatch
 import com.emm.hello.core.mvi.MviState
 
@@ -23,6 +24,9 @@ data class TodayUiState(
 
     val nextDue: NextDueBatch?
         get() = stats?.nextDue
+
+    val moreNewCards: Int
+        get() = minOf(stats?.heldBackNewCards ?: 0, EXTRA_NEW_CARDS_PER_REQUEST)
 
     val estimatedSessionMinutes: Int
         get() {

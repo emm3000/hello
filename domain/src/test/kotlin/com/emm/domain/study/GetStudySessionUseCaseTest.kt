@@ -28,7 +28,7 @@ class GetStudySessionUseCaseTest {
 
     @Test
     fun `an empty session stays empty`() = runTest {
-        val result: List<StudyFlashcard> = useCase(FakeSessionRepo(emptyList()), FakeStatsRepo())(null)
+        val result: List<StudyFlashcard> = useCase(FakeSessionRepo(emptyList()), FakeStatsRepo())(null).cards
 
         assertTrue(result.isEmpty())
     }
@@ -37,7 +37,7 @@ class GetStudySessionUseCaseTest {
     fun `due reviews always come before never-reviewed cards`() = runTest {
         val sessionRepo = FakeSessionRepo(reviews(4) + newCards(4))
 
-        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null)
+        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null).cards
 
         assertEquals(8, result.size)
         assertEquals(setOf("r0", "r1", "r2", "r3"), result.take(4).map { it.word }.toSet())
@@ -53,7 +53,7 @@ class GetStudySessionUseCaseTest {
             review("r1"),
         )
 
-        val result: List<StudyFlashcard> = useCase(FakeSessionRepo(interleaved), FakeStatsRepo())(null)
+        val result: List<StudyFlashcard> = useCase(FakeSessionRepo(interleaved), FakeStatsRepo())(null).cards
 
         assertEquals(
             listOf(FsrsState.REVIEW, FsrsState.REVIEW, FsrsState.NEW, FsrsState.NEW),
@@ -65,7 +65,7 @@ class GetStudySessionUseCaseTest {
     fun `new cards are capped at the daily limit`() = runTest {
         val sessionRepo = FakeSessionRepo(reviews(3) + newCards(25))
 
-        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null)
+        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null).cards
 
         assertEquals(3 + DEFAULT_DAILY_NEW_CARD_LIMIT, result.size)
         assertEquals(DEFAULT_DAILY_NEW_CARD_LIMIT, result.count { it.review.state == FsrsState.NEW })
@@ -75,7 +75,7 @@ class GetStudySessionUseCaseTest {
     fun `cards already introduced today shrink the new card allowance`() = runTest {
         val sessionRepo = FakeSessionRepo(reviews(3) + newCards(25))
 
-        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 4))(null)
+        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 4))(null).cards
 
         assertEquals(6, result.count { it.review.state == FsrsState.NEW })
         assertEquals(9, result.size)
@@ -85,17 +85,65 @@ class GetStudySessionUseCaseTest {
     fun `a spent daily allowance introduces no new card at all`() = runTest {
         val sessionRepo = FakeSessionRepo(reviews(3) + newCards(25))
 
-        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 10))(null)
+        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 10))(null).cards
 
         assertEquals(3, result.size)
         assertEquals(0, result.count { it.review.state == FsrsState.NEW })
     }
 
     @Test
+    fun `a spent allowance holds back every new card that was due`() = runTest {
+        val sessionRepo = FakeSessionRepo(newCards(15))
+
+        val session: StudySession = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 10))(null)
+
+        assertTrue(session.cards.isEmpty())
+        assertEquals(15, session.heldBackNewCards)
+    }
+
+    @Test
+    fun `an extra allowance introduces exactly the extra new cards and holds back the rest`() = runTest {
+        val sessionRepo = FakeSessionRepo(reviews(3) + newCards(15))
+
+        val session: StudySession = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 10))(
+            deckId = null,
+            extraNewCards = EXTRA_NEW_CARDS_PER_REQUEST,
+        )
+
+        assertEquals(3 + EXTRA_NEW_CARDS_PER_REQUEST, session.cards.size)
+        assertEquals(
+            EXTRA_NEW_CARDS_PER_REQUEST,
+            session.cards.drop(3).count { it.review.state == FsrsState.NEW },
+        )
+        assertEquals(5, session.heldBackNewCards)
+    }
+
+    @Test
+    fun `a fresh day holds nothing back when the new cards fit the allowance`() = runTest {
+        val sessionRepo = FakeSessionRepo(newCards(4))
+
+        val session: StudySession = useCase(sessionRepo, FakeStatsRepo())(null)
+
+        assertEquals(4, session.cards.size)
+        assertEquals(0, session.heldBackNewCards)
+    }
+
+    @Test
+    fun `due reviews are never held back by a spent allowance`() = runTest {
+        val sessionRepo = FakeSessionRepo(reviews(30) + newCards(3))
+
+        val session: StudySession = useCase(sessionRepo, FakeStatsRepo(firstReviewedInRange = 10))(null)
+
+        assertEquals(30, session.cards.size)
+        assertTrue(session.cards.all { it.review.state == FsrsState.REVIEW })
+        assertEquals(3, session.heldBackNewCards)
+    }
+
+    @Test
     fun `fewer new cards than the allowance introduces all of them`() = runTest {
         val sessionRepo = FakeSessionRepo(reviews(3) + newCards(2))
 
-        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null)
+        val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null).cards
 
         assertEquals(5, result.size)
         assertEquals(2, result.count { it.review.state == FsrsState.NEW })
@@ -115,8 +163,8 @@ class GetStudySessionUseCaseTest {
     fun `another seed reorders within each group but keeps the group boundary`() = runTest {
         val cards: List<StudyFlashcard> = reviews(4) + newCards(4)
 
-        val first: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null)
-        val second: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(7))(null)
+        val first: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null).cards
+        val second: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(7))(null).cards
 
         assertNotEquals(first.map { it.word }, second.map { it.word })
         assertEquals(first.take(4).map { it.word }.toSet(), second.take(4).map { it.word }.toSet())
@@ -127,8 +175,8 @@ class GetStudySessionUseCaseTest {
     fun `the same seed always produces the same session`() = runTest {
         val cards: List<StudyFlashcard> = reviews(4) + newCards(4)
 
-        val first: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null)
-        val second: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null)
+        val first: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null).cards
+        val second: List<StudyFlashcard> = useCase(FakeSessionRepo(cards), FakeStatsRepo(), Random(42))(null).cards
 
         assertEquals(first.map { it.word }, second.map { it.word })
     }

@@ -1,6 +1,7 @@
 package com.emm.domain.study
 
 const val DEFAULT_DAILY_NEW_CARD_LIMIT: Int = 10
+const val EXTRA_NEW_CARDS_PER_REQUEST: Int = 10
 
 data class NewCardBudget(
     val introducedToday: Int,
@@ -15,4 +16,9 @@ data class NewCardBudget(
     val remaining: Int = (dailyLimit - introducedToday).coerceAtLeast(0)
 
     fun allow(available: Int): Int = minOf(available.coerceAtLeast(0), remaining)
+
+    fun extendedBy(extra: Int): NewCardBudget {
+        require(extra >= 0) { "extra must be non-negative, was $extra." }
+        return copy(dailyLimit = introducedToday + extra)
+    }
 }

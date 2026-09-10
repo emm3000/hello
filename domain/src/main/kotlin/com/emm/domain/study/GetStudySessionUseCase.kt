@@ -16,14 +16,23 @@ class GetStudySessionUseCase(
     private val random: Random = Random.Default,
 ) {
 
-    suspend operator fun invoke(deckId: DeckId?): List<StudyFlashcard> {
-        val session: List<StudyFlashcard> = fetchSession(deckId)
+    suspend operator fun invoke(deckId: DeckId?, extraNewCards: Int = 0): StudySession {
+        val dueCards: List<StudyFlashcard> = fetchSession(deckId)
         val (newCards: List<StudyFlashcard>, reviews: List<StudyFlashcard>) =
-            session.partition { it.review.state == FsrsState.NEW }
+            dueCards.partition { it.review.state == FsrsState.NEW }
 
+        val budget: NewCardBudget = budgetFor(extraNewCards)
+        val introduced: Int = budget.allow(newCards.size)
+
+        return StudySession(
+            cards = reviews.shuffled(random) + newCards.shuffled(random).take(introduced),
+            heldBackNewCards = newCards.size - introduced,
+        )
+    }
+
+    private suspend fun budgetFor(extraNewCards: Int): NewCardBudget {
         val budget = NewCardBudget(introducedToday = countIntroducedToday())
-
-        return reviews.shuffled(random) + newCards.shuffled(random).take(budget.allow(newCards.size))
+        return if (extraNewCards > 0) budget.extendedBy(extraNewCards) else budget
     }
 
     private suspend fun fetchSession(deckId: DeckId?): List<StudyFlashcard> = when (deckId) {
