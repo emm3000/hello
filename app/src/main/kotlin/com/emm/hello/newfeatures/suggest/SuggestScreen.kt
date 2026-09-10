@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import com.emm.hello.core.theme.cardPeriwinkle
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.inkMuted
 import com.emm.hello.core.theme.schibsted
+import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HButton
 import com.emm.hello.core.ui.HButtonVariant
 import com.emm.hello.core.ui.HChip
@@ -47,18 +49,23 @@ fun SuggestScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 24.dp),
+                .navigationBarsPadding(),
         ) {
             HTopBar(onBack = { onIntent(SuggestUiIntent.BackClicked) })
 
-            when {
-                state.isLoading -> SuggestLoadingState(modifier = Modifier.weight(1f))
-                state.isOffline -> SuggestOfflineState(onIntent = onIntent, modifier = Modifier.weight(1f))
-                state.loadFailed -> SuggestErrorState(onIntent = onIntent, modifier = Modifier.weight(1f))
-                state.words.isEmpty() -> SuggestEmptyState(onIntent = onIntent, modifier = Modifier.weight(1f))
-                else -> SuggestLoadedContent(state = state, onIntent = onIntent, modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = MaterialTheme.spacing.screenGutter)
+                    .padding(bottom = 24.dp),
+            ) {
+                when {
+                    state.isLoading -> SuggestLoadingState(modifier = Modifier.weight(1f))
+                    state.isOffline -> SuggestOfflineState(onIntent = onIntent, modifier = Modifier.weight(1f))
+                    state.loadFailed -> SuggestErrorState(onIntent = onIntent, modifier = Modifier.weight(1f))
+                    state.words.isEmpty() -> SuggestEmptyState(onIntent = onIntent, modifier = Modifier.weight(1f))
+                    else -> SuggestLoadedContent(state = state, onIntent = onIntent, modifier = Modifier.weight(1f))
+                }
             }
         }
     }
