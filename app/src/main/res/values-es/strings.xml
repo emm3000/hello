@@ -103,6 +103,8 @@
     <string name="study_error_retry">Reintentar</string>
     <string name="stop_speech_desc">Detener pronunciación</string>
     <string name="speak_desc">Reproducir pronunciación</string>
+    <string name="stop_example_speech_desc">Detener ejemplo</string>
+    <string name="speak_example_desc">Reproducir ejemplo</string>
     <string name="study_grade_forgot">Olvidé</string>
     <string name="study_grade_knew">La sabía</string>
     <string name="study_done_title">Listo por hoy.</string>

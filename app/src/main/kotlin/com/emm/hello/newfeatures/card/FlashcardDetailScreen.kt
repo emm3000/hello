@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.card
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,6 +34,7 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
+import com.emm.hello.core.audio.AudioState
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.bricolage
 import com.emm.hello.core.theme.cardHueFor
@@ -49,14 +51,21 @@ import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HMenuItem
+import com.emm.hello.core.ui.HSpeakerButton
 import com.emm.hello.core.ui.HTopBar
 import com.emm.hello.core.ui.underlineFirstMatch
+
+private const val WORD_UTTERANCE_ID = "card_word"
+private const val EXAMPLE_UTTERANCE_ID = "card_example"
 
 @Composable
 fun FlashcardDetailScreen(
     state: FlashcardDetailUiState,
     onIntent: (FlashcardDetailUiIntent) -> Unit,
     modifier: Modifier = Modifier,
+    onSpeak: (String, String) -> Unit = { _, _ -> },
+    onStopSpeech: () -> Unit = {},
+    audioState: AudioState = AudioState(),
 ) {
     val hue: Color = cardHueFor(state.flashcard.id.value)
 
@@ -85,6 +94,9 @@ fun FlashcardDetailScreen(
                 } else {
                     CardBody(
                         flashcard = state.flashcard,
+                        onSpeak = onSpeak,
+                        onStopSpeech = onStopSpeech,
+                        audioState = audioState,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -142,6 +154,9 @@ private fun DetailActions(onIntent: (FlashcardDetailUiIntent) -> Unit) {
 @Composable
 private fun CardBody(
     flashcard: Flashcard,
+    onSpeak: (String, String) -> Unit,
+    onStopSpeech: () -> Unit,
+    audioState: AudioState,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -151,7 +166,12 @@ private fun CardBody(
             .padding(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        WordBlock(flashcard = flashcard)
+        WordBlock(
+            flashcard = flashcard,
+            onSpeak = onSpeak,
+            onStopSpeech = onStopSpeech,
+            audioState = audioState,
+        )
 
         if (flashcard.translation.isNotBlank()) {
             Text(
@@ -165,7 +185,13 @@ private fun CardBody(
             )
         }
 
-        ExampleBlock(example = flashcard.examples.firstOrNull(), word = flashcard.word)
+        ExampleBlock(
+            example = flashcard.examples.firstOrNull(),
+            word = flashcard.word,
+            onSpeak = onSpeak,
+            onStopSpeech = onStopSpeech,
+            audioState = audioState,
+        )
 
         ReferenceLine(flashcard = flashcard)
 
@@ -176,42 +202,87 @@ private fun CardBody(
 }
 
 @Composable
-private fun WordBlock(flashcard: Flashcard) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = flashcard.word,
-            fontFamily = bricolage,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 40.sp,
-            lineHeight = 42.sp,
-            letterSpacing = (-0.02).em,
-            color = ink,
-        )
-
-        if (flashcard.phonetic.isNotBlank()) {
+private fun WordBlock(
+    flashcard: Flashcard,
+    onSpeak: (String, String) -> Unit,
+    onStopSpeech: () -> Unit,
+    audioState: AudioState,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Text(
-                text = flashcard.phonetic,
-                fontFamily = schibsted,
-                fontSize = 15.sp,
-                color = inkMuted,
+                text = flashcard.word,
+                fontFamily = bricolage,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 40.sp,
+                lineHeight = 42.sp,
+                letterSpacing = (-0.02).em,
+                color = ink,
             )
+
+            if (flashcard.phonetic.isNotBlank()) {
+                Text(
+                    text = flashcard.phonetic,
+                    fontFamily = schibsted,
+                    fontSize = 15.sp,
+                    color = inkMuted,
+                )
+            }
         }
+
+        HSpeakerButton(
+            isSpeaking = audioState.isSpeaking(WORD_UTTERANCE_ID),
+            onSpeak = { onSpeak(flashcard.word, WORD_UTTERANCE_ID) },
+            onStop = onStopSpeech,
+            enabled = audioState.isTtsReady && flashcard.word.isNotBlank(),
+        )
     }
 }
 
 @Composable
-private fun ExampleBlock(example: Example?, word: String) {
+private fun ExampleBlock(
+    example: Example?,
+    word: String,
+    onSpeak: (String, String) -> Unit,
+    onStopSpeech: () -> Unit,
+    audioState: AudioState,
+) {
     if (example == null || example.text.isBlank()) return
 
+    val isSpeakingExample: Boolean = audioState.isSpeaking(EXAMPLE_UTTERANCE_ID)
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = underlineFirstMatch(example.text, word),
-            fontFamily = schibsted,
-            fontWeight = FontWeight.Medium,
-            fontSize = 20.sp,
-            lineHeight = 28.sp,
-            color = ink,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = underlineFirstMatch(example.text, word),
+                modifier = Modifier.weight(1f),
+                fontFamily = schibsted,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+                lineHeight = 28.sp,
+                color = ink,
+            )
+
+            HSpeakerButton(
+                isSpeaking = isSpeakingExample,
+                onSpeak = { onSpeak(example.text, EXAMPLE_UTTERANCE_ID) },
+                onStop = onStopSpeech,
+                contentDescription = stringResource(
+                    if (isSpeakingExample) {
+                        R.string.stop_example_speech_desc
+                    } else {
+                        R.string.speak_example_desc
+                    },
+                ),
+                tint = inkSoft,
+                iconSize = 20.dp,
+                buttonSize = 40.dp,
+                enabled = audioState.isTtsReady,
+            )
+        }
 
         if (example.translation.isNotBlank()) {
             Text(

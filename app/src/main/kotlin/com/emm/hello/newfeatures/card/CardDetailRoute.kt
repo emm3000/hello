@@ -4,15 +4,19 @@ import android.content.Context
 import android.content.res.Resources
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.hello.core.audio.AudioState
+import com.emm.hello.core.audio.TextToSpeechManager
 import com.emm.hello.navigation.Navigator
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @Serializable
@@ -27,6 +31,14 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
     val uiState by vm.state.collectAsStateWithLifecycle()
     val context: Context = LocalContext.current
     val resources: Resources = LocalResources.current
+    val textToSpeech: TextToSpeechManager = koinInject()
+    val speakingUtteranceId: String? by textToSpeech.speakingUtteranceId.collectAsStateWithLifecycle()
+    val isTtsReady: Boolean by textToSpeech.isReady.collectAsStateWithLifecycle()
+
+    DisposableEffect(textToSpeech) {
+        textToSpeech.init()
+        onDispose { textToSpeech.stop() }
+    }
 
     LaunchedEffect(Unit) {
         vm.onIntent(FlashcardDetailUiIntent.Load)
@@ -54,5 +66,8 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
     FlashcardDetailScreen(
         state = uiState,
         onIntent = vm::onIntent,
+        onSpeak = textToSpeech::speak,
+        onStopSpeech = textToSpeech::stop,
+        audioState = AudioState(speakingUtteranceId = speakingUtteranceId, isTtsReady = isTtsReady),
     )
 }
