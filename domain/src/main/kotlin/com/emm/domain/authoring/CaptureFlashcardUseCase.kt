@@ -40,6 +40,7 @@ class CaptureFlashcardUseCase(
             meaning = "",
             translation = translation.trim(),
             phonetic = "",
+            capturedInput = expression.value,
             enrichmentStatus = EnrichmentStatus.PENDING,
         )
     }

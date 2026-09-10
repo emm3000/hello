@@ -106,6 +106,7 @@ class ImportBackupDataSource(
                 confusableWithJson = card.confusableWithJson,
                 clozeSentence = card.clozeSentence,
                 sourceContext = card.sourceContext,
+                capturedInput = null,
                 warningsJson = card.warningsJson,
                 studyCardsJson = card.studyCardsJson,
                 qualityChecksJson = card.qualityChecksJson,

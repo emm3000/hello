@@ -27,6 +27,7 @@ data class CreateFlashcardInput(
     val confusableWith: List<String> = emptyList(),
     val clozeSentence: String = "",
     val sourceContext: String = "",
+    val capturedInput: String = "",
     val warnings: List<String> = emptyList(),
     val studyCards: List<GeneratedStudyCard> = emptyList(),
     val qualityChecks: List<GeneratedNoteQualityCheck> = emptyList(),

@@ -27,6 +27,7 @@ data class Flashcard(
     val confusableWith: List<String> = emptyList(),
     val clozeSentence: String = "",
     val sourceContext: String = "",
+    val capturedInput: String = "",
     val warnings: List<String> = emptyList(),
     val enrichmentStatus: EnrichmentStatus = EnrichmentStatus.ENRICHED,
     val promptVersion: Int = 0,
@@ -58,6 +59,7 @@ data class Flashcard(
             confusableWith: List<String> = emptyList(),
             clozeSentence: String = "",
             sourceContext: String = "",
+            capturedInput: String = "",
             warnings: List<String> = emptyList(),
         ): Flashcard = Flashcard(
             id = id,
@@ -82,6 +84,7 @@ data class Flashcard(
             confusableWith = confusableWith,
             clozeSentence = clozeSentence,
             sourceContext = sourceContext,
+            capturedInput = capturedInput,
             warnings = warnings,
         )
 

@@ -179,6 +179,7 @@
     <string name="deck_created_message">Deck created</string>
     <string name="deck_updated_message">Deck updated</string>
     <string name="card_updated_message">Card updated</string>
+    <string name="card_detail_captured_input">You typed: %1$s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_headline">Save the words you meet.</string>

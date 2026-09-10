@@ -2,7 +2,10 @@ package com.emm.data.flashcard
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.emm.data.HelloDb
+import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.ids.FlashcardId
+import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -48,6 +51,34 @@ class DefaultFlashcardRepositoryUpdateTest {
         assertEquals("", updated.meaning)
     }
 
+    @Test
+    fun `update leaves the captured input untouched`() = runTest {
+        val deckId: String = insertDeck()
+        val flashcardId: FlashcardId = subject.create(
+            CreateFlashcardInput(
+                deckId = deckId.toDeckId(),
+                word = "lantenr",
+                meaning = "",
+                translation = "",
+                phonetic = "",
+                capturedInput = "lantenr",
+            ),
+        )
+
+        subject.update(
+            UpdateFlashcardInput(
+                flashcardId = flashcardId,
+                word = "lantern",
+                meaning = "a portable light",
+                translation = "farol",
+            ),
+        )
+
+        val updated: FlashcardEntity = db.flashcardQueries.findById(flashcardId.value).executeAsOne()
+        assertEquals("lantern", updated.word)
+        assertEquals("lantenr", updated.capturedInput)
+    }
+
     private fun insertDeck(): String {
         val id = UUID.randomUUID().toString()
         db.deckQueries.insert(
@@ -85,6 +116,7 @@ class DefaultFlashcardRepositoryUpdateTest {
             confusableWithJson = null,
             clozeSentence = null,
             sourceContext = null,
+            capturedInput = null,
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,

@@ -67,6 +67,7 @@ class DefaultFlashcardRepository(
                 confusableWithJson = artifacts.confusableWithJson,
                 clozeSentence = input.clozeSentence,
                 sourceContext = input.sourceContext,
+                capturedInput = input.capturedInput,
                 warningsJson = artifacts.warningsJson,
                 studyCardsJson = artifacts.studyCardsJson,
                 qualityChecksJson = artifacts.qualityChecksJson,

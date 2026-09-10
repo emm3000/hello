@@ -87,6 +87,19 @@ class CaptureFlashcardUseCaseTest {
     }
 
     @Test
+    fun `invoke keeps the typed word as the captured input`() = runTest {
+        val repository = RecordingFlashcardRepository()
+        val useCase = CaptureFlashcardUseCase(
+            repository = repository,
+            duplicateRepository = ExpressionDuplicateRepository(exists = false),
+        )
+
+        useCase(deckId = "deck-1".toDeckId(), word = "borrow")
+
+        assertEquals("borrow", repository.requireLastInput().capturedInput)
+    }
+
+    @Test
     fun `invoke rejects a blank word`() = runTest {
         val repository = RecordingFlashcardRepository()
         val useCase = CaptureFlashcardUseCase(

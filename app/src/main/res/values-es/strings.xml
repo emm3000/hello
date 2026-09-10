@@ -183,6 +183,7 @@
     <string name="deck_created_message">Mazo creado</string>
     <string name="deck_updated_message">Mazo actualizado</string>
     <string name="card_updated_message">Tarjeta actualizada</string>
+    <string name="card_detail_captured_input">Escribiste: %1$s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_headline">Guarda las palabras que encuentres.</string>

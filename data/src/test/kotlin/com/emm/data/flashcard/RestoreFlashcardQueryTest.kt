@@ -94,6 +94,7 @@ class RestoreFlashcardQueryTest {
             confusableWithJson = null,
             clozeSentence = null,
             sourceContext = null,
+            capturedInput = null,
             warningsJson = null,
             studyCardsJson = null,
             qualityChecksJson = null,

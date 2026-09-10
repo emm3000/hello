@@ -33,6 +33,7 @@ CREATE TABLE Flashcard (
     enrichmentFailureReason TEXT,
     promptVersion INTEGER NOT NULL DEFAULT 0,
     enrichmentFailureCode TEXT,
+    capturedInput TEXT,
 
     PRIMARY KEY (id),
     FOREIGN KEY (deckId) REFERENCES Deck(id) ON DELETE CASCADE
@@ -72,6 +73,7 @@ INSERT OR REPLACE INTO Flashcard (
     confusableWithJson,
     clozeSentence,
     sourceContext,
+    capturedInput,
     warningsJson,
     studyCardsJson,
     qualityChecksJson,
@@ -79,7 +81,7 @@ INSERT OR REPLACE INTO Flashcard (
     updatedAt,
     deletedAt,
     enrichmentStatus
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllFlashcards:
 DELETE FROM Flashcard;

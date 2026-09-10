@@ -169,6 +169,8 @@ private fun CardBody(
 
         ReferenceLine(flashcard = flashcard)
 
+        CapturedInputLine(flashcard = flashcard)
+
         StatusLine(status = flashcard.enrichmentStatus)
     }
 }
@@ -233,6 +235,21 @@ private fun ReferenceLine(flashcard: Flashcard) {
 
     Text(
         text = reference,
+        fontFamily = schibsted,
+        fontSize = 12.sp,
+        lineHeight = 19.sp,
+        color = inkMuted,
+    )
+}
+
+@Composable
+private fun CapturedInputLine(flashcard: Flashcard) {
+    val capturedInput: String = flashcard.capturedInput
+
+    if (capturedInput.isBlank() || capturedInput.equals(flashcard.word, ignoreCase = true)) return
+
+    Text(
+        text = stringResource(R.string.card_detail_captured_input, capturedInput),
         fontFamily = schibsted,
         fontSize = 12.sp,
         lineHeight = 19.sp,
