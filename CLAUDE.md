@@ -55,6 +55,18 @@ How work is orchestrated in this repo. Loaded every session, applies to every ch
 
 Every change is a **work unit**: a scope, a falsifier and a topology, all three declared *before* any writer runs.
 
+### Session shape
+
+**Open.** Recall memory, then `git log --oneline origin/main..main` and `git status --short`. State where the last session stopped before proposing anything.
+
+**Loop.** One work unit at a time under rules 1–8. Roles do not move between units:
+
+- This thread decides, writes the spec, verifies the artifact, runs git. It never writes non-trivial code.
+- A writer on **opus** receives the full spec and returns `git status --short` as proof of work.
+- An explorer, a device check or a mechanical task runs on **sonnet** and returns text.
+
+**Close.** Gate green, conventional commit, no AI trailer. Push only when the owner says so. Write the session to memory with a resume list before reporting done.
+
 ### 1. Declare the falsifier before delegating
 
 Write down what would prove the unit wrong. If you cannot name it, you do not understand the unit yet.
@@ -74,12 +86,14 @@ A visual falsifier has a failure mode of its own: the measurement. `adb shell in
 
 ### 2. Pick the cheapest actor whose output can be verified
 
-| Work | Actor |
-|---|---|
-| Decisions, verification, git | This thread. Never delegated. |
-| 2+ files with the decisions already made | One writer, cheaper model, full spec in the prompt |
-| Understanding spread across 4+ files | One read-only explorer that returns a map, not file dumps |
-| Mechanical substitution | `sd` and `rg`. No model at all. |
+| Work | Actor | Model |
+|---|---|---|
+| Decisions, verification, git | This thread. Never delegated. | — |
+| 2+ files with the decisions already made | One writer, full spec in the prompt | opus |
+| Understanding spread across 4+ files | One read-only explorer that returns a map, not file dumps | sonnet |
+| Mechanical substitution | `sd` and `rg`. No model at all. | — |
+| Device or visual check | One agent that drives `adb` and returns text. Screenshots never enter this thread. | sonnet |
+| UI change ready to verify | Ask once, one line: "¿Instalo en medium_phone?". Then `installDebug` in the background. | — |
 
 "No model" is a first-class answer. Where a deterministic tool applies, it beats a probabilistic one on both cost and correctness.
 
@@ -108,6 +122,27 @@ It is waste on constants, renames and moves, where the falsifier is already dete
 `EnterWorktree` cuts from `origin/main`. Local `main` here usually carries unpushed commits, so the worktree silently starts behind — and the gap surfaces as something that looks unrelated: an emulator refusing to open the database (`Can't downgrade database from version N to N-1`) because a newer migration is missing, or a rebase conflicting where nothing should.
 
 Run `git log --oneline origin/main..main` before the unit starts. If local `main` is ahead, rebase onto it.
+
+### 7. A fix that adds a mechanism is a patch. Two patches on one defect is a redesign.
+
+A fix removes a mechanism or adds one. Removing one (a guard, a flag, a counter, a branch) means the shape was wrong and is now less wrong. Adding one means the shape is being defended. One added mechanism is acceptable. The second one on the same defect class is the signal: the invariant is not represented in the code, only patrolled around it.
+
+At that point stop patching. Write the invariant in one sentence. Redesign so that one owner writes every transition and the invariant holds by construction. Then delegate once, with the code in the spec, not a description of it.
+
+This applies to any unit, not only concurrency: validation, caching, navigation state, retry policy. The 2026-09-10 refresher took three patches (a synchronous flag, a version counter, a drain order) before becoming a single-consumer actor with no guards at all.
+
+### 8. A finding is a claim. It gets a falsifier before it gets a fix.
+
+Every finding — from a judge, a reviewer, a linter, a teammate — carries a label the author chose. The label is not the priority. Two questions decide the priority:
+
+| Question | Answer that makes it work | Answer that makes it info |
+|---|---|---|
+| Can a user reach it? | A concrete path, or a test that fails | A window only a thread scheduler can hit |
+| Is the proof verifiable now? | Reproduced, or checked against the artifact (the jar, the schema, the diff) | Reasoned from the finding's own text |
+
+Verify with the cheapest deterministic tool before scheduling work. A claim about a dependency is checked against the dependency in the Gradle cache, not against the claim. When two reviewers disagree on severity, the table decides, not the louder label.
+
+Ownership follows: technical shape is this thread's decision, stated and executed. The owner is asked at product forks only. "Should I run another round?" is not a product fork.
 
 ## Reading order
 
