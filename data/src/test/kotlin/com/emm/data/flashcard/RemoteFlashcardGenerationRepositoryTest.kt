@@ -9,6 +9,7 @@ import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.telemetry.GenerationTelemetry
 import com.emm.domain.validation.IssueCode
@@ -161,7 +162,7 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     @Test
-    fun `generateLearningNote records the remaining credits from the reply meta`() = runTest {
+    fun `generateLearningNote records the balance and the reset from the reply meta`() = runTest {
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = SUCCESS_BODY))
         val credits = RecordingGenerationCreditsRepository()
         val repository = repository(transport, credits = credits)
@@ -170,7 +171,23 @@ class RemoteFlashcardGenerationRepositoryTest {
             FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
         )
 
-        assertEquals(listOf(4), credits.recorded)
+        assertEquals(listOf(GenerationCredits(remaining = 4, resetAt = RESET_AT)), credits.recorded)
+    }
+
+    @Test
+    fun `generateLearningNote records the exhausted balance carried by a payment required reply`() = runTest {
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 402, body = CREDITS_EXHAUSTED_BODY))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        val error: Throwable? = runCatching {
+            repository.generateLearningNote(
+                FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error is GenerationCreditsExhaustedException)
+        assertEquals(listOf(GenerationCredits(remaining = 0, resetAt = RESET_AT)), credits.recorded)
     }
 
     @Test
@@ -183,7 +200,23 @@ class RemoteFlashcardGenerationRepositoryTest {
             FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
         )
 
-        assertEquals(emptyList<Int>(), credits.recorded)
+        assertEquals(emptyList<GenerationCredits>(), credits.recorded)
+    }
+
+    @Test
+    fun `generateLearningNote records nothing when an unauthorized reply carries no meta`() = runTest {
+        val body = "{\"success\":false,\"error\":{\"code\":\"app_check_rejected\"}}"
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 401, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        runCatching {
+            repository.generateLearningNote(
+                FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+            )
+        }
+
+        assertEquals(emptyList<GenerationCredits>(), credits.recorded)
     }
 
     private fun repository(
@@ -203,6 +236,21 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     private companion object {
+        val RESET_AT: Instant = Instant.parse("2026-09-11T00:00:00Z")
+
+        val CREDITS_EXHAUSTED_BODY: String = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "code": "credits_exhausted",
+                "message": "Te quedaste sin generaciones por hoy.",
+                "reset_at": "2026-09-11T00:00:00Z"
+              },
+              "meta": { "credits_remaining": 0, "reset_at": "2026-09-11T00:00:00Z" }
+            }
+        """.trimIndent()
+
         val NOTE_DATA: String = """
             {
                 "note_id": "note-1",
@@ -266,7 +314,8 @@ class RemoteFlashcardGenerationRepositoryTest {
                 "model": "gemini-3.1-flash-lite",
                 "prompt_version": 2,
                 "schema_version": 1,
-                "credits_remaining": 4
+                "credits_remaining": 4,
+                "reset_at": "2026-09-11T00:00:00Z"
               }
             }
         """.trimIndent()
@@ -320,12 +369,12 @@ private class FakeAppCheckTokenProvider(private val appCheckToken: String) : App
 
 private class RecordingGenerationCreditsRepository : GenerationCreditsRepository {
 
-    val recorded: MutableList<Int> = mutableListOf()
+    val recorded: MutableList<GenerationCredits> = mutableListOf()
 
     override fun observe(): Flow<GenerationCredits?> = flowOf(null)
 
-    override fun record(remaining: Int, observedAt: Instant) {
-        recorded += remaining
+    override suspend fun record(credits: GenerationCredits) {
+        recorded += credits
     }
 }
 

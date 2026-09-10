@@ -17,6 +17,7 @@ import com.emm.domain.reminder.StudyReminderScheduler
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
+import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
 import com.emm.hello.core.auth.GoogleSignInLauncher
@@ -41,6 +42,7 @@ import org.junit.Test
 
 private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
 private val testBuildInfo = BuildInfo(versionName = "1.0.0", versionCode = 142, commit = "abc1234")
+private val testNow: Instant = Instant.parse("2026-09-10T17:42:00Z")
 
 class SettingsViewModelTest {
 
@@ -74,6 +76,7 @@ class SettingsViewModelTest {
         accountRepository: AccountRepository = FakeAccountRepository(),
         googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
         generationCredits: GenerationCreditsRepository = FakeGenerationCreditsRepository(),
+        clock: Clock = Clock { testNow },
         buildInfo: BuildInfo = testBuildInfo,
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
@@ -87,6 +90,7 @@ class SettingsViewModelTest {
         googleSignInLauncher,
         GOOGLE_SERVER_CLIENT_ID,
         generationCredits,
+        clock,
         buildInfo,
     )
 
@@ -309,6 +313,7 @@ class SettingsViewModelTest {
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
             FakeGenerationCreditsRepository(),
+            Clock { testNow },
             testBuildInfo,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
@@ -396,6 +401,7 @@ class SettingsViewModelTest {
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
             FakeGenerationCreditsRepository(),
+            Clock { testNow },
             testBuildInfo,
         )
 
@@ -569,12 +575,22 @@ class SettingsViewModelTest {
 
     @Test
     fun `a recorded generation credits reading reaches the state`() = runTest {
-        val credits = GenerationCredits(remaining = 12, observedAt = Instant.parse("2026-09-10T17:42:00Z"))
+        val credits = GenerationCredits(remaining = 12, resetAt = Instant.parse("2026-09-11T00:00:00Z"))
         val viewModel = buildViewModel(generationCredits = FakeGenerationCreditsRepository(credits))
 
         runCurrent()
 
         assertThat(viewModel.state.value.generationCredits).isEqualTo(credits)
+    }
+
+    @Test
+    fun `a reading whose reset has already passed leaves the balance unknown`() = runTest {
+        val credits = GenerationCredits(remaining = 12, resetAt = Instant.parse("2026-09-10T00:00:00Z"))
+        val viewModel = buildViewModel(generationCredits = FakeGenerationCreditsRepository(credits))
+
+        runCurrent()
+
+        assertThat(viewModel.state.value.generationCredits).isNull()
     }
 
     @Test
@@ -709,8 +725,8 @@ private class FakeGenerationCreditsRepository(
 
     override fun observe(): Flow<GenerationCredits?> = stored
 
-    override fun record(remaining: Int, observedAt: Instant) {
-        stored.value = GenerationCredits(remaining = remaining, observedAt = observedAt)
+    override suspend fun record(credits: GenerationCredits) {
+        stored.value = credits
     }
 }
 

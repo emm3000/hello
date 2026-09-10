@@ -6,6 +6,7 @@ import com.emm.data.remote.FunctionsTransport
 import com.emm.data.remote.SessionInitializer
 import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
@@ -60,12 +61,17 @@ class RemoteWordSuggestionRepositoryTest {
     }
 
     @Test
-    fun `suggest records the remaining credits from the reply meta`() = runTest {
+    fun `suggest records the balance and the reset from the reply meta`() = runTest {
         val body = """
             {
               "situation": "Ordering food at a busy restaurant",
               "words": [{ "word": "the check", "translation": "la cuenta" }],
-              "meta": { "cached": false, "provider": "gemini", "credits_remaining": 17 }
+              "meta": {
+                "cached": false,
+                "provider": "gemini",
+                "credits_remaining": 17,
+                "reset_at": "2026-09-11T00:00:00Z"
+              }
             }
         """.trimIndent()
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
@@ -74,7 +80,31 @@ class RemoteWordSuggestionRepositoryTest {
 
         repository.suggest(listOf("hello"))
 
-        assertEquals(listOf(17), credits.recorded)
+        assertEquals(listOf(GenerationCredits(remaining = 17, resetAt = RESET_AT)), credits.recorded)
+    }
+
+    @Test
+    fun `suggest records the exhausted balance carried by a payment required reply`() = runTest {
+        val body = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "code": "credits_exhausted",
+                "message": "Te quedaste sin generaciones por hoy.",
+                "reset_at": "2026-09-11T00:00:00Z"
+              },
+              "meta": { "credits_remaining": 0, "reset_at": "2026-09-11T00:00:00Z" }
+            }
+        """.trimIndent()
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 402, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        val error: Throwable? = runCatching { repository.suggest(listOf("hello")) }.exceptionOrNull()
+
+        assertTrue(error is GenerationCreditsExhaustedException)
+        assertEquals(listOf(GenerationCredits(remaining = 0, resetAt = RESET_AT)), credits.recorded)
     }
 
     @Test
@@ -92,7 +122,7 @@ class RemoteWordSuggestionRepositoryTest {
 
         repository.suggest(listOf("hello"))
 
-        assertEquals(emptyList<Int>(), credits.recorded)
+        assertEquals(emptyList<GenerationCredits>(), credits.recorded)
     }
 
     @Test
@@ -104,7 +134,7 @@ class RemoteWordSuggestionRepositoryTest {
 
         runCatching { repository.suggest(listOf("hello")) }
 
-        assertEquals(emptyList<Int>(), credits.recorded)
+        assertEquals(emptyList<GenerationCredits>(), credits.recorded)
     }
 
     private fun repository(
@@ -121,16 +151,20 @@ class RemoteWordSuggestionRepositoryTest {
             json = json,
         )
     }
+
+    private companion object {
+        val RESET_AT: Instant = Instant.parse("2026-09-11T00:00:00Z")
+    }
 }
 
 private class RecordingGenerationCreditsRepository : GenerationCreditsRepository {
 
-    val recorded: MutableList<Int> = mutableListOf()
+    val recorded: MutableList<GenerationCredits> = mutableListOf()
 
     override fun observe(): Flow<GenerationCredits?> = flowOf(null)
 
-    override fun record(remaining: Int, observedAt: Instant) {
-        recorded += remaining
+    override suspend fun record(credits: GenerationCredits) {
+        recorded += credits
     }
 }
 

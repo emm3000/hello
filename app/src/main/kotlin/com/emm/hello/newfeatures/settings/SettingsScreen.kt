@@ -46,8 +46,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.account.Account
 import com.emm.domain.generation.GenerationCredits
-import com.emm.domain.generation.isFreshAt
-import com.emm.domain.generation.resetsAt
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
@@ -66,7 +64,6 @@ import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSwitch
 import com.emm.hello.core.ui.HTimePickerDialog
 import com.emm.hello.core.ui.HTopBar
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -326,11 +323,11 @@ private fun googleAccountSubtitle(account: Account?): String =
 
 @Composable
 private fun generationCreditsSubtitle(generationCredits: GenerationCredits?): String {
-    if (generationCredits == null || !generationCredits.isFreshAt(Instant.now())) {
+    if (generationCredits == null) {
         return stringResource(R.string.settings_generation_credits_unknown)
     }
     val renewsAt: String = LocalDateTime
-        .ofInstant(generationCredits.resetsAt(), ZoneId.systemDefault())
+        .ofInstant(generationCredits.resetAt, ZoneId.systemDefault())
         .toLocalTime()
         .format(reminderTimeFormatter)
     return pluralStringResource(

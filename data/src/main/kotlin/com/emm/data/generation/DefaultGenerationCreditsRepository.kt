@@ -1,6 +1,7 @@
 package com.emm.data.generation
 
 import com.emm.data.remote.DataStore
+import com.emm.data.remote.StoredGenerationCredits
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import java.time.Instant
@@ -12,21 +13,25 @@ class DefaultGenerationCreditsRepository(
     private val dataStore: DataStore,
 ) : GenerationCreditsRepository {
 
-    private val credits: MutableStateFlow<GenerationCredits?> = MutableStateFlow(storedCredits())
+    private val stored: MutableStateFlow<GenerationCredits?> = MutableStateFlow(readStoredCredits())
 
-    override fun observe(): Flow<GenerationCredits?> = credits.asStateFlow()
+    override fun observe(): Flow<GenerationCredits?> = stored.asStateFlow()
 
-    override fun record(remaining: Int, observedAt: Instant) {
-        dataStore.generationCreditsRemaining = remaining
-        dataStore.generationCreditsObservedAtMillis = observedAt.toEpochMilli()
-        credits.value = GenerationCredits(remaining = remaining, observedAt = observedAt)
+    override suspend fun record(credits: GenerationCredits) {
+        dataStore.generationCredits = credits.toStored()
+        stored.value = credits
     }
 
-    private fun storedCredits(): GenerationCredits? {
-        val remaining: Int = dataStore.generationCreditsRemaining
-        val observedAtMillis: Long = dataStore.generationCreditsObservedAtMillis
-        if (remaining == DataStore.NO_GENERATION_CREDITS_REMAINING) return null
-        if (observedAtMillis == DataStore.NO_GENERATION_CREDITS_OBSERVED_AT) return null
-        return GenerationCredits(remaining = remaining, observedAt = Instant.ofEpochMilli(observedAtMillis))
+    private fun readStoredCredits(): GenerationCredits? {
+        val saved: StoredGenerationCredits = dataStore.generationCredits ?: return null
+        return GenerationCredits(
+            remaining = saved.remaining,
+            resetAt = Instant.ofEpochMilli(saved.resetAtMillis),
+        )
     }
 }
+
+private fun GenerationCredits.toStored(): StoredGenerationCredits = StoredGenerationCredits(
+    remaining = remaining,
+    resetAtMillis = resetAt.toEpochMilli(),
+)

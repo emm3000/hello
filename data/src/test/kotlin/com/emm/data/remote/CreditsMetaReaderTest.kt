@@ -1,5 +1,7 @@
 package com.emm.data.remote
 
+import com.emm.domain.generation.GenerationCredits
+import java.time.Instant
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -10,7 +12,7 @@ class CreditsMetaReaderTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
-    fun `remainingOrNull reads the count from a generate-note body`() {
+    fun `readOrNull reads the balance and the reset from a generate-note body`() {
         val body = """
             {
               "success": true,
@@ -21,17 +23,21 @@ class CreditsMetaReaderTest {
                 "provider": "gemini",
                 "model": "gemini-3.1-flash-lite",
                 "credits_remaining": 3,
+                "reset_at": "2026-09-11T00:00:00Z",
                 "prompt_version": 2,
                 "schema_version": 1
               }
             }
         """.trimIndent()
 
-        assertEquals(3, CreditsMetaReader.remainingOrNull(body, json))
+        assertEquals(
+            GenerationCredits(remaining = 3, resetAt = Instant.parse("2026-09-11T00:00:00Z")),
+            CreditsMetaReader.readOrNull(body, json),
+        )
     }
 
     @Test
-    fun `remainingOrNull reads the count from a suggest-words body`() {
+    fun `readOrNull reads the balance and the reset from a suggest-words body`() {
         val body = """
             {
               "situation": "Ordering food at a busy restaurant",
@@ -39,59 +45,94 @@ class CreditsMetaReaderTest {
               "meta": {
                 "cached": true,
                 "provider": "gemini",
-                "model": "gemini-3.1-flash-lite",
                 "credits_remaining": 17,
-                "prompt_version": 1,
-                "schema_version": 1
+                "reset_at": "2026-09-11T00:00:00.000Z"
               }
             }
         """.trimIndent()
 
-        assertEquals(17, CreditsMetaReader.remainingOrNull(body, json))
+        assertEquals(
+            GenerationCredits(remaining = 17, resetAt = Instant.parse("2026-09-11T00:00:00Z")),
+            CreditsMetaReader.readOrNull(body, json),
+        )
     }
 
     @Test
-    fun `remainingOrNull reads a zero count`() {
-        val body = "{\"success\":true,\"meta\":{\"credits_remaining\":0}}"
-
-        assertEquals(0, CreditsMetaReader.remainingOrNull(body, json))
-    }
-
-    @Test
-    fun `remainingOrNull returns null when meta is null`() {
+    fun `readOrNull reads an exhausted balance from a payment required body`() {
         val body = """
             {
               "success": false,
               "data": null,
-              "error": { "code": "credits_exhausted", "message": "Sin creditos" },
+              "error": {
+                "code": "credits_exhausted",
+                "message": "Sin creditos",
+                "reset_at": "2026-09-11T00:00:00Z"
+              },
+              "meta": { "credits_remaining": 0, "reset_at": "2026-09-11T00:00:00Z" }
+            }
+        """.trimIndent()
+
+        assertEquals(
+            GenerationCredits(remaining = 0, resetAt = Instant.parse("2026-09-11T00:00:00Z")),
+            CreditsMetaReader.readOrNull(body, json),
+        )
+    }
+
+    @Test
+    fun `readOrNull coerces a negative balance to zero`() {
+        val body = "{\"meta\":{\"credits_remaining\":-4,\"reset_at\":\"2026-09-11T00:00:00Z\"}}"
+
+        assertEquals(
+            GenerationCredits(remaining = 0, resetAt = Instant.parse("2026-09-11T00:00:00Z")),
+            CreditsMetaReader.readOrNull(body, json),
+        )
+    }
+
+    @Test
+    fun `readOrNull returns null when meta is null`() {
+        val body = """
+            {
+              "success": false,
+              "data": null,
+              "error": { "code": "app_check_rejected", "message": "Invalid token" },
               "meta": null
             }
         """.trimIndent()
 
-        assertNull(CreditsMetaReader.remainingOrNull(body, json))
+        assertNull(CreditsMetaReader.readOrNull(body, json))
     }
 
     @Test
-    fun `remainingOrNull returns null when meta carries no credits field`() {
-        val body = "{\"success\":true,\"meta\":{\"cached\":false,\"provider\":\"gemini\"}}"
-
-        assertNull(CreditsMetaReader.remainingOrNull(body, json))
+    fun `readOrNull returns null when the body has no meta at all`() {
+        assertNull(CreditsMetaReader.readOrNull("{\"success\":true,\"data\":null}", json))
     }
 
     @Test
-    fun `remainingOrNull returns null when the body has no meta at all`() {
-        val body = "{\"success\":true,\"data\":null}"
+    fun `readOrNull returns null when the balance is null`() {
+        val body = "{\"meta\":{\"credits_remaining\":null,\"reset_at\":\"2026-09-11T00:00:00Z\"}}"
 
-        assertNull(CreditsMetaReader.remainingOrNull(body, json))
+        assertNull(CreditsMetaReader.readOrNull(body, json))
     }
 
     @Test
-    fun `remainingOrNull returns null for a non json body`() {
-        assertNull(CreditsMetaReader.remainingOrNull("<html>Gateway is down</html>", json))
+    fun `readOrNull returns null when the reset is missing`() {
+        assertNull(CreditsMetaReader.readOrNull("{\"meta\":{\"credits_remaining\":5}}", json))
     }
 
     @Test
-    fun `remainingOrNull returns null for an empty body`() {
-        assertNull(CreditsMetaReader.remainingOrNull("", json))
+    fun `readOrNull returns null when the reset does not parse as an instant`() {
+        val body = "{\"meta\":{\"credits_remaining\":5,\"reset_at\":\"tomorrow at midnight\"}}"
+
+        assertNull(CreditsMetaReader.readOrNull(body, json))
+    }
+
+    @Test
+    fun `readOrNull returns null for a non json body`() {
+        assertNull(CreditsMetaReader.readOrNull("<html>Gateway is down</html>", json))
+    }
+
+    @Test
+    fun `readOrNull returns null for an empty body`() {
+        assertNull(CreditsMetaReader.readOrNull("", json))
     }
 }

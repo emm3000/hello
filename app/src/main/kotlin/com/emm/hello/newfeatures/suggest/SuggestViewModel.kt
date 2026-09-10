@@ -14,12 +14,12 @@ import com.emm.domain.suggestion.SuggestedWord
 import com.emm.domain.suggestion.SuggestedWordsRefresher
 import com.emm.domain.suggestion.SuggestionRefreshStatus
 import com.emm.domain.suggestion.WordSuggestions
+import com.emm.domain.time.Clock
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
-import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -32,6 +32,7 @@ class SuggestViewModel(
     private val getDecksUseCase: GetDecksUseCase,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
     private val credits: GenerationCreditsRepository,
+    private val clock: Clock,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
     initialState = SuggestUiState(),
 ) {
@@ -67,7 +68,7 @@ class SuggestViewModel(
         if (status is SuggestionRefreshStatus.Failed) {
             logError(TAG, "refresh:error ${status.error.message}", status.error)
         }
-        val remaining: Int? = generationCredits?.takeIf { it.isFreshAt(Instant.now()) }?.remaining
+        val remaining: Int? = generationCredits?.takeIf { it.isFreshAt(clock.now()) }?.remaining
         setState {
             copy(
                 isLoading = !hasWords && status.isDecisionPending(),

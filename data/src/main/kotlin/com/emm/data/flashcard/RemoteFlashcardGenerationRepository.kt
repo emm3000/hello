@@ -10,9 +10,9 @@ import com.emm.data.remote.toRequestDto
 import com.emm.domain.flashcard.FlashcardGenerationInput
 import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.telemetry.GenerationTelemetry
-import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -28,6 +28,7 @@ class RemoteFlashcardGenerationRepository(
 
     override suspend fun generateLearningNote(input: FlashcardGenerationInput): GeneratedLearningNote {
         val reply: FunctionsReply = send(input)
+        recordCredits(reply.body)
         return read(reply)
     }
 
@@ -52,7 +53,6 @@ class RemoteFlashcardGenerationRepository(
     private fun read(reply: FunctionsReply): GeneratedLearningNote {
         return try {
             FunctionsReplyMapper.map(reply, json) { body ->
-                recordCredits(body)
                 GeneratedLearningNoteResponseParser.parse(body, json)
             }
         } catch (error: Throwable) {
@@ -61,9 +61,9 @@ class RemoteFlashcardGenerationRepository(
         }
     }
 
-    private fun recordCredits(body: String) {
-        val remaining: Int = CreditsMetaReader.remainingOrNull(body, json) ?: return
-        credits.record(remaining = remaining, observedAt = Instant.now())
+    private suspend fun recordCredits(body: String) {
+        val reading: GenerationCredits = CreditsMetaReader.readOrNull(body, json) ?: return
+        credits.record(reading)
     }
 
     private fun recordReadFailure(reply: FunctionsReply, error: Throwable) {

@@ -7,11 +7,11 @@ import com.emm.data.remote.FunctionsReplyMapper
 import com.emm.data.remote.FunctionsTransport
 import com.emm.data.remote.SessionInitializer
 import com.emm.data.remote.SuggestWordsRequestDto
+import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
-import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -27,6 +27,7 @@ class RemoteWordSuggestionRepository(
 
     override suspend fun suggest(recentWords: List<String>): WordSuggestions {
         val reply: FunctionsReply = send(recentWords)
+        recordCredits(reply.body)
         return read(reply)
     }
 
@@ -51,7 +52,6 @@ class RemoteWordSuggestionRepository(
     private fun read(reply: FunctionsReply): WordSuggestions {
         return try {
             FunctionsReplyMapper.map(reply, json) { body ->
-                recordCredits(body)
                 WordSuggestionResponseParser.parse(body, json)
             }
         } catch (error: Throwable) {
@@ -60,9 +60,9 @@ class RemoteWordSuggestionRepository(
         }
     }
 
-    private fun recordCredits(body: String) {
-        val remaining: Int = CreditsMetaReader.remainingOrNull(body, json) ?: return
-        credits.record(remaining = remaining, observedAt = Instant.now())
+    private suspend fun recordCredits(body: String) {
+        val reading: GenerationCredits = CreditsMetaReader.readOrNull(body, json) ?: return
+        credits.record(reading)
     }
 
     private fun recordReadFailure(reply: FunctionsReply, error: Throwable) {

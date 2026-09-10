@@ -12,10 +12,12 @@ import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
+import com.emm.domain.generation.isFreshAt
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.domain.time.Clock
 import com.emm.hello.R
 import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.core.auth.GoogleSignInResult
@@ -41,6 +43,7 @@ class SettingsViewModel(
     private val googleSignInLauncher: GoogleSignInLauncher,
     private val googleServerClientId: String,
     private val generationCredits: GenerationCreditsRepository,
+    private val clock: Clock,
     buildInfo: BuildInfo,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(buildInfo = buildInfo),
@@ -92,7 +95,8 @@ class SettingsViewModel(
     private fun observeGenerationCredits() {
         viewModelScope.launch {
             generationCredits.observe().collect { credits: GenerationCredits? ->
-                setState { copy(generationCredits = credits) }
+                val fresh: GenerationCredits? = credits?.takeIf { it.isFreshAt(clock.now()) }
+                setState { copy(generationCredits = fresh) }
             }
         }
     }

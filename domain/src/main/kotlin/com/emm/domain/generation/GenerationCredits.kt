@@ -1,16 +1,10 @@
 package com.emm.domain.generation
 
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 data class GenerationCredits(
     val remaining: Int,
-    val observedAt: Instant,
+    val resetAt: Instant,
 )
 
-fun GenerationCredits.isFreshAt(now: Instant): Boolean {
-    return observedAt.truncatedTo(ChronoUnit.DAYS) == now.truncatedTo(ChronoUnit.DAYS)
-}
-
-fun GenerationCredits.resetsAt(): Instant =
-    observedAt.truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS)
+fun GenerationCredits.isFreshAt(now: Instant): Boolean = now.isBefore(resetAt)

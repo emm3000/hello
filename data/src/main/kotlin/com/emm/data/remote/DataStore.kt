@@ -11,7 +11,12 @@ private const val KEY_STUDY_REMINDER_ENABLED = "STUDY_REMINDER_ENABLED"
 private const val KEY_STUDY_REMINDER_HOUR = "STUDY_REMINDER_HOUR"
 private const val KEY_STUDY_REMINDER_MINUTE = "STUDY_REMINDER_MINUTE"
 private const val KEY_GENERATION_CREDITS_REMAINING = "GENERATION_CREDITS_REMAINING"
-private const val KEY_GENERATION_CREDITS_OBSERVED_AT = "GENERATION_CREDITS_OBSERVED_AT"
+private const val KEY_GENERATION_CREDITS_RESET_AT = "GENERATION_CREDITS_RESET_AT"
+
+data class StoredGenerationCredits(
+    val remaining: Int,
+    val resetAtMillis: Long,
+)
 
 class DataStore(
     private val sharedPreferences: SharedPreferences,
@@ -57,20 +62,28 @@ class DataStore(
             sharedPreferences.edit { putInt(KEY_STUDY_REMINDER_MINUTE, value) }
         }
 
-    var generationCreditsRemaining: Int
-        get() = sharedPreferences.getInt(KEY_GENERATION_CREDITS_REMAINING, NO_GENERATION_CREDITS_REMAINING)
+    var generationCredits: StoredGenerationCredits?
+        get() = readGenerationCredits()
         set(value) {
-            sharedPreferences.edit { putInt(KEY_GENERATION_CREDITS_REMAINING, value) }
+            sharedPreferences.edit { writeGenerationCredits(value) }
         }
 
-    var generationCreditsObservedAtMillis: Long
-        get() = sharedPreferences.getLong(KEY_GENERATION_CREDITS_OBSERVED_AT, NO_GENERATION_CREDITS_OBSERVED_AT)
-        set(value) {
-            sharedPreferences.edit { putLong(KEY_GENERATION_CREDITS_OBSERVED_AT, value) }
-        }
+    private fun readGenerationCredits(): StoredGenerationCredits? {
+        if (!sharedPreferences.contains(KEY_GENERATION_CREDITS_REMAINING)) return null
+        if (!sharedPreferences.contains(KEY_GENERATION_CREDITS_RESET_AT)) return null
+        return StoredGenerationCredits(
+            remaining = sharedPreferences.getInt(KEY_GENERATION_CREDITS_REMAINING, 0),
+            resetAtMillis = sharedPreferences.getLong(KEY_GENERATION_CREDITS_RESET_AT, 0L),
+        )
+    }
 
-    companion object {
-        const val NO_GENERATION_CREDITS_REMAINING: Int = -1
-        const val NO_GENERATION_CREDITS_OBSERVED_AT: Long = 0L
+    private fun SharedPreferences.Editor.writeGenerationCredits(value: StoredGenerationCredits?) {
+        if (value == null) {
+            remove(KEY_GENERATION_CREDITS_REMAINING)
+            remove(KEY_GENERATION_CREDITS_RESET_AT)
+            return
+        }
+        putInt(KEY_GENERATION_CREDITS_REMAINING, value.remaining)
+        putLong(KEY_GENERATION_CREDITS_RESET_AT, value.resetAtMillis)
     }
 }

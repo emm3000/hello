@@ -13,7 +13,7 @@
 
 `Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF), and configure the daily study reminder (on/off, time). It's the only feature that interacts with OS `Uri`s. Enabling the reminder also gates the `POST_NOTIFICATIONS` runtime permission (Android 13+): turning it on requests the permission if not already granted, and a blocked state is surfaced directly on the reminder row. It also lets you link the local, lazily-created anonymous Supabase account to a Google account, so AI credits and study history survive a reinstall.
 
-Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a single row for linking a Google account; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
+Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a row for linking a Google account and an inert row showing the remaining AI generations; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
 
 ## Key files
 
@@ -44,6 +44,8 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `com.emm.domain.account.GetAccountUseCase`
 - `com.emm.domain.account.LinkGoogleAccountUseCase`
 - `com.emm.domain.account.AccountRepository` (interface), implemented by `com.emm.data.remote.SupabaseAccountRepository`
+- `com.emm.domain.generation.GenerationCreditsRepository` (interface), implemented by `com.emm.data.generation.DefaultGenerationCreditsRepository`
+- `com.emm.domain.time.Clock`
 
 ## State
 
@@ -59,6 +61,8 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `isNotificationPermissionGranted: Boolean` — default `true`; overwritten in `init` with `NotificationPermission.isGranted()`
 - `account: Account?` — default `null`; loaded asynchronously in `init` — see "Account flow"
 - `isLinkingAccount: Boolean` — default `false`
+- `generationCredits: GenerationCredits?` — default `null`; the last reading the backend reported, or `null` once its `resetAt` has passed — see "AI generations row"
+- `buildInfo: BuildInfo` — injected, never mutated
 
 ## Intents
 
@@ -152,7 +156,19 @@ The row keeps the default `ChevronTrailing`. While `isLinkingAccount` is `true` 
   - `GoogleSignInResult.NoCredentials` → `isLinkingAccount = false`, `ShowError(noGoogleAccountMessage)` = "No Google account on this device" (`settings_google_no_credentials`).
   - `GoogleSignInResult.Failure` (includes "no foreground `Activity`") → `isLinkingAccount = false`, `ShowError(googleLinkFailedMessage)` = "Couldn't link your Google account" (`settings_google_link_failed`).
 - **DI:** `googleServerClientId` comes from `R.string.default_web_client_id`, emitted into `google-services.json` because the CI fixture now declares a web OAuth client too; `noGoogleAccountMessage` and `googleLinkFailedMessage` are read from string resources and injected as plain `String`s so the ViewModel stays free of `Context` / `R`. Wired in `NewModule.kt`.
-- **Tests:** `SettingsViewModelTest` has 7 tests covering this flow (31 total in the file).
+- **Tests:** `SettingsViewModelTest` has 7 tests covering this flow (37 total in the file).
+
+## AI generations row
+
+A second, inert row in the "Account" section shows how many AI generations are left today and the local time they renew (`settings_generation_credits_title` / `settings_generation_credits_subtitle`). It is `enabled = false` and has no trailing icon: it answers a question, it does not start anything.
+
+Both numbers come from the server, never from the device. Every reply from the Hello backend that knows the balance carries `meta.credits_remaining` and `meta.reset_at`, and `CreditsMetaReader.readOrNull` lifts them into a `GenerationCredits(remaining, resetAt)` that the remote repositories hand to `GenerationCreditsRepository.record` **before** the reply status is mapped. That covers the `402 credits_exhausted` reply as well as a `200`, so a spent day shows zero instead of the last positive number it happened to see. A reply without `meta` — `401`, `400`, `503 credits_unavailable` — records nothing and leaves the previous reading in place.
+
+`DefaultGenerationCreditsRepository` persists the pair through `DataStore.generationCredits` as a single `SharedPreferences.edit { }` writing `GENERATION_CREDITS_REMAINING` and `GENERATION_CREDITS_RESET_AT`; a store missing either key reads back as `null`. There are no sentinel values.
+
+Freshness is one comparison, `now < resetAt` (`GenerationCredits.isFreshAt`), with `now` read from the injected `Clock`. Nothing is derived from the device's calendar day: the reset instant the server sent is the only boundary. `SettingsViewModel` collects `observe()` and stores the reading only while it is fresh, so a stale one renders the same "unknown" subtitle as no reading at all. The screen formats `resetAt` in the device zone and never checks freshness itself.
+
+`SuggestViewModel` reads the same repository and caps how many words can be selected at `remaining`; an unknown or stale reading caps nothing.
 
 ## Effects
 

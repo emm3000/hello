@@ -20,6 +20,7 @@ import com.emm.domain.suggestion.SuggestedWordsRefresher
 import com.emm.domain.suggestion.WordSuggestionCache
 import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.domain.suggestion.WordSuggestions
+import com.emm.domain.time.Clock
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
@@ -32,7 +33,6 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -287,7 +287,7 @@ class SuggestViewModelTest {
     }
 
     @Test
-    fun `a reading from a previous UTC day leaves the credits unknown and caps nothing`() = runTest {
+    fun `a reading whose reset has already passed leaves the credits unknown and caps nothing`() = runTest {
         val viewModel: SuggestViewModel = buildViewModel(
             scope = this,
             cache = threeWordCache(),
@@ -481,6 +481,7 @@ class SuggestViewModelTest {
         decksFailure: Throwable? = null,
         defaultDeckId: DeckId? = DECK_ID,
         credits: GenerationCreditsRepository = FakeGenerationCreditsRepository(),
+        clock: Clock = Clock { NOW },
     ): SuggestViewModel {
         val flashcardRepository = mockk<FlashcardRepository>()
         coEvery { flashcardRepository.fetchRecentWords(any()) } returns emptyList()
@@ -512,6 +513,7 @@ class SuggestViewModelTest {
             getDecksUseCase = getDecksUseCase,
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
             credits = credits,
+            clock = clock,
         )
     }
 
@@ -519,12 +521,10 @@ class SuggestViewModelTest {
         FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B, WORD_C)))
 
     private fun freshCredits(remaining: Int): GenerationCredits =
-        GenerationCredits(remaining = remaining, observedAt = Instant.now().truncatedTo(ChronoUnit.DAYS))
+        GenerationCredits(remaining = remaining, resetAt = NOW.plusSeconds(1))
 
-    private fun staleCredits(remaining: Int): GenerationCredits = GenerationCredits(
-        remaining = remaining,
-        observedAt = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS),
-    )
+    private fun staleCredits(remaining: Int): GenerationCredits =
+        GenerationCredits(remaining = remaining, resetAt = NOW)
 
     private fun duplicateWordException(): DomainValidationException = DomainValidationException(
         issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
@@ -564,8 +564,8 @@ class SuggestViewModelTest {
 
         override fun observe(): Flow<GenerationCredits?> = stored
 
-        override fun record(remaining: Int, observedAt: Instant) {
-            stored.value = GenerationCredits(remaining = remaining, observedAt = observedAt)
+        override suspend fun record(credits: GenerationCredits) {
+            stored.value = credits
         }
     }
 
@@ -604,5 +604,6 @@ class SuggestViewModelTest {
         val NEWEST_DECK_ID: DeckId = "deck-2".toDeckId()
         val CARD_ID_A: FlashcardId = "card-a".toFlashcardId()
         val CARD_ID_B: FlashcardId = "card-b".toFlashcardId()
+        val NOW: Instant = Instant.parse("2026-09-10T17:42:00Z")
     }
 }
