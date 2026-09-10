@@ -52,6 +52,10 @@ configure<ApplicationExtension> {
         buildConfig = true
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     lint {
         checkDependencies = true
     }
