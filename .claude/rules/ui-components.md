@@ -1,6 +1,8 @@
 ---
 paths:
-  - "app/src/main/kotlin/com/emm/hello/**/*.kt"
+  - "app/src/main/kotlin/com/emm/hello/newfeatures/**/*.kt"
+  - "app/src/main/kotlin/com/emm/hello/core/ui/**/*.kt"
+  - "app/src/main/kotlin/com/emm/hello/core/theme/**/*.kt"
 ---
 
 # Shared UI rules

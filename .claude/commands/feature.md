@@ -1,6 +1,8 @@
 ---
 description: Scaffold a new MVI feature under app/newfeatures following the repo rules
 argument-hint: <FeatureName>
+allowed-tools: Read Write Bash(ls:*) Bash(./gradlew:*)
+disable-model-invocation: true
 ---
 
 Scaffold a new feature called **$ARGUMENTS** under `app/src/main/kotlin/com/emm/hello/newfeatures/$ARGUMENTS/`.

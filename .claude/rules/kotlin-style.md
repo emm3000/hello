@@ -54,41 +54,10 @@ When you delete code, delete it. Git has the history.
 
 ## detekt
 
-Config lives in `config/detekt/detekt.yml`. `./gradlew detekt` must be green before every commit.
+Config lives in `config/detekt/detekt.yml`, the only source of thresholds. `./gradlew detekt` must be green before every commit. The two rules that shape code the most:
 
-### Complexity
-
-```yaml
-CyclomaticComplexMethod:
-  active: true
-  threshold: 10
-  ignoreSingleWhenExpression: true
-  ignoreSimpleWhenEntries: true
-  nestingFunctions:
-    - 'also'
-    - 'apply'
-    - 'run'
-    - 'let'
-    - 'use'
-    - 'with'
-```
-
-Those scope functions are what produces callback hell. Chains like `also { apply { run { ... } } }` get refactored into named intermediate functions or an early return.
-
-### Returns
-
-```yaml
-ReturnCount:
-  active: true
-  max: 5
-  excludeLabeled: true
-  excludedFunctions:
-    - 'equals'
-  ignoreAnnotated:
-    - 'Composable'
-```
-
-Early returns in guard clauses are encouraged. Labeled returns inside lambdas (`return@mapNotNull null`) do not count. More than five real returns means the function should be split.
+- `CyclomaticComplexMethod` at threshold 10, with `also` / `apply` / `run` / `let` / `use` / `with` counted as nesting. Those scope functions are what produces callback hell. Chains like `also { apply { run { ... } } }` get refactored into named intermediate functions or an early return.
+- `ReturnCount` at max 5, labeled returns excluded, `@Composable` ignored. Early returns in guard clauses are encouraged. Labeled returns inside lambdas (`return@mapNotNull null`) do not count. More than five real returns means the function should be split.
 
 ### Check before committing
 

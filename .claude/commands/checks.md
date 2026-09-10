@@ -1,6 +1,7 @@
 ---
 description: Run detekt and unit tests, summarize failures by module
-allowed-tools: Bash, Read
+allowed-tools: Bash(./gradlew:*) Read
+disable-model-invocation: true
 ---
 
 Run the standard pre-commit checks for this Android repo:

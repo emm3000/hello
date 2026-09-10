@@ -1,6 +1,8 @@
 ---
 description: Scaffold a shared H* component in core/ui following Input.kt/FieldShell.kt patterns
 argument-hint: <ComponentName>
+allowed-tools: Read Write Bash(./gradlew:*)
+disable-model-invocation: true
 ---
 
 Create a shared component named **H$ARGUMENTS** in `app/src/main/kotlin/com/emm/hello/core/ui/`.

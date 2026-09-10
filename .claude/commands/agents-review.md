@@ -1,6 +1,7 @@
 ---
 description: Self-review pending changes against the repo rules
-allowed-tools: Bash, Read, Grep
+allowed-tools: Bash(git status:*) Bash(git diff:*) Read Grep
+disable-model-invocation: true
 ---
 
 Review the pending changes (staged + unstaged) against `CLAUDE.md`, `.claude/rules/` and `LOCAL_FIRST.md`. Use `git status`, `git diff` and `git diff --cached` to see what changed.
