@@ -7,6 +7,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import kotlinx.coroutines.flow.Flow
@@ -122,7 +123,7 @@ private class FakeFlashcardRepository(
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ): Unit = error("not used")
     override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int): Unit = error("not used")
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = error("not used")

@@ -135,7 +135,7 @@ class LibraryViewModelTest {
         translation = "prestar",
         meaning = "",
         enrichmentStatus = EnrichmentStatus.ENRICHED,
-        enrichmentFailureReason = null,
+        enrichmentFailure = null,
         nextReviewAt = nextReviewAt,
     )
 

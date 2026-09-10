@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.capture
 
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.FlashcardId
 import com.emm.hello.core.mvi.MviState
 
@@ -34,5 +35,5 @@ data class RecentCapture(
     val flashcardId: FlashcardId,
     val word: String,
     val status: EnrichmentStatus,
-    val failureReason: String? = null,
+    val failure: EnrichmentFailure? = null,
 )

@@ -128,7 +128,7 @@ class SearchLibraryUseCaseTest {
         translation = translation,
         meaning = meaning,
         enrichmentStatus = EnrichmentStatus.ENRICHED,
-        enrichmentFailureReason = null,
+        enrichmentFailure = null,
         nextReviewAt = null,
     )
 

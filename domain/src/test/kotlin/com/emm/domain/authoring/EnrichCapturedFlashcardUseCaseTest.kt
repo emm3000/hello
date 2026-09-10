@@ -10,6 +10,7 @@ import com.emm.domain.flashcard.FlashcardGenerationRepository
 import com.emm.domain.flashcard.FlashcardInputType
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
@@ -231,7 +232,7 @@ private class RecordingRepository : FlashcardRepository {
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ) {
         writes += "updateEnrichmentStatus"
         lastStatus = status

@@ -10,6 +10,7 @@ import com.emm.domain.flashcard.Expression
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.generation.ValidateGeneratedLearningNoteUseCase
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
@@ -113,7 +114,7 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ) = Unit
     override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = 0L

@@ -2,6 +2,7 @@ package com.emm.data.flashcard
 
 import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GeneratedNoteQualityCode
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
@@ -12,6 +13,7 @@ import com.emm.domain.validation.DomainValidationException
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -145,6 +147,66 @@ class GeneratedLearningNoteResponseParserTest {
             GeneratedLearningNoteResponseParser.parse(raw, json)
         }
 
+        assertEquals("El texto de entrada no es inteligible.", error.reason)
+    }
+
+    @Test
+    fun `parse with a known refusal code surfaces the typed code`() {
+        val raw = """
+            {
+              "success": false,
+              "error": {
+                "input": "zzqxwvk",
+                "message": "El texto de entrada no es inteligible.",
+                "code": "unintelligible"
+              }
+            }
+        """.trimIndent()
+
+        val error = assertThrows(AmbiguousGenerationInputException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+
+        assertEquals(GenerationRefusalCode.Unintelligible, error.code)
+        assertEquals("El texto de entrada no es inteligible.", error.reason)
+    }
+
+    @Test
+    fun `parse without a refusal code leaves the typed code null`() {
+        val raw = """
+            {
+              "success": false,
+              "error": {
+                "message": "El texto de entrada no es inteligible."
+              }
+            }
+        """.trimIndent()
+
+        val error = assertThrows(AmbiguousGenerationInputException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+
+        assertNull(error.code)
+        assertEquals("El texto de entrada no es inteligible.", error.reason)
+    }
+
+    @Test
+    fun `parse with an unknown refusal code keeps the message and leaves the code null`() {
+        val raw = """
+            {
+              "success": false,
+              "error": {
+                "message": "El texto de entrada no es inteligible.",
+                "code": "banana"
+              }
+            }
+        """.trimIndent()
+
+        val error = assertThrows(AmbiguousGenerationInputException::class.java) {
+            GeneratedLearningNoteResponseParser.parse(raw, json)
+        }
+
+        assertNull(error.code)
         assertEquals("El texto de entrada no es inteligible.", error.reason)
     }
 

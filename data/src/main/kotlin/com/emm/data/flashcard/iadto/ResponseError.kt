@@ -11,4 +11,7 @@ data class ResponseError(
 
     @SerialName("message")
     val message: String,
+
+    @SerialName("code")
+    val code: String? = null,
 )

@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,11 @@ interface FlashcardRepository {
 
     suspend fun update(input: UpdateFlashcardInput)
 
-    suspend fun updateEnrichmentStatus(flashcardId: FlashcardId, status: EnrichmentStatus, failureReason: String?)
+    suspend fun updateEnrichmentStatus(
+        flashcardId: FlashcardId,
+        status: EnrichmentStatus,
+        failure: EnrichmentFailure?,
+    )
 
     suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int)
 

@@ -10,6 +10,7 @@ import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.generation.GeneratedNoteQualityCheck
 import com.emm.domain.generation.GeneratedNoteQualityCode
 import com.emm.domain.generation.GeneratedStudyCard
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.generation.LearningDomain
 import com.emm.domain.generation.LearningNoteType
 import com.emm.domain.generation.LevelBand
@@ -35,7 +36,10 @@ object GeneratedLearningNoteResponseParser {
             if (!response.success || data == null) {
                 val message = response.error?.message
                     ?: "La IA necesita más contexto para generar la tarjeta."
-                throw AmbiguousGenerationInputException(reason = message)
+                throw AmbiguousGenerationInputException(
+                    reason = message,
+                    code = GenerationRefusalCode.fromWire(response.error?.code),
+                )
             }
             data.toValidatedDomain(promptVersion = response.meta?.promptVersion ?: 0)
         } catch (error: SerializationException) {

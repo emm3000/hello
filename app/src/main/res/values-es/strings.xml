@@ -215,6 +215,11 @@
     <string name="capture_status_waiting_for_connection">Esperando conexión</string>
     <string name="capture_status_ready">Lista</string>
     <string name="capture_status_failed">Falló</string>
+    <string name="capture_failure_empty_input">El texto está vacío. Escribe una palabra, una frase o algo que quieras decir.</string>
+    <string name="capture_failure_unintelligible">No pudimos entender eso. Prueba con una palabra o frase real.</string>
+    <string name="capture_failure_contradictory">Esa entrada se contradice. Prueba con una sola idea.</string>
+    <string name="capture_failure_unmappable">No pudimos convertir eso en una expresión en inglés. Prueba con una palabra o una frase corta.</string>
+    <string name="capture_failure_credits_exhausted">Alcanzaste el límite diario de IA. Vuelve a intentarlo mañana.</string>
     <string name="capture_deck_label">Guardando en</string>
     <string name="capture_deck_picker_content_description">Cambiar el mazo</string>
 

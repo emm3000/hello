@@ -1,6 +1,7 @@
 package com.emm.domain.library
 
 import com.emm.domain.flashcard.EnrichmentStatus
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 
@@ -12,6 +13,6 @@ data class LibraryFlashcard(
     val translation: String,
     val meaning: String,
     val enrichmentStatus: EnrichmentStatus,
-    val enrichmentFailureReason: String?,
+    val enrichmentFailure: EnrichmentFailure?,
     val nextReviewAt: Long?,
 )

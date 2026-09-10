@@ -11,6 +11,8 @@ import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.flashcard.EnrichmentBacklog
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
+import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
@@ -199,13 +201,38 @@ class CaptureViewModelTest {
             libraryFlashcard(
                 id = CARD_ID,
                 status = EnrichmentStatus.FAILED,
-                failureReason = "No pude entender esa entrada.",
+                failure = EnrichmentFailure(null, "No pude entender esa entrada."),
             ),
         )
         advanceUntilIdle()
 
-        assertThat(viewModel.state.value.recentCaptures.first().failureReason)
-            .isEqualTo("No pude entender esa entrada.")
+        assertThat(viewModel.state.value.recentCaptures.first().failure)
+            .isEqualTo(EnrichmentFailure(null, "No pude entender esa entrada."))
+    }
+
+    @Test
+    fun `a library update carries the failure code to the recent capture`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val libraryRepository = FakeLibraryRepository()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, libraryRepository = libraryRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        libraryRepository.emit(
+            libraryFlashcard(
+                id = CARD_ID,
+                status = EnrichmentStatus.FAILED,
+                failure = EnrichmentFailure(GenerationRefusalCode.Unintelligible, "raw message"),
+            ),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.recentCaptures.first().failure?.code)
+            .isEqualTo(GenerationRefusalCode.Unintelligible)
     }
 
     @Test
@@ -484,7 +511,7 @@ class CaptureViewModelTest {
     private fun libraryFlashcard(
         id: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String? = null,
+        failure: EnrichmentFailure? = null,
     ): LibraryFlashcard = LibraryFlashcard(
         id = id,
         deckId = DECK_ID,
@@ -493,7 +520,7 @@ class CaptureViewModelTest {
         translation = "prestar",
         meaning = "",
         enrichmentStatus = status,
-        enrichmentFailureReason = failureReason,
+        enrichmentFailure = failure,
         nextReviewAt = null,
     )
 

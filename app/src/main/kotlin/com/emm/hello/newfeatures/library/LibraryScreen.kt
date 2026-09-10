@@ -385,6 +385,6 @@ private fun previewCard(
     translation = translation,
     meaning = "",
     enrichmentStatus = status,
-    enrichmentFailureReason = null,
+    enrichmentFailure = null,
     nextReviewAt = nextReviewAt,
 )

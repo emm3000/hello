@@ -6,6 +6,8 @@ import com.emm.data.FlashcardQueries
 import com.emm.data.HelloDb
 import com.emm.data.LibraryFlashcards
 import com.emm.data.flashcard.toEnrichmentStatus
+import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.library.LibraryFlashcard
@@ -36,6 +38,9 @@ private fun LibraryFlashcards.toLibraryFlashcard(): LibraryFlashcard = LibraryFl
     translation = translation.orEmpty(),
     meaning = meaning,
     enrichmentStatus = toEnrichmentStatus(enrichmentStatus),
-    enrichmentFailureReason = enrichmentFailureReason,
+    enrichmentFailure = EnrichmentFailure.of(
+        code = GenerationRefusalCode.fromWire(enrichmentFailureCode),
+        reason = enrichmentFailureReason,
+    ),
     nextReviewAt = nextReviewAt,
 )

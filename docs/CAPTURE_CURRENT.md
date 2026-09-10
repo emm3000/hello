@@ -7,7 +7,7 @@
 | Scope | `Capturar` flow (bare-word capture + background enrichment, plus the manual write-it-myself mode) |
 | Source of Truth | No |
 | Read this when | You need to understand how a word enters the app today and what happens to it after Save |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-09-09 |
 
 ## Summary
 
@@ -31,6 +31,9 @@ deck (falling back to the first deck). Editing the result is
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/GenerationRefusalCodeMessage.kt`
+- `domain/src/main/kotlin/com/emm/domain/generation/EnrichmentFailure.kt`
+- `domain/src/main/kotlin/com/emm/domain/generation/GenerationRefusalCode.kt`
 - `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
 - `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
 - `app/src/main/kotlin/com/emm/hello/enrichment/FlashcardEnrichmentScheduler.kt`
@@ -60,7 +63,9 @@ to it.
   refreshed on every DB change
 - `recentCaptures: List<RecentCapture>` — the words saved in this ViewModel
   instance, newest first; each has `flashcardId`, `word`, `status:
-  EnrichmentStatus` and a nullable `failureReason`. Statuses are refreshed from
+  EnrichmentStatus` and a nullable `failure: EnrichmentFailure`
+  (`code: GenerationRefusalCode?`, `reason: String?`, both from
+  `com.emm.domain.generation`). Statuses and `failure` are refreshed from
   `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
   `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
   and starts empty on every visit.
@@ -169,8 +174,13 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   card reads `capture_status_preparing` while `state.isOnline`, or
   `capture_status_waiting_for_connection` while offline; `ENRICHED` always
   reads `capture_status_ready` and `FAILED` always reads
-  `capture_status_failed`. A `FAILED` row with a non-null `failureReason`
-  shows that reason as a second line below the word.
+  `capture_status_failed`. A `FAILED` row renders a second line through the
+  private `CaptureFailureMessage` composable: a known `failure.code` shows
+  the localized string from `GenerationRefusalCode.messageRes()`
+  (`capture_failure_empty_input`, `capture_failure_unintelligible`,
+  `capture_failure_contradictory`, `capture_failure_unmappable`,
+  `capture_failure_credits_exhausted`, in `values` and `values-es`);
+  otherwise the raw `failure.reason` is shown; otherwise nothing is shown.
 - **Retry** — a text `HButton` `capture_retry` rendered only when
   `failed > 0`. `pending` is not surfaced anywhere on the screen.
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,

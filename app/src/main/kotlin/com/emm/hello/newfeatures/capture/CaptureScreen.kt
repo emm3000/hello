@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
+import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.R
@@ -339,19 +341,28 @@ private fun CaptureRecentList(state: CaptureUiState) {
                         )
                     }
 
-                    if (capture.status == EnrichmentStatus.FAILED && capture.failureReason != null) {
-                        Text(
-                            text = capture.failureReason,
-                            fontFamily = schibsted,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 13.sp,
-                            color = inkSoft,
-                        )
-                    }
+                    CaptureFailureMessage(capture = capture)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun CaptureFailureMessage(capture: RecentCapture) {
+    if (capture.status != EnrichmentStatus.FAILED) return
+    val failure: EnrichmentFailure = capture.failure ?: return
+    val message: String = failure.code?.let { code -> stringResource(code.messageRes()) }
+        ?: failure.reason
+        ?: return
+
+    Text(
+        text = message,
+        fontFamily = schibsted,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        color = inkSoft,
+    )
 }
 
 private fun EnrichmentStatus.labelRes(isOnline: Boolean): Int = when (this) {
@@ -403,7 +414,7 @@ private fun CaptureScreenPreview() {
                         flashcardId = "3".toFlashcardId(),
                         word = "asdkjqwe",
                         status = EnrichmentStatus.FAILED,
-                        failureReason = "No pude entender esa entrada.",
+                        failure = EnrichmentFailure(GenerationRefusalCode.Unintelligible, null),
                     ),
                 ),
             ),

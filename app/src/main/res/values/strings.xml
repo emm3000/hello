@@ -211,6 +211,11 @@
     <string name="capture_status_waiting_for_connection">Waiting for connection</string>
     <string name="capture_status_ready">Ready</string>
     <string name="capture_status_failed">Failed</string>
+    <string name="capture_failure_empty_input">The text was empty. Type a word, a phrase or something you want to say.</string>
+    <string name="capture_failure_unintelligible">We couldn\'t make sense of that. Try a real word or phrase.</string>
+    <string name="capture_failure_contradictory">That input contradicts itself. Try a single idea.</string>
+    <string name="capture_failure_unmappable">We couldn\'t turn that into an English expression. Try a word or a short phrase.</string>
+    <string name="capture_failure_credits_exhausted">You reached today\'s AI limit. Try again tomorrow.</string>
     <string name="capture_deck_label">Saving to</string>
     <string name="capture_deck_picker_content_description">Change the deck</string>
 

@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
@@ -140,7 +141,7 @@ private class UpdateRecordingRepository(
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ) {
         statusUpdates += flashcardId to status
         calls += "status"

@@ -7,7 +7,7 @@
 | Scope | `Library` flow (all cards, content search) |
 | Source of Truth | No |
 | Read this when | You need to understand how cards are listed, searched and filtered |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-09-09 |
 
 ## Summary
 
@@ -46,8 +46,13 @@ It replaced the dashboard deck list and Deck Detail. Reached from the
 ## Read model
 
 `LibraryFlashcard` carries `id`, `deckId`, `deckName`, `word`, `translation`,
-`meaning`, `enrichmentStatus`, `enrichmentFailureReason` and a nullable
-`nextReviewAt`.
+`meaning`, `enrichmentStatus`, `enrichmentFailure: EnrichmentFailure?` and a
+nullable `nextReviewAt`. `EnrichmentFailure(code: GenerationRefusalCode?,
+reason: String?)` lives in `com.emm.domain.generation`. `DefaultLibraryRepository`
+builds it with `EnrichmentFailure.of(...)` from the two `Flashcard` columns
+`enrichmentFailureCode` (decoded through `GenerationRefusalCode.fromWire`,
+`null` for an unrecognized wire value) and `enrichmentFailureReason`; `of`
+returns `null` when both are `null`.
 
 `libraryFlashcards` inner-joins `Deck` for the name and left-joins
 `ReviewProjection` for `nextReviewAt`, which stays null for a card that has

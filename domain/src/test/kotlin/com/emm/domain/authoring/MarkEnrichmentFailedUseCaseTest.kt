@@ -6,6 +6,8 @@ import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.generation.GenerationRefusalCode
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
@@ -20,21 +22,46 @@ class MarkEnrichmentFailedUseCaseTest {
         val repository = StatusRecordingRepository()
         val useCase = MarkEnrichmentFailedUseCase(repository)
 
-        useCase(FLASHCARD_ID, "No pude entender esa entrada.")
+        useCase(FLASHCARD_ID, EnrichmentFailure(null, "No pude entender esa entrada."))
 
-        val expected: List<Triple<FlashcardId, EnrichmentStatus, String?>> =
-            listOf(Triple(FLASHCARD_ID, EnrichmentStatus.FAILED, "No pude entender esa entrada."))
+        val expected: List<Triple<FlashcardId, EnrichmentStatus, EnrichmentFailure?>> = listOf(
+            Triple(
+                FLASHCARD_ID,
+                EnrichmentStatus.FAILED,
+                EnrichmentFailure(null, "No pude entender esa entrada."),
+            ),
+        )
         assertEquals(expected, repository.written)
     }
 
     @Test
-    fun `invoke passes a null reason through as null`() = runTest {
+    fun `invoke stores the typed refusal code alongside the reason`() = runTest {
+        val repository = StatusRecordingRepository()
+        val useCase = MarkEnrichmentFailedUseCase(repository)
+
+        useCase(
+            FLASHCARD_ID,
+            EnrichmentFailure(GenerationRefusalCode.Unintelligible, "No pude entender esa entrada."),
+        )
+
+        val expected: List<Triple<FlashcardId, EnrichmentStatus, EnrichmentFailure?>> = listOf(
+            Triple(
+                FLASHCARD_ID,
+                EnrichmentStatus.FAILED,
+                EnrichmentFailure(GenerationRefusalCode.Unintelligible, "No pude entender esa entrada."),
+            ),
+        )
+        assertEquals(expected, repository.written)
+    }
+
+    @Test
+    fun `invoke stores the failed status with no failure when nothing is known`() = runTest {
         val repository = StatusRecordingRepository()
         val useCase = MarkEnrichmentFailedUseCase(repository)
 
         useCase(FLASHCARD_ID, null)
 
-        val expected: List<Triple<FlashcardId, EnrichmentStatus, String?>> =
+        val expected: List<Triple<FlashcardId, EnrichmentStatus, EnrichmentFailure?>> =
             listOf(Triple(FLASHCARD_ID, EnrichmentStatus.FAILED, null))
         assertEquals(expected, repository.written)
     }
@@ -46,14 +73,14 @@ class MarkEnrichmentFailedUseCaseTest {
 
 private class StatusRecordingRepository : FlashcardRepository {
 
-    val written: MutableList<Triple<FlashcardId, EnrichmentStatus, String?>> = mutableListOf()
+    val written: MutableList<Triple<FlashcardId, EnrichmentStatus, EnrichmentFailure?>> = mutableListOf()
 
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ) {
-        written += Triple(flashcardId, status, failureReason)
+        written += Triple(flashcardId, status, failure)
     }
 
     override fun fetchAll() = throw UnsupportedOperationException()

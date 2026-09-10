@@ -12,7 +12,7 @@ class UpdateFlashcardUseCase(
             flashcardRepository.updateEnrichmentStatus(
                 input.flashcardId,
                 EnrichmentStatus.ENRICHED,
-                failureReason = null,
+                failure = null,
             )
         }
     }

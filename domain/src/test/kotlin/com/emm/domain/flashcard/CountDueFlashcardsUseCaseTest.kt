@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.Clock
@@ -47,7 +48,7 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ) = Unit
     override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int) = Unit
     override suspend fun softDeleteFlashcard(flashcardId: FlashcardId) = error("not used")

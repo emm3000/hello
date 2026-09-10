@@ -168,7 +168,7 @@ private fun List<RecentCapture>.refreshedFrom(cards: List<LibraryFlashcard>): Li
     val cardsById: Map<FlashcardId, LibraryFlashcard> = cards.associateBy { it.id }
     return map { capture ->
         val card: LibraryFlashcard = cardsById[capture.flashcardId] ?: return@map capture
-        capture.copy(status = card.enrichmentStatus, failureReason = card.enrichmentFailureReason)
+        capture.copy(status = card.enrichmentStatus, failure = card.enrichmentFailure)
     }
 }
 

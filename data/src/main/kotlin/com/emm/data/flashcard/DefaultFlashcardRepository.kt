@@ -14,6 +14,7 @@ import com.emm.domain.flashcard.Flashcard
 import com.emm.domain.flashcard.FlashcardDetail
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.flashcard.UpdateFlashcardInput
+import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
@@ -141,11 +142,12 @@ class DefaultFlashcardRepository(
     override suspend fun updateEnrichmentStatus(
         flashcardId: FlashcardId,
         status: EnrichmentStatus,
-        failureReason: String?,
+        failure: EnrichmentFailure?,
     ): Unit = withContext(ioDispatcher) {
         dao.setEnrichmentStatus(
             enrichmentStatus = status.name,
-            enrichmentFailureReason = failureReason,
+            enrichmentFailureReason = failure?.reason,
+            enrichmentFailureCode = failure?.code?.wire,
             updatedAt = Instant.now().toEpochMilli(),
             id = flashcardId.value,
         )
