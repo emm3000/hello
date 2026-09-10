@@ -25,6 +25,9 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/StudySessionItem.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
 - `domain/src/main/kotlin/com/emm/domain/study/ScheduleFlashcardReviewUseCase.kt` (graduation rule)
+- `app/src/main/kotlin/com/emm/hello/core/ui/HSpeakerButton.kt` (shared play/stop button, also used by `Card Detail`; replaces the former private `TtsFloatingButton`)
+- `app/src/main/kotlin/com/emm/hello/core/audio/AudioState.kt` (moved out of `newfeatures/study/`; holds `speakingUtteranceId: String?` + `isTtsReady: Boolean`, exposes `isSpeaking(utteranceId)`)
+- `app/src/main/kotlin/com/emm/hello/core/audio/TextToSpeechManager.kt`
 
 ## Session item
 
@@ -124,9 +127,9 @@ The face is local `StudyScreen` state, reset to `Front` whenever `currentItem` c
 
 ## TTS
 
-`StudyTop` renders `TtsFloatingButton` next to the X only when the word is revealed: `sessionStage` is `Recall` or `Grade` and `currentItem.revealsWordOn(cardFace)` is true. In practice: any face for `RECOGNITION`, only `Back` for `PRODUCTION`. It speaks `currentItem.word` through `TextToSpeechManager`, toggles to a stop icon while speaking, and is disabled until TTS is ready.
+`StudyScreen` supplies an `HSpeakerButton` (the shared component in `app/src/main/kotlin/com/emm/hello/core/ui/HSpeakerButton.kt`, also used by `Card Detail`; the former private `TtsFloatingButton` is gone) into `StudyTop`'s `actions` slot only when the word is revealed: `sessionStage` is `Recall` or `Grade` and `currentItem.revealsWordOn(cardFace)` is true. In practice: any face for `RECOGNITION`, only `Back` for `PRODUCTION`. `StudyTop` renders it next to the X. It plays `currentItem.word` with utterance id `"study_word"` (a private const in `StudyScreen.kt`) through `TextToSpeechManager`, toggles to a stop icon while `audioState.isSpeaking("study_word")` is true, and is disabled until `audioState.isTtsReady`.
 
-A `LaunchedEffect(wordRevealed)` calls `tts.stop()` whenever the word stops being revealed: the face flips back to `Front` on a `PRODUCTION` card, the item changes, or the session leaves the card (`Done`, `Empty`, `Error`, `Loading`). Speech never outlives the word it belongs to.
+A `LaunchedEffect(wordRevealed)` calls `onStopSpeech()` whenever the word stops being revealed: the face flips back to `Front` on a `PRODUCTION` card, the item changes, or the session leaves the card (`Done`, `Empty`, `Error`, `Loading`). Speech never outlives the word it belongs to.
 
 ## Action dock
 
