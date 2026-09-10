@@ -25,6 +25,7 @@ In Kotlin this buys more than most classic acronyms, and the codebase already do
 
 - Model identifiers and constrained strings as value classes, not raw `String`.
 - Model mutually exclusive states as a `sealed interface`, not as a set of nullable flags. If two booleans can never both be true, they should not both exist.
+- Never derive identity from displayed content. Two elements that render the same text are not the same element. Key shared state by an explicit id the caller owns, never by the text itself — content collides, and the collision stays invisible until the day two values happen to match. `TextToSpeechManager` keys the speaking utterance this way, so a screen can hold more than one speaker button.
 
 ## 4. Fail fast
 

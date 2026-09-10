@@ -70,6 +70,8 @@ The falsifier is matched to the failure mode. It is never uniform:
 
 `./gradlew detekt testDebugUnitTest :domain:test` is the floor, never the proof. It shows nothing broke. It never shows the change is right.
 
+A visual falsifier has a failure mode of its own: the measurement. `adb shell input tap` followed by a separate `adb exec-out screencap` captures before the UI has reacted, so transient state — a button mid-playback, a spinner, a snackbar — reads as absent and a working change looks broken. Put the wait on the device, in one call: `adb shell "input tap X Y; sleep 1; screencap -p /sdcard/s.png"`, then `adb pull`. A false negative costs more than no check at all, because you go hunting for a defect that was never there.
+
 ### 2. Pick the cheapest actor whose output can be verified
 
 | Work | Actor |
@@ -87,6 +89,8 @@ Decisions never travel to a writer as a question. They travel as a spec.
 
 Agents claim completion they did not deliver. `git status`, `git diff --stat` and `rg` are the evidence. An agent's summary is a hypothesis until an artifact confirms it.
 
+A rebase that reports no conflicts is not evidence either. Git merges text, not meaning. When both sides touched the same file, read the merged result before trusting it.
+
 ### 4. Approve the unit, not each step
 
 Approval covers scope, falsifier and topology, once. The unit then runs to completion and reports with evidence.
@@ -98,6 +102,12 @@ Stop mid-unit only for a genuine fork or a failed falsifier. Never to confirm th
 Adversarial review (`judgment-day`) costs up to four judge runs plus a fix actor. It earns that on concurrency, scheduling, data migration and contracts.
 
 It is waste on constants, renames and moves, where the falsifier is already deterministic. A probabilistic reviewer stacked on top of a certain proof trades certainty for opinion.
+
+### 6. A worktree branches from `origin/main`, not from your `main`
+
+`EnterWorktree` cuts from `origin/main`. Local `main` here usually carries unpushed commits, so the worktree silently starts behind — and the gap surfaces as something that looks unrelated: an emulator refusing to open the database (`Can't downgrade database from version N to N-1`) because a newer migration is missing, or a rebase conflicting where nothing should.
+
+Run `git log --oneline origin/main..main` before the unit starts. If local `main` is ahead, rebase onto it.
 
 ## Reading order
 
