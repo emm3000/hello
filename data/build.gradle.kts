@@ -57,6 +57,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
     testImplementation(libs.ktor.client.mock)
     testImplementation("app.cash.sqldelight:sqlite-driver:${libs.versions.androidDriver.get()}")
     androidTestImplementation(libs.androidx.junit)

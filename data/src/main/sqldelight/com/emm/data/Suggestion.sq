@@ -18,6 +18,13 @@ SELECT * FROM WordSuggestionBatch WHERE singletonId = 1;
 allCandidates:
 SELECT * FROM SuggestedWordCandidate ORDER BY position;
 
+selectBatchWithCandidates:
+SELECT WordSuggestionBatch.situation, SuggestedWordCandidate.position, SuggestedWordCandidate.word, SuggestedWordCandidate.translation
+FROM WordSuggestionBatch
+LEFT JOIN SuggestedWordCandidate ON SuggestedWordCandidate.batchId = WordSuggestionBatch.singletonId
+WHERE WordSuggestionBatch.singletonId = 1
+ORDER BY SuggestedWordCandidate.position;
+
 insertBatch:
 INSERT INTO WordSuggestionBatch (singletonId, situation, createdAt) VALUES (1, ?, ?);
 

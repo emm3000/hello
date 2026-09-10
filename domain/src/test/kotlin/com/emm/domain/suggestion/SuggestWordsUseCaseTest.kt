@@ -1,16 +1,5 @@
 package com.emm.domain.suggestion
 
-import com.emm.domain.flashcard.CreateFlashcardInput
-import com.emm.domain.flashcard.EnrichmentStatus
-import com.emm.domain.flashcard.Example
-import com.emm.domain.flashcard.Flashcard
-import com.emm.domain.flashcard.FlashcardDetail
-import com.emm.domain.flashcard.FlashcardRepository
-import com.emm.domain.flashcard.UpdateFlashcardInput
-import com.emm.domain.generation.EnrichmentFailure
-import com.emm.domain.ids.DeckId
-import com.emm.domain.ids.FlashcardId
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -100,47 +89,5 @@ class SuggestWordsUseCaseTest {
         val result = useCase()
 
         assertEquals("Ordering food at a busy restaurant", result.situation)
-    }
-}
-
-private class FakeFlashcardRepository(
-    private val recentWords: List<String>,
-) : FlashcardRepository {
-
-    var receivedLimit: Int = -1
-        private set
-
-    override suspend fun fetchRecentWords(limit: Int): List<String> {
-        receivedLimit = limit
-        return recentWords
-    }
-
-    override fun fetchAll(): Flow<List<Flashcard>> = error("not used")
-    override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = error("not used")
-    override suspend fun fetchById(id: FlashcardId): FlashcardDetail = error("not used")
-    override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("not used")
-    override suspend fun update(input: UpdateFlashcardInput): Unit = error("not used")
-    override suspend fun updateEnrichmentStatus(
-        flashcardId: FlashcardId,
-        status: EnrichmentStatus,
-        failure: EnrichmentFailure?,
-    ): Unit = error("not used")
-    override suspend fun recordPromptVersion(flashcardId: FlashcardId, promptVersion: Int): Unit = error("not used")
-    override suspend fun softDeleteFlashcard(flashcardId: FlashcardId): Long = error("not used")
-    override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long): Unit = error("not used")
-    override suspend fun countDueFlashcards(nowMillis: Long): Long = error("not used")
-    override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId): Unit = error("not used")
-}
-
-private class FakeWordSuggestionRepository(
-    private val result: WordSuggestions,
-) : WordSuggestionRepository {
-
-    var receivedRecentWords: List<String> = emptyList()
-        private set
-
-    override suspend fun suggest(recentWords: List<String>): WordSuggestions {
-        receivedRecentWords = recentWords
-        return result
     }
 }
