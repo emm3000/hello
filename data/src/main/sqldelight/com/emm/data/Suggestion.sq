@@ -1,0 +1,28 @@
+-- Re-entering the Suggest screen reads this cache instead of calling the paid backend.
+CREATE TABLE WordSuggestionBatch (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    situation TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+CREATE TABLE SuggestedWordCandidate (
+    position INTEGER NOT NULL PRIMARY KEY,
+    batchId INTEGER NOT NULL REFERENCES WordSuggestionBatch(singletonId) ON DELETE CASCADE,
+    word TEXT NOT NULL,
+    translation TEXT NOT NULL
+);
+
+selectBatch:
+SELECT * FROM WordSuggestionBatch WHERE singletonId = 1;
+
+allCandidates:
+SELECT * FROM SuggestedWordCandidate ORDER BY position;
+
+insertBatch:
+INSERT INTO WordSuggestionBatch (singletonId, situation, createdAt) VALUES (1, ?, ?);
+
+insertCandidate:
+INSERT INTO SuggestedWordCandidate (position, batchId, word, translation) VALUES (?, 1, ?, ?);
+
+clearBatch:
+DELETE FROM WordSuggestionBatch;

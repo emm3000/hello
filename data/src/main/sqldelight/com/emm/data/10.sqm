@@ -1,0 +1,12 @@
+CREATE TABLE WordSuggestionBatch (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    situation TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+CREATE TABLE SuggestedWordCandidate (
+    position INTEGER NOT NULL PRIMARY KEY,
+    batchId INTEGER NOT NULL REFERENCES WordSuggestionBatch(singletonId) ON DELETE CASCADE,
+    word TEXT NOT NULL,
+    translation TEXT NOT NULL
+);
