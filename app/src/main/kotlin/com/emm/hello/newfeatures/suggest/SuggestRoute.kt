@@ -34,7 +34,10 @@ fun SuggestDestination(navigator: Navigator) {
                     }
                 }
                 is SuggestUiEffect.ShowMessage -> {
-                    Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
+                    val message: String = effect.formatArg
+                        ?.let { resources.getString(effect.messageRes, it) }
+                        ?: resources.getString(effect.messageRes)
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
                 SuggestUiEffect.NavigateBack -> navigator.goBack()
             }

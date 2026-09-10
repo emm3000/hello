@@ -5,6 +5,9 @@ import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
+import com.emm.domain.generation.isFreshAt
 import com.emm.domain.ids.DeckId
 import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
 import com.emm.domain.suggestion.SuggestedWord
@@ -16,6 +19,7 @@ import com.emm.domain.validation.IssueCode
 import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
+import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -27,6 +31,7 @@ class SuggestViewModel(
     private val captureFlashcardUseCase: CaptureFlashcardUseCase,
     private val getDecksUseCase: GetDecksUseCase,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+    private val credits: GenerationCreditsRepository,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
     initialState = SuggestUiState(),
 ) {
@@ -46,17 +51,23 @@ class SuggestViewModel(
     }
 
     private fun observeSuggestions() = viewModelScope.launch {
-        combine(observeSuggestedWords(), refresher.status, ::Pair).collect { (pool, status) ->
-            render(pool, status)
-        }
+        combine(observeSuggestedWords(), refresher.status, credits.observe(), ::Triple)
+            .collect { (pool, status, generationCredits) ->
+                render(pool, status, generationCredits)
+            }
     }
 
-    private fun render(pool: WordSuggestions?, status: SuggestionRefreshStatus) {
+    private fun render(
+        pool: WordSuggestions?,
+        status: SuggestionRefreshStatus,
+        generationCredits: GenerationCredits?,
+    ) {
         val words: List<SuggestedWord> = pool?.words.orEmpty()
         val hasWords: Boolean = words.isNotEmpty()
         if (status is SuggestionRefreshStatus.Failed) {
             logError(TAG, "refresh:error ${status.error.message}", status.error)
         }
+        val remaining: Int? = generationCredits?.takeIf { it.isFreshAt(Instant.now()) }?.remaining
         setState {
             copy(
                 isLoading = !hasWords && status.isDecisionPending(),
@@ -67,14 +78,29 @@ class SuggestViewModel(
                 selectedWords = selectedWords.filterTo(mutableSetOf()) { selected ->
                     words.any { it.word == selected }
                 },
+                creditsRemaining = remaining,
             )
         }
     }
 
     private fun toggleWord(word: String) {
-        setState {
-            copy(selectedWords = if (word in selectedWords) selectedWords - word else selectedWords + word)
+        val current: SuggestUiState = currentState
+        if (word in current.selectedWords) {
+            setState { copy(selectedWords = selectedWords - word) }
+            return
         }
+        val remaining: Int? = current.creditsRemaining
+        if (remaining != null && !current.canSelectMore) {
+            sendEffect(dailyCapMessage(remaining))
+            return
+        }
+        setState { copy(selectedWords = selectedWords + word) }
+    }
+
+    private fun dailyCapMessage(remaining: Int): SuggestUiEffect.ShowMessage = when (remaining) {
+        0 -> SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_none)
+        1 -> SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_one)
+        else -> SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_other, remaining.toString())
     }
 
     private fun resolveTargetDeck(decks: List<Deck>): Deck? {

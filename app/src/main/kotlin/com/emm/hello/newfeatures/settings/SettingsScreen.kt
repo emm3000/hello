@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
@@ -38,11 +39,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.account.Account
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.isFreshAt
+import com.emm.domain.generation.resetsAt
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
@@ -61,7 +66,10 @@ import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSwitch
 import com.emm.hello.core.ui.HTimePickerDialog
 import com.emm.hello.core.ui.HTopBar
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val reminderTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -128,6 +136,7 @@ fun SettingsScreen(
                         AccountSection(
                             account = state.account,
                             isLinkingAccount = state.isLinkingAccount,
+                            generationCredits = state.generationCredits,
                             onLinkGoogleAccount = onLinkGoogleAccount,
                         )
                         Spacer(Modifier.height(28.dp))
@@ -271,6 +280,7 @@ private fun reminderSubtitle(isNotificationPermissionGranted: Boolean, reminderT
 private fun AccountSection(
     account: Account?,
     isLinkingAccount: Boolean,
+    generationCredits: GenerationCredits?,
     onLinkGoogleAccount: () -> Unit,
 ) {
     val isLinked: Boolean = account?.isAnonymous == false
@@ -282,15 +292,26 @@ private fun AccountSection(
             color = surface,
             shape = MaterialTheme.helloShapes.control,
         ) {
-            SettingsRow(
-                icon = Icons.Outlined.AccountCircle,
-                title = stringResource(R.string.settings_google_account_title),
-                sub = googleAccountSubtitle(account),
-                isBusy = isLinkingAccount,
-                enabled = !isLinked,
-                onClick = onLinkGoogleAccount,
-                trailing = { if (!isLinked) ChevronTrailing() },
-            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                SettingsRow(
+                    icon = Icons.Outlined.AccountCircle,
+                    title = stringResource(R.string.settings_google_account_title),
+                    sub = googleAccountSubtitle(account),
+                    isBusy = isLinkingAccount,
+                    enabled = !isLinked,
+                    onClick = onLinkGoogleAccount,
+                    trailing = { if (!isLinked) ChevronTrailing() },
+                )
+                HSeparator(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg))
+                SettingsRow(
+                    icon = Icons.Outlined.AutoAwesome,
+                    title = stringResource(R.string.settings_generation_credits_title),
+                    sub = generationCreditsSubtitle(generationCredits),
+                    enabled = false,
+                    onClick = {},
+                    trailing = {},
+                )
+            }
         }
     }
 }
@@ -302,6 +323,23 @@ private fun googleAccountSubtitle(account: Account?): String =
     } else {
         stringResource(R.string.settings_google_account_not_linked)
     }
+
+@Composable
+private fun generationCreditsSubtitle(generationCredits: GenerationCredits?): String {
+    if (generationCredits == null || !generationCredits.isFreshAt(Instant.now())) {
+        return stringResource(R.string.settings_generation_credits_unknown)
+    }
+    val renewsAt: String = LocalDateTime
+        .ofInstant(generationCredits.resetsAt(), ZoneId.systemDefault())
+        .toLocalTime()
+        .format(reminderTimeFormatter)
+    return pluralStringResource(
+        R.plurals.settings_generation_credits_subtitle,
+        generationCredits.remaining,
+        generationCredits.remaining,
+        renewsAt,
+    )
+}
 
 @Composable
 private fun DataSection(

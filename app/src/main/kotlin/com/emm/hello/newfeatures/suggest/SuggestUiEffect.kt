@@ -6,6 +6,6 @@ import com.emm.hello.core.mvi.MviEffect
 sealed interface SuggestUiEffect : MviEffect {
 
     data class EnqueueEnrichment(val flashcardIds: List<String>) : SuggestUiEffect
-    data class ShowMessage(@StringRes val messageRes: Int) : SuggestUiEffect
+    data class ShowMessage(@StringRes val messageRes: Int, val formatArg: String? = null) : SuggestUiEffect
     data object NavigateBack : SuggestUiEffect
 }

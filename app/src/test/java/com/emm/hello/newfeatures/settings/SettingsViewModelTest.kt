@@ -8,6 +8,8 @@ import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.AccountRepository
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
@@ -24,9 +26,13 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import java.time.Instant
 import java.time.LocalTime
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Before
@@ -67,6 +73,7 @@ class SettingsViewModelTest {
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
         accountRepository: AccountRepository = FakeAccountRepository(),
         googleSignInLauncher: GoogleSignInLauncher = FakeGoogleSignInLauncher(),
+        generationCredits: GenerationCreditsRepository = FakeGenerationCreditsRepository(),
         buildInfo: BuildInfo = testBuildInfo,
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
@@ -79,6 +86,7 @@ class SettingsViewModelTest {
         LinkGoogleAccountUseCase(accountRepository),
         googleSignInLauncher,
         GOOGLE_SERVER_CLIENT_ID,
+        generationCredits,
         buildInfo,
     )
 
@@ -300,6 +308,7 @@ class SettingsViewModelTest {
             LinkGoogleAccountUseCase(FakeAccountRepository()),
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
+            FakeGenerationCreditsRepository(),
             testBuildInfo,
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
@@ -386,6 +395,7 @@ class SettingsViewModelTest {
             LinkGoogleAccountUseCase(FakeAccountRepository()),
             FakeGoogleSignInLauncher(),
             GOOGLE_SERVER_CLIENT_ID,
+            FakeGenerationCreditsRepository(),
             testBuildInfo,
         )
 
@@ -558,6 +568,16 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `a recorded generation credits reading reaches the state`() = runTest {
+        val credits = GenerationCredits(remaining = 12, observedAt = Instant.parse("2026-09-10T17:42:00Z"))
+        val viewModel = buildViewModel(generationCredits = FakeGenerationCreditsRepository(credits))
+
+        runCurrent()
+
+        assertThat(viewModel.state.value.generationCredits).isEqualTo(credits)
+    }
+
+    @Test
     fun `the initial state carries the injected build info`() = runTest {
         val viewModel = buildViewModel(buildInfo = testBuildInfo)
 
@@ -678,6 +698,19 @@ private class FakeAccountRepository(
     override suspend fun linkGoogleAccount(idToken: String, rawNonce: String): AccountLinkResult {
         linkCalls = linkCalls + (idToken to rawNonce)
         return linkResult.getOrThrow()
+    }
+}
+
+private class FakeGenerationCreditsRepository(
+    initial: GenerationCredits? = null,
+) : GenerationCreditsRepository {
+
+    private val stored: MutableStateFlow<GenerationCredits?> = MutableStateFlow(initial)
+
+    override fun observe(): Flow<GenerationCredits?> = stored
+
+    override fun record(remaining: Int, observedAt: Instant) {
+        stored.value = GenerationCredits(remaining = remaining, observedAt = observedAt)
     }
 }
 

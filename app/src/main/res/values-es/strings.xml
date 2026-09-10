@@ -283,6 +283,13 @@
     <string name="settings_google_no_credentials">No hay ninguna cuenta de Google en este dispositivo</string>
     <string name="settings_google_link_failed">No pudimos vincular tu cuenta de Google</string>
     <string name="settings_google_link_success">Cuenta de Google vinculada</string>
+    <string name="settings_generation_credits_title">Generaciones de IA</string>
+    <string name="settings_generation_credits_unknown">El conteo aparece después de que crees tu próxima tarjeta</string>
+    <plurals name="settings_generation_credits_subtitle">
+        <item quantity="one">%1$d restante hoy · se renueva a las %2$s</item>
+        <item quantity="many">%1$d de restantes hoy · se renueva a las %2$s</item>
+        <item quantity="other">%1$d restantes hoy · se renueva a las %2$s</item>
+    </plurals>
     <string name="settings_section_about">Acerca de</string>
     <string name="settings_build_title">Compilación</string>
     <string name="settings_build_copied">Copiado</string>
@@ -309,4 +316,12 @@
         <item quantity="many">Agregar %1$d de palabras</item>
         <item quantity="other">Agregar %1$d palabras</item>
     </plurals>
+    <plurals name="suggest_credits_remaining">
+        <item quantity="one">Te queda %1$d generación de IA hoy</item>
+        <item quantity="many">Te quedan %1$d de generaciones de IA hoy</item>
+        <item quantity="other">Te quedan %1$d generaciones de IA hoy</item>
+    </plurals>
+    <string name="suggest_daily_cap_none">Ya usaste tus generaciones de IA de hoy.</string>
+    <string name="suggest_daily_cap_one">Hoy solo puedes agregar 1 palabra.</string>
+    <string name="suggest_daily_cap_other" tools:ignore="PluralsCandidate">Hoy solo puedes agregar %1$s palabras.</string>
 </resources>

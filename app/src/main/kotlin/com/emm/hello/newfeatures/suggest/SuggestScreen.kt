@@ -184,6 +184,10 @@ private fun SuggestLoadedContent(
                 lineHeight = 36.sp,
                 color = ink,
             )
+            val creditsRemaining: Int? = state.creditsRemaining
+            if (state.isCreditsNoticeVisible && creditsRemaining != null) {
+                SuggestCreditsNotice(creditsRemaining = creditsRemaining)
+            }
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -200,6 +204,15 @@ private fun SuggestLoadedContent(
 
         SuggestDock(state = state, onIntent = onIntent)
     }
+}
+
+@Composable
+private fun SuggestCreditsNotice(creditsRemaining: Int) {
+    Text(
+        text = pluralStringResource(R.plurals.suggest_credits_remaining, creditsRemaining, creditsRemaining),
+        style = MaterialTheme.typography.bodySmall,
+        color = inkMuted,
+    )
 }
 
 @Composable

@@ -7,6 +7,8 @@ import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.flashcard.FlashcardRepository
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
@@ -28,7 +30,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -212,6 +216,121 @@ class SuggestViewModelTest {
     }
 
     @Test
+    fun `unknown credits never cap the selection`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(this, cache = threeWordCache())
+        runCurrent()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_C.word))
+
+        assertThat(viewModel.state.value.creditsRemaining).isNull()
+        assertThat(viewModel.state.value.selectedWords)
+            .containsExactly(WORD_A.word, WORD_B.word, WORD_C.word)
+    }
+
+    @Test
+    fun `a third word beyond two remaining credits is refused and announced`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(freshCredits(remaining = 2)),
+        )
+        runCurrent()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+
+        viewModel.effect.test {
+            viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_C.word))
+            assertThat(awaitItem())
+                .isEqualTo(SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_other, "2"))
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(viewModel.state.value.selectedWords).containsExactly(WORD_A.word, WORD_B.word)
+    }
+
+    @Test
+    fun `a word selected with no credits left is refused with the exhausted message`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(freshCredits(remaining = 0)),
+        )
+        runCurrent()
+
+        viewModel.effect.test {
+            viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+            assertThat(awaitItem()).isEqualTo(SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_none))
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(viewModel.state.value.selectedWords).isEmpty()
+    }
+
+    @Test
+    fun `deselecting still works once the daily cap is reached`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(freshCredits(remaining = 2)),
+        )
+        runCurrent()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+
+        assertThat(viewModel.state.value.selectedWords).containsExactly(WORD_A.word)
+        assertThat(viewModel.state.value.canSelectMore).isTrue()
+    }
+
+    @Test
+    fun `a reading from a previous UTC day leaves the credits unknown and caps nothing`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(staleCredits(remaining = 1)),
+        )
+        runCurrent()
+
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_A.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_B.word))
+        viewModel.onIntent(SuggestUiIntent.WordToggled(WORD_C.word))
+
+        assertThat(viewModel.state.value.creditsRemaining).isNull()
+        assertThat(viewModel.state.value.selectedWords)
+            .containsExactly(WORD_A.word, WORD_B.word, WORD_C.word)
+    }
+
+    @Test
+    fun `the credits notice stays hidden while more credits remain than words on offer`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(freshCredits(remaining = 4)),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.words).hasSize(3)
+        assertThat(viewModel.state.value.isCreditsNoticeVisible).isFalse()
+    }
+
+    @Test
+    fun `the credits notice shows once the remaining credits no longer exceed the words on offer`() = runTest {
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = threeWordCache(),
+            credits = FakeGenerationCreditsRepository(freshCredits(remaining = 3)),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.words).hasSize(3)
+        assertThat(viewModel.state.value.isCreditsNoticeVisible).isTrue()
+    }
+
+    @Test
     fun `add selected captures each word with its translation and emits enqueue then message then navigate back`() =
         runTest {
             val captureFlashcardUseCase = mockk<CaptureFlashcardUseCase>()
@@ -361,6 +480,7 @@ class SuggestViewModelTest {
         decks: List<Deck> = listOf(deck()),
         decksFailure: Throwable? = null,
         defaultDeckId: DeckId? = DECK_ID,
+        credits: GenerationCreditsRepository = FakeGenerationCreditsRepository(),
     ): SuggestViewModel {
         val flashcardRepository = mockk<FlashcardRepository>()
         coEvery { flashcardRepository.fetchRecentWords(any()) } returns emptyList()
@@ -391,8 +511,20 @@ class SuggestViewModelTest {
             captureFlashcardUseCase = captureFlashcardUseCase,
             getDecksUseCase = getDecksUseCase,
             defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            credits = credits,
         )
     }
+
+    private fun threeWordCache(): WordSuggestionCache =
+        FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B, WORD_C)))
+
+    private fun freshCredits(remaining: Int): GenerationCredits =
+        GenerationCredits(remaining = remaining, observedAt = Instant.now().truncatedTo(ChronoUnit.DAYS))
+
+    private fun staleCredits(remaining: Int): GenerationCredits = GenerationCredits(
+        remaining = remaining,
+        observedAt = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS),
+    )
 
     private fun duplicateWordException(): DomainValidationException = DomainValidationException(
         issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
@@ -424,6 +556,16 @@ class SuggestViewModelTest {
 
         fun setOnline(value: Boolean) {
             this.online.value = value
+        }
+    }
+
+    private class FakeGenerationCreditsRepository(initial: GenerationCredits? = null) : GenerationCreditsRepository {
+        private val stored: MutableStateFlow<GenerationCredits?> = MutableStateFlow(initial)
+
+        override fun observe(): Flow<GenerationCredits?> = stored
+
+        override fun record(remaining: Int, observedAt: Instant) {
+            stored.value = GenerationCredits(remaining = remaining, observedAt = observedAt)
         }
     }
 

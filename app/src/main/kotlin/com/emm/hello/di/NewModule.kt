@@ -327,7 +327,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { SuggestViewModel(get(), get(), get(), get(), get()) }
+    viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get()) }
     single {
         BuildInfo(
             versionName = BuildConfig.VERSION_NAME,
@@ -347,6 +347,7 @@ fun Module.viewModels() {
             linkGoogleAccountUseCase = get(),
             googleSignInLauncher = get(),
             googleServerClientId = androidContext().getString(R.string.default_web_client_id),
+            generationCredits = get(),
             buildInfo = get(),
         )
     }

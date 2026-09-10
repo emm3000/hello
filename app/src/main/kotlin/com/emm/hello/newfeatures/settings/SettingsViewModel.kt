@@ -10,6 +10,8 @@ import com.emm.domain.account.Account
 import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
+import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
@@ -38,6 +40,7 @@ class SettingsViewModel(
     private val linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
     private val googleSignInLauncher: GoogleSignInLauncher,
     private val googleServerClientId: String,
+    private val generationCredits: GenerationCreditsRepository,
     buildInfo: BuildInfo,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(buildInfo = buildInfo),
@@ -53,6 +56,7 @@ class SettingsViewModel(
             )
         }
         loadAccount()
+        observeGenerationCredits()
     }
 
     override fun onIntent(intent: SettingsUiIntent) {
@@ -82,6 +86,14 @@ class SettingsViewModel(
         viewModelScope.launch {
             val account: Account? = getAccount()
             setState { copy(account = account) }
+        }
+    }
+
+    private fun observeGenerationCredits() {
+        viewModelScope.launch {
+            generationCredits.observe().collect { credits: GenerationCredits? ->
+                setState { copy(generationCredits = credits) }
+            }
         }
     }
 

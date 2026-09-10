@@ -11,6 +11,7 @@ data class SuggestUiState(
     val words: List<SuggestedWord> = emptyList(),
     val selectedWords: Set<String> = emptySet(),
     val isAdding: Boolean = false,
+    val creditsRemaining: Int? = null,
 ) : MviState {
 
     val selectedCount: Int
@@ -18,4 +19,10 @@ data class SuggestUiState(
 
     val canAdd: Boolean
         get() = selectedCount > 0 && !isAdding
+
+    val isCreditsNoticeVisible: Boolean
+        get() = creditsRemaining != null && creditsRemaining <= words.size
+
+    val canSelectMore: Boolean
+        get() = creditsRemaining == null || selectedCount < creditsRemaining
 }

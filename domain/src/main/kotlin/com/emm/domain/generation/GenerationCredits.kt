@@ -11,3 +11,6 @@ data class GenerationCredits(
 fun GenerationCredits.isFreshAt(now: Instant): Boolean {
     return observedAt.truncatedTo(ChronoUnit.DAYS) == now.truncatedTo(ChronoUnit.DAYS)
 }
+
+fun GenerationCredits.resetsAt(): Instant =
+    observedAt.truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS)

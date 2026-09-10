@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.settings
 
 import android.net.Uri
 import com.emm.domain.account.Account
+import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.hello.core.mvi.MviState
 import java.time.LocalTime
@@ -17,5 +18,6 @@ data class SettingsUiState(
     val isNotificationPermissionGranted: Boolean = true,
     val account: Account? = null,
     val isLinkingAccount: Boolean = false,
+    val generationCredits: GenerationCredits? = null,
     val buildInfo: BuildInfo = BuildInfo(versionName = "", versionCode = 0, commit = ""),
 ) : MviState
