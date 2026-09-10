@@ -17,5 +17,7 @@ paths:
 ## Writing the migration
 
 - Additive only: `ALTER TABLE ... ADD COLUMN` appended last, nullable or with a default. Renames and drops go through a new table plus a copy.
+- **The new column goes at the END of `CREATE TABLE` too.** `ADD COLUMN` appends, so a column placed mid-table next to its logical neighbours leaves a fresh install and a migrated install disagreeing on column order. The failure is `verifySqlDelightMigration` reporting `ordinalPosition - CHANGED / BEFORE: 22 / AFTER: 32` — that message means the position, not the type. This is why `promptVersion` and `enrichmentFailureCode` sit at the bottom rather than beside the fields they belong with.
 - Every `N.sqm` has a unit test under `data/src/test/kotlin/com/emm/data/migration/` that builds schema `N` by hand, inserts legacy rows, migrates to `HelloDb.Schema.version` and asserts the rows survive.
 - Migration tests never use `HelloDb.Schema.create`, because that creates the latest schema and skips the migration under test.
+- Prove the migration test is not vacuous before trusting it: set its `oldVersion` constant to the current schema version, so the migration is skipped, and watch both cases fail on the missing column. Restore it afterwards. A migration test that passes without running the migration proves nothing.

@@ -68,15 +68,16 @@ On `Load`, `loadFlashcard()`:
 
 Type sizes, families and color tokens are not repeated here; `FlashcardDetailScreen.kt` and `core/theme/` are the only source for them.
 
-The whole screen is a `Surface` colored with `cardHueFor(flashcard.id.value)`. Inside, a single `Column` with `safeDrawingPadding()` and `MaterialTheme.spacing.screenGutter` horizontal padding holds the top bar and the body. The body is a `Column` inside a `verticalScroll`, blocks spaced by 20.dp. No `HSeparator`, `HSectionLabel`, `HTopBar` or `HCard` is used.
+The whole screen is a `Surface` colored with `cardHueFor(flashcard.id.value)`. Inside, a `Column` with `safeDrawingPadding()` holds `HTopBar` and then an inner `Column` carrying `MaterialTheme.spacing.screenGutter` horizontal padding and 24.dp bottom padding. The top bar sits outside that gutter so its back arrow aligns with every other screen. The body is a `Column` inside a `verticalScroll`, blocks spaced by 20.dp. No `HSeparator`, `HSectionLabel` or `HCard` is used.
 
 | Block | Content | Notes |
 |---|---|---|
-| `DetailTopBar` | `HIconButton` back (`ArrowBack`) · spacer · `HButton` text variant "Edit" (`R.string.edit`) · `HIconButton` `MoreVert` (`R.string.more_options`) opening an `HDropdownMenu` with one destructive `HMenuItem` "Delete" (`R.string.delete`). | Plain `Row`, min height 44.dp; not `HTopBar`. |
+| `HTopBar` | Back arrow, then `actions`: `HButton` text variant "Edit" (`R.string.edit`) and `HIconButton` `MoreVert` (`R.string.more_options`) opening an `HDropdownMenu` with one destructive `HMenuItem` "Delete" (`R.string.delete`). | The shared component; the private `DetailTopBar` it replaced is gone. |
 | `WordBlock` | The word, then `phonetic`. | `phonetic` renders only if non-blank. |
 | Translation | `translation` as a large display line. | Rendered only if non-blank. |
 | `ExampleBlock` | First example (`examples.firstOrNull()`): text with the word underlined via `underlineFirstMatch`, then its translation. | Skipped if there is no example or its `text` is blank; translation only if non-blank. |
 | `ReferenceLine` | `partOfSpeech` and `meaning` joined by ` · `. | Blank parts are dropped; line skipped if nothing remains. |
+| `CapturedInputLine` | `capturedInput` through `R.string.card_detail_captured_input` ("You typed: %1$s"). | Skipped when `capturedInput` is blank or equals `word` ignoring case. Enrichment overwrites `word` but never `capturedInput`, so this is what the user actually typed. |
 | `StatusLine` | `enrichmentStatus`: `PENDING` → "Preparing…" (`R.string.library_status_pending`), `FAILED` → "Failed" (`R.string.library_status_failed`, destructive ink). | `ENRICHED` renders nothing. |
 
 The delete confirmation is an `HAlertDialog` with `isDangerous = true`, title `R.string.delete_flashcard_title` ("Delete card"), description `R.string.delete_flashcard_description`, confirm `R.string.delete`, cancel `R.string.cancel`.
