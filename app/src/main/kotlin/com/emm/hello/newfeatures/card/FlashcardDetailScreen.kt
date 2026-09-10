@@ -3,17 +3,13 @@ package com.emm.hello.newfeatures.card
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -53,6 +49,7 @@ import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HIconButton
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HMenuItem
+import com.emm.hello.core.ui.HTopBar
 import com.emm.hello.core.ui.underlineFirstMatch
 
 @Composable
@@ -70,19 +67,27 @@ fun FlashcardDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(horizontal = MaterialTheme.spacing.screenGutter)
-                .padding(top = 8.dp, bottom = 24.dp),
+                .safeDrawingPadding(),
         ) {
-            DetailTopBar(onIntent = onIntent)
+            HTopBar(
+                onBack = { onIntent(FlashcardDetailUiIntent.BackClicked) },
+                actions = { DetailActions(onIntent = onIntent) },
+            )
 
-            if (state.isLoading) {
-                LoadingBody(modifier = Modifier.weight(1f))
-            } else {
-                CardBody(
-                    flashcard = state.flashcard,
-                    modifier = Modifier.weight(1f),
-                )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = MaterialTheme.spacing.screenGutter)
+                    .padding(bottom = 24.dp),
+            ) {
+                if (state.isLoading) {
+                    LoadingBody(modifier = Modifier.weight(1f))
+                } else {
+                    CardBody(
+                        flashcard = state.flashcard,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
@@ -101,55 +106,36 @@ fun FlashcardDetailScreen(
 }
 
 @Composable
-private fun DetailTopBar(
-    onIntent: (FlashcardDetailUiIntent) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun DetailActions(onIntent: (FlashcardDetailUiIntent) -> Unit) {
     var isMenuExpanded: Boolean by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 44.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    HButton(
+        text = stringResource(R.string.edit),
+        onClick = { onIntent(FlashcardDetailUiIntent.EditFlashcard) },
+        variant = HButtonVariant.Text,
+    )
+
+    Box {
         HIconButton(
-            icon = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = null,
-            onClick = { onIntent(FlashcardDetailUiIntent.BackClicked) },
+            icon = Icons.Default.MoreVert,
+            contentDescription = stringResource(R.string.more_options),
+            onClick = { isMenuExpanded = true },
             buttonSize = 44.dp,
         )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        HButton(
-            text = stringResource(R.string.edit),
-            onClick = { onIntent(FlashcardDetailUiIntent.EditFlashcard) },
-            variant = HButtonVariant.Text,
-        )
-
-        Box {
-            HIconButton(
-                icon = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.more_options),
-                onClick = { isMenuExpanded = true },
-                buttonSize = 44.dp,
-            )
-            HDropdownMenu(
-                expanded = isMenuExpanded,
-                onDismissRequest = { isMenuExpanded = false },
-                items = listOf(
-                    HMenuItem(
-                        label = stringResource(R.string.delete),
-                        onClick = {
-                            isMenuExpanded = false
-                            onIntent(FlashcardDetailUiIntent.DeleteFlashcard)
-                        },
-                        isDestructive = true,
-                    ),
+        HDropdownMenu(
+            expanded = isMenuExpanded,
+            onDismissRequest = { isMenuExpanded = false },
+            items = listOf(
+                HMenuItem(
+                    label = stringResource(R.string.delete),
+                    onClick = {
+                        isMenuExpanded = false
+                        onIntent(FlashcardDetailUiIntent.DeleteFlashcard)
+                    },
+                    isDestructive = true,
                 ),
-            )
-        }
+            ),
+        )
     }
 }
 
