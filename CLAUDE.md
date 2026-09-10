@@ -31,7 +31,7 @@ These bind on every change, including a new file created before any Kotlin has b
 - **Only `core/ui/H*` components** in feature screens. Never raw Material3.
 - **MVI per feature**: one `UiState` (all `val`), one `onIntent(intent)` entry point, effects consumed once and never stored in state.
 - **`:domain` stays JVM-only.** If it needs to reach outward, invert with an interface in `:domain`.
-- **`./gradlew detekt` and `testDebugUnitTest` green** before every commit.
+- **`./gradlew detekt testDebugUnitTest :domain:test` green** before every commit. `:domain` is a JVM module, so `testDebugUnitTest` never reaches it.
 - **Never add `Co-Authored-By`** from Claude, Anthropic or any AI assistant to a commit message. Applies to `git commit`, `--amend`, rebases and any generated message flow.
 
 ## Detailed rules
@@ -119,7 +119,7 @@ Run `git log --oneline origin/main..main` before the unit starts. If local `main
 
 ## Custom slash commands
 
-- `/checks` — `./gradlew detekt` + `testDebugUnitTest`, failures grouped by module.
+- `/checks` — `./gradlew detekt testDebugUnitTest :domain:test`, failures grouped by module.
 - `/feature <Name>` — full MVI scaffold (`UiState` / `UiIntent` / `UiEffect` / `ViewModel` / `Route` / `Screen`).
 - `/agents-review` — review the pending diff against these rules.
 - `/h-component <Name>` — scaffold an `H*` component in `core/ui/`.
