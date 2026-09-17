@@ -208,8 +208,10 @@
     <string name="capture_saved_message">Guardada. La estamos preparando.</string>
     <string name="capture_saved_ready_message">Guardada. Lista para estudiar.</string>
     <string name="capture_retry">Reintentar</string>
-    <string name="capture_manual_toggle_write">Escribirla yo</string>
-    <string name="capture_manual_toggle_ai">Que la escriba la IA</string>
+    <string name="capture_mode_ai_label">La IA la completa</string>
+    <string name="capture_mode_ai_action">Usar IA</string>
+    <string name="capture_mode_manual_label">Lo escribes tú</string>
+    <string name="capture_mode_manual_action">Escribirla yo</string>
     <string name="capture_manual_translation_label">Traducción al español</string>
     <string name="capture_manual_translation_placeholder">p. ej. rendirse</string>
     <string name="capture_manual_meaning_label">Significado en inglés (opcional)</string>

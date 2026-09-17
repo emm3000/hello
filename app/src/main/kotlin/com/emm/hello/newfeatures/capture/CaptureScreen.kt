@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -129,7 +130,7 @@ private fun CaptureContent(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -151,13 +152,7 @@ private fun CaptureContent(
                 )
             }
 
-            HButton(
-                text = stringResource(
-                    if (state.isManual) R.string.capture_manual_toggle_ai else R.string.capture_manual_toggle_write,
-                ),
-                onClick = { onIntent(CaptureUiIntent.ManualModeToggled) },
-                variant = HButtonVariant.Text,
-            )
+            CaptureModeRow(state = state, onIntent = onIntent)
 
             if (state.isManual) {
                 CaptureManualFields(state = state, onIntent = onIntent)
@@ -241,6 +236,42 @@ private fun CaptureDestination(
                 )
             },
         )
+    }
+}
+
+@Composable
+private fun CaptureModeRow(
+    state: CaptureUiState,
+    onIntent: (CaptureUiIntent) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(
+                if (state.isManual) R.string.capture_mode_manual_label else R.string.capture_mode_ai_label,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = inkSoft,
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        HButton(
+            onClick = { onIntent(CaptureUiIntent.ManualModeSelected(!state.isManual)) },
+            variant = HButtonVariant.Text,
+            enabled = !state.isSaving,
+        ) {
+            Text(
+                text = stringResource(
+                    if (state.isManual) R.string.capture_mode_ai_action else R.string.capture_mode_manual_action,
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                textDecoration = TextDecoration.Underline,
+            )
+        }
     }
 }
 

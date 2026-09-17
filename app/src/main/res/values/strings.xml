@@ -203,8 +203,10 @@
     <string name="capture_saved_message">Saved. We\'re preparing it.</string>
     <string name="capture_saved_ready_message">Saved. Ready to study.</string>
     <string name="capture_retry">Retry</string>
-    <string name="capture_manual_toggle_write">Write it myself</string>
-    <string name="capture_manual_toggle_ai">Let AI write it</string>
+    <string name="capture_mode_ai_label">AI completes it</string>
+    <string name="capture_mode_ai_action">Use AI</string>
+    <string name="capture_mode_manual_label">You write it</string>
+    <string name="capture_mode_manual_action">Write it myself</string>
     <string name="capture_manual_translation_label">Spanish translation</string>
     <string name="capture_manual_translation_placeholder">e.g. rendirse</string>
     <string name="capture_manual_meaning_label">Meaning in English (optional)</string>

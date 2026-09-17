@@ -58,7 +58,7 @@ class CaptureViewModel(
     override fun onIntent(intent: CaptureUiIntent) {
         when (intent) {
             is CaptureUiIntent.WordChanged -> setState { copy(word = intent.word) }
-            CaptureUiIntent.ManualModeToggled -> toggleManualMode()
+            is CaptureUiIntent.ManualModeSelected -> selectManualMode(intent.isManual)
             is CaptureUiIntent.TranslationChanged -> setState { copy(translation = intent.translation) }
             is CaptureUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             CaptureUiIntent.Submit -> handleSubmit()
@@ -84,8 +84,8 @@ class CaptureViewModel(
         setState { copy(targetDeck = selected, isDeckPickerOpen = false) }
     }
 
-    private fun toggleManualMode() = setState {
-        if (isManual) copy(isManual = false, translation = "", meaning = "") else copy(isManual = true)
+    private fun selectManualMode(isManual: Boolean) = setState {
+        if (isManual) copy(isManual = true) else copy(isManual = false, translation = "", meaning = "")
     }
 
     private fun handleSubmit() = viewModelScope.launch {

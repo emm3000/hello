@@ -281,7 +281,7 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
         viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
 
         viewModel.effect.test {
@@ -309,7 +309,7 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
 
         assertThat(viewModel.state.value.canSubmit).isFalse()
 
@@ -326,7 +326,7 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
         viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
         viewModel.onIntent(CaptureUiIntent.MeaningChanged("to stop trying"))
         viewModel.onIntent(CaptureUiIntent.Submit)
@@ -349,7 +349,7 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
         viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
 
         viewModel.effect.test {
@@ -366,16 +366,31 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
         viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
         viewModel.onIntent(CaptureUiIntent.MeaningChanged("to stop trying"))
-        viewModel.onIntent(CaptureUiIntent.ManualModeToggled)
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(false))
 
         val state: CaptureUiState = viewModel.state.value
         assertThat(state.isManual).isFalse()
         assertThat(state.translation).isEmpty()
         assertThat(state.meaning).isEmpty()
         assertThat(state.word).isEqualTo("give up")
+    }
+
+    @Test
+    fun `selecting manual mode again keeps the manual fields`() = runTest {
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
+
+        val state: CaptureUiState = viewModel.state.value
+        assertThat(state.isManual).isTrue()
+        assertThat(state.translation).isEqualTo("rendirse")
     }
 
     @Test

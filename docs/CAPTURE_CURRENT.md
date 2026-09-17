@@ -7,15 +7,16 @@
 | Scope | `Capturar` flow (bare-word capture + background enrichment, plus the manual write-it-myself mode) |
 | Source of Truth | No |
 | Read this when | You need to understand how a word enters the app today and what happens to it after Save |
-| Last verified | 2026-09-09 |
+| Last verified | 2026-09-16 |
 
 ## Summary
 
 `Capturar` is the only card-creation path. The user types or dictates one
 English word, taps Save, and the card is written to `HelloDb` immediately with
 `EnrichmentStatus.PENDING` and empty meaning/phonetic. A WorkManager job then
-fills the card in from Firebase AI. A **manual mode** sits behind a toggle under
-the word field: the user writes the Spanish translation (required) and
+fills the card in from Firebase AI. A **manual mode** sits behind the mode row
+under the word field, which names the active mode and offers the other one: the
+user writes the Spanish translation (required) and
 optionally an English meaning, and Save writes the card straight to `HelloDb`
 as `ENRICHED` — no AI, no network, no enrichment job — so it works offline and
 is studiable immediately. The screen never shows a preview, never lets the user
@@ -91,8 +92,9 @@ Two values are computed, not stored:
 
 - `WordChanged(word)` — replaces `word`. Also fired by the speech-to-text
   result, which overwrites the field rather than appending.
-- `ManualModeToggled` — flips `isManual`. Leaving manual mode clears
-  `translation` and `meaning`; `word` is left untouched.
+- `ManualModeSelected(isManual)` — sets `isManual` to the requested value.
+  Selecting AI mode clears `translation` and `meaning`; `word` is left
+  untouched. Selecting the mode that is already active changes nothing.
 - `TranslationChanged(translation)` — replaces `translation`.
 - `MeaningChanged(meaning)` — replaces `meaning`.
 - `Submit` — no-op unless `canSubmit`. Sets `isSaving`, then branches on
@@ -163,14 +165,21 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
 - **Input row** — `HInput` (`HFieldVariant.Underline`, placeholder
   `capture_placeholder`, disabled while `isSaving`) plus a 44 dp `HIconButton`
   mic. The mic icon is `Mic` while listening and `MicNone` otherwise.
-- **Mode toggle** — a text `HButton` directly under the input row, reading
-  `capture_manual_toggle_write` ("Write it myself") in AI mode and
-  `capture_manual_toggle_ai` ("Let AI write it") in manual mode.
+- **Mode row** — always rendered, in both modes and in the same position, with
+  two fixed roles. At the leading edge, a `bodySmall` `inkSoft` caption
+  naming the active mode: `capture_mode_ai_label` ("AI completes it") while
+  `isManual` is false, `capture_mode_manual_label` ("You write it") while it is
+  true. At the trailing edge, a text-variant `HButton` whose label is
+  underlined semibold `labelLarge`, and which switches to the other mode:
+  `capture_mode_manual_action` ("Write it myself") while `isManual` is false,
+  `capture_mode_ai_action` ("Use AI") while it is true. Only the copy inside
+  each role changes; the roles never swap. The action is disabled while
+  `isSaving`.
 - **Manual fields** — rendered only while `isManual`: two underline `HInput`s,
-  the required `capture_manual_translation_label` ("Spanish translation",
-  single line, `ImeAction.Next`) and the optional
-  `capture_manual_meaning_label` ("Meaning in English (optional)", 2 to 4
-  lines). Both are disabled while `isSaving`.
+  the required `capture_manual_translation_label` ("Spanish translation", single line,
+  `ImeAction.Next`) and the optional `capture_manual_meaning_label` ("Meaning
+  in English (optional)", 2 to 4 lines). All of them are disabled while
+  `isSaving`.
 - **Recent list** — rendered only when `recentCaptures` is non-empty: the
   `capture_recent_label` ("Your last:") caption, then one row per capture with
   the word in semibold and the status label at the trailing edge. A `PENDING`
@@ -189,8 +198,9 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,
   `isLoading = isSaving`.
 
-The input, recent list and retry are vertically centered in the space between
-header and Save.
+The input, mode row, recent list and retry are top-anchored in the space
+between header and Save, so entering manual mode grows the block downward
+instead of shifting what is already on screen.
 
 Dictation uses `rememberSpeechToTextManager` with `Locale.US`. Tapping the mic
 stops if listening, starts if `RECORD_AUDIO` is granted, otherwise launches the
