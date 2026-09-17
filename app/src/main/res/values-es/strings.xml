@@ -202,7 +202,7 @@
 
     <!-- Capture -->
     <string name="capture_title">Agregar palabra</string>
-    <string name="capture_placeholder">Escribe una palabra</string>
+    <string name="capture_placeholder">Una palabra</string>
     <string name="capture_mic_content_description">Dictar la palabra</string>
     <string name="capture_save">Guardar</string>
     <string name="capture_saved_message">Guardada. La estamos preparando.</string>
