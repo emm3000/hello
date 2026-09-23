@@ -106,6 +106,19 @@ class GetDashboardStatsUseCaseTest {
     }
 
     @Test
+    fun `due today counts new cards up to the stored daily limit`() = runTest {
+        val twenty: DashboardStats =
+            useCase(FakeStatsRepo(reviewsDue = 0, newCards = 15, firstReviewedInRange = 0), DailyNewCardLimit.TWENTY)()
+        val ten: DashboardStats =
+            useCase(FakeStatsRepo(reviewsDue = 0, newCards = 15, firstReviewedInRange = 0))()
+
+        assertEquals(15, twenty.cardsDueToday)
+        assertEquals(0, twenty.heldBackNewCards)
+        assertEquals(10, ten.cardsDueToday)
+        assertEquals(5, ten.heldBackNewCards)
+    }
+
+    @Test
     fun `the daily allowance is measured over the local calendar day`() = runTest {
         val fakeRepo = FakeStatsRepo(reviewsDue = 1, newCards = 1)
 
@@ -216,7 +229,12 @@ class GetDashboardStatsUseCaseTest {
             reviewTimestamps = listOf(today.atTime(1, 0).atZone(tokyo).toInstant().toEpochMilli()),
         )
 
-        val result: DashboardStats = GetDashboardStatsUseCase(fakeRepo, Clock { nowInTokyo }, tokyo)()
+        val result: DashboardStats = GetDashboardStatsUseCase(
+            fakeRepo,
+            FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
+            Clock { nowInTokyo },
+            tokyo,
+        )()
 
         assertEquals(1, result.currentStreak)
     }
@@ -307,8 +325,11 @@ class GetDashboardStatsUseCaseTest {
         assertNull(result.nextDue)
     }
 
-    private fun useCase(repository: StudyStatsRepository): GetDashboardStatsUseCase {
-        return GetDashboardStatsUseCase(repository, clock, zone)
+    private fun useCase(
+        repository: StudyStatsRepository,
+        limit: DailyNewCardLimit = DailyNewCardLimit.TEN,
+    ): GetDashboardStatsUseCase {
+        return GetDashboardStatsUseCase(repository, FakeDailyNewCardLimitRepository(limit), clock, zone)
     }
 
     private fun reviewAt(date: LocalDate, hour: Int, minute: Int): Long {
@@ -367,5 +388,16 @@ class GetDashboardStatsUseCaseTest {
         }
 
         override suspend fun findReviewTimestampsDescending(): List<Long> = reviewTimestamps
+    }
+
+    private class FakeDailyNewCardLimitRepository(
+        private var limit: DailyNewCardLimit,
+    ) : DailyNewCardLimitRepository {
+
+        override fun get(): DailyNewCardLimit = limit
+
+        override fun set(limit: DailyNewCardLimit) {
+            this.limit = limit
+        }
     }
 }

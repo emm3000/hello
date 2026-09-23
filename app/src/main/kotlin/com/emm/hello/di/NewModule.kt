@@ -22,6 +22,7 @@ import com.emm.data.generation.DefaultGenerationCreditsRepository
 import com.emm.data.suggestion.CannedWordSuggestionRepository
 import com.emm.data.suggestion.DefaultWordSuggestionCache
 import com.emm.data.suggestion.RemoteWordSuggestionRepository
+import com.emm.data.study.DataStoreDailyNewCardLimitRepository
 import com.emm.data.study.DefaultStudyStatsRepository
 import com.emm.data.localfirst.DefaultLocalIdentityInitializer
 import com.emm.data.localfirst.LocalDeviceIdentityProvider
@@ -65,6 +66,7 @@ import com.emm.domain.flashcard.UpdateFlashcardUseCase
 import com.emm.domain.library.LibraryRepository
 import com.emm.domain.library.SearchLibraryUseCase
 import com.emm.domain.study.ObserveFlashcardsWithReviewUseCase
+import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.StudyStatsRepository
@@ -216,6 +218,7 @@ fun Module.repository() {
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
+    factoryOf(::DataStoreDailyNewCardLimitRepository) bind DailyNewCardLimitRepository::class
     single<CuratedDeckCatalog> { BundledCuratedDeckCatalog() }
     single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext(), get()) }
     single<NotificationPermission> { SystemNotificationPermission(androidContext()) }
@@ -268,8 +271,8 @@ fun Module.useCases() {
     factoryOf(::ValidateGeneratedLearningNoteUseCase)
     factoryOf(::ObserveFlashcardsWithReviewUseCase)
     factoryOf(::ScheduleFlashcardReviewUseCase)
-    factory { GetDashboardStatsUseCase(get(), get()) }
-    factory { GetStudySessionUseCase(get(), get(), get()) }
+    factory { GetDashboardStatsUseCase(get(), get(), get()) }
+    factory { GetStudySessionUseCase(get(), get(), get(), get()) }
     factoryOf(::UpdateDeckUseCase)
     factoryOf(::SoftDeleteDeckUseCase)
     factoryOf(::RestoreDeckUseCase)
@@ -343,6 +346,7 @@ fun Module.viewModels() {
             getStudyReminderSettings = get(),
             setStudyReminderEnabled = get(),
             setStudyReminderTime = get(),
+            dailyNewCardLimit = get(),
             notificationPermission = get(),
             getAccount = get(),
             linkGoogleAccountUseCase = get(),

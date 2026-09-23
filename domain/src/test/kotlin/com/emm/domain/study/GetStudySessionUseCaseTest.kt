@@ -67,8 +67,21 @@ class GetStudySessionUseCaseTest {
 
         val result: List<StudyFlashcard> = useCase(sessionRepo, FakeStatsRepo())(null).cards
 
-        assertEquals(3 + DEFAULT_DAILY_NEW_CARD_LIMIT, result.size)
-        assertEquals(DEFAULT_DAILY_NEW_CARD_LIMIT, result.count { it.review.state == FsrsState.NEW })
+        assertEquals(3 + DailyNewCardLimit.DEFAULT.cards, result.size)
+        assertEquals(DailyNewCardLimit.DEFAULT.cards, result.count { it.review.state == FsrsState.NEW })
+    }
+
+    @Test
+    fun `session admits new cards up to the stored daily limit`() = runTest {
+        val twenty: StudySession =
+            useCase(FakeSessionRepo(newCards(25)), FakeStatsRepo(), limit = DailyNewCardLimit.TWENTY)(null)
+        val thirty: StudySession =
+            useCase(FakeSessionRepo(newCards(25)), FakeStatsRepo(), limit = DailyNewCardLimit.THIRTY)(null)
+
+        assertEquals(20, twenty.cards.size)
+        assertEquals(5, twenty.heldBackNewCards)
+        assertEquals(25, thirty.cards.size)
+        assertEquals(0, thirty.heldBackNewCards)
     }
 
     @Test
@@ -205,9 +218,11 @@ class GetStudySessionUseCaseTest {
         sessionRepository: StudySessionRepository,
         statsRepository: StudyStatsRepository,
         random: Random = Random(42),
+        limit: DailyNewCardLimit = DailyNewCardLimit.TEN,
     ): GetStudySessionUseCase = GetStudySessionUseCase(
         studySessionRepository = sessionRepository,
         studyStatsRepository = statsRepository,
+        dailyNewCardLimitRepository = FakeDailyNewCardLimitRepository(limit),
         clock = clock,
         zone = zone,
         random = random,
@@ -293,5 +308,16 @@ class GetStudySessionUseCaseTest {
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = null
 
         override suspend fun findReviewTimestampsDescending(): List<Long> = emptyList()
+    }
+
+    private class FakeDailyNewCardLimitRepository(
+        private var limit: DailyNewCardLimit,
+    ) : DailyNewCardLimitRepository {
+
+        override fun get(): DailyNewCardLimit = limit
+
+        override fun set(limit: DailyNewCardLimit) {
+            this.limit = limit
+        }
     }
 }

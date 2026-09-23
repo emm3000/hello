@@ -279,6 +279,13 @@
     <string name="store_level_c1_plus">C1+</string>
     <string name="settings_section_organization">Organización</string>
     <string name="settings_decks_subtitle">Crea, renombra o borra mazos</string>
+    <string name="settings_section_study">Estudio</string>
+    <string name="settings_new_cards_per_day_title">Tarjetas nuevas por día</string>
+    <plurals name="settings_new_cards_per_day_value">
+        <item quantity="one">%1$d tarjeta</item>
+        <item quantity="many">%1$d de tarjetas</item>
+        <item quantity="other">%1$d tarjetas</item>
+    </plurals>
     <string name="settings_section_reminders">Recordatorios</string>
     <string name="settings_study_reminder_title">Recordatorio diario de estudio</string>
     <string name="settings_study_reminder_subtitle">Todos los días a las %1$s</string>

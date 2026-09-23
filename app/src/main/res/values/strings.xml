@@ -272,6 +272,12 @@
     <string name="store_level_c1_plus">C1+</string>
     <string name="settings_section_organization">Organization</string>
     <string name="settings_decks_subtitle">Create, rename or delete decks</string>
+    <string name="settings_section_study">Study</string>
+    <string name="settings_new_cards_per_day_title">New cards per day</string>
+    <plurals name="settings_new_cards_per_day_value">
+        <item quantity="one">%1$d card</item>
+        <item quantity="other">%1$d cards</item>
+    </plurals>
     <string name="settings_section_reminders">Reminders</string>
     <string name="settings_study_reminder_title">Daily study reminder</string>
     <string name="settings_study_reminder_subtitle">Every day at %1$s</string>

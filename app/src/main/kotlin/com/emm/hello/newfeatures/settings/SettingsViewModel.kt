@@ -17,6 +17,8 @@ import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
 import com.emm.domain.reminder.SetStudyReminderEnabledUseCase
 import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.domain.study.DailyNewCardLimit
+import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.R
 import com.emm.hello.core.auth.GoogleSignInLauncher
@@ -37,6 +39,7 @@ class SettingsViewModel(
     private val getStudyReminderSettings: GetStudyReminderSettingsUseCase,
     private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
     private val setStudyReminderTime: SetStudyReminderTimeUseCase,
+    private val dailyNewCardLimit: DailyNewCardLimitRepository,
     private val notificationPermission: NotificationPermission,
     private val getAccount: GetAccountUseCase,
     private val linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
@@ -51,10 +54,12 @@ class SettingsViewModel(
 
     init {
         val settings: StudyReminderSettings = getStudyReminderSettings()
+        val newCardLimit: DailyNewCardLimit = dailyNewCardLimit.get()
         setState {
             copy(
                 isReminderEnabled = settings.isEnabled,
                 reminderTime = settings.time,
+                dailyNewCardLimit = newCardLimit,
                 isNotificationPermissionGranted = notificationPermission.isGranted(),
             )
         }
@@ -76,6 +81,7 @@ class SettingsViewModel(
             is SettingsUiIntent.EditReminderTime -> setState { copy(isReminderTimePickerVisible = true) }
             is SettingsUiIntent.DismissReminderTimePicker -> setState { copy(isReminderTimePickerVisible = false) }
             is SettingsUiIntent.SetReminderTime -> setReminderTime(intent.time)
+            is SettingsUiIntent.DailyNewCardLimitSelected -> selectDailyNewCardLimit(intent.limit)
             is SettingsUiIntent.NotificationPermissionSettled -> notificationPermissionSettled()
             is SettingsUiIntent.RefreshNotificationPermission -> refreshNotificationPermission()
             is SettingsUiIntent.OpenNotificationSettings -> sendEffect(SettingsUiEffect.OpenNotificationSettings)
@@ -180,6 +186,11 @@ class SettingsViewModel(
     private fun setReminderTime(time: LocalTime) {
         setStudyReminderTime(time)
         setState { copy(reminderTime = time, isReminderTimePickerVisible = false) }
+    }
+
+    private fun selectDailyNewCardLimit(limit: DailyNewCardLimit) {
+        dailyNewCardLimit.set(limit)
+        setState { copy(dailyNewCardLimit = limit) }
     }
 
     private fun exportToUri(uri: Uri) {

@@ -17,6 +17,8 @@ import com.emm.domain.reminder.StudyReminderScheduler
 import com.emm.domain.reminder.StudyReminderSettings
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
+import com.emm.domain.study.DailyNewCardLimit
+import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
@@ -78,12 +80,14 @@ class SettingsViewModelTest {
         generationCredits: GenerationCreditsRepository = FakeGenerationCreditsRepository(),
         clock: Clock = Clock { testNow },
         buildInfo: BuildInfo = testBuildInfo,
+        dailyNewCardLimit: DailyNewCardLimitRepository = FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
         importDataSource,
         getStudyReminderSettings,
         setStudyReminderEnabled,
         setStudyReminderTime,
+        dailyNewCardLimit,
         notificationPermission,
         GetAccountUseCase(accountRepository),
         LinkGoogleAccountUseCase(accountRepository),
@@ -307,6 +311,7 @@ class SettingsViewModelTest {
             GetStudyReminderSettingsUseCase(repository),
             SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
             SetStudyReminderTimeUseCase(repository, syncStudyReminder),
+            FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
             FakeNotificationPermission(),
             GetAccountUseCase(FakeAccountRepository()),
             LinkGoogleAccountUseCase(FakeAccountRepository()),
@@ -395,6 +400,7 @@ class SettingsViewModelTest {
             GetStudyReminderSettingsUseCase(repository),
             SetStudyReminderEnabledUseCase(repository, syncStudyReminder),
             SetStudyReminderTimeUseCase(repository, syncStudyReminder),
+            FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
             notificationPermission,
             GetAccountUseCase(FakeAccountRepository()),
             LinkGoogleAccountUseCase(FakeAccountRepository()),
@@ -612,6 +618,26 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `init loads the stored daily new card limit`() = runTest {
+        val viewModel = buildViewModel(
+            dailyNewCardLimit = FakeDailyNewCardLimitRepository(DailyNewCardLimit.THIRTY),
+        )
+
+        assertThat(viewModel.state.value.dailyNewCardLimit).isEqualTo(DailyNewCardLimit.THIRTY)
+    }
+
+    @Test
+    fun `DailyNewCardLimitSelected persists and updates state`() = runTest {
+        val repository = FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN)
+        val viewModel = buildViewModel(dailyNewCardLimit = repository)
+
+        viewModel.onIntent(SettingsUiIntent.DailyNewCardLimitSelected(DailyNewCardLimit.TWENTY))
+
+        assertThat(repository.get()).isEqualTo(DailyNewCardLimit.TWENTY)
+        assertThat(viewModel.state.value.dailyNewCardLimit).isEqualTo(DailyNewCardLimit.TWENTY)
+    }
+
+    @Test
     fun `disabling the reminder never asks for the permission`() = runTest {
         val notificationPermission = FakeNotificationPermission(granted = false)
         val viewModel = buildViewModel(notificationPermission = notificationPermission)
@@ -674,6 +700,17 @@ private class FakeStudyReminderSettingsRepository(
     override fun setTime(time: LocalTime) {
         settings = settings.copy(time = time)
         setTimeCalls = setTimeCalls + time
+    }
+}
+
+private class FakeDailyNewCardLimitRepository(
+    private var limit: DailyNewCardLimit,
+) : DailyNewCardLimitRepository {
+
+    override fun get(): DailyNewCardLimit = limit
+
+    override fun set(limit: DailyNewCardLimit) {
+        this.limit = limit
     }
 }
 

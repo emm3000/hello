@@ -26,7 +26,8 @@ The study session shows every due flashcard exactly once. Each `StudyFlashcard` 
 - `app/src/main/kotlin/com/emm/hello/newfeatures/study/CardFace.kt`
 - `domain/src/main/kotlin/com/emm/domain/study/GetStudySessionUseCase.kt` (ordering, the new-card budget, `StudySession`)
 - `domain/src/main/kotlin/com/emm/domain/study/StudySession.kt` (`cards` + `heldBackNewCards`)
-- `domain/src/main/kotlin/com/emm/domain/study/NewCardBudget.kt` (`DEFAULT_DAILY_NEW_CARD_LIMIT`, `EXTRA_NEW_CARDS_PER_REQUEST`, `extendedBy`)
+- `domain/src/main/kotlin/com/emm/domain/study/NewCardBudget.kt` (`EXTRA_NEW_CARDS_PER_REQUEST`, `extendedBy`)
+- `domain/src/main/kotlin/com/emm/domain/study/DailyNewCardLimit.kt` (`TEN` / `TWENTY` / `THIRTY`, `DEFAULT = TEN`) and `DailyNewCardLimitRepository.kt` (port, implemented by `DataStoreDailyNewCardLimitRepository` in `:data`)
 - `domain/src/main/kotlin/com/emm/domain/study/ScheduleFlashcardReviewUseCase.kt` (graduation rule)
 - `app/src/main/kotlin/com/emm/hello/core/ui/HSpeakerButton.kt` (shared play/stop button, also used by `Card Detail`; replaces the former private `TtsFloatingButton`)
 - `app/src/main/kotlin/com/emm/hello/core/audio/AudioState.kt` (moved out of `newfeatures/study/`; holds `speakingUtteranceId: String?` + `isTtsReady: Boolean`, exposes `isSpeaking(utteranceId)`)
@@ -83,7 +84,7 @@ Once set, `productionSince` is never cleared: a graduated card is asked in produ
 `loadSession(extraNewCards: Int = 0)` (called from `init` and by `RetryLoad` with `0`, and by `StudyMoreClicked` with `EXTRA_NEW_CARDS_PER_REQUEST`):
 
 - clears the queue and sets `isLoading = true`, `loadError = null`, `reviewedCount = 0`, `knewCount = 0`, `forgotCount = 0`, `sessionFinished = false`, `moreNewCards = 0`
-- fetches via `GetStudySessionUseCase(deckId?.toDeckId(), extraNewCards)`, which reads `sessionTodayAllDecks()` when the target is `null` and `sessionToday(deckId)` otherwise, then orders and caps the result: due reviews first, never-reviewed (`FsrsState.NEW`) cards last, shuffled within each group, with at most `DEFAULT_DAILY_NEW_CARD_LIMIT` (10) new cards per local calendar day. "Introduced today" is the number of distinct cards whose earliest `ReviewEvent` falls in today's `DayRange`; `NewCardBudget` turns it into the remaining allowance. The same budget drives Today's `cardsDueToday`, so the count on Today equals the session length.
+- fetches via `GetStudySessionUseCase(deckId?.toDeckId(), extraNewCards)`, which reads `sessionTodayAllDecks()` when the target is `null` and `sessionToday(deckId)` otherwise, then orders and caps the result: due reviews first, never-reviewed (`FsrsState.NEW`) cards last, shuffled within each group, with at most the stored `DailyNewCardLimit` new cards per local calendar day. The limit is 10, 20 or 30, chosen in Settings and 10 by default; `GetStudySessionUseCase` reads it from `DailyNewCardLimitRepository` on every load and passes its `cards` to `NewCardBudget` as `dailyLimit`, and `extraNewCards` still extends it (see "Extending the daily allowance"). "Introduced today" is the number of distinct cards whose earliest `ReviewEvent` falls in today's `DayRange`; `NewCardBudget` turns it into the remaining allowance. The same budget drives Today's `cardsDueToday`, so the count on Today equals the session length.
 - returns a `StudySession`, not a bare list: `cards` is the ordered queue, `heldBackNewCards` is how many due `NEW` cards the budget refused
 - maps each `StudyFlashcard` in `session.cards` to one `StudySessionItem` and queues them in an `ArrayDeque`
 - sets `totalCount` to the number of cards and `moreNewCards` to `minOf(session.heldBackNewCards, EXTRA_NEW_CARDS_PER_REQUEST)`
@@ -94,7 +95,7 @@ Due reviews are never held back or capped: the budget only gates `NEW` cards, so
 
 ### Extending the daily allowance
 
-`NewCardBudget.extendedBy(extra)` returns `copy(dailyLimit = introducedToday + extra)`, so the extended budget has `remaining == extra` no matter how many cards today already introduced — including an overspent day. `extra` must be non-negative. `GetStudySessionUseCase` extends the budget only when `extraNewCards > 0`, so the default call keeps the plain daily limit.
+`NewCardBudget.extendedBy(extra)` returns `copy(dailyLimit = introducedToday + extra)`, so the extended budget has `remaining == extra` no matter how many cards today already introduced — including an overspent day. `extra` must be non-negative. `GetStudySessionUseCase` extends the budget only when `extraNewCards > 0`, so the default call keeps the stored daily limit.
 
 `StudyMoreClicked` reloads with `EXTRA_NEW_CARDS_PER_REQUEST` (10), so each press admits at most 10 more never-reviewed cards and can be pressed again while cards remain held back. When fewer than 10 are held back the extension still asks for 10, and the budget admits only what exists — which is why the label reads `moreNewCards`, not the constant: with 1 card held back the button says "Study 1 more" and the reloaded session is exactly `1 / 1`. The reload is a full `loadSession`, so it also resets the tallies and `sessionFinished` for the fresh batch.
 

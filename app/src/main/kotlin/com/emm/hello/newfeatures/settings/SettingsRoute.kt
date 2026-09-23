@@ -122,6 +122,7 @@ fun SettingsDestination(navigator: Navigator) {
         onEditReminderTime = { vm.onIntent(SettingsUiIntent.EditReminderTime) },
         onReminderTimeChange = { vm.onIntent(SettingsUiIntent.SetReminderTime(it)) },
         onDismissReminderTimePicker = { vm.onIntent(SettingsUiIntent.DismissReminderTimePicker) },
+        onDailyNewCardLimitSelected = { vm.onIntent(SettingsUiIntent.DailyNewCardLimitSelected(it)) },
         onOpenNotificationSettings = { vm.onIntent(SettingsUiIntent.OpenNotificationSettings) },
         onLinkGoogleAccount = { vm.onIntent(SettingsUiIntent.LinkGoogleAccount) },
         onCopyBuildInfo = { vm.onIntent(SettingsUiIntent.CopyBuildInfo) },

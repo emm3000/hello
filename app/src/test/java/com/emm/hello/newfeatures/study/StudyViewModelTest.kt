@@ -10,7 +10,8 @@ import com.emm.domain.generation.StudyCardType
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
-import com.emm.domain.study.DEFAULT_DAILY_NEW_CARD_LIMIT
+import com.emm.domain.study.DailyNewCardLimit
+import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
@@ -418,7 +419,7 @@ class StudyViewModelTest {
     fun `a load that held more than one batch back offers exactly one batch`() = runTest {
         val viewModel = makeViewModel(
             cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
-            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards),
         )
         advanceUntilIdle()
 
@@ -430,7 +431,7 @@ class StudyViewModelTest {
     fun `a load that held a single card back offers exactly that card`() = runTest {
         val viewModel = makeViewModel(
             cards = listOf(studyFlashcard("a")),
-            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards),
         )
         advanceUntilIdle()
 
@@ -451,7 +452,7 @@ class StudyViewModelTest {
     fun `study more clicked introduces one extra batch of new cards`() = runTest {
         val viewModel = makeViewModel(
             cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
-            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards),
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.totalCount).isEqualTo(0)
@@ -471,7 +472,7 @@ class StudyViewModelTest {
     fun `study more clicked resets the tallies of the finished session`() = runTest {
         val viewModel = makeViewModel(
             cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
-            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT - 1),
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards - 1),
         )
         advanceUntilIdle()
         viewModel.onIntent(
@@ -498,7 +499,7 @@ class StudyViewModelTest {
     fun `a route carrying an extra batch loads it on the very first session`() = runTest {
         val viewModel = makeViewModel(
             cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
-            statsRepo = FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT),
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards),
             extraNewCards = EXTRA_NEW_CARDS_PER_REQUEST,
         )
         advanceUntilIdle()
@@ -517,7 +518,7 @@ class StudyViewModelTest {
         val viewModel = StudyViewModel(
             deckId = "deck-1",
             extraNewCards = EXTRA_NEW_CARDS_PER_REQUEST,
-            getStudySessionUseCase = useCase(repo, FakeStatsRepo(introducedToday = DEFAULT_DAILY_NEW_CARD_LIMIT)),
+            getStudySessionUseCase = useCase(repo, FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards)),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
         )
@@ -590,6 +591,7 @@ class StudyViewModelTest {
         GetStudySessionUseCase(
             studySessionRepository = sessionRepository,
             studyStatsRepository = statsRepository,
+            dailyNewCardLimitRepository = FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
             clock = fixedClock,
             zone = ZoneOffset.UTC,
             random = Random(SESSION_SEED),
@@ -693,6 +695,17 @@ class StudyViewModelTest {
         override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = 0
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = null
         override suspend fun findReviewTimestampsDescending(): List<Long> = emptyList()
+    }
+
+    private class FakeDailyNewCardLimitRepository(
+        private var limit: DailyNewCardLimit,
+    ) : DailyNewCardLimitRepository {
+
+        override fun get(): DailyNewCardLimit = limit
+
+        override fun set(limit: DailyNewCardLimit) {
+            this.limit = limit
+        }
     }
 }
 

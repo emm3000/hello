@@ -15,6 +15,7 @@ private data class DueTodayCount(
 
 class GetDashboardStatsUseCase(
     private val repository: StudyStatsRepository,
+    private val dailyNewCardLimitRepository: DailyNewCardLimitRepository,
     private val clock: Clock,
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) {
@@ -44,6 +45,7 @@ class GetDashboardStatsUseCase(
                 start = today.start,
                 endExclusive = today.endExclusive,
             ),
+            dailyLimit = dailyNewCardLimitRepository.get().cards,
         )
         val newCards: Int = repository.countNewCards()
         val admitted: Int = budget.allow(newCards)

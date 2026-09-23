@@ -11,6 +11,7 @@ import kotlin.random.Random
 class GetStudySessionUseCase(
     private val studySessionRepository: StudySessionRepository,
     private val studyStatsRepository: StudyStatsRepository,
+    private val dailyNewCardLimitRepository: DailyNewCardLimitRepository,
     private val clock: Clock,
     private val zone: ZoneId = ZoneId.systemDefault(),
     private val random: Random = Random.Default,
@@ -31,7 +32,10 @@ class GetStudySessionUseCase(
     }
 
     private suspend fun budgetFor(extraNewCards: Int): NewCardBudget {
-        val budget = NewCardBudget(introducedToday = countIntroducedToday())
+        val budget = NewCardBudget(
+            introducedToday = countIntroducedToday(),
+            dailyLimit = dailyNewCardLimitRepository.get().cards,
+        )
         return if (extraNewCards > 0) budget.extendedBy(extraNewCards) else budget
     }
 

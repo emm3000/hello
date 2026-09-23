@@ -4,6 +4,7 @@ import android.net.Uri
 import com.emm.domain.account.Account
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.domain.study.DailyNewCardLimit
 import com.emm.hello.core.mvi.MviState
 import java.time.LocalTime
 
@@ -14,6 +15,7 @@ data class SettingsUiState(
     val pendingImportUri: Uri? = null,
     val isReminderEnabled: Boolean = true,
     val reminderTime: LocalTime = StudyReminderSettings.DEFAULT_TIME,
+    val dailyNewCardLimit: DailyNewCardLimit = DailyNewCardLimit.DEFAULT,
     val isReminderTimePickerVisible: Boolean = false,
     val isNotificationPermissionGranted: Boolean = true,
     val account: Account? = null,

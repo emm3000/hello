@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +36,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +50,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.emm.domain.account.Account
 import com.emm.domain.generation.GenerationCredits
+import com.emm.domain.study.DailyNewCardLimit
 import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
@@ -58,7 +63,9 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HLoadingSpinner
+import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSectionLabel
 import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSwitch
@@ -86,6 +93,7 @@ fun SettingsScreen(
     onEditReminderTime: () -> Unit = {},
     onReminderTimeChange: (LocalTime) -> Unit = {},
     onDismissReminderTimePicker: () -> Unit = {},
+    onDailyNewCardLimitSelected: (DailyNewCardLimit) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onLinkGoogleAccount: () -> Unit = {},
     onCopyBuildInfo: () -> Unit = {},
@@ -116,6 +124,13 @@ fun SettingsScreen(
                     }
                     item {
                         OrganizationSection(onDecks = onDecks)
+                        Spacer(Modifier.height(28.dp))
+                    }
+                    item {
+                        StudySection(
+                            dailyNewCardLimit = state.dailyNewCardLimit,
+                            onDailyNewCardLimitSelected = onDailyNewCardLimitSelected,
+                        )
                         Spacer(Modifier.height(28.dp))
                     }
                     item {
@@ -233,6 +248,49 @@ private fun OrganizationSection(onDecks: () -> Unit) {
         }
     }
 }
+
+@Composable
+private fun StudySection(
+    dailyNewCardLimit: DailyNewCardLimit,
+    onDailyNewCardLimitSelected: (DailyNewCardLimit) -> Unit,
+) {
+    var isLimitMenuExpanded: Boolean by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(stringResource(R.string.settings_section_study))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = surface,
+            shape = MaterialTheme.helloShapes.control,
+        ) {
+            Box {
+                SettingsRow(
+                    icon = Icons.Outlined.School,
+                    title = stringResource(R.string.settings_new_cards_per_day_title),
+                    sub = newCardsPerDayLabel(dailyNewCardLimit),
+                    onClick = { isLimitMenuExpanded = true },
+                )
+                HDropdownMenu(
+                    expanded = isLimitMenuExpanded,
+                    onDismissRequest = { isLimitMenuExpanded = false },
+                    items = DailyNewCardLimit.entries.map { limit ->
+                        HMenuItem(
+                            label = newCardsPerDayLabel(limit),
+                            onClick = {
+                                isLimitMenuExpanded = false
+                                onDailyNewCardLimitSelected(limit)
+                            },
+                        )
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun newCardsPerDayLabel(limit: DailyNewCardLimit): String =
+    pluralStringResource(R.plurals.settings_new_cards_per_day_value, limit.cards, limit.cards)
 
 @Composable
 private fun RemindersSection(

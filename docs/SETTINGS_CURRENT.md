@@ -4,7 +4,7 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Settings` flow (backup export/import, daily study reminder, Google account linking) |
+| Scope | `Settings` flow (backup export/import, new cards per day, daily study reminder, Google account linking) |
 | Source of Truth | No |
 | Read this when | You need to understand exporting/importing local data, the daily study reminder, or linking a Google account |
 | Last verified | 2026-09-07 |
@@ -13,7 +13,7 @@
 
 `Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF), and configure the daily study reminder (on/off, time). It's the only feature that interacts with OS `Uri`s. Enabling the reminder also gates the `POST_NOTIFICATIONS` runtime permission (Android 13+): turning it on requests the permission if not already granted, and a blocked state is surfaced directly on the reminder row. It also lets you link the local, lazily-created anonymous Supabase account to a Google account, so AI credits and study history survive a reinstall.
 
-Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a row for linking a Google account and an inert row showing the remaining AI generations; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
+Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Study" section with a single row for the number of new cards per day; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a row for linking a Google account and an inert row showing the remaining AI generations; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
 
 ## Key files
 
@@ -45,6 +45,7 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `com.emm.domain.account.LinkGoogleAccountUseCase`
 - `com.emm.domain.account.AccountRepository` (interface), implemented by `com.emm.data.remote.SupabaseAccountRepository`
 - `com.emm.domain.generation.GenerationCreditsRepository` (interface), implemented by `com.emm.data.generation.DefaultGenerationCreditsRepository`
+- `com.emm.domain.study.DailyNewCardLimitRepository` (interface), implemented by `com.emm.data.study.DataStoreDailyNewCardLimitRepository`
 - `com.emm.domain.time.Clock`
 
 ## State
@@ -57,6 +58,7 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `pendingImportUri: Uri?`
 - `isReminderEnabled: Boolean` — default `true`
 - `reminderTime: LocalTime` — default `StudyReminderSettings.DEFAULT_TIME` (19:00)
+- `dailyNewCardLimit: DailyNewCardLimit` — default `DailyNewCardLimit.DEFAULT` (10); overwritten in `init` with `DailyNewCardLimitRepository.get()` — see "New cards per day"
 - `isReminderTimePickerVisible: Boolean`
 - `isNotificationPermissionGranted: Boolean` — default `true`; overwritten in `init` with `NotificationPermission.isGranted()`
 - `account: Account?` — default `null`; loaded asynchronously in `init` — see "Account flow"
@@ -78,6 +80,7 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `EditReminderTime` → shows the time picker dialog
 - `DismissReminderTimePicker` → hides it without saving
 - `SetReminderTime(time)` → persists the time, syncs the scheduler, and hides the dialog
+- `DailyNewCardLimitSelected(limit)` → persists the limit through `DailyNewCardLimitRepository.set(limit)` and updates `dailyNewCardLimit` — see "New cards per day"
 - `NotificationPermissionSettled` → re-reads `NotificationPermission.isGranted()` after the system permission dialog closes; if granted, also enables and persists the reminder
 - `RefreshNotificationPermission` → re-reads `NotificationPermission.isGranted()` and updates state; sent by the `Route` on `ON_RESUME`
 - `OpenNotificationSettings` → emits `OpenNotificationSettings`
@@ -107,9 +110,17 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
      - then `isImporting = false`, `pendingImportUri = null`
    - `CancelImport` → clears `pendingImportUri` and closes the dialog
 
+## New cards per day
+
+A "Study" section sits between "Organization" and "Reminders": one row with a `School` icon, title "New cards per day" (`settings_new_cards_per_day_title`) and the current limit as its subtitle ("10 cards", plural `settings_new_cards_per_day_value`). Tapping the row opens an `HDropdownMenu` anchored to the row with three items, 10, 20 and 30 cards, one per `DailyNewCardLimit` entry. Picking one closes the menu and sends `DailyNewCardLimitSelected(limit)`; dismissing it sends nothing. Whether the menu is open is local `remember` state in `StudySection`, not part of `SettingsUiState`.
+
+`DailyNewCardLimit` (`:domain`) is an enum of `TEN`, `TWENTY` and `THIRTY`, with `DEFAULT = TEN`. `DataStoreDailyNewCardLimitRepository` (`:data`) stores the card count as an `Int` in `SharedPreferences` through the `DataStore` wrapper (`DAILY_NEW_CARD_LIMIT`, default 10) and maps it back with `DailyNewCardLimit.fromCards`; a stored value that matches no entry reads back as the default.
+
+`SettingsViewModel.init` reads the stored limit and seeds `dailyNewCardLimit` before the screen is shown. `GetStudySessionUseCase` and `GetDashboardStatsUseCase` both call `DailyNewCardLimitRepository.get()` on every load and pass its `cards` to `NewCardBudget` as the daily limit, so a new choice applies to the next Today refresh and the next study session without a restart.
+
 ## Reminder flow
 
-A "Reminders" section sits between "Organization" and "Your data": one row with a bell icon, title "Daily study reminder", a trailing `HSwitch`, and a subtitle that depends on `isNotificationPermissionGranted`:
+A "Reminders" section sits between "Study" and "Account": one row with a bell icon, title "Daily study reminder", a trailing `HSwitch`, and a subtitle that depends on `isNotificationPermissionGranted`:
 
 - **Granted:** subtitle "Every day at HH:mm" (the current `reminderTime`, 24h format), muted tone. Tapping the row (outside the switch) opens `HTimePickerDialog`.
 - **Blocked:** subtitle `settings_notifications_blocked` ("Notifications are blocked. Tap to allow them in system settings."), rendered in `destructiveInk`. Tapping the row calls `OpenNotificationSettings` instead of opening the time picker.

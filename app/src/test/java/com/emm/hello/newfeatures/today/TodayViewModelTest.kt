@@ -1,6 +1,8 @@
 package com.emm.hello.newfeatures.today
 
 import app.cash.turbine.test
+import com.emm.domain.study.DailyNewCardLimit
+import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.study.DashboardStats
 import com.emm.domain.study.EXTRA_NEW_CARDS_PER_REQUEST
 import com.emm.domain.study.GetDashboardStatsUseCase
@@ -48,6 +50,7 @@ class TodayViewModelTest {
                 cardsDueThisWeek = 12,
                 reviewDates = reviewDates,
             ),
+            FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
             Clock { fixedNow },
         )
         val viewModel = makeViewModel(statsUseCase = statsUseCase)
@@ -147,6 +150,7 @@ class TodayViewModelTest {
 
     private fun makeDefaultStatsUseCase(): GetDashboardStatsUseCase = GetDashboardStatsUseCase(
         FakeStatsRepo(0, 0, 0, emptyList()),
+        FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
         Clock { Instant.parse("2026-05-04T12:00:00Z") },
     )
 
@@ -166,5 +170,16 @@ class TodayViewModelTest {
         override suspend fun countCardsDueInRange(startMillis: Long, endMillis: Long): Int = cardsDueInRange
         override suspend fun findNextReviewAtAfter(millis: Long): Long? = nextReviewAt
         override suspend fun findReviewTimestampsDescending(): List<Long> = reviewDates
+    }
+
+    private class FakeDailyNewCardLimitRepository(
+        private var limit: DailyNewCardLimit,
+    ) : DailyNewCardLimitRepository {
+
+        override fun get(): DailyNewCardLimit = limit
+
+        override fun set(limit: DailyNewCardLimit) {
+            this.limit = limit
+        }
     }
 }

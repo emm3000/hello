@@ -1,11 +1,10 @@
 package com.emm.domain.study
 
-const val DEFAULT_DAILY_NEW_CARD_LIMIT: Int = 10
 const val EXTRA_NEW_CARDS_PER_REQUEST: Int = 10
 
 data class NewCardBudget(
     val introducedToday: Int,
-    val dailyLimit: Int = DEFAULT_DAILY_NEW_CARD_LIMIT,
+    val dailyLimit: Int,
 ) {
 
     init {

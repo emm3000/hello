@@ -3,6 +3,7 @@ package com.emm.data.remote
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.emm.domain.reminder.StudyReminderSettings
+import com.emm.domain.study.DailyNewCardLimit
 
 private const val KEY_DEFAULT_DECK = "DEFAULT_DECK"
 private const val KEY_SEEN_ONBOARDING = "HAS_SEEN_ONBOARDING"
@@ -10,6 +11,7 @@ private const val KEY_SEEDED_STARTER_DECK = "HAS_SEEDED_STARTER_DECK"
 private const val KEY_STUDY_REMINDER_ENABLED = "STUDY_REMINDER_ENABLED"
 private const val KEY_STUDY_REMINDER_HOUR = "STUDY_REMINDER_HOUR"
 private const val KEY_STUDY_REMINDER_MINUTE = "STUDY_REMINDER_MINUTE"
+private const val KEY_DAILY_NEW_CARD_LIMIT = "DAILY_NEW_CARD_LIMIT"
 private const val KEY_GENERATION_CREDITS_REMAINING = "GENERATION_CREDITS_REMAINING"
 private const val KEY_GENERATION_CREDITS_RESET_AT = "GENERATION_CREDITS_RESET_AT"
 
@@ -60,6 +62,12 @@ class DataStore(
         get() = sharedPreferences.getInt(KEY_STUDY_REMINDER_MINUTE, StudyReminderSettings.DEFAULT_TIME.minute)
         set(value) {
             sharedPreferences.edit { putInt(KEY_STUDY_REMINDER_MINUTE, value) }
+        }
+
+    var dailyNewCardLimit: Int
+        get() = sharedPreferences.getInt(KEY_DAILY_NEW_CARD_LIMIT, DailyNewCardLimit.DEFAULT.cards)
+        set(value) {
+            sharedPreferences.edit { putInt(KEY_DAILY_NEW_CARD_LIMIT, value) }
         }
 
     var generationCredits: StoredGenerationCredits?
