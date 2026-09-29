@@ -62,10 +62,10 @@ Every change is a **work unit**: a scope, a falsifier and a topology, all three 
 **Loop.** One work unit at a time under rules 1–8. Roles do not move between units:
 
 - This thread decides, writes the spec, verifies the artifact, runs git. It never writes non-trivial code.
-- A writer on **opus** receives the full spec and returns `git status --short` as proof of work.
-- An explorer, a device check or a mechanical task runs on **sonnet** and returns text.
+- The `writer` agent receives the full spec and returns `git status --short` as proof of work.
+- The `explorer` and `device-check` agents return text. A mechanical task needs no agent.
 
-**Close.** Gate green, conventional commit, no AI trailer. Push only when the owner says so. Write the session to memory with a resume list before reporting done.
+**Close.** Gate green, conventional commit, no AI trailer. Push only when the owner says so. Update the open-items memory before reporting done; the finished session log goes to the memory archive.
 
 ### 1. Declare the falsifier before delegating
 
@@ -86,14 +86,16 @@ A visual falsifier has a failure mode of its own: the measurement. `adb shell in
 
 ### 2. Pick the cheapest actor whose output can be verified
 
-| Work | Actor | Model |
+| Work | Actor | Model, effort |
 |---|---|---|
 | Decisions, verification, git | This thread. Never delegated. | — |
-| 2+ files with the decisions already made | One writer, full spec in the prompt | opus |
-| Understanding spread across 4+ files | One read-only explorer that returns a map, not file dumps | sonnet |
+| 2+ files with the decisions already made | `writer`, full spec in the prompt | opus, medium |
+| Understanding spread across 4+ files | `explorer`, returns a map, not file dumps | sonnet, medium |
 | Mechanical substitution | `sd` and `rg`. No model at all. | — |
-| Device or visual check | One agent that drives `adb` and returns text. Screenshots never enter this thread. | sonnet |
+| Device or visual check | `device-check`, drives `adb` and returns text. Screenshots never enter this thread. | sonnet, medium |
 | UI change ready to verify | Ask once, one line: "¿Instalo en medium_phone?". Then `installDebug` in the background. | — |
+
+Model and effort live in `.claude/agents/*.md`. Call an agent by `subagent_type` without a `model` parameter: the call's parameter overrides the file, and effort cannot be set from the prompt at all.
 
 "No model" is a first-class answer. Where a deterministic tool applies, it beats a probabilistic one on both cost and correctness.
 
