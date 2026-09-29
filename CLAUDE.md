@@ -93,6 +93,7 @@ A visual falsifier has a failure mode of its own: the measurement. `adb shell in
 | Understanding spread across 4+ files | `explorer`, returns a map, not file dumps | sonnet, medium |
 | Mechanical substitution | `sd` and `rg`. No model at all. | — |
 | Device or visual check | `device-check`, drives `adb` and returns text. Screenshots never enter this thread. | sonnet, medium |
+| Feature doc drift after a `newfeatures/` edit | `docs-keeper`, edits `docs/` only | sonnet, medium |
 | UI change ready to verify | Ask once, one line: "¿Instalo en medium_phone?". Then `installDebug` in the background. | — |
 
 Model and effort live in `.claude/agents/*.md`. Call an agent by `subagent_type` without a `model` parameter: the call's parameter overrides the file, and effort cannot be set from the prompt at all.
@@ -115,7 +116,7 @@ Stop mid-unit only for a genuine fork or a failed falsifier. Never to confirm th
 
 ### 5. Escalate only where there is judgment to attack
 
-Adversarial review (`judgment-day`) costs up to four judge runs plus a fix actor. It earns that on concurrency, scheduling, data migration and contracts.
+Adversarial review (`/code-review high`, or the owner-run `/code-review ultra`, which is billed) costs a full review pass plus a fix actor. It earns that on concurrency, scheduling, data migration and contracts.
 
 It is waste on constants, renames and moves, where the falsifier is already deterministic. A probabilistic reviewer stacked on top of a certain proof trades certainty for opinion.
 

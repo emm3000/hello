@@ -3,6 +3,7 @@ name: docs-keeper
 description: Use proactively after editing any file under app/src/main/kotlin/com/emm/hello/newfeatures/<feature>/. Verifies the corresponding docs/<FEATURE>_CURRENT.md still matches the code and updates it when out of sync. Only edits docs/, never code, never commits.
 tools: Read, Edit, Grep, Glob, Bash
 model: sonnet
+effort: medium
 hooks:
   PreToolUse:
     - matcher: "Bash"

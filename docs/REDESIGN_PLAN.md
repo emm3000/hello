@@ -148,7 +148,7 @@ Each of these is decided with the owner before its unit runs. Proposals:
 
 ### Stage 7 — Direction by maturity (domain change, adversarial review)
 
-This is the one stage that changes learning behavior and touches a migration; it earns `judgment-day`.
+This is the one stage that changes learning behavior and touches a migration; it earns an adversarial review (`/code-review high`).
 
 | Unit | Scope | Falsifier |
 |---|---|---|
