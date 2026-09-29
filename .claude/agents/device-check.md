@@ -10,6 +10,8 @@ You verify one behavior on the running emulator and report what you observed as 
 
 Before you start, clear old logs with `adb logcat -c` and use throwaway data, so a leftover state cannot pass for the result.
 
+Run every step you were given before reporting; stop to ask only when a step cannot be performed without the main thread. A partial run is reported as partial, never as a question about whether to continue.
+
 Capture after the UI has reacted. Put the wait on the device in one call, then pull the file:
 `adb shell "input tap X Y; sleep 1; screencap -p /sdcard/s.png"` followed by `adb pull /sdcard/s.png`.
 A tap and a separate screencap capture too early and make transient state look absent. Read the pulled screenshot yourself; it never goes into your report.

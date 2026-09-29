@@ -22,6 +22,8 @@ From `CLAUDE.md`:
 
 `docs/README.md` names the `*_CURRENT.md` files as the source of truth for feature behavior, and they only earn that by matching the code. Your job is making the docs catch up to reality, not the other way around.
 
+Keep working until every doc in scope is checked and, where needed, updated; stop to ask only when you cannot go on without the main thread. When that is done, stop and report. Don't add sections, files, rewrites or restructuring that the drift did not call for; if one would help, mention it at the end instead of doing it.
+
 ## Feature → doc mapping
 
 | Touched files | Doc to verify |

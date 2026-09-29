@@ -64,6 +64,9 @@ Every change is a **work unit**: a scope, a falsifier and a topology, all three 
 - This thread decides, writes the spec, verifies the artifact, runs git. It never writes non-trivial code.
 - The `writer` agent receives the full spec and returns `git status --short` as proof of work.
 - The `explorer` and `device-check` agents return text. A mechanical task needs no agent.
+- While a writer runs, this thread does not wait idle: it prepares the falsifier — the `rg` patterns, the test name, the device steps — so the verification is ready when the report lands.
+
+**Narration.** Before the first tool call of a unit, say in one line what you are about to do. Close with a short recap that stands on its own — what you found, what you did, what is next — so a reader who only sees the last message has the full picture. Between tool calls, a brief note when the plan changes; silence otherwise. No mannered prose: when a literal phrase is available, use it.
 
 **Close.** Gate green, conventional commit, no AI trailer. Push only when the owner says so. Update the open-items memory before reporting done; the finished session log goes to the memory archive.
 
@@ -112,7 +115,9 @@ A rebase that reports no conflicts is not evidence either. Git merges text, not 
 
 Approval covers scope, falsifier and topology, once. The unit then runs to completion and reports with evidence.
 
-Stop mid-unit only for a genuine fork or a failed falsifier. Never to confirm the next tool call.
+Stop mid-unit only for a genuine fork or a failed falsifier. Never to confirm the next tool call. A step already decided is something to run, not to announce: describing it and ending the turn leaves it undone until the owner replies.
+
+If one part of the unit turns out to be blocked, complete every other part in full and say exactly what was left out and why. The whole unit is the deliverable; scaling it down is the owner's call.
 
 ### 5. Escalate only where there is judgment to attack
 
@@ -157,7 +162,7 @@ Ownership follows: technical shape is this thread's decision, stated and execute
 
 ## Custom slash commands
 
-- `/checks` — `./gradlew detekt testDebugUnitTest :domain:test`, failures grouped by module.
+- `/checks` — `./gradlew detekt testDebugUnitTest :domain:test` redirected to a log; only the verdict line and the failures enter the context.
 - `/feature <Name>` — full MVI scaffold (`UiState` / `UiIntent` / `UiEffect` / `ViewModel` / `Route` / `Screen`).
 - `/agents-review` — review the pending diff against these rules.
 - `/h-component <Name>` — scaffold an `H*` component in `core/ui/`.
