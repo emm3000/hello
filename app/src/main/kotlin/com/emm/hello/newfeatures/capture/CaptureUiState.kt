@@ -1,8 +1,10 @@
 package com.emm.hello.newfeatures.capture
 
+import androidx.annotation.StringRes
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.hello.core.mvi.MviState
 
@@ -19,6 +21,8 @@ data class CaptureUiState(
     val isManual: Boolean = false,
     val translation: String = "",
     val meaning: String = "",
+    @StringRes val wordErrorRes: Int? = null,
+    @StringRes val translationErrorRes: Int? = null,
 ) : MviState {
 
     val canSubmit: Boolean
@@ -33,6 +37,7 @@ data class CaptureUiState(
 
 data class RecentCapture(
     val flashcardId: FlashcardId,
+    val deckId: DeckId,
     val word: String,
     val status: EnrichmentStatus,
     val failure: EnrichmentFailure? = null,

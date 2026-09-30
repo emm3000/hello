@@ -33,6 +33,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +51,7 @@ class CaptureViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `submit enqueues enrichment for the captured card`() = runTest {
+    fun `submit enqueues enrichment for the captured card and shows no message`() = runTest {
         val captureFlashcard = mockk<CaptureFlashcardUseCase>()
         coEvery { captureFlashcard(any(), any()) } returns CARD_ID
         val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
@@ -61,7 +62,7 @@ class CaptureViewModelTest {
         viewModel.effect.test {
             viewModel.onIntent(CaptureUiIntent.Submit)
             assertThat(awaitItem()).isEqualTo(CaptureUiEffect.EnqueueEnrichment(listOf("card-1")))
-            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_saved_message))
+            expectNoEvents()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -95,7 +96,7 @@ class CaptureViewModelTest {
     }
 
     @Test
-    fun `a duplicate word reports it and enqueues nothing`() = runTest {
+    fun `a duplicate word marks the word field, keeps the word and emits nothing`() = runTest {
         val captureFlashcard = mockk<CaptureFlashcardUseCase>()
         coEvery { captureFlashcard(any(), any()) } throws DomainValidationException(
             issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
@@ -107,8 +108,80 @@ class CaptureViewModelTest {
 
         viewModel.effect.test {
             viewModel.onIntent(CaptureUiIntent.Submit)
-            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_error_duplicate))
             expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        val state: CaptureUiState = viewModel.state.value
+        assertThat(state.wordErrorRes).isEqualTo(R.string.capture_error_duplicate)
+        assertThat(state.word).isEqualTo("borrow")
+        assertThat(state.isSaving).isFalse()
+    }
+
+    @Test
+    fun `changing the word clears the duplicate error`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } throws DomainValidationException(
+            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+        )
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrows"))
+
+        assertThat(viewModel.state.value.wordErrorRes).isNull()
+    }
+
+    @Test
+    fun `submit while a save is running is ignored`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        val saveGate = CompletableDeferred<FlashcardId>()
+        coEvery { captureFlashcard(any(), any()) } coAnswers { saveGate.await() }
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        saveGate.complete(CARD_ID)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { captureFlashcard(any(), any()) }
+    }
+
+    @Test
+    fun `submit with a blank word is ignored`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
+        advanceUntilIdle()
+
+        viewModel.effect.test {
+            viewModel.onIntent(CaptureUiIntent.Submit)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        coVerify(exactly = 0) { captureFlashcard(any(), any()) }
+        assertThat(viewModel.state.value.wordErrorRes).isNull()
+    }
+
+    @Test
+    fun `clicking a recent capture opens its card in its deck`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+
+        viewModel.effect.test {
+            viewModel.onIntent(CaptureUiIntent.Submit)
+            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.EnqueueEnrichment(listOf("card-1")))
+            viewModel.onIntent(CaptureUiIntent.RecentCaptureClicked(CARD_ID))
+            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.OpenCard(cardId = "card-1", deckId = "deck-1"))
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -184,6 +257,26 @@ class CaptureViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.state.value.recentCaptures.first().status).isEqualTo(EnrichmentStatus.ENRICHED)
+    }
+
+    @Test
+    fun `a library update carries the deck of the card to the recent capture`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val libraryRepository = FakeLibraryRepository()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, libraryRepository = libraryRepository)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        libraryRepository.emit(
+            libraryFlashcard(id = CARD_ID, status = EnrichmentStatus.PENDING, deckId = NEWEST_DECK_ID),
+        )
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.recentCaptures.first().deckId).isEqualTo(NEWEST_DECK_ID)
     }
 
     @Test
@@ -271,7 +364,7 @@ class CaptureViewModelTest {
     }
 
     @Test
-    fun `manual submit creates an enriched card and does not enqueue enrichment`() = runTest {
+    fun `manual submit creates an enriched card and emits nothing`() = runTest {
         val captureFlashcard = mockk<CaptureFlashcardUseCase>()
         val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
         coEvery { createManualFlashcard(any(), any(), any(), any()) } returns CARD_ID
@@ -287,7 +380,6 @@ class CaptureViewModelTest {
 
         viewModel.effect.test {
             viewModel.onIntent(CaptureUiIntent.Submit)
-            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_saved_ready_message))
             expectNoEvents()
             cancelAndIgnoreRemainingEvents()
         }
@@ -341,7 +433,7 @@ class CaptureViewModelTest {
     }
 
     @Test
-    fun `manual duplicate shows the duplicate message`() = runTest {
+    fun `manual duplicate marks the word field`() = runTest {
         val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
         coEvery { createManualFlashcard(any(), any(), any(), any()) } throws DomainValidationException(
             issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
@@ -355,10 +447,31 @@ class CaptureViewModelTest {
 
         viewModel.effect.test {
             viewModel.onIntent(CaptureUiIntent.Submit)
-            assertThat(awaitItem()).isEqualTo(CaptureUiEffect.ShowMessage(R.string.capture_error_duplicate))
             expectNoEvents()
             cancelAndIgnoreRemainingEvents()
         }
+
+        assertThat(viewModel.state.value.wordErrorRes).isEqualTo(R.string.capture_error_duplicate)
+        assertThat(viewModel.state.value.word).isEqualTo("give up")
+    }
+
+    @Test
+    fun `manual submit without a translation marks the translation field`() = runTest {
+        val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
+        val viewModel = buildViewModel(createManualFlashcard = createManualFlashcard)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.translationErrorRes).isEqualTo(R.string.capture_error_translation_required)
+        coVerify(exactly = 0) { createManualFlashcard(any(), any(), any(), any()) }
+
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+
+        assertThat(viewModel.state.value.translationErrorRes).isNull()
     }
 
     @Test
@@ -539,9 +652,10 @@ class CaptureViewModelTest {
         id: FlashcardId,
         status: EnrichmentStatus,
         failure: EnrichmentFailure? = null,
+        deckId: DeckId = DECK_ID,
     ): LibraryFlashcard = LibraryFlashcard(
         id = id,
-        deckId = DECK_ID,
+        deckId = deckId,
         deckName = "Primeras palabras",
         word = "borrow",
         translation = "prestar",

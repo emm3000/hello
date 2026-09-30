@@ -205,8 +205,6 @@
     <string name="capture_placeholder">Una palabra</string>
     <string name="capture_mic_content_description">Dictar la palabra</string>
     <string name="capture_save">Guardar</string>
-    <string name="capture_saved_message">Guardada. La estamos preparando.</string>
-    <string name="capture_saved_ready_message">Guardada. Lista para estudiar.</string>
     <string name="capture_retry">Reintentar</string>
     <string name="capture_mode_ai_label">La IA la completa</string>
     <string name="capture_mode_ai_action">Usar IA</string>
@@ -217,12 +215,13 @@
     <string name="capture_manual_meaning_label">Significado en inglés (opcional)</string>
     <string name="capture_manual_meaning_placeholder">Una definición corta</string>
     <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
-    <string name="capture_error_empty">Escribe una palabra primero.</string>
     <string name="capture_error_translation_required">Agrega la traducción al español</string>
     <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
     <string name="capture_error_retry">No pudimos reintentar ahora.</string>
     <string name="capture_done">Listo</string>
     <string name="capture_recent_label">Tu última:</string>
+    <string name="capture_recent_row_description">%1$s, %2$s</string>
+    <string name="capture_recent_open_card">Abrir la tarjeta</string>
     <string name="capture_status_preparing">Preparando…</string>
     <string name="capture_status_waiting_for_connection">Esperando conexión</string>
     <string name="capture_status_ready">Lista</string>

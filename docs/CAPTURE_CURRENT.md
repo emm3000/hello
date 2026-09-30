@@ -7,7 +7,7 @@
 | Scope | `Capturar` flow (bare-word capture + background enrichment, plus the manual write-it-myself mode) |
 | Source of Truth | No |
 | Read this when | You need to understand how a word enters the app today and what happens to it after Save |
-| Last verified | 2026-09-16 |
+| Last verified | 2026-09-29 |
 
 ## Summary
 
@@ -53,7 +53,7 @@ to it.
 
 ## State
 
-`CaptureUiState` holds twelve fields:
+`CaptureUiState` holds fourteen fields:
 
 - `word: String` — the text field content
 - `targetDeck: Deck?` and `decks: List<Deck>` — refreshed on every
@@ -63,15 +63,18 @@ to it.
   deck if it is a candidate, else the oldest candidate, else `null`
 - `isDeckPickerOpen: Boolean` — the "Saving to" dropdown, shown only when
   `decks` has more than one entry
-- `isSaving: Boolean` — true while `CaptureFlashcardUseCase` runs
+- `isSaving: Boolean` — true while `CaptureFlashcardUseCase` or
+  `CreateManualFlashcardUseCase` runs; it blocks a second `Submit` but does
+  not disable the text fields
 - `pending: Int` / `failed: Int` — from
   `FlashcardEnrichmentRepository.observeBacklog()` (`EnrichmentBacklog`),
   refreshed on every DB change
 - `recentCaptures: List<RecentCapture>` — the words saved in this ViewModel
-  instance, newest first; each has `flashcardId`, `word`, `status:
+  instance, newest first; each has `flashcardId`, `deckId`, `word`, `status:
   EnrichmentStatus` and a nullable `failure: EnrichmentFailure`
   (`code: GenerationRefusalCode?`, `reason: String?`, both from
-  `com.emm.domain.generation`). Statuses and `failure` are refreshed from
+  `com.emm.domain.generation`). `deckId` starts as the target deck at save
+  time. `deckId`, statuses and `failure` are refreshed from
   `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
   `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
   and starts empty on every visit.
@@ -82,6 +85,12 @@ to it.
   card by hand instead of letting the AI fill it in. It survives a manual save.
 - `translation: String` — the Spanish translation, required in manual mode
 - `meaning: String` — the optional English meaning, manual mode only
+- `wordErrorRes: Int?` — `@StringRes` shown as the word field's inline error;
+  set to `capture_error_duplicate` on `DuplicateWordInDeck`, cleared by the
+  next `WordChanged`
+- `translationErrorRes: Int?` — `@StringRes` shown as the translation field's
+  inline error; set to `capture_error_translation_required`, cleared by the
+  next `TranslationChanged` or by switching to AI mode
 
 Two values are computed, not stored:
 
@@ -95,34 +104,41 @@ Two values are computed, not stored:
 
 `CaptureUiIntent`:
 
-- `WordChanged(word)` — replaces `word`. Also fired by the speech-to-text
+- `WordChanged(word)` — replaces `word` and clears `wordErrorRes`. Also fired by the speech-to-text
   result, which overwrites the field rather than appending.
 - `ManualModeSelected(isManual)` — sets `isManual` to the requested value.
-  Selecting AI mode clears `translation` and `meaning`; `word` is left
+  Selecting AI mode clears `translation`, `meaning` and `translationErrorRes`;
+  `word` is left
   untouched. Selecting the mode that is already active changes nothing.
-- `TranslationChanged(translation)` — replaces `translation`.
+- `TranslationChanged(translation)` — replaces `translation` and clears
+  `translationErrorRes`.
 - `MeaningChanged(meaning)` — replaces `meaning`.
-- `Submit` — no-op unless `canSubmit`. Sets `isSaving`, then branches on
-  `isManual`. With `isManual = false` it calls
+- `Submit` — fired by Save and by the keyboard Send action. Ignored silently
+  while `isSaving`, with a blank `word` or with no `targetDeck`, so a double
+  tap never saves twice. In manual mode a blank `translation` sets
+  `translationErrorRes` and saves nothing (reachable through the Send key;
+  Save stays disabled by `canSubmit`). Otherwise sets `isSaving` and branches
+  on `isManual`. With `isManual = false` it calls
   `CaptureFlashcardUseCase(deckId, word)` (the use case's optional
   `translation` parameter is not passed; it defaults to `""`). On success:
-  clears `word`, prepends a `RecentCapture` with `PENDING`, then emits
-  `EnqueueEnrichment([id])` followed by `ShowMessage(capture_saved_message)`.
-  With `isManual = true` it calls
+  clears `word`, prepends a `RecentCapture` with `PENDING` and emits
+  `EnqueueEnrichment([id])`. With `isManual = true` it calls
   `CreateManualFlashcardUseCase(deckId, word, translation, meaning)`, which
   writes the card as `ENRICHED`. On success: clears `word`, `translation` and
-  `meaning`, keeps `isManual = true`, prepends a `RecentCapture` with
-  `ENRICHED` and emits only `ShowMessage(capture_saved_ready_message)` — no
-  `EnqueueEnrichment`, so no worker and no network are involved.
-  On `DomainValidationException`: `DuplicateWordInDeck` maps to
-  `capture_error_duplicate`, `EmptyTranslation` to
-  `capture_error_translation_required`, `EmptyUserText` to
-  `capture_error_empty`, anything else to `capture_error_generic`; nothing is
-  enqueued. Any other throwable logs and shows `capture_error_generic`.
+  `meaning`, keeps `isManual = true` and prepends a `RecentCapture` with
+  `ENRICHED`; it emits no effect, so no worker and no network are involved.
+  Neither success path shows a message: the new recent row is the
+  confirmation. On `DomainValidationException`: `DuplicateWordInDeck` sets
+  `wordErrorRes` and keeps `word`, `EmptyTranslation` sets
+  `translationErrorRes`, `EmptyUserText` is ignored, anything else emits
+  `ShowMessage(capture_error_generic)`; nothing is enqueued. Any other
+  throwable logs and emits `ShowMessage(capture_error_generic)`.
 - `RetryFailed` — calls `RetryFailedEnrichmentsUseCase`, which flips every
   `FAILED` card back to `PENDING` and returns their ids. If the list is
   non-empty, emits `EnqueueEnrichment(ids)`; if empty, emits nothing. On error,
   `ShowMessage(capture_error_retry)`.
+- `RecentCaptureClicked(flashcardId)` — emits `OpenCard(cardId, deckId)` for
+  that recent capture; ignored if the id is not in `recentCaptures`.
 - `DeckPickerOpened` / `DeckPickerDismissed` — toggle `isDeckPickerOpen`.
 - `DeckSelected(deckId)` — ignored unless the deck is among `decks`; otherwise
   stores it with `DefaultDeckSelectionRepository.setDefaultDeckId`, makes it
@@ -132,9 +148,14 @@ Two values are computed, not stored:
 
 `CaptureUiEffect`, collected in `CaptureDestination`:
 
-- `ShowMessage(@StringRes messageRes)` — shown as a short `Toast`.
+- `ShowMessage(@StringRes messageRes)` — shown in the screen's `SnackbarHost`
+  (the `SnackbarHostState` is created in `CaptureDestination` and passed to
+  `CaptureScreen`). Only transient errors use it; Capture shows no `Toast`.
 - `EnqueueEnrichment(flashcardIds: List<String>)` — each id is passed to
   `FlashcardEnrichmentScheduler.enqueue(context, id)`.
+- `OpenCard(cardId, deckId)` — `navigator.navigateTo(CardDetailRoute(cardId,
+  deckId))`. The Capture ViewModel survives the round trip, so the recent list
+  is still there on return.
 
 ### Enrichment pipeline
 
@@ -172,8 +193,9 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   with wide tracking, and a text `HButton` `capture_done` ("Done") that calls
   `navigator::goBack`.
 - **Input row** — `HInput` (`HFieldVariant.Underline`, placeholder
-  `capture_placeholder`, disabled while `isSaving`) plus a 44 dp `HIconButton`
-  mic. The mic icon is `Mic` while listening and `MicNone` otherwise.
+  `capture_placeholder`, inline error from `wordErrorRes`) plus a 44 dp
+  `HIconButton` mic. Its IME action is `Send` (submits) in AI mode and `Next`
+  (moves focus to the translation field) in manual mode. The mic icon is `Mic` while listening and `MicNone` otherwise.
 - **Mode row** — always rendered, in both modes and in the same position, with
   two fixed roles. At the leading edge, a `bodySmall` `inkSoft` caption
   naming the active mode: `capture_mode_ai_label` ("AI completes it") while
@@ -184,14 +206,23 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   `capture_mode_ai_action` ("Use AI") while it is true. Only the copy inside
   each role changes; the roles never swap. The action is disabled while
   `isSaving`.
-- **Manual fields** — rendered only while `isManual`: two underline `HInput`s,
-  the required `capture_manual_translation_label` ("Spanish translation", single line,
-  `ImeAction.Next`) and the optional `capture_manual_meaning_label` ("Meaning
-  in English (optional)", 2 to 4 lines). All of them are disabled while
+- **Manual fields** — rendered only while `isManual`: two single-line
+  underline `HInput`s, the required `capture_manual_translation_label`
+  ("Spanish translation", `ImeAction.Next` to the meaning field, inline error
+  from `translationErrorRes`; the field takes focus when that error appears)
+  and the optional `capture_manual_meaning_label` ("Meaning in English
+  (optional)", `ImeAction.Send`, submits). No text field is disabled while
   `isSaving`.
 - **Recent list** — rendered only when `recentCaptures` is non-empty: the
-  `capture_recent_label` ("Your last:") caption, then one row per capture with
-  the word in semibold and the status label at the trailing edge. A `PENDING`
+  `capture_recent_label` ("Your last:") caption, then one row per capture:
+  the word in `titleMedium`, taking the remaining width and wrapping, then the
+  `bodySmall` status label and a `KeyboardArrowRight` chevron, which never
+  shrink. Every row, whatever its status, is clickable (at least the minimum
+  interactive size) and fires `RecentCaptureClicked`, which opens Card Detail.
+  Each row's content description is `capture_recent_row_description` (word
+  and status). The newest row carries a polite live region, so TalkBack
+  announces a save and its later status change, and when it appears after a
+  save its background flashes the `hairline` token and fades out over 1.5 s. A `PENDING`
   card reads `capture_status_preparing` while `state.isOnline`, or
   `capture_status_waiting_for_connection` while offline; `ENRICHED` always
   reads `capture_status_ready` and `FAILED` always reads
@@ -207,6 +238,11 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,
   `isLoading = isSaving`.
 
+After a successful save in either mode, focus returns to the word field and
+the soft keyboard stays up. This is driven by the newest `RecentCapture` id,
+not by an effect; the id already present when the screen is composed (first
+visit or return from Card Detail) is remembered, so neither steals focus.
+
 The input, mode row, recent list and retry are top-anchored in the space
 between header and Save, so entering manual mode grows the block downward
 instead of shifting what is already on screen.
@@ -214,7 +250,8 @@ instead of shifting what is already on screen.
 Dictation uses `rememberSpeechToTextManager` with `Locale.US`. Tapping the mic
 stops if listening, starts if `RECORD_AUDIO` is granted, otherwise launches the
 permission request; a denial shows `mic_permission_denied` in a `SnackbarHost`
-at the bottom. STT errors are shown in the same snackbar and cleared.
+at the bottom. STT errors, save errors other than the inline ones and retry
+errors are shown in the same snackbar.
 
 All copy is English and comes from `capture_*` strings in
 `app/src/main/res/values/strings.xml`.

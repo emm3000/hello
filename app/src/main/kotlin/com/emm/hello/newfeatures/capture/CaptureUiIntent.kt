@@ -1,6 +1,7 @@
 package com.emm.hello.newfeatures.capture
 
 import com.emm.domain.ids.DeckId
+import com.emm.domain.ids.FlashcardId
 import com.emm.hello.core.mvi.MviIntent
 
 sealed interface CaptureUiIntent : MviIntent {
@@ -14,4 +15,5 @@ sealed interface CaptureUiIntent : MviIntent {
     data object DeckPickerOpened : CaptureUiIntent
     data object DeckPickerDismissed : CaptureUiIntent
     data class DeckSelected(val deckId: DeckId) : CaptureUiIntent
+    data class RecentCaptureClicked(val flashcardId: FlashcardId) : CaptureUiIntent
 }

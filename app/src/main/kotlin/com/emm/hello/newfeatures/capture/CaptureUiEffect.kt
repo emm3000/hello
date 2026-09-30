@@ -7,4 +7,5 @@ sealed interface CaptureUiEffect : MviEffect {
 
     data class ShowMessage(@StringRes val messageRes: Int) : CaptureUiEffect
     data class EnqueueEnrichment(val flashcardIds: List<String>) : CaptureUiEffect
+    data class OpenCard(val cardId: String, val deckId: String) : CaptureUiEffect
 }

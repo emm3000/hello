@@ -60,16 +60,23 @@ class CaptureViewModel(
 
     override fun onIntent(intent: CaptureUiIntent) {
         when (intent) {
-            is CaptureUiIntent.WordChanged -> setState { copy(word = intent.word) }
+            is CaptureUiIntent.WordChanged -> setState { copy(word = intent.word, wordErrorRes = null) }
             is CaptureUiIntent.ManualModeSelected -> selectManualMode(intent.isManual)
-            is CaptureUiIntent.TranslationChanged -> setState { copy(translation = intent.translation) }
+            is CaptureUiIntent.TranslationChanged ->
+                setState { copy(translation = intent.translation, translationErrorRes = null) }
             is CaptureUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             CaptureUiIntent.Submit -> handleSubmit()
             CaptureUiIntent.RetryFailed -> handleRetryFailed()
             CaptureUiIntent.DeckPickerOpened -> setState { copy(isDeckPickerOpen = true) }
             CaptureUiIntent.DeckPickerDismissed -> setState { copy(isDeckPickerOpen = false) }
             is CaptureUiIntent.DeckSelected -> selectDeck(intent.deckId)
+            is CaptureUiIntent.RecentCaptureClicked -> openRecentCapture(intent.flashcardId)
         }
+    }
+
+    private fun openRecentCapture(flashcardId: FlashcardId) {
+        val capture: RecentCapture = currentState.recentCaptures.find { it.flashcardId == flashcardId } ?: return
+        sendEffect(CaptureUiEffect.OpenCard(cardId = capture.flashcardId.value, deckId = capture.deckId.value))
     }
 
     private fun showCaptureDecks(choice: CaptureDeckChoice) {
@@ -87,15 +94,27 @@ class CaptureViewModel(
     }
 
     private fun selectManualMode(isManual: Boolean) = setState {
-        if (isManual) copy(isManual = true) else copy(isManual = false, translation = "", meaning = "")
+        if (isManual) {
+            copy(isManual = true)
+        } else {
+            copy(isManual = false, translation = "", meaning = "", translationErrorRes = null)
+        }
     }
 
-    private fun handleSubmit() = viewModelScope.launch {
+    private fun handleSubmit() {
         val current: CaptureUiState = currentState
-        val deck: Deck = current.targetDeck ?: return@launch
-        if (!current.canSubmit) return@launch
+        val deck: Deck = current.targetDeck ?: return
+        if (current.isSaving || current.word.isBlank()) return
+        if (current.isManual && current.translation.isBlank()) {
+            setState { copy(translationErrorRes = R.string.capture_error_translation_required) }
+            return
+        }
 
         setState { copy(isSaving = true) }
+        viewModelScope.launch { save(deck = deck, current = current) }
+    }
+
+    private suspend fun save(deck: Deck, current: CaptureUiState) {
         try {
             if (current.isManual) {
                 saveWrittenCard(deck = deck, current = current)
@@ -105,8 +124,7 @@ class CaptureViewModel(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (validation: DomainValidationException) {
-            setState { copy(isSaving = false) }
-            sendEffect(CaptureUiEffect.ShowMessage(validation.messageRes()))
+            showValidationFailure(validation)
         } catch (error: Throwable) {
             logError(TAG, "handleSubmit:error ${error.message}", error)
             setState { copy(isSaving = false) }
@@ -114,16 +132,31 @@ class CaptureViewModel(
         }
     }
 
+    private fun showValidationFailure(validation: DomainValidationException) {
+        val codes: List<IssueCode> = validation.issues.map { it.code }
+        when {
+            IssueCode.DuplicateWordInDeck in codes ->
+                setState { copy(isSaving = false, wordErrorRes = R.string.capture_error_duplicate) }
+            IssueCode.EmptyTranslation in codes ->
+                setState { copy(isSaving = false, translationErrorRes = R.string.capture_error_translation_required) }
+            IssueCode.EmptyUserText in codes -> setState { copy(isSaving = false) }
+            else -> {
+                setState { copy(isSaving = false) }
+                sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_error_generic))
+            }
+        }
+    }
+
     private suspend fun saveForEnrichment(deck: Deck, current: CaptureUiState) {
         val flashcardId: FlashcardId = captureFlashcard(deckId = deck.id, word = current.word)
         val captured = RecentCapture(
             flashcardId = flashcardId,
+            deckId = deck.id,
             word = current.word.trim(),
             status = EnrichmentStatus.PENDING,
         )
         setState { copy(word = "", isSaving = false, recentCaptures = listOf(captured) + recentCaptures) }
         sendEffect(CaptureUiEffect.EnqueueEnrichment(listOf(flashcardId.value)))
-        sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_message))
     }
 
     private suspend fun saveWrittenCard(deck: Deck, current: CaptureUiState) {
@@ -135,6 +168,7 @@ class CaptureViewModel(
         )
         val captured = RecentCapture(
             flashcardId = flashcardId,
+            deckId = deck.id,
             word = current.word.trim(),
             status = EnrichmentStatus.ENRICHED,
         )
@@ -147,7 +181,6 @@ class CaptureViewModel(
                 recentCaptures = listOf(captured) + recentCaptures,
             )
         }
-        sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_saved_ready_message))
     }
 
     private fun handleRetryFailed() = viewModelScope.launch {
@@ -170,16 +203,6 @@ private fun List<RecentCapture>.refreshedFrom(cards: List<LibraryFlashcard>): Li
     val cardsById: Map<FlashcardId, LibraryFlashcard> = cards.associateBy { it.id }
     return map { capture ->
         val card: LibraryFlashcard = cardsById[capture.flashcardId] ?: return@map capture
-        capture.copy(status = card.enrichmentStatus, failure = card.enrichmentFailure)
-    }
-}
-
-private fun DomainValidationException.messageRes(): Int {
-    val codes: List<IssueCode> = issues.map { it.code }
-    return when {
-        codes.contains(IssueCode.DuplicateWordInDeck) -> R.string.capture_error_duplicate
-        codes.contains(IssueCode.EmptyTranslation) -> R.string.capture_error_translation_required
-        codes.contains(IssueCode.EmptyUserText) -> R.string.capture_error_empty
-        else -> R.string.capture_error_generic
+        capture.copy(deckId = card.deckId, status = card.enrichmentStatus, failure = card.enrichmentFailure)
     }
 }
