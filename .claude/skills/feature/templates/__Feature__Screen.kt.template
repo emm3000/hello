@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.ink
 import com.emm.hello.core.theme.pageBackground
@@ -43,8 +42,8 @@ fun __Feature__Screen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = MaterialTheme.spacing.screenGutter)
-                    .padding(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(bottom = MaterialTheme.spacing.xl),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
             ) {
                 Box(
                     modifier = Modifier

@@ -89,7 +89,7 @@ fun H__Component__(
 private fun H__Component__Preview() {
     HelloTheme {
         Surface(color = pageBackground) {
-            Box(modifier = Modifier.padding(16.dp)) {
+            Box(modifier = Modifier.padding(MaterialTheme.spacing.lg)) {
                 H__Component__(
                     label = "__Component__",
                     onClick = {},
@@ -104,7 +104,7 @@ private fun H__Component__Preview() {
 private fun H__Component__ActivePreview() {
     HelloTheme {
         Surface(color = pageBackground) {
-            Box(modifier = Modifier.padding(16.dp)) {
+            Box(modifier = Modifier.padding(MaterialTheme.spacing.lg)) {
                 H__Component__(
                     label = "__Component__",
                     onClick = {},

@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.kt"
+  - "**/*.gradle.kts"
 ---
 
 # Architecture rules

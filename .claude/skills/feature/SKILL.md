@@ -2,17 +2,17 @@
 name: feature
 description: Scaffold a new MVI feature under app/newfeatures following the repo rules
 argument-hint: <FeatureName>
-allowed-tools: Read Write Bash(ls:*) Bash(./gradlew:*)
+allowed-tools: Read Edit Write Grep Glob Bash(ls:*) Bash(./gradlew:*)
 disable-model-invocation: true
 ---
 
-Scaffold a new feature called **$ARGUMENTS** under `app/src/main/kotlin/com/emm/hello/newfeatures/$ARGUMENTS/`.
+Scaffold a new feature called **$ARGUMENTS** under `app/src/main/kotlin/com/emm/hello/newfeatures/<lowercase-name>/`. Use the lowercase name for both directory and package, and PascalCase for Kotlin types.
 
 ## Before creating anything
 
 1. Confirm the feature name is PascalCase and not already used (`ls app/src/main/kotlin/com/emm/hello/newfeatures/`).
 2. Read 1-2 existing features to copy idiomatic patterns (state shape, intent grouping, route DI).
-3. Confirm with me which existing feature you used as the template.
+3. State which existing feature guides the implementation and proceed. Ask only if missing product behavior materially changes the result. Read the applicable repo rules before adapting the templates.
 
 ## Files to create
 
@@ -43,9 +43,9 @@ Placeholder copy in the screen is a literal string. Move it to `values/strings.x
 
 ## Hard rules (from `CLAUDE.md` and `.claude/rules/`)
 
-- UI uses **only** `core/ui/H*` components (`HInput`, `HButton`, etc.). **Never** raw Material3.
+- Use `core/ui/H*` controls; layout primitives, theme access and non-interactive `Surface` containers are allowed. Follow `ui-components.md`.
 - `domain` stays JVM-only — this feature lives in `:app`.
 - Nesting ≤ 3, no nested `also/apply/run/let`, ≤ 5 returns per function.
 - Include `@PreviewLightDark` in `Screen.kt`.
 
-After creating the files, run `./gradlew :app:compileDebugKotlin` to verify it compiles.
+After wiring the files, run `./gradlew :app:compileDebugKotlin` and the applicable checks in `.claude/rules/verification.md`. Report commands and results; do not commit automatically.

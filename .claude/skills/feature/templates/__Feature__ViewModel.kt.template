@@ -2,6 +2,7 @@ package com.emm.hello.newfeatures.__feature__
 
 import androidx.lifecycle.viewModelScope
 import com.emm.hello.core.mvi.MviViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class __Feature__ViewModel : MviViewModel<__Feature__UiState, __Feature__UiIntent, __Feature__UiEffect>(
@@ -18,7 +19,7 @@ class __Feature__ViewModel : MviViewModel<__Feature__UiState, __Feature__UiInten
         }
     }
 
-    private fun load() = viewModelScope.launch {
+    private fun load(): Job = viewModelScope.launch {
         setState { copy(isLoading = false) }
     }
 }

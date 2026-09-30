@@ -2,7 +2,7 @@
 name: h-component
 description: Scaffold a shared H* component in core/ui following Input.kt/FieldShell.kt patterns
 argument-hint: <ComponentName>
-allowed-tools: Read Write Bash(./gradlew:*)
+allowed-tools: Read Edit Write Grep Glob Bash(./gradlew:*)
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,7 @@ Create a shared component named **H$ARGUMENTS** in `app/src/main/kotlin/com/emm/
 
 1. Read `app/src/main/kotlin/com/emm/hello/core/ui/Input.kt` and `FieldShell.kt` — they are the canonical templates.
 2. Verify `H$ARGUMENTS` does not already exist in `core/ui/`.
-3. Confirm with me the expected usage (is it app-wide or better kept inside a feature?).
+3. Use the requested scope. If it is clearly shared, proceed; if it is clearly feature-local, explain where it belongs. Ask only when the intended usage is genuinely unresolved.
 
 ## How to create it
 
@@ -36,7 +36,7 @@ Placeholder copy in the preview is a literal string. Real user-facing copy belon
 
 ## After creating
 
-- Run `./gradlew :app:compileDebugKotlin` to verify.
-- If it makes sense, leave a note in `core/ui/` on when to use it vs. existing components.
+- Run `./gradlew :app:compileDebugKotlin` and the applicable checks in `.claude/rules/verification.md`; report results without committing automatically.
+- Explain usage in the final report. Add code comments only for the exceptions in `kotlin-style.md`.
 
 Do not modify Material3 imports in existing features in this turn — that is a separate scope.

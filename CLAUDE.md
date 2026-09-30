@@ -19,7 +19,7 @@ data -> domain
 ```
 
 - `:app` — UI, navigation, DI, startup
-- `:data` — repositories, SQLDelight, local identity, Firebase AI
+- `:data` — repositories, SQLDelight, local identity, Firebase AI, Supabase backend transport
 - `:domain` — **JVM-only** models and use cases. No Android, no DB, no network.
 
 ## Non-negotiable rules
@@ -27,8 +27,8 @@ data -> domain
 These bind on every change, including a new file created before any Kotlin has been read.
 
 - **No comments.** No KDoc, no `//`, no banners, no commented-out code. The code explains itself or it gets renamed. Three narrow exceptions in `.claude/rules/kotlin-style.md`.
-- **Explicit types** on every property and local `val` / `var`, and the supertype when the abstraction is what matters. Omit only when the right-hand side is a constructor call that already names the type.
-- **Only `core/ui/H*` components** in feature screens. Never raw Material3.
+- **Explicit types** on every property and local `val` / `var`, and the supertype when the abstraction is what matters. Exceptions for constructors, delegates and lambda parameters are in `.claude/rules/kotlin-style.md`.
+- **Use `core/ui/H*` controls** in feature screens. Layout primitives, theme access and a non-interactive `Surface` container are allowed; see `.claude/rules/ui-components.md`.
 - **MVI per feature**: one `UiState` (all `val`), one `onIntent(intent)` entry point, effects consumed once and never stored in state.
 - **`:domain` stays JVM-only.** If it needs to reach outward, invert with an interface in `:domain`.
 - **`./gradlew detekt testDebugUnitTest :domain:test` green** before every commit. `:domain` is a JVM module, so `testDebugUnitTest` never reaches it.
@@ -51,122 +51,85 @@ That last one is scoped to `data/src/main/sqldelight/**` and `data/src/test/kotl
 
 ## Work protocol
 
-How work is orchestrated in this repo. Loaded every session, applies to every change regardless of which files it touches.
+This workflow is repository-local and uses Claude Code's native tools, agents and skills. It does not require external review CLIs or receipts.
 
-Every change is a **work unit**: a scope, a falsifier and a topology, all three declared *before* any writer runs.
+### Scope and autonomy
 
-### Session shape
+For a change, state the scope and evidence of success briefly before editing. A small fix needs a sentence, not a separate specification document. An assessment or question ends with findings; it does not authorize implementation or a commit.
 
-**Open.** Recall memory, then `git log --oneline origin/main..main` and `git status --short`. State where the last session stopped before proposing anything.
+Inspect `git status --short` and the current branch before work. Preserve existing changes. Read relevant code before relying on memory; do not assume local `main`, the upstream or the last session's state.
 
-**Loop.** One work unit at a time under rules 1–8. Roles do not move between units:
+The main thread writes prose, configuration, templates and one mechanical, already-understood single-file change. Non-trivial Kotlin across 2+ files goes to the `writer` with the decisions already made; exploration across 4+ files goes to the `explorer`; device verification goes to `device-check`. The main thread's context stays for deciding and verifying, not for holding code.
 
-- This thread decides, writes the spec, verifies the artifact, runs git. It never writes non-trivial code.
-- The `writer` agent receives the full spec and returns `git status --short` as proof of work.
-- The `explorer` and `device-check` agents return text. A mechanical task needs no agent.
-- While a writer runs, this thread does not wait idle: it prepares the falsifier — the `rg` patterns, the test name, the device steps — so the verification is ready when the report lands.
+Proceed with reversible steps covered by the request. Ask only when a missing decision materially changes the scope or when an action needs authorization. If part is blocked, finish the independent parts and report the blocker. Do not stop after announcing an available next step.
 
-**Narration.** Before the first tool call of a unit, say in one line what you are about to do. Close with a short recap that stands on its own — what you found, what you did, what is next — so a reader who only sees the last message has the full picture. Between tool calls, a brief note when the plan changes; silence otherwise. No mannered prose: when a literal phrase is available, use it.
+Keep unrelated cleanup out of the change, even in a file already being edited. For repeated fixes in the same area, identify the invariant and its owner before adding another guard; broaden into a redesign only if the requested behavior requires it or the owner agrees.
 
-**Close.** Gate green, conventional commit, no AI trailer. Push only when the owner says so. Update the open-items memory before reporting done; the finished session log goes to the memory archive.
-
-### 1. Declare the falsifier before delegating
-
-Write down what would prove the unit wrong. If you cannot name it, you do not understand the unit yet.
-
-The falsifier is matched to the failure mode. It is never uniform:
-
-| Failure mode | What proves it | What does not |
-|---|---|---|
-| Transcription — values, renames, moves | Read the diff against the spec; a targeted `rg` returning zero | detekt and tests: green passes a wrong hex |
-| Logic or state | A test that fails before the change and passes after | Reading the code |
-| Visual | The screen running on `medium_phone` | Any gate |
-| Rule compliance | `/agents-review` against `.claude/rules/` | The writer's own report |
-
-`./gradlew detekt testDebugUnitTest :domain:test` is the floor, never the proof. It shows nothing broke. It never shows the change is right.
-
-A visual falsifier has a failure mode of its own: the measurement. `adb shell input tap` followed by a separate `adb exec-out screencap` captures before the UI has reacted, so transient state — a button mid-playback, a spinner, a snackbar — reads as absent and a working change looks broken. Put the wait on the device, in one call: `adb shell "input tap X Y; sleep 1; screencap -p /sdcard/s.png"`, then `adb pull`. A false negative costs more than no check at all, because you go hunting for a defect that was never there.
-
-### 2. Pick the cheapest actor whose output can be verified
+### Delegation
 
 | Work | Actor | Model, effort |
 |---|---|---|
-| Decisions, verification, git | This thread. Never delegated. | — |
-| 2+ files with the decisions already made | `writer`, full spec in the prompt | opus, medium |
-| Understanding spread across 4+ files | `explorer`, returns a map, not file dumps | sonnet, medium |
-| Mechanical substitution | `sd` and `rg`. No model at all. | — |
-| Device or visual check | `device-check`, drives `adb` and returns text. Screenshots never enter this thread. | sonnet, medium |
-| Feature doc drift after a `newfeatures/` edit | `docs-keeper`, edits `docs/` only | sonnet, medium |
-| UI change ready to verify | Ask once, one line: "¿Instalo en medium_phone?". Then `installDebug` in the background. | — |
+| Clear, localized implementation; decisions, integration and git | Main thread | Session selection |
+| Bounded implementation that benefits from a separate context | `writer` | opus, medium |
+| Uncertain behavior or ownership across the codebase | `explorer`, returns path:line evidence | sonnet, medium |
+| Mechanical substitution | Deterministic tools plus diff verification | No agent |
+| Device or visual verification | `device-check`, returns observations and capture paths | sonnet, medium |
+| Feature documentation drift needing a separate reading pass | `docs-keeper`, returns proposed corrections | sonnet, medium |
 
-Model and effort live in `.claude/agents/*.md`. Call an agent by `subagent_type` without a `model` parameter: the call's parameter overrides the file, and effort cannot be set from the prompt at all.
+Give each delegate the goal, owned paths, constraints, success criteria and relevant context. Implementation details can be decided within those boundaries. Agents must report a contradicted assumption with evidence rather than force the code to fit it.
 
-"No model" is a first-class answer. Where a deterministic tool applies, it beats a probabilistic one on both cost and correctness.
+Agents share the checkout: assign disjoint ownership, preserve others' edits, and integrate their results in the main thread. While they run, do independent work without modifying their files. Wait for every required result before declaring completion.
 
-Decisions never travel to a writer as a question. They travel as a spec.
+Model and effort defaults live in `.claude/agents/*.md`; do not override them routinely. For a model experiment, record the effective model, effort, correctness, elapsed time and user interventions on comparable tasks before changing defaults.
 
-### 3. Verify the artifact, not the report
+### Verification and review
 
-Agents claim completion they did not deliver. `git status`, `git diff --stat` and `rg` are the evidence. An agent's summary is a hypothesis until an artifact confirms it.
+Read `.claude/rules/verification.md` and select checks for the changed paths. The pre-commit Gradle gate remains mandatory; it does not replace evidence that the requested behavior works.
 
-A rebase that reports no conflicts is not evidence either. Git merges text, not meaning. When both sides touched the same file, read the merged result before trusting it.
+Match evidence to the failure mode:
 
-### 4. Approve the unit, not each step
+| Change | Evidence |
+|---|---|
+| Values, renames, moves | Diff against the intended result and targeted searches |
+| Logic or state | Focused behavioral test; for a bug, demonstrate the regression where feasible |
+| Visual behavior | Exercise the screen on the intended emulator; inspect the capture |
+| Instructions, configuration or templates | Parse configuration, inspect consistency and exercise changed executable examples where feasible |
 
-Approval covers scope, falsifier and topology, once. The unit then runs to completion and reports with evidence.
+Inspect the final diff and new files, not only an agent's report. A clean textual merge is not evidence that combined behavior is correct. Screenshots remain available for the main thread to inspect when a device report is ambiguous.
 
-Stop mid-unit only for a genuine fork or a failed falsifier. Never to confirm the next tool call. A step already decided is something to run, not to announce: describing it and ending the turn leaves it undone until the owner replies.
+Review the finished change once against the applicable rules. `/agents-review` is an optional manual checklist, not a second mandatory pass. For authentication, permissions, data loss, migrations or concurrency, use a focused independent review when available; give it the exact scope and evidence. Do not start additional review services or repeated broad reviews automatically. After a correction, recheck the affected behavior; reopen broader review only for new evidence or a materially changed scope.
 
-If one part of the unit turns out to be blocked, complete every other part in full and say exactly what was left out and why. The whole unit is the deliverable; scaling it down is the owner's call.
+A finding needs a reachable scenario, violated invariant and supporting evidence. A race is work when the interleaving is written down — which two writers, which shared state, which order breaks it — even if it cannot be reproduced on demand; it is information when the finding only says it "could race". Separate demonstrated defects from unresolved hypotheses.
 
-### 5. Escalate only where there is judgment to attack
+### Worktrees
 
-Adversarial review (`/code-review high`, or the owner-run `/code-review ultra`, which is billed) costs a full review pass plus a fix actor. It earns that on concurrency, scheduling, data migration and contracts.
+Before creating a worktree, choose and record the intended base commit. Worktree defaults may start from the remote default branch while local work is ahead. Compare the new checkout with the intended base before building or installing; do not automatically rebase unrelated work or discard local changes.
 
-It is waste on constants, renames and moves, where the falsifier is already deterministic. A probabilistic reviewer stacked on top of a certain proof trades certainty for opinion.
+### Communication and completion
 
-### 6. A worktree branches from `origin/main`, not from your `main`
+Say what you are doing before the first tool call. During longer work, briefly report meaningful findings, blockers or a change of plan. Finish with what changed, the checks and their results, and any remaining limitation. Use plain language.
 
-`EnterWorktree` cuts from `origin/main`. Local `main` here usually carries unpushed commits, so the worktree silently starts behind — and the gap surfaces as something that looks unrelated: an emulator refusing to open the database (`Can't downgrade database from version N to N-1`) because a newer migration is missing, or a rebase conflicting where nothing should.
+Commit only when requested or already authorized; use a conventional message without AI attribution. Push only when authorized. Check the exact staged diff before committing and run the required checks against the final content. Passing checks does not itself authorize a commit, push or release.
 
-Run `git log --oneline origin/main..main` before the unit starts. If local `main` is ahead, rebase onto it.
+For a handoff or compaction, preserve the user's scope and constraints, decisions, changed paths, completed checks, unresolved failures and next required action. Keep memory to durable facts; avoid archiving routine transcripts or treating old environment failures as permanent facts.
 
-### 7. A fix that adds a mechanism is a patch. Two patches on one defect is a redesign.
+## Read when relevant
 
-A fix removes a mechanism or adds one. Removing one (a guard, a flag, a counter, a branch) means the shape was wrong and is now less wrong. Adding one means the shape is being defended. One added mechanism is acceptable. The second one on the same defect class is the signal: the invariant is not represented in the code, only patrolled around it.
-
-At that point stop patching. Write the invariant in one sentence. Redesign so that one owner writes every transition and the invariant holds by construction. Then delegate once, with the code in the spec, not a description of it.
-
-This applies to any unit, not only concurrency: validation, caching, navigation state, retry policy. The 2026-09-10 refresher took three patches (a synchronous flag, a version counter, a drain order) before becoming a single-consumer actor with no guards at all.
-
-### 8. A finding is a claim. It gets a falsifier before it gets a fix.
-
-Every finding — from a judge, a reviewer, a linter, a teammate — carries a label the author chose. The label is not the priority. Two questions decide the priority:
-
-| Question | Answer that makes it work | Answer that makes it info |
-|---|---|---|
-| Can a user reach it? | A concrete path, or a test that fails | A window only a thread scheduler can hit |
-| Is the proof verifiable now? | Reproduced, or checked against the artifact (the jar, the schema, the diff) | Reasoned from the finding's own text |
-
-Verify with the cheapest deterministic tool before scheduling work. A claim about a dependency is checked against the dependency in the Gradle cache, not against the claim. When two reviewers disagree on severity, the table decides, not the louder label.
-
-Ownership follows: technical shape is this thread's decision, stated and executed. The owner is asked at product forks only. "Should I run another round?" is not a product fork.
-
-## Reading order
-
-1. `README.md`
-2. `ARCHITECTURE.md`
-3. `LOCAL_FIRST.md`
-4. `docs/README.md`
-5. `docs/DESIGN_BRIEF.md` — visual direction and its rationale
+- `README.md` — setup and project overview
+- `ARCHITECTURE.md` and `LOCAL_FIRST.md` — boundaries and data behavior
+- `docs/README.md` — current feature documentation
+- `docs/DESIGN_BRIEF.md` — visual direction for UI changes
+- `docs/AI_BACKEND_PLAN.md` — backend context; verify historical plan entries against current code
 
 ## Custom slash commands
 
-- `/checks` — `./gradlew detekt testDebugUnitTest :domain:test` redirected to a log; only the verdict line and the failures enter the context.
+- `/checks` — run the mandatory gate and checks selected by affected paths; report evidence and failures.
 - `/feature <Name>` — full MVI scaffold (`UiState` / `UiIntent` / `UiEffect` / `ViewModel` / `Route` / `Screen`).
 - `/agents-review` — review the pending diff against these rules.
 - `/h-component <Name>` — scaffold an `H*` component in `core/ui/`.
 
+Personal skills linked from `.agents/` are optional and are not required by this workflow. Shared behavior belongs in the tracked `.claude/` files; keep machine-specific approvals in `.claude/settings.local.json`. Start a new Claude Code session after changing agent definitions or instructions to verify the loaded setup.
+
 ## Final rule
 
-If a doc contradicts the current code, the code wins and the doc gets updated afterwards.
+Descriptive docs must match current code. If code contradicts a normative rule or the requested behavior, investigate the discrepancy; do not silently rewrite the rule to bless a defect. Update affected descriptive docs within the work unit.

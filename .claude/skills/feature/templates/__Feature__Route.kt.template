@@ -15,7 +15,7 @@ data object __Feature__Route : NavKey
 @Composable
 fun __Feature__Destination(navigator: Navigator) {
     val vm: __Feature__ViewModel = koinViewModel()
-    val uiState by vm.state.collectAsStateWithLifecycle()
+    val uiState: __Feature__UiState by vm.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->

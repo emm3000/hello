@@ -11,7 +11,7 @@ Every shared component lives in `app/src/main/kotlin/com/emm/hello/core/ui/`. Th
 
 ## The iron rule
 
-Feature screens call **only** `H*` components. **Never** raw Material3 — no `Button`, `OutlinedTextField`, `TextField`, `Card`, `IconButton`.
+Feature screens use `core/ui/H*` controls, never raw Material3 controls such as `Button`, `OutlinedTextField`, `TextField`, `Card` or `IconButton`. Compose layout primitives, theme access and non-interactive `Surface` containers are allowed. Material3 may be wrapped inside `core/ui/`.
 
 A custom component written inside a screen never replaces a `core/ui` component that exists for that purpose. If the `core/ui` one does not fit, extend or modify it first.
 
@@ -56,8 +56,8 @@ The two grade buttons are a fixed anatomy, not a styling choice:
 
 ## Never
 
-- Raw Material3 in a feature screen.
-- A literal color, size or radius outside `core/theme/`.
+- Raw Material3 controls in a feature screen.
+- Literal colors, typography sizes, spacing or radii in feature screens. Shared controls may keep intrinsic measurements such as a 48dp minimum touch target or a 1dp border; shared visual tokens belong in `core/theme/`.
 - Red or green as the carrier of right/wrong.
 - An illustrated mascot. The redesign removed it; it does not come back through an empty state.
 - Emoji as an icon. Icons are vector assets or drawn paths.

@@ -66,7 +66,7 @@ Real DRY violations are duplicated **rules**: the same due-date calculation in t
 
 ## Deliberately not adopted
 
-- **Boy Scout Rule as usually stated.** It conflicts with the work-unit commit discipline: opportunistic cleanup pollutes the diff and makes the commit unreviewable. Bounded version — cleanup is allowed inside a file you are already changing for the work unit's own reason. Anything else becomes its own commit.
+- **Boy Scout Rule as usually stated.** It conflicts with the work-unit commit discipline: opportunistic cleanup pollutes the diff and makes the commit unreviewable. Cleanup is included only when required by the requested change, even inside a file already being edited. Other cleanup is a follow-up.
 - **Law of Demeter as a law.** In Compose and MVI, reading `state.deck.name` is normal, and enforcing the law produces wrapper bloat. Treat it as a smell worth noticing, not a rule to obey.
 - **Comprehensive KDoc.** See `kotlin-style.md`. The code explains itself or it gets renamed.
 

@@ -1,6 +1,6 @@
 ---
 name: explorer
-description: Read-only mapper for questions whose answer is spread across 4+ files. Returns a compact map of path:line facts, not file contents and not advice. Use before writing a spec when the main thread does not yet understand the code involved.
+description: Read-only mapper for uncertain behavior or ownership across the codebase. Returns a compact map of path:line facts, not file contents and not advice. Use before writing a spec when the main thread does not yet understand the code involved.
 model: sonnet
 effort: medium
 tools: Read, Grep, Glob, Bash
