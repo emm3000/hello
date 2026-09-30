@@ -12,7 +12,7 @@ Select checks from the complete work-unit scope, including staged, unstaged and 
 | `.claude/**` or `CLAUDE.md` | Validate JSON/frontmatter and references, inspect rule/example consistency; instantiate and compile changed Kotlin templates when feasible |
 | Descriptive docs only | Check facts, links and the diff; no extra runtime test solely for prose |
 
-Before any commit, `./gradlew detekt testDebugUnitTest :domain:test` must pass, including for docs/config changes. `testDebugUnitTest` does not run the JVM-only `:domain` tests. This gate is additional to the area-specific checks above.
+The pre-commit Gradle gate in `CLAUDE.md` applies to every commit, including docs/config changes, and is additional to the area-specific checks above.
 
 Run the relevant checks after the last applicable edit. Reuse a successful result only while the checked inputs remain unchanged; do not run the same suite again just because a different agent finished.
 

@@ -110,7 +110,7 @@ Before creating a worktree, choose and record the intended base commit. Worktree
 
 Say what you are doing before the first tool call. During longer work, briefly report meaningful findings, blockers or a change of plan. Finish with what changed, the checks and their results, and any remaining limitation. Use plain language.
 
-Commit only when requested or already authorized; use a conventional message without AI attribution. Push only when authorized. Check the exact staged diff before committing and run the required checks against the final content. Passing checks does not itself authorize a commit, push or release.
+Commit only when requested or already authorized; use a conventional message without AI attribution, written in plain English prose like the existing history. When the personal `git-commit` skill is linked, use it rather than a compressed-message generator such as caveman-commit. Push only when authorized. Check the exact staged diff before committing and run the required checks against the final content. Passing checks does not itself authorize a commit, push or release.
 
 For a handoff or compaction, preserve the user's scope and constraints, decisions, changed paths, completed checks, unresolved failures and next required action. Keep memory to durable facts; avoid archiving routine transcripts or treating old environment failures as permanent facts.
 
