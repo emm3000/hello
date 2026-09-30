@@ -20,8 +20,9 @@ user writes the Spanish translation (required) and
 optionally an English meaning, and Save writes the card straight to `HelloDb`
 as `ENRICHED` — no AI, no network, no enrichment job — so it works offline and
 is studiable immediately. The screen never shows a preview, never lets the user
-edit the generated note, and has no deck picker: the target deck is the default
-deck (falling back to the first deck). Editing the result is
+edit the generated note. The target deck comes from `ResolveCaptureDeckUseCase`;
+a "Saving to" picker appears only when the user has more than one deck of their
+own, so decks installed from the Store never surface it. Editing the result is
 `EDIT_FLASHCARD_CURRENT.md`.
 
 ## Key files
@@ -52,12 +53,16 @@ to it.
 
 ## State
 
-`CaptureUiState` holds ten fields:
+`CaptureUiState` holds twelve fields:
 
 - `word: String` — the text field content
-- `targetDeck: Deck?` — resolved at init from `GetDecksUseCase` +
-  `DefaultDeckSelectionRepository.getDefaultDeckId()`; the default deck if it
-  exists, else the first deck, else `null`
+- `targetDeck: Deck?` and `decks: List<Deck>` — refreshed on every
+  `GetDecksUseCase` emission through `ResolveCaptureDeckUseCase`. `decks` are
+  the capture candidates: the user's own decks, or every live deck when only
+  Store installs (`curated-<id>`) exist. `targetDeck` is the stored default
+  deck if it is a candidate, else the oldest candidate, else `null`
+- `isDeckPickerOpen: Boolean` — the "Saving to" dropdown, shown only when
+  `decks` has more than one entry
 - `isSaving: Boolean` — true while `CaptureFlashcardUseCase` runs
 - `pending: Int` / `failed: Int` — from
   `FlashcardEnrichmentRepository.observeBacklog()` (`EnrichmentBacklog`),
@@ -118,6 +123,10 @@ Two values are computed, not stored:
   `FAILED` card back to `PENDING` and returns their ids. If the list is
   non-empty, emits `EnqueueEnrichment(ids)`; if empty, emits nothing. On error,
   `ShowMessage(capture_error_retry)`.
+- `DeckPickerOpened` / `DeckPickerDismissed` — toggle `isDeckPickerOpen`.
+- `DeckSelected(deckId)` — ignored unless the deck is among `decks`; otherwise
+  stores it with `DefaultDeckSelectionRepository.setDefaultDeckId`, makes it
+  `targetDeck` and closes the picker.
 
 ## Effects
 
@@ -212,12 +221,13 @@ All copy is English and comes from `capture_*` strings in
 
 ## Not in scope / Related docs
 
-- No deck picker, no default-deck checkbox, no hints, no difficulty, no
+- No default-deck checkbox, no hints, no difficulty, no
   preview, no quota warning, no in-screen editing of the generated note.
 - Manual mode has no phonetic, no examples and no enrichment fallback: a card
   written by hand is never sent to the AI afterwards.
 - Zero decks: `targetDeck` stays `null`, Save is disabled and no message
-  explains why. Decks are managed in Settings → Mazos (`DECK_CURRENT.md`).
+  explains why. Deleting the last deck is refused (`DECK_CURRENT.md`), so this
+  state needs a database without any deck. Decks are managed in Settings → Mazos (`DECK_CURRENT.md`).
 - Reading the enriched card: `CARD_DETAIL_CURRENT.md`.
 - Editing the card after enrichment: `EDIT_FLASHCARD_CURRENT.md`.
 - Where captures are listed and searched: `LIBRARY_CURRENT.md`.

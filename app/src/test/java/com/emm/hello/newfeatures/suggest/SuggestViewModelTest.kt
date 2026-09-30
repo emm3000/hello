@@ -6,6 +6,7 @@ import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.flashcard.FlashcardRepository
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
@@ -511,7 +512,7 @@ class SuggestViewModelTest {
             ),
             captureFlashcardUseCase = captureFlashcardUseCase,
             getDecksUseCase = getDecksUseCase,
-            defaultDeckSelectionRepository = defaultDeckSelectionRepository,
+            resolveCaptureDeck = ResolveCaptureDeckUseCase(defaultDeckSelectionRepository),
             credits = credits,
             clock = clock,
         )

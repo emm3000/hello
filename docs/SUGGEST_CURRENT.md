@@ -168,8 +168,10 @@ functions (`suggest-words` and `generate-note` respectively) over the same
 `docs/AI_BACKEND_PLAN.md`.
 
 Picking words and confirming (`AddSelected`) resolves a target deck via
-`GetDecksUseCase` and `DefaultDeckSelectionRepository` (the default deck if
-set, else the first deck in the list); if there is no deck at all it shows
+`GetDecksUseCase` and `ResolveCaptureDeckUseCase`, the same rule Capture uses
+(the stored default deck if it is one of the user's own decks, else the oldest
+of those, with Store installs counted only when no other deck exists); if
+there is no deck at all it shows
 `suggest_error_no_deck` and stops. For each selected word,
 `CaptureFlashcardUseCase(deckId, word, translation)` creates a `PENDING`
 flashcard in that deck carrying the suggestion's Spanish translation as its

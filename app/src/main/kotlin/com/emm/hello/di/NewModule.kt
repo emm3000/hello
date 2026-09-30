@@ -52,6 +52,7 @@ import com.emm.domain.curated.InstallCuratedDeckUseCase
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.deck.RestoreDeckUseCase
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.UpdateDeckUseCase
@@ -275,6 +276,7 @@ fun Module.useCases() {
     factory { GetStudySessionUseCase(get(), get(), get(), get()) }
     factoryOf(::UpdateDeckUseCase)
     factoryOf(::SoftDeleteDeckUseCase)
+    factoryOf(::ResolveCaptureDeckUseCase)
     factoryOf(::RestoreDeckUseCase)
     factoryOf(::UpdateFlashcardUseCase)
     factoryOf(::RestoreFlashcardUseCase)
@@ -304,7 +306,16 @@ fun Module.viewModels() {
         )
     }
     viewModel { TodayViewModel(get()) }
-    viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
+    viewModel { params ->
+        LibraryViewModel(
+            searchLibrary = get(),
+            restoreFlashcardUseCase = get(),
+            undoEventHolder = get(),
+            getDecksUseCase = get(),
+            clock = get(),
+            initialDeckId = params.getOrNull(),
+        )
+    }
     viewModel { DecksViewModel(get(), get(), get()) }
     viewModel { StoreViewModel(get(), get()) }
     viewModel {
@@ -330,7 +341,7 @@ fun Module.viewModels() {
             updateFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get(), get()) }
     single {
         BuildInfo(

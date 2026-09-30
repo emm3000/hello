@@ -2,11 +2,13 @@ package com.emm.hello.newfeatures.deck
 
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.deck.CreateDeckInput
+import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DeckRepository
 import com.emm.domain.deck.SoftDeleteDeckUseCase
 import com.emm.domain.deck.Tag
 import com.emm.domain.deck.UpdateDeckInput
 import com.emm.domain.deck.UpdateDeckUseCase
+import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
@@ -14,6 +16,8 @@ import com.emm.hello.logging.logError
 import com.emm.hello.newfeatures.shared.UndoEvent
 import com.emm.hello.newfeatures.shared.UndoEventHolder
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
 
@@ -28,8 +32,10 @@ class NewDeckViewModel(
 ) {
 
     init {
-        if (currentState.formMode is DeckFormMode.Edit) {
+        val mode: DeckFormMode = currentState.formMode
+        if (mode is DeckFormMode.Edit) {
             loadDeck()
+            observeOtherDecks(mode.deckId.toDeckId())
         }
     }
 
@@ -43,6 +49,15 @@ class NewDeckViewModel(
             NewDeckUiIntent.ConfirmDeleteDeck -> deleteDeck()
             NewDeckUiIntent.DismissDeleteDeck -> setState { copy(isDeleteConfirmationVisible = false) }
         }
+    }
+
+    private fun observeOtherDecks(editedDeckId: DeckId) {
+        deckRepository.fetchAll()
+            .onEach { liveDecks: List<Deck> ->
+                val hasOtherDecks: Boolean = liveDecks.any { it.id != editedDeckId }
+                setState { copy(hasOtherDecks = hasOtherDecks) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun loadDeck() = viewModelScope.launch {

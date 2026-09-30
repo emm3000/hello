@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import com.emm.domain.ids.toDeckId
 import com.emm.hello.R
 import com.emm.hello.navigation.Navigator
 import com.emm.hello.newfeatures.capture.CaptureRoute
@@ -22,13 +23,16 @@ import com.emm.hello.newfeatures.card.CardDetailRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Serializable
-data object LibraryRoute : NavKey
+data class LibraryRoute(val initialDeckId: String? = null) : NavKey
 
 @Composable
-fun LibraryDestination(navigator: Navigator) {
-    val vm: LibraryViewModel = koinViewModel()
+fun LibraryDestination(navigator: Navigator, initialDeckId: String? = null) {
+    val vm: LibraryViewModel = koinViewModel(
+        parameters = { parametersOf(initialDeckId?.toDeckId()) },
+    )
     val uiState by vm.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

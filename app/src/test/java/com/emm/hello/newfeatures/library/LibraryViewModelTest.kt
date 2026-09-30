@@ -68,6 +68,21 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun `an initial deck filter is applied from the start`() = runTest {
+        val libraryRepository = FakeLibraryRepository()
+        val viewModel = buildViewModel(libraryRepository = libraryRepository, initialDeckId = DECK_ID)
+        libraryRepository.emit(
+            libraryFlashcard(id = CARD_ID, word = "borrow"),
+            libraryFlashcard(id = CARD_ID_2, word = "compelling", deckId = OTHER_DECK_ID),
+        )
+        advanceTimeBy(SEARCH_DEBOUNCE_MS + 1)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.selectedDeckId).isEqualTo(DECK_ID)
+        assertThat(viewModel.state.value.cards.map { card -> card.word }).containsExactly("borrow")
+    }
+
+    @Test
     fun `a card with no scheduled review is new`() {
         val card = libraryFlashcard(id = CARD_ID, word = "borrow", nextReviewAt = null)
 
@@ -109,6 +124,7 @@ class LibraryViewModelTest {
     private fun buildViewModel(
         libraryRepository: LibraryRepository = FakeLibraryRepository(),
         clock: Clock = FakeClock(FIXED_NOW),
+        initialDeckId: DeckId? = null,
     ): LibraryViewModel {
         val restoreFlashcardUseCase = mockk<RestoreFlashcardUseCase>()
         val getDecksUseCase = mockk<GetDecksUseCase>()
@@ -120,6 +136,7 @@ class LibraryViewModelTest {
             undoEventHolder = UndoEventHolder(),
             getDecksUseCase = getDecksUseCase,
             clock = clock,
+            initialDeckId = initialDeckId,
         )
     }
 
@@ -127,9 +144,10 @@ class LibraryViewModelTest {
         id: FlashcardId,
         word: String,
         nextReviewAt: Long? = null,
+        deckId: DeckId = DECK_ID,
     ): LibraryFlashcard = LibraryFlashcard(
         id = id,
-        deckId = DECK_ID,
+        deckId = deckId,
         deckName = "Primeras palabras",
         word = word,
         translation = "prestar",
@@ -155,6 +173,7 @@ class LibraryViewModelTest {
 
     private companion object {
         val DECK_ID: DeckId = "deck-1".toDeckId()
+        val OTHER_DECK_ID: DeckId = "deck-2".toDeckId()
         val CARD_ID: FlashcardId = "card-1".toFlashcardId()
         val CARD_ID_2: FlashcardId = "card-2".toFlashcardId()
         val FIXED_NOW: Instant = Instant.parse("2026-08-28T12:00:00Z")

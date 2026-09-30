@@ -146,7 +146,7 @@ private fun AppNavigation(
             entry<StudyRoute> { key -> StudyDestination(navigator, key.deckId, key.extraNewCards) }
             entry<CaptureRoute> { CaptureDestination(navigator) }
             entry<SuggestRoute> { SuggestDestination(navigator) }
-            entry<LibraryRoute> { LibraryDestination(navigator) }
+            entry<LibraryRoute> { key -> LibraryDestination(navigator, key.initialDeckId) }
             entry<NewDeckRoute> { key -> NewDeckDestination(navigator, key.deckId) }
             entry<CardDetailRoute> { key -> CardDetailDestination(navigator, key.cardId, key.deckId) }
             entry<EditFlashcardRoute> { key -> EditFlashcardDestination(navigator, key.cardId) }

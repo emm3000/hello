@@ -13,6 +13,7 @@ import com.emm.domain.generation.LevelBand
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
+import com.emm.hello.newfeatures.library.LibraryRoute
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -98,6 +99,17 @@ class StoreViewModelTest {
         viewModel.onIntent(StoreUiIntent.OpenDeckRequested("curated-$INSTALLED_ID"))
 
         assertThat(effectDeferred.await()).isEqualTo(StoreUiEffect.OpenDeck("curated-$INSTALLED_ID"))
+    }
+
+    @Test
+    fun `opening an installed deck targets the library filtered by that deck`() = runTest {
+        val viewModel: StoreViewModel = buildViewModel()
+
+        val effectDeferred: Deferred<StoreUiEffect> = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(StoreUiIntent.OpenDeckRequested("curated-$INSTALLED_ID"))
+
+        val effect: StoreUiEffect.OpenDeck = effectDeferred.await() as StoreUiEffect.OpenDeck
+        assertThat(effect.toLibraryRoute()).isEqualTo(LibraryRoute(initialDeckId = "curated-$INSTALLED_ID"))
     }
 
     @Test

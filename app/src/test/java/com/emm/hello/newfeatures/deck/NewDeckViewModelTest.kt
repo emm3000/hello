@@ -152,6 +152,7 @@ class NewDeckViewModelTest {
             cards = emptyList(),
             cardsCount = 0L,
         )
+        repository.liveDecks = listOf(requireNotNull(repository.storedDeck), otherDeck())
         val undoEventHolder = UndoEventHolder()
         val viewModel = NewDeckViewModel(
             deckRepository = repository,
@@ -199,6 +200,47 @@ class NewDeckViewModelTest {
         assertThat(viewModel.state.value.canDelete).isFalse()
     }
 
+    @Test
+    fun `the only live deck cannot be deleted`() = runTest {
+        val repository = FakeDeckRepository()
+        repository.storedDeck = otherDeck()
+        repository.liveDecks = listOf(otherDeck())
+
+        val viewModel = editViewModel(repository, deckId = OTHER_DECK_ID)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.canDelete).isFalse()
+    }
+
+    @Test
+    fun `a deck with another live deck beside it can be deleted`() = runTest {
+        val repository = FakeDeckRepository()
+        repository.storedDeck = otherDeck()
+        repository.liveDecks = listOf(otherDeck(), otherDeck().copy(id = DeckId.from("deck-2")))
+
+        val viewModel = editViewModel(repository, deckId = OTHER_DECK_ID)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.canDelete).isTrue()
+    }
+
+    private fun editViewModel(repository: FakeDeckRepository, deckId: String): NewDeckViewModel = NewDeckViewModel(
+        deckRepository = repository,
+        updateDeckUseCase = UpdateDeckUseCase(repository),
+        softDeleteDeckUseCase = SoftDeleteDeckUseCase(repository),
+        undoEventHolder = UndoEventHolder(),
+        formMode = DeckFormMode.Edit(deckId),
+    )
+
+    private fun otherDeck(): Deck = Deck(
+        id = DeckId.from(OTHER_DECK_ID),
+        name = "Starter",
+        description = "",
+        createdAt = LocalDateTime.parse("2025-12-01T00:00:00"),
+        cards = emptyList(),
+        cardsCount = 0L,
+    )
+
     private class FakeDeckRepository(
         private val shouldFail: Boolean = false,
     ) : DeckRepository {
@@ -216,7 +258,9 @@ class NewDeckViewModelTest {
         override fun fetchById(deckId: DeckId): Flow<Deck> =
             storedDeck?.let { flowOf(it) } ?: emptyFlow()
 
-        override fun fetchAll(): Flow<List<Deck>> = emptyFlow()
+        var liveDecks: List<Deck> = emptyList()
+
+        override fun fetchAll(): Flow<List<Deck>> = flowOf(liveDecks)
 
         override fun deckWithFlashcardCount(): Flow<List<Deck>> = emptyFlow()
 
@@ -232,3 +276,4 @@ class NewDeckViewModelTest {
 }
 
 private const val DELETED_AT: Long = 1_700_000_000_000L
+private const val OTHER_DECK_ID: String = "starter"

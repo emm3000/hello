@@ -96,8 +96,11 @@ Loading is a centered `HLoadingSpinner`; the `HEmptyState` offers the same
 - `isLoading`
 - `formMode: DeckFormMode`
 - `isDeleteConfirmationVisible`
+- `hasOtherDecks` — observed from `DeckRepository.fetchAll()` in edit mode;
+  true when any live deck other than the edited one exists
 - `isValid` (computed): `name` not blank
-- `canDelete` (computed): edit mode and not loading
+- `canDelete` (computed): edit mode, not loading and `hasOtherDecks`, so the
+  last deck shows no delete action
 
 ### Loading
 
@@ -127,7 +130,8 @@ A failure in either branch clears `isLoading` and emits
 
 `ConfirmDeleteDeck` returns early unless `formMode is DeckFormMode.Edit`, so a
 confirm in create mode never reaches the repository. Otherwise it calls
-`SoftDeleteDeckUseCase`, emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
+`SoftDeleteDeckUseCase`, which throws `LastDeckDeletionException` when the
+deck is the only live one (surfaced as the generic delete error), emits `UndoEvent.DeckDeleted` to `UndoEventHolder`
 with the returned timestamp, and emits `DeckDeleted` so the route navigates
 back to Decks, where the undo snackbar is waiting.
 

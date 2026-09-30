@@ -3,8 +3,8 @@ package com.emm.hello.newfeatures.suggest
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.deck.Deck
-import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.generation.isFreshAt
@@ -30,7 +30,7 @@ class SuggestViewModel(
     private val refresher: SuggestedWordsRefresher,
     private val captureFlashcardUseCase: CaptureFlashcardUseCase,
     private val getDecksUseCase: GetDecksUseCase,
-    private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+    private val resolveCaptureDeck: ResolveCaptureDeckUseCase,
     private val credits: GenerationCreditsRepository,
     private val clock: Clock,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
@@ -104,11 +104,6 @@ class SuggestViewModel(
         else -> SuggestUiEffect.ShowMessage(R.string.suggest_daily_cap_other, remaining.toString())
     }
 
-    private fun resolveTargetDeck(decks: List<Deck>): Deck? {
-        val defaultDeckId: DeckId? = defaultDeckSelectionRepository.getDefaultDeckId()
-        return decks.find { it.id == defaultDeckId } ?: decks.minByOrNull(Deck::createdAt)
-    }
-
     private fun handleAddSelected() = viewModelScope.launch {
         val current: SuggestUiState = currentState
         if (!current.canAdd) return@launch
@@ -128,7 +123,7 @@ class SuggestViewModel(
 
     private suspend fun addSelectedWords(current: SuggestUiState) {
         val decks: List<Deck> = getDecksUseCase().first()
-        val deck: Deck? = resolveTargetDeck(decks)
+        val deck: Deck? = resolveCaptureDeck(decks).target
         if (deck == null) {
             sendEffect(SuggestUiEffect.ShowMessage(R.string.suggest_error_no_deck))
             return

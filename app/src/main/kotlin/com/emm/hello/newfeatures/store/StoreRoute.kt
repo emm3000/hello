@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.navigation.Navigator
-import com.emm.hello.newfeatures.deck.NewDeckRoute
+import com.emm.hello.newfeatures.library.LibraryRoute
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
@@ -29,7 +29,7 @@ fun StoreDestination(navigator: Navigator) {
         vm.effect.collect { effect ->
             when (effect) {
                 StoreUiEffect.NavigateBack -> navigator.goBack()
-                is StoreUiEffect.OpenDeck -> navigator.navigateTo(NewDeckRoute(effect.deckId))
+                is StoreUiEffect.OpenDeck -> navigator.navigateTo(effect.toLibraryRoute())
                 is StoreUiEffect.ShowMessage -> {
                     Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
                 }
@@ -42,3 +42,5 @@ fun StoreDestination(navigator: Navigator) {
         onIntent = vm::onIntent,
     )
 }
+
+internal fun StoreUiEffect.OpenDeck.toLibraryRoute(): LibraryRoute = LibraryRoute(initialDeckId = deckId)

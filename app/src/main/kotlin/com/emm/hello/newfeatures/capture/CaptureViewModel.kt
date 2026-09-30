@@ -5,9 +5,11 @@ import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateManualFlashcardUseCase
 import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
+import com.emm.domain.deck.CaptureDeckChoice
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.DeckId
@@ -30,6 +32,7 @@ class CaptureViewModel(
     private val retryFailedEnrichments: RetryFailedEnrichmentsUseCase,
     private val enrichmentRepository: FlashcardEnrichmentRepository,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
+    private val resolveCaptureDeck: ResolveCaptureDeckUseCase,
     getDecksUseCase: GetDecksUseCase,
     libraryRepository: LibraryRepository,
     connectivityRepository: ConnectivityRepository,
@@ -39,7 +42,7 @@ class CaptureViewModel(
 
     init {
         getDecksUseCase()
-            .onEach { decks -> setState { copy(decks = decks, targetDeck = resolveTargetDeck(decks)) } }
+            .onEach { decks -> showCaptureDecks(resolveCaptureDeck(decks)) }
             .launchIn(viewModelScope)
 
         enrichmentRepository.observeBacklog()
@@ -69,9 +72,8 @@ class CaptureViewModel(
         }
     }
 
-    private fun resolveTargetDeck(decks: List<Deck>): Deck? {
-        val defaultDeckId: DeckId? = defaultDeckSelectionRepository.getDefaultDeckId()
-        return decks.find { it.id == defaultDeckId } ?: decks.minByOrNull(Deck::createdAt)
+    private fun showCaptureDecks(choice: CaptureDeckChoice) {
+        setState { copy(decks = choice.candidates, targetDeck = choice.target) }
     }
 
     private fun selectDeck(deckId: DeckId) {

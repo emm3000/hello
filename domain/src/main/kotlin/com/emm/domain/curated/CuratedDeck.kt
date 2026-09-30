@@ -14,5 +14,9 @@ data class CuratedDeck(
 ) {
 
     val installedDeckId: DeckId
-        get() = DeckId.from("curated-$id")
+        get() = DeckId.from("$INSTALLED_DECK_ID_PREFIX$id")
 }
+
+fun DeckId.isInstalledCuratedDeck(): Boolean = value.startsWith(INSTALLED_DECK_ID_PREFIX)
+
+private const val INSTALLED_DECK_ID_PREFIX: String = "curated-"

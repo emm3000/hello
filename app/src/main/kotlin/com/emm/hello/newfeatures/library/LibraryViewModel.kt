@@ -33,11 +33,13 @@ class LibraryViewModel(
     undoEventHolder: UndoEventHolder,
     getDecksUseCase: GetDecksUseCase,
     private val clock: Clock,
+    initialDeckId: DeckId? = null,
 ) : MviViewModel<LibraryUiState, LibraryUiIntent, LibraryUiEffect>(
-    initialState = LibraryUiState(),
+    initialState = LibraryUiState(selectedDeckId = initialDeckId),
 ) {
 
-    private val criteria: MutableStateFlow<LibrarySearchCriteria> = MutableStateFlow(LibrarySearchCriteria())
+    private val criteria: MutableStateFlow<LibrarySearchCriteria> =
+        MutableStateFlow(LibrarySearchCriteria(deckId = initialDeckId))
 
     init {
         getDecksUseCase()

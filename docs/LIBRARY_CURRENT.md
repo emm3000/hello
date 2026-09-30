@@ -18,7 +18,10 @@ screen where Notion-style density is appropriate, because it is a browsing
 surface and not a focus surface.
 
 It replaced the dashboard deck list and Deck Detail. Reached from the
-"Library" `HButton` on Today (`TodayRoute` navigates to `LibraryRoute`).
+"Library" `HButton` on Today (`TodayRoute` navigates to `LibraryRoute()`) and
+from "Open deck" in the Store, which passes `LibraryRoute(initialDeckId)` so
+Library opens with that deck already selected in `selectedDeckId` and the
+search criteria.
 
 ## Key files
 

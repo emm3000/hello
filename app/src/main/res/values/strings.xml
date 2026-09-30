@@ -258,7 +258,7 @@
     <string name="decks_title">Decks</string>
     <string name="decks_create_action">New deck</string>
     <string name="decks_empty_headline">No decks yet</string>
-    <string name="decks_empty_body">A deck groups cards. It\'s optional: you can capture without creating one.</string>
+    <string name="decks_empty_body">A deck groups cards. Create one to start capturing.</string>
     <string name="decks_store_action">Store</string>
     <string name="store_title">Store</string>
     <string name="store_headline">Curated decks</string>

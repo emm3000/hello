@@ -38,7 +38,7 @@ fun TodayDestination(navigator: Navigator) {
         onStudy = { vm.onIntent(StudyClicked) },
         onStudyMore = { vm.onIntent(StudyMoreClicked) },
         onSettings = { navigator.navigateTo(SettingsRoute) },
-        onLibrary = { navigator.navigateTo(LibraryRoute) },
+        onLibrary = { navigator.navigateTo(LibraryRoute()) },
         onGetNewWords = { navigator.navigateTo(SuggestRoute) },
         onVisible = { vm.onIntent(ScreenVisible) },
     )

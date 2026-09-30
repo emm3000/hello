@@ -71,7 +71,7 @@ The Store lists hand-made curated decks compiled into `:data` and lets the user 
 `StoreUiEffect`, consumed in `StoreDestination`:
 
 - `NavigateBack` → `navigator.goBack()`
-- `OpenDeck(deckId)` → `NewDeckRoute(deckId)`, the deck's edit form
+- `OpenDeck(deckId)` → `LibraryRoute(initialDeckId = deckId)`, Library filtered to that deck
 - `ShowMessage(messageRes)` → a long Toast
 
 ## Layout

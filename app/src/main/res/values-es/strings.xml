@@ -265,7 +265,7 @@
     <string name="decks_title">Mazos</string>
     <string name="decks_create_action">Nuevo mazo</string>
     <string name="decks_empty_headline">Todavía no hay mazos</string>
-    <string name="decks_empty_body">Un mazo agrupa tarjetas. Es opcional: puedes capturar sin crear ninguno.</string>
+    <string name="decks_empty_body">Un mazo agrupa tarjetas. Crea uno para empezar a capturar.</string>
     <string name="decks_store_action">Tienda</string>
     <string name="store_title">Tienda</string>
     <string name="store_headline">Mazos seleccionados</string>

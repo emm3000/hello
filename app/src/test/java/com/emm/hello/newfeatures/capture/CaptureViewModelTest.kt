@@ -8,6 +8,7 @@ import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
+import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.flashcard.EnrichmentBacklog
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
@@ -473,6 +474,16 @@ class CaptureViewModelTest {
         assertThat(viewModel.state.value.decks.map { it.id }).containsExactly(NEWEST_DECK_ID, DECK_ID).inOrder()
     }
 
+    @Test
+    fun `installed curated decks stay out of the picker when a user deck exists`() = runTest {
+        val curatedDeck: Deck = deck(id = CURATED_DECK_ID, name = "Phrasal verbs")
+        val viewModel = buildViewModel(decks = listOf(curatedDeck, deck()), defaultDeckId = CURATED_DECK_ID)
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.decks.map { it.id }).containsExactly(DECK_ID)
+        assertThat(viewModel.state.value.targetDeck?.id).isEqualTo(DECK_ID)
+    }
+
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
         createManualFlashcard: CreateManualFlashcardUseCase = mockk(),
@@ -498,6 +509,7 @@ class CaptureViewModelTest {
             retryFailedEnrichments = retryFailedEnrichments,
             enrichmentRepository = enrichmentRepository,
             defaultDeckSelectionRepository = deckSelectionRepository,
+            resolveCaptureDeck = ResolveCaptureDeckUseCase(deckSelectionRepository),
             getDecksUseCase = getDecksUseCase,
             libraryRepository = libraryRepository,
             connectivityRepository = connectivityRepository,
@@ -563,6 +575,7 @@ class CaptureViewModelTest {
         val DECK_ID: DeckId = "deck-1".toDeckId()
         val NEWEST_DECK_ID: DeckId = "deck-2".toDeckId()
         val UNKNOWN_DECK_ID: DeckId = "deck-missing".toDeckId()
+        val CURATED_DECK_ID: DeckId = "curated-phrasal-verbs".toDeckId()
         val CARD_ID: FlashcardId = "card-1".toFlashcardId()
     }
 }
