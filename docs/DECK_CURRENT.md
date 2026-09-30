@@ -62,6 +62,7 @@ clears `isLoading`.
 
 - `DeckOpened(deckId)` → emits `OpenDeckForm(deckId)`
 - `CreateDeckRequested` → emits `OpenDeckForm(null)`
+- `StoreRequested` → emits `OpenStore`
 - `UndoDeleteDeck(deckId, deletedAt)` → `RestoreDeckUseCase`
 
 ### Effects
@@ -69,6 +70,7 @@ clears `isLoading`.
 `DecksUiEffect`:
 
 - `OpenDeckForm(deckId?)` → `NewDeckRoute(deckId)`
+- `OpenStore` → `StoreRoute` (see `STORE_CURRENT.md`)
 - `ShowUndoDeckDeleted(deckName, deckId, deletedAt)` — produced when the
   ViewModel receives `UndoEvent.DeckDeleted` from `UndoEventHolder`; raises
   the "Deck \"X\" deleted" snackbar with an "Undo" action
@@ -76,7 +78,8 @@ clears `isLoading`.
 
 ### Layout
 
-`HTopBar` with the title "Decks", a `DeckRow` per deck (an `HCard` with the
+`HTopBar` with the title "Decks" and a storefront `HIconButton` action that
+raises `StoreRequested`, a `DeckRow` per deck (an `HCard` with the
 name in `titleLarge`, description in `bodyMedium`, card count and tags in
 `metadata`), and a secondary "New deck" `HButton` at the end of the list.
 Loading is a centered `HLoadingSpinner`; the `HEmptyState` offers the same
