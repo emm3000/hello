@@ -1,7 +1,7 @@
 ---
 description: Run the standard gate and area-specific checks for the requested change
 argument-hint: "[commit or base..head; defaults to pending changes]"
-allowed-tools: Bash(./gradlew:*) Bash(git status:*) Bash(git diff:*) Bash(git show:*) Bash(git ls-files:*) Bash(deno task check) Bash(mktemp:*) Bash(rg:*) Read Glob
+allowed-tools: Bash(./gradlew:*) Bash(git status:*) Bash(git diff:*) Bash(git show:*) Bash(git ls-files:*) Bash(deno task --cwd supabase/functions check) Bash(mktemp:*) Bash(rg:*) Read Glob
 disable-model-invocation: true
 ---
 

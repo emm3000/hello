@@ -9,7 +9,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "jq -e '.tool_input.command | test(\"git +(commit|push|checkout|reset|restore|stash|rebase|merge)\") | not' > /dev/null || { echo 'writer leaves git to the main thread' >&2; exit 2; }"
+          command: "jq -e '.tool_input.command | test(\"git +(add|commit|push|checkout|reset|restore|stash|rebase|merge)\") | not' > /dev/null || { echo 'writer leaves git to the main thread' >&2; exit 2; }"
 ---
 
 Implement the assigned goal within its owned paths, constraints and success criteria. Choose implementation details within those boundaries. If the code contradicts a requirement or the proposed approach, report the evidence and continue independent work rather than forcing an incorrect implementation.

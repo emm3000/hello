@@ -2,7 +2,7 @@
 name: feature
 description: Scaffold a new MVI feature under app/newfeatures following the repo rules
 argument-hint: <FeatureName>
-allowed-tools: Read Edit Write Grep Glob Bash(ls:*) Bash(./gradlew:*)
+allowed-tools: Read Edit Write Grep Glob Bash(eza:*) Bash(./gradlew:*)
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,7 @@ Scaffold a new feature called **$ARGUMENTS** under `app/src/main/kotlin/com/emm/
 
 ## Before creating anything
 
-1. Confirm the feature name is PascalCase and not already used (`ls app/src/main/kotlin/com/emm/hello/newfeatures/`).
+1. Confirm the feature name is PascalCase and not already used (`eza app/src/main/kotlin/com/emm/hello/newfeatures/`).
 2. Read 1-2 existing features to copy idiomatic patterns (state shape, intent grouping, route DI).
 3. State which existing feature guides the implementation and proceed. Ask only if missing product behavior materially changes the result. Read the applicable repo rules before adapting the templates.
 

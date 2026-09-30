@@ -6,7 +6,7 @@ Select checks from the complete work-unit scope, including staged, unstaged and 
 |---|---|
 | Kotlin or Android build configuration | `./gradlew detekt testDebugUnitTest :domain:test`; add `:app:assembleDebug` for packaging, resources, manifest or dependency changes |
 | `data/src/main/sqldelight/**` or migration tests | Read `sqldelight.md` before design; run `./gradlew :data:verifySqlDelightMigration` and the affected migration tests |
-| `supabase/functions/**` | Run `deno task check` from `supabase/functions`; this includes formatting, lint, type checking and tests |
+| `supabase/functions/**` | Run `deno task --cwd supabase/functions check` from the repo root; this includes formatting, lint, type checking and tests |
 | `supabase/migrations/**` | Inspect SQL and exercise the migration and affected queries on a disposable local database; record the target and command. Never reset a shared or production database |
 | UI behavior | Exercise the relevant flow on the intended emulator after installation has been authorized; record expected and observed behavior |
 | `.claude/**` or `CLAUDE.md` | Validate JSON/frontmatter and references, inspect rule/example consistency; instantiate and compile changed Kotlin templates when feasible |
