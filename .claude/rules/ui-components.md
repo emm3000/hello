@@ -45,6 +45,14 @@ Rationale for all three lives in `docs/DESIGN_BRIEF.md`; do not re-derive it her
 2. **The study back face carries no accent at all.** At the moment of self-grading nothing may stand out. The session progress bar is a faint neutral, never the accent, so it cannot compete with the primary action.
 3. **Semantic colors are for system states, not for the user's recall.** Success, warning and destructive belong to load errors, destructive actions and warnings. They never score an answer.
 
+## Button sizing
+
+Height and padding belong to `HButton`: each `HButtonVariant` fixes its own minimum height and horizontal padding in `core/ui/Button.kt`. A screen never overrides them. Width is the call site's decision, and it follows these rules:
+
+- **The screen's primary action** in the content flow or anchored at the bottom passes `full = true`. Examples: Save in Capture, Try again in Card Detail.
+- **The CTA of an empty or error state** hugs its label and sits centered. Examples: the Library empty state, the startup error retry in `NewRoot`.
+- **`Secondary` and `Text` buttons** hug their label, except when two buttons form a paired row, such as the two Today actions, where the row lays them out.
+
 ## Grade buttons
 
 The two grade buttons are a fixed anatomy, not a styling choice:

@@ -386,11 +386,13 @@ private fun FailedEnrichmentNotice(
             text = stringResource(R.string.card_detail_try_again),
             onClick = { onIntent(FlashcardDetailUiIntent.TryAgainClicked) },
             variant = HButtonVariant.Primary,
+            full = true,
         )
         FailedEnrichmentAction.WriteItMyself -> HButton(
             text = stringResource(R.string.card_detail_write_it_myself),
             onClick = { onIntent(FlashcardDetailUiIntent.EditFlashcard) },
             variant = HButtonVariant.Primary,
+            full = true,
         )
         FailedEnrichmentAction.None -> Unit
     }
