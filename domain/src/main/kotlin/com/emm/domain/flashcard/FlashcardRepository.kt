@@ -12,6 +12,8 @@ interface FlashcardRepository {
 
     suspend fun fetchById(id: FlashcardId): FlashcardDetail
 
+    fun observeById(id: FlashcardId): Flow<FlashcardDetail?>
+
     suspend fun create(input: CreateFlashcardInput): FlashcardId
 
     suspend fun update(input: UpdateFlashcardInput)

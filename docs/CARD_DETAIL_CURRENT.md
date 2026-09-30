@@ -6,12 +6,12 @@
 | Role | Factual feature reference |
 | Scope | `Card Detail` flow |
 | Source of Truth | No |
-| Read this when | You need to understand how an existing card is shown and deleted |
-| Last verified | 2026-09-09 |
+| Read this when | You need to understand how an existing card is shown, retried and deleted |
+| Last verified | 2026-09-29 |
 
 ## Summary
 
-`Card Detail` shows a saved flashcard at rest on its own hue and lets you edit or delete it (soft delete), and can play the word and its example sentence aloud. It opens from `Library` (`LibraryRoute` navigates to `CardDetailRoute(cardId, deckId)`). Single vertical scroll, no tabs, no sections.
+`Card Detail` shows a saved flashcard at rest on its own hue and lets you edit or delete it (soft delete), retry a failed AI enrichment when its cause allows it, and can play the word and its example sentence aloud. It opens from `Library` (`LibraryRoute` navigates to `CardDetailRoute(cardId, deckId)`). Single vertical scroll, no tabs, no sections.
 
 ## Key files
 
@@ -21,6 +21,8 @@
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/card/FlashcardDetailUiEffect.kt`
+- `domain/src/main/kotlin/com/emm/domain/generation/EnrichmentFailureCause.kt` (the cause type and the `canRetryAt` rule)
+- `domain/src/main/kotlin/com/emm/domain/authoring/RetryEnrichmentUseCase.kt`
 - `app/src/main/kotlin/com/emm/hello/core/ui/TextEmphasis.kt` (`underlineFirstMatch`, used to underline the word inside the example)
 - `app/src/main/kotlin/com/emm/hello/core/ui/HSpeakerButton.kt` (shared play/stop button, also used by `Study`)
 - `app/src/main/kotlin/com/emm/hello/core/audio/` — `TextToSpeechManager`, `AudioState`, `TtsUtterancePolicy`
@@ -32,29 +34,32 @@
 - `flashcard: Flashcard` (default `Flashcard.empty(SystemClock)`)
 - `isLoading: Boolean = true`
 - `isDeleteConfirmationVisible: Boolean = false`
+- `failedEnrichment: FailedEnrichment? = null` — set only while the card is `FAILED`: its `cause: EnrichmentFailureCause`, `canRetry: Boolean` from the domain rule `cause.canRetryAt(clock.now(), credits)`, and `creditsResetAt: Instant?` from `GenerationCreditsRepository`. Its computed `action` is `TryAgain` when `canRetry`, `None` for `CreditsExhausted` before the reset, and `WriteItMyself` otherwise (`AppCheckRejected`, a `WordProblem`).
 
 ## Loading
 
 `FlashcardDetailViewModel` has no `init` block; nothing loads until `FlashcardDetailUiIntent.Load` is sent. `CardDetailDestination` sends `Load` from a `LaunchedEffect(Unit)` every time the destination enters composition.
 
-Because Navigation 3 (1.1.7) renders only the top entry in single-pane and re-composes the previous entry on pop, this means the card is re-fetched when the user returns from Edit Flashcard, so an edited word, meaning, translation, or a status that went from `FAILED` to `ENRICHED`, shows immediately. Rotation also re-fetches once. There is no per-entry `Lifecycle` in Navigation 3, so `LifecycleEventEffect(ON_RESUME)` was deliberately not used (the Activity stays resumed during in-app navigation).
+Because Navigation 3 (1.1.7) renders only the top entry in single-pane and re-composes the previous entry on pop, this means the observation restarts when the user returns from Edit Flashcard. Rotation also restarts it once. There is no per-entry `Lifecycle` in Navigation 3, so `LifecycleEventEffect(ON_RESUME)` was deliberately not used (the Activity stays resumed during in-app navigation).
 
-On `Load`, `loadFlashcard()`:
+On `Load`, `observeFlashcard()` cancels any previous observation and combines `FlashcardRepository.observeById(flashcardId)` with `GenerationCreditsRepository.observe()`:
 
-- calls `FlashcardRepository.fetchById(flashcardId)`
-- on success sets `flashcard = detail.flashcard` and flips `isLoading = false`
-- on error emits `LoadFailed("Couldn't load the card")` (hard-coded literal, not a string resource); `CardDetailDestination` shows it as a `Toast` and navigates back
+- every emission sets `flashcard = detail.flashcard`, `failedEnrichment` and `isLoading = false`, so a status change (`FAILED` → `PENDING` after a retry, then `ENRICHED` or `FAILED` when the worker finishes, or `FAILED` → `ENRICHED` after an edit) shows while the screen is open
+- a `null` card while still loading emits `LoadFailed(R.string.error_load_card)`; a `null` after load (the card was just deleted) is ignored
+- an error emits `LoadFailed(R.string.error_load_card)`; `CardDetailDestination` shows it as a `Toast` and navigates back
 
 `isLoading` starts at `true`, so the screen never flashes the empty-flashcard default: while it is `true`, `FlashcardDetailScreen` keeps the top bar and renders `LoadingBody()` (a centered `HLoadingSpinner`) instead of the card body.
 
 ## Actions
 
-- `Load` → `loadFlashcard()`
+- `Load` → `observeFlashcard()`
 - `BackClicked` (back icon in top bar) → emits `NavigateBack`
 - `EditFlashcard` ("Edit" text button in top bar) → emits `NavigateToEditFlashcard(flashcardId)`
 - `DeleteFlashcard` ("Delete" destructive item inside the "more" dropdown) → opens confirmation dialog (`isDeleteConfirmationVisible = true`)
 - `ConfirmDeleteFlashcard` → closes the dialog, runs `FlashcardRepository.softDeleteFlashcard`, emits `UndoEvent.CardDeleted(flashcardId, deletedAt)` to `UndoEventHolder` so `LibraryViewModel` can show an undo snackbar, then emits `FlashcardDeleted`; on error emits `ShowMessage("Couldn't delete the card")` (hard-coded literal)
 - `DismissDeleteFlashcard` → closes dialog
+- `TryAgainClicked` ("Try again" under a failed status) → `RetryEnrichmentUseCase(flashcardId)`, which re-reads the card's cause and the stored credits, re-checks `canRetryAt`, and only then moves that one card to `PENDING` through `FlashcardEnrichmentRepository.markPending(listOf(id))` and returns `true`. On `true` emits `EnqueueEnrichment(flashcardId)`; on `false` emits nothing; on error emits `ShowMessage(R.string.card_detail_retry_error)`
+- "Write it myself" (the action for `AppCheckRejected` and a `WordProblem`) sends the same `EditFlashcard` intent as the top bar
 
 ## Effects
 
@@ -65,6 +70,7 @@ On `Load`, `loadFlashcard()`:
 - `NavigateToEditFlashcard(cardId)` — `navigator.navigateTo(EditFlashcardRoute(cardId, deckId))`
 - `FlashcardDeleted` — `navigator.goBack()`
 - `ShowMessage(message)` — toast
+- `EnqueueEnrichment(cardId)` — `FlashcardEnrichmentScheduler.enqueue(context, cardId)`, the same unique `KEEP` work Capture uses; offline, the work waits for a connection while the card reads "Preparing…"
 
 ## TTS
 
@@ -90,13 +96,14 @@ The whole screen is a `Surface` colored with `cardHueFor(flashcard.id.value)`. I
 | `ExampleBlock` | First example (`examples.firstOrNull()`): a `Row` with the example text (`Modifier.weight(1f)`, word underlined via `underlineFirstMatch`) and a smaller, muted `HSpeakerButton` that plays `example.text`; the translation renders below the row. | Skipped if there is no example or its `text` is blank; translation only if non-blank; translation has no speaker button (see TTS). |
 | `ReferenceLine` | `partOfSpeech` and `meaning` joined by ` · `. | Blank parts are dropped; line skipped if nothing remains. |
 | `CapturedInputLine` | `capturedInput` through `R.string.card_detail_captured_input` ("You typed: %1$s"). | Skipped when `capturedInput` is blank or equals `word` ignoring case. Enrichment overwrites `word` but never `capturedInput`, so this is what the user actually typed. |
-| `StatusLine` | `enrichmentStatus`: `PENDING` → "Preparing…" (`R.string.library_status_pending`), `FAILED` → "Failed" (`R.string.library_status_failed`, destructive ink). | `ENRICHED` renders nothing. |
+| `StatusLine` | `enrichmentStatus`: `PENDING` → "Preparing…" (`R.string.library_status_pending`), `FAILED` → "Failed" (`R.string.library_status_failed`, destructive ink), then one muted line for the cause and at most one primary `HButton`: `Technical` → `card_detail_failure_technical` + "Try again"; `AppCheckRejected` → `card_detail_failure_app_check_rejected` + "Write it myself"; a `WordProblem` → its `capture_failure_*` message + "Write it myself"; `CreditsExhausted` before the reset → `card_detail_failure_credits_until` with the reset as local `HH:mm` (as in Settings) and no button; at or after the reset, or with no stored reset → `card_detail_failure_credits_available` + "Try again". | `ENRICHED` renders nothing. The button disappears as soon as the retried card turns `PENDING`. |
 
 The delete confirmation is an `HAlertDialog` with `isDangerous = true`, title `R.string.delete_flashcard_title` ("Delete card"), description `R.string.delete_flashcard_description`, confirm `R.string.delete`, cancel `R.string.cancel`.
 
 ## Persistence
 
-- Read: `FlashcardRepository.fetchById` (local).
+- Read: `FlashcardRepository.observeById` and `GenerationCreditsRepository.observe` (local).
+- Retry: `FlashcardEnrichmentRepository.markPending` for the one card (local), then WorkManager.
 - Delete: soft delete via `FlashcardRepository.softDeleteFlashcard`.
 - No remote sync involved.
 
@@ -107,9 +114,10 @@ Keys referenced by `FlashcardDetailScreen.kt` (`app/src/main/res/values/strings.
 - `edit`, `delete`, `cancel`, `more_options`
 - `delete_flashcard_title`, `delete_flashcard_description`
 - `library_status_pending`, `library_status_failed`
+- `card_detail_failure_technical`, `card_detail_failure_app_check_rejected`, `card_detail_failure_credits_until`, `card_detail_failure_credits_available`, `card_detail_try_again`, `card_detail_write_it_myself`, and the `capture_failure_*` word-problem messages
 - `speak_desc`, `stop_speech_desc` (`WordBlock`'s `HSpeakerButton`)
 - `speak_example_desc`, `stop_example_speech_desc` (`ExampleBlock`'s `HSpeakerButton`)
 
-The load and delete error messages emitted by `FlashcardDetailViewModel` are hard-coded English literals, not resources.
+The load, delete and retry error messages emitted by `FlashcardDetailViewModel` are `R.string.error_load_card`, `R.string.error_delete_card` and `R.string.card_detail_retry_error`.
 
-The former `card_detail_*` keys and `confusable_with_label` no longer exist in `strings.xml`; the dictionary-entry layout (`HDictSense`, senses, examples list, extras, context, footer) was removed with the redesign.
+The former dictionary-layout `card_detail_*` keys and `confusable_with_label` no longer exist in `strings.xml`; the dictionary-entry layout (`HDictSense`, senses, examples list, extras, context, footer) was removed with the redesign.

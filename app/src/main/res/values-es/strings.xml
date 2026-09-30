@@ -193,6 +193,13 @@
     <string name="deck_updated_message">Mazo actualizado</string>
     <string name="card_updated_message">Tarjeta actualizada</string>
     <string name="card_detail_captured_input">Escribiste: %1$s</string>
+    <string name="card_detail_failure_technical">No pudimos conectar con la IA. Inténtalo de nuevo.</string>
+    <string name="card_detail_failure_app_check_rejected">La IA no está disponible en este dispositivo. Puedes escribir la tarjeta por tu cuenta.</string>
+    <string name="card_detail_failure_credits_until">Alcanzaste el límite diario de IA. Disponible después de las %1$s.</string>
+    <string name="card_detail_failure_credits_available">Alcanzaste el límite diario de IA. Ya está disponible.</string>
+    <string name="card_detail_try_again">Inténtalo de nuevo</string>
+    <string name="card_detail_write_it_myself">Escribirla yo</string>
+    <string name="card_detail_retry_error">No pudimos reintentar ahora.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_headline">Guarda las palabras que encuentres.</string>
@@ -205,7 +212,6 @@
     <string name="capture_placeholder">Una palabra</string>
     <string name="capture_mic_content_description">Dictar la palabra</string>
     <string name="capture_save">Guardar</string>
-    <string name="capture_retry">Reintentar</string>
     <string name="capture_mode_ai_label">La IA la completa</string>
     <string name="capture_mode_ai_action">Usar IA</string>
     <string name="capture_mode_manual_label">Lo escribes tú</string>
@@ -217,7 +223,6 @@
     <string name="capture_error_duplicate">Esa palabra ya está en el mazo.</string>
     <string name="capture_error_translation_required">Agrega la traducción al español</string>
     <string name="capture_error_generic">No pudimos guardar la tarjeta.</string>
-    <string name="capture_error_retry">No pudimos reintentar ahora.</string>
     <string name="capture_done">Listo</string>
     <string name="capture_recent_label">Tu última:</string>
     <string name="capture_recent_row_description">%1$s, %2$s</string>
@@ -230,7 +235,9 @@
     <string name="capture_failure_unintelligible">No pudimos entender eso. Prueba con una palabra o frase real.</string>
     <string name="capture_failure_contradictory">Esa entrada se contradice. Prueba con una sola idea.</string>
     <string name="capture_failure_unmappable">No pudimos convertir eso en una expresión en inglés. Prueba con una palabra o una frase corta.</string>
-    <string name="capture_failure_credits_exhausted">Alcanzaste el límite diario de IA. Vuelve a intentarlo mañana.</string>
+    <string name="capture_failure_credits_exhausted">Alcanzaste el límite diario de IA.</string>
+    <string name="capture_failure_technical">No pudimos conectar con la IA.</string>
+    <string name="capture_failure_app_check_rejected">La IA no está disponible en este dispositivo.</string>
     <string name="capture_deck_label">Guardando en</string>
     <string name="capture_deck_picker_content_description">Cambiar el mazo</string>
 

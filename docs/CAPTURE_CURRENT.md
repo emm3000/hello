@@ -33,8 +33,9 @@ own, so decks installed from the Store never surface it. Editing the result is
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/capture/CaptureUiEffect.kt`
-- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/GenerationRefusalCodeMessage.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/capture/EnrichmentFailureMessage.kt`
 - `domain/src/main/kotlin/com/emm/domain/generation/EnrichmentFailure.kt`
+- `domain/src/main/kotlin/com/emm/domain/generation/EnrichmentFailureCause.kt`
 - `domain/src/main/kotlin/com/emm/domain/generation/GenerationRefusalCode.kt`
 - `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
 - `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
@@ -43,7 +44,6 @@ own, so decks installed from the Store never surface it. Editing the result is
 - `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/CreateManualFlashcardUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/EnrichCapturedFlashcardUseCase.kt`
-- `domain/src/main/kotlin/com/emm/domain/authoring/RetryFailedEnrichmentsUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/authoring/MarkEnrichmentFailedUseCase.kt`
 
 Entry points: `NewRoot` registers `CaptureRoute`; `Hoy` (the "Add a word"
@@ -53,7 +53,7 @@ to it.
 
 ## State
 
-`CaptureUiState` holds fourteen fields:
+`CaptureUiState` holds twelve fields:
 
 - `word: String` — the text field content
 - `targetDeck: Deck?` and `decks: List<Deck>` — refreshed on every
@@ -66,14 +66,12 @@ to it.
 - `isSaving: Boolean` — true while `CaptureFlashcardUseCase` or
   `CreateManualFlashcardUseCase` runs; it blocks a second `Submit` but does
   not disable the text fields
-- `pending: Int` / `failed: Int` — from
-  `FlashcardEnrichmentRepository.observeBacklog()` (`EnrichmentBacklog`),
-  refreshed on every DB change
 - `recentCaptures: List<RecentCapture>` — the words saved in this ViewModel
   instance, newest first; each has `flashcardId`, `deckId`, `word`, `status:
   EnrichmentStatus` and a nullable `failure: EnrichmentFailure`
-  (`code: GenerationRefusalCode?`, `reason: String?`, both from
-  `com.emm.domain.generation`). `deckId` starts as the target deck at save
+  (`cause: EnrichmentFailureCause`, `reason: String?`, both from
+  `com.emm.domain.generation`; `failure` is set only while the card is
+  `FAILED`). `deckId` starts as the target deck at save
   time. `deckId`, statuses and `failure` are refreshed from
   `LibraryRepository.observeLibrary()`, so a card flips from `PENDING` to
   `ENRICHED` / `FAILED` while the screen is open. The list is not persisted
@@ -92,11 +90,14 @@ to it.
   inline error; set to `capture_error_translation_required`, cleared by the
   next `TranslationChanged` or by switching to AI mode
 
-Two values are computed, not stored:
+One value is computed, not stored:
 
 - `canSubmit` — `word.isNotBlank() && targetDeck != null && !isSaving &&
   (!isManual || translation.isNotBlank())`
-- `hasBacklog` — `pending > 0 || failed > 0` (declared, not read by the screen)
+
+`RecentCapture.failureReasonRes` is computed too: `null` unless the row is
+`FAILED`, otherwise the one-line reason for `failure.cause` (a `FAILED` row
+without a `failure` reads as `Technical`).
 
 `RecentCapture` lives in `CaptureUiState.kt`.
 
@@ -133,10 +134,6 @@ Two values are computed, not stored:
   `translationErrorRes`, `EmptyUserText` is ignored, anything else emits
   `ShowMessage(capture_error_generic)`; nothing is enqueued. Any other
   throwable logs and emits `ShowMessage(capture_error_generic)`.
-- `RetryFailed` — calls `RetryFailedEnrichmentsUseCase`, which flips every
-  `FAILED` card back to `PENDING` and returns their ids. If the list is
-  non-empty, emits `EnqueueEnrichment(ids)`; if empty, emits nothing. On error,
-  `ShowMessage(capture_error_retry)`.
 - `RecentCaptureClicked(flashcardId)` — emits `OpenCard(cardId, deckId)` for
   that recent capture; ignored if the id is not in `recentCaptures`.
 - `DeckPickerOpened` / `DeckPickerDismissed` — toggle `isDeckPickerOpen`.
@@ -180,8 +177,19 @@ before giving up. `EnrichmentRetryPolicy.shouldRetry` decides per error: a
 retried — the worker marks the card `FAILED` on the first attempt through
 `MarkEnrichmentFailedUseCase`; a `SessionExpiredException` or anything else
 (timeout, 5xx, an unrecognized error) returns `Result.retry()` until
-`MAX_ATTEMPTS = 3`, then also marks it `FAILED`. A card in `FAILED`
-is what `RetryFailed` picks up. A `FAILED` card can also be completed by hand,
+`MAX_ATTEMPTS = 3`, then also marks it `FAILED`. Every `FAILED` card stores a
+typed `EnrichmentFailureCause` from `EnrichmentFailures.of`:
+`AppCheckRejectedException` → `AppCheckRejected`,
+`AmbiguousGenerationInputException` → `WordProblem` with its refusal code
+(`Unintelligible` when the backend sent none), `GenerationCreditsExhaustedException`
+→ `CreditsExhausted`, and `DomainValidationException` or anything else,
+including a give-up after `MAX_ATTEMPTS`, → `Technical`. The cause is persisted
+in `enrichmentFailureCode` (`technical`, `app_check_rejected`, `empty_input`,
+`unintelligible`, `contradictory`, `unmappable`, `credits_exhausted`); a legacy
+`FAILED` row with a `NULL` code reads as `Technical`. Nothing retries a
+`FAILED` card automatically: `AppStartupCoordinator` requeues only `PENDING`
+cards, and Capture has no retry control. A single card is retried from Card
+Detail — see `CARD_DETAIL_CURRENT.md`. A `FAILED` card can also be completed by hand,
 without retrying generation, by filling in its meaning from Edit Flashcard —
 see `EDIT_FLASHCARD_CURRENT.md`.
 
@@ -226,15 +234,17 @@ Full-screen `cardMint` surface, no scaffold. Top to bottom:
   card reads `capture_status_preparing` while `state.isOnline`, or
   `capture_status_waiting_for_connection` while offline; `ENRICHED` always
   reads `capture_status_ready` and `FAILED` always reads
-  `capture_status_failed`. A `FAILED` row renders a second line through the
-  private `CaptureFailureMessage` composable: a known `failure.code` shows
-  the localized string from `GenerationRefusalCode.messageRes()`
-  (`capture_failure_empty_input`, `capture_failure_unintelligible`,
-  `capture_failure_contradictory`, `capture_failure_unmappable`,
-  `capture_failure_credits_exhausted`, in `values` and `values-es`);
-  otherwise the raw `failure.reason` is shown; otherwise nothing is shown.
-- **Retry** — a text `HButton` `capture_retry` rendered only when
-  `failed > 0`. `pending` is not surfaced anywhere on the screen.
+  `capture_status_failed`. A `FAILED` row always renders a second line through
+  the private `CaptureFailureMessage` composable, from
+  `RecentCapture.failureReasonRes` (`EnrichmentFailureCause.captureReasonRes()`):
+  `Technical` → `capture_failure_technical` ("Couldn't reach the AI."),
+  `AppCheckRejected` → `capture_failure_app_check_rejected` ("AI isn't
+  available on this device."), a `WordProblem` → `capture_failure_empty_input`,
+  `capture_failure_unintelligible`, `capture_failure_contradictory` or
+  `capture_failure_unmappable`, and `CreditsExhausted` →
+  `capture_failure_credits_exhausted` ("Daily AI limit reached.", no time).
+  The raw `failure.reason` is never shown. The row has no inline action;
+  tapping it opens Card Detail, where the card can be retried.
 - **Save** — full-width primary `HButton` `capture_save`, `enabled = canSubmit`,
   `isLoading = isSaving`.
 
@@ -243,15 +253,15 @@ the soft keyboard stays up. This is driven by the newest `RecentCapture` id,
 not by an effect; the id already present when the screen is composed (first
 visit or return from Card Detail) is remembered, so neither steals focus.
 
-The input, mode row, recent list and retry are top-anchored in the space
+The input, mode row and recent list are top-anchored in the space
 between header and Save, so entering manual mode grows the block downward
 instead of shifting what is already on screen.
 
 Dictation uses `rememberSpeechToTextManager` with `Locale.US`. Tapping the mic
 stops if listening, starts if `RECORD_AUDIO` is granted, otherwise launches the
 permission request; a denial shows `mic_permission_denied` in a `SnackbarHost`
-at the bottom. STT errors, save errors other than the inline ones and retry
-errors are shown in the same snackbar.
+at the bottom. STT errors and save errors other than the inline ones are
+shown in the same snackbar.
 
 All copy is English and comes from `capture_*` strings in
 `app/src/main/res/values/strings.xml`.

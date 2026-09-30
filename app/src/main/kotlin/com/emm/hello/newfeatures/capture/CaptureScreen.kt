@@ -66,7 +66,8 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.generation.EnrichmentFailure
-import com.emm.domain.generation.GenerationRefusalCode
+import com.emm.domain.generation.EnrichmentFailureCause
+import com.emm.domain.generation.InputProblem
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
@@ -228,14 +229,6 @@ private fun CaptureContent(
                     state = state,
                     newCaptureHighlight = { newCaptureHighlight.value },
                     onIntent = onIntent,
-                )
-            }
-
-            if (state.failed > 0) {
-                HButton(
-                    text = stringResource(R.string.capture_retry),
-                    onClick = { onIntent(CaptureUiIntent.RetryFailed) },
-                    variant = HButtonVariant.Text,
                 )
             }
         }
@@ -517,11 +510,8 @@ private const val NEW_CAPTURE_HIGHLIGHT_MILLIS: Int = 1500
 
 @Composable
 private fun CaptureFailureMessage(capture: RecentCapture) {
-    if (capture.status != EnrichmentStatus.FAILED) return
-    val failure: EnrichmentFailure = capture.failure ?: return
-    val message: String = failure.code?.let { code -> stringResource(code.messageRes()) }
-        ?: failure.reason
-        ?: return
+    val reasonRes: Int = capture.failureReasonRes ?: return
+    val message: String = stringResource(reasonRes)
 
     Text(
         text = message,
@@ -584,7 +574,10 @@ private fun CaptureScreenPreview() {
                         deckId = previewStarterDeck.id,
                         word = "asdkjqwe",
                         status = EnrichmentStatus.FAILED,
-                        failure = EnrichmentFailure(GenerationRefusalCode.Unintelligible, null),
+                        failure = EnrichmentFailure(
+                            EnrichmentFailureCause.WordProblem(InputProblem.Unintelligible),
+                            null,
+                        ),
                     ),
                 ),
             ),

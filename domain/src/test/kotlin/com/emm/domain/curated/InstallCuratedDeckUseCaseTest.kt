@@ -216,6 +216,7 @@ private class FakeFlashcardRepository : FlashcardRepository, FlashcardDuplicateR
 
     override suspend fun existsExpressionInDeck(deckId: DeckId, expression: Expression): Boolean = false
 
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }

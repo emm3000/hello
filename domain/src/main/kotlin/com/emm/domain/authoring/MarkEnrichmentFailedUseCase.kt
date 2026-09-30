@@ -9,7 +9,7 @@ class MarkEnrichmentFailedUseCase(
     private val repository: FlashcardRepository,
 ) {
 
-    suspend operator fun invoke(flashcardId: FlashcardId, failure: EnrichmentFailure?) {
+    suspend operator fun invoke(flashcardId: FlashcardId, failure: EnrichmentFailure) {
         repository.updateEnrichmentStatus(flashcardId, EnrichmentStatus.FAILED, failure = failure)
     }
 }

@@ -3,7 +3,6 @@ package com.emm.hello.newfeatures.capture
 import androidx.lifecycle.viewModelScope
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateManualFlashcardUseCase
-import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.CaptureDeckChoice
 import com.emm.domain.deck.Deck
@@ -11,7 +10,6 @@ import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.ResolveCaptureDeckUseCase
 import com.emm.domain.flashcard.EnrichmentStatus
-import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.library.LibraryFlashcard
@@ -29,8 +27,6 @@ import kotlinx.coroutines.launch
 class CaptureViewModel(
     private val captureFlashcard: CaptureFlashcardUseCase,
     private val createManualFlashcard: CreateManualFlashcardUseCase,
-    private val retryFailedEnrichments: RetryFailedEnrichmentsUseCase,
-    private val enrichmentRepository: FlashcardEnrichmentRepository,
     private val defaultDeckSelectionRepository: DefaultDeckSelectionRepository,
     private val resolveCaptureDeck: ResolveCaptureDeckUseCase,
     getDecksUseCase: GetDecksUseCase,
@@ -43,10 +39,6 @@ class CaptureViewModel(
     init {
         getDecksUseCase()
             .onEach { decks -> showCaptureDecks(resolveCaptureDeck(decks)) }
-            .launchIn(viewModelScope)
-
-        enrichmentRepository.observeBacklog()
-            .onEach { backlog -> setState { copy(pending = backlog.pending, failed = backlog.failed) } }
             .launchIn(viewModelScope)
 
         libraryRepository.observeLibrary()
@@ -66,7 +58,6 @@ class CaptureViewModel(
                 setState { copy(translation = intent.translation, translationErrorRes = null) }
             is CaptureUiIntent.MeaningChanged -> setState { copy(meaning = intent.meaning) }
             CaptureUiIntent.Submit -> handleSubmit()
-            CaptureUiIntent.RetryFailed -> handleRetryFailed()
             CaptureUiIntent.DeckPickerOpened -> setState { copy(isDeckPickerOpen = true) }
             CaptureUiIntent.DeckPickerDismissed -> setState { copy(isDeckPickerOpen = false) }
             is CaptureUiIntent.DeckSelected -> selectDeck(intent.deckId)
@@ -180,19 +171,6 @@ class CaptureViewModel(
                 isSaving = false,
                 recentCaptures = listOf(captured) + recentCaptures,
             )
-        }
-    }
-
-    private fun handleRetryFailed() = viewModelScope.launch {
-        try {
-            val retried: List<FlashcardId> = retryFailedEnrichments()
-            if (retried.isEmpty()) return@launch
-            sendEffect(CaptureUiEffect.EnqueueEnrichment(retried.map(FlashcardId::value)))
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            logError(TAG, "handleRetryFailed:error ${error.message}", error)
-            sendEffect(CaptureUiEffect.ShowMessage(R.string.capture_error_retry))
         }
     }
 }

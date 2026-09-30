@@ -1,5 +1,6 @@
 package com.emm.domain.flashcard
 
+import com.emm.domain.generation.EnrichmentFailureCause
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.time.Clock
 import com.emm.domain.time.SystemClock
@@ -30,6 +31,7 @@ data class Flashcard(
     val capturedInput: String = "",
     val warnings: List<String> = emptyList(),
     val enrichmentStatus: EnrichmentStatus = EnrichmentStatus.ENRICHED,
+    val enrichmentFailureCause: EnrichmentFailureCause? = null,
     val promptVersion: Int = 0,
 ) {
 

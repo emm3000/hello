@@ -131,6 +131,7 @@ private class UpdateRecordingRepository(
 
     override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = error("unused")
 
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         fetches += 1
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id, enrichmentStatus = status))

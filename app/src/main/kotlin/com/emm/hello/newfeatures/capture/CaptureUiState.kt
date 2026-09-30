@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.emm.domain.deck.Deck
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.generation.EnrichmentFailure
+import com.emm.domain.generation.EnrichmentFailureCause
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.hello.core.mvi.MviState
@@ -14,8 +15,6 @@ data class CaptureUiState(
     val decks: List<Deck> = emptyList(),
     val isDeckPickerOpen: Boolean = false,
     val isSaving: Boolean = false,
-    val pending: Int = 0,
-    val failed: Int = 0,
     val recentCaptures: List<RecentCapture> = emptyList(),
     val isOnline: Boolean = true,
     val isManual: Boolean = false,
@@ -30,9 +29,6 @@ data class CaptureUiState(
             targetDeck != null &&
             !isSaving &&
             (!isManual || translation.isNotBlank())
-
-    val hasBacklog: Boolean
-        get() = pending > 0 || failed > 0
 }
 
 data class RecentCapture(
@@ -41,4 +37,13 @@ data class RecentCapture(
     val word: String,
     val status: EnrichmentStatus,
     val failure: EnrichmentFailure? = null,
-)
+) {
+
+    @get:StringRes
+    val failureReasonRes: Int?
+        get() {
+            if (status != EnrichmentStatus.FAILED) return null
+            val cause: EnrichmentFailureCause = failure?.cause ?: EnrichmentFailureCause.Technical
+            return cause.captureReasonRes()
+        }
+}

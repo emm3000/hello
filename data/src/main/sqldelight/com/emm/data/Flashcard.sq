@@ -219,13 +219,6 @@ LEFT JOIN ReviewProjection rp
 WHERE f.deletedAt IS NULL
 ORDER BY f.createdAt DESC, f.id;
 
-countsByEnrichmentStatus:
-SELECT
-    COUNT(CASE WHEN enrichmentStatus = 'PENDING' THEN 1 END) AS pending,
-    COUNT(CASE WHEN enrichmentStatus = 'FAILED' THEN 1 END) AS failed
-FROM Flashcard
-WHERE deletedAt IS NULL;
-
 findIdsByEnrichmentStatus:
 SELECT id FROM Flashcard
 WHERE deletedAt IS NULL

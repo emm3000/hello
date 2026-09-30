@@ -9,4 +9,5 @@ sealed interface FlashcardDetailUiEffect : MviEffect {
     data class NavigateToEditFlashcard(val cardId: String) : FlashcardDetailUiEffect
     data object FlashcardDeleted : FlashcardDetailUiEffect
     data class ShowMessage(@StringRes val messageRes: Int) : FlashcardDetailUiEffect
+    data class EnqueueEnrichment(val cardId: String) : FlashcardDetailUiEffect
 }

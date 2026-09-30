@@ -1,12 +1,9 @@
 package com.emm.domain.authoring
 
-import com.emm.domain.flashcard.EnrichmentBacklog
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,8 +46,6 @@ private class RecordingPendingEnrichmentRepository(
 ) : FlashcardEnrichmentRepository {
 
     val requestedStatuses: MutableList<EnrichmentStatus> = mutableListOf()
-
-    override fun observeBacklog(): Flow<EnrichmentBacklog> = flowOf(EnrichmentBacklog())
 
     override suspend fun findIdsByStatus(status: EnrichmentStatus): List<FlashcardId> {
         requestedStatuses += status

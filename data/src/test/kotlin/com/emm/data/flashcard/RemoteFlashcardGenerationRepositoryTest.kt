@@ -204,6 +204,23 @@ class RemoteFlashcardGenerationRepositoryTest {
     }
 
     @Test
+    fun `generateLearningNote records nothing when a payment required reply carries no reset`() = runTest {
+        val body = "{\"success\":false,\"error\":{\"code\":\"credits_exhausted\"},\"meta\":{\"credits_remaining\":0}}"
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 402, body = body))
+        val credits = RecordingGenerationCreditsRepository()
+        val repository = repository(transport, credits = credits)
+
+        val error: Throwable? = runCatching {
+            repository.generateLearningNote(
+                FlashcardGenerationInput(inputType = FlashcardInputType.Word, userText = "pick up"),
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error is GenerationCreditsExhaustedException)
+        assertEquals(emptyList<GenerationCredits>(), credits.recorded)
+    }
+
+    @Test
     fun `generateLearningNote records nothing when an unauthorized reply carries no meta`() = runTest {
         val body = "{\"success\":false,\"error\":{\"code\":\"app_check_rejected\"}}"
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 401, body = body))

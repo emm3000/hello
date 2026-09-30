@@ -11,7 +11,6 @@ sealed interface CaptureUiIntent : MviIntent {
     data class TranslationChanged(val translation: String) : CaptureUiIntent
     data class MeaningChanged(val meaning: String) : CaptureUiIntent
     data object Submit : CaptureUiIntent
-    data object RetryFailed : CaptureUiIntent
     data object DeckPickerOpened : CaptureUiIntent
     data object DeckPickerDismissed : CaptureUiIntent
     data class DeckSelected(val deckId: DeckId) : CaptureUiIntent

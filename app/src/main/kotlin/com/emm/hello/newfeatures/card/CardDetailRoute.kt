@@ -12,7 +12,9 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.emm.hello.core.audio.AudioState
+import com.emm.domain.ids.toFlashcardId
 import com.emm.hello.core.audio.TextToSpeechManager
+import com.emm.hello.enrichment.FlashcardEnrichmentScheduler
 import com.emm.hello.navigation.Navigator
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -58,6 +60,9 @@ fun CardDetailDestination(navigator: Navigator, cardId: String, deckId: String) 
                 FlashcardDetailUiEffect.FlashcardDeleted -> navigator.goBack()
                 is FlashcardDetailUiEffect.ShowMessage -> {
                     Toast.makeText(context, resources.getString(effect.messageRes), Toast.LENGTH_LONG).show()
+                }
+                is FlashcardDetailUiEffect.EnqueueEnrichment -> {
+                    FlashcardEnrichmentScheduler.enqueue(context, effect.cardId.toFlashcardId())
                 }
             }
         }

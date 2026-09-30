@@ -9,4 +9,5 @@ sealed interface FlashcardDetailUiIntent : MviIntent {
     data object DeleteFlashcard : FlashcardDetailUiIntent
     data object ConfirmDeleteFlashcard : FlashcardDetailUiIntent
     data object DismissDeleteFlashcard : FlashcardDetailUiIntent
+    data object TryAgainClicked : FlashcardDetailUiIntent
 }

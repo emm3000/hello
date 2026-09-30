@@ -42,6 +42,7 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
 
     override fun fetchAll(): Flow<List<Flashcard>> = flowOf(emptyList())
     override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = flowOf(emptyList())
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = error("not used")
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("not used")
     override suspend fun update(input: UpdateFlashcardInput) = error("not used")

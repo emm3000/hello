@@ -1,7 +1,6 @@
 package com.emm.hello.startup
 
 import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
-import com.emm.domain.flashcard.EnrichmentBacklog
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.ids.FlashcardId
@@ -14,8 +13,6 @@ import com.emm.hello.R
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -269,8 +266,6 @@ class AppStartupCoordinatorTest {
         private val pending: List<String>,
         private val shouldFail: Boolean = false,
     ) : FlashcardEnrichmentRepository {
-
-        override fun observeBacklog(): Flow<EnrichmentBacklog> = flowOf(EnrichmentBacklog())
 
         override suspend fun findIdsByStatus(status: EnrichmentStatus): List<FlashcardId> {
             if (shouldFail) error("boom")

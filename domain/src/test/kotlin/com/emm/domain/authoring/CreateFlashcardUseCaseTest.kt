@@ -1,5 +1,6 @@
 package com.emm.domain.authoring
 
+import kotlinx.coroutines.flow.Flow
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.ExactDuplicateKey
 import com.emm.domain.flashcard.Example
@@ -105,6 +106,7 @@ private class FakeFlashcardRepository : FlashcardRepository {
         upsertExamplesCalls += 1
     }
 
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id))
     }

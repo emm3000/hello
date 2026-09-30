@@ -203,6 +203,7 @@ private class FakeFlashcardRepo(
 
     val updated: MutableList<UpdateFlashcardInput> = mutableListOf()
 
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = detail
 
     override suspend fun update(input: UpdateFlashcardInput) {

@@ -5,9 +5,9 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.emm.data.FlashcardQueries
 import com.emm.data.HelloDb
 import com.emm.data.LibraryFlashcards
+import com.emm.data.flashcard.enrichmentFailureOf
 import com.emm.data.flashcard.toEnrichmentStatus
-import com.emm.domain.generation.EnrichmentFailure
-import com.emm.domain.generation.GenerationRefusalCode
+import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.library.LibraryFlashcard
@@ -30,17 +30,17 @@ class DefaultLibraryRepository(
         .map { rows -> rows.map(LibraryFlashcards::toLibraryFlashcard) }
 }
 
-private fun LibraryFlashcards.toLibraryFlashcard(): LibraryFlashcard = LibraryFlashcard(
-    id = id.toFlashcardId(),
-    deckId = deckId.toDeckId(),
-    deckName = deckName,
-    word = word,
-    translation = translation.orEmpty(),
-    meaning = meaning,
-    enrichmentStatus = toEnrichmentStatus(enrichmentStatus),
-    enrichmentFailure = EnrichmentFailure.of(
-        code = GenerationRefusalCode.fromWire(enrichmentFailureCode),
-        reason = enrichmentFailureReason,
-    ),
-    nextReviewAt = nextReviewAt,
-)
+private fun LibraryFlashcards.toLibraryFlashcard(): LibraryFlashcard {
+    val status: EnrichmentStatus = toEnrichmentStatus(enrichmentStatus)
+    return LibraryFlashcard(
+        id = id.toFlashcardId(),
+        deckId = deckId.toDeckId(),
+        deckName = deckName,
+        word = word,
+        translation = translation.orEmpty(),
+        meaning = meaning,
+        enrichmentStatus = status,
+        enrichmentFailure = enrichmentFailureOf(status, enrichmentFailureCode, enrichmentFailureReason),
+        nextReviewAt = nextReviewAt,
+    )
+}

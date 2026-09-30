@@ -188,6 +188,13 @@
     <string name="deck_updated_message">Deck updated</string>
     <string name="card_updated_message">Card updated</string>
     <string name="card_detail_captured_input">You typed: %1$s</string>
+    <string name="card_detail_failure_technical">Couldn\'t reach the AI. Try again.</string>
+    <string name="card_detail_failure_app_check_rejected">AI isn\'t available on this device. You can write the card yourself.</string>
+    <string name="card_detail_failure_credits_until">Daily AI limit reached. Available after %1$s.</string>
+    <string name="card_detail_failure_credits_available">Daily AI limit reached. Available now.</string>
+    <string name="card_detail_try_again">Try again</string>
+    <string name="card_detail_write_it_myself">Write it myself</string>
+    <string name="card_detail_retry_error">We couldn\'t try again right now.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_headline">Save the words you meet.</string>
@@ -200,7 +207,6 @@
     <string name="capture_placeholder">Type a word</string>
     <string name="capture_mic_content_description">Dictate the word</string>
     <string name="capture_save">Save</string>
-    <string name="capture_retry">Retry</string>
     <string name="capture_mode_ai_label">AI completes it</string>
     <string name="capture_mode_ai_action">Use AI</string>
     <string name="capture_mode_manual_label">You write it</string>
@@ -212,7 +218,6 @@
     <string name="capture_error_duplicate">That word is already in the deck.</string>
     <string name="capture_error_translation_required">Add the Spanish translation</string>
     <string name="capture_error_generic">We couldn\'t save the card.</string>
-    <string name="capture_error_retry">We couldn\'t retry right now.</string>
     <string name="capture_done">Done</string>
     <string name="capture_recent_label">Your last:</string>
     <string name="capture_recent_row_description">%1$s, %2$s</string>
@@ -225,7 +230,9 @@
     <string name="capture_failure_unintelligible">We couldn\'t make sense of that. Try a real word or phrase.</string>
     <string name="capture_failure_contradictory">That input contradicts itself. Try a single idea.</string>
     <string name="capture_failure_unmappable">We couldn\'t turn that into an English expression. Try a word or a short phrase.</string>
-    <string name="capture_failure_credits_exhausted">You reached today\'s AI limit. Try again tomorrow.</string>
+    <string name="capture_failure_credits_exhausted">Daily AI limit reached.</string>
+    <string name="capture_failure_technical">Couldn\'t reach the AI.</string>
+    <string name="capture_failure_app_check_rejected">AI isn\'t available on this device.</string>
     <string name="capture_deck_label">Saving to</string>
     <string name="capture_deck_picker_content_description">Change the deck</string>
 

@@ -41,7 +41,7 @@ import com.emm.domain.authoring.CreateManualFlashcardUseCase
 import com.emm.domain.authoring.EnrichCapturedFlashcardUseCase
 import com.emm.domain.authoring.FindPendingEnrichmentsUseCase
 import com.emm.domain.authoring.MarkEnrichmentFailedUseCase
-import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
+import com.emm.domain.authoring.RetryEnrichmentUseCase
 import com.emm.domain.authoring.EnsureUniqueFlashcardInDeckUseCase
 import com.emm.domain.authoring.GeneratedLearningNoteMapper
 import com.emm.domain.authoring.IsExactDuplicateGeneratedNoteUseCase
@@ -264,7 +264,7 @@ fun Module.useCases() {
     factoryOf(::CaptureFlashcardUseCase)
     factoryOf(::CreateManualFlashcardUseCase)
     factoryOf(::EnrichCapturedFlashcardUseCase)
-    factoryOf(::RetryFailedEnrichmentsUseCase)
+    factoryOf(::RetryEnrichmentUseCase)
     factoryOf(::FindPendingEnrichmentsUseCase)
     factoryOf(::MarkEnrichmentFailedUseCase)
     factoryOf(::EnsureUniqueFlashcardInDeckUseCase)
@@ -331,6 +331,9 @@ fun Module.viewModels() {
         FlashcardDetailViewModel(
             flashcardId = it.get(),
             flashcardRepository = get(),
+            generationCredits = get(),
+            retryEnrichment = get(),
+            clock = get(),
             undoEventHolder = get(),
         )
     }
@@ -341,7 +344,7 @@ fun Module.viewModels() {
             updateFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get(), get()) }
     single {
         BuildInfo(

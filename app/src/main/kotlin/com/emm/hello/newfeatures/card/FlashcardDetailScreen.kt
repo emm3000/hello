@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Example
 import com.emm.domain.flashcard.Flashcard
+import com.emm.domain.generation.EnrichmentFailureCause
 import com.emm.domain.time.SystemClock
 import com.emm.hello.R
 import com.emm.hello.core.audio.AudioState
@@ -54,6 +55,11 @@ import com.emm.hello.core.ui.HMenuItem
 import com.emm.hello.core.ui.HSpeakerButton
 import com.emm.hello.core.ui.HTopBar
 import com.emm.hello.core.ui.underlineFirstMatch
+import com.emm.hello.newfeatures.capture.messageRes
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private const val WORD_UTTERANCE_ID = "card_word"
 private const val EXAMPLE_UTTERANCE_ID = "card_example"
@@ -94,6 +100,8 @@ fun FlashcardDetailScreen(
                 } else {
                     CardBody(
                         flashcard = state.flashcard,
+                        failedEnrichment = state.failedEnrichment,
+                        onIntent = onIntent,
                         onSpeak = onSpeak,
                         onStopSpeech = onStopSpeech,
                         audioState = audioState,
@@ -154,6 +162,8 @@ private fun DetailActions(onIntent: (FlashcardDetailUiIntent) -> Unit) {
 @Composable
 private fun CardBody(
     flashcard: Flashcard,
+    failedEnrichment: FailedEnrichment?,
+    onIntent: (FlashcardDetailUiIntent) -> Unit,
     onSpeak: (String, String) -> Unit,
     onStopSpeech: () -> Unit,
     audioState: AudioState,
@@ -197,7 +207,11 @@ private fun CardBody(
 
         CapturedInputLine(flashcard = flashcard)
 
-        StatusLine(status = flashcard.enrichmentStatus)
+        StatusLine(
+            status = flashcard.enrichmentStatus,
+            failedEnrichment = failedEnrichment,
+            onIntent = onIntent,
+        )
     }
 }
 
@@ -329,7 +343,11 @@ private fun CapturedInputLine(flashcard: Flashcard) {
 }
 
 @Composable
-private fun StatusLine(status: EnrichmentStatus) {
+private fun StatusLine(
+    status: EnrichmentStatus,
+    failedEnrichment: FailedEnrichment?,
+    onIntent: (FlashcardDetailUiIntent) -> Unit,
+) {
     when (status) {
         EnrichmentStatus.ENRICHED -> Unit
         EnrichmentStatus.PENDING -> Text(
@@ -338,14 +356,66 @@ private fun StatusLine(status: EnrichmentStatus) {
             fontSize = 13.sp,
             color = inkMuted,
         )
-        EnrichmentStatus.FAILED -> Text(
-            text = stringResource(R.string.library_status_failed),
-            fontFamily = schibsted,
-            fontSize = 13.sp,
-            color = destructiveInk,
-        )
+        EnrichmentStatus.FAILED -> Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
+            Text(
+                text = stringResource(R.string.library_status_failed),
+                fontFamily = schibsted,
+                fontSize = 13.sp,
+                color = destructiveInk,
+            )
+            if (failedEnrichment != null) {
+                FailedEnrichmentNotice(failedEnrichment = failedEnrichment, onIntent = onIntent)
+            }
+        }
     }
 }
+
+@Composable
+private fun FailedEnrichmentNotice(
+    failedEnrichment: FailedEnrichment,
+    onIntent: (FlashcardDetailUiIntent) -> Unit,
+) {
+    Text(
+        text = failedEnrichment.message(),
+        style = MaterialTheme.typography.bodySmall,
+        color = inkMuted,
+    )
+
+    when (failedEnrichment.action) {
+        FailedEnrichmentAction.TryAgain -> HButton(
+            text = stringResource(R.string.card_detail_try_again),
+            onClick = { onIntent(FlashcardDetailUiIntent.TryAgainClicked) },
+            variant = HButtonVariant.Primary,
+        )
+        FailedEnrichmentAction.WriteItMyself -> HButton(
+            text = stringResource(R.string.card_detail_write_it_myself),
+            onClick = { onIntent(FlashcardDetailUiIntent.EditFlashcard) },
+            variant = HButtonVariant.Primary,
+        )
+        FailedEnrichmentAction.None -> Unit
+    }
+}
+
+@Composable
+private fun FailedEnrichment.message(): String = when (cause) {
+    EnrichmentFailureCause.Technical -> stringResource(R.string.card_detail_failure_technical)
+    EnrichmentFailureCause.AppCheckRejected -> stringResource(R.string.card_detail_failure_app_check_rejected)
+    is EnrichmentFailureCause.WordProblem -> stringResource(cause.problem.messageRes())
+    EnrichmentFailureCause.CreditsExhausted -> creditsMessage()
+}
+
+@Composable
+private fun FailedEnrichment.creditsMessage(): String {
+    val resetAt: Instant = creditsResetAt ?: return stringResource(R.string.card_detail_failure_credits_available)
+    if (canRetry) return stringResource(R.string.card_detail_failure_credits_available)
+    val availableAt: String = LocalDateTime
+        .ofInstant(resetAt, ZoneId.systemDefault())
+        .toLocalTime()
+        .format(creditsResetFormatter)
+    return stringResource(R.string.card_detail_failure_credits_until, availableAt)
+}
+
+private val creditsResetFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 private fun LoadingBody(modifier: Modifier = Modifier) {

@@ -50,12 +50,13 @@ search criteria.
 
 `LibraryFlashcard` carries `id`, `deckId`, `deckName`, `word`, `translation`,
 `meaning`, `enrichmentStatus`, `enrichmentFailure: EnrichmentFailure?` and a
-nullable `nextReviewAt`. `EnrichmentFailure(code: GenerationRefusalCode?,
+nullable `nextReviewAt`. `EnrichmentFailure(cause: EnrichmentFailureCause,
 reason: String?)` lives in `com.emm.domain.generation`. `DefaultLibraryRepository`
-builds it with `EnrichmentFailure.of(...)` from the two `Flashcard` columns
-`enrichmentFailureCode` (decoded through `GenerationRefusalCode.fromWire`,
-`null` for an unrecognized wire value) and `enrichmentFailureReason`; `of`
-returns `null` when both are `null`.
+builds it only for a `FAILED` card, from the two `Flashcard` columns
+`enrichmentFailureCode` (decoded by `enrichmentFailureCauseFromWire` in `:data`;
+a `NULL` or unrecognized code reads as `Technical`) and `enrichmentFailureReason`;
+any other status gets `null`. The Library screen shows only the "Failed" tag,
+never the cause.
 
 `libraryFlashcards` inner-joins `Deck` for the name and left-joins
 `ReviewProjection` for `nextReviewAt`, which stays null for a card that has

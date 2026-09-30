@@ -65,7 +65,7 @@ class FlashcardEnrichmentWorker(
     }
 
     private suspend fun markFailed(flashcardId: FlashcardId, error: Throwable) {
-        val failure: EnrichmentFailure? = EnrichmentFailures.of(error)
+        val failure: EnrichmentFailure = EnrichmentFailures.of(error)
         GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId, failure)
     }
 

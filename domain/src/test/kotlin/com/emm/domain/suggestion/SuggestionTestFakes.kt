@@ -33,6 +33,7 @@ internal class FakeFlashcardRepository(
 
     override fun fetchAll(): Flow<List<Flashcard>> = error("not used")
     override fun fetchByDeckId(deckId: DeckId): Flow<List<Flashcard>> = error("not used")
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = error("not used")
     override suspend fun create(input: CreateFlashcardInput): FlashcardId = error("not used")
     override suspend fun update(input: UpdateFlashcardInput): Unit = error("not used")

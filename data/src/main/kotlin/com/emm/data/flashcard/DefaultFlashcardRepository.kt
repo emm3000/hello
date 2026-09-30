@@ -148,7 +148,7 @@ class DefaultFlashcardRepository(
         dao.setEnrichmentStatus(
             enrichmentStatus = status.name,
             enrichmentFailureReason = failure?.reason,
-            enrichmentFailureCode = failure?.code?.wire,
+            enrichmentFailureCode = failure?.cause?.toWire(),
             updatedAt = Instant.now().toEpochMilli(),
             id = flashcardId.value,
         )
@@ -280,13 +280,24 @@ class DefaultFlashcardRepository(
             .flashcardWithExamples(id.value)
             .executeAsList()
 
-        val first: FlashcardWithExamples = flashcardEntities.firstOrNull()
-            ?: throw NoSuchElementException("Flashcard not found")
+        toDetailOrNull(flashcardEntities) ?: throw NoSuchElementException("Flashcard not found")
+    }
+
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> {
+        return dao
+            .flashcardWithExamples(id.value)
+            .asFlow()
+            .mapToList(ioDispatcher)
+            .map(::toDetailOrNull)
+    }
+
+    private fun toDetailOrNull(flashcardEntities: List<FlashcardWithExamples>): FlashcardDetail? {
+        val first: FlashcardWithExamples = flashcardEntities.firstOrNull() ?: return null
 
         val examples: List<Example> = flashcardEntities.mapNotNull(::toExampleOrNull)
         val review = mapFsrsCard(first)
         val flashcard = toDomainDetail(first, examples, json, review)
-        FlashcardDetail(
+        return FlashcardDetail(
             flashcard = flashcard,
             studyCards = decodeStudyCards(first.studyCardsJson, json),
             qualityChecks = decodeQualityChecks(first.qualityChecksJson, json),

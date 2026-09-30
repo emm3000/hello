@@ -3,17 +3,15 @@ package com.emm.hello.newfeatures.capture
 import app.cash.turbine.test
 import com.emm.domain.authoring.CaptureFlashcardUseCase
 import com.emm.domain.authoring.CreateManualFlashcardUseCase
-import com.emm.domain.authoring.RetryFailedEnrichmentsUseCase
 import com.emm.domain.connectivity.ConnectivityRepository
 import com.emm.domain.deck.Deck
 import com.emm.domain.deck.DefaultDeckSelectionRepository
 import com.emm.domain.deck.GetDecksUseCase
 import com.emm.domain.deck.ResolveCaptureDeckUseCase
-import com.emm.domain.flashcard.EnrichmentBacklog
 import com.emm.domain.flashcard.EnrichmentStatus
-import com.emm.domain.flashcard.FlashcardEnrichmentRepository
 import com.emm.domain.generation.EnrichmentFailure
-import com.emm.domain.generation.GenerationRefusalCode
+import com.emm.domain.generation.EnrichmentFailureCause
+import com.emm.domain.generation.InputProblem
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
@@ -187,44 +185,6 @@ class CaptureViewModelTest {
     }
 
     @Test
-    fun `retry enqueues every card that had failed`() = runTest {
-        val retryFailedEnrichments = mockk<RetryFailedEnrichmentsUseCase>()
-        coEvery { retryFailedEnrichments() } returns listOf("card-a".toFlashcardId(), "card-b".toFlashcardId())
-        val viewModel = buildViewModel(retryFailedEnrichments = retryFailedEnrichments)
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(CaptureUiIntent.RetryFailed)
-            assertThat(awaitItem())
-                .isEqualTo(CaptureUiEffect.EnqueueEnrichment(listOf("card-a", "card-b")))
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `retry with nothing failed enqueues nothing`() = runTest {
-        val retryFailedEnrichments = mockk<RetryFailedEnrichmentsUseCase>()
-        coEvery { retryFailedEnrichments() } returns emptyList()
-        val viewModel = buildViewModel(retryFailedEnrichments = retryFailedEnrichments)
-        advanceUntilIdle()
-
-        viewModel.effect.test {
-            viewModel.onIntent(CaptureUiIntent.RetryFailed)
-            expectNoEvents()
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `the backlog counts reach the state`() = runTest {
-        val viewModel = buildViewModel(backlog = EnrichmentBacklog(pending = 3, failed = 2))
-        advanceUntilIdle()
-
-        assertThat(viewModel.state.value.pending).isEqualTo(3)
-        assertThat(viewModel.state.value.failed).isEqualTo(2)
-    }
-
-    @Test
     fun `submit prepends a recent capture pending the word`() = runTest {
         val captureFlashcard = mockk<CaptureFlashcardUseCase>()
         coEvery { captureFlashcard(any(), any()) } returns CARD_ID
@@ -280,7 +240,7 @@ class CaptureViewModelTest {
     }
 
     @Test
-    fun `a library update carries the failure reason to the recent capture`() = runTest {
+    fun `a library update carries the failure cause and its reason to the recent capture`() = runTest {
         val captureFlashcard = mockk<CaptureFlashcardUseCase>()
         coEvery { captureFlashcard(any(), any()) } returns CARD_ID
         val libraryRepository = FakeLibraryRepository()
@@ -291,42 +251,59 @@ class CaptureViewModelTest {
         viewModel.onIntent(CaptureUiIntent.Submit)
         advanceUntilIdle()
 
-        libraryRepository.emit(
-            libraryFlashcard(
-                id = CARD_ID,
-                status = EnrichmentStatus.FAILED,
-                failure = EnrichmentFailure(null, "No pude entender esa entrada."),
-            ),
-        )
+        val failure = EnrichmentFailure(EnrichmentFailureCause.WordProblem(InputProblem.Unintelligible), "raw message")
+        libraryRepository.emit(libraryFlashcard(id = CARD_ID, status = EnrichmentStatus.FAILED, failure = failure))
         advanceUntilIdle()
 
-        assertThat(viewModel.state.value.recentCaptures.first().failure)
-            .isEqualTo(EnrichmentFailure(null, "No pude entender esa entrada."))
+        val capture: RecentCapture = viewModel.state.value.recentCaptures.first()
+        assertThat(capture.failure).isEqualTo(failure)
+        assertThat(capture.failureReasonRes).isEqualTo(R.string.capture_failure_unintelligible)
     }
 
     @Test
-    fun `a library update carries the failure code to the recent capture`() = runTest {
-        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
-        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
-        val libraryRepository = FakeLibraryRepository()
-        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, libraryRepository = libraryRepository)
-        advanceUntilIdle()
-
-        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
-        viewModel.onIntent(CaptureUiIntent.Submit)
-        advanceUntilIdle()
-
-        libraryRepository.emit(
-            libraryFlashcard(
-                id = CARD_ID,
-                status = EnrichmentStatus.FAILED,
-                failure = EnrichmentFailure(GenerationRefusalCode.Unintelligible, "raw message"),
-            ),
+    fun `a failed recent capture without a known cause shows the technical reason`() {
+        val capture = RecentCapture(
+            flashcardId = CARD_ID,
+            deckId = DECK_ID,
+            word = "borrow",
+            status = EnrichmentStatus.FAILED,
+            failure = null,
         )
-        advanceUntilIdle()
 
-        assertThat(viewModel.state.value.recentCaptures.first().failure?.code)
-            .isEqualTo(GenerationRefusalCode.Unintelligible)
+        assertThat(capture.failureReasonRes).isEqualTo(R.string.capture_failure_technical)
+    }
+
+    @Test
+    fun `each failure cause shows its one line reason on the recent capture`() {
+        val expected: Map<EnrichmentFailureCause, Int> = mapOf(
+            EnrichmentFailureCause.Technical to R.string.capture_failure_technical,
+            EnrichmentFailureCause.AppCheckRejected to R.string.capture_failure_app_check_rejected,
+            EnrichmentFailureCause.WordProblem(InputProblem.EmptyInput) to R.string.capture_failure_empty_input,
+            EnrichmentFailureCause.CreditsExhausted to R.string.capture_failure_credits_exhausted,
+        )
+
+        expected.forEach { (cause, reasonRes) ->
+            val capture = RecentCapture(
+                flashcardId = CARD_ID,
+                deckId = DECK_ID,
+                word = "borrow",
+                status = EnrichmentStatus.FAILED,
+                failure = EnrichmentFailure(cause, null),
+            )
+            assertThat(capture.failureReasonRes).isEqualTo(reasonRes)
+        }
+    }
+
+    @Test
+    fun `a recent capture that has not failed shows no reason`() {
+        val capture = RecentCapture(
+            flashcardId = CARD_ID,
+            deckId = DECK_ID,
+            word = "borrow",
+            status = EnrichmentStatus.PENDING,
+        )
+
+        assertThat(capture.failureReasonRes).isNull()
     }
 
     @Test
@@ -600,17 +577,12 @@ class CaptureViewModelTest {
     private fun buildViewModel(
         captureFlashcard: CaptureFlashcardUseCase = mockk(),
         createManualFlashcard: CreateManualFlashcardUseCase = mockk(),
-        retryFailedEnrichments: RetryFailedEnrichmentsUseCase = mockk(),
-        backlog: EnrichmentBacklog = EnrichmentBacklog(),
         libraryRepository: LibraryRepository = FakeLibraryRepository(),
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
         decks: List<Deck> = listOf(deck()),
         defaultDeckId: DeckId? = DECK_ID,
         deckSelectionRepository: DefaultDeckSelectionRepository = mockk(),
     ): CaptureViewModel {
-        val enrichmentRepository = mockk<FlashcardEnrichmentRepository>()
-        every { enrichmentRepository.observeBacklog() } returns flowOf(backlog)
-
         every { deckSelectionRepository.getDefaultDeckId() } returns defaultDeckId
 
         val getDecksUseCase = mockk<GetDecksUseCase>()
@@ -619,8 +591,6 @@ class CaptureViewModelTest {
         return CaptureViewModel(
             captureFlashcard = captureFlashcard,
             createManualFlashcard = createManualFlashcard,
-            retryFailedEnrichments = retryFailedEnrichments,
-            enrichmentRepository = enrichmentRepository,
             defaultDeckSelectionRepository = deckSelectionRepository,
             resolveCaptureDeck = ResolveCaptureDeckUseCase(deckSelectionRepository),
             getDecksUseCase = getDecksUseCase,

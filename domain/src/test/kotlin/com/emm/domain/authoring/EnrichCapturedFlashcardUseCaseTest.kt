@@ -1,5 +1,6 @@
 package com.emm.domain.authoring
 
+import kotlinx.coroutines.flow.Flow
 import com.emm.domain.flashcard.CreateFlashcardInput
 import com.emm.domain.flashcard.EnrichmentStatus
 import com.emm.domain.flashcard.Example
@@ -220,6 +221,7 @@ private class RecordingRepository : FlashcardRepository {
     val writes: MutableList<String> = mutableListOf()
     val recordedPromptVersions: MutableList<Pair<FlashcardId, Int>> = mutableListOf()
 
+    override fun observeById(id: FlashcardId): Flow<FlashcardDetail?> = throw UnsupportedOperationException()
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail {
         return FlashcardDetail(flashcard = Flashcard.empty(SystemClock).copy(id = id, word = "borrow"))
     }

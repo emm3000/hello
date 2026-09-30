@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-class EnrichmentBacklogQueryTest {
+class EnrichmentStatusQueryTest {
 
     private lateinit var db: HelloDb
 
@@ -16,24 +16,6 @@ class EnrichmentBacklogQueryTest {
         HelloDb.Schema.create(driver)
         db = HelloDb(driver)
         seed()
-    }
-
-    @Test
-    fun `countsByEnrichmentStatus counts pending and failed apart`() {
-        val counts = db.flashcardQueries.countsByEnrichmentStatus().executeAsOne()
-
-        assertEquals(2L, counts.pending)
-        assertEquals(1L, counts.failed)
-    }
-
-    @Test
-    fun `countsByEnrichmentStatus ignores soft-deleted cards`() {
-        db.flashcardQueries.softDelete(now = 2, id = "card-pending-b")
-
-        val counts = db.flashcardQueries.countsByEnrichmentStatus().executeAsOne()
-
-        assertEquals(1L, counts.pending)
-        assertEquals(1L, counts.failed)
     }
 
     @Test
@@ -49,10 +31,11 @@ class EnrichmentBacklogQueryTest {
     fun `markPendingEnrichment moves the given cards to pending`() {
         db.flashcardQueries.markPendingEnrichment(updatedAt = 5, ids = listOf("card-failed"))
 
-        val counts = db.flashcardQueries.countsByEnrichmentStatus().executeAsOne()
+        val pending: List<String> = db.flashcardQueries
+            .findIdsByEnrichmentStatus(enrichmentStatus = "PENDING")
+            .executeAsList()
 
-        assertEquals(3L, counts.pending)
-        assertEquals(0L, counts.failed)
+        assertEquals(setOf("card-pending-a", "card-pending-b", "card-failed"), pending.toSet())
     }
 
     private fun seed() {

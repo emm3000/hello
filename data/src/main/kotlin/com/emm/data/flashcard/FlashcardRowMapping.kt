@@ -51,6 +51,10 @@ internal fun toDomainSummary(
         capturedInput = entity.capturedInput.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        enrichmentFailureCause = enrichmentFailureCauseOf(
+            toEnrichmentStatus(entity.enrichmentStatus),
+            entity.enrichmentFailureCode,
+        ),
         promptVersion = entity.promptVersion.toInt(),
     )
 }
@@ -86,6 +90,10 @@ internal fun toDomainSummary(
         capturedInput = entity.capturedInput.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        enrichmentFailureCause = enrichmentFailureCauseOf(
+            toEnrichmentStatus(entity.enrichmentStatus),
+            entity.enrichmentFailureCode,
+        ),
         promptVersion = entity.promptVersion.toInt(),
     )
 }
@@ -121,6 +129,10 @@ internal fun toDomainSummary(
         capturedInput = entity.capturedInput.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        enrichmentFailureCause = enrichmentFailureCauseOf(
+            toEnrichmentStatus(entity.enrichmentStatus),
+            entity.enrichmentFailureCode,
+        ),
         promptVersion = entity.promptVersion.toInt(),
     )
 }
@@ -157,6 +169,10 @@ internal fun toDomainDetail(
         capturedInput = entity.capturedInput.orEmpty(),
         warnings = decodeStringList(entity.warningsJson, json),
         enrichmentStatus = toEnrichmentStatus(entity.enrichmentStatus),
+        enrichmentFailureCause = enrichmentFailureCauseOf(
+            toEnrichmentStatus(entity.enrichmentStatus),
+            entity.enrichmentFailureCode,
+        ),
         promptVersion = entity.promptVersion.toInt(),
     )
 }
