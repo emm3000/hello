@@ -1,0 +1,258 @@
+package com.emm.data.curated
+
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.RegisterPreference
+
+private val asyncWritingPhraseSpecs: List<CollocationSpec> = listOf(
+    CollocationSpec(
+        expression = "LGTM",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ˌel dʒiː tiː ˈem",
+        definitionEn = "short for 'looks good to me'; a reviewer's approval of a change.",
+        meaningEs = "se ve bien, apruebo",
+        whyUseful = "it is the most common one-word approval in PR reviews and in Slack.",
+        example = "LGTM, approving now.",
+        translation = "Se ve bien, lo apruebo ahora.",
+        commonMistake =
+        "writing 'it looks well for me' for 'me parece bien' — the phrase is 'looks good to me', " +
+            "with 'good' and 'to'; in a review, just 'LGTM'.",
+        confusableWith = listOf("me parece bien → looks good to me", "se ve bonito → looks nice"),
+        collocations = listOf("LGTM, approved", "LGTM with one nit"),
+        usagePattern = "LGTM (+ short note)",
+        sourceContext = "Async: comentario en un PR",
+        clozeAnswer = "LGTM",
+        register = RegisterPreference.Casual,
+        acceptedAnswers = listOf("looks good to me"),
+    ),
+    CollocationSpec(
+        expression = "FYI",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ˌef waɪ ˈaɪ",
+        definitionEn = "short for 'for your information'; it shares news that needs no action.",
+        meaningEs = "para tu información",
+        whyUseful = "it tells the reader the message only keeps them informed and asks for nothing.",
+        example = "FYI, staging will be down for an hour tonight.",
+        translation = "Para tu información, staging estará caído una hora esta noche.",
+        commonMistake =
+        "writing 'for your knowledge' for 'para tu conocimiento' — the fixed phrase is " +
+            "'for your information', usually just 'FYI'.",
+        confusableWith = listOf("para tu conocimiento → FYI", "conocimiento → knowledge"),
+        collocations = listOf("just FYI", "FYI, the build is green"),
+        usagePattern = "FYI, + [news]",
+        sourceContext = "Async: aviso en un canal de Slack",
+        clozeAnswer = "FYI",
+        acceptedAnswers = listOf("for your information"),
+    ),
+    CollocationSpec(
+        expression = "ETA",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ˌiː tiː ˈeɪ",
+        definitionEn = "short for 'estimated time of arrival'; when something should be ready.",
+        meaningEs = "hora o fecha estimada",
+        whyUseful = "managers ask 'any ETA?' in Slack, and they expect a time, not a long story.",
+        example = "Any ETA on the fix?",
+        translation = "¿Hay fecha estimada para el arreglo?",
+        commonMistake =
+        "writing 'when will be ready?' for '¿para cuándo estará listo?' — 'will' needs a subject: " +
+            "'when will it be ready?'; in Slack, 'any ETA?' is shorter.",
+        confusableWith = listOf("fecha estimada → ETA", "fecha límite → deadline"),
+        collocations = listOf("any ETA?", "ETA on the fix"),
+        usagePattern = "ETA on + [task]",
+        sourceContext = "Async: cuando te preguntan para cuándo",
+        clozeAnswer = "ETA",
+        acceptedAnswers = listOf("estimated time of arrival"),
+    ),
+    CollocationSpec(
+        expression = "push a fix",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "pʊʃ ə fɪks",
+        definitionEn = "to upload a code change that solves a problem.",
+        meaningEs = "subir un arreglo",
+        whyUseful = "it tells a reviewer that the problem they found is already being solved.",
+        example = "Good point, I'll push a fix in ten minutes.",
+        translation = "Buen punto, subo un arreglo en diez minutos.",
+        commonMistake =
+        "writing 'I'll upload the fix' for 'subo el arreglo' — code goes up with 'push'; " +
+            "'upload' is for files.",
+        confusableWith = listOf("subir (código) → push", "subir (un archivo) → upload"),
+        collocations = listOf("push a fix for", "push the changes"),
+        usagePattern = "push a fix (for + [problem])",
+        sourceContext = "Async: respuesta a una review",
+        clozeAnswer = "push a fix",
+        acceptedAnswers = listOf("push the fix"),
+    ),
+    CollocationSpec(
+        expression = "leave a comment",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "liːv ə ˈkɑːment",
+        definitionEn = "to write a note on a PR, a ticket or a document.",
+        meaningEs = "dejar un comentario",
+        whyUseful = "it is how reviewers say where they put their feedback.",
+        example = "I'll leave a comment on the PR.",
+        translation = "Dejo un comentario en el PR.",
+        commonMistake =
+        "writing 'I made a comment in the PR' for 'hice un comentario en el PR' — on a PR you " +
+            "'leave' a comment, and it goes 'on' the PR, not 'in'.",
+        confusableWith = listOf(
+            "dejar un comentario → leave a comment",
+            "hacer un comentario (hablando) → make a comment",
+        ),
+        collocations = listOf("leave a comment on", "left a few comments"),
+        usagePattern = "leave a comment on + [PR / ticket / line]",
+        sourceContext = "Async: comentario en un PR",
+        clozeAnswer = "leave a comment",
+    ),
+    CollocationSpec(
+        expression = "address the comments",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "əˈdres ðə ˈkɑːments",
+        definitionEn = "to make the changes a reviewer asked for, or answer each comment.",
+        meaningEs = "resolver los comentarios",
+        whyUseful = "it is the standard line before you ask for a second review.",
+        example = "I'll address the comments this afternoon.",
+        translation = "Resuelvo los comentarios esta tarde.",
+        commonMistake =
+        "writing 'I'll attend the comments' for 'atiendo los comentarios' — 'attend' is for " +
+            "meetings and events; for review feedback, 'address' the comments.",
+        confusableWith = listOf(
+            "atender comentarios → address the comments",
+            "asistir a una reunión → attend a meeting",
+        ),
+        collocations = listOf("address the feedback", "address all comments"),
+        usagePattern = "address + the [comments / feedback]",
+        sourceContext = "Async: respuesta a una review",
+        clozeAnswer = "address the comments",
+        acceptedAnswers = listOf("address the feedback"),
+    ),
+    CollocationSpec(
+        expression = "ping me",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "pɪŋ miː",
+        definitionEn = "an informal request to send a short message.",
+        meaningEs = "escríbeme, avísame",
+        whyUseful = "it closes many Slack messages and tells people how to reach you.",
+        example = "If the build fails again, ping me.",
+        translation = "Si el build vuelve a fallar, escríbeme.",
+        commonMistake =
+        "writing 'advise me' for 'avísame' — 'advise' means 'aconsejar'; to ask for a message, " +
+            "write 'ping me' or 'let me know'.",
+        confusableWith = listOf("avísame → ping me / let me know", "aconsejar → advise"),
+        collocations = listOf("ping me on Slack", "ping me when it's ready"),
+        usagePattern = "ping me + [if / when + clause]",
+        sourceContext = "Async: mensaje en Slack",
+        clozeAnswer = "ping me",
+        register = RegisterPreference.Casual,
+    ),
+    CollocationSpec(
+        expression = "out of office",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "aʊt əv ˈɔːfɪs",
+        definitionEn = "away from work and not answering messages, for example on vacation.",
+        meaningEs = "fuera de la oficina, ausente",
+        whyUseful = "it is the Slack status and the auto-reply for days off, even if you work from home.",
+        example = "I'll be out of office on Monday.",
+        translation = "Estaré ausente el lunes.",
+        commonMistake =
+        "writing 'I'll be absent on Monday' for 'estaré ausente el lunes' — 'absent' sounds like " +
+            "school; at work you are 'out of office' or 'off'.",
+        confusableWith = listOf("ausente (del trabajo) → out of office", "ausente (de clase) → absent"),
+        collocations = listOf("out of office on Friday", "OOO"),
+        usagePattern = "be out of office + [day]",
+        sourceContext = "Async: aviso de ausencia en Slack",
+        clozeAnswer = "out of office",
+        acceptedAnswers = listOf("OOO"),
+    ),
+    CollocationSpec(
+        expression = "thanks in advance",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "θæŋks ɪn ədˈvæns",
+        definitionEn = "a way to thank someone before they help you.",
+        meaningEs = "gracias de antemano",
+        whyUseful = "it closes a request politely in Slack or in an email.",
+        example = "Could you send me the staging URL? Many thanks in advance.",
+        translation = "¿Me podrías pasar la URL de staging? Muchas gracias de antemano.",
+        commonMistake =
+        "writing 'thanks beforehand' or 'thanks from before' for 'gracias de antemano' — " +
+            "the fixed phrase is 'thanks in advance'.",
+        confusableWith = listOf("de antemano → in advance", "por adelantado (un pago) → upfront"),
+        collocations = listOf("thanks in advance for your help", "many thanks in advance"),
+        usagePattern = "[request] + thanks in advance",
+        sourceContext = "Async: cierre de un pedido en Slack",
+        clozeAnswer = "thanks in advance",
+    ),
+    CollocationSpec(
+        expression = "sorry for the delay",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ˈsɑːri fər ðə dɪˈleɪ",
+        definitionEn = "a polite way to start a reply that comes late.",
+        meaningEs = "perdón por la demora",
+        whyUseful = "async replies are often late, and this opens the message without a long excuse.",
+        example = "Hi Sam, sorry for the delay. Here's the log you asked for.",
+        translation = "Hola Sam, perdón por la demora. Aquí está el log que pediste.",
+        commonMistake =
+        "writing 'sorry for the late' for 'perdón por la demora' — 'late' is not a noun; " +
+            "write 'sorry for the delay' or 'sorry for the late reply'.",
+        confusableWith = listOf("demora → delay", "tarde → late"),
+        collocations = listOf("sorry for the late reply", "sorry for the delay on this"),
+        usagePattern = "sorry for the delay + [answer]",
+        sourceContext = "Async: respuesta tardía en Slack",
+        clozeAnswer = "sorry for the delay",
+        acceptedAnswers = listOf("sorry for the late reply"),
+    ),
+    CollocationSpec(
+        expression = "double-check",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ˌdʌbl ˈtʃek",
+        definitionEn = "to check something again to be sure it is right.",
+        meaningEs = "volver a revisar",
+        whyUseful = "it is how you ask for, or promise, one more check before a release.",
+        example = "Can you double-check the env variables before the deploy?",
+        translation = "¿Puedes volver a revisar las variables de entorno antes del deploy?",
+        commonMistake =
+        "writing 'can you return to check it?' for '¿puedes volver a revisarlo?' — 'volver a' " +
+            "is not 'return to'; say 'double-check' or 'check it again'.",
+        confusableWith = listOf("volver a revisar → double-check", "volver (a un lugar) → return"),
+        collocations = listOf("double-check the config", "let me double-check"),
+        usagePattern = "double-check + [thing]",
+        sourceContext = "Async: pedido antes de un deploy",
+        clozeAnswer = "double-check",
+        acceptedAnswers = listOf("double check"),
+    ),
+    CollocationSpec(
+        expression = "on it",
+        levelBand = LevelBand.B1_B2,
+        domain = LearningDomain.Work,
+        ipa = "ɑːn ɪt",
+        definitionEn = "a short reply meaning you have started working on something.",
+        meaningEs = "estoy en eso",
+        whyUseful = "it is the fastest reply when someone reports a problem in Slack.",
+        example = "Thanks for the report, I'm on it.",
+        translation = "Gracias por avisar, estoy en eso.",
+        commonMistake =
+        "writing 'I'm in that' for 'estoy en eso' — 'I'm in' means you join a plan; " +
+            "for a task, write 'I'm on it' or just 'on it'.",
+        confusableWith = listOf("estoy en eso → I'm on it", "me apunto → I'm in"),
+        collocations = listOf("I'm on it", "on it!"),
+        usagePattern = "(I'm) on it",
+        sourceContext = "Async: respuesta rápida en Slack",
+        clozeAnswer = "on it",
+        register = RegisterPreference.Casual,
+        acceptedAnswers = listOf("I'm on it"),
+    ),
+)
+
+internal val asyncWritingPhrases: List<GeneratedLearningNote> =
+    asyncWritingPhraseSpecs.map { spec -> spec.toNote(ASYNC_WRITING_DECK_ID) }
