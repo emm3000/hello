@@ -7,7 +7,7 @@
 | Scope | First-run onboarding (welcome screen + starter deck) |
 | Source of Truth | No |
 | Read this when | You need to understand what a fresh install sees before Today |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-10-05 |
 
 ## Summary
 
@@ -49,7 +49,7 @@ On a fresh install the app opens on a single welcome screen instead of Today, an
 if (hasSeenWelcome) TodayRoute else OnboardingRoute
 ```
 
-`hasSeenWelcome` is backed by `DataStore.hasSeenOnboarding`.
+`hasSeenWelcome` is backed by `DataStore.hasSeenOnboarding`. Its setter writes synchronously with `edit(commit = true)`, so the flag is on disk before the app navigates away from onboarding; the other `DataStore` preferences still write asynchronously.
 
 ## Starter deck seeding
 
@@ -77,8 +77,8 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 
 `OnboardingUiIntent`:
 
-- `StartClicked` — the only CTA; checks `NotificationPermission.isGranted()` first. Granted → calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`. Not granted → emits `RequestNotificationPermission` and nothing else; `markWelcomeSeen()` is not called on this path.
-- `NotificationPermissionSettled` — sent by the `Route` when the system permission dialog closes. Always calls `onboardingState.markWelcomeSeen()` then emits `NavigateToToday`, regardless of whether the permission was granted or denied; it does not re-read the permission port. The launcher's own `Boolean` result is ignored on purpose.
+- `StartClicked` — the only CTA; calls `onboardingState.markWelcomeSeen()` first, before any permission request, so a process killed while the system dialog is up still relaunches on Today. Then checks `NotificationPermission.isGranted()`: granted → emits `NavigateToToday`; not granted → emits `RequestNotificationPermission`.
+- `NotificationPermissionSettled` — sent by the `Route` when the system permission dialog closes. Only emits `NavigateToToday`; the flag was already written by `StartClicked`. It does so regardless of whether the permission was granted or denied; it does not re-read the permission port. The launcher's own `Boolean` result is ignored on purpose.
 - `BackPressed` — system back; emits `CloseOnboarding`
 
 ## Effects
@@ -93,7 +93,7 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 
 ## Notification permission
 
-The reminder is ON by default (see `docs/NOTIFICATIONS_PLAN.md`), so gating the `POST_NOTIFICATIONS` prompt only behind the Settings toggle meant most users never saw it. Onboarding ties the request to a user action instead — tapping "Start" — and only once per install, since `markWelcomeSeen()` runs after the dialog is settled either way.
+The reminder is ON by default (see `docs/NOTIFICATIONS_PLAN.md`), so gating the `POST_NOTIFICATIONS` prompt only behind the Settings toggle meant most users never saw it. Onboarding ties the request to a user action instead — tapping "Start" — and only once per install, since `markWelcomeSeen()` runs when "Start" is tapped, before the prompt appears.
 
 A denial changes nothing persisted: no reminder preference is written by this flow. Settings shows the blocked row and offers the system-settings shortcut for the user to reconsider later — see `docs/SETTINGS_CURRENT.md`.
 

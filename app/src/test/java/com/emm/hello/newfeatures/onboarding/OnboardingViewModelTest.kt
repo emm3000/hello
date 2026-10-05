@@ -16,33 +16,9 @@ class OnboardingViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `StartClicked calls markWelcomeSeen`() = runTest {
+    fun `StartClicked with permission granted marks welcome seen and emits NavigateToToday`() = runTest {
         val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
-
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.StartClicked)
-            it.await()
-        }
-
-        assertThat(repo.welcomeSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `StartClicked emits NavigateToToday`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.StartClicked)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
-    }
-
-    @Test
-    fun `markWelcomeSeen is recorded before NavigateToToday on StartClicked`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
+        val viewModel = buildViewModel(repo, FakeNotificationPermission(granted = true))
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(OnboardingUiIntent.StartClicked)
@@ -53,64 +29,29 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `StartClicked without notification permission emits RequestNotificationPermission`() = runTest {
-        val viewModel = buildViewModel(notificationPermission = FakeNotificationPermission(granted = false))
+    fun `StartClicked without permission marks welcome seen and emits RequestNotificationPermission`() = runTest {
+        val repo = FakeOnboardingStateRepository()
+        val viewModel = buildViewModel(repo, FakeNotificationPermission(granted = false))
 
         val effectDeferred = backgroundScope.async { viewModel.effect.first() }
         viewModel.onIntent(OnboardingUiIntent.StartClicked)
-
         val effect = effectDeferred.await()
+
         assertThat(effect).isEqualTo(OnboardingUiEffect.RequestNotificationPermission)
+        assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
     @Test
-    fun `StartClicked without notification permission does not call markWelcomeSeen`() = runTest {
+    fun `NotificationPermissionSettled emits NavigateToToday without marking welcome seen`() = runTest {
         val repo = FakeOnboardingStateRepository()
         val viewModel = buildViewModel(repo, FakeNotificationPermission(granted = false))
 
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.StartClicked)
-            it.await()
-        }
+        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
+        val effect = effectDeferred.await()
 
+        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
         assertThat(repo.welcomeSeenCalled).isFalse()
-    }
-
-    @Test
-    fun `NotificationPermissionSettled calls markWelcomeSeen`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo, FakeNotificationPermission(granted = false))
-
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
-            it.await()
-        }
-
-        assertThat(repo.welcomeSeenCalled).isTrue()
-    }
-
-    @Test
-    fun `NotificationPermissionSettled emits NavigateToToday even when permission is denied`() = runTest {
-        val viewModel = buildViewModel(notificationPermission = FakeNotificationPermission(granted = false))
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
-    }
-
-    @Test
-    fun `markWelcomeSeen is recorded before NavigateToToday on NotificationPermissionSettled`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo, FakeNotificationPermission(granted = false))
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
-        val effect = effectDeferred.await()
-
-        assertThat(effect).isEqualTo(OnboardingUiEffect.NavigateToToday)
-        assertThat(repo.welcomeSeenCalled).isTrue()
     }
 
     @Test

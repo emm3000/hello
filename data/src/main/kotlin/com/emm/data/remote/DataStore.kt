@@ -37,7 +37,7 @@ class DataStore(
     var hasSeenOnboarding: Boolean
         get() = sharedPreferences.getBoolean(KEY_SEEN_ONBOARDING, false)
         set(value) {
-            sharedPreferences.edit { putBoolean(KEY_SEEN_ONBOARDING, value) }
+            sharedPreferences.edit(commit = true) { putBoolean(KEY_SEEN_ONBOARDING, value) }
         }
 
     var hasSeededStarterDeck: Boolean

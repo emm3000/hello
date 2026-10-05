@@ -14,21 +14,17 @@ class OnboardingViewModel(
     override fun onIntent(intent: OnboardingUiIntent) {
         when (intent) {
             is OnboardingUiIntent.StartClicked -> startLearning()
-            is OnboardingUiIntent.NotificationPermissionSettled -> enterApp()
+            is OnboardingUiIntent.NotificationPermissionSettled -> sendEffect(OnboardingUiEffect.NavigateToToday)
             is OnboardingUiIntent.BackPressed -> sendEffect(OnboardingUiEffect.CloseOnboarding)
         }
     }
 
     private fun startLearning() {
+        onboardingState.markWelcomeSeen()
         if (notificationPermission.isGranted()) {
-            enterApp()
+            sendEffect(OnboardingUiEffect.NavigateToToday)
         } else {
             sendEffect(OnboardingUiEffect.RequestNotificationPermission)
         }
-    }
-
-    private fun enterApp() {
-        onboardingState.markWelcomeSeen()
-        sendEffect(OnboardingUiEffect.NavigateToToday)
     }
 }

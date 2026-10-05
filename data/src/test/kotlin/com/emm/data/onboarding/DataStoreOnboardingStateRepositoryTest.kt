@@ -40,7 +40,7 @@ class DataStoreOnboardingStateRepositoryTest {
         repo.markWelcomeSeen()
 
         assertTrue(stored.captured)
-        verify { editor.apply() }
+        verify { editor.commit() }
     }
 
     @Test
