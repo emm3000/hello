@@ -17,6 +17,9 @@ import com.emm.domain.library.LibraryRepository
 import com.emm.domain.validation.DomainValidationException
 import com.emm.domain.validation.IssueCode
 import com.emm.hello.R
+import com.emm.hello.analytics.CaptureMode
+import com.emm.hello.analytics.ProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -32,6 +35,7 @@ class CaptureViewModel(
     getDecksUseCase: GetDecksUseCase,
     libraryRepository: LibraryRepository,
     connectivityRepository: ConnectivityRepository,
+    private val productAnalytics: ProductAnalytics,
 ) : MviViewModel<CaptureUiState, CaptureUiIntent, CaptureUiEffect>(
     initialState = CaptureUiState(),
 ) {
@@ -140,6 +144,7 @@ class CaptureViewModel(
 
     private suspend fun saveForEnrichment(deck: Deck, current: CaptureUiState) {
         val flashcardId: FlashcardId = captureFlashcard(deckId = deck.id, word = current.word)
+        productAnalytics.track(ProductEvent.WordCaptured(CaptureMode.AI))
         val captured = RecentCapture(
             flashcardId = flashcardId,
             deckId = deck.id,
@@ -157,6 +162,7 @@ class CaptureViewModel(
             translation = current.translation,
             meaning = current.meaning,
         )
+        productAnalytics.track(ProductEvent.WordCaptured(CaptureMode.MANUAL))
         val captured = RecentCapture(
             flashcardId = flashcardId,
             deckId = deck.id,

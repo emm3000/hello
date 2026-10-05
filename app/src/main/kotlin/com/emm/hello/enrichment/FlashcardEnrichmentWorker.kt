@@ -9,6 +9,8 @@ import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.validation.DomainValidationException
+import com.emm.hello.analytics.ProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
 import org.koin.core.context.GlobalContext
@@ -67,6 +69,7 @@ class FlashcardEnrichmentWorker(
     private suspend fun markFailed(flashcardId: FlashcardId, error: Throwable) {
         val failure: EnrichmentFailure = EnrichmentFailures.of(error)
         GlobalContext.get().get<MarkEnrichmentFailedUseCase>().invoke(flashcardId, failure)
+        GlobalContext.get().get<ProductAnalytics>().track(ProductEvent.EnrichmentFailed(failure.cause))
     }
 
     companion object {

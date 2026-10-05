@@ -9,6 +9,9 @@ import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.analytics.ExtraNewCardsSource
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.newfeatures.study.StudyRoute
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -91,6 +94,20 @@ class TodayViewModelTest {
     }
 
     @Test
+    fun `StudyMoreClicked tracks an extra new cards request from today`() = runTest {
+        val analytics = FakeProductAnalytics()
+        val viewModel = makeViewModel(productAnalytics = analytics)
+
+        viewModel.effect.test {
+            viewModel.onIntent(StudyMoreClicked)
+            awaitItem()
+        }
+
+        assertThat(analytics.events)
+            .containsExactly(ProductEvent.ExtraNewCardsRequested(ExtraNewCardsSource.TODAY))
+    }
+
+    @Test
     fun `StudyClicked asks for no extra new cards`() = runTest {
         val viewModel = makeViewModel()
 
@@ -146,7 +163,8 @@ class TodayViewModelTest {
 
     private fun makeViewModel(
         statsUseCase: GetDashboardStatsUseCase = makeDefaultStatsUseCase(),
-    ): TodayViewModel = TodayViewModel(getDashboardStatsUseCase = statsUseCase)
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
+    ): TodayViewModel = TodayViewModel(getDashboardStatsUseCase = statsUseCase, productAnalytics = productAnalytics)
 
     private fun makeDefaultStatsUseCase(): GetDashboardStatsUseCase = GetDashboardStatsUseCase(
         FakeStatsRepo(0, 0, 0, emptyList()),

@@ -2,7 +2,7 @@
 
 **App:** Hello (`com.emm.hello`)
 **Contact:** edgardo.emm20@gmail.com
-**Last updated: 2026-09-08**
+**Last updated: 2026-10-05**
 
 ## 1. Summary
 
@@ -82,7 +82,7 @@ Only the text you submitted and the generation parameters are forwarded, inside 
 The app uses three Google Firebase services.
 
 - **Firebase Crashlytics.** Collection is enabled in the app. When the app crashes or when an AI response fails to parse, Crashlytics receives a stack trace, the device model, the operating system version, the app version and a Firebase installation identifier. When an AI response fails to parse, the report carries only the kind of request, the length of the response and the type of the parsing error, never the response text or the text you submitted.
-- **Firebase Analytics.** The app initializes Analytics and does not log any custom events. Analytics therefore collects only the automatically collected events and parameters that the Firebase SDK gathers by default, together with a Firebase installation identifier and basic device and app metadata.
+- **Firebase Analytics.** Besides the events and parameters the Firebase SDK collects automatically, together with a Firebase installation identifier and basic device and app metadata, the app logs a small set of product events: finishing onboarding, saving a word (with whether it was generated or written by hand), finishing a study session (with the number of cards reviewed, known and forgotten, whether it covered all decks or one deck, and whether extra new cards were added), choosing a daily new-card limit (with the limit), asking for extra new cards (with where you asked), installing a curated deck (with the curated deck's id) and a card failing to generate (with the kind of failure). These events never contain the words, meanings, translations or any other text you type. Debug builds of the app do not send analytics data.
 - **Firebase App Check.** Release builds use the Play Integrity provider; debug builds use the debug provider. App Check produces a short-lived attestation token that is sent with every backend request so the backend can reject traffic that does not come from a genuine installation of the app. It attests the app installation, not you.
 
 Firebase privacy information: <https://firebase.google.com/support/privacy>.
@@ -108,7 +108,7 @@ You can revoke any runtime permission at any time from Android Settings.
 - **Note cache.** Successful entries have no expiry and are retained for service operation. Refusal entries expire 24 hours after they are written. Cache entries are not linked to a user id.
 - **Backend logs.** Retained by the hosting platform under its own default retention for function logs. They contain no submitted text.
 - **Crashlytics.** Crash reports are retained for 90 days under Firebase defaults.
-- **Analytics.** Retained under Firebase default retention settings for automatically collected data.
+- **Analytics.** Automatically collected data and the product events above are retained under Firebase default retention settings.
 
 ## 8. Your rights and how to request deletion
 

@@ -21,6 +21,8 @@ import com.emm.domain.study.DailyNewCardLimit
 import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.R
+import com.emm.hello.analytics.ProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.core.mvi.MviViewModel
@@ -48,6 +50,7 @@ class SettingsViewModel(
     private val generationCredits: GenerationCreditsRepository,
     private val clock: Clock,
     buildInfo: BuildInfo,
+    private val productAnalytics: ProductAnalytics,
 ) : MviViewModel<SettingsUiState, SettingsUiIntent, SettingsUiEffect>(
     initialState = SettingsUiState(buildInfo = buildInfo),
 ) {
@@ -190,6 +193,7 @@ class SettingsViewModel(
 
     private fun selectDailyNewCardLimit(limit: DailyNewCardLimit) {
         dailyNewCardLimit.set(limit)
+        productAnalytics.track(ProductEvent.DailyNewCardLimitSelected(limit.cards))
         setState { copy(dailyNewCardLimit = limit) }
     }
 

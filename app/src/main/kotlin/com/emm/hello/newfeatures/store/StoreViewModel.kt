@@ -5,6 +5,8 @@ import com.emm.domain.curated.CuratedDeckListing
 import com.emm.domain.curated.GetCuratedDecksUseCase
 import com.emm.domain.curated.InstallCuratedDeckUseCase
 import com.emm.hello.R
+import com.emm.hello.analytics.ProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 class StoreViewModel(
     getCuratedDecksUseCase: GetCuratedDecksUseCase,
     private val installCuratedDeckUseCase: InstallCuratedDeckUseCase,
+    private val productAnalytics: ProductAnalytics,
 ) : MviViewModel<StoreUiState, StoreUiIntent, StoreUiEffect>(
     initialState = StoreUiState(),
 ) {
@@ -41,6 +44,7 @@ class StoreViewModel(
         viewModelScope.launch {
             try {
                 installCuratedDeckUseCase(curatedDeckId)
+                productAnalytics.track(ProductEvent.CuratedDeckInstalled(curatedDeckId))
                 setState { copy(installingDeckId = null) }
             } catch (cancellation: CancellationException) {
                 throw cancellation

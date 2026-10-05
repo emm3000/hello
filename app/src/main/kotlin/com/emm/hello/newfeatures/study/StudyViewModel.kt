@@ -9,6 +9,10 @@ import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.ReviewGrade
 import com.emm.domain.study.ScheduleFlashcardReviewUseCase
 import com.emm.domain.study.StudySession
+import com.emm.hello.analytics.ExtraNewCardsSource
+import com.emm.hello.analytics.ProductAnalytics
+import com.emm.hello.analytics.ProductEvent
+import com.emm.hello.analytics.StudyScope
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
@@ -20,6 +24,7 @@ class StudyViewModel(
     private val getStudySessionUseCase: GetStudySessionUseCase,
     private val scheduleFlashcardReviewUseCase: ScheduleFlashcardReviewUseCase,
     private val flashcardReviewRepository: FlashcardReviewRepository,
+    private val productAnalytics: ProductAnalytics,
 ) : MviViewModel<StudyUiState, StudyUiIntent, StudyUiEffect>(
     initialState = StudyUiState(),
 ) {
@@ -30,12 +35,15 @@ class StudyViewModel(
 
     private val studyItemsForToday: ArrayDeque<StudySessionItem> = ArrayDeque()
 
+    private var sessionExtraNewCards: Int = 0
+
     init {
         loadSession(initialExtraNewCards)
     }
 
     private fun loadSession(extraNewCards: Int = 0) = viewModelScope.launch {
         studyItemsForToday.clear()
+        sessionExtraNewCards = extraNewCards
         setState {
             copy(
                 isLoading = true,
@@ -76,14 +84,27 @@ class StudyViewModel(
         val state = currentState
         if (nextItem == null && state.totalCount > 0 && !state.sessionFinished) {
             setState { copy(sessionFinished = true) }
+            trackSessionCompleted(currentState)
         }
+    }
+
+    private fun trackSessionCompleted(state: StudyUiState) {
+        productAnalytics.track(
+            ProductEvent.StudySessionCompleted(
+                reviewed = state.reviewedCount,
+                knew = state.knewCount,
+                forgot = state.forgotCount,
+                scope = if (deckId == null) StudyScope.ALL else StudyScope.DECK,
+                isExtra = sessionExtraNewCards > 0,
+            )
+        )
     }
 
     override fun onIntent(intent: StudyUiIntent) {
         when (intent) {
             StudyUiIntent.CreateCardClicked -> sendEffect(StudyUiEffect.NavigateToCapture)
             StudyUiIntent.GetNewWordsClicked -> sendEffect(StudyUiEffect.NavigateToSuggest)
-            StudyUiIntent.StudyMoreClicked -> loadSession(EXTRA_NEW_CARDS_PER_REQUEST)
+            StudyUiIntent.StudyMoreClicked -> studyMore()
             StudyUiIntent.RetryLoad -> loadSession(initialExtraNewCards)
             StudyUiIntent.ExitClicked -> sendEffect(StudyUiEffect.NavigateBack)
             is StudyUiIntent.ReviewAnswered -> processReviewAnswer(
@@ -91,6 +112,11 @@ class StudyViewModel(
                 grade = intent.reviewGrade,
             )
         }
+    }
+
+    private fun studyMore() {
+        productAnalytics.track(ProductEvent.ExtraNewCardsRequested(ExtraNewCardsSource.SESSION_END))
+        loadSession(EXTRA_NEW_CARDS_PER_REQUEST)
     }
 
     private fun processReviewAnswer(item: StudySessionItem?, grade: ReviewGrade) = viewModelScope.launch {

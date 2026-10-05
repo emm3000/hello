@@ -305,7 +305,7 @@ fun Module.viewModels() {
             formMode = params.get(),
         )
     }
-    viewModel { TodayViewModel(get()) }
+    viewModel { TodayViewModel(get(), get()) }
     viewModel { params ->
         LibraryViewModel(
             searchLibrary = get(),
@@ -317,7 +317,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { DecksViewModel(get(), get(), get()) }
-    viewModel { StoreViewModel(get(), get()) }
+    viewModel { StoreViewModel(get(), get(), get()) }
     viewModel {
         StudyViewModel(
             deckId = it.get(),
@@ -325,6 +325,7 @@ fun Module.viewModels() {
             getStudySessionUseCase = get(),
             scheduleFlashcardReviewUseCase = get(),
             flashcardReviewRepository = get(),
+            productAnalytics = get(),
         )
     }
     viewModel {
@@ -344,7 +345,7 @@ fun Module.viewModels() {
             updateFlashcardUseCase = get(),
         )
     }
-    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get(), get()) }
     single {
         BuildInfo(
@@ -369,9 +370,10 @@ fun Module.viewModels() {
             generationCredits = get(),
             clock = get(),
             buildInfo = get(),
+            productAnalytics = get(),
         )
     }
-    viewModel { OnboardingViewModel(get(), get()) }
+    viewModel { OnboardingViewModel(get(), get(), get()) }
 }
 
 fun provideSqlDriver(context: Context): SqlDriver {

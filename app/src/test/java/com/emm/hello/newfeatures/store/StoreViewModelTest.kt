@@ -13,6 +13,8 @@ import com.emm.domain.generation.LevelBand
 import com.emm.domain.ids.DeckId
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.newfeatures.library.LibraryRoute
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -92,6 +94,38 @@ class StoreViewModelTest {
     }
 
     @Test
+    fun `a successful install tracks the curated deck id`() = runTest {
+        val installCuratedDeckUseCase: InstallCuratedDeckUseCase = mockk()
+        coEvery { installCuratedDeckUseCase(CURATED_ID) } returns DeckId.from("curated-$CURATED_ID")
+        val analytics = FakeProductAnalytics()
+        val viewModel: StoreViewModel = buildViewModel(
+            installCuratedDeckUseCase = installCuratedDeckUseCase,
+            productAnalytics = analytics,
+        )
+
+        viewModel.onIntent(StoreUiIntent.InstallRequested(CURATED_ID))
+
+        assertThat(analytics.events).containsExactly(ProductEvent.CuratedDeckInstalled(CURATED_ID))
+    }
+
+    @Test
+    fun `a failed install tracks nothing`() = runTest {
+        val installCuratedDeckUseCase: InstallCuratedDeckUseCase = mockk()
+        coEvery { installCuratedDeckUseCase(CURATED_ID) } throws IllegalStateException("boom")
+        val analytics = FakeProductAnalytics()
+        val viewModel: StoreViewModel = buildViewModel(
+            installCuratedDeckUseCase = installCuratedDeckUseCase,
+            productAnalytics = analytics,
+        )
+
+        val effectDeferred: Deferred<StoreUiEffect> = backgroundScope.async { viewModel.effect.first() }
+        viewModel.onIntent(StoreUiIntent.InstallRequested(CURATED_ID))
+        effectDeferred.await()
+
+        assertThat(analytics.events).isEmpty()
+    }
+
+    @Test
     fun `open deck emits the deck id`() = runTest {
         val viewModel: StoreViewModel = buildViewModel()
 
@@ -126,9 +160,11 @@ class StoreViewModelTest {
         catalog: CuratedDeckCatalog = FakeCuratedDeckCatalog(),
         deckRepository: DeckRepository = FakeDeckRepository(),
         installCuratedDeckUseCase: InstallCuratedDeckUseCase = mockk(),
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
     ): StoreViewModel = StoreViewModel(
         getCuratedDecksUseCase = GetCuratedDecksUseCase(catalog, deckRepository),
         installCuratedDeckUseCase = installCuratedDeckUseCase,
+        productAnalytics = productAnalytics,
     )
 
     private fun buildCuratedDeck(id: String, noteCount: Int): CuratedDeck = CuratedDeck(

@@ -22,6 +22,8 @@ import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.notifications.NotificationPermission
@@ -81,6 +83,7 @@ class SettingsViewModelTest {
         clock: Clock = Clock { testNow },
         buildInfo: BuildInfo = testBuildInfo,
         dailyNewCardLimit: DailyNewCardLimitRepository = FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
     ): SettingsViewModel = SettingsViewModel(
         exportDataSource,
         importDataSource,
@@ -96,6 +99,7 @@ class SettingsViewModelTest {
         generationCredits,
         clock,
         buildInfo,
+        productAnalytics,
     )
 
     @Test
@@ -320,6 +324,7 @@ class SettingsViewModelTest {
             FakeGenerationCreditsRepository(),
             Clock { testNow },
             testBuildInfo,
+            FakeProductAnalytics(),
         )
         viewModel.onIntent(SettingsUiIntent.EditReminderTime)
 
@@ -409,6 +414,7 @@ class SettingsViewModelTest {
             FakeGenerationCreditsRepository(),
             Clock { testNow },
             testBuildInfo,
+            FakeProductAnalytics(),
         )
 
         assertThat(viewModel.state.value.isReminderEnabled).isTrue()
@@ -635,6 +641,17 @@ class SettingsViewModelTest {
 
         assertThat(repository.get()).isEqualTo(DailyNewCardLimit.TWENTY)
         assertThat(viewModel.state.value.dailyNewCardLimit).isEqualTo(DailyNewCardLimit.TWENTY)
+    }
+
+    @Test
+    fun `DailyNewCardLimitSelected tracks the selected limit`() = runTest {
+        val analytics = FakeProductAnalytics()
+        val viewModel = buildViewModel(productAnalytics = analytics)
+
+        viewModel.onIntent(SettingsUiIntent.DailyNewCardLimitSelected(DailyNewCardLimit.TWENTY))
+
+        assertThat(analytics.events)
+            .containsExactly(ProductEvent.DailyNewCardLimitSelected(DailyNewCardLimit.TWENTY.cards))
     }
 
     @Test

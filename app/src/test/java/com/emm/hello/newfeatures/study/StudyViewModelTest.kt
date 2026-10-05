@@ -21,6 +21,10 @@ import com.emm.domain.study.StudySessionRepository
 import com.emm.domain.study.StudyStatsRepository
 import com.emm.domain.time.Clock
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.analytics.ExtraNewCardsSource
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
+import com.emm.hello.analytics.StudyScope
 import com.google.common.truth.Truth.assertThat
 import kotlin.random.Random
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -388,6 +392,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            productAnalytics = FakeProductAnalytics(),
         )
         advanceUntilIdle()
 
@@ -407,6 +412,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            productAnalytics = FakeProductAnalytics(),
         )
         advanceUntilIdle()
 
@@ -521,6 +527,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = useCase(repo, FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards)),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            productAnalytics = FakeProductAnalytics(),
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
@@ -530,6 +537,66 @@ class StudyViewModelTest {
 
         assertThat(viewModel.state.value.loadError).isNull()
         assertThat(viewModel.state.value.totalCount).isEqualTo(EXTRA_NEW_CARDS_PER_REQUEST)
+    }
+
+    @Test
+    fun `finishing a deck session tracks its tallies exactly once`() = runTest {
+        val analytics = FakeProductAnalytics()
+        val viewModel = makeViewModel(
+            cards = listOf(studyFlashcard("a"), studyFlashcard("b")),
+            productAnalytics = analytics,
+        )
+        advanceUntilIdle()
+
+        listOf(ReviewGrade.GOOD, ReviewGrade.AGAIN).forEach { grade ->
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(item = viewModel.state.value.currentItem, reviewGrade = grade)
+            )
+            advanceUntilIdle()
+        }
+
+        assertThat(viewModel.state.value.sessionFinished).isTrue()
+        assertThat(analytics.events).containsExactly(
+            ProductEvent.StudySessionCompleted(
+                reviewed = 2,
+                knew = 1,
+                forgot = 1,
+                scope = StudyScope.DECK,
+                isExtra = false,
+            )
+        )
+    }
+
+    @Test
+    fun `study more tracks the request and marks the next finished session as extra`() = runTest {
+        val analytics = FakeProductAnalytics()
+        val viewModel = makeViewModel(
+            cards = List(HELD_BACK_NEW_CARDS) { index -> studyFlashcard("n$index") },
+            statsRepo = FakeStatsRepo(introducedToday = DailyNewCardLimit.DEFAULT.cards),
+            productAnalytics = analytics,
+            deckId = StudyRoute.ALL_DUE_DECKS,
+        )
+        advanceUntilIdle()
+
+        viewModel.onIntent(StudyUiIntent.StudyMoreClicked)
+        advanceUntilIdle()
+        repeat(viewModel.state.value.totalCount) {
+            viewModel.onIntent(
+                StudyUiIntent.ReviewAnswered(item = viewModel.state.value.currentItem, reviewGrade = ReviewGrade.GOOD)
+            )
+            advanceUntilIdle()
+        }
+
+        assertThat(analytics.events).containsExactly(
+            ProductEvent.ExtraNewCardsRequested(ExtraNewCardsSource.SESSION_END),
+            ProductEvent.StudySessionCompleted(
+                reviewed = EXTRA_NEW_CARDS_PER_REQUEST,
+                knew = EXTRA_NEW_CARDS_PER_REQUEST,
+                forgot = 0,
+                scope = StudyScope.ALL,
+                isExtra = true,
+            ),
+        ).inOrder()
     }
 
     @Test
@@ -553,6 +620,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            productAnalytics = FakeProductAnalytics(),
         )
         advanceUntilIdle()
 
@@ -572,6 +640,7 @@ class StudyViewModelTest {
             getStudySessionUseCase = useCase(repo),
             scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
             flashcardReviewRepository = FakeFlashcardReviewRepo(),
+            productAnalytics = FakeProductAnalytics(),
         )
         advanceUntilIdle()
         assertThat(viewModel.state.value.loadError).isEqualTo(StudyLoadError.SessionLoadFailed)
@@ -606,12 +675,15 @@ class StudyViewModelTest {
         reviewRepo: FlashcardReviewRepository = FakeFlashcardReviewRepo(),
         statsRepo: StudyStatsRepository = FakeStatsRepo(),
         extraNewCards: Int = 0,
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
+        deckId: String = "deck-1",
     ): StudyViewModel = StudyViewModel(
-        deckId = "deck-1",
+        deckId = deckId,
         extraNewCards = extraNewCards,
         getStudySessionUseCase = useCase(FakeStudySessionRepo(cards), statsRepo),
         scheduleFlashcardReviewUseCase = ScheduleFlashcardReviewUseCase(fixedClock, FsrsParameters.DEFAULT),
         flashcardReviewRepository = reviewRepo,
+        productAnalytics = productAnalytics,
     )
 
     private fun studyFlashcard(

@@ -23,6 +23,9 @@ import com.emm.domain.validation.IssueCode
 import com.emm.domain.validation.ValidationIssue
 import com.emm.hello.MainDispatcherRule
 import com.emm.hello.R
+import com.emm.hello.analytics.CaptureMode
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.google.common.truth.Truth.assertThat
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -63,6 +66,38 @@ class CaptureViewModelTest {
             expectNoEvents()
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `a successful capture tracks an ai word capture`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } returns CARD_ID
+        val analytics = FakeProductAnalytics()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, productAnalytics = analytics)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        assertThat(analytics.events).containsExactly(ProductEvent.WordCaptured(CaptureMode.AI))
+    }
+
+    @Test
+    fun `a rejected capture tracks nothing`() = runTest {
+        val captureFlashcard = mockk<CaptureFlashcardUseCase>()
+        coEvery { captureFlashcard(any(), any()) } throws DomainValidationException(
+            issues = listOf(ValidationIssue.Error(code = IssueCode.DuplicateWordInDeck, field = "word")),
+        )
+        val analytics = FakeProductAnalytics()
+        val viewModel = buildViewModel(captureFlashcard = captureFlashcard, productAnalytics = analytics)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("borrow"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        assertThat(analytics.events).isEmpty()
     }
 
     @Test
@@ -410,6 +445,23 @@ class CaptureViewModelTest {
     }
 
     @Test
+    fun `a successful manual submit tracks a manual word capture`() = runTest {
+        val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
+        coEvery { createManualFlashcard(any(), any(), any(), any()) } returns CARD_ID
+        val analytics = FakeProductAnalytics()
+        val viewModel = buildViewModel(createManualFlashcard = createManualFlashcard, productAnalytics = analytics)
+        advanceUntilIdle()
+
+        viewModel.onIntent(CaptureUiIntent.WordChanged("give up"))
+        viewModel.onIntent(CaptureUiIntent.ManualModeSelected(true))
+        viewModel.onIntent(CaptureUiIntent.TranslationChanged("rendirse"))
+        viewModel.onIntent(CaptureUiIntent.Submit)
+        advanceUntilIdle()
+
+        assertThat(analytics.events).containsExactly(ProductEvent.WordCaptured(CaptureMode.MANUAL))
+    }
+
+    @Test
     fun `manual duplicate marks the word field`() = runTest {
         val createManualFlashcard = mockk<CreateManualFlashcardUseCase>()
         coEvery { createManualFlashcard(any(), any(), any(), any()) } throws DomainValidationException(
@@ -582,6 +634,7 @@ class CaptureViewModelTest {
         decks: List<Deck> = listOf(deck()),
         defaultDeckId: DeckId? = DECK_ID,
         deckSelectionRepository: DefaultDeckSelectionRepository = mockk(),
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
     ): CaptureViewModel {
         every { deckSelectionRepository.getDefaultDeckId() } returns defaultDeckId
 
@@ -596,6 +649,7 @@ class CaptureViewModelTest {
             getDecksUseCase = getDecksUseCase,
             libraryRepository = libraryRepository,
             connectivityRepository = connectivityRepository,
+            productAnalytics = productAnalytics,
         )
     }
 

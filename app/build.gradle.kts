@@ -34,11 +34,13 @@ configure<ApplicationExtension> {
             isShrinkResources = true
             buildConfigField("Boolean", "USE_CANNED_AI", "false")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
+            manifestPlaceholders["analyticsCollectionEnabled"] = "true"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             buildConfigField("Boolean", "USE_CANNED_AI", "true")
             manifestPlaceholders["usesCleartextTraffic"] = "true"
+            manifestPlaceholders["analyticsCollectionEnabled"] = "false"
         }
     }
 

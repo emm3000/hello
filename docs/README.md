@@ -31,6 +31,7 @@ Global sources of truth still live at the root:
 - `ONBOARDING_CURRENT.md`: current state of the first-run onboarding flow (welcome gate + seeded starter deck)
 - `SUGGEST_CURRENT.md`: current state of the `Suggest` flow (a situation and new words, reached from Hoy when nothing is due or from the end of a study session)
 - `STORE_CURRENT.md`: current state of the `Store` flow (bundled curated decks installed into the local database, reached from Decks)
+- `ANALYTICS_CURRENT.md`: product events logged to Firebase Analytics in release and to logcat in debug
 
 ## Plans & history (not source of truth)
 

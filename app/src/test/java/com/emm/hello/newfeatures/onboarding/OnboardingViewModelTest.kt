@@ -2,6 +2,8 @@ package com.emm.hello.newfeatures.onboarding
 
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.hello.MainDispatcherRule
+import com.emm.hello.analytics.FakeProductAnalytics
+import com.emm.hello.analytics.ProductEvent
 import com.emm.hello.notifications.NotificationPermission
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.async
@@ -54,10 +56,25 @@ class OnboardingViewModelTest {
         assertThat(repo.welcomeSeenCalled).isFalse()
     }
 
+    @Test
+    fun `StartClicked tracks onboarding completed once`() = runTest {
+        val analytics = FakeProductAnalytics()
+        val viewModel = buildViewModel(productAnalytics = analytics)
+
+        viewModel.onIntent(OnboardingUiIntent.StartClicked)
+
+        assertThat(analytics.events).containsExactly(ProductEvent.OnboardingCompleted)
+    }
+
     private fun buildViewModel(
         repo: OnboardingStateRepository = FakeOnboardingStateRepository(),
         notificationPermission: NotificationPermission = FakeNotificationPermission(),
-    ) = OnboardingViewModel(onboardingState = repo, notificationPermission = notificationPermission)
+        productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
+    ) = OnboardingViewModel(
+        onboardingState = repo,
+        notificationPermission = notificationPermission,
+        productAnalytics = productAnalytics,
+    )
 }
 
 private class FakeOnboardingStateRepository : OnboardingStateRepository {
