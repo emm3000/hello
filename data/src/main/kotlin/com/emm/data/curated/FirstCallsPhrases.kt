@@ -1,0 +1,243 @@
+package com.emm.data.curated
+
+import com.emm.domain.generation.GeneratedLearningNote
+import com.emm.domain.generation.LearningDomain
+import com.emm.domain.generation.LevelBand
+import com.emm.domain.generation.RegisterPreference
+
+private val firstCallsPhraseSpecs: List<CollocationSpec> = listOf(
+    CollocationSpec(
+        expression = "make sense",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "meɪk sens",
+        definitionEn = "to be clear and easy to understand.",
+        meaningEs = "tener sentido",
+        whyUseful = "'Does that make sense?' closes almost every explanation, and you have to answer it.",
+        example = "Does that make sense to you?",
+        translation = "¿Tiene sentido para ti?",
+        commonMistake =
+        "saying 'it has sense' for 'tiene sentido' — in English an idea 'makes sense', " +
+            "it never 'has sense'.",
+        confusableWith = listOf("tener sentido → make sense", "tener sentido común → have common sense"),
+        collocations = listOf("does that make sense?", "it makes sense"),
+        usagePattern = "[idea / plan] + makes sense",
+        sourceContext = "Llamada: cuando confirmas que entendiste",
+        clozeAnswer = "make sense",
+        acceptedAnswers = listOf("makes sense"),
+    ),
+    CollocationSpec(
+        expression = "figure out",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "ˈfɪɡjər aʊt",
+        definitionEn = "to find the answer or the cause of a problem by thinking about it.",
+        meaningEs = "averiguar, resolver",
+        whyUseful = "it is how the team talks about a bug nobody understands yet.",
+        example = "I need to figure out why the build fails.",
+        translation = "Tengo que averiguar por qué falla el build.",
+        commonMistake =
+        "saying 'I need to figure why it fails' for 'averiguar por qué' — the verb needs 'out': " +
+            "'figure out why'.",
+        confusableWith = listOf("averiguar → figure out", "resolver → figure out / solve"),
+        collocations = listOf("figure out why", "figure it out"),
+        usagePattern = "figure out + [why / how / what] + [clause]",
+        sourceContext = "Llamada: cuando dices qué te falta resolver",
+        clozeAnswer = "figure out",
+    ),
+    CollocationSpec(
+        expression = "look into",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "lʊk ˈɪntuː",
+        definitionEn = "to check a problem carefully to understand it.",
+        meaningEs = "revisar, investigar",
+        whyUseful = "it is the safe promise when you get a problem you cannot answer on the call.",
+        example = "I'll look into it after the call.",
+        translation = "Lo reviso después de la llamada.",
+        commonMistake =
+        "saying 'I'll investigate it' for 'lo investigo' — it sounds like police work; " +
+            "the team says 'I'll look into it'.",
+        confusableWith = listOf("investigar (un bug) → look into", "revisar → look into / check"),
+        collocations = listOf("look into it", "look into the issue"),
+        usagePattern = "look into + [problem]",
+        sourceContext = "Llamada: cuando te asignan un problema",
+        clozeAnswer = "look into",
+    ),
+    CollocationSpec(
+        expression = "take a look",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "teɪk ə lʊk",
+        definitionEn = "to look at something quickly to check it.",
+        meaningEs = "echar un vistazo",
+        whyUseful = "it is the polite way to ask for, or offer, a quick review.",
+        example = "Can you take a look at my pull request?",
+        translation = "¿Puedes echarle un vistazo a mi pull request?",
+        commonMistake =
+        "saying 'give a look to my PR' for 'darle una mirada' — the verb is 'take', " +
+            "and the preposition is 'at'.",
+        confusableWith = listOf("echar un vistazo → take a look", "dar una mirada → take a look"),
+        collocations = listOf("take a look at", "take a quick look"),
+        usagePattern = "take a look at + [thing]",
+        sourceContext = "Llamada: cuando pides una revisión rápida",
+        clozeAnswer = "take a look",
+    ),
+    CollocationSpec(
+        expression = "run into",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "rʌn ˈɪntuː",
+        definitionEn = "to meet a problem you did not expect.",
+        meaningEs = "toparse con (un problema)",
+        whyUseful = "it is the normal way to report a problem without sounding dramatic.",
+        example = "If you run into any problems, just ping me.",
+        translation = "Si te topas con algún problema, escríbeme.",
+        commonMistake =
+        "saying 'I found me with a problem' for 'me encontré con un problema' — " +
+            "the phrase is 'I ran into a problem'.",
+        confusableWith = listOf("toparse con → run into", "encontrarse con un problema → run into a problem"),
+        collocations = listOf("run into a problem", "run into an error"),
+        usagePattern = "run into + [problem / error]",
+        sourceContext = "Llamada: cuando cuentas un problema",
+        clozeAnswer = "run into",
+        acceptedAnswers = listOf("ran into"),
+    ),
+    CollocationSpec(
+        expression = "set up",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "set ʌp",
+        definitionEn = "to prepare a tool or system so it is ready to use.",
+        meaningEs = "configurar",
+        whyUseful = "your first days are all about setting up your laptop and your access.",
+        example = "I'm trying to set up my local environment.",
+        translation = "Estoy intentando configurar mi entorno local.",
+        commonMistake =
+        "saying 'I'm configuring my environment' for every 'configurar' — it is correct but stiff; " +
+            "in a call people say 'set up'.",
+        confusableWith = listOf("configurar → set up", "instalar y preparar → set up"),
+        collocations = listOf("set up the project", "set up access"),
+        usagePattern = "set up + [tool / environment / account]",
+        sourceContext = "Llamada: cuando preparas tu entorno",
+        clozeAnswer = "set up",
+    ),
+    CollocationSpec(
+        expression = "on my end",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "ɑːn maɪ end",
+        definitionEn = "on my computer or from my side of the call.",
+        meaningEs = "de mi lado",
+        whyUseful = "audio and bugs both depend on where you are, and this says it in three words.",
+        example = "It works fine on my end.",
+        translation = "De mi lado funciona bien.",
+        commonMistake =
+        "saying 'from my part it works' for 'de mi parte funciona' — the phrase is " +
+            "'on my end', after the verb.",
+        confusableWith = listOf("de mi lado → on my end", "de mi parte → on my end"),
+        collocations = listOf("works on my end", "on your end"),
+        usagePattern = "[it works / I can hear you] + on my end",
+        sourceContext = "Llamada: cuando algo funciona distinto para ti",
+        clozeAnswer = "on my end",
+    ),
+    CollocationSpec(
+        expression = "right now",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "raɪt naʊ",
+        definitionEn = "at this exact moment.",
+        meaningEs = "ahora mismo",
+        whyUseful = "it tells the team what you are doing at this moment, or that you are busy.",
+        example = "I'm in another call right now.",
+        translation = "Ahora mismo estoy en otra llamada.",
+        commonMistake =
+        "saying 'now same' or 'actually' for 'ahora mismo' — 'actually' means 'en realidad'; " +
+            "the phrase is 'right now'.",
+        confusableWith = listOf("ahora mismo → right now", "en realidad → actually"),
+        collocations = listOf("right now", "not right now"),
+        usagePattern = "[present continuous] + right now",
+        sourceContext = "Llamada: cuando dices qué haces en este momento",
+        clozeAnswer = "right now",
+    ),
+    CollocationSpec(
+        expression = "by the way",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "baɪ ðə weɪ",
+        definitionEn = "used to add a new, smaller topic to the conversation.",
+        meaningEs = "por cierto",
+        whyUseful = "it lets you bring up something small before the call ends.",
+        example = "Oh, by the way, the demo moved to Friday.",
+        translation = "Ah, por cierto, la demo pasó al viernes.",
+        commonMistake =
+        "saying 'for certain' for 'por cierto' — 'for certain' means 'con seguridad'; " +
+            "the phrase is 'by the way'.",
+        confusableWith = listOf("por cierto → by the way", "con seguridad → for certain"),
+        collocations = listOf("oh, by the way", "by the way, quick question"),
+        usagePattern = "by the way, + [new topic]",
+        sourceContext = "Llamada: cuando agregas un tema al final",
+        clozeAnswer = "by the way",
+    ),
+    CollocationSpec(
+        expression = "sounds good",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "saʊndz ɡʊd",
+        definitionEn = "a short way to agree with a plan.",
+        meaningEs = "me parece bien",
+        whyUseful = "it is the most common way to agree with a plan and close the topic.",
+        example = "Friday at ten? That sounds good to me.",
+        translation = "¿El viernes a las diez? Me parece bien.",
+        commonMistake =
+        "saying 'it seems me good' for 'me parece bien' — the short reply is 'sounds good'.",
+        confusableWith = listOf("me parece bien → sounds good", "me parece que → I think"),
+        collocations = listOf("sounds good to me", "that sounds good"),
+        usagePattern = "(that) sounds good (to me)",
+        sourceContext = "Llamada: cuando aceptas un plan",
+        clozeAnswer = "sounds good",
+        register = RegisterPreference.Casual,
+    ),
+    CollocationSpec(
+        expression = "go ahead",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "ɡoʊ əˈhed",
+        definitionEn = "used to tell someone they can start or continue.",
+        meaningEs = "adelante",
+        whyUseful = "two people often start talking at once on a call, and this gives the turn away.",
+        example = "Sorry, you go ahead first.",
+        translation = "Perdón, adelante tú primero.",
+        commonMistake =
+        "saying 'forward' for 'adelante' — 'forward' is a direction; to give someone the turn, " +
+            "say 'go ahead'.",
+        confusableWith = listOf("adelante (empieza) → go ahead", "adelante (dirección) → forward"),
+        collocations = listOf("go ahead", "please go ahead"),
+        usagePattern = "(you) go ahead",
+        sourceContext = "Llamada: cuando dos hablan a la vez",
+        clozeAnswer = "go ahead",
+    ),
+    CollocationSpec(
+        expression = "hang on",
+        levelBand = LevelBand.A1_A2,
+        domain = LearningDomain.Work,
+        ipa = "hæŋ ɑːn",
+        definitionEn = "an informal way to ask someone to wait a short time.",
+        meaningEs = "espera un momento",
+        whyUseful = "it buys you a few seconds when your mic or your screen share fails.",
+        example = "Sorry, hang on, my mic isn't working.",
+        translation = "Perdón, espera un momento, mi micro no funciona.",
+        commonMistake =
+        "saying 'wait me a moment' for 'espérame un momento' — 'wait' needs 'for'; " +
+            "in a call, 'hang on' is shorter.",
+        confusableWith = listOf("espera un momento → hang on", "espérame → wait for me"),
+        collocations = listOf("hang on a second", "hang on, please"),
+        usagePattern = "hang on (a second)",
+        sourceContext = "Llamada: cuando necesitas unos segundos",
+        clozeAnswer = "hang on",
+        register = RegisterPreference.Casual,
+    ),
+)
+
+internal val firstCallsPhrases: List<GeneratedLearningNote> =
+    firstCallsPhraseSpecs.map { spec -> spec.toNote(FIRST_CALLS_DECK_ID) }

@@ -7,6 +7,7 @@ class BundledCuratedDeckCatalog : CuratedDeckCatalog {
 
     override fun decks(): List<CuratedDeck> =
         listOf(
+            FirstCallsDeck.deck,
             SpanishTrapsDeck.deck,
             JobInterviewDeck.deck,
             TechInterviewDeck.deck,

@@ -34,7 +34,7 @@ The Store lists hand-made curated decks compiled into `:data` and lets the user 
 
 ## Catalog
 
-`BundledCuratedDeckCatalog` returns four decks: `SpanishTrapsDeck`, `JobInterviewDeck`, `TechInterviewDeck` and `DailyStandupDeck`. Each `CuratedDeck` carries `id`, `name`, `description`, `tags`, `levelBand` and its `notes`.
+`BundledCuratedDeckCatalog` returns five decks: `FirstCallsDeck`, `SpanishTrapsDeck`, `JobInterviewDeck`, `TechInterviewDeck` and `DailyStandupDeck`. Each `CuratedDeck` carries `id`, `name`, `description`, `tags`, `levelBand` and its `notes`.
 
 ## Loading
 
