@@ -42,7 +42,7 @@ STUDY WHAT'S DUE, NOTHING MORE
 Every card is scheduled with FSRS, a modern spaced repetition algorithm. Cards you find easy come back later. Cards you struggle with come back sooner. Your daily review is a short, finite list — not an endless pile.
 
 START WITH REAL DECKS
-Hello ships with curated decks so you have something to study on day one: English B2 vocabulary, technical interview language, and daily standup phrases. Add your own decks whenever you want.
+Six curated decks to study from day one, written for Spanish speakers who work in English: first work calls, daily standups, Slack and pull requests, job interviews, technical interviews, and the Spanish false friends that trip you up. Every card is written around the mistakes Spanish speakers actually make. Add your own decks whenever you want.
 
 WHAT'S INSIDE
 · Write a card yourself or let AI draft it
@@ -52,8 +52,8 @@ WHAT'S INSIDE
 · Word suggestions based on what you've been studying
 · Export your data to a file you keep, restore it whenever
 
-YOUR DATA STAYS ON YOUR DEVICE
-Decks, cards, review history and settings live in a database on your phone. Nothing is uploaded. There is no sign-up and no password. The only thing that leaves your device is the text you send to generate a card. Linking a Google account is optional and changes nothing about how the app works.
+YOUR CARDS STAY ON YOUR DEVICE
+Decks, cards, review history and settings live in a database on your phone. There is no sign-up and no password. The text you send to generate a card or ask for word suggestions goes to our backend and its AI provider. Crash reports and basic usage statistics go to Firebase so we can fix bugs and improve the app; they never contain the words or cards you write. Linking a Google account is optional and changes nothing about how the app works.
 
 Free, no ads, no subscription.
 ```
