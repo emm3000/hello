@@ -56,8 +56,8 @@ private val firstCallsPhraseSpecs: List<CollocationSpec> = listOf(
         example = "I'll look into it after the call.",
         translation = "Lo reviso después de la llamada.",
         commonMistake =
-        "saying 'I'll investigate it' for 'lo investigo' — it sounds like police work; " +
-            "the team says 'I'll look into it'.",
+        "saying 'I'll investigate it' for 'lo investigo' — it is correct, but too formal for " +
+            "a small task; the team says 'I'll look into it'.",
         confusableWith = listOf("investigar (un bug) → look into", "revisar → look into / check"),
         collocations = listOf("look into it", "look into the issue"),
         usagePattern = "look into + [problem]",
@@ -206,8 +206,8 @@ private val firstCallsPhraseSpecs: List<CollocationSpec> = listOf(
         definitionEn = "used to tell someone they can start or continue.",
         meaningEs = "adelante",
         whyUseful = "two people often start talking at once on a call, and this gives the turn away.",
-        example = "Sorry, you go ahead first.",
-        translation = "Perdón, adelante tú primero.",
+        example = "No, you go ahead.",
+        translation = "No, adelante tú.",
         commonMistake =
         "saying 'forward' for 'adelante' — 'forward' is a direction; to give someone the turn, " +
             "say 'go ahead'.",
