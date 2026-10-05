@@ -50,6 +50,8 @@ Notes:
 | Product events sent to Firebase | No | Yes |
 | Automatic Firebase events sent | No | Yes |
 
+In both builds the manifest removes the `AD_ID`, `ACCESS_ADSERVICES_AD_ID` and `ACCESS_ADSERVICES_ATTRIBUTION` permissions that the Analytics SDK would merge in, and sets `google_analytics_adid_collection_enabled` to `false`, so the advertising ID is never collected.
+
 ## Watching events on a debug build
 
 ```
