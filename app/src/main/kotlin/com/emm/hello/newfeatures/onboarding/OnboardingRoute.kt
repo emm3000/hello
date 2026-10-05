@@ -1,6 +1,5 @@
 package com.emm.hello.newfeatures.onboarding
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,8 +23,6 @@ fun OnboardingDestination(navigator: Navigator) {
         contract = ActivityResultContracts.RequestPermission(),
     ) { vm.onIntent(OnboardingUiIntent.NotificationPermissionSettled) }
 
-    BackHandler { vm.onIntent(OnboardingUiIntent.BackPressed) }
-
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when (effect) {
@@ -35,7 +32,6 @@ fun OnboardingDestination(navigator: Navigator) {
                         vm.onIntent(OnboardingUiIntent.NotificationPermissionSettled)
                     }
                 }
-                is OnboardingUiEffect.CloseOnboarding -> navigator.goBack()
             }
         }
     }

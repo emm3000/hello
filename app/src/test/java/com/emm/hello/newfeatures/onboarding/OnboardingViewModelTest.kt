@@ -54,30 +54,6 @@ class OnboardingViewModelTest {
         assertThat(repo.welcomeSeenCalled).isFalse()
     }
 
-    @Test
-    fun `BackPressed emits CloseOnboarding`() = runTest {
-        val viewModel = buildViewModel()
-
-        val effectDeferred = backgroundScope.async { viewModel.effect.first() }
-        viewModel.onIntent(OnboardingUiIntent.BackPressed)
-
-        val effect = effectDeferred.await()
-        assertThat(effect).isEqualTo(OnboardingUiEffect.CloseOnboarding)
-    }
-
-    @Test
-    fun `BackPressed does not call markWelcomeSeen`() = runTest {
-        val repo = FakeOnboardingStateRepository()
-        val viewModel = buildViewModel(repo)
-
-        backgroundScope.async { viewModel.effect.first() }.also {
-            viewModel.onIntent(OnboardingUiIntent.BackPressed)
-            it.await()
-        }
-
-        assertThat(repo.welcomeSeenCalled).isFalse()
-    }
-
     private fun buildViewModel(
         repo: OnboardingStateRepository = FakeOnboardingStateRepository(),
         notificationPermission: NotificationPermission = FakeNotificationPermission(),

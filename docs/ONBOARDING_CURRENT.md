@@ -79,7 +79,6 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 
 - `StartClicked` — the only CTA; calls `onboardingState.markWelcomeSeen()` first, before any permission request, so a process killed while the system dialog is up still relaunches on Today. Then checks `NotificationPermission.isGranted()`: granted → emits `NavigateToToday`; not granted → emits `RequestNotificationPermission`.
 - `NotificationPermissionSettled` — sent by the `Route` when the system permission dialog closes. Only emits `NavigateToToday`; the flag was already written by `StartClicked`. It does so regardless of whether the permission was granted or denied; it does not re-read the permission port. The launcher's own `Boolean` result is ignored on purpose.
-- `BackPressed` — system back; emits `CloseOnboarding`
 
 ## Effects
 
@@ -87,9 +86,10 @@ One static page, no pager: a `displaySmall` headline (`onboarding_headline`, "Sa
 
 - `NavigateToToday` — `navigator.replaceAll(TodayRoute)`, so onboarding cannot be reached again with back
 - `RequestNotificationPermission` — the `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()` through `requestPostNotificationsPermission`; below Android 13 there is no prompt, so the `Route` dispatches `NotificationPermissionSettled` directly
-- `CloseOnboarding` — `navigator.goBack()`
 
-`OnboardingDestination` installs a `BackHandler` that forwards system back to `BackPressed`.
+## System back
+
+Onboarding installs no `BackHandler`. It is the only entry on the back stack, so `NavDisplay` leaves its own back handler disabled and system back falls through to the activity, which finishes and closes the app. The welcome flag is not written, so the next launch opens onboarding again.
 
 ## Notification permission
 

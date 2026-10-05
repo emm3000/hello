@@ -15,7 +15,6 @@ class OnboardingViewModel(
         when (intent) {
             is OnboardingUiIntent.StartClicked -> startLearning()
             is OnboardingUiIntent.NotificationPermissionSettled -> sendEffect(OnboardingUiEffect.NavigateToToday)
-            is OnboardingUiIntent.BackPressed -> sendEffect(OnboardingUiEffect.CloseOnboarding)
         }
     }
 
