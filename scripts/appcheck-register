@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 1 ] || { echo "usage: scripts/appcheck-register <serial>" >&2; exit 64; }
+serial=$1
+package=com.emm.hello
+api=https://firebaseappcheck.googleapis.com/v1
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+services="$repo_root/app/google-services.json"
+[ -f "$services" ] || { echo "missing $services" >&2; exit 66; }
+command -v gcloud >/dev/null || { echo "gcloud is missing: brew install --cask gcloud-cli, then gcloud auth login" >&2; exit 69; }
+
+project_id=$(jq -r '.project_info.project_id' "$services")
+project_number=$(jq -r '.project_info.project_number' "$services")
+app_id=$(jq -r --arg package "$package" '.client[] | select(.client_info.android_client_info.package_name == $package) | .client_info.mobilesdk_app_id' "$services")
+[ -n "$app_id" ] || { echo "no Firebase app for $package in $services" >&2; exit 65; }
+
+adb -s "$serial" shell pm path "$package" >/dev/null 2>&1 || { echo "$package is not installed on $serial: install the debug build first" >&2; exit 1; }
+avd=$(adb -s "$serial" emu avd name 2>/dev/null | head -n 1 | tr -d '\r')
+[ -n "$avd" ] || avd=$serial
+
+read_secret() {
+  adb -s "$serial" shell run-as "$package" sh -c "'cat shared_prefs/com.google.firebase.appcheck.debug.store.*.xml'" 2>/dev/null |
+    rg -o 'DEBUG_SECRET">([0-9a-fA-F-]{36})<' -r '$1' | head -n 1 || true
+}
+
+secret=$(read_secret)
+if [ -z "$secret" ]; then
+  adb -s "$serial" shell am start -n "$package/.MainActivity" >/dev/null 2>&1 || true
+  for _ in $(seq 1 15); do
+    sleep 2
+    secret=$(read_secret)
+    [ -n "$secret" ] && break
+  done
+fi
+[ -n "$secret" ] || { echo "no App Check debug secret on $serial after launching $package" >&2; exit 1; }
+
+marker_dir="$(git -C "$repo_root" rev-parse --path-format=absolute --git-common-dir)/hello-appcheck"
+fingerprint=$(printf '%s' "$secret" | shasum -a 256 | cut -c1-16)
+if [ "$(cat "$marker_dir/$avd" 2>/dev/null || true)" = "$fingerprint" ]; then
+  echo "App Check debug token for $avd already registered"
+  exit 0
+fi
+
+token=$(gcloud auth print-access-token)
+call() {
+  curl -fsS -H "Authorization: Bearer $token" -H "x-goog-user-project: $project_id" -H 'Content-Type: application/json' "$@"
+}
+
+parent="projects/$project_number/apps/$app_id"
+display_name="emulator $avd"
+call "$api/$parent/debugTokens" |
+  jq -r --arg name "$display_name" '.debugTokens[]? | select(.displayName == $name) | .name' |
+  while read -r stale; do
+    call -X DELETE "$api/$stale" >/dev/null
+  done
+
+call -X POST "$api/$parent/debugTokens" -d "$(jq -n --arg name "$display_name" --arg secret "$secret" '{displayName: $name, token: $secret}')" >/dev/null
+
+mkdir -p "$marker_dir"
+echo "$fingerprint" >"$marker_dir/$avd"
+echo "registered the App Check debug token for $avd ($serial)"

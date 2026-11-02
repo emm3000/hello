@@ -27,7 +27,7 @@ if [ ! -f "$config" ]; then
       echo "$setting" >>"$config"
     fi
   done
-  echo "created $avd: its first debug install mints a new App Check token the owner must register once"
+  echo "created $avd: after the first debug install, run scripts/appcheck-register $serial"
 fi
 
 nohup "$sdk/emulator/emulator" -avd "$avd" -port "$port" -no-snapshot-save -no-boot-anim >"${TMPDIR:-/tmp}/$avd.log" 2>&1 &

@@ -23,7 +23,7 @@ Tickets come from the `ticket-writer` agent once the owner and the orchestrator 
 
 ## Roles
 
-- **Owner** approves the first wave of a session, checks `/model` in each peer pane (a session cannot see its own effort), and registers a new App Check debug token when a pool emulator is created (§Devices).
+- **Owner** approves the first wave of a session, checks `/model` in each peer pane (a session cannot see its own effort), and runs `gcloud auth login` once on the machine, so `scripts/appcheck-register` can register App Check debug tokens (§Devices).
 - **Orchestrator** routes, reviews through agents and lands. It stays thin: investigation and anything that produces an artifact (tickets, specs, docs) goes to a subagent; inline work is routing state (`git status`, `git worktree list`, the board query, `ListAgents`) and at most 1-3 files. It reports to the owner in 1-2 lines and only decisions that are the owner's; landing a clean branch is routine. A peer's reply is a claim: verify it before acting on it.
 - **Peer** carries one ticket in its own worktree (§Peer).
 - **Reviewer** is the `reviewer` agent, or `reviewer-light`, fresh per branch and read-only.
@@ -46,7 +46,7 @@ Tickets come from the `ticket-writer` agent once the owner and the orchestrator 
 
 - A pool of three AVDs, `hello-1`, `hello-2`, `hello-3`, one per wave slot, with fixed serials `emulator-5620`, `emulator-5622`, `emulator-5624`. `scripts/emulator <slot>` creates the AVD on first use (GPU on, 4 GB RAM) and boots it.
 - The pool is kept between waves, and so is the app on it: install with `ANDROID_SERIAL=<serial> ./gradlew :app:installDebug` or `adb -s <serial> install -r`, never `pm clear` or uninstall. _Why: the debug App Check token lives in the app's storage; a wiped app mints a new one and every Gemini call fails with 403 until the owner registers it in the Firebase console._
-- First install on a new AVD: read the token with `adb -s <serial> logcat -d | rg "App Check debug token"` and send it to the orchestrator, who passes it to the owner. Continue with work that needs no AI call meanwhile.
+- After every debug install, run `scripts/appcheck-register <serial>`. It reads the app's debug secret with `run-as`, and when the AVD's secret is new it registers it through the App Check REST API (replacing that AVD's previous token), so no Gemini call fails with 403. It needs `gcloud auth login` done once on this machine by the owner; when gcloud is not authenticated, report it to the orchestrator and continue with work that needs no AI call.
 - `Medium_Phone*` AVDs and any other running emulator belong to the owner or other repos. Never install on them.
 - Local Supabase: `adb -s <serial> reverse tcp:54321 tcp:54321` after every boot; `10.0.2.2` does not reach Docker on this Mac.
 - `scripts/wave-close` shuts the slot's emulator down; the AVD stays.
