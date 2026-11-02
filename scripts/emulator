@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 1 ] || { echo "usage: scripts/emulator <slot 1-3>" >&2; exit 64; }
+slot=$1
+[[ "$slot" =~ ^[1-3]$ ]] || { echo "slot must be 1, 2 or 3: $slot" >&2; exit 64; }
+
+sdk=${ANDROID_HOME:-$HOME/Library/Android/sdk}
+avd="hello-$slot"
+port=$((5618 + 2 * slot))
+serial="emulator-$port"
+image="system-images;android-36;google_apis_playstore;arm64-v8a"
+config="$HOME/.android/avd/$avd.avd/config.ini"
+
+if adb -s "$serial" get-state >/dev/null 2>&1; then
+  echo "$serial already running ($avd)"
+  exit 0
+fi
+
+if [ ! -f "$config" ]; then
+  echo no | "$sdk/cmdline-tools/latest/bin/avdmanager" create avd -n "$avd" -k "$image" -d medium_phone >/dev/null
+  for setting in hw.gpu.enabled=yes hw.gpu.mode=host hw.ramSize=4G; do
+    key=${setting%%=*}
+    if rg -q "^$key\s*=" "$config"; then
+      sd "^$key\s*=.*" "$setting" "$config"
+    else
+      echo "$setting" >>"$config"
+    fi
+  done
+  echo "created $avd: its first debug install mints a new App Check token the owner must register once"
+fi
+
+nohup "$sdk/emulator/emulator" -avd "$avd" -port "$port" -no-snapshot-save -no-boot-anim >"${TMPDIR:-/tmp}/$avd.log" 2>&1 &
+deadline=$(($(date +%s) + 240))
+until [ "$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
+  if [ "$(date +%s)" -ge "$deadline" ]; then
+    echo "$serial did not boot in 240 s; see ${TMPDIR:-/tmp}/$avd.log" >&2
+    exit 1
+  fi
+  sleep 2
+done
+echo "$serial booted ($avd)"

@@ -9,10 +9,11 @@ Select checks from the complete work-unit scope, including staged, unstaged and 
 | `supabase/functions/**` | Run `deno task --cwd supabase/functions check` from the repo root; this includes formatting, lint, type checking and tests |
 | `supabase/migrations/**` | Inspect SQL and exercise the migration and affected queries on a disposable local database; record the target and command. Never reset a shared or production database |
 | UI behavior | Exercise the relevant flow on the intended emulator after installation has been authorized; record expected and observed behavior |
+| `scripts/**` or `.githooks/**` | `scripts/check` runs `shellcheck` on them; exercise the changed script on a throwaway ticket, worktree or branch |
 | `.claude/**` or `CLAUDE.md` | Validate JSON/frontmatter and references, inspect rule/example consistency; instantiate and compile changed Kotlin templates when feasible |
 | Descriptive docs only | Check facts, links and the diff; no extra runtime test solely for prose |
 
-The pre-commit Gradle gate in `CLAUDE.md` applies to every commit, including docs/config changes, and is additional to the area-specific checks above.
+`scripts/check` in the pre-commit hook applies to every commit, including docs/config changes; it runs Gradle only when a Gradle input changed. It is additional to the area-specific checks above.
 
 Run the relevant checks after the last applicable edit. Reuse a successful result only while the checked inputs remain unchanged; do not run the same suite again just because a different agent finished.
 

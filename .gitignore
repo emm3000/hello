@@ -34,3 +34,5 @@ openspec/
 !.claude/skills/
 .claude/skills/git-commit
 .claude/skills/mobile-android-design
+
+.evidence/

@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "usage: scripts/wave [--terminal herdr|manual] <name>:<model>:<effort>:<ticket-NN> [...] (at most 3)" >&2
+  exit 64
+}
+
+terminal=""
+if [ "${1:-}" = --terminal ]; then
+  [ "$#" -ge 2 ] || usage
+  terminal=$2
+  shift 2
+fi
+
+[ "$#" -ge 1 ] && [ "$#" -le 3 ] || usage
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+
+names=()
+devices=()
+for spec in "$@"; do
+  IFS=: read -r name model effort ticket <<<"$spec"
+  [ -n "${name:-}" ] && [ -n "${model:-}" ] && [ -n "${effort:-}" ] && [ -n "${ticket:-}" ] || usage
+  [[ "$name" =~ ^[a-z]+$ ]] || { echo "name must be one lowercase word: $name" >&2; exit 64; }
+  "$repo_root/scripts/read-ticket" "$ticket" branch >/dev/null
+  names+=("$name")
+  devices+=("$("$repo_root/scripts/read-ticket" "$ticket" device)")
+done
+
+if [ -z "$terminal" ]; then
+  case "${TERM_PROGRAM:-}" in
+    herdr) terminal=herdr ;;
+    *) terminal=manual ;;
+  esac
+fi
+
+session_command() {
+  local name model effort ticket
+  IFS=: read -r name model effort ticket <<<"$1"
+  echo "scripts/session $name $model $effort $ticket $2 && exit"
+}
+
+open_herdr() {
+  if ! herdr status server >/dev/null 2>&1; then
+    echo "herdr is not running: start herdr or pass --terminal manual" >&2
+    exit 69
+  fi
+  local workspace=()
+  [ -n "${HERDR_WORKSPACE_ID:-}" ] && workspace=(--workspace "$HERDR_WORKSPACE_ID")
+  local total=$#
+  local specs=("$@")
+  local i ratio pane=""
+  for ((i = 0; i < total; i++)); do
+    if ((i == 0)); then
+      pane=$(herdr tab create ${workspace[@]+"${workspace[@]}"} --cwd "$repo_root" --label wave --no-focus | jq -r '.result.root_pane.pane_id')
+    else
+      ratio=$(awk -v n="$((total - i + 1))" 'BEGIN { print 1 / n }')
+      pane=$(herdr pane split "$pane" --direction right --ratio "$ratio" --cwd "$repo_root" --no-focus | jq -r '.result.pane.pane_id')
+    fi
+    herdr pane rename "$pane" "${names[$i]}" >/dev/null
+    herdr pane run "$pane" "$(session_command "${specs[$i]}" "$((i + 1))")" >/dev/null
+  done
+}
+
+print_manual() {
+  echo "Run each line in its own terminal pane, from $repo_root:"
+  local specs=("$@")
+  local i
+  for ((i = 0; i < ${#specs[@]}; i++)); do
+    echo "  $(session_command "${specs[$i]}" "$((i + 1))")  # ${names[$i]}: device ${devices[$i]}"
+  done
+}
+
+case "$terminal" in
+  herdr) open_herdr "$@" ;;
+  manual) print_manual "$@" ;;
+  *)
+    echo "unknown terminal: $terminal (expected herdr or manual)" >&2
+    exit 64
+    ;;
+esac

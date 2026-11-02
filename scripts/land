@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 2 ] || { echo "usage: scripts/land <branch> <reviewed-sha>" >&2; exit 64; }
+branch=$1
+reviewed=$2
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+cd "$repo_root"
+
+[ "$(git branch --show-current)" = main ] || { echo "the main checkout must be on main" >&2; exit 1; }
+git show-ref --verify --quiet "refs/heads/$branch" || { echo "no local branch $branch" >&2; exit 1; }
+
+head=$(git rev-parse "$branch")
+reviewed_full=$(git rev-parse -q --verify "$reviewed^{commit}" || true)
+[ "$reviewed_full" = "$head" ] || { echo "$branch is at $(git rev-parse --short "$head"), not the reviewed $reviewed: review the new head, or compare with git range-diff main $reviewed $branch" >&2; exit 1; }
+receipt="$(git rev-parse --path-format=absolute --git-common-dir)/hello-ready/$head"
+[ -f "$receipt" ] || { echo "no scripts/ready receipt for $branch at $(git rev-parse --short "$head"): the peer reruns scripts/ready" >&2; exit 1; }
+
+git merge-base --is-ancestor main "$branch" || { echo "$branch is not on top of main: the peer reruns scripts/ready" >&2; exit 1; }
+
+git merge --ff-only "$branch"
+rm -f "$receipt"
+echo "landed $branch at $(git rev-parse --short HEAD); push main once the wave is landed"

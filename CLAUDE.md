@@ -31,7 +31,7 @@ These bind on every change, including a new file created before any Kotlin has b
 - **Use `core/ui/H*` controls** in feature screens. Layout primitives, theme access and a non-interactive `Surface` container are allowed; see `.claude/rules/ui-components.md`.
 - **MVI per feature**: one `UiState` (all `val`), one `onIntent(intent)` entry point, effects consumed once and never stored in state.
 - **`:domain` stays JVM-only.** If it needs to reach outward, invert with an interface in `:domain`.
-- **`./gradlew detekt testDebugUnitTest :domain:test` green** before every commit. `:domain` is a JVM module, so `testDebugUnitTest` never reaches it.
+- **`scripts/check` green** before every commit; `.githooks/pre-commit` runs it once `scripts/setup` has pointed git at `.githooks`. It runs `./gradlew detekt testDebugUnitTest :domain:test` (`:domain` is a JVM module, so `testDebugUnitTest` never reaches it) plus the steps the changed paths need, and skips Gradle when no Gradle input changed. `scripts/check --all` runs everything.
 - **Never add `Co-Authored-By`** from Claude, Anthropic or any AI assistant to a commit message. Applies to `git commit`, `--amend`, rebases and any generated message flow.
 
 ## Detailed rules
@@ -52,7 +52,12 @@ That last one is scoped to `data/src/main/sqldelight/**` and `data/src/test/kotl
 
 ## Work protocol
 
-This workflow is repository-local and uses Claude Code's native tools, agents and skills. It does not require external review CLIs or receipts.
+This workflow is repository-local and uses Claude Code's native tools, agents and skills. It does not require external review CLIs.
+
+Two modes share every rule below:
+
+- **Solo**: one session on the owner's checkout with its `writer`, `explorer` and `device-check` subagents. For a fix, a question, a release step, or anything too small to ticket.
+- **Wave**: one orchestrator, one peer session per ticket in its own worktree, one fresh `reviewer` per branch, fast-forward landing. For work that splits into independent tickets. `docs/agents/multi-session.md` is the playbook; `/wave <ticket numbers>` boots it; tickets live in `.scratch/` (`docs/agents/issue-tracker.md`).
 
 ### Scope and autonomy
 
@@ -85,7 +90,7 @@ Model and effort defaults live in `.claude/agents/*.md`; do not override them ro
 
 ### Verification and review
 
-Read `.claude/rules/verification.md` and select checks for the changed paths. The pre-commit Gradle gate remains mandatory; it does not replace evidence that the requested behavior works.
+Read `.claude/rules/verification.md` and select checks for the changed paths. The pre-commit gate (`scripts/check`) remains mandatory; it does not replace evidence that the requested behavior works.
 
 Match evidence to the failure mode:
 
@@ -127,6 +132,7 @@ For a handoff or compaction, preserve the user's scope and constraints, decision
 - `/checks` — run the mandatory gate and checks selected by affected paths; report evidence and failures.
 - `/feature <Name>` — full MVI scaffold (`UiState` / `UiIntent` / `UiEffect` / `ViewModel` / `Route` / `Screen`).
 - `/agents-review` — review the pending diff against these rules.
+- `/wave <ticket numbers>` — boot one peer session per ready ticket and dispatch it (`docs/agents/multi-session.md`).
 - `/h-component <Name>` — scaffold an `H*` component in `core/ui/`.
 
 Personal skills linked from `.agents/` are optional and are not required by this workflow. Shared behavior belongs in the tracked `.claude/` files; keep machine-specific approvals in `.claude/settings.local.json`. Start a new Claude Code session after changing agent definitions or instructions to verify the loaded setup.

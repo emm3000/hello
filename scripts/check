@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "usage: scripts/check [--staged | --base <rev> | --all] [--plan]" >&2
+  exit 64
+}
+
+scope=
+plan=false
+while [ $# -gt 0 ]; do
+  case $1 in
+    --staged)
+      [ -z "$scope" ] || usage
+      scope=staged
+      ;;
+    --base)
+      [ -z "$scope" ] && [ $# -ge 2 ] || usage
+      scope="$2"
+      shift
+      ;;
+    --all)
+      [ -z "$scope" ] || usage
+      scope=all
+      ;;
+    --plan) plan=true ;;
+    *) usage ;;
+  esac
+  shift
+done
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+cd "$repo_root"
+
+unstaged=$(git diff --no-renames --name-only)
+untracked=$(git ls-files --others --exclude-standard)
+staged=$(git diff --cached --no-renames --name-only)
+clean=false
+[ -z "$unstaged" ] && [ -z "$untracked" ] && clean=true
+
+base_tree=""
+tree=""
+case "$scope" in
+  staged)
+    changed=$staged
+    if [ "$clean" = true ]; then
+      tree=$(git write-tree)
+      base_tree=$(git rev-parse -q --verify 'HEAD^{tree}' || true)
+    fi
+    ;;
+  all)
+    changed=$(git ls-files)
+    [ "$clean" = true ] && [ -z "$staged" ] && tree=$(git rev-parse 'HEAD^{tree}')
+    ;;
+  "")
+    merge_base=$(git merge-base main HEAD)
+    changed=$(printf '%s\n%s\n' "$(git diff --no-renames --name-only "$merge_base")" "$untracked")
+    scope="working tree vs $(git rev-parse --short "$merge_base")"
+    if [ "$clean" = true ] && [ -z "$staged" ]; then
+      tree=$(git rev-parse 'HEAD^{tree}')
+      base_tree=$(git rev-parse "$merge_base^{tree}")
+    fi
+    ;;
+  *)
+    changed=$(git diff --no-renames --name-only "$scope...HEAD")
+    if [ "$clean" = true ] && [ -z "$staged" ]; then
+      tree=$(git rev-parse 'HEAD^{tree}')
+      base_tree=$(git rev-parse "$scope^{tree}")
+    fi
+    scope="$scope...HEAD"
+    ;;
+esac
+
+green_dir="$(git rev-parse --path-format=absolute --git-common-dir)/hello-green"
+
+paths_of() {
+  case $1 in
+    shell) echo 'scripts/ .githooks/' ;;
+    gradle) echo 'app/ data/ domain/ build-logic/ config/ gradle/ gradlew gradlew.bat build.gradle.kts settings.gradle.kts gradle.properties' ;;
+    migration) echo 'data/src/main/sqldelight/ data/src/test/kotlin/com/emm/data/migration/' ;;
+    assemble) echo 'app/src/main/AndroidManifest.xml app/src/main/res/ app/build.gradle.kts build-logic/ gradle/ build.gradle.kts settings.gradle.kts gradle.properties' ;;
+    functions) echo 'supabase/functions/' ;;
+    sql) echo 'supabase/migrations/' ;;
+  esac
+}
+
+is_changed() {
+  local paths
+  paths=$(paths_of "$1")
+  rg -q "^(${paths// /|})" <<<"$changed"
+}
+
+if [ "$plan" = true ]; then
+  for step in shell gradle migration assemble functions sql; do
+    if is_changed "$step"; then echo "$step=true"; else echo "$step=false"; fi
+  done
+  exit 0
+fi
+
+if [ -n "$tree" ] && [ -f "$green_dir/$tree" ]; then
+  echo "gate green: tree ${tree:0:10} already passed"
+  exit 0
+fi
+
+step() {
+  printf '== %s\n' "$1"
+}
+
+skipped() {
+  local paths
+  paths=$(paths_of "$1")
+  echo "skipped: no change under ${paths// / or } ($scope)"
+}
+
+outside_the_hooks_git_environment() {
+  (
+    while IFS= read -r variable; do
+      unset "$variable"
+    done < <(compgen -e | rg '^GIT_' || true)
+    "$@"
+  )
+}
+
+gradle_ran=false
+
+step shell
+if is_changed shell; then
+  command -v shellcheck >/dev/null || { echo "shellcheck is missing: run scripts/setup" >&2; exit 69; }
+  scripts=()
+  while IFS= read -r -d '' script; do
+    scripts+=("$script")
+  done < <(git ls-files -z -- 'scripts/*' '.githooks/*')
+  shellcheck "${scripts[@]}"
+else
+  skipped shell
+fi
+
+step gradle
+if is_changed gradle; then
+  tasks=(detekt testDebugUnitTest :domain:test)
+  is_changed migration && tasks+=(:data:verifySqlDelightMigration)
+  is_changed assemble && tasks+=(:app:assembleDebug)
+  echo "tasks: ${tasks[*]}"
+  outside_the_hooks_git_environment scripts/host ./gradlew --quiet "${tasks[@]}"
+  gradle_ran=true
+else
+  skipped gradle
+fi
+
+step functions
+if is_changed functions; then
+  command -v deno >/dev/null || { echo "deno is missing" >&2; exit 69; }
+  deno task --cwd supabase/functions check
+else
+  skipped functions
+fi
+
+step sql
+if is_changed sql; then
+  echo "supabase/migrations changed: prove it on a disposable local database (.claude/rules/verification.md); this gate cannot"
+else
+  skipped sql
+fi
+
+if [ -n "$tree" ]; then
+  if [ "$gradle_ran" = true ] || [ "$scope" = all ] || { [ -n "$base_tree" ] && [ -f "$green_dir/$base_tree" ]; }; then
+    mkdir -p "$green_dir"
+    : >"$green_dir/$tree"
+  fi
+fi
+echo "gate green"

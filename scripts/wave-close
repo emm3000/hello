@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 1 ] || { echo "usage: scripts/wave-close <name>" >&2; exit 64; }
+
+name=$1
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+repo_name=$(basename "$repo_root")
+worktree="$(dirname "$repo_root")/$repo_name-$name"
+
+[ -d "$worktree" ] || { echo "no worktree at $worktree" >&2; exit 1; }
+
+branch=$(git -C "$worktree" branch --show-current)
+git_dir=$(git -C "$worktree" rev-parse --path-format=absolute --git-dir)
+
+if [ -z "$branch" ] || [ -d "$git_dir/rebase-merge" ] || [ -d "$git_dir/rebase-apply" ]; then
+  echo "worktree $worktree is detached or mid-rebase; the peer finishes or aborts it first" >&2
+  exit 1
+fi
+
+if [ -n "$(git -C "$worktree" status --porcelain)" ]; then
+  echo "worktree $worktree has uncommitted changes; the peer cleans it first" >&2
+  exit 1
+fi
+
+if ! git -C "$repo_root" merge-base --is-ancestor "$branch" main; then
+  echo "branch $branch is not merged into main" >&2
+  exit 1
+fi
+
+slot_file="$git_dir/hello-slot"
+if [ -f "$slot_file" ]; then
+  serial="emulator-$((5618 + 2 * $(cat "$slot_file")))"
+  if adb -s "$serial" get-state >/dev/null 2>&1; then
+    adb -s "$serial" emu kill >/dev/null || true
+  fi
+fi
+
+git -C "$repo_root" worktree remove --force "$worktree"
+git -C "$repo_root" branch -d "$branch"
+git -C "$repo_root" worktree prune
+
+if command -v herdr >/dev/null && herdr status server >/dev/null 2>&1; then
+  herdr pane list |
+    jq -r --arg name "$name" --arg repo "$repo_root" --arg worktree "$worktree" \
+      '.result.panes[] | select(.label == $name and (.cwd == $repo or .cwd == $worktree)) | .pane_id' |
+    while read -r pane; do
+      herdr pane close "$pane" >/dev/null
+    done
+fi
+
+echo "closed $name${branch:+ ($branch)}"

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+branch=$(git branch --show-current)
+if [ -z "$branch" ] || [ "$branch" = main ]; then
+  echo "scripts/ready runs on a ticket branch, not on main or a detached HEAD" >&2
+  exit 1
+fi
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "commit or drop the uncommitted changes first" >&2
+  exit 1
+fi
+
+GIT_SEQUENCE_EDITOR=: GIT_EDITOR=true git rebase -i --autosquash main
+
+leftover=$(git log --format='%h %s' main..HEAD | rg -i '^\S+ (fixup!|squash!|amend!|wip\b)' || true)
+if [ -n "$leftover" ]; then
+  printf 'commits still to fold into their target:\n%s\n' "$leftover" >&2
+  exit 1
+fi
+
+git rebase --exec 'scripts/check --base HEAD~1' main
+
+head=$(git rev-parse HEAD)
+receipts="$(git rev-parse --path-format=absolute --git-common-dir)/hello-ready"
+mkdir -p "$receipts"
+echo "$branch" >"$receipts/$head"
+
+printf '%s %s\n' "$branch" "$(git rev-parse --short HEAD)"

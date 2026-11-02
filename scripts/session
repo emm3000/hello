@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -eq 5 ] || { echo "usage: scripts/session <name> <model> <effort> <ticket-NN> <slot 1-3>" >&2; exit 64; }
+
+name=$1
+model=$2
+effort=$3
+ticket=$4
+slot=$5
+[[ "$name" =~ ^[a-z]+$ ]] || { echo "name must be one lowercase word: $name" >&2; exit 64; }
+[[ "$slot" =~ ^[1-3]$ ]] || { echo "slot must be 1, 2 or 3: $slot" >&2; exit 64; }
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+repo_name=$(basename "$repo_root")
+worktree="$(dirname "$repo_root")/$repo_name-$name"
+
+branch=$("$repo_root/scripts/read-ticket" "$ticket" branch)
+device=$("$repo_root/scripts/read-ticket" "$ticket" device)
+ticket_path=$("$repo_root/scripts/read-ticket" "$ticket" path)
+
+if [ ! -d "$worktree" ]; then
+  git -C "$repo_root" worktree add --detach "$worktree" main
+fi
+
+cd "$worktree"
+if [ "$(git branch --show-current)" != "$branch" ]; then
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    git switch "$branch"
+  else
+    git switch -c "$branch"
+  fi
+fi
+echo "$slot" >"$(git rev-parse --git-dir)/hello-slot"
+
+for file in app/google-services.json keystore.properties local.properties; do
+  [ -f "$file" ] || cp "$repo_root/$file" "$file"
+done
+[ -d key ] || cp -R "$repo_root/key" key
+
+"$repo_root/scripts/setup" >/dev/null
+
+port=$((5618 + 2 * slot))
+avd="hello-$slot"
+serial="emulator-$port"
+
+if [ "$device" = emulator ]; then
+  device_prompt="Ticket $ticket_path. Device: your emulator is the AVD $avd, serial $serial, yours alone for this ticket (docs/agents/multi-session.md §Devices). Start it with: scripts/host scripts/emulator $slot. Pass ANDROID_SERIAL=$serial to every Gradle install and -s $serial to every adb command."
+else
+  device_prompt="Ticket $ticket_path. Device: none; this ticket drives no emulator."
+fi
+
+prompt="You are the peer @$name in the worktree $worktree on branch $branch. Read docs/agents/multi-session.md §Peer before anything else. $device_prompt"
+echo "$prompt"
+exec claude -n "$name" --model "$model" --effort "$effort" --permission-mode bypassPermissions --append-system-prompt "$prompt"

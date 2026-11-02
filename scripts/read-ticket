@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "usage: scripts/read-ticket <ticket-NN> path|branch|device" >&2
+  exit 64
+}
+
+[ "$#" -eq 2 ] || usage
+ticket=$1
+field=$2
+[[ "$ticket" =~ ^[0-9]{2,3}$ ]] || { echo "ticket must be a two- or three-digit number: $ticket" >&2; exit 64; }
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+cd "$repo_root"
+
+tickets=$(fd --no-ignore "^$ticket-.*\.md$" .scratch 2>/dev/null | rg '/issues/' || true)
+[ -n "$tickets" ] && [ "$(wc -l <<<"$tickets")" -eq 1 ] || { echo "expected exactly one ticket $ticket under .scratch/*/issues, found: ${tickets:-none}" >&2; exit 65; }
+
+case "$field" in
+  path) value=$tickets ;;
+  branch)
+    value=$(rg -o --replace '$1' '^\*\*Branch:\*\*\s*`?([^`\s]+)`?' "$tickets" | head -n 1 || true)
+    [ -n "$value" ] || { echo "ticket $tickets has no **Branch:** line" >&2; exit 65; }
+    ;;
+  device)
+    value=$(rg -o --replace '$1' '^Device: (emulator|none)$' "$tickets" | head -n 1 || true)
+    [ -n "$value" ] || { echo "ticket $tickets has no Device: line reading emulator or none" >&2; exit 65; }
+    ;;
+  *) usage ;;
+esac
+
+echo "$value"

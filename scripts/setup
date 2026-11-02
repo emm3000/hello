@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+
+[ "$(git -C "$repo_root" config --get core.hooksPath || true)" = .githooks ] || git -C "$repo_root" config core.hooksPath .githooks
+for tool in shellcheck jq; do
+  command -v "$tool" >/dev/null || brew install "$tool"
+done
+
+echo "hooks: .githooks, gate: scripts/check"

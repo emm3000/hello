@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+types='build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test'
+conventional="^($types)(\([a-z0-9][a-z0-9._/-]*\))?!?: [^[:space:]]"
+autosquash='^(fixup|squash|amend)! [^[:space:]]'
+git_default='^(Merge (branch|remote-tracking branch|tag|commit|pull request) |Merge [0-9a-f]{7,} into |Revert ")'
+attribution='^[[:space:]]*co-authored-by:|generated (with|by) .*(claude|anthropic|openai|chatgpt|gpt|codex|copilot|gemini|cursor| ai([^[:alnum:]]|$))|@anthropic\.com|@openai\.com|🤖'
+max_header=100
+
+fail() {
+  printf 'commit-msg: %s\n' "$1" >&2
+  exit 1
+}
+
+lines=()
+while IFS= read -r line || [ -n "$line" ]; do
+  [[ "$line" == "# ------------------------ >8 ------------------------" ]] && break
+  [[ "$line" == \#* ]] && continue
+  lines+=("$line")
+done <"$1"
+
+header=""
+for line in ${lines[@]+"${lines[@]}"}; do
+  if [ -n "${line//[[:space:]]/}" ]; then
+    header=$line
+    break
+  fi
+done
+
+[ -n "$header" ] || fail "empty message"
+[ "${#header}" -le "$max_header" ] || fail "header is ${#header} characters, the limit is $max_header: $header"
+
+shopt -s nocasematch
+for line in ${lines[@]+"${lines[@]}"}; do
+  if [[ "$line" =~ $attribution ]]; then
+    fail "Co-Authored-By and AI attribution are forbidden in this repo: $line"
+  fi
+done
+shopt -u nocasematch
+
+[[ "$header" =~ $autosquash || "$header" =~ $git_default || "$header" =~ $conventional ]] ||
+  fail "header must read '<type>(<scope>)!: <subject>', type one of ${types//|/ }: $header"

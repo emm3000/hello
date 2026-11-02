@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ "$#" -ge 1 ] || { echo "usage: scripts/host <command> [args...]" >&2; exit 64; }
+
+if [ "${HELLO_HOST_HELD:-}" = 1 ]; then
+  exec "$@"
+fi
+
+lock="$(git rev-parse --path-format=absolute --git-common-dir)/hello-host.lock"
+holder="$(basename "$(git rev-parse --show-toplevel)") pid $$: $*"
+
+exec perl -MFcntl=:flock -e '
+  my ($lock, $holder, @command) = @ARGV;
+  open(my $fh, ">>", $lock) or die "cannot open $lock: $!\n";
+  unless (flock($fh, LOCK_EX | LOCK_NB)) {
+    my $who = "unknown";
+    if (open(my $in, "<", "$lock.holder")) { local $/; $who = <$in>; chomp $who; }
+    print STDERR "host busy: $who; waiting\n";
+    flock($fh, LOCK_EX) or die "flock: $!\n";
+  }
+  if (open(my $out, ">", "$lock.holder")) { print $out $holder; close $out; }
+  $ENV{HELLO_HOST_HELD} = 1;
+  my $status = system { $command[0] } @command;
+  exit 127 if $status == -1;
+  exit 128 + ($status & 127) if $status & 127;
+  exit $status >> 8;
+' "$lock" "$holder" "$@"
