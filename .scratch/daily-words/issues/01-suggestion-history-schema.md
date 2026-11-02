@@ -1,6 +1,6 @@
 # 01: Suggest: history table and seen marker schema
 
-Status: ready-for-agent
+Status: done
 Device: none
 Blocked by: None
 **Branch:** feat/01-suggestion-history-schema
@@ -11,9 +11,17 @@ The current schema is 11 (`10.sqm` → `databases/11.db`), so this change ships 
 Pattern to follow: `data/src/test/kotlin/com/emm/data/migration/SuggestionCacheMigrationTest.kt`.
 
 ## Acceptance
-- [ ] `fd '^(11\.sqm|12\.db)$' data/src/main/sqldelight` prints both files
-- [ ] `./gradlew :data:verifySqlDelightMigration` passes
-- [ ] `./gradlew :data:testDebugUnitTest --tests '*SuggestionHistoryMigrationTest'` passes. It builds schema 11 by hand, inserts a batch with two candidates, migrates to `HelloDb.Schema.version`, then asserts the batch and candidates survive with `firstSeenAt` NULL and a `SuggestionHistory` row inserts and reads back
-- [ ] With the test's old-version constant set to 12, both cases fail. The constant is then restored (the non-vacuous check from the rule)
-- [ ] `./gradlew :data:testDebugUnitTest --tests '*DefaultWordSuggestionCacheTest'` still passes without edits
-- [ ] `scripts/check` green
+- [x] `fd '^(11\.sqm|12\.db)$' data/src/main/sqldelight` prints both files
+- [x] `./gradlew :data:verifySqlDelightMigration` passes
+- [x] `./gradlew :data:testDebugUnitTest --tests '*SuggestionHistoryMigrationTest'` passes. It builds schema 11 by hand, inserts a batch with two candidates, migrates to `HelloDb.Schema.version`, then asserts the batch and candidates survive with `firstSeenAt` NULL and a `SuggestionHistory` row inserts and reads back
+- [x] With the test's old-version constant set to 12, both cases fail. The constant is then restored (the non-vacuous check from the rule)
+- [x] `./gradlew :data:testDebugUnitTest --tests '*DefaultWordSuggestionCacheTest'` still passes without edits
+- [x] `scripts/check` green
+
+## Comments
+
+- Done in 3ec9e066. `fd '^(11\.sqm|12\.db)$' data/src/main/sqldelight` prints both files; snapshots 1-11 are unchanged.
+- `./gradlew :data:verifySqlDelightMigration :data:testDebugUnitTest --tests '*SuggestionHistoryMigrationTest' --tests '*DefaultWordSuggestionCacheTest' --tests '*SuggestionCacheMigrationTest'`: exit 0, 3/4/6 tests, no failures. `DefaultWordSuggestionCacheTest` was not edited.
+- `SuggestionHistoryMigrationTest` has three cases: the batch and two candidates survive with `firstSeenAt` NULL, a `SuggestionHistory` row inserts and reads back, and a kind outside `SITUATION`/`ITEM` fails the CHECK constraint.
+- Non-vacuous check: with `PRE_SUGGESTION_HISTORY_SCHEMA_VERSION` set to 12, all three cases fail (`no such column: firstSeenAt`, `no such table: SuggestionHistory`, and the CHECK assertion seeing `no such table`). The constant was restored to 11.
+- `scripts/check` green in the pre-commit hook (detekt, testDebugUnitTest, :domain:test, :data:verifySqlDelightMigration).
