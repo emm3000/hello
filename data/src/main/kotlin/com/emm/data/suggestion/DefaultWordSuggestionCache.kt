@@ -10,6 +10,7 @@ import com.emm.domain.suggestion.SuggestedWord
 import com.emm.domain.suggestion.WordSuggestionCache
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.time.Clock
+import java.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -32,6 +33,7 @@ class DefaultWordSuggestionCache(
                 WordSuggestions(
                     situation = batchRow.situation,
                     words = rows.mapNotNull(SelectBatchWithCandidates::toSuggestedWord),
+                    firstSeenAt = batchRow.firstSeenAt?.let(Instant::ofEpochMilli),
                 )
             }
         }
@@ -48,6 +50,20 @@ class DefaultWordSuggestionCache(
                     translation = suggestedWord.translation,
                 )
             }
+            recordHistory(suggestions, shownAt = createdAt)
+        }
+    }
+
+    override suspend fun markSeen() {
+        withContext(ioDispatcher) {
+            dao.markBatchSeen(firstSeenAt = clock.now().toEpochMilli())
+        }
+    }
+
+    private fun recordHistory(suggestions: WordSuggestions, shownAt: Long) {
+        dao.insertHistory(kind = HISTORY_KIND_SITUATION, text = suggestions.situation, shownAt = shownAt)
+        suggestions.words.forEach { suggestedWord ->
+            dao.insertHistory(kind = HISTORY_KIND_ITEM, text = suggestedWord.word, shownAt = shownAt)
         }
     }
 }

@@ -40,6 +40,19 @@ class DefaultFlashcardRepositoryFetchRecentWordsTest {
         assertEquals(listOf("newest", "middle"), recentWords)
     }
 
+    @Test
+    fun `fetchAllWords returns every non-deleted word newest-first`() = runTest {
+        val deckId = insertDeck()
+        insertFlashcard(deckId, word = "oldest", createdAt = 1_000L)
+        insertFlashcard(deckId, word = "middle", createdAt = 2_000L)
+        insertFlashcard(deckId, word = "newest", createdAt = 3_000L)
+        insertFlashcard(deckId, word = "deleted", createdAt = 4_000L, deletedAt = 4_500L)
+
+        val allWords: List<String> = subject.fetchAllWords()
+
+        assertEquals(listOf("newest", "middle", "oldest"), allWords)
+    }
+
     private fun insertDeck(): String {
         val id = UUID.randomUUID().toString()
         db.deckQueries.insert(

@@ -8,6 +8,7 @@ import com.emm.domain.generation.AppCheckRejectedException
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsExhaustedException
 import com.emm.domain.generation.GenerationCreditsRepository
+import com.emm.domain.suggestion.WordSuggestionRequest
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
 import java.time.Instant
@@ -38,7 +39,7 @@ class RemoteWordSuggestionRepositoryTest {
         val session = FakeSessionInitializer()
         val repository = repository(transport, session)
 
-        val suggestions: WordSuggestions = repository.suggest(listOf("hello", "goodbye"))
+        val suggestions: WordSuggestions = repository.suggest(request("hello", "goodbye"))
 
         val payload: String = transport.body.toString()
         assertTrue(session.ensured)
@@ -55,7 +56,7 @@ class RemoteWordSuggestionRepositoryTest {
         val transport = RecordingFunctionsTransport(FunctionsReply(status = 401, body = body))
         val repository = repository(transport)
 
-        val error: Throwable? = runCatching { repository.suggest(listOf("hello")) }.exceptionOrNull()
+        val error: Throwable? = runCatching { repository.suggest(request("hello")) }.exceptionOrNull()
 
         assertTrue(error is AppCheckRejectedException)
     }
@@ -78,7 +79,7 @@ class RemoteWordSuggestionRepositoryTest {
         val credits = RecordingGenerationCreditsRepository()
         val repository = repository(transport, credits = credits)
 
-        repository.suggest(listOf("hello"))
+        repository.suggest(request("hello"))
 
         assertEquals(listOf(GenerationCredits(remaining = 17, resetAt = RESET_AT)), credits.recorded)
     }
@@ -101,7 +102,7 @@ class RemoteWordSuggestionRepositoryTest {
         val credits = RecordingGenerationCreditsRepository()
         val repository = repository(transport, credits = credits)
 
-        val error: Throwable? = runCatching { repository.suggest(listOf("hello")) }.exceptionOrNull()
+        val error: Throwable? = runCatching { repository.suggest(request("hello")) }.exceptionOrNull()
 
         assertTrue(error is GenerationCreditsExhaustedException)
         assertEquals(listOf(GenerationCredits(remaining = 0, resetAt = RESET_AT)), credits.recorded)
@@ -120,7 +121,7 @@ class RemoteWordSuggestionRepositoryTest {
         val credits = RecordingGenerationCreditsRepository()
         val repository = repository(transport, credits = credits)
 
-        repository.suggest(listOf("hello"))
+        repository.suggest(request("hello"))
 
         assertEquals(emptyList<GenerationCredits>(), credits.recorded)
     }
@@ -132,10 +133,41 @@ class RemoteWordSuggestionRepositoryTest {
         val credits = RecordingGenerationCreditsRepository()
         val repository = repository(transport, credits = credits)
 
-        runCatching { repository.suggest(listOf("hello")) }
+        runCatching { repository.suggest(request("hello")) }
 
         assertEquals(emptyList<GenerationCredits>(), credits.recorded)
     }
+
+    @Test
+    fun `suggest posts the excluded situations and words of the request`() = runTest {
+        val body = """
+            {
+              "situation": "Ordering food at a busy restaurant",
+              "words": [{ "word": "the check", "translation": "la cuenta" }],
+              "meta": { "cached": false, "provider": "gemini" }
+            }
+        """.trimIndent()
+        val transport = RecordingFunctionsTransport(FunctionsReply(status = 200, body = body))
+        val repository = repository(transport)
+
+        repository.suggest(
+            WordSuggestionRequest(
+                recentWords = listOf("hello"),
+                excludedSituations = listOf("At the airport", "At a cafe"),
+                excludedWords = listOf("gate", "order"),
+            ),
+        )
+
+        val payload: String = transport.body.toString()
+        assertTrue(payload, payload.contains("\"excluded_situations\":[\"At the airport\",\"At a cafe\"]"))
+        assertTrue(payload, payload.contains("\"excluded_words\":[\"gate\",\"order\"]"))
+    }
+
+    private fun request(vararg recentWords: String): WordSuggestionRequest = WordSuggestionRequest(
+        recentWords = recentWords.toList(),
+        excludedSituations = emptyList(),
+        excludedWords = emptyList(),
+    )
 
     private fun repository(
         transport: FunctionsTransport,

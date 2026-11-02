@@ -7,4 +7,6 @@ interface WordSuggestionCache {
     fun observe(): Flow<WordSuggestions?>
 
     suspend fun replace(suggestions: WordSuggestions)
+
+    suspend fun markSeen()
 }

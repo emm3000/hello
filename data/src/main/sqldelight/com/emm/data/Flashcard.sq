@@ -310,3 +310,8 @@ SELECT word FROM Flashcard
 WHERE deletedAt IS NULL
 ORDER BY createdAt DESC, id DESC
 LIMIT :limit;
+
+allWords:
+SELECT word FROM Flashcard
+WHERE deletedAt IS NULL
+ORDER BY createdAt DESC, id DESC;

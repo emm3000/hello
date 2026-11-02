@@ -9,6 +9,7 @@ import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.generation.isFreshAt
 import com.emm.domain.ids.DeckId
+import com.emm.domain.suggestion.MarkSuggestedWordsSeenUseCase
 import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
 import com.emm.domain.suggestion.SuggestedWord
 import com.emm.domain.suggestion.SuggestedWordsRefresher
@@ -21,6 +22,7 @@ import com.emm.hello.R
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -33,6 +35,7 @@ class SuggestViewModel(
     private val resolveCaptureDeck: ResolveCaptureDeckUseCase,
     private val credits: GenerationCreditsRepository,
     private val clock: Clock,
+    private val markSuggestedWordsSeen: MarkSuggestedWordsSeenUseCase,
 ) : MviViewModel<SuggestUiState, SuggestUiIntent, SuggestUiEffect>(
     initialState = SuggestUiState(),
 ) {
@@ -68,6 +71,7 @@ class SuggestViewModel(
         if (status is SuggestionRefreshStatus.Failed) {
             logError(TAG, "refresh:error ${status.error.message}", status.error)
         }
+        if (hasWords && pool?.firstSeenAt == null) markSeen()
         val remaining: Int? = generationCredits?.takeIf { it.isFreshAt(clock.now()) }?.remaining
         setState {
             copy(
@@ -81,6 +85,16 @@ class SuggestViewModel(
                 },
                 creditsRemaining = remaining,
             )
+        }
+    }
+
+    private fun markSeen(): Job = viewModelScope.launch {
+        try {
+            markSuggestedWordsSeen()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Throwable) {
+            logError(TAG, "markSeen:error ${error.message}", error)
         }
     }
 

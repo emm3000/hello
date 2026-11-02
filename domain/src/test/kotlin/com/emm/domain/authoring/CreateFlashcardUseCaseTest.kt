@@ -123,6 +123,7 @@ private class FakeFlashcardRepository : FlashcardRepository {
     override suspend fun restoreFlashcard(flashcardId: FlashcardId, deletedAt: Long) = Unit
     override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
     override suspend fun fetchRecentWords(limit: Int): List<String> = emptyList()
+    override suspend fun fetchAllWords(): List<String> = emptyList()
 }
 
 private class DuplicateRepoStub(

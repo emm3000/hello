@@ -28,7 +28,7 @@ allCandidates:
 SELECT * FROM SuggestedWordCandidate ORDER BY position;
 
 selectBatchWithCandidates:
-SELECT WordSuggestionBatch.situation, SuggestedWordCandidate.position, SuggestedWordCandidate.word, SuggestedWordCandidate.translation
+SELECT WordSuggestionBatch.situation, WordSuggestionBatch.firstSeenAt, SuggestedWordCandidate.position, SuggestedWordCandidate.word, SuggestedWordCandidate.translation
 FROM WordSuggestionBatch
 LEFT JOIN SuggestedWordCandidate ON SuggestedWordCandidate.batchId = WordSuggestionBatch.singletonId
 WHERE WordSuggestionBatch.singletonId = 1
@@ -42,3 +42,15 @@ INSERT INTO SuggestedWordCandidate (position, batchId, word, translation) VALUES
 
 clearBatch:
 DELETE FROM WordSuggestionBatch;
+
+markBatchSeen:
+UPDATE WordSuggestionBatch SET firstSeenAt = ? WHERE singletonId = 1 AND firstSeenAt IS NULL;
+
+insertHistory:
+INSERT INTO SuggestionHistory (kind, text, shownAt) VALUES (?, ?, ?);
+
+selectHistory:
+SELECT * FROM SuggestionHistory ORDER BY shownAt DESC, rowid DESC;
+
+deleteHistoryShownBefore:
+DELETE FROM SuggestionHistory WHERE shownAt < ?;

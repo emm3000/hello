@@ -4,6 +4,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import app.cash.turbine.test
 import com.emm.data.HelloDb
 import com.emm.data.SuggestedWordCandidate
+import com.emm.data.SuggestionHistory
 import com.emm.domain.suggestion.SuggestedWord
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.time.Clock
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Instant
@@ -20,18 +22,20 @@ class DefaultWordSuggestionCacheTest {
 
     private val fixedInstant: Instant = Instant.ofEpochMilli(1_700_000_000_000L)
 
+    private var now: Instant = fixedInstant
+    private lateinit var driver: JdbcSqliteDriver
     private lateinit var db: HelloDb
     private lateinit var subject: DefaultWordSuggestionCache
 
     @Before
     fun setUp() {
-        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         HelloDb.Schema.create(driver)
         driver.execute(null, "PRAGMA foreign_keys = ON", 0)
         db = HelloDb(driver)
         subject = DefaultWordSuggestionCache(
             db = db,
-            clock = Clock { fixedInstant },
+            clock = Clock { now },
             ioDispatcher = Dispatchers.IO,
         )
     }
@@ -118,5 +122,65 @@ class DefaultWordSuggestionCacheTest {
 
         assertEquals("At a cafe", stored?.situation)
         assertEquals(emptyList<SuggestedWord>(), stored?.words)
+    }
+
+    @Test
+    fun `replace records the situation and every stored word in the history at the clock instant`() = runTest {
+        subject.replace(
+            WordSuggestions(
+                situation = "At a cafe",
+                words = listOf(SuggestedWord("order", "pedir"), SuggestedWord("table", "mesa")),
+            ),
+        )
+
+        val history: List<SuggestionHistory> = db.suggestionQueries.selectHistory().executeAsList()
+        assertEquals(
+            setOf(
+                SuggestionHistory(kind = "SITUATION", text = "At a cafe", shownAt = 1_700_000_000_000L),
+                SuggestionHistory(kind = "ITEM", text = "order", shownAt = 1_700_000_000_000L),
+                SuggestionHistory(kind = "ITEM", text = "table", shownAt = 1_700_000_000_000L),
+            ),
+            history.toSet(),
+        )
+        assertEquals(3, history.size)
+    }
+
+    @Test
+    fun `a failing history write rolls back the batch it was stored with`() = runTest {
+        subject.replace(WordSuggestions(situation = "At a cafe", words = listOf(SuggestedWord("order", "pedir"))))
+        driver.execute(
+            null,
+            "CREATE TRIGGER reject_history BEFORE INSERT ON SuggestionHistory WHEN NEW.text = 'gate' " +
+                "BEGIN SELECT RAISE(ABORT, 'rejected'); END",
+            0,
+        )
+
+        val failure: Throwable? = runCatching {
+            subject.replace(
+                WordSuggestions(situation = "At the airport", words = listOf(SuggestedWord("gate", "puerta"))),
+            )
+        }.exceptionOrNull()
+
+        assertTrue(failure != null)
+        assertEquals(
+            WordSuggestions(situation = "At a cafe", words = listOf(SuggestedWord("order", "pedir"))),
+            subject.observe().first(),
+        )
+        assertEquals(
+            listOf("order", "At a cafe"),
+            db.suggestionQueries.selectHistory().executeAsList().map { row -> row.text },
+        )
+    }
+
+    @Test
+    fun `markSeen stamps the batch once and keeps the first value`() = runTest {
+        subject.replace(WordSuggestions(situation = "At a cafe", words = listOf(SuggestedWord("order", "pedir"))))
+
+        now = Instant.ofEpochMilli(1_700_000_060_000L)
+        subject.markSeen()
+        now = Instant.ofEpochMilli(1_700_000_120_000L)
+        subject.markSeen()
+
+        assertEquals(Instant.ofEpochMilli(1_700_000_060_000L), subject.observe().first()?.firstSeenAt)
     }
 }

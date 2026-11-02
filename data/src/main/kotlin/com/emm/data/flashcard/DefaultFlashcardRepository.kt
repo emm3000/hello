@@ -275,6 +275,10 @@ class DefaultFlashcardRepository(
         dao.recentWords(limit.toLong()).executeAsList()
     }
 
+    override suspend fun fetchAllWords(): List<String> = withContext(ioDispatcher) {
+        dao.allWords().executeAsList()
+    }
+
     override suspend fun fetchById(id: FlashcardId): FlashcardDetail = withContext(ioDispatcher) {
         val flashcardEntities: List<FlashcardWithExamples> = dao
             .flashcardWithExamples(id.value)

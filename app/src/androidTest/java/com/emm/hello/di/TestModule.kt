@@ -11,6 +11,7 @@ import com.emm.domain.generation.AmbiguousGenerationInputException
 import com.emm.domain.generation.GeneratedLearningNote
 import com.emm.domain.localfirst.LocalIdentityInitializer
 import com.emm.domain.suggestion.WordSuggestionRepository
+import com.emm.domain.suggestion.WordSuggestionRequest
 import com.emm.domain.suggestion.WordSuggestions
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -50,7 +51,7 @@ private class FakeFlashcardGenerationRepository : FlashcardGenerationRepository 
 
 private class FakeWordSuggestionRepository : WordSuggestionRepository {
 
-    override suspend fun suggest(recentWords: List<String>): WordSuggestions {
+    override suspend fun suggest(request: WordSuggestionRequest): WordSuggestions {
         return WordSuggestions(situation = "", words = emptyList())
     }
 }

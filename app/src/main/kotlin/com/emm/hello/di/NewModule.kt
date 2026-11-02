@@ -20,6 +20,7 @@ import com.emm.data.flashcard.DefaultStudySessionRepository
 import com.emm.data.flashcard.RemoteFlashcardGenerationRepository
 import com.emm.data.generation.DefaultGenerationCreditsRepository
 import com.emm.data.suggestion.CannedWordSuggestionRepository
+import com.emm.data.suggestion.DefaultSuggestionHistoryRepository
 import com.emm.data.suggestion.DefaultWordSuggestionCache
 import com.emm.data.suggestion.RemoteWordSuggestionRepository
 import com.emm.data.study.DataStoreDailyNewCardLimitRepository
@@ -71,9 +72,13 @@ import com.emm.domain.study.DailyNewCardLimitRepository
 import com.emm.domain.study.GetDashboardStatsUseCase
 import com.emm.domain.study.GetStudySessionUseCase
 import com.emm.domain.study.StudyStatsRepository
+import com.emm.domain.suggestion.MarkSuggestedWordsSeenUseCase
 import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
+import com.emm.domain.suggestion.PrepareDailyWordsUseCase
 import com.emm.domain.suggestion.RefreshSuggestedWordsUseCase
+import com.emm.domain.suggestion.SuggestedWordFilter
 import com.emm.domain.suggestion.SuggestedWordsRefresher
+import com.emm.domain.suggestion.SuggestionHistoryRepository
 import com.emm.domain.suggestion.WordSuggestionCache
 import com.emm.domain.suggestion.WordSuggestionRepository
 import com.emm.hello.newfeatures.suggest.SuggestViewModel
@@ -184,6 +189,9 @@ fun Module.repository() {
     single<WordSuggestionCache> {
         DefaultWordSuggestionCache(db = get(), clock = get(), ioDispatcher = Dispatchers.IO)
     }
+    single<SuggestionHistoryRepository> {
+        DefaultSuggestionHistoryRepository(db = get(), ioDispatcher = Dispatchers.IO)
+    }
     single<GenerationCreditsRepository> { DefaultGenerationCreditsRepository(dataStore = get()) }
     single<FlashcardGenerationRepository> {
         RemoteFlashcardGenerationRepository(
@@ -282,8 +290,11 @@ fun Module.useCases() {
     factoryOf(::RestoreFlashcardUseCase)
     factoryOf(::CountDueFlashcardsUseCase)
     factoryOf(::SearchLibraryUseCase)
+    factoryOf(::SuggestedWordFilter)
     factoryOf(::ObserveSuggestedWordsUseCase)
     factoryOf(::RefreshSuggestedWordsUseCase)
+    factoryOf(::MarkSuggestedWordsSeenUseCase)
+    factoryOf(::PrepareDailyWordsUseCase)
     factoryOf(::SyncStudyReminderUseCase)
     factoryOf(::SetStudyReminderEnabledUseCase)
     factoryOf(::SetStudyReminderTimeUseCase)
@@ -346,7 +357,7 @@ fun Module.viewModels() {
         )
     }
     viewModel { CaptureViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { SuggestViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     single {
         BuildInfo(
             versionName = BuildConfig.VERSION_NAME,

@@ -15,11 +15,16 @@ import com.emm.domain.ids.FlashcardId
 import com.emm.domain.ids.toDeckId
 import com.emm.domain.ids.toFlashcardId
 import com.emm.domain.suggestion.ObserveSuggestedWordsUseCase
+import com.emm.domain.suggestion.MarkSuggestedWordsSeenUseCase
 import com.emm.domain.suggestion.RefreshSuggestedWordsUseCase
 import com.emm.domain.suggestion.SuggestedWord
+import com.emm.domain.suggestion.SuggestedWordFilter
 import com.emm.domain.suggestion.SuggestedWordsRefresher
+import com.emm.domain.suggestion.SuggestionHistory
+import com.emm.domain.suggestion.SuggestionHistoryRepository
 import com.emm.domain.suggestion.WordSuggestionCache
 import com.emm.domain.suggestion.WordSuggestionRepository
+import com.emm.domain.suggestion.WordSuggestionRequest
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.time.Clock
 import com.emm.domain.validation.DomainValidationException
@@ -34,6 +39,7 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
 import java.time.LocalDateTime
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -472,9 +478,86 @@ class SuggestViewModelTest {
         }
     }
 
+    @Test
+    fun `rendering a loaded batch sets its first seen time once and a later render keeps it`() = runTest {
+        val cache = FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B)))
+        val credits = FakeGenerationCreditsRepository()
+        buildViewModel(scope = this, cache = cache, credits = credits)
+        runCurrent()
+
+        cache.seenAt = LATER_SEEN_AT
+        credits.record(freshCredits(remaining = 5))
+        runCurrent()
+
+        assertThat(cache.current?.firstSeenAt).isEqualTo(FIRST_SEEN_AT)
+        assertThat(cache.markSeenCalls).isEqualTo(1)
+    }
+
+    @Test
+    fun `the loading state never sets the first seen time`() = runTest {
+        val cache = FakeWordSuggestionCache()
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = cache,
+            suggestionRepository = FakeWordSuggestionRepository(
+                result = WordSuggestions(SITUATION, listOf(WORD_A)),
+                gate = CompletableDeferred(),
+            ),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.isLoading).isTrue()
+        assertThat(cache.markSeenCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `the offline state never sets the first seen time`() = runTest {
+        val cache = FakeWordSuggestionCache()
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = cache,
+            suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, listOf(WORD_A))),
+            connectivityRepository = FakeConnectivityRepository(online = false),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.isOffline).isTrue()
+        assertThat(cache.markSeenCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `the error state never sets the first seen time`() = runTest {
+        val cache = FakeWordSuggestionCache()
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = cache,
+            suggestionRepository = FakeWordSuggestionRepository(failure = RuntimeException("boom")),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.loadFailed).isTrue()
+        assertThat(cache.markSeenCalls).isEqualTo(0)
+    }
+
+    @Test
+    fun `the empty state never sets the first seen time`() = runTest {
+        val cache = FakeWordSuggestionCache()
+        val viewModel: SuggestViewModel = buildViewModel(
+            scope = this,
+            cache = cache,
+            suggestionRepository = FakeWordSuggestionRepository(WordSuggestions(SITUATION, emptyList())),
+        )
+        runCurrent()
+
+        assertThat(viewModel.state.value.words).isEmpty()
+        assertThat(viewModel.state.value.isLoading).isFalse()
+        assertThat(cache.markSeenCalls).isEqualTo(0)
+        assertThat(cache.current?.firstSeenAt).isNull()
+    }
+
     private fun buildViewModel(
         scope: TestScope,
-        cache: WordSuggestionCache = FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B))),
+        cache: FakeWordSuggestionCache = FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B))),
         suggestionRepository: WordSuggestionRepository = FakeWordSuggestionRepository(),
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
         captureFlashcardUseCase: CaptureFlashcardUseCase = mockk(),
@@ -486,6 +569,7 @@ class SuggestViewModelTest {
     ): SuggestViewModel {
         val flashcardRepository = mockk<FlashcardRepository>()
         coEvery { flashcardRepository.fetchRecentWords(any()) } returns emptyList()
+        coEvery { flashcardRepository.fetchAllWords() } returns emptyList()
 
         val getDecksUseCase = mockk<GetDecksUseCase>()
         val decksFlow: Flow<List<Deck>> = decksFailure
@@ -496,16 +580,20 @@ class SuggestViewModelTest {
         val defaultDeckSelectionRepository = mockk<DefaultDeckSelectionRepository>()
         every { defaultDeckSelectionRepository.getDefaultDeckId() } returns defaultDeckId
 
-        val observeSuggestedWords = ObserveSuggestedWordsUseCase(flashcardRepository, cache)
+        val filter = SuggestedWordFilter(flashcardRepository)
+        val observeSuggestedWords = ObserveSuggestedWordsUseCase(filter, cache)
 
         return SuggestViewModel(
             observeSuggestedWords = observeSuggestedWords,
             refresher = SuggestedWordsRefresher(
                 observeSuggestedWords = observeSuggestedWords,
                 refreshSuggestedWords = RefreshSuggestedWordsUseCase(
-                    flashcardRepository,
-                    suggestionRepository,
-                    cache,
+                    flashcardRepository = flashcardRepository,
+                    suggestionRepository = suggestionRepository,
+                    cache = cache,
+                    historyRepository = EmptySuggestionHistoryRepository(),
+                    filter = filter,
+                    clock = clock,
                 ),
                 connectivityRepository = connectivityRepository,
                 scope = scope.backgroundScope,
@@ -515,10 +603,11 @@ class SuggestViewModelTest {
             resolveCaptureDeck = ResolveCaptureDeckUseCase(defaultDeckSelectionRepository),
             credits = credits,
             clock = clock,
+            markSuggestedWordsSeen = MarkSuggestedWordsSeenUseCase(cache),
         )
     }
 
-    private fun threeWordCache(): WordSuggestionCache =
+    private fun threeWordCache(): FakeWordSuggestionCache =
         FakeWordSuggestionCache(WordSuggestions(SITUATION, listOf(WORD_A, WORD_B, WORD_C)))
 
     private fun freshCredits(remaining: Int): GenerationCredits =
@@ -573,23 +662,44 @@ class SuggestViewModelTest {
     private class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordSuggestionCache {
         private val stored: MutableStateFlow<WordSuggestions?> = MutableStateFlow(initial)
 
+        var seenAt: Instant = FIRST_SEEN_AT
+        var markSeenCalls: Int = 0
+            private set
+
+        val current: WordSuggestions?
+            get() = stored.value
+
         override fun observe(): Flow<WordSuggestions?> = stored
 
         override suspend fun replace(suggestions: WordSuggestions) {
             stored.value = suggestions
         }
+
+        override suspend fun markSeen() {
+            markSeenCalls += 1
+            val batch: WordSuggestions = stored.value ?: return
+            if (batch.firstSeenAt == null) stored.value = batch.copy(firstSeenAt = seenAt)
+        }
+    }
+
+    private class EmptySuggestionHistoryRepository : SuggestionHistoryRepository {
+        override suspend fun fetch(): SuggestionHistory = SuggestionHistory(emptyList(), emptyList())
+
+        override suspend fun deleteShownBefore(cutoff: Instant) = Unit
     }
 
     private class FakeWordSuggestionRepository(
         private val result: WordSuggestions = WordSuggestions(situation = "", words = emptyList()),
         private val failure: Throwable? = null,
+        private val gate: CompletableDeferred<Unit>? = null,
     ) : WordSuggestionRepository {
 
         var calls: Int = 0
             private set
 
-        override suspend fun suggest(recentWords: List<String>): WordSuggestions {
+        override suspend fun suggest(request: WordSuggestionRequest): WordSuggestions {
             calls += 1
+            gate?.await()
             failure?.let { throw it }
             return result
         }
@@ -606,5 +716,7 @@ class SuggestViewModelTest {
         val CARD_ID_A: FlashcardId = "card-a".toFlashcardId()
         val CARD_ID_B: FlashcardId = "card-b".toFlashcardId()
         val NOW: Instant = Instant.parse("2026-09-10T17:42:00Z")
+        val FIRST_SEEN_AT: Instant = Instant.parse("2026-09-10T17:43:00Z")
+        val LATER_SEEN_AT: Instant = Instant.parse("2026-09-10T18:00:00Z")
     }
 }

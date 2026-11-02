@@ -269,6 +269,7 @@ class FlashcardDetailViewModelTest {
         override suspend fun upsertExamples(examples: List<Example>, flashcardId: FlashcardId) = Unit
         override suspend fun countDueFlashcards(nowMillis: Long): Long = 0L
         override suspend fun fetchRecentWords(limit: Int): List<String> = emptyList()
+        override suspend fun fetchAllWords(): List<String> = emptyList()
     }
 
     private companion object {

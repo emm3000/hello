@@ -10,6 +10,7 @@ import com.emm.data.remote.SuggestWordsRequestDto
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.suggestion.WordSuggestionRepository
+import com.emm.domain.suggestion.WordSuggestionRequest
 import com.emm.domain.suggestion.WordSuggestions
 import com.emm.domain.telemetry.GenerationTelemetry
 import kotlin.coroutines.cancellation.CancellationException
@@ -25,19 +26,19 @@ class RemoteWordSuggestionRepository(
     private val json: Json,
 ) : WordSuggestionRepository {
 
-    override suspend fun suggest(recentWords: List<String>): WordSuggestions {
-        val reply: FunctionsReply = send(recentWords)
+    override suspend fun suggest(request: WordSuggestionRequest): WordSuggestions {
+        val reply: FunctionsReply = send(request)
         recordCredits(reply.body)
         return read(reply)
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun send(recentWords: List<String>): FunctionsReply {
+    private suspend fun send(request: WordSuggestionRequest): FunctionsReply {
         return try {
             session.ensureSession()
             transport.invoke(
                 function = FUNCTION_NAME,
-                body = json.encodeToJsonElement(SuggestWordsRequestDto(recentWords = recentWords)),
+                body = json.encodeToJsonElement(request.toDto()),
                 appCheckToken = appCheck.token(),
             )
         } catch (cancellation: CancellationException) {
@@ -76,6 +77,12 @@ class RemoteWordSuggestionRepository(
             telemetry.recordCallFailure(kind = KIND, attempts = 1, cause = error)
         }
     }
+
+    private fun WordSuggestionRequest.toDto(): SuggestWordsRequestDto = SuggestWordsRequestDto(
+        recentWords = recentWords,
+        excludedSituations = excludedSituations,
+        excludedWords = excludedWords,
+    )
 
     private companion object {
         const val FUNCTION_NAME: String = "suggest-words"

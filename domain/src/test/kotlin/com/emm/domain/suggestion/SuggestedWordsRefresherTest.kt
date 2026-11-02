@@ -1,6 +1,8 @@
 package com.emm.domain.suggestion
 
 import com.emm.domain.connectivity.ConnectivityRepository
+import com.emm.domain.time.Clock
+import java.time.Instant
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -291,7 +293,7 @@ class SuggestedWordsRefresherTest {
             scope = backgroundScope,
             cache = cache,
             suggestionRepository = suggestionRepository,
-            flashcardRepository = FakeFlashcardRepository(recentWords = emptyList(), recentWordsGate = gate),
+            flashcardRepository = FakeFlashcardRepository(words = emptyList(), wordsGate = gate),
         )
 
         refresher.ensure()
@@ -379,10 +381,17 @@ class SuggestedWordsRefresherTest {
         cache: FakeWordSuggestionCache,
         suggestionRepository: FakeWordSuggestionRepository,
         connectivityRepository: ConnectivityRepository = FakeConnectivityRepository(),
-        flashcardRepository: FakeFlashcardRepository = FakeFlashcardRepository(recentWords = emptyList()),
+        flashcardRepository: FakeFlashcardRepository = FakeFlashcardRepository(words = emptyList()),
     ): SuggestedWordsRefresher = SuggestedWordsRefresher(
-        observeSuggestedWords = ObserveSuggestedWordsUseCase(flashcardRepository, cache),
-        refreshSuggestedWords = RefreshSuggestedWordsUseCase(flashcardRepository, suggestionRepository, cache),
+        observeSuggestedWords = ObserveSuggestedWordsUseCase(SuggestedWordFilter(flashcardRepository), cache),
+        refreshSuggestedWords = RefreshSuggestedWordsUseCase(
+            flashcardRepository = flashcardRepository,
+            suggestionRepository = suggestionRepository,
+            cache = cache,
+            historyRepository = FakeSuggestionHistoryRepository(),
+            filter = SuggestedWordFilter(flashcardRepository),
+            clock = Clock { Instant.EPOCH },
+        ),
         connectivityRepository = connectivityRepository,
         scope = scope,
     )

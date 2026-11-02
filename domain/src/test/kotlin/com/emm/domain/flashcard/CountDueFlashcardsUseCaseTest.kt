@@ -60,4 +60,5 @@ private class StubFlashcardRepository(private val dueCount: Long) : FlashcardRep
         return dueCount
     }
     override suspend fun fetchRecentWords(limit: Int): List<String> = emptyList()
+    override suspend fun fetchAllWords(): List<String> = emptyList()
 }

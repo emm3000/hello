@@ -11,6 +11,7 @@ import com.emm.domain.flashcard.UpdateFlashcardInput
 import com.emm.domain.generation.EnrichmentFailure
 import com.emm.domain.ids.DeckId
 import com.emm.domain.ids.FlashcardId
+import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +19,8 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 
 internal class FakeFlashcardRepository(
-    var recentWords: List<String>,
-    private val recentWordsGate: CompletableDeferred<Unit>? = null,
+    var words: List<String>,
+    private val wordsGate: CompletableDeferred<Unit>? = null,
 ) : FlashcardRepository {
 
     var receivedLimit: Int = -1
@@ -27,8 +28,13 @@ internal class FakeFlashcardRepository(
 
     override suspend fun fetchRecentWords(limit: Int): List<String> {
         receivedLimit = limit
-        recentWordsGate?.await()
-        return recentWords
+        wordsGate?.await()
+        return words.take(limit)
+    }
+
+    override suspend fun fetchAllWords(): List<String> {
+        wordsGate?.await()
+        return words
     }
 
     override fun fetchAll(): Flow<List<Flashcard>> = error("not used")
@@ -57,7 +63,7 @@ internal class FakeWordSuggestionRepository(
 
     private var failure: Throwable? = failure
 
-    var receivedRecentWords: List<String> = emptyList()
+    var receivedRequest: WordSuggestionRequest? = null
         private set
 
     var calls: Int = 0
@@ -67,16 +73,19 @@ internal class FakeWordSuggestionRepository(
         failure = null
     }
 
-    override suspend fun suggest(recentWords: List<String>): WordSuggestions {
+    override suspend fun suggest(request: WordSuggestionRequest): WordSuggestions {
         calls += 1
-        receivedRecentWords = recentWords
+        receivedRequest = request
         gate?.await()
         failure?.let { throw it }
         return result
     }
 }
 
-internal class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordSuggestionCache {
+internal class FakeWordSuggestionCache(
+    initial: WordSuggestions? = null,
+    private val seenAt: Instant = Instant.EPOCH,
+) : WordSuggestionCache {
 
     private val stored: MutableStateFlow<WordSuggestions?> = MutableStateFlow(initial)
     private var observeFailure: Throwable? = null
@@ -92,6 +101,11 @@ internal class FakeWordSuggestionCache(initial: WordSuggestions? = null) : WordS
 
     override suspend fun replace(suggestions: WordSuggestions) {
         stored.value = suggestions
+    }
+
+    override suspend fun markSeen() {
+        val batch: WordSuggestions = stored.value ?: return
+        if (batch.firstSeenAt == null) stored.value = batch.copy(firstSeenAt = seenAt)
     }
 
     fun emit(suggestions: WordSuggestions?) {
@@ -126,3 +140,25 @@ internal class FakeConnectivityRepository(online: Boolean = true) : Connectivity
         observeFailure = null
     }
 }
+
+internal class FakeSuggestionHistoryRepository(
+    entries: List<SuggestionHistoryEntry> = emptyList(),
+) : SuggestionHistoryRepository {
+
+    var entries: List<SuggestionHistoryEntry> = entries
+        private set
+
+    override suspend fun fetch(): SuggestionHistory {
+        val newestFirst: List<SuggestionHistoryEntry> = entries.sortedByDescending { entry -> entry.shownAt }
+        return SuggestionHistory(
+            situations = newestFirst.filter { entry -> entry.isSituation }.map { entry -> entry.text },
+            words = newestFirst.filterNot { entry -> entry.isSituation }.map { entry -> entry.text },
+        )
+    }
+
+    override suspend fun deleteShownBefore(cutoff: Instant) {
+        entries = entries.filterNot { entry -> entry.shownAt.isBefore(cutoff) }
+    }
+}
+
+internal data class SuggestionHistoryEntry(val text: String, val isSituation: Boolean, val shownAt: Instant)
