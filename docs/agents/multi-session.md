@@ -85,6 +85,8 @@ A cycle is closed when all of this is done:
 1. The branch is landed.
 2. `scripts/wave-close <name>`: refuses a dirty worktree or an unlanded branch, shuts down the slot's emulator, removes the worktree, deletes the branch, prunes, and closes the herdr pane labelled `<name>` (an idle `claude` holds memory). Outside herdr the owner closes the pane.
 3. One row per branch in `docs/agents/dispatch-log.md`; the wave's rows ship as one `docs(agents):` commit on `main`.
-4. The orchestrator asks whether the merged work changed a feature's behavior or a decision; if so, the matching `docs/*_CURRENT.md` or `ARCHITECTURE.md` is fixed, by the peer in its branch or by a row-1 docs ticket.
+4. The orchestrator asks two questions about the merged work:
+   - Did it change a feature's behavior? Then the matching `docs/*_CURRENT.md` or `ARCHITECTURE.md` is fixed, by the peer in its branch or by a row-1 docs ticket.
+   - Did it make a decision that is hard to reverse, surprising without context and the result of a real trade-off, or resolve or change a domain term? Then it files a row-1 docs ticket that loads `mattpocock-skills:domain-modeling` and writes the ADR in `docs/adr/` or the term in `GLOSSARY.md` (`docs/agents/domain.md`). An ADR the shipped behavior contradicts is superseded the same way, never edited.
 
 When every branch of the wave is landed and pushed, the orchestrator starts the next `/wave` itself.
