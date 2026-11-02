@@ -63,7 +63,12 @@ session.
   `StudyUiEffect.NavigateToSuggest`, and `StudyRoute` collects the effect and
   calls `navigator.navigateTo(SuggestRoute)`.
 
-Both entry points land on the same `SuggestRoute` destination.
+- **Daily words notification** — `DailyWordsWorker` posts the batch
+  `PrepareDailyWordsUseCase` prepared; tapping it opens `MainActivity` with
+  `LaunchDestination.DailyWords`, which `NewRoot` resets to
+  `TodayRoute` → `SuggestRoute`. See `docs/NOTIFICATIONS_PLAN.md`.
+
+All three entry points land on the same `SuggestRoute` destination.
 
 ## State
 

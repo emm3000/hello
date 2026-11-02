@@ -6,7 +6,7 @@
 | Role | Atomic plan to implement the daily due-cards notification |
 | Source of Truth | Yes (until all tasks close) |
 | Read this when | You're going to touch `WorkManager`, `NotificationChannel`, or `Settings` for opt-in |
-| Last verified against code | 2026-09-06 |
+| Last verified against code | 2026-11-02 |
 
 ## TL;DR
 
@@ -129,6 +129,25 @@
 - **Status:** [x] — shipped in `6a2c6ad`.
 - **Depends on:** N1-T4.
 
+## Daily words notification
+
+A second, independent notification that offers a fresh batch of everyday words and phrases and opens `Suggest` on it. Spec: `.scratch/daily-words/spec.md`. It shares no state with the study reminder: its own channel, notification id, unique work, settings keys and launch destination.
+
+| | Study reminder | Daily words |
+|---|---|---|
+| Channel | `study_reminders` | `daily_words` ("New words" / "Palabras nuevas") |
+| Notification id | `1001` | `1002` |
+| Unique work | `study_reminder_daily` | `daily_words_daily` |
+| Worker | `DueCardsReminderWorker` | `DailyWordsWorker` |
+| Default | on, 19:00 | on, 09:00, every day |
+| Tap opens | `Study` (all due) | `Suggest`, with `Hoy` beneath |
+
+- **Settings and persistence.** `domain/dailywords/DailyWordsSettings` (`isEnabled`, `time`, `days: Set<DayOfWeek>`) is stored by `data/dailywords/DataStoreDailyWordsSettingsRepository` in `DataStore` under `DAILY_WORDS_ENABLED`, `DAILY_WORDS_HOUR`, `DAILY_WORDS_MINUTE` and `DAILY_WORDS_DAYS` (a set of `DayOfWeek` names). The Settings UI for them is ticket 05; until it ships the defaults apply.
+- **Schedule.** `SyncDailyWordsUseCase` runs in `App.onCreate()` next to `SyncStudyReminderUseCase`. It schedules when the feature is enabled with at least one day, and cancels otherwise. `WorkManagerDailyWordsScheduler` uses the same 24h periodic work with `setNextScheduleTimeOverride(nextOccurrence(time, now))` as the study reminder, so the work runs every day; the weekday filter happens in the run.
+- **A run.** `DailyWordsWorker` first returns without fetching when the app's notifications or the `daily_words` channel are blocked, so no `suggest-words` call is spent on a notification nobody can see. It then calls `PrepareScheduledDailyWordsUseCase`, which returns null without fetching when the feature is disabled or today is not a selected weekday, and otherwise delegates to `PrepareDailyWordsUseCase` (`docs/SUGGEST_CURRENT.md`): an unseen cached batch with usable items is re-posted without a backend call, otherwise a new batch is fetched when online. A null batch posts nothing; the worker never retries, so a failed or offline day stays silent until the next run.
+- **The notification.** Title `notification_daily_words_title`, body the plural `notification_daily_words_body`, e.g. "Today: Ordering food at a busy restaurant · 6 new words and phrases", shown with `BigTextStyle`. The count is the batch's usable items. The `PendingIntent` carries `LaunchDestination.DailyWords` and uses request code `1002`; the study reminder's uses `0`, and since `Intent.filterEquals` ignores extras, a shared request code with `FLAG_UPDATE_CURRENT` would rewrite the other notification's destination.
+- **Opening it.** `NewRoot` maps `LaunchDestination.DailyWords` to `SuggestRoute` with `resetTo(TodayRoute, SuggestRoute)`, so back returns to `Hoy`. As with the study reminder, the destination is applied only once onboarding has been seen; before that the tap opens onboarding. `Suggest` renders the cached batch without fetching and marks it seen, which makes the next run fetch a new situation.
+
 ## Known follow-ups (NOT in this iteration)
 
 - **F-Onboarding-Consent** (shipped 2026-09-06): `POST_NOTIFICATIONS` is declared in the manifest and now requested from Settings. Switching the reminder toggle ON checks `NotificationPermission.isGranted()`; if not granted, it emits `RequestNotificationPermission` and the switch stays OFF until the system dialog is settled. Denied → the switch stays OFF and the reminder row shows the red subtitle `settings_notifications_blocked`, and tapping the row opens `Settings.ACTION_APP_NOTIFICATION_SETTINGS` for the app. `SettingsRoute` also re-checks on `ON_RESUME`, so returning from system settings updates the row without further action. See `docs/SETTINGS_CURRENT.md` for the full flow.
@@ -147,4 +166,4 @@
 - The scheduled fire time is `WorkSpec.next_schedule_time_override` in that database.
 - `adb shell dumpsys jobscheduler`, look for the job under the app's package; the `Delay=` field shows the remaining time until the next run.
 - WorkManager can also dump its own diagnostics on demand: broadcast `androidx.work.diagnostics.REQUEST_DIAGNOSTICS` and read logcat.
-- `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <package> <job-id>` starts the JobScheduler job, but WorkManager refuses to run the worker before its schedule (`WM-WorkerWrapper` logs "executed before schedule" and re-enqueues). The reliable end-to-end test is to pick a time a few minutes ahead in Settings and wait for it to fire.
+- `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <package> <job-id>` starts the JobScheduler job, but WorkManager refuses to run the worker before its schedule (`WM-WorkerWrapper` logs "executed before schedule" and re-enqueues). The reliable end-to-end test is to pick a time a few minutes ahead in Settings and wait for it to fire. Once the scheduled time has passed, `run -f` does run the worker. The job id is `SystemIdInfo.system_id` for the work spec in `androidx.work.workdb`, and the namespace flag `-n androidx.work.systemjobscheduler` is required. A periodic work spec that already ran once cannot run again until 15 minutes after its last run: `WorkSpec.calculateNextRunTime` raises the override to at least `lastEnqueueTime + MIN_PERIODIC_INTERVAL_MILLIS`, so consecutive forced runs need that gap.
