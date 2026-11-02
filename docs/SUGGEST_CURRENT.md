@@ -7,14 +7,16 @@
 | Scope | `Suggest` flow (new words for a situation) |
 | Source of Truth | No |
 | Read this when | You need to understand how AI-suggested words are generated, picked and captured |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-11-02 |
 
 ## Summary
 
-`Suggest` proposes six English words or expressions for one everyday situation,
-seeded from the user's own recent vocabulary, and lets the user pick which
-ones to capture as new flashcards. It is reached from two places, never from
-its own tab: `Hoy` when nothing is due, and the end of a study session.
+`Suggest` proposes 3 single English words and 3 full natural phrases for one
+everyday situation, seeded from the user's own recent vocabulary, and lets the
+user pick which ones to capture as new flashcards. It never repeats a
+situation or item shown in the last 60 days. It is reached from two places,
+never from its own tab: `Hoy` when nothing is due, and the end of a study
+session.
 
 ## Key files
 
@@ -24,10 +26,21 @@ its own tab: `Hoy` when nothing is due, and the end of a study session.
 - `app/src/main/kotlin/com/emm/hello/newfeatures/suggest/SuggestUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/suggest/SuggestUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/suggest/SuggestUiEffect.kt`
-- `domain/src/main/kotlin/com/emm/domain/suggestion/SuggestWordsUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/SuggestedWordsRefresher.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/ObserveSuggestedWordsUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/RefreshSuggestedWordsUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/MarkSuggestedWordsSeenUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/PrepareDailyWordsUseCase.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/SuggestedWordFilter.kt`
 - `domain/src/main/kotlin/com/emm/domain/suggestion/SuggestedWord.kt`
 - `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestions.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestionRequest.kt`
 - `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestionRepository.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/WordSuggestionCache.kt`
+- `domain/src/main/kotlin/com/emm/domain/suggestion/SuggestionHistoryRepository.kt`
+- `data/src/main/kotlin/com/emm/data/suggestion/DefaultWordSuggestionCache.kt`
+- `data/src/main/kotlin/com/emm/data/suggestion/DefaultSuggestionHistoryRepository.kt`
+- `data/src/main/sqldelight/com/emm/data/Suggestion.sq`
 - `domain/src/main/kotlin/com/emm/domain/authoring/CaptureFlashcardUseCase.kt`
 - `domain/src/main/kotlin/com/emm/domain/connectivity/ConnectivityRepository.kt`
 - `data/src/main/kotlin/com/emm/data/connectivity/AndroidConnectivityRepository.kt`
@@ -56,11 +69,12 @@ Both entry points land on the same `SuggestRoute` destination.
 
 `SuggestUiState`:
 
-- `isLoading: Boolean` — true until the first `SuggestWordsUseCase` result (or
-  failure) arrives; defaults `true`.
-- `loadFailed: Boolean` — true when the load threw.
-- `isOffline: Boolean` — true when `load()` finds the device offline before
-  ever calling `SuggestWordsUseCase`; defaults `false`.
+- `isLoading: Boolean` — true while there are no usable words and the
+  refresher status is `Idle` or `Running`; defaults `true`.
+- `loadFailed: Boolean` — true when there are no usable words and the last
+  refresh failed.
+- `isOffline: Boolean` — true when there are no usable words and the last
+  refresh found the device offline; defaults `false`.
 - `situation: String` — the one-sentence English situation the words belong
   to (e.g. "Ordering food at a busy restaurant").
 - `words: List<SuggestedWord>` — the candidate words for this situation, each
@@ -68,18 +82,26 @@ Both entry points land on the same `SuggestRoute` destination.
 - `selectedWords: Set<String>` — the words (by their `word` string) the user
   has toggled on.
 - `isAdding: Boolean` — true while `AddSelected` is in flight.
+- `creditsRemaining: Int?` — today's remaining AI generations from
+  `GenerationCreditsRepository`, or `null` when no fresh reading exists.
 
-Two values are derived, not stored:
+Four values are derived, not stored:
 
 - `selectedCount: Int` — `selectedWords.size`.
 - `canAdd: Boolean` — `selectedCount > 0 && !isAdding`.
+- `isCreditsNoticeVisible: Boolean` — `creditsRemaining` is known and not
+  above the number of words.
+- `canSelectMore: Boolean` — `creditsRemaining` is unknown or above
+  `selectedCount`.
 
 ## Intents
 
 `SuggestUiIntent`:
 
-- `Retry` — re-runs the load (used from the error and empty states).
-- `WordToggled(word)` — adds or removes `word` from `selectedWords`.
+- `Retry` — forces a new batch through `SuggestedWordsRefresher.refresh()`
+  (used from the offline, error and empty states).
+- `WordToggled(word)` — adds or removes `word` from `selectedWords`. Adding
+  past `creditsRemaining` is refused with a `suggest_daily_cap_*` message.
 - `AddSelected` — captures every selected word as a new flashcard; no-ops if
   `canAdd` is false.
 - `BackClicked` — leaves the screen without adding anything.
@@ -113,7 +135,8 @@ action. Body state is a `when` over `isLoading` / `isOffline` / `loadFailed` /
   `HEmptyState` with `suggest_empty_title` / `suggest_empty_body` and only a
   primary `suggest_retry` CTA.
 - **Loaded** — an uppercase `suggest_eyebrow` ("NEW WORDS") label, the
-  `situation` as a Bricolage headline, then an `FlowRow` of `HChip` pills, one
+  `situation` as a Bricolage headline, the plural `suggest_credits_remaining`
+  notice when `isCreditsNoticeVisible`, then an `FlowRow` of `HChip` pills, one
   per word, labelled `"${word.word} · ${word.translation}"` and toggled
   active by membership in `selectedWords`.
 
@@ -125,22 +148,60 @@ button that sends `BackClicked`.
 
 ## Data path
 
-`SuggestViewModel.load()` first resets `isOffline` to `false`, then checks
-`connectivityRepository.observeOnline().first()`. If offline, it sets
-`isLoading = false, isOffline = true` and returns without calling
-`SuggestWordsUseCase` at all — `Retry` re-runs `load()`, so it re-checks.
-Otherwise it proceeds to:
+The screen reads one cached batch and never fetches on its own.
+`SuggestViewModel` combines `ObserveSuggestedWordsUseCase()`,
+`SuggestedWordsRefresher.status` and the credits reading, and renders from
+them. On creation it calls `refresher.ensure()`; `Retry` calls
+`refresher.refresh()`.
 
-`SuggestWordsUseCase(flashcardRepository, suggestionRepository)`:
+**The cache.** `DefaultWordSuggestionCache` keeps a singleton
+`WordSuggestionBatch` row (situation, `createdAt`, nullable `firstSeenAt`) and
+its `SuggestedWordCandidate` rows in `HelloDb`, so re-entering `Suggest` does
+not call the paid backend. `ObserveSuggestedWordsUseCase` maps the cached
+batch through `SuggestedWordFilter.usable(words)`, which drops any candidate
+that is now a card.
 
-1. Calls `flashcardRepository.fetchRecentWords(20)` to seed the AI with the
-   learner's last 20 captured words.
-2. Calls `suggestionRepository.suggest(recentWords)` to get one
-   `WordSuggestions` (a situation plus candidate words).
-3. Filters the candidates: drops any whose `word` or `translation` is blank,
-   any whose normalized (`trim().lowercase()`) `word` already appears in
-   `recentWords`, and any duplicate normalized `word` within the candidate
-   list itself.
+**The refresher.** `SuggestedWordsRefresher` is a singleton that serializes
+requests on its own scope. `ensure()` does nothing when the cached batch still
+has usable words; otherwise, like `refresh()`, it checks
+`ConnectivityRepository.observeOnline()`. Offline sets status `Offline`
+without a call. Online sets `Running`, runs `RefreshSuggestedWordsUseCase`
+and ends `Completed`, or `Failed(error)` on a throw. Requests queued while a
+fetch attempt runs are discarded once it ends.
+
+**`RefreshSuggestedWordsUseCase`:**
+
+1. Deletes `SuggestionHistory` entries shown more than 60 days ago.
+2. Reads the remaining history, most recent first.
+3. Calls `suggestionRepository.suggest(WordSuggestionRequest)` with the
+   learner's last 20 card words (`fetchRecentWords(20)`), the 30 most recent
+   distinct history situations and the 120 most recent distinct history items.
+4. Filters the candidates with `SuggestedWordFilter.usable(words, history)`.
+   It drops any candidate whose `word` or `translation` is blank, whose
+   `searchNormalized()` `word` matches any non-deleted card (all of them, not
+   only the last 20) or any history item, or that repeats an earlier candidate.
+5. Replaces the cached batch with the result and returns it. The new batch
+   starts unseen. In the same transaction the cache writes its situation and
+   every stored item to `SuggestionHistory`, all stamped with the batch's
+   `createdAt`. History is written when a batch is stored, not when it is
+   seen.
+
+The cached batch's own items are already in the history, so the history
+filter runs only on a fresh response, never in `ObserveSuggestedWordsUseCase`.
+
+**Seen marker.** When `SuggestViewModel` renders a batch with usable words
+whose `firstSeenAt` is null, it calls `MarkSuggestedWordsSeenUseCase`. The
+cache sets `firstSeenAt` to the clock's time only while it is still null, so
+the first value is kept. The loading, offline, error and empty states never
+mark it.
+
+**`PrepareDailyWordsUseCase`** prepares the batch for the daily words
+notification without spending a call on a batch nobody opened. It returns the
+cached batch when it is unseen and still has usable words. Otherwise it
+returns null when offline, and when online it runs
+`RefreshSuggestedWordsUseCase` and returns the new batch. It returns null if
+that throws, which leaves the cached batch unchanged, or if the new batch has
+no usable words.
 
 `WordSuggestionRepository` has two implementations, chosen in
 `app/src/main/kotlin/com/emm/hello/di/NewModule.kt` by `BuildConfig.USE_CANNED_AI`:
@@ -148,7 +209,8 @@ Otherwise it proceeds to:
 - **`RemoteWordSuggestionRepository`** (used when `USE_CANNED_AI` is false) —
   calls the Supabase edge function `suggest-words` through `FunctionsTransport`,
   after `SessionInitializer.ensureSession()` and attaching an
-  `AppCheckTokenProvider.token()`, sending `SuggestWordsRequestDto(recentWords)`.
+  `AppCheckTokenProvider.token()`, sending `SuggestWordsRequestDto` with
+  `recent_words`, `excluded_situations` and `excluded_words`.
   The reply is decoded with `FunctionsReplyMapper.map` plus
   `WordSuggestionResponseParser`, which strips Markdown code fences and decodes
   `{"situation": ..., "words": [...]}`, throwing if `situation` is blank or
@@ -157,7 +219,11 @@ Otherwise it proceeds to:
 - **`CannedWordSuggestionRepository`** (used when `USE_CANNED_AI` is true) —
   no network call. Waits 600 ms, then returns one of three fixed scenarios
   (restaurant ordering, asking for directions, a junior job interview), each
-  with six hardcoded words, picked by `recentWords.size % 3`.
+  with 3 single words and 3 phrases. It returns the first scenario whose
+  situation is not in `excludedSituations`. When all three are excluded, it
+  returns a random scenario with a random 8-character suffix on the situation
+  and on every item, so the history filter keeps it and debug builds keep
+  producing batches.
 
 `app/build.gradle.kts` sets `USE_CANNED_AI` to `true` for `debug` and `false`
 for `release` (only these two build types exist). Debug builds keep the canned
@@ -200,18 +266,19 @@ other words or tap `suggest_not_now`.
 
 ## Not in scope
 
-- No situation picker or history — one situation is offered per load, and
-  `Retry` discards it for a new one.
+- No situation picker — one situation is offered per batch, and `Retry`
+  discards it for a new one. The history only feeds exclusions; the learner
+  never sees it.
 - No per-word edit before capture; the translation is whatever the
   suggestion repository returned.
 - No manual situation prompt from the user; the situation is chosen entirely
   by the suggestion repository.
 - No offline queue for the remote path — once online, a failed `suggest-words`
   call surfaces as the error state and does not retry automatically. Being
-  offline is caught earlier: `load()` checks
-  `ConnectivityRepository.observeOnline()` before ever calling
-  `SuggestWordsUseCase`, so the offline state is shown instead of attempting
-  the network call.
+  offline is caught earlier: the refresher checks
+  `ConnectivityRepository.observeOnline()` before calling
+  `RefreshSuggestedWordsUseCase`, so the offline state is shown instead of
+  attempting the network call.
 
 ## Related docs
 
