@@ -1,0 +1,9 @@
+ALTER TABLE WordSuggestionBatch ADD COLUMN firstSeenAt INTEGER;
+
+CREATE TABLE SuggestionHistory (
+    kind TEXT NOT NULL CHECK (kind IN ('SITUATION', 'ITEM')),
+    text TEXT NOT NULL,
+    shownAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_SuggestionHistory_shownAt ON SuggestionHistory(shownAt);

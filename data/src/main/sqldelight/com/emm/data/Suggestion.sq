@@ -2,7 +2,8 @@
 CREATE TABLE WordSuggestionBatch (
     singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
     situation TEXT NOT NULL,
-    createdAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL,
+    firstSeenAt INTEGER
 );
 
 CREATE TABLE SuggestedWordCandidate (
@@ -11,6 +12,14 @@ CREATE TABLE SuggestedWordCandidate (
     word TEXT NOT NULL,
     translation TEXT NOT NULL
 );
+
+CREATE TABLE SuggestionHistory (
+    kind TEXT NOT NULL CHECK (kind IN ('SITUATION', 'ITEM')),
+    text TEXT NOT NULL,
+    shownAt INTEGER NOT NULL
+);
+
+CREATE INDEX idx_SuggestionHistory_shownAt ON SuggestionHistory(shownAt);
 
 selectBatch:
 SELECT * FROM WordSuggestionBatch WHERE singletonId = 1;
