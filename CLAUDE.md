@@ -127,6 +127,20 @@ For a handoff or compaction, preserve the user's scope and constraints, decision
 - `docs/DESIGN_BRIEF.md` — visual direction for UI changes
 - `docs/AI_BACKEND_PLAN.md` — backend context; verify historical plan entries against current code
 
+## Skill routing
+
+From the `mattpocock-skills` plugin, enabled in `.claude/settings.json`. Load the skill before the work starts:
+
+- `mattpocock-skills:tdd` on every change that adds or changes behavior: a use case, a ViewModel rule, a repository function. Failing test first.
+- `mattpocock-skills:diagnosing-bugs` first on any bug with an unknown cause.
+- `mattpocock-skills:domain-modeling` for a new domain term or a hard-to-reverse decision; it creates `GLOSSARY.md` and `docs/adr/` lazily (`docs/agents/domain.md`).
+- `mattpocock-skills:research` for reading legwork against primary sources.
+- `mattpocock-skills:writing-for-agents` before editing a skill, rule, agent, command or this file.
+- `mattpocock-skills:code-review` is preloaded by the `reviewer` agents; use the agents, not the skill directly.
+- Owner-invoked only, never loaded by an agent: `/mattpocock-skills:grill-with-docs` stress-tests a plan against the domain docs, `/mattpocock-skills:to-spec` writes the spec to `.scratch/<feature>/spec.md`, and `/mattpocock-skills:to-tickets` or the `ticket-writer` agent turns it into wave tickets.
+
+Where the skills find things: `docs/agents/issue-tracker.md` (tickets), `docs/agents/triage-labels.md` (statuses), `docs/agents/domain.md` (domain docs).
+
 ## Custom slash commands
 
 - `/checks` — run the mandatory gate and checks selected by affected paths; report evidence and failures.

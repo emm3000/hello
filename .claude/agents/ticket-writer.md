@@ -13,7 +13,7 @@ Each ticket is a tracer bullet: a thin vertical slice a user or a test can obser
 ## Read first
 
 1. `docs/agents/issue-tracker.md` and `docs/agents/triage-labels.md`: location, format, numbering, status strings. Read two existing tickets when there are any.
-2. The feature's `docs/*_CURRENT.md`, `ARCHITECTURE.md`, `LOCAL_FIRST.md`, and the `.claude/rules/*.md` that own the area. A ticket points at them; it never paraphrases them.
+2. The spec at `.scratch/<feature>/spec.md` when the prompt names one, `docs/agents/domain.md` and what it points to, the feature's `docs/*_CURRENT.md`, `ARCHITECTURE.md`, `LOCAL_FIRST.md`, and the `.claude/rules/*.md` that own the area. A ticket points at them; it never paraphrases them.
 3. The current code of each slice. Verify every path and symbol you cite with `fd` or `rg`; cite symbols, never line numbers.
 
 ## Each ticket

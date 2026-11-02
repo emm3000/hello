@@ -4,7 +4,7 @@ Wave tickets live as markdown files in `.scratch/`, tracked in git, so every wor
 
 ## Conventions
 
-- One feature per directory: `.scratch/<feature-slug>/`, with `waves.md` beside the tickets when the feature spans waves.
+- One feature per directory: `.scratch/<feature-slug>/`. Its spec, when there is one, is `spec.md`; the wave plan is `waves.md` beside it.
 - One file per ticket: `.scratch/<feature-slug>/issues/<NN>-<slug>.md`. `NN` is unique across the repo, the next free number: `fd --no-ignore '^[0-9]+-' .scratch | rg -o '/([0-9]+)-' -r '$1' | sort -n | tail -1`.
 - Near the top, plain lines: `Status:`, `Device: emulator|none`, `Blocked by: NN, NN | None`, `**Branch:** <type>/<NN>-<slug>`. `scripts/read-ticket` reads `Device:` and `**Branch:**`.
 - `Device: emulator` when the work needs a screen or an install to verify; `none` otherwise.
