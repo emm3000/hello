@@ -18,10 +18,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -139,6 +141,7 @@ private fun AppNavigation(
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
+            opaqueBackgroundNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
             entry<OnboardingRoute> { OnboardingDestination(navigator) }
@@ -155,6 +158,24 @@ private fun AppNavigation(
             entry<StoreRoute> { StoreDestination(navigator) }
         }
     )
+}
+
+@Composable
+private fun opaqueBackgroundNavEntryDecorator(): NavEntryDecorator<NavKey> {
+    val background: Color = MaterialTheme.colorScheme.background
+    return remember(background) {
+        NavEntryDecorator(
+            decorate = { entry ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(background),
+                ) {
+                    entry.Content()
+                }
+            },
+        )
+    }
 }
 
 @Composable
