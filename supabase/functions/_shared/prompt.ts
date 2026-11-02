@@ -1,4 +1,4 @@
-import type { GenerateNoteRequest } from "./schema.ts";
+import type { GenerateNoteRequest, SuggestWordsRequest } from "./schema.ts";
 
 export const PROMPT_VERSION: number = 2;
 
@@ -151,15 +151,35 @@ function feedbackSection(
     "\nFix every listed field and return the complete JSON again.";
 }
 
-export function buildWordSuggestionPrompt(recentWords: string[]): string {
-  const levelContext: string = buildLevelContext(recentWords);
+export function buildWordSuggestionPrompt(input: SuggestWordsRequest): string {
+  const levelContext: string = buildLevelContext(input.recent_words);
+  const exclusionLines: string = buildExclusionLines(
+    input.excluded_situations,
+    input.excluded_words,
+  );
   return `You are an English tutor for a Spanish-speaking learner.
 ${levelContext}
 Pick ONE everyday situation that is one step above the learner's inferred level.
-Return exactly 6 English words or short expressions that are useful in that situation and that are NOT already in the learner's recent words list above.
-Give each word or expression a natural Spanish translation.
-Respond with strict JSON only, no markdown, no explanation, in exactly this shape:
+Return exactly 3 single English words and exactly 3 full natural English phrases that a native speaker would say in that situation.
+None of them may already be in the learner's recent words list above.
+Give each word and each phrase a natural Spanish translation.
+${exclusionLines}Respond with strict JSON only, no markdown, no explanation, in exactly this shape:
 {"situation": "<one short English sentence>", "words": [{"word": "...", "translation": "..."}]}`;
+}
+
+function buildExclusionLines(
+  excludedSituations: string[],
+  excludedWords: string[],
+): string {
+  const situationLine: string = excludedSituations.length === 0
+    ? ""
+    : "Do not reuse any of these situations, and pick one that is clearly different from all of them: " +
+      JSON.stringify(excludedSituations) + ".\n";
+  const wordLine: string = excludedWords.length === 0
+    ? ""
+    : "Do not return any of these words or phrases: " +
+      JSON.stringify(excludedWords) + ".\n";
+  return situationLine + wordLine;
 }
 
 function buildLevelContext(recentWords: string[]): string {

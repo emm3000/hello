@@ -280,6 +280,10 @@ export type GenerateNoteRequest = z.infer<typeof generateNoteRequestSchema>;
 
 export const suggestWordsRequestSchema = z.object({
   recent_words: z.array(z.string().min(1).max(64)).max(50),
+  excluded_situations: z.array(z.string().min(1).max(200)).max(30).default(
+    [],
+  ),
+  excluded_words: z.array(z.string().min(1).max(120)).max(120).default([]),
 });
 
 export type SuggestWordsRequest = z.infer<typeof suggestWordsRequestSchema>;

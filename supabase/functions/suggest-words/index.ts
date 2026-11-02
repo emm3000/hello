@@ -178,7 +178,7 @@ export async function handle(
   try {
     const generated: GenerationResult<WordSuggestionResponse> = await deps
       .generateStructured<WordSuggestionResponse>({
-        prompt: buildWordSuggestionPrompt(request.recent_words),
+        prompt: buildWordSuggestionPrompt(request),
         schemaName: "word_suggestions",
         jsonSchema: wordSuggestionJsonSchema,
         parse: wordSuggestionSchema.parse,

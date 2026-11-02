@@ -710,6 +710,77 @@ Deno.test("the suggest-words request accepts recent words", () => {
   );
 });
 
+Deno.test("a suggest-words body with only recent words defaults both exclusion lists to empty", () => {
+  const parsed = suggestWordsRequestSchema.parse({ recent_words: ["give up"] });
+  assertEquals(parsed.excluded_situations, []);
+  assertEquals(parsed.excluded_words, []);
+});
+
+Deno.test("the suggest-words request keeps the sent exclusions", () => {
+  const parsed = suggestWordsRequestSchema.parse({
+    recent_words: [],
+    excluded_situations: ["Ordering at a coffee shop"],
+    excluded_words: ["refill", "can I get a refill?"],
+  });
+  assertEquals(parsed.excluded_situations, ["Ordering at a coffee shop"]);
+  assertEquals(parsed.excluded_words, ["refill", "can I get a refill?"]);
+});
+
+Deno.test("an excluded situation longer than 200 chars is rejected", () => {
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_situations: ["s".repeat(200)],
+    }).success,
+    true,
+  );
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_situations: ["s".repeat(201)],
+    }).success,
+    false,
+  );
+});
+
+Deno.test("an excluded word longer than 120 chars is rejected", () => {
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_words: ["w".repeat(120)],
+    }).success,
+    true,
+  );
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_words: ["w".repeat(121)],
+    }).success,
+    false,
+  );
+});
+
+Deno.test("an empty excluded word is rejected", () => {
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_words: [""],
+    }).success,
+    false,
+  );
+});
+
+Deno.test("the exclusion list caps sit at 30 situations and 120 words", () => {
+  assertEquals(
+    suggestWordsRequestSchema.safeParse({
+      recent_words: [],
+      excluded_situations: new Array(30).fill("situation"),
+      excluded_words: new Array(120).fill("word"),
+    }).success,
+    true,
+  );
+});
+
 Deno.test("a successful envelope with an explicit null error parses", () => {
   const parsed = learningNoteResponseSchema.parse({
     success: true,

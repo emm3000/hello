@@ -5,7 +5,12 @@ import {
   PROMPT_VERSION,
   withSchemaAppendix,
 } from "./prompt.ts";
-import { generateNoteRequestSchema, REFUSAL_CODES } from "./schema.ts";
+import {
+  generateNoteRequestSchema,
+  REFUSAL_CODES,
+  type SuggestWordsRequest,
+  suggestWordsRequestSchema,
+} from "./schema.ts";
 
 const INPUT_DATA_BLOCK = `Input data:
 - input_type: "Word"
@@ -128,8 +133,69 @@ Deno.test("the learning note prompt appends every previous issue", () => {
   assertEquals(prompt.endsWith(FEEDBACK_SECTION), true);
 });
 
+function suggestRequest(
+  recentWords: string[],
+  exclusions: { excluded_situations?: string[]; excluded_words?: string[] } =
+    {},
+): SuggestWordsRequest {
+  return suggestWordsRequestSchema.parse({
+    recent_words: recentWords,
+    ...exclusions,
+  });
+}
+
+Deno.test("the suggestion prompt asks for 3 single words and 3 full natural phrases with Spanish translations", () => {
+  const prompt: string = buildWordSuggestionPrompt(suggestRequest([]));
+  assertStringIncludes(
+    prompt,
+    "Return exactly 3 single English words and exactly 3 full natural English phrases that a native speaker would say in that situation.",
+  );
+  assertStringIncludes(
+    prompt,
+    "Give each word and each phrase a natural Spanish translation.",
+  );
+  assertEquals(prompt.includes("exactly 6"), false);
+});
+
+Deno.test("the suggestion prompt lists the excluded situations and words and forbids reusing them", () => {
+  const prompt: string = buildWordSuggestionPrompt(
+    suggestRequest(["give up"], {
+      excluded_situations: [
+        "Ordering at a coffee shop",
+        "Checking in at a hotel",
+      ],
+      excluded_words: ["refill", "can I get a refill?"],
+    }),
+  );
+  assertStringIncludes(
+    prompt,
+    `Do not reuse any of these situations, and pick one that is clearly different from all of them: ["Ordering at a coffee shop","Checking in at a hotel"].`,
+  );
+  assertStringIncludes(
+    prompt,
+    `Do not return any of these words or phrases: ["refill","can I get a refill?"].`,
+  );
+});
+
+Deno.test("the suggestion prompt carries only the exclusion line that has entries", () => {
+  const prompt: string = buildWordSuggestionPrompt(
+    suggestRequest([], { excluded_words: ["refill"] }),
+  );
+  assertStringIncludes(
+    prompt,
+    `Do not return any of these words or phrases: ["refill"].`,
+  );
+  assertEquals(prompt.includes("Do not reuse any of these situations"), false);
+});
+
+Deno.test("the suggestion prompt carries no exclusion text without exclusions", () => {
+  const prompt: string = buildWordSuggestionPrompt(suggestRequest(["give up"]));
+  assertEquals(prompt.includes("Do not reuse"), false);
+  assertEquals(prompt.includes("Do not return any of these"), false);
+});
+
 Deno.test("the suggestion prompt describes a beginner without recent words", () => {
-  const prompt: string = buildWordSuggestionPrompt([]);
+  const prompt: string = buildWordSuggestionPrompt(suggestRequest([]));
   assertStringIncludes(
     prompt,
     "The learner is a total beginner with no recorded vocabulary yet. Pick an A2-level everyday situation.",
@@ -143,7 +209,9 @@ Deno.test("the suggestion prompt describes a beginner without recent words", () 
 });
 
 Deno.test("the suggestion prompt lists the recent words", () => {
-  const prompt: string = buildWordSuggestionPrompt(["give up", "afford"]);
+  const prompt: string = buildWordSuggestionPrompt(
+    suggestRequest(["give up", "afford"]),
+  );
   assertStringIncludes(
     prompt,
     `The learner has recently studied these English words or expressions: ["give up","afford"]. Infer the learner's approximate level from this list.`,
@@ -157,7 +225,9 @@ Deno.test("the suggestion prompt lists the recent words", () => {
 });
 
 Deno.test("the suggestion prompt JSON-escapes a recent word containing a quote", () => {
-  const prompt: string = buildWordSuggestionPrompt([`rock "n" roll`]);
+  const prompt: string = buildWordSuggestionPrompt(
+    suggestRequest([`rock "n" roll`]),
+  );
   assertStringIncludes(
     prompt,
     `["rock \\"n\\" roll"]`,

@@ -167,6 +167,17 @@ functions (`suggest-words` and `generate-note` respectively) over the same
 `functions-kt` transport, authenticated with a Firebase App Check token — see
 `docs/AI_BACKEND_PLAN.md`.
 
+On the backend, `buildWordSuggestionPrompt` in
+`supabase/functions/_shared/prompt.ts` asks for exactly 3 single words and
+exactly 3 full natural phrases a native speaker would say in the situation,
+each with a Spanish translation. `suggestWordsRequestSchema` also accepts two
+optional exclusion lists, `excluded_situations` (at most 30 strings of 1 to 200
+chars) and `excluded_words` (at most 120 strings of 1 to 120 chars), both
+defaulting to `[]`. Non-empty lists are added to the prompt as situations and
+items the model must not reuse; an empty list adds no text. A list over its cap
+or an empty string is rejected as `invalid_request` before a credit is taken.
+The response shape is unchanged, and phrases come back in the same `word` field.
+
 Picking words and confirming (`AddSelected`) resolves a target deck via
 `GetDecksUseCase` and `ResolveCaptureDeckUseCase`, the same rule Capture uses
 (the stored default deck if it is one of the user's own decks, else the oldest

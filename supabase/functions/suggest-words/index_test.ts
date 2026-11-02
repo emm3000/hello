@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1";
 import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   type Consumption,
@@ -8,6 +8,7 @@ import {
 } from "../_shared/credits.ts";
 import { type ResponseMeta } from "../_shared/envelope.ts";
 import {
+  type GenerateStructuredArgs,
   type GenerationResult,
   ProvidersExhaustedError,
 } from "../_shared/providers.ts";
@@ -79,14 +80,16 @@ function baseDeps(
   return { ...deps, ...overrides };
 }
 
-function suggestRequest(): Request {
+function suggestRequest(
+  body: Record<string, unknown> = { recent_words: ["give up"] },
+): Request {
   return new Request("https://hello.test/suggest-words", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Firebase-AppCheck": "app-check-token",
     },
-    body: JSON.stringify({ recent_words: ["give up"] }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -159,4 +162,76 @@ Deno.test("an unreadable ledger fails closed with an unknown balance", async () 
   assertEquals(body.error?.code, "credits_unavailable");
   assertEquals(body.meta, null);
   assertEquals(calls.includes("generateStructured"), false);
+});
+
+Deno.test("the provider receives a prompt carrying the sent exclusions", async () => {
+  const calls: string[] = [];
+  const prompts: string[] = [];
+  const response: Response = await handle(
+    suggestRequest({
+      recent_words: ["give up"],
+      excluded_situations: ["Checking in at a hotel"],
+      excluded_words: ["room key"],
+    }),
+    baseDeps(calls, {
+      generateStructured: <T>(
+        args: GenerateStructuredArgs<T>,
+      ): Promise<GenerationResult<T>> => {
+        prompts.push(args.prompt);
+        return Promise.resolve({
+          value: suggestions() as unknown as T,
+          provider: "groq",
+          model: "oss",
+        });
+      },
+    }),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(prompts.length, 1);
+  assertStringIncludes(prompts[0], `["Checking in at a hotel"]`);
+  assertStringIncludes(prompts[0], `["room key"]`);
+});
+
+async function assertRejectedBeforeCredit(
+  body: Record<string, unknown>,
+  field: string,
+): Promise<void> {
+  const calls: string[] = [];
+  const response: Response = await handle(
+    suggestRequest(body),
+    baseDeps(calls),
+  );
+  const responseBody: { error?: { code?: string; message?: string } } =
+    await response.json();
+
+  assertEquals(response.status, 400);
+  assertEquals(responseBody.error?.code, "invalid_request");
+  assertStringIncludes(responseBody.error?.message ?? "", field);
+  assertEquals(calls.includes("consumeCredit"), false);
+  assertEquals(calls.includes("generateStructured"), false);
+}
+
+Deno.test("31 excluded situations are an invalid request", async () => {
+  await assertRejectedBeforeCredit(
+    {
+      recent_words: [],
+      excluded_situations: new Array(31).fill("Ordering at a coffee shop"),
+    },
+    "excluded_situations",
+  );
+});
+
+Deno.test("121 excluded words are an invalid request", async () => {
+  await assertRejectedBeforeCredit(
+    { recent_words: [], excluded_words: new Array(121).fill("refill") },
+    "excluded_words",
+  );
+});
+
+Deno.test("an empty excluded situation is an invalid request", async () => {
+  await assertRejectedBeforeCredit(
+    { recent_words: [], excluded_situations: [""] },
+    "excluded_situations.0",
+  );
 });
