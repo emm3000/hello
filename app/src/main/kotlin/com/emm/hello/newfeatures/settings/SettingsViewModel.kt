@@ -10,6 +10,11 @@ import com.emm.domain.account.Account
 import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
+import com.emm.domain.dailywords.DailyWordsSettings
+import com.emm.domain.dailywords.GetDailyWordsSettingsUseCase
+import com.emm.domain.dailywords.SetDailyWordsEnabledUseCase
+import com.emm.domain.dailywords.SetDailyWordsTimeUseCase
+import com.emm.domain.dailywords.ToggleDailyWordsDayUseCase
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.generation.isFreshAt
@@ -28,6 +33,7 @@ import com.emm.hello.core.auth.GoogleSignInResult
 import com.emm.hello.core.mvi.MviViewModel
 import com.emm.hello.logging.logError
 import com.emm.hello.notifications.NotificationPermission
+import java.time.DayOfWeek
 import java.time.LocalTime
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.launch
@@ -41,6 +47,10 @@ class SettingsViewModel(
     private val getStudyReminderSettings: GetStudyReminderSettingsUseCase,
     private val setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
     private val setStudyReminderTime: SetStudyReminderTimeUseCase,
+    getDailyWordsSettings: GetDailyWordsSettingsUseCase,
+    private val setDailyWordsEnabledUseCase: SetDailyWordsEnabledUseCase,
+    private val setDailyWordsTimeUseCase: SetDailyWordsTimeUseCase,
+    private val toggleDailyWordsDayUseCase: ToggleDailyWordsDayUseCase,
     private val dailyNewCardLimit: DailyNewCardLimitRepository,
     private val notificationPermission: NotificationPermission,
     private val getAccount: GetAccountUseCase,
@@ -58,10 +68,14 @@ class SettingsViewModel(
     init {
         val settings: StudyReminderSettings = getStudyReminderSettings()
         val newCardLimit: DailyNewCardLimit = dailyNewCardLimit.get()
+        val dailyWordsSettings: DailyWordsSettings = getDailyWordsSettings()
         setState {
             copy(
                 isReminderEnabled = settings.isEnabled,
                 reminderTime = settings.time,
+                isDailyWordsEnabled = dailyWordsSettings.isEnabled,
+                dailyWordsTime = dailyWordsSettings.time,
+                dailyWordsDays = dailyWordsSettings.days,
                 dailyNewCardLimit = newCardLimit,
                 isNotificationPermissionGranted = notificationPermission.isGranted(),
             )
@@ -84,6 +98,11 @@ class SettingsViewModel(
             is SettingsUiIntent.EditReminderTime -> setState { copy(isReminderTimePickerVisible = true) }
             is SettingsUiIntent.DismissReminderTimePicker -> setState { copy(isReminderTimePickerVisible = false) }
             is SettingsUiIntent.SetReminderTime -> setReminderTime(intent.time)
+            is SettingsUiIntent.SetDailyWordsEnabled -> setDailyWordsEnabled(intent.isEnabled)
+            is SettingsUiIntent.EditDailyWordsTime -> setState { copy(isDailyWordsTimePickerVisible = true) }
+            is SettingsUiIntent.DismissDailyWordsTimePicker -> setState { copy(isDailyWordsTimePickerVisible = false) }
+            is SettingsUiIntent.SetDailyWordsTime -> setDailyWordsTime(intent.time)
+            is SettingsUiIntent.ToggleDailyWordsDay -> toggleDailyWordsDay(intent.day)
             is SettingsUiIntent.DailyNewCardLimitSelected -> selectDailyNewCardLimit(intent.limit)
             is SettingsUiIntent.NotificationPermissionSettled -> notificationPermissionSettled()
             is SettingsUiIntent.RefreshNotificationPermission -> refreshNotificationPermission()
@@ -165,19 +184,50 @@ class SettingsViewModel(
             return
         }
         if (!notificationPermission.isGranted()) {
-            sendEffect(SettingsUiEffect.RequestNotificationPermission)
+            requestNotificationPermission(NotificationPermissionTarget.StudyReminder)
             return
         }
         setStudyReminderEnabled(true)
         setState { copy(isReminderEnabled = true, isNotificationPermissionGranted = true) }
     }
 
+    private fun setDailyWordsEnabled(isEnabled: Boolean) {
+        if (!isEnabled) {
+            setDailyWordsEnabledUseCase(false)
+            setState { copy(isDailyWordsEnabled = false) }
+            return
+        }
+        if (!notificationPermission.isGranted()) {
+            requestNotificationPermission(NotificationPermissionTarget.DailyWords)
+            return
+        }
+        setDailyWordsEnabledUseCase(true)
+        setState { copy(isDailyWordsEnabled = true, isNotificationPermissionGranted = true) }
+    }
+
+    private fun requestNotificationPermission(target: NotificationPermissionTarget) {
+        setState { copy(pendingNotificationPermission = target) }
+        sendEffect(SettingsUiEffect.RequestNotificationPermission)
+    }
+
     private fun notificationPermissionSettled() {
         val isGranted: Boolean = notificationPermission.isGranted()
-        setState { copy(isNotificationPermissionGranted = isGranted) }
-        if (isGranted) {
-            setStudyReminderEnabled(true)
-            setState { copy(isReminderEnabled = true) }
+        val target: NotificationPermissionTarget? = currentState.pendingNotificationPermission
+        setState { copy(isNotificationPermissionGranted = isGranted, pendingNotificationPermission = null) }
+        if (isGranted) enableAfterPermission(target)
+    }
+
+    private fun enableAfterPermission(target: NotificationPermissionTarget?) {
+        when (target) {
+            NotificationPermissionTarget.StudyReminder -> {
+                setStudyReminderEnabled(true)
+                setState { copy(isReminderEnabled = true) }
+            }
+            NotificationPermissionTarget.DailyWords -> {
+                setDailyWordsEnabledUseCase(true)
+                setState { copy(isDailyWordsEnabled = true) }
+            }
+            null -> Unit
         }
     }
 
@@ -189,6 +239,16 @@ class SettingsViewModel(
     private fun setReminderTime(time: LocalTime) {
         setStudyReminderTime(time)
         setState { copy(reminderTime = time, isReminderTimePickerVisible = false) }
+    }
+
+    private fun setDailyWordsTime(time: LocalTime) {
+        setDailyWordsTimeUseCase(time)
+        setState { copy(dailyWordsTime = time, isDailyWordsTimePickerVisible = false) }
+    }
+
+    private fun toggleDailyWordsDay(day: DayOfWeek) {
+        val days: Set<DayOfWeek> = toggleDailyWordsDayUseCase(day)
+        setState { copy(dailyWordsDays = days) }
     }
 
     private fun selectDailyNewCardLimit(limit: DailyNewCardLimit) {

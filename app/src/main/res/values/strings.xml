@@ -296,6 +296,12 @@
     <string name="settings_study_reminder_subtitle">Every day at %1$s</string>
     <string name="settings_notifications_blocked">Notifications are blocked. Tap to allow them in system settings.</string>
     <string name="settings_reminder_time_title">Reminder time</string>
+    <string name="settings_section_daily_words">New words</string>
+    <string name="settings_daily_words_title">Daily new words</string>
+    <string name="settings_daily_words_subtitle">Everyday words and phrases to turn into cards</string>
+    <string name="settings_daily_words_time_title">Time</string>
+    <string name="settings_daily_words_days_title">Days</string>
+    <string name="settings_daily_words_time_picker_title">New words time</string>
     <string name="settings_section_account">Account</string>
     <string name="settings_google_account_title">Google account</string>
     <string name="settings_google_account_linked">Linked</string>

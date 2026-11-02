@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -22,12 +23,15 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +46,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,6 +69,7 @@ import com.emm.hello.core.theme.metadata
 import com.emm.hello.core.theme.surface
 import com.emm.hello.core.theme.spacing
 import com.emm.hello.core.ui.HAlertDialog
+import com.emm.hello.core.ui.HChip
 import com.emm.hello.core.ui.HDropdownMenu
 import com.emm.hello.core.ui.HLoadingSpinner
 import com.emm.hello.core.ui.HMenuItem
@@ -71,10 +78,13 @@ import com.emm.hello.core.ui.HSeparator
 import com.emm.hello.core.ui.HSwitch
 import com.emm.hello.core.ui.HTimePickerDialog
 import com.emm.hello.core.ui.HTopBar
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 private val reminderTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -93,6 +103,11 @@ fun SettingsScreen(
     onEditReminderTime: () -> Unit = {},
     onReminderTimeChange: (LocalTime) -> Unit = {},
     onDismissReminderTimePicker: () -> Unit = {},
+    onDailyWordsEnabledChange: (Boolean) -> Unit = {},
+    onEditDailyWordsTime: () -> Unit = {},
+    onDailyWordsTimeChange: (LocalTime) -> Unit = {},
+    onDismissDailyWordsTimePicker: () -> Unit = {},
+    onToggleDailyWordsDay: (DayOfWeek) -> Unit = {},
     onDailyNewCardLimitSelected: (DailyNewCardLimit) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onLinkGoogleAccount: () -> Unit = {},
@@ -140,6 +155,19 @@ fun SettingsScreen(
                             isNotificationPermissionGranted = state.isNotificationPermissionGranted,
                             onReminderEnabledChange = onReminderEnabledChange,
                             onEditReminderTime = onEditReminderTime,
+                            onOpenNotificationSettings = onOpenNotificationSettings,
+                        )
+                        Spacer(Modifier.height(28.dp))
+                    }
+                    item {
+                        DailyWordsSection(
+                            isEnabled = state.isDailyWordsEnabled,
+                            time = state.dailyWordsTime,
+                            days = state.dailyWordsDays,
+                            isNotificationPermissionGranted = state.isNotificationPermissionGranted,
+                            onEnabledChange = onDailyWordsEnabledChange,
+                            onEditTime = onEditDailyWordsTime,
+                            onToggleDay = onToggleDailyWordsDay,
                             onOpenNotificationSettings = onOpenNotificationSettings,
                         )
                         Spacer(Modifier.height(28.dp))
@@ -201,6 +229,15 @@ fun SettingsScreen(
             onConfirm = onReminderTimeChange,
             onDismiss = onDismissReminderTimePicker,
             title = stringResource(R.string.settings_reminder_time_title),
+        )
+    }
+
+    if (state.isDailyWordsTimePickerVisible) {
+        HTimePickerDialog(
+            initialTime = state.dailyWordsTime,
+            onConfirm = onDailyWordsTimeChange,
+            onDismiss = onDismissDailyWordsTimePicker,
+            title = stringResource(R.string.settings_daily_words_time_picker_title),
         )
     }
 }
@@ -330,6 +367,110 @@ private fun reminderSubtitle(isNotificationPermissionGranted: Boolean, reminderT
     } else {
         stringResource(R.string.settings_notifications_blocked)
     }
+
+@Composable
+private fun DailyWordsSection(
+    isEnabled: Boolean,
+    time: LocalTime,
+    days: Set<DayOfWeek>,
+    isNotificationPermissionGranted: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    onEditTime: () -> Unit,
+    onToggleDay: (DayOfWeek) -> Unit,
+    onOpenNotificationSettings: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HSectionLabel(stringResource(R.string.settings_section_daily_words))
+        Spacer(Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = surface,
+            shape = MaterialTheme.helloShapes.control,
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                SettingsRow(
+                    icon = Icons.Outlined.Translate,
+                    title = stringResource(R.string.settings_daily_words_title),
+                    sub = dailyWordsSubtitle(isNotificationPermissionGranted),
+                    subTone = if (isNotificationPermissionGranted) SubTone.Muted else SubTone.Danger,
+                    onClick = if (isNotificationPermissionGranted) {
+                        { onEnabledChange(!isEnabled) }
+                    } else {
+                        onOpenNotificationSettings
+                    },
+                    trailing = {
+                        HSwitch(checked = isEnabled, onCheckedChange = onEnabledChange)
+                    },
+                )
+                HSeparator(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg))
+                SettingsRow(
+                    icon = Icons.Outlined.Schedule,
+                    title = stringResource(R.string.settings_daily_words_time_title),
+                    sub = time.format(reminderTimeFormatter),
+                    enabled = isEnabled,
+                    isDimmed = !isEnabled,
+                    onClick = onEditTime,
+                )
+                HSeparator(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg))
+                DailyWordsDaysRow(days = days, enabled = isEnabled, onToggleDay = onToggleDay)
+            }
+        }
+    }
+}
+
+@Composable
+private fun dailyWordsSubtitle(isNotificationPermissionGranted: Boolean): String =
+    if (isNotificationPermissionGranted) {
+        stringResource(R.string.settings_daily_words_subtitle)
+    } else {
+        stringResource(R.string.settings_notifications_blocked)
+    }
+
+@Composable
+private fun DailyWordsDaysRow(
+    days: Set<DayOfWeek>,
+    enabled: Boolean,
+    onToggleDay: (DayOfWeek) -> Unit,
+) {
+    val locale: Locale = LocalConfiguration.current.locales[0]
+    val contentColor: Color = if (enabled) ink else inkFaint
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = MaterialTheme.spacing.lg, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.CalendarMonth,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(22.dp),
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_daily_words_days_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = contentColor,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            ) {
+                DayOfWeek.entries.forEach { day: DayOfWeek ->
+                    HChip(
+                        label = day.getDisplayName(TextStyle.SHORT, locale),
+                        active = day in days,
+                        enabled = enabled,
+                        onClick = { onToggleDay(day) },
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun AccountSection(
@@ -464,6 +605,7 @@ private fun SettingsRow(
     subTone: SubTone = SubTone.Muted,
     isBusy: Boolean = false,
     enabled: Boolean = true,
+    isDimmed: Boolean = false,
     onClick: () -> Unit,
     trailing: @Composable RowScope.() -> Unit = { ChevronTrailing() },
 ) {
@@ -475,10 +617,11 @@ private fun SettingsRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        val titleColor: Color = if (isDimmed) inkFaint else ink
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = ink,
+            tint = titleColor,
             modifier = Modifier.size(22.dp),
         )
 
@@ -486,12 +629,13 @@ private fun SettingsRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
-                color = ink,
+                color = titleColor,
             )
             if (sub != null) {
-                val subColor = when (subTone) {
-                    SubTone.Muted -> inkMuted
-                    SubTone.Danger -> destructiveInk
+                val subColor: Color = when {
+                    isDimmed -> inkFaint
+                    subTone == SubTone.Muted -> inkMuted
+                    else -> destructiveInk
                 }
                 Spacer(Modifier.height(2.dp))
                 Text(

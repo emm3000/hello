@@ -305,6 +305,12 @@
     <string name="settings_study_reminder_subtitle">Todos los días a las %1$s</string>
     <string name="settings_notifications_blocked">Las notificaciones están bloqueadas. Toca para permitirlas en los ajustes del sistema.</string>
     <string name="settings_reminder_time_title">Hora del recordatorio</string>
+    <string name="settings_section_daily_words">Palabras nuevas</string>
+    <string name="settings_daily_words_title">Palabras nuevas cada día</string>
+    <string name="settings_daily_words_subtitle">Palabras y frases cotidianas para convertir en tarjetas</string>
+    <string name="settings_daily_words_time_title">Hora</string>
+    <string name="settings_daily_words_days_title">Días</string>
+    <string name="settings_daily_words_time_picker_title">Hora de las palabras nuevas</string>
     <string name="settings_section_account">Cuenta</string>
     <string name="settings_google_account_title">Cuenta de Google</string>
     <string name="settings_google_account_linked">Vinculada</string>

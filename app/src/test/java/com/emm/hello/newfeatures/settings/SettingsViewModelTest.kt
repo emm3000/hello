@@ -8,6 +8,14 @@ import com.emm.domain.account.AccountLinkResult
 import com.emm.domain.account.AccountRepository
 import com.emm.domain.account.GetAccountUseCase
 import com.emm.domain.account.LinkGoogleAccountUseCase
+import com.emm.domain.dailywords.DailyWordsScheduler
+import com.emm.domain.dailywords.DailyWordsSettings
+import com.emm.domain.dailywords.DailyWordsSettingsRepository
+import com.emm.domain.dailywords.GetDailyWordsSettingsUseCase
+import com.emm.domain.dailywords.SetDailyWordsEnabledUseCase
+import com.emm.domain.dailywords.SetDailyWordsTimeUseCase
+import com.emm.domain.dailywords.SyncDailyWordsUseCase
+import com.emm.domain.dailywords.ToggleDailyWordsDayUseCase
 import com.emm.domain.generation.GenerationCredits
 import com.emm.domain.generation.GenerationCreditsRepository
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
@@ -31,8 +39,10 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalTime
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +58,7 @@ private const val GOOGLE_SERVER_CLIENT_ID = "server-client-id"
 private val testBuildInfo = BuildInfo(versionName = "1.0.0", versionCode = 142, commit = "abc1234")
 private val testNow: Instant = Instant.parse("2026-09-10T17:42:00Z")
 
+@Suppress("LargeClass")
 class SettingsViewModelTest {
 
     @get:Rule
@@ -67,6 +78,9 @@ class SettingsViewModelTest {
         SyncStudyReminderUseCase(reminderRepository, reminderScheduler),
     )
 
+    private val dailyWordsRepository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT)
+    private val dailyWordsScheduler = RecordingDailyWordsScheduler()
+
     @Before
     fun setup() {
         mockkStatic(Uri::class)
@@ -84,23 +98,32 @@ class SettingsViewModelTest {
         buildInfo: BuildInfo = testBuildInfo,
         dailyNewCardLimit: DailyNewCardLimitRepository = FakeDailyNewCardLimitRepository(DailyNewCardLimit.TEN),
         productAnalytics: FakeProductAnalytics = FakeProductAnalytics(),
-    ): SettingsViewModel = SettingsViewModel(
-        exportDataSource,
-        importDataSource,
-        getStudyReminderSettings,
-        setStudyReminderEnabled,
-        setStudyReminderTime,
-        dailyNewCardLimit,
-        notificationPermission,
-        GetAccountUseCase(accountRepository),
-        LinkGoogleAccountUseCase(accountRepository),
-        googleSignInLauncher,
-        GOOGLE_SERVER_CLIENT_ID,
-        generationCredits,
-        clock,
-        buildInfo,
-        productAnalytics,
-    )
+        dailyWordsRepository: DailyWordsSettingsRepository = this.dailyWordsRepository,
+        dailyWordsScheduler: DailyWordsScheduler = this.dailyWordsScheduler,
+    ): SettingsViewModel {
+        val syncDailyWords = SyncDailyWordsUseCase(dailyWordsRepository, dailyWordsScheduler)
+        return SettingsViewModel(
+            exportDataSource = exportDataSource,
+            importDataSource = importDataSource,
+            getStudyReminderSettings = getStudyReminderSettings,
+            setStudyReminderEnabled = setStudyReminderEnabled,
+            setStudyReminderTime = setStudyReminderTime,
+            getDailyWordsSettings = GetDailyWordsSettingsUseCase(dailyWordsRepository),
+            setDailyWordsEnabledUseCase = SetDailyWordsEnabledUseCase(dailyWordsRepository, syncDailyWords),
+            setDailyWordsTimeUseCase = SetDailyWordsTimeUseCase(dailyWordsRepository, syncDailyWords),
+            toggleDailyWordsDayUseCase = ToggleDailyWordsDayUseCase(dailyWordsRepository, syncDailyWords),
+            dailyNewCardLimit = dailyNewCardLimit,
+            notificationPermission = notificationPermission,
+            getAccount = GetAccountUseCase(accountRepository),
+            linkGoogleAccountUseCase = LinkGoogleAccountUseCase(accountRepository),
+            googleSignInLauncher = googleSignInLauncher,
+            googleServerClientId = GOOGLE_SERVER_CLIENT_ID,
+            generationCredits = generationCredits,
+            clock = clock,
+            buildInfo = buildInfo,
+            productAnalytics = productAnalytics,
+        )
+    }
 
     @Test
     fun `ExportUriReceived success emits ShowSuccess effect`() = runTest {
@@ -667,6 +690,173 @@ class SettingsViewModelTest {
         assertThat(reminderRepository.setEnabledCalls).containsExactly(false)
         assertThat(viewModel.state.value.isReminderEnabled).isFalse()
     }
+
+    @Test
+    fun `the initial state carries the persisted daily words settings`() = runTest {
+        val persisted = DailyWordsSettings(
+            isEnabled = false,
+            time = LocalTime.of(8, 15),
+            days = setOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY),
+        )
+        val viewModel: SettingsViewModel = buildViewModel(
+            dailyWordsRepository = FakeDailyWordsSettingsRepository(persisted),
+        )
+
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isFalse()
+        assertThat(viewModel.state.value.dailyWordsTime).isEqualTo(LocalTime.of(8, 15))
+        assertThat(viewModel.state.value.dailyWordsDays).containsExactly(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+    }
+
+    @Test
+    fun `turning daily words on persists it and schedules the stored time`() = runTest {
+        val repository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT.copy(isEnabled = false))
+        val viewModel: SettingsViewModel = buildViewModel(dailyWordsRepository = repository)
+
+        viewModel.onIntent(SettingsUiIntent.SetDailyWordsEnabled(true))
+
+        assertThat(repository.setEnabledCalls).containsExactly(true)
+        assertThat(dailyWordsScheduler.scheduledTimes).containsExactly(DailyWordsSettings.DEFAULT_TIME)
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isTrue()
+    }
+
+    @Test
+    fun `turning daily words off persists it and cancels without asking for permission`() = runTest {
+        val viewModel: SettingsViewModel = buildViewModel(
+            notificationPermission = FakeNotificationPermission(granted = false),
+        )
+        val effectDeferred: Deferred<SettingsUiEffect> = backgroundScope.async { viewModel.effect.first() }
+
+        viewModel.onIntent(SettingsUiIntent.SetDailyWordsEnabled(false))
+
+        val effect: SettingsUiEffect? = withTimeoutOrNull(100) { effectDeferred.await() }
+        assertThat(effect).isNull()
+        assertThat(dailyWordsRepository.setEnabledCalls).containsExactly(false)
+        assertThat(dailyWordsScheduler.cancelCount).isEqualTo(1)
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isFalse()
+    }
+
+    @Test
+    fun `setting the daily words time persists it, reschedules and hides the picker`() = runTest {
+        val time: LocalTime = LocalTime.of(7, 45)
+        val viewModel: SettingsViewModel = buildViewModel()
+        viewModel.onIntent(SettingsUiIntent.EditDailyWordsTime)
+        assertThat(viewModel.state.value.isDailyWordsTimePickerVisible).isTrue()
+
+        viewModel.onIntent(SettingsUiIntent.SetDailyWordsTime(time))
+
+        assertThat(dailyWordsRepository.setTimeCalls).containsExactly(time)
+        assertThat(dailyWordsScheduler.scheduledTimes).containsExactly(time)
+        assertThat(viewModel.state.value.dailyWordsTime).isEqualTo(time)
+        assertThat(viewModel.state.value.isDailyWordsTimePickerVisible).isFalse()
+    }
+
+    @Test
+    fun `dismissing the daily words time picker hides it without persisting`() = runTest {
+        val viewModel: SettingsViewModel = buildViewModel()
+        viewModel.onIntent(SettingsUiIntent.EditDailyWordsTime)
+
+        viewModel.onIntent(SettingsUiIntent.DismissDailyWordsTimePicker)
+
+        assertThat(viewModel.state.value.isDailyWordsTimePickerVisible).isFalse()
+        assertThat(dailyWordsRepository.setTimeCalls).isEmpty()
+    }
+
+    @Test
+    fun `deselecting a weekday persists the remaining days and reschedules`() = runTest {
+        val viewModel: SettingsViewModel = buildViewModel()
+        val remaining: Set<DayOfWeek> = DailyWordsSettings.DEFAULT_DAYS - DayOfWeek.SUNDAY
+
+        viewModel.onIntent(SettingsUiIntent.ToggleDailyWordsDay(DayOfWeek.SUNDAY))
+
+        assertThat(dailyWordsRepository.setDaysCalls).containsExactly(remaining)
+        assertThat(dailyWordsScheduler.scheduledTimes).containsExactly(DailyWordsSettings.DEFAULT_TIME)
+        assertThat(viewModel.state.value.dailyWordsDays).isEqualTo(remaining)
+    }
+
+    @Test
+    fun `selecting a weekday adds it to the persisted days`() = runTest {
+        val repository = FakeDailyWordsSettingsRepository(
+            DailyWordsSettings.DEFAULT.copy(days = setOf(DayOfWeek.MONDAY)),
+        )
+        val viewModel: SettingsViewModel = buildViewModel(dailyWordsRepository = repository)
+
+        viewModel.onIntent(SettingsUiIntent.ToggleDailyWordsDay(DayOfWeek.TUESDAY))
+
+        assertThat(repository.setDaysCalls).containsExactly(setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY))
+        assertThat(viewModel.state.value.dailyWordsDays).containsExactly(DayOfWeek.MONDAY, DayOfWeek.TUESDAY)
+    }
+
+    @Test
+    fun `the last selected weekday cannot be deselected`() = runTest {
+        val repository = FakeDailyWordsSettingsRepository(
+            DailyWordsSettings.DEFAULT.copy(days = setOf(DayOfWeek.MONDAY)),
+        )
+        val viewModel: SettingsViewModel = buildViewModel(dailyWordsRepository = repository)
+
+        viewModel.onIntent(SettingsUiIntent.ToggleDailyWordsDay(DayOfWeek.MONDAY))
+
+        assertThat(viewModel.state.value.dailyWordsDays).containsExactly(DayOfWeek.MONDAY)
+        assertThat(repository.get().days).containsExactly(DayOfWeek.MONDAY)
+        assertThat(repository.setDaysCalls).isEmpty()
+        assertThat(dailyWordsScheduler.scheduledTimes).isEmpty()
+        assertThat(dailyWordsScheduler.cancelCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `turning daily words on without permission asks for it and does not persist`() = runTest {
+        val repository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT.copy(isEnabled = false))
+        val viewModel: SettingsViewModel = buildViewModel(
+            notificationPermission = FakeNotificationPermission(granted = false),
+            dailyWordsRepository = repository,
+        )
+        val effectDeferred: Deferred<SettingsUiEffect> = backgroundScope.async { viewModel.effect.first() }
+
+        viewModel.onIntent(SettingsUiIntent.SetDailyWordsEnabled(true))
+
+        assertThat(effectDeferred.await()).isEqualTo(SettingsUiEffect.RequestNotificationPermission)
+        assertThat(repository.setEnabledCalls).isEmpty()
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isFalse()
+    }
+
+    @Test
+    fun `a granted permission after the daily words request enables daily words only`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val repository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT.copy(isEnabled = false))
+        val viewModel: SettingsViewModel = buildViewModel(
+            notificationPermission = notificationPermission,
+            dailyWordsRepository = repository,
+        )
+        viewModel.onIntent(SettingsUiIntent.SetDailyWordsEnabled(true))
+        notificationPermission.granted = true
+
+        viewModel.onIntent(SettingsUiIntent.NotificationPermissionSettled)
+
+        assertThat(repository.setEnabledCalls).containsExactly(true)
+        assertThat(dailyWordsScheduler.scheduledTimes).containsExactly(DailyWordsSettings.DEFAULT_TIME)
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isTrue()
+        assertThat(reminderRepository.setEnabledCalls).isEmpty()
+        assertThat(viewModel.state.value.isReminderEnabled).isFalse()
+        assertThat(viewModel.state.value.pendingNotificationPermission).isNull()
+    }
+
+    @Test
+    fun `a granted permission after the reminder request leaves daily words untouched`() = runTest {
+        val notificationPermission = FakeNotificationPermission(granted = false)
+        val repository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT.copy(isEnabled = false))
+        val viewModel: SettingsViewModel = buildViewModel(
+            notificationPermission = notificationPermission,
+            dailyWordsRepository = repository,
+        )
+        viewModel.onIntent(SettingsUiIntent.SetReminderEnabled(true))
+        notificationPermission.granted = true
+
+        viewModel.onIntent(SettingsUiIntent.NotificationPermissionSettled)
+
+        assertThat(reminderRepository.setEnabledCalls).containsExactly(true)
+        assertThat(repository.setEnabledCalls).isEmpty()
+        assertThat(viewModel.state.value.isDailyWordsEnabled).isFalse()
+        assertThat(viewModel.state.value.pendingNotificationPermission).isNull()
+    }
 }
 
 private class FakeBackupExporter(
@@ -797,4 +987,95 @@ private class FakeGoogleSignInLauncher(
         if (suspendDuring > 0) kotlinx.coroutines.delay(suspendDuring)
         return result
     }
+}
+
+private class FakeDailyWordsSettingsRepository(
+    private var settings: DailyWordsSettings,
+) : DailyWordsSettingsRepository {
+
+    var setEnabledCalls: List<Boolean> = emptyList()
+        private set
+
+    var setTimeCalls: List<LocalTime> = emptyList()
+        private set
+
+    var setDaysCalls: List<Set<DayOfWeek>> = emptyList()
+        private set
+
+    override fun get(): DailyWordsSettings = settings
+
+    override fun setEnabled(isEnabled: Boolean) {
+        settings = settings.copy(isEnabled = isEnabled)
+        setEnabledCalls = setEnabledCalls + isEnabled
+    }
+
+    override fun setTime(time: LocalTime) {
+        settings = settings.copy(time = time)
+        setTimeCalls = setTimeCalls + time
+    }
+
+    override fun setDays(days: Set<DayOfWeek>) {
+        settings = settings.copy(days = days)
+        setDaysCalls = setDaysCalls + listOf(days)
+    }
+}
+
+private class RecordingDailyWordsScheduler : DailyWordsScheduler {
+
+    var scheduledTimes: List<LocalTime> = emptyList()
+        private set
+
+    var cancelCount: Int = 0
+        private set
+
+    override fun schedule(time: LocalTime) {
+        scheduledTimes = scheduledTimes + time
+    }
+
+    override fun cancel() {
+        cancelCount += 1
+    }
+}
+
+@Suppress("LongParameterList")
+private fun SettingsViewModel(
+    exportDataSource: BackupExporter,
+    importDataSource: BackupImporter,
+    getStudyReminderSettings: GetStudyReminderSettingsUseCase,
+    setStudyReminderEnabled: SetStudyReminderEnabledUseCase,
+    setStudyReminderTime: SetStudyReminderTimeUseCase,
+    dailyNewCardLimit: DailyNewCardLimitRepository,
+    notificationPermission: NotificationPermission,
+    getAccount: GetAccountUseCase,
+    linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
+    googleSignInLauncher: GoogleSignInLauncher,
+    googleServerClientId: String,
+    generationCredits: GenerationCreditsRepository,
+    clock: Clock,
+    buildInfo: BuildInfo,
+    productAnalytics: FakeProductAnalytics,
+): SettingsViewModel {
+    val dailyWordsRepository = FakeDailyWordsSettingsRepository(DailyWordsSettings.DEFAULT)
+    val syncDailyWords = SyncDailyWordsUseCase(dailyWordsRepository, RecordingDailyWordsScheduler())
+    return SettingsViewModel(
+        exportDataSource = exportDataSource,
+        importDataSource = importDataSource,
+        getStudyReminderSettings = getStudyReminderSettings,
+        setStudyReminderEnabled = setStudyReminderEnabled,
+        setStudyReminderTime = setStudyReminderTime,
+        getDailyWordsSettings = GetDailyWordsSettingsUseCase(dailyWordsRepository),
+        setDailyWordsEnabledUseCase = SetDailyWordsEnabledUseCase(dailyWordsRepository, syncDailyWords),
+        setDailyWordsTimeUseCase = SetDailyWordsTimeUseCase(dailyWordsRepository, syncDailyWords),
+        toggleDailyWordsDayUseCase = ToggleDailyWordsDayUseCase(dailyWordsRepository, syncDailyWords),
+        dailyNewCardLimit = dailyNewCardLimit,
+        notificationPermission = notificationPermission,
+        getAccount = getAccount,
+        linkGoogleAccountUseCase = linkGoogleAccountUseCase,
+        googleSignInLauncher = googleSignInLauncher,
+        googleServerClientId = googleServerClientId,
+        generationCredits = generationCredits,
+        clock = clock,
+        buildInfo = buildInfo,
+        productAnalytics = productAnalytics,
+    )
 }

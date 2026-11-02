@@ -4,16 +4,16 @@
 |---|---|
 | Status | Active |
 | Role | Factual feature reference |
-| Scope | `Settings` flow (backup export/import, new cards per day, daily study reminder, Google account linking) |
+| Scope | `Settings` flow (backup export/import, new cards per day, daily study reminder, daily new words notification, Google account linking) |
 | Source of Truth | No |
 | Read this when | You need to understand exporting/importing local data, the daily study reminder, or linking a Google account |
-| Last verified | 2026-09-07 |
+| Last verified | 2026-11-02 |
 
 ## Summary
 
 `Settings` lets you export local state to a file and restore the database from a backup, using the Storage Access Framework (SAF), and configure the daily study reminder (on/off, time). It's the only feature that interacts with OS `Uri`s. Enabling the reminder also gates the `POST_NOTIFICATIONS` runtime permission (Android 13+): turning it on requests the permission if not already granted, and a blocked state is surfaced directly on the reminder row. It also lets you link the local, lazily-created anonymous Supabase account to a Google account, so AI credits and study history survive a reinstall.
 
-Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Study" section with a single row for the number of new cards per day; a "Reminders" section with a single row for the daily study reminder; an "Account" section with a row for linking a Google account and an inert row showing the remaining AI generations; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
+Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displayMedium` headline and a subtitle; an "Organization" section whose "Decks" row opens deck management; a "Study" section with a single row for the number of new cards per day; a "Reminders" section with a single row for the daily study reminder; a "New words" section with the daily words switch, time and weekday rows; an "Account" section with a row for linking a Google account and an inert row showing the remaining AI generations; a "Your data" section with the export and import rows separated by an `HSeparator`; and a footer with a tagline plus a `metadata` meta line in `inkFaint`. All sections are `surface` panels shaped with `helloShapes.control`, labelled via `HSectionLabel`; each row shows `titleSmall` title, `bodySmall` subtitle and a chevron, a trailing control, or an `HLoadingSpinner` while busy. The import row's subtitle ("Replaces everything you have now.") is rendered in `destructiveInk` to signal the destructive nature of the action.
 
 ## Key files
 
@@ -23,6 +23,8 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `app/src/main/kotlin/com/emm/hello/newfeatures/settings/SettingsUiState.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/settings/SettingsUiIntent.kt`
 - `app/src/main/kotlin/com/emm/hello/newfeatures/settings/SettingsUiEffect.kt`
+- `app/src/main/kotlin/com/emm/hello/newfeatures/settings/NotificationPermissionTarget.kt` (`StudyReminder` / `DailyWords`)
+- `app/src/main/kotlin/com/emm/hello/core/ui/HTagChip.kt` (`HChip`, used for the weekday chips)
 - `app/src/main/kotlin/com/emm/hello/core/ui/Switch.kt` (`HSwitch`)
 - `app/src/main/kotlin/com/emm/hello/core/ui/TimePicker.kt` (`HTimePickerDialog`)
 - `app/src/main/kotlin/com/emm/hello/notifications/NotificationPermission.kt` (port, `isGranted()`)
@@ -41,6 +43,10 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `com.emm.domain.reminder.GetStudyReminderSettingsUseCase`
 - `com.emm.domain.reminder.SetStudyReminderEnabledUseCase`
 - `com.emm.domain.reminder.SetStudyReminderTimeUseCase`
+- `com.emm.domain.dailywords.GetDailyWordsSettingsUseCase`
+- `com.emm.domain.dailywords.SetDailyWordsEnabledUseCase`
+- `com.emm.domain.dailywords.SetDailyWordsTimeUseCase`
+- `com.emm.domain.dailywords.ToggleDailyWordsDayUseCase`
 - `com.emm.domain.account.GetAccountUseCase`
 - `com.emm.domain.account.LinkGoogleAccountUseCase`
 - `com.emm.domain.account.AccountRepository` (interface), implemented by `com.emm.data.remote.SupabaseAccountRepository`
@@ -61,6 +67,9 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `dailyNewCardLimit: DailyNewCardLimit` — default `DailyNewCardLimit.DEFAULT` (10); overwritten in `init` with `DailyNewCardLimitRepository.get()` — see "New cards per day"
 - `isReminderTimePickerVisible: Boolean`
 - `isNotificationPermissionGranted: Boolean` — default `true`; overwritten in `init` with `NotificationPermission.isGranted()`
+- `isDailyWordsEnabled: Boolean`, `dailyWordsTime: LocalTime`, `dailyWordsDays: Set<DayOfWeek>` — defaults from `DailyWordsSettings.DEFAULT` (on, 09:00, every day); overwritten in `init` with `GetDailyWordsSettingsUseCase()` — see "Daily words flow"
+- `isDailyWordsTimePickerVisible: Boolean`
+- `pendingNotificationPermission: NotificationPermissionTarget?` — which switch asked for the permission prompt still open; `null` otherwise
 - `account: Account?` — default `null`; loaded asynchronously in `init` — see "Account flow"
 - `isLinkingAccount: Boolean` — default `false`
 - `generationCredits: GenerationCredits?` — default `null`; the last reading the backend reported, or `null` once its `resetAt` has passed — see "AI generations row"
@@ -81,7 +90,8 @@ Layout: an `HTopBar` with only a back arrow, then a `metadata` eyebrow, a `displ
 - `DismissReminderTimePicker` → hides it without saving
 - `SetReminderTime(time)` → persists the time, syncs the scheduler, and hides the dialog
 - `DailyNewCardLimitSelected(limit)` → persists the limit through `DailyNewCardLimitRepository.set(limit)` and updates `dailyNewCardLimit` — see "New cards per day"
-- `NotificationPermissionSettled` → re-reads `NotificationPermission.isGranted()` after the system permission dialog closes; if granted, also enables and persists the reminder
+- `SetDailyWordsEnabled(isEnabled)`, `EditDailyWordsTime`, `DismissDailyWordsTimePicker`, `SetDailyWordsTime(time)`, `ToggleDailyWordsDay(day)` → see "Daily words flow"
+- `NotificationPermissionSettled` → re-reads `NotificationPermission.isGranted()` after the system permission dialog closes; if granted, enables and persists only the switch recorded in `pendingNotificationPermission`, then always clears it
 - `RefreshNotificationPermission` → re-reads `NotificationPermission.isGranted()` and updates state; sent by the `Route` on `ON_RESUME`
 - `OpenNotificationSettings` → emits `OpenNotificationSettings`
 - `LinkGoogleAccount` → starts the Google sign-in flow — see "Account flow"
@@ -134,7 +144,7 @@ The switch itself always toggles the reminder, independent of the row tap target
   - If granted, persists the flag (`SetStudyReminderEnabledUseCase(true)`) and sets `isReminderEnabled = true`.
   - If not granted, the flag is **not** persisted and `isReminderEnabled` stays `false`; the ViewModel emits `RequestNotificationPermission` instead. The `Route` launches the system `POST_NOTIFICATIONS` prompt via `ActivityResultContracts.RequestPermission()` through `requestPostNotificationsPermission`; below Android 13 there is no prompt, so the `Route` dispatches `NotificationPermissionSettled` directly.
 - **After the system dialog closes:** the `Route` always sends `NotificationPermissionSettled`, regardless of the launcher's own `Boolean` result (that result is ignored on purpose). The ViewModel re-reads `NotificationPermission.isGranted()` directly:
-  - Granted → `isNotificationPermissionGranted = true`, and the reminder is now enabled and persisted (`SetStudyReminderEnabledUseCase(true)`, `isReminderEnabled = true`).
+  - Granted → `isNotificationPermissionGranted = true`, and the reminder is now enabled and persisted (`SetStudyReminderEnabledUseCase(true)`, `isReminderEnabled = true`). This only happens when the reminder switch made the request (`pendingNotificationPermission == StudyReminder`); a request from the daily words switch never enables the reminder.
   - Denied → `isNotificationPermissionGranted = false`, the switch stays off, and the row shows the blocked subtitle.
 - **Opening system settings:** `OpenNotificationSettings` (row tap while blocked) emits the `OpenNotificationSettings` effect; the `Route` starts `Settings.ACTION_APP_NOTIFICATION_SETTINGS` for the app's package.
 - **Resuming the screen:** `SettingsRoute` re-sends `RefreshNotificationPermission` on `Lifecycle.Event.ON_RESUME` via `LifecycleEventEffect`, so returning from system settings (or from any permission change) re-reads `NotificationPermission.isGranted()` and updates the row without extra user action.
@@ -145,9 +155,25 @@ The switch itself always toggles the reminder, independent of the row tap target
 - **Permission port:** `NotificationPermission.isGranted()` (`com.emm.hello.notifications`) is implemented by `SystemNotificationPermission` over `NotificationManagerCompat.from(context).areNotificationsEnabled()`, and wired as a Koin `single` in `NewModule.kt`.
 - **Tests:** `SettingsViewModelTest` has 8 tests covering this flow (31 total in the file).
 
+## Daily words flow
+
+A "New words" section (`settings_section_daily_words`) sits between "Reminders" and "Account", in its own `surface` panel with three rows separated by `HSeparator`:
+
+- **Switch row:** `Translate` icon, title "Daily new words", trailing `HSwitch`. With permission granted the subtitle is `settings_daily_words_subtitle` and tapping the row toggles the switch; with permission denied it copies the reminder row's blocked state (`settings_notifications_blocked` in `destructiveInk`, tap sends `OpenNotificationSettings`).
+- **Time row:** `Schedule` icon, title "Time", the current `dailyWordsTime` as `HH:mm`. Tapping sends `EditDailyWordsTime`, which opens `HTimePickerDialog` titled `settings_daily_words_time_picker_title`; confirming sends `SetDailyWordsTime(time)`, dismissing sends `DismissDailyWordsTimePicker`.
+- **Days row:** `CalendarMonth` icon, title "Days", and seven `HChip`s, Monday to Sunday, in a `FlowRow`, labelled with `DayOfWeek.getDisplayName(TextStyle.SHORT, locale)` for the configuration locale; `active` marks the selected days and a tap sends `ToggleDailyWordsDay(day)`.
+
+While the switch is off the time row and the chips are disabled and drawn in `inkFaint` (`HChip(enabled = false)`).
+
+- **Toggle off:** `SetDailyWordsEnabled(false)` persists through `SetDailyWordsEnabledUseCase(false)`, which re-runs `SyncDailyWordsUseCase` (cancels). No permission check.
+- **Toggle on:** with permission, `SetDailyWordsEnabledUseCase(true)` persists and syncs. Without it nothing is persisted; the ViewModel sets `pendingNotificationPermission = DailyWords` and emits `RequestNotificationPermission`, and `NotificationPermissionSettled` enables daily words if the permission was granted.
+- **Time:** `SetDailyWordsTimeUseCase(time)` persists, syncs and hides the dialog.
+- **Days:** `ToggleDailyWordsDayUseCase(day)` adds or removes the day, persists through `setDays`, syncs, and returns the new set. Removing the last selected day is refused: it returns the unchanged set and neither persists nor syncs.
+- **Tests:** `SettingsViewModelTest` covers the initial state, each persist-and-sync path, the permission request and its settlement for both switches, and the last-day guard.
+
 ## Account flow
 
-An "Account" section sits between "Reminders" and "Your data": one row with an `AccountCircle` icon, title "Google account" (`settings_google_account_title`), and a subtitle that depends on the loaded `account`:
+An "Account" section sits between "New words" and "Your data": one row with an `AccountCircle` icon, title "Google account" (`settings_google_account_title`), and a subtitle that depends on the loaded `account`:
 
 - **Anonymous, or not loaded yet** (`account == null` or `account.isAnonymous`): subtitle `settings_google_account_not_linked` ("Not linked — your cards live only on this device").
 - **Linked** (`account.isAnonymous == false`): subtitle is `account.email` when present, otherwise the fallback `settings_google_account_linked` ("Linked").
@@ -194,4 +220,4 @@ Freshness is one comparison, `now < resetAt` (`GenerationCredits.isFreshAt`), wi
 
 ## MVI notes
 
-`SettingsViewModel` follows the pure `onIntent(intent)` contract. The SAF pickers are side effects: the VM asks for them through `LaunchExportPicker` / `LaunchImportPicker`, and the `Route` feeds the resulting `Uri` back as `ExportUriReceived` / `ImportUriReceived` intents. `EditReminderTime`, `DismissReminderTimePicker` and `SetReminderTime` never emit an effect — they only call a use case and/or update state directly. `SetReminderEnabled` conditionally emits `RequestNotificationPermission` (turning on while blocked); `OpenNotificationSettings` (intent) always emits `OpenNotificationSettings` (effect); `NotificationPermissionSettled` and `RefreshNotificationPermission` never emit an effect, they only re-read the port and update state. The permission round trip follows the same effect-in / intent-back shape as the SAF pickers: the VM asks for the system dialog, the `Route` shows it and reports back once it's settled, and the VM never touches `Context` directly. `SettingsViewModel` takes four extra constructor dependencies for this (`GetStudyReminderSettingsUseCase`, `SetStudyReminderEnabledUseCase`, `SetStudyReminderTimeUseCase`, `NotificationPermission`) and loads the initial reminder settings and permission state in `init`. It takes six more for the account flow (`GetAccountUseCase`, `LinkGoogleAccountUseCase`, `GoogleSignInLauncher`, the server client id and two failure-message strings) and loads the account asynchronously in `init` too, via `viewModelScope`. `LinkGoogleAccount` breaks the effect-in/intent-back pattern used by the SAF pickers and the permission prompt: the `GoogleSignInLauncher` port runs the whole credential exchange itself (it needs a foreground `Activity`, supplied by `CurrentActivityHolder` rather than the `Route`) and returns a typed `GoogleSignInResult` straight to the ViewModel, so `SettingsRoute` has no involvement beyond forwarding the `LinkGoogleAccount` intent. There are no extra VM entry points.
+`SettingsViewModel` follows the pure `onIntent(intent)` contract. The SAF pickers are side effects: the VM asks for them through `LaunchExportPicker` / `LaunchImportPicker`, and the `Route` feeds the resulting `Uri` back as `ExportUriReceived` / `ImportUriReceived` intents. `EditReminderTime`, `DismissReminderTimePicker` and `SetReminderTime` never emit an effect — they only call a use case and/or update state directly. `SetReminderEnabled` conditionally emits `RequestNotificationPermission` (turning on while blocked); `OpenNotificationSettings` (intent) always emits `OpenNotificationSettings` (effect); `NotificationPermissionSettled` and `RefreshNotificationPermission` never emit an effect, they only re-read the port and update state. The permission round trip follows the same effect-in / intent-back shape as the SAF pickers: the VM asks for the system dialog, the `Route` shows it and reports back once it's settled, and the VM never touches `Context` directly. `SettingsViewModel` takes four extra constructor dependencies for this (`GetStudyReminderSettingsUseCase`, `SetStudyReminderEnabledUseCase`, `SetStudyReminderTimeUseCase`, `NotificationPermission`) and loads the initial reminder settings and permission state in `init`. It takes four more for daily words (`GetDailyWordsSettingsUseCase`, `SetDailyWordsEnabledUseCase`, `SetDailyWordsTimeUseCase`, `ToggleDailyWordsDayUseCase`) and seeds them synchronously in `init` as well. It takes six more for the account flow (`GetAccountUseCase`, `LinkGoogleAccountUseCase`, `GoogleSignInLauncher`, the server client id and two failure-message strings) and loads the account asynchronously in `init` too, via `viewModelScope`. `LinkGoogleAccount` breaks the effect-in/intent-back pattern used by the SAF pickers and the permission prompt: the `GoogleSignInLauncher` port runs the whole credential exchange itself (it needs a foreground `Activity`, supplied by `CurrentActivityHolder` rather than the `Route`) and returns a typed `GoogleSignInResult` straight to the ViewModel, so `SettingsRoute` has no involvement beyond forwarding the `LinkGoogleAccount` intent. There are no extra VM entry points.

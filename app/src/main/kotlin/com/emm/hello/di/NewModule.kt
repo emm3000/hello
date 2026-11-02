@@ -112,6 +112,10 @@ import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.domain.reminder.StudyReminderScheduler
 import com.emm.domain.dailywords.DailyWordsScheduler
 import com.emm.domain.dailywords.DailyWordsSettingsRepository
+import com.emm.domain.dailywords.GetDailyWordsSettingsUseCase
+import com.emm.domain.dailywords.SetDailyWordsEnabledUseCase
+import com.emm.domain.dailywords.SetDailyWordsTimeUseCase
+import com.emm.domain.dailywords.ToggleDailyWordsDayUseCase
 import com.emm.domain.dailywords.PrepareScheduledDailyWordsUseCase
 import com.emm.domain.dailywords.SyncDailyWordsUseCase
 import com.emm.hello.notifications.NotificationPermission
@@ -310,6 +314,10 @@ fun Module.useCases() {
     factoryOf(::SetStudyReminderEnabledUseCase)
     factoryOf(::SetStudyReminderTimeUseCase)
     factoryOf(::GetStudyReminderSettingsUseCase)
+    factoryOf(::GetDailyWordsSettingsUseCase)
+    factoryOf(::SetDailyWordsEnabledUseCase)
+    factoryOf(::SetDailyWordsTimeUseCase)
+    factoryOf(::ToggleDailyWordsDayUseCase)
     factoryOf(::GetAccountUseCase)
     factoryOf(::LinkGoogleAccountUseCase)
     factoryOf(::GetCuratedDecksUseCase)
@@ -383,6 +391,10 @@ fun Module.viewModels() {
             getStudyReminderSettings = get(),
             setStudyReminderEnabled = get(),
             setStudyReminderTime = get(),
+            getDailyWordsSettings = get(),
+            setDailyWordsEnabledUseCase = get(),
+            setDailyWordsTimeUseCase = get(),
+            toggleDailyWordsDayUseCase = get(),
             dailyNewCardLimit = get(),
             notificationPermission = get(),
             getAccount = get(),

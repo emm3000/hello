@@ -3,6 +3,7 @@ package com.emm.hello.newfeatures.settings
 import android.net.Uri
 import com.emm.domain.study.DailyNewCardLimit
 import com.emm.hello.core.mvi.MviIntent
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 sealed interface SettingsUiIntent : MviIntent {
@@ -16,6 +17,11 @@ sealed interface SettingsUiIntent : MviIntent {
     data object EditReminderTime : SettingsUiIntent
     data object DismissReminderTimePicker : SettingsUiIntent
     data class SetReminderTime(val time: LocalTime) : SettingsUiIntent
+    data class SetDailyWordsEnabled(val isEnabled: Boolean) : SettingsUiIntent
+    data object EditDailyWordsTime : SettingsUiIntent
+    data object DismissDailyWordsTimePicker : SettingsUiIntent
+    data class SetDailyWordsTime(val time: LocalTime) : SettingsUiIntent
+    data class ToggleDailyWordsDay(val day: DayOfWeek) : SettingsUiIntent
     data class DailyNewCardLimitSelected(val limit: DailyNewCardLimit) : SettingsUiIntent
     data object NotificationPermissionSettled : SettingsUiIntent
     data object RefreshNotificationPermission : SettingsUiIntent
