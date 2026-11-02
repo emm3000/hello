@@ -25,6 +25,7 @@ import com.emm.hello.R
 import com.emm.hello.core.theme.HelloTheme
 import com.emm.hello.core.theme.helloShapes
 import com.emm.hello.core.theme.ink
+import com.emm.hello.core.theme.inkFaint
 import com.emm.hello.core.theme.onInk
 import com.emm.hello.core.theme.pageBackground
 import com.emm.hello.core.theme.spacing
@@ -35,18 +36,19 @@ fun HChip(
     label: String,
     modifier: Modifier = Modifier,
     active: Boolean = false,
+    enabled: Boolean = true,
     onRemove: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    val containerColor: Color = if (active) ink else surfaceRaised
-    val contentColor: Color = if (active) onInk else ink
+    val containerColor: Color = chipContainerColor(active = active, enabled = enabled)
+    val contentColor: Color = chipContentColor(active = active, enabled = enabled)
 
     Row(
         modifier = modifier
             .heightIn(min = 48.dp)
             .clip(MaterialTheme.helloShapes.pill)
             .background(containerColor)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(enabled = enabled, onClick = onClick) else Modifier)
             .padding(horizontal = MaterialTheme.spacing.lg, vertical = MaterialTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
@@ -63,10 +65,22 @@ fun HChip(
                 tint = contentColor,
                 modifier = Modifier
                     .size(16.dp)
-                    .clickable(onClick = onRemove),
+                    .clickable(enabled = enabled, onClick = onRemove),
             )
         }
     }
+}
+
+private fun chipContainerColor(active: Boolean, enabled: Boolean): Color = when {
+    active && enabled -> ink
+    active -> inkFaint
+    else -> surfaceRaised
+}
+
+private fun chipContentColor(active: Boolean, enabled: Boolean): Color = when {
+    active -> onInk
+    enabled -> ink
+    else -> inkFaint
 }
 
 @Composable
@@ -97,6 +111,8 @@ private fun HChipStatesPreview() {
                 HChip(label = "activo", active = true)
                 HChip(label = "quitar", onRemove = {})
                 HChip(label = "activo", active = true, onRemove = {})
+                HChip(label = "apagado", enabled = false, onClick = {})
+                HChip(label = "apagado", active = true, enabled = false, onClick = {})
             }
         }
     }
