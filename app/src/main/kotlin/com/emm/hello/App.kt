@@ -1,10 +1,12 @@
 package com.emm.hello
 
 import android.app.Application
+import com.emm.domain.dailywords.SyncDailyWordsUseCase
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.hello.core.activity.CurrentActivityHolder
 import com.emm.hello.di.newModule
 import com.emm.hello.di.repositoryModule
+import com.emm.hello.notifications.ensureDailyWordsChannel
 import com.emm.hello.notifications.ensureStudyReminderChannel
 import com.emm.hello.startup.AppStartupCoordinator
 import com.google.firebase.FirebaseApp
@@ -37,8 +39,10 @@ class App : Application() {
         }
         registerActivityLifecycleCallbacks(GlobalContext.get().get<CurrentActivityHolder>())
         ensureStudyReminderChannel(this)
+        ensureDailyWordsChannel(this)
         GlobalContext.get().get<AppStartupCoordinator>().start()
         GlobalContext.get().get<SyncStudyReminderUseCase>().invoke()
+        GlobalContext.get().get<SyncDailyWordsUseCase>().invoke()
     }
 
     private fun installAppCheck() {

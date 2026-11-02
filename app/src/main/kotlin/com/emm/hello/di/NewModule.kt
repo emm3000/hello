@@ -101,6 +101,7 @@ import com.emm.data.export.BackupImporter
 import com.emm.data.export.ExportBackupDataSource
 import com.emm.data.export.ImportBackupDataSource
 import com.emm.data.onboarding.DataStoreOnboardingStateRepository
+import com.emm.data.dailywords.DataStoreDailyWordsSettingsRepository
 import com.emm.data.reminder.DataStoreStudyReminderSettingsRepository
 import com.emm.domain.onboarding.OnboardingStateRepository
 import com.emm.domain.reminder.GetStudyReminderSettingsUseCase
@@ -109,8 +110,13 @@ import com.emm.domain.reminder.SetStudyReminderTimeUseCase
 import com.emm.domain.reminder.StudyReminderSettingsRepository
 import com.emm.domain.reminder.SyncStudyReminderUseCase
 import com.emm.domain.reminder.StudyReminderScheduler
+import com.emm.domain.dailywords.DailyWordsScheduler
+import com.emm.domain.dailywords.DailyWordsSettingsRepository
+import com.emm.domain.dailywords.PrepareScheduledDailyWordsUseCase
+import com.emm.domain.dailywords.SyncDailyWordsUseCase
 import com.emm.hello.notifications.NotificationPermission
 import com.emm.hello.notifications.SystemNotificationPermission
+import com.emm.hello.notifications.WorkManagerDailyWordsScheduler
 import com.emm.hello.notifications.WorkManagerStudyReminderScheduler
 import com.emm.hello.newfeatures.card.EditFlashcardViewModel
 import com.emm.hello.newfeatures.onboarding.OnboardingViewModel
@@ -133,6 +139,7 @@ import com.emm.hello.core.auth.GoogleSignInLauncher
 import com.emm.hello.enrichment.FlashcardEnrichmentScheduler
 import com.emm.hello.startup.AppStartupCoordinator
 import com.emm.hello.startup.AppStartupViewModel
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -227,9 +234,11 @@ fun Module.repository() {
     factoryOf(::ImportBackupDataSource) bind BackupImporter::class
     factoryOf(::DataStoreOnboardingStateRepository) bind OnboardingStateRepository::class
     factoryOf(::DataStoreStudyReminderSettingsRepository) bind StudyReminderSettingsRepository::class
+    factoryOf(::DataStoreDailyWordsSettingsRepository) bind DailyWordsSettingsRepository::class
     factoryOf(::DataStoreDailyNewCardLimitRepository) bind DailyNewCardLimitRepository::class
     single<CuratedDeckCatalog> { BundledCuratedDeckCatalog() }
     single<StudyReminderScheduler> { WorkManagerStudyReminderScheduler(androidContext(), get()) }
+    single<DailyWordsScheduler> { WorkManagerDailyWordsScheduler(androidContext(), get()) }
     single<NotificationPermission> { SystemNotificationPermission(androidContext()) }
     single<SeedDataInitializer> {
         DefaultSeedDataInitializer(
@@ -296,6 +305,8 @@ fun Module.useCases() {
     factoryOf(::MarkSuggestedWordsSeenUseCase)
     factoryOf(::PrepareDailyWordsUseCase)
     factoryOf(::SyncStudyReminderUseCase)
+    factoryOf(::SyncDailyWordsUseCase)
+    factory { PrepareScheduledDailyWordsUseCase(get(), get(), get(), ZoneId.systemDefault()) }
     factoryOf(::SetStudyReminderEnabledUseCase)
     factoryOf(::SetStudyReminderTimeUseCase)
     factoryOf(::GetStudyReminderSettingsUseCase)

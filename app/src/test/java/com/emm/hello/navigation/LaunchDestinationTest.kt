@@ -13,6 +13,13 @@ class LaunchDestinationTest {
     }
 
     @Test
+    fun `fromExtraValue with daily_words returns DailyWords`() {
+        val destination: LaunchDestination? = LaunchDestination.fromExtraValue("daily_words")
+
+        assertThat(destination).isEqualTo(LaunchDestination.DailyWords)
+    }
+
+    @Test
     fun `fromExtraValue with null returns null`() {
         val destination: LaunchDestination? = LaunchDestination.fromExtraValue(null)
 

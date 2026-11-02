@@ -4,6 +4,7 @@ import android.content.Context
 import com.emm.hello.newfeatures.deck.DeckFormMode
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import java.time.ZoneId
 import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
@@ -22,6 +23,7 @@ class KoinModulesTest {
                 Function1::class,
                 DoubleArray::class,
                 DeckFormMode::class,
+                ZoneId::class,
             ),
         )
     }

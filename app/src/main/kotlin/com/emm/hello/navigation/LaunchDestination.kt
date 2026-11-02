@@ -1,7 +1,8 @@
 package com.emm.hello.navigation
 
 enum class LaunchDestination(val extraValue: String) {
-    StudyDue("study_due");
+    StudyDue("study_due"),
+    DailyWords("daily_words");
 
     companion object {
         const val EXTRA_NAME: String = "com.emm.hello.extra.LAUNCH_DESTINATION"

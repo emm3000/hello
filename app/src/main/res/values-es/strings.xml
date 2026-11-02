@@ -129,6 +129,14 @@
         <item quantity="many">Tienes %1$d de tarjetas para repasar hoy.</item>
         <item quantity="other">Tienes %1$d tarjetas para repasar hoy.</item>
     </plurals>
+    <string name="notification_daily_words_channel_name">Palabras nuevas</string>
+    <string name="notification_daily_words_channel_description">Una tanda diaria de palabras y frases cotidianas para aprender.</string>
+    <string name="notification_daily_words_title">Tus palabras nuevas</string>
+    <plurals name="notification_daily_words_body">
+        <item quantity="one">Hoy: %1$s · %2$d palabra o frase nueva</item>
+        <item quantity="many">Hoy: %1$s · %2$d de palabras y frases nuevas</item>
+        <item quantity="other">Hoy: %1$s · %2$d palabras y frases nuevas</item>
+    </plurals>
 
     <!-- Settings Screen -->
     <string name="export_data">Exportar datos</string>

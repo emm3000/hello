@@ -234,4 +234,5 @@ private fun StartupErrorScreen(
 
 private fun LaunchDestination.toNavKey(): NavKey = when (this) {
     LaunchDestination.StudyDue -> StudyRoute(deckId = null)
+    LaunchDestination.DailyWords -> SuggestRoute
 }

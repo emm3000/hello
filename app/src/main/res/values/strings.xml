@@ -124,6 +124,13 @@
         <item quantity="one">You have %1$d card to review today.</item>
         <item quantity="other">You have %1$d cards to review today.</item>
     </plurals>
+    <string name="notification_daily_words_channel_name">New words</string>
+    <string name="notification_daily_words_channel_description">A daily set of everyday words and phrases to learn.</string>
+    <string name="notification_daily_words_title">Your new words</string>
+    <plurals name="notification_daily_words_body">
+        <item quantity="one">Today: %1$s · %2$d new word or phrase</item>
+        <item quantity="other">Today: %1$s · %2$d new words and phrases</item>
+    </plurals>
 
     <!-- Settings Screen -->
     <string name="export_data">Export data</string>
