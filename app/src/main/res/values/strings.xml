@@ -302,6 +302,8 @@
     <string name="settings_daily_words_time_title">Time</string>
     <string name="settings_daily_words_days_title">Days</string>
     <string name="settings_daily_words_time_picker_title">New words time</string>
+    <string name="time_picker_hour">Hour</string>
+    <string name="time_picker_minute">Minute</string>
     <string name="settings_section_account">Account</string>
     <string name="settings_google_account_title">Google account</string>
     <string name="settings_google_account_linked">Linked</string>

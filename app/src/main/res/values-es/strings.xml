@@ -311,6 +311,8 @@
     <string name="settings_daily_words_time_title">Hora</string>
     <string name="settings_daily_words_days_title">Días</string>
     <string name="settings_daily_words_time_picker_title">Hora de las palabras nuevas</string>
+    <string name="time_picker_hour">Hora</string>
+    <string name="time_picker_minute">Minuto</string>
     <string name="settings_section_account">Cuenta</string>
     <string name="settings_google_account_title">Cuenta de Google</string>
     <string name="settings_google_account_linked">Vinculada</string>
